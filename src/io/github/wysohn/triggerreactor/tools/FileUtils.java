@@ -19,8 +19,8 @@ package io.github.wysohn.triggerreactor.tools;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 
 public class FileUtils {
@@ -35,8 +35,9 @@ public class FileUtils {
 
         File temp = File.createTempFile(file.getName(), ".tmp", file.getParentFile());
 
-        try(FileWriter fw = new FileWriter(temp)){
-            fw.write(str);
+        try(FileOutputStream fos = new FileOutputStream(temp);
+                OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");){
+            osw.write(str);
         }catch(IOException e){
             throw e;
         }

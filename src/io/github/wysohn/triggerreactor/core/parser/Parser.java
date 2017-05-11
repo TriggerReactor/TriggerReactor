@@ -353,7 +353,7 @@ public class Parser {
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException{
         Charset charset = Charset.forName("UTF-8");
-        String text = ""
+/*        String text = ""
                 + "X = 5\n"
                 + "WHILE 1 > 0\n"
                 + "    IF {test.test..loc} > 2 || {player.health} > 0\n"
@@ -366,7 +366,9 @@ public class Parser {
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";
+                + "ENDWHILE";*/
+
+        String text = "#MESSAGE \"빰빰\"";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.lexer;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,6 +24,7 @@ import java.util.Arrays;
 
 import io.github.wysohn.triggerreactor.core.Token;
 import io.github.wysohn.triggerreactor.core.Token.Type;
+import sun.nio.cs.StreamDecoder;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -34,7 +34,7 @@ public class Lexer {
     }
 
     private InputStream stream;
-    private BufferedInputStream inputStream;
+    private StreamDecoder sd;
 
     private boolean eos = false;
     private char c = 0;
@@ -58,7 +58,7 @@ public class Lexer {
     }
 
     private void initInputStream() throws IOException {
-        this.inputStream = new BufferedInputStream(stream);
+        this.sd = StreamDecoder.forInputStreamReader(stream, this, "UTF-8");
         read();//position to first element
     }
 
@@ -75,9 +75,16 @@ public class Lexer {
      * @return false if end of stream is reached.
      * @throws IOException
      */
+    private boolean unget = false;
+    private char last = 0;
     private boolean read() throws IOException {
-        inputStream.mark(0);
-        int read = inputStream.read();
+        if(unget){
+            c = last;
+        }
+
+        last = c;
+
+        int read = sd.read();
         if (read == -1) {
             c = 0;
             eos = true;
@@ -95,7 +102,7 @@ public class Lexer {
 
     private void unread() throws IOException{
         col--;
-        inputStream.reset();
+        unget = true;
     }
 
     /**

@@ -17,8 +17,9 @@
 package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,10 +94,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             }
 
             String script = null;
-            try(FileReader fr = new FileReader(file)){
+            try(FileInputStream fis = new FileInputStream(file);
+                    InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
                 StringBuilder builder = new StringBuilder();
                 int read = -1;
-                while((read = fr.read()) != -1)
+                while((read = isr.read()) != -1)
                     builder.append((char) read);
                 script = builder.toString();
             } catch (IOException e) {
