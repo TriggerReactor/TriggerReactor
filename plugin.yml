@@ -1,0 +1,12 @@
+name: TriggerReactor
+main: io.github.wysohn.triggerreactor.main.TriggerReactor
+version: 0.0.1
+author: wysohn
+softdepend: [ChatLib, UserInterfaceLib, SkillsLib, Vault, PlaceHolderAPI]
+commands:
+  triggerreactor:
+    aliases: [trigger, trg]
+    description: trigger reactor
+permissions:
+  triggerreactor.admin:
+    description: Grants access to commands

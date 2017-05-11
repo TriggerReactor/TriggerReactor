@@ -1,0 +1,70 @@
+package io.github.wysohn.triggerreactor.manager.location;
+
+import org.bukkit.Chunk;
+
+public class SimpleChunkLocation {
+    String world;
+    int i,j;
+    public SimpleChunkLocation(String world, int i, int j) {
+        super();
+        this.world = world;
+        this.i = i;
+        this.j = j;
+    }
+    public SimpleChunkLocation(Chunk chunk) {
+        super();
+        this.world = chunk.getWorld().getName();
+        this.i = chunk.getX();
+        this.j = chunk.getZ();
+    }
+    public SimpleChunkLocation(SimpleLocation sloc) {
+        super();
+        this.world = sloc.world;
+        this.i = sloc.x >> 4;
+        this.j = sloc.z >> 4;
+    }
+
+    public String getWorld() {
+        return world;
+    }
+    public int getI() {
+        return i;
+    }
+    public int getJ() {
+        return j;
+    }
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + i;
+        result = prime * result + j;
+        result = prime * result + ((world == null) ? 0 : world.hashCode());
+        return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SimpleChunkLocation other = (SimpleChunkLocation) obj;
+        if (i != other.i)
+            return false;
+        if (j != other.j)
+            return false;
+        if (world == null) {
+            if (other.world != null)
+                return false;
+        } else if (!world.equals(other.world))
+            return false;
+        return true;
+    }
+    @Override
+    public String toString() {
+        return "SimpleChunkLocation [world=" + world + ", i=" + i + ", j=" + j + "]";
+    }
+
+}
