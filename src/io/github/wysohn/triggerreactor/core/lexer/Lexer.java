@@ -16,15 +16,16 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.lexer;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
 import io.github.wysohn.triggerreactor.core.Token;
 import io.github.wysohn.triggerreactor.core.Token.Type;
-import sun.nio.cs.StreamDecoder;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -34,7 +35,7 @@ public class Lexer {
     }
 
     private InputStream stream;
-    private StreamDecoder sd;
+    private BufferedReader br;
 
     private boolean eos = false;
     private char c = 0;
@@ -58,7 +59,8 @@ public class Lexer {
     }
 
     private void initInputStream() throws IOException {
-        this.sd = StreamDecoder.forInputStreamReader(stream, this, "UTF-8");
+        InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
+        br = new BufferedReader(isr);
         read();//position to first element
     }
 
@@ -75,16 +77,10 @@ public class Lexer {
      * @return false if end of stream is reached.
      * @throws IOException
      */
-    private boolean unget = false;
-    private char last = 0;
     private boolean read() throws IOException {
-        if(unget){
-            c = last;
-        }
+        br.mark(0);
 
-        last = c;
-
-        int read = sd.read();
+        int read = br.read();
         if (read == -1) {
             c = 0;
             eos = true;
@@ -102,7 +98,7 @@ public class Lexer {
 
     private void unread() throws IOException{
         col--;
-        unget = true;
+        br.reset();
     }
 
     /**
@@ -358,6 +354,7 @@ public class Lexer {
             }
         }
 
+        skipComment();
         if(c != '}'){
             throw new LexerException("} expected!", this);
         }
@@ -381,12 +378,13 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException{
         Charset charset = Charset.forName("UTF-8");
-/*        String text = ""
+        String text = ""
                 + "X = 5\n"
                 + "WHILE 1 > 0\n"
-                + "    IF {player.test.health} > 2 || {player.health} > 0\n"
+                + "    IF {player.test.health/*Im not code~*/} > 2 || {player.health} > 0\n"
                 + "        #MESSAGE 3*4\n"
                 + "    ELSE\n"
+                + "        //some comment\n"
                 + "        #MESSAGE 777\n"
                 + "    ENDIF\n"
                 + "    X = X - 1\n"
@@ -394,8 +392,8 @@ public class Lexer {
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";*/
-        String text = "#CMD \"w \"+name ";
+                + "ENDWHILE";
+        //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
