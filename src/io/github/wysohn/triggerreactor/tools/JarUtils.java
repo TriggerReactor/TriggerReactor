@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -27,7 +28,8 @@ public class JarUtils {
     public static void copyFolderFromJar(String folderName, File destFolder) throws IOException{
         byte[] buffer = new byte[1024];
 
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(JarUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath()));
+        ZipInputStream zis = new ZipInputStream(new FileInputStream(
+                URLDecoder.decode(JarUtils.class.getProtectionDomain().getCodeSource().getLocation().toString(), "UTF-8")));
 
         ZipEntry entry;
         while ((entry = zis.getNextEntry()) != null) {
