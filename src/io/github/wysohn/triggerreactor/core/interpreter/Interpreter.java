@@ -364,13 +364,20 @@ public class Interpreter {
             }
 
             Token parent = stack.pop();
+            if(isVariable(parent)){
+                parent = unwrapVariable(parent);
+            }
+
             if(!(parent.value instanceof ObjectReference))
                 throw new InterpreterException("Expected a ObjectReference value but found "+parent.value.getClass().getSimpleName());
 
             ObjectReference ref = (ObjectReference) parent.value;
             Object result = ref.invokeMethod((String) node.getToken().value, args);
 
-            stack.push(new Token(Type.OBJECT, result));
+            if(isPrimitive(result))
+                stack.push(new Token(Type.OBJECT, result));
+            else
+                stack.push(new Token(Type.OBJECT, new ObjectReference(result, (String) node.getToken().value)));
             callReturn = true;
         }else if(node.getToken().type == Type.ID || node.getToken().type == Type.GID){
             stack.push(node.getToken());
@@ -481,8 +488,8 @@ public class Interpreter {
                 + "    ELSE\n"
                 + "        #MESSAGE str\n"
                 + "    ENDIF\n"
-                + "    #MESSAGE player.in.health\n"
-                + "    player.in.health = player.in.health + 1.2\n"
+                + "    #MESSAGE player.getTest().getTest().health\n"
+                + "    player.getTest().getTest().health = player.getTest().getTest().health + 1.2\n"
                 + "    #MESSAGE player.in.hasPermission(\"t\")\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"

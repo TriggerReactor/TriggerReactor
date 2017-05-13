@@ -408,18 +408,23 @@ public class Parser {
 
             if("(".equals(token.value)){//fuction call
                 nextToken();
-
                 Node call = new Node(new Token(Type.CALL, idToken.value));
-                do{
-                    call.getChildren().add(parseLogic());
-                }while(",".equals(token.value));
 
-                if(token == null || !")".equals(token))
-                    throw new ParserException("Extected ')' but end of stream is reached.");
+                if(")".equals(token.value)){
+                    deque.addLast(call);
+                    nextToken();
+                }else{
+                    do{
+                        call.getChildren().add(parseLogic());
+                    }while(",".equals(token.value));
 
-                nextToken();
+                    if(token == null || !")".equals(token))
+                        throw new ParserException("Extected ')' but end of stream is reached.");
 
-                deque.addLast(call);
+                    nextToken();
+
+                    deque.addLast(call);
+                }
             }else if(".".equals(token.value)){//id
                 deque.addLast(new Node(idToken));
             }else{
@@ -436,19 +441,24 @@ public class Parser {
 
                 if("(".equals(token.value)){//fuction call
                     nextToken();
-
                     Node call = new Node(new Token(Type.CALL, idToken.value));
-                    call.getChildren().add(parseLogic());
-                    while(",".equals(token.value)){
+
+                    if(")".equals(token.value)){
+                        deque.addLast(call);
                         nextToken();
+                    }else{
                         call.getChildren().add(parseLogic());
+                        while(",".equals(token.value)){
+                            nextToken();
+                            call.getChildren().add(parseLogic());
+                        }
+
+                        if(token == null || !")".equals(token.value))
+                            throw new ParserException("Extected ')' but end of stream is reached.");
+                        nextToken();
+
+                        deque.addLast(call);
                     }
-
-                    if(token == null || !")".equals(token.value))
-                        throw new ParserException("Extected ')' but end of stream is reached.");
-                    nextToken();
-
-                    deque.addLast(call);
                 }else{//id
                     deque.addLast(new Node(idToken));
                 }
