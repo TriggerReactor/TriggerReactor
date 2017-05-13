@@ -20,16 +20,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URLDecoder;
+import java.net.URISyntaxException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class JarUtils {
-    public static void copyFolderFromJar(String folderName, File destFolder) throws IOException{
+    public static void copyFolderFromJar(String folderName, File destFolder, CopyOption option) throws IOException{
+        if(!destFolder.exists())
+            destFolder.mkdirs();
+
         byte[] buffer = new byte[1024];
 
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(
-                URLDecoder.decode(JarUtils.class.getProtectionDomain().getCodeSource().getLocation().toString(), "UTF-8")));
+        File fullPath = null;
+        try {
+            fullPath = new File(JarUtils.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        ZipInputStream zis = new ZipInputStream(new FileInputStream(fullPath));
 
         ZipEntry entry;
         while ((entry = zis.getNextEntry()) != null) {
@@ -39,7 +47,14 @@ public class JarUtils {
             String fileName = entry.getName();
 
             File file = new File(destFolder + File.separator + fileName);
+            if(option == CopyOption.COPY_IF_NOT_EXIST && file.exists())
+                continue;
 
+            if(!file.getParentFile().exists())
+                file.getParentFile().mkdirs();
+
+            if(!file.exists())
+                file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
 
             int len;
@@ -51,5 +66,9 @@ public class JarUtils {
 
         zis.closeEntry();
         zis.close();
+    }
+
+    public enum CopyOption{
+        COPY_IF_NOT_EXIST, REPLACE_IF_EXIST;
     }
 }

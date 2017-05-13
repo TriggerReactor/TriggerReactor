@@ -33,10 +33,9 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.manager.wrapper.PlayerWrapper;
-import io.github.wysohn.triggerreactor.manager.wrapper.Wrapper;
 import io.github.wysohn.triggerreactor.tools.FileUtils;
 
 public class CommandTriggerManager extends TriggerManager {
@@ -120,7 +119,7 @@ public class CommandTriggerManager extends TriggerManager {
             return;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.putAll(Wrapper.wrapperToVariablesMap(new PlayerWrapper(player)));
+        varMap.put("player", new ObjectReference(player, "player"));
         if(args.length > 0){
             for(int i = 0; i < args.length; i++){
                 varMap.put("args."+i, args[i]);

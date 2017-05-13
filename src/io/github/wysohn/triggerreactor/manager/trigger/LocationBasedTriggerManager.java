@@ -213,6 +213,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             e.setCancelled(true);
         }else if(IS != null
                 && player.hasPermission("triggerreactor.admin")
+                && e.getAction() == Action.LEFT_CLICK_BLOCK
+                && IS.getType() == INSPECTION_TOOL
+                && trigger != null){
+            //Do nothing. will be handled in break
+        }else if(IS != null
+                && player.hasPermission("triggerreactor.admin")
                 && IS.getType() == CUT_TOOL){
             if(e.getAction() == Action.LEFT_CLICK_BLOCK){
                 if(!e.isCancelled() && pasteTrigger(player, clicked.getLocation())){

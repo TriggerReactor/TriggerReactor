@@ -63,7 +63,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return value.toString();
+        return type.name()+" - "+value;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class Token {
         //Literal
         STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
 
-        OBJECT,
+        OBJECT, /**Function Call**/CALL,
 
 
         /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, /**Logical**/OPERATOR_L,

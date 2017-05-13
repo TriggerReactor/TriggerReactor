@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.Token.Type;
 public class Lexer {
     private static final char[] OPERATORS;
     static {
-        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' };
+        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , ',', '.'};
         Arrays.sort(OPERATORS);
     }
 
@@ -309,20 +309,6 @@ public class Lexer {
             read();
         }
 
-        if(c != '.'){
-            return new Token(Type.ID, builder.toString());
-        }else{
-            builder.append('.');
-            read();
-            if(!isIdCharacter(c))
-                throw new LexerException("Invalid id", this);
-        }
-
-        while(isIdCharacter(c) || Character.isDigit(c)){
-            builder.append(c);
-            read();
-        }
-
         return new Token(Type.ID, builder.toString());
     }
 
@@ -380,13 +366,15 @@ public class Lexer {
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "X = 5\n"
+                + "str = \"abc\"\n"
                 + "WHILE 1 > 0\n"
-                + "    IF {player.test.health/*Im not code~*/} > 2 || {player.health} > 0\n"
+                + "    str = str + X\n"
+                + "    IF player.in.health > 2 && player.in.health > 0\n"
                 + "        #MESSAGE 3*4\n"
                 + "    ELSE\n"
-                + "        //some comment\n"
-                + "        #MESSAGE 777\n"
+                + "        #MESSAGE str\n"
                 + "    ENDIF\n"
+                + "    #MESSAGE player.in.hasPermission(x, 2+3, 5 > 4)\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"
                 + "        #STOP\n"

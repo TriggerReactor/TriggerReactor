@@ -31,11 +31,10 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.manager.wrapper.PlayerWrapper;
-import io.github.wysohn.triggerreactor.manager.wrapper.Wrapper;
 
 public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTriggerManager.ClickTrigger> {
     public ClickTriggerManager(TriggerReactor plugin) {
@@ -69,7 +68,8 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
             return false;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.putAll(Wrapper.wrapperToVariablesMap(new PlayerWrapper(player)));
+        varMap.put("player", new ObjectReference(player, "player"));
+        varMap.put("block", new ObjectReference(clicked, "block"));
 
         trigger.activate(e, varMap);
         return true;

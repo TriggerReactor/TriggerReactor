@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.parser.Parser;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
 
 public class Interpreter {
     private Node root;
@@ -44,6 +45,8 @@ public class Interpreter {
     private boolean stopFlag = false;
     private boolean waitFlag = false;
     private boolean cooldownFlag = false;
+
+    private boolean callReturn = false;
     public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars, InterpretCondition condition) {
         this.root = root;
         this.executorMap = executorMap;
@@ -159,7 +162,12 @@ public class Interpreter {
                 Token argument = stack.pop();
 
                 if (isVariable(argument)) {
-                    argument = readVarValue(argument);
+                    argument = unwrapVariable(argument);
+                }
+
+                if(argument.value instanceof ObjectReference){
+                    Token fieldTarget = stack.pop();
+                    argument = new Token(Type.OBJECT, ((ObjectReference) argument.value).getFieldValue(fieldTarget.value.toString(), null));
                 }
 
                 args[i] = argument.value;
@@ -171,11 +179,21 @@ public class Interpreter {
             Token left = stack.pop();
 
             if(isVariable(right)){
-                right = readVarValue(right);
+                right = unwrapVariable(right);
             }
 
             if(isVariable(left)){
-                left = readVarValue(left);
+                left = unwrapVariable(left);
+            }
+
+            if(left.value instanceof ObjectReference){
+                Token fieldTarget = stack.pop();
+                left = new Token(Type.OBJECT, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
+            }
+
+            if(right.value instanceof ObjectReference){
+                Token fieldTarget = stack.pop();
+                right = new Token(Type.OBJECT, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             switch ((String) node.getToken().value) {
@@ -241,11 +259,21 @@ public class Interpreter {
             Token left = stack.pop();
 
             if(isVariable(right)){
-                right = readVarValue(right);
+                right = unwrapVariable(right);
             }
 
             if(isVariable(left)){
-                left = readVarValue(left);
+                left = unwrapVariable(left);
+            }
+
+            if(left.value instanceof ObjectReference){
+                Token fieldTarget = stack.pop();
+                left = new Token(Type.OBJECT, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
+            }
+
+            if(right.value instanceof ObjectReference){
+                Token fieldTarget = stack.pop();
+                right = new Token(Type.OBJECT, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             switch ((String) node.getToken().value) {
@@ -281,18 +309,69 @@ public class Interpreter {
                 break;
             }
         }else if(node.getToken().type == Type.OPERATOR){
-            Token right = stack.pop();
-            Token left = stack.pop();
-
-            if(isVariable(right)){
-                right = readVarValue(right);
-            }
-
             switch ((String) node.getToken().value) {
             case "=":
-                vars.put((String) left.value, right.value);
+                Token right = stack.pop(); //can be access name
+                Token left = stack.pop(); //can be reference
+
+                if(left.value instanceof ObjectReference){
+                    Token accessName = stack.pop();
+
+                    ObjectReference reference = (ObjectReference) left.value;
+                    reference.setFieldValue(accessName.value.toString(), right.value);
+                }else{
+                    if(left.type == Type.GID){
+                        gvars.put(left.value.toString(), right.value);
+                    }else if(left.type == Type.ID){
+                        vars.put(left.value.toString(), right.value);
+                    }else{
+                        throw new InterpreterException("Cannot assign value to "+left.type.getClass().getSimpleName());
+                    }
+                }
+                break;
+            case ".":
+                if(callReturn){
+                    callReturn = false;
+                    return null;
+                }
+
+                Token right1 = stack.pop();
+                Token left1 = stack.pop();
+
+                if(isVariable(left1)){
+                    left1 = unwrapVariable(left1);
+                }
+                if(!(left1.value instanceof ObjectReference))
+                    throw new InterpreterException("Expected ObjectReference at left of '.' but found "+left1.value.getClass().getSimpleName());
+
+                Object obj = ((ObjectReference) left1.value).getFieldValue(right1.value.toString(), null);
+                if(obj == null)
+                    throw new InterpreterException("No such field "+right1.value);
+
+                if(isPrimitive(obj)){
+                    stack.push(new Token(Type.ID, right1.value.toString()));
+                    stack.push(left1);
+                }else{
+                    stack.push(new Token(Type.OBJECT, new ObjectReference(obj, right1.value.toString())));
+                }
+
                 break;
             }
+        }else if(node.getToken().type == Type.CALL){
+            Object[] args = new Object[node.getChildren().size()];
+            for(int i = args.length - 1; i >= 0; i--){
+                args[i] = stack.pop().value;
+            }
+
+            Token parent = stack.pop();
+            if(!(parent.value instanceof ObjectReference))
+                throw new InterpreterException("Expected a ObjectReference value but found "+parent.value.getClass().getSimpleName());
+
+            ObjectReference ref = (ObjectReference) parent.value;
+            Object result = ref.invokeMethod((String) node.getToken().value, args);
+
+            stack.push(new Token(Type.OBJECT, result));
+            callReturn = true;
         }else if(node.getToken().type == Type.ID || node.getToken().type == Type.GID){
             stack.push(node.getToken());
         }else if(node.getToken().type == Type.STRING){
@@ -312,13 +391,36 @@ public class Interpreter {
         return null;
     }
 
+    private boolean isPrimitive(Object obj){
+        return obj.getClass() == Boolean.class
+                || obj.getClass() == Integer.class
+                || obj.getClass() == Double.class
+                || obj.getClass() == String.class;
+    }
+
     private boolean isVariable(Token token) {
         return token.type == Type.ID || token.type == Type.GID;
     }
 
-    private Token readVarValue(Token idToken) throws InterpreterException {
+    private Token unwrapVariable(Token idToken) throws InterpreterException {
         if(idToken.type == Type.ID){
-            return convertValue(vars, idToken);
+            Object var = vars.get(idToken.value);
+            if(var == null)
+                throw new InterpreterException("Unresolved id "+idToken);
+
+            if (var.getClass() == Integer.class) {
+                return new Token(Type.INTEGER, var);
+            } else if (var.getClass() == Double.class) {
+                return new Token(Type.DECIMAL, var);
+            } else if (var.getClass() == String.class) {
+                return new Token(Type.STRING, var);
+            } else if (var.getClass() == Boolean.class) {
+                return new Token(Type.BOOLEAN, var);
+            } else if (var instanceof ObjectReference){
+                return new Token(Type.OBJECT, var);
+            } else {
+                throw new InterpreterException("Unresolved id "+idToken);
+            }
         }else if(idToken.type == Type.GID){
             return convertValue(gvars, idToken);
         }else{
@@ -369,23 +471,26 @@ public class Interpreter {
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException, InterpreterException{
         Charset charset = Charset.forName("UTF-8");
-/*        String text = ""
+        String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
                 + "WHILE 1 > 0\n"
                 + "    str = str + X\n"
-                + "    IF {player.health} > 2 && {player.health} > 0\n"
+                + "    IF player.in.health > 2 && player.in.health > 0\n"
                 + "        #MESSAGE 3*4\n"
                 + "    ELSE\n"
                 + "        #MESSAGE str\n"
                 + "    ENDIF\n"
+                + "    #MESSAGE player.in.health\n"
+                + "    player.in.health = player.in.health + 1.2\n"
+                + "    #MESSAGE player.in.hasPermission(\"t\")\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";*/
-        String text = "#MESSAGE \"beh\"+{player.health}";
+                + "ENDWHILE";
+        //String text = "#MESSAGE \"beh\"+{player.health}";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
@@ -400,14 +505,41 @@ public class Interpreter {
                 return null;
             }
         });
+        Test reference = new Test();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>() {
             {
-                put("player.health", 0.82);
+
             }
         }, null);
+        interpreter.getVars().put("player", new ObjectReference(reference, "player"));
 
         System.out.println();
         System.out.println("result: ");
         interpreter.startWithContext(null);
+
+        System.out.println();
+        System.out.println("In player.getTest().getTest().health: "+reference.getTest().getTest().health);
+    }
+
+    private static class Test{
+        public InTest in = new InTest();
+        public InTest getTest(){
+            return in;
+        }
+    }
+
+    private static class InTest{
+        public InTest2 in = new InTest2();
+        public double health = 0.82;
+        public boolean hasPermission(String tt){
+            return tt.equals("tt");
+        }
+        public InTest2 getTest(){
+            return in;
+        }
+    }
+
+    private static class InTest2{
+        public double health = 5.23;
     }
 }

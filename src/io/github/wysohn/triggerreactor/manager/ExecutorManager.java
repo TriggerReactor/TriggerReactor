@@ -22,9 +22,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.Callable;
@@ -51,7 +49,9 @@ import org.bukkit.event.Event;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.tools.ClassUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtils;
+import io.github.wysohn.triggerreactor.tools.JarUtils.CopyOption;
 
 public class ExecutorManager extends HashMap<String, Executor>{
     private static final ScriptEngineManager sem = new ScriptEngineManager();
@@ -66,10 +66,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         super();
         this.plugin = plugin;
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        if(!executorFolder.exists()){
-            executorFolder.mkdirs();
-            JarUtils.copyFolderFromJar("Executor", plugin.getDataFolder());
-        }
+        JarUtils.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.COPY_IF_NOT_EXIST);
 
         initScriptEngine();
 
@@ -203,7 +200,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             Map<String, Object> map = new HashMap<String, Object>();
 
             Class<? extends Event> clazz = e.getClass();
-            for(Field field : getAllFields(new ArrayList<Field>(), clazz)){
+            for(Field field : ClassUtil.getAllFields(new ArrayList<Field>(), clazz)){
                 field.setAccessible(true);
                 try {
                     map.put(field.getName(), field.get(e));
@@ -272,22 +269,6 @@ public class ExecutorManager extends HashMap<String, Executor>{
             }
             return result;
         }
-    }
-
-    /**
-     * http://stackoverflow.com/questions/1042798/retrieving-the-inherited-attribute-names-values-using-java-reflection
-     * @param fields
-     * @param c
-     * @return
-     */
-    private static List<Field> getAllFields(List<Field> fields, Class<?> c){
-        fields.addAll(Arrays.asList(c.getDeclaredFields()));
-
-        if(c.getSuperclass() != null){
-            fields = getAllFields(fields, c.getSuperclass());
-        }
-
-        return fields;
     }
 
     public static void main(String[] ar){

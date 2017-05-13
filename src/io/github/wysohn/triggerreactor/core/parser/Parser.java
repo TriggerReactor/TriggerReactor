@@ -20,7 +20,10 @@ import java.awt.BorderLayout;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Stack;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -152,31 +155,73 @@ public class Parser {
 
                     return commandNode;
                 }else{
-                    Node variable = new Node(token);
-                    nextToken();
+                    Node left = parseId();
+                    if(left == null)
+                        throw new ParserException("Expected an Id but found nothing");
 
                     if(!"=".equals(token.value))
-                        throw new ParserException("Unexpected Token "+token+"!");
-
-                    Node assignment = new Node(token);
+                        throw new ParserException("Expected '=' but found "+token);
+                    Node assign = new Node(new Token(Type.OPERATOR, "="));
                     nextToken();
 
-                    assignment.getChildren().add(variable);
+                    Node right = parseLogic();
+                    if(right == null)
+                        throw new ParserException("Expected logic but found nothing");
 
-                    Node value = parseComparison();
-                    if(value == null)
-                        throw new ParserException("No value found for = operation!");
+                    assign.getChildren().add(left);
+                    assign.getChildren().add(right);
 
-                    assignment.getChildren().add(value);
-                    return assignment;
+                    if(token.type != Type.ENDL)
+                        throw new ParserException("Expected end of line but found "+token);
+                    nextToken();
+
+                    return assign;
                 }
             }else{
-                throw new ParserException("Unexpected token "+token+"!");
+                throw new ParserException("Unexpected token "+token);
             }
         }else{
             return null;
         }
     }
+/*
+    private Node parseAssignment() throws IOException, LexerException, ParserException{
+        Node id = parseFactor();
+        if(id == null)
+            throw new ParserException("Expected Id but found nothing. Token: "+token);
+
+        Node parent = parseAssignmentAndId(id);
+        if(parent != null){
+            return parent;
+        } else {
+            return id;
+        }
+    }
+
+    private Node parseAssignmentAndId(Node left) throws IOException, LexerException, ParserException{
+        if(token != null && "=".equals(token.value)){
+            Node node = new Node(new Token(Type.ASSIGNMENT, token.value));
+            nextToken();
+
+            node.getChildren().add(left);
+
+            Node logic = parseLogic();
+            if(logic != null){
+                node.getChildren().add(logic);
+            }else{
+                throw new ParserException("Expected a logic after ["+node.getToken().value+"] but found ["+token+"] !");
+            }
+
+            Node assignmentAndLogic = parseAssignmentAndId(node);
+            if(assignmentAndLogic != null){
+                return assignmentAndLogic;
+            }else{
+                return node;
+            }
+        }else{
+            throw new ParserException("Unexpected token "+token);
+        }
+    }*/
 
     private Node parseLogic() throws IOException, LexerException, ParserException{
         Node comparison = parseComparison();
@@ -315,6 +360,10 @@ public class Parser {
     }
 
     private Node parseFactor() throws IOException, LexerException, ParserException {
+        Node idNode = parseId();
+        if(idNode != null)
+            return idNode;
+
         if(token == null)
             return null;
 
@@ -337,8 +386,7 @@ public class Parser {
             return null;
         }
 
-        if (token.type == Type.ID
-                || token.type == Type.GID
+        if (token.type == Type.GID
                 || token.type == Type.OPERATOR_A
                 || token.type == Type.OPERATOR_L
                 || token.type.isLiteral()) {
@@ -351,24 +399,103 @@ public class Parser {
         throw new ParserException("Unknown token "+ token);
     }
 
+    private Node parseId() throws IOException, LexerException, ParserException {
+        if(token.type == Type.ID){
+            Deque<Node> deque = new LinkedList<>();
+
+            Token idToken = token;
+            nextToken();
+
+            if("(".equals(token.value)){//fuction call
+                nextToken();
+
+                Node call = new Node(new Token(Type.CALL, idToken.value));
+                do{
+                    call.getChildren().add(parseLogic());
+                }while(",".equals(token.value));
+
+                if(token == null || !")".equals(token))
+                    throw new ParserException("Extected ')' but end of stream is reached.");
+
+                nextToken();
+
+                deque.addLast(call);
+            }else if(".".equals(token.value)){//id
+                deque.addLast(new Node(idToken));
+            }else{
+                return new Node(idToken);
+            }
+
+            while(".".equals(token.value)){
+                nextToken();
+                if(token.type != Type.ID)
+                    throw new ParserException(token+" is not an id!");
+
+                idToken = token;
+                nextToken();
+
+                if("(".equals(token.value)){//fuction call
+                    nextToken();
+
+                    Node call = new Node(new Token(Type.CALL, idToken.value));
+                    call.getChildren().add(parseLogic());
+                    while(",".equals(token.value)){
+                        nextToken();
+                        call.getChildren().add(parseLogic());
+                    }
+
+                    if(token == null || !")".equals(token.value))
+                        throw new ParserException("Extected ')' but end of stream is reached.");
+                    nextToken();
+
+                    deque.addLast(call);
+                }else{//id
+                    deque.addLast(new Node(idToken));
+                }
+            }
+
+            return parseId(deque);
+        }else{
+            return null;
+        }
+    }
+
+    private Node parseId(Deque<Node> deque){
+        Stack<Node> stack = new Stack<>();
+        stack.push(deque.pop());
+
+        while(!deque.isEmpty()){
+            Node node = new Node(new Token(Type.OPERATOR, "."));
+            node.getChildren().add(stack.pop());
+            node.getChildren().add(deque.pop());
+
+            stack.push(node);
+        }
+
+        return stack.pop();
+    }
+
     public static void main(String[] ar) throws IOException, LexerException, ParserException{
         Charset charset = Charset.forName("UTF-8");
-/*        String text = ""
+        String text = ""
                 + "X = 5\n"
+                + "str = \"abc\"\n"
                 + "WHILE 1 > 0\n"
-                + "    IF {test.test..loc} > 2 || {player.health} > 0\n"
+                + "    str = str + X\n"
+                + "    IF player.in.health > 2 && player.in.health > 0\n"
                 + "        #MESSAGE 3*4\n"
                 + "    ELSE\n"
-                + "        #MESSAGE 777\n"
+                + "        #MESSAGE str\n"
                 + "    ENDIF\n"
+                + "    #MESSAGE player.in.hasPermission(x, 2+3, 5 > 4)\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";*/
+                + "ENDWHILE";
 
-        String text = "#MESSAGE \"빰빰\"";
+       // String text = "#MESSAGE \"빰빰\"";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
