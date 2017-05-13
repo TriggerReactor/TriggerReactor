@@ -57,6 +57,8 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", new ObjectReference(player, "player"));
+        varMap.put("from", new ObjectReference(e.getFrom(), "from"));
+        varMap.put("to", new ObjectReference(e.getFrom(), "to"));
 
         trigger.activate(e, varMap);
         return true;
@@ -73,5 +75,10 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
         public void activate(Event e, Map<String, Object> scriptVars) {
             super.activate(e, scriptVars);
         }
+    }
+
+    @Override
+    protected String getTriggerTypeName() {
+        return "Walk";
     }
 }

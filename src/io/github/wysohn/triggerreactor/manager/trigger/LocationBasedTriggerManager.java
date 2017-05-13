@@ -45,6 +45,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
@@ -59,6 +60,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtils;
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends TriggerManager {
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
+    public static final Material COPY_TOOL = Material.PAPER;
 
     private Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
 
@@ -84,6 +86,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         locationTriggers.clear();
 
         for(File file : folder.listFiles()){
+            if(file.isDirectory())
+                continue;
+
             String fileName = file.getName();
 
             SimpleLocation sloc = null;
@@ -187,56 +192,77 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
     }
 
     private Map<UUID, Long> lastClick = new HashMap<>();
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(PlayerInteractEvent e){
+        if(e.getHand() != EquipmentSlot.HAND)
+            return;
+
         Player player = e.getPlayer();
 
-        long current = System.currentTimeMillis();
+/*        long current = System.currentTimeMillis();
         Long last = lastClick.get(player.getUniqueId());
 
         if(last == null || current > last + 400L){
             lastClick.put(player.getUniqueId(), current + 400L);
         }else{
             return;
-        }
+        }*/
 
         ItemStack IS = player.getInventory().getItemInMainHand();
         Block clicked = e.getClickedBlock();
+        if(clicked == null)
+            return;
+
         T trigger = getTriggerForLocation(clicked.getLocation());
 
         if(IS != null
-                && player.hasPermission("triggerreactor.admin")
-                && e.getAction() == Action.RIGHT_CLICK_BLOCK
-                && IS.getType() == INSPECTION_TOOL
-                && trigger != null){
-            this.showTriggerInfo(player, clicked);
-            e.setCancelled(true);
-        }else if(IS != null
-                && player.hasPermission("triggerreactor.admin")
-                && e.getAction() == Action.LEFT_CLICK_BLOCK
-                && IS.getType() == INSPECTION_TOOL
-                && trigger != null){
-            //Do nothing. will be handled in break
-        }else if(IS != null
-                && player.hasPermission("triggerreactor.admin")
-                && IS.getType() == CUT_TOOL){
-            if(e.getAction() == Action.LEFT_CLICK_BLOCK){
-                if(!e.isCancelled() && pasteTrigger(player, clicked.getLocation())){
-                    player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
+                &&!e.isCancelled()
+                && player.hasPermission("triggerreactor.admin")){
+
+            if(IS.getType() == INSPECTION_TOOL){
+                if(trigger != null && e.getAction() == Action.LEFT_CLICK_BLOCK){
+                    removeTriggerForLocation(clicked.getLocation());
+
+                    player.sendMessage(ChatColor.GREEN+"A trigger has deleted.");
+                    e.setCancelled(true);
+                }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
                     this.showTriggerInfo(player, clicked);
                     e.setCancelled(true);
                 }
-            }else if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
-                if(!e.isCancelled() && cutTrigger(player, clicked.getLocation())){
-                    player.sendMessage(ChatColor.GREEN+"Now you can paste it by left click on any block!");
-                    e.setCancelled(true);
+            }else if(IS.getType() == CUT_TOOL){
+                if(e.getAction() == Action.LEFT_CLICK_BLOCK){
+                    if(pasteTrigger(player, clicked.getLocation())){
+                        player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
+                        this.showTriggerInfo(player, clicked);
+                        e.setCancelled(true);
+                    }
+                }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
+                    if(cutTrigger(player, clicked.getLocation())){
+                        player.sendMessage(ChatColor.GREEN+"Cut Complete!");
+                        player.sendMessage(ChatColor.GREEN+"Now you can paste it by left click on any block!");
+                        e.setCancelled(true);
+                    }
+                }
+            }else if(IS.getType() == COPY_TOOL){
+                if(e.getAction() == Action.LEFT_CLICK_BLOCK){
+                    if(pasteTrigger(player, clicked.getLocation())){
+                        player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
+                        this.showTriggerInfo(player, clicked);
+                        e.setCancelled(true);
+                    }
+                }else if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+                    if(trigger != null && copyTrigger(player, clicked.getLocation())){
+                        player.sendMessage(ChatColor.GREEN+"Copy Complete!");
+                        player.sendMessage(ChatColor.GREEN+"Now you can paste it by left click on any block!");
+                        e.setCancelled(true);
+                    }
                 }
             }
-        }else{
-            if(isLocationSetting(player)){
-                handleLocationSetting(clicked, player);
-                e.setCancelled(true);
-            }
+        }
+
+        if(!e.isCancelled() && isLocationSetting(player)){
+            handleLocationSetting(clicked, player);
+            e.setCancelled(true);
         }
     }
 
@@ -250,6 +276,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         }
 
         String script = getSettingLocationScript(player);
+        if(script == null){
+            player.sendMessage(ChatColor.RED+"Could not find script... but how?");
+            return;
+        }
+
         try {
             trigger = constructTrigger(script);
         } catch (IOException | LexerException | ParserException e1) {
@@ -292,21 +323,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             return;
 
         Player player = e.getPlayer();
-        ItemStack IS = player.getInventory().getItemInMainHand();
 
-        if(IS.getType() == INSPECTION_TOOL
-                && player.hasPermission("triggerreactor.admin")){
-            removeTriggerForLocation(block.getLocation());
-
-            player.sendMessage(ChatColor.GREEN+"A trigger has deleted.");
-        }else{
-            player.sendMessage(ChatColor.GRAY+"Cannot break trigger block.");
-            player.sendMessage(ChatColor.GRAY+"To remove trigger, hold inspection tool "+INSPECTION_TOOL.name());
-            e.setCancelled(true);
-        }
+        player.sendMessage(ChatColor.GRAY+"Cannot break trigger block.");
+        player.sendMessage(ChatColor.GRAY+"To remove trigger, hold inspection tool "+INSPECTION_TOOL.name());
+        e.setCancelled(true);
     }
 
     protected abstract T constructTrigger(String script) throws IOException, LexerException, ParserException;
+    protected abstract String getTriggerTypeName();
 
     protected T getTriggerForLocation(Location loc) {
         SimpleLocation sloc = new SimpleLocation(loc);
@@ -337,7 +361,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
 
         Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
         if(!locationTriggers.containsKey(scloc)){
-            triggerMap = new HashMap<>();
+            triggerMap = new ConcurrentHashMap<>();
             locationTriggers.put(scloc, triggerMap);
         }
 
@@ -372,6 +396,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         }
 
         player.sendMessage("- - - - - - - - - - - - - -");
+        player.sendMessage("Trigger: "+getTriggerTypeName());
         player.sendMessage("Block Type: " + clicked.getType().name());
         player.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
                 + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
@@ -408,11 +433,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         return settingLocation.get(player.getUniqueId());
     }
 
-    private final Map<UUID, SimpleLocation> cut = new HashMap<>();
+    private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
     @EventHandler
     public void onItemSwap(PlayerItemHeldEvent e){
-        cut.remove(e.getPlayer().getUniqueId());
+        clipboard.remove(e.getPlayer().getUniqueId());
     }
 
     /**
@@ -438,7 +463,34 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             return false;
         }
 
-        cut.put(player.getUniqueId(), sloc);
+        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.CUT, sloc));
+        return true;
+    }
+
+    /**
+    *
+    * @param player
+    * @param loc
+    * @return true if copy ready; false if no trigger found at the location
+    */
+    private boolean copyTrigger(Player player, Location loc){
+        SimpleLocation sloc = new SimpleLocation(loc);
+        return copyTrigger(player, sloc);
+    }
+
+    /**
+     *
+     * @param player
+     * @param sloc
+     * @return true if copy ready; false if no trigger found at the location
+     */
+    private boolean copyTrigger(Player player, SimpleLocation sloc) {
+        T trigger = getTriggerForLocation(sloc);
+        if(trigger == null){
+            return false;
+        }
+
+        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.COPY, sloc));
         return true;
     }
 
@@ -460,7 +512,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
      * @return true if pasted; false if nothing in the clipboard
      */
     private boolean pasteTrigger(Player player, SimpleLocation sloc){
-        SimpleLocation from = cut.remove(player.getUniqueId());
+        ClipBoard board = clipboard.remove(player.getUniqueId());
+        if(board == null)
+            return false;
+
+        SimpleLocation from = board.location;
         if(from == null){
             return false;
         }
@@ -468,19 +524,21 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         T trigger = getTriggerForLocation(from);
         if(trigger == null){
             player.sendMessage(ChatColor.RED+"Could not find the trigger.");
-            player.sendMessage(ChatColor.RED+"Your previous cut seems deleted by other user.");
+            player.sendMessage(ChatColor.RED+"Your previous cut/copy seems deleted by other user.");
             return true;
         }
 
         T previous = null;
         try{
-            previous = removeTriggerForLocation(from);
+            if(board.type == ClipBoard.BoardType.CUT)
+                previous = removeTriggerForLocation(from);
+
             setTriggerForLocation(sloc, trigger);
         }catch(Exception e){
             e.printStackTrace();
             //put it back if failed
-            if(previous != null){
-                setTriggerForLocation(sloc, previous);
+            if(board.type == ClipBoard.BoardType.CUT && previous != null){
+                setTriggerForLocation(sloc, (T) previous.clone());
             }
         }
 
@@ -507,4 +565,17 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
     }
 
     protected abstract void onLocationChange(PlayerMoveEvent e, SimpleLocation from, SimpleLocation to);
+
+    private static class ClipBoard{
+        final BoardType type;
+        final SimpleLocation location;
+        public ClipBoard(BoardType type, SimpleLocation location) {
+            this.type = type;
+            this.location = location;
+        }
+
+        enum BoardType{
+            CUT, COPY;
+        }
+    }
 }

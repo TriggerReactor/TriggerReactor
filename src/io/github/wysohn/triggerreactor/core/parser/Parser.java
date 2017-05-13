@@ -36,7 +36,7 @@ import io.github.wysohn.triggerreactor.core.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 
 public class Parser {
-    private final Lexer lexer;
+    final Lexer lexer;
 
     private Token token;
 
@@ -73,7 +73,7 @@ public class Parser {
                 //condition
                 Node condition = parseLogic();
                 if(condition == null)
-                    throw new ParserException("Could not find condition for IF statement!");
+                    throw new ParserException("Could not find condition for IF statement!", this);
                 ifNode.getChildren().add(condition);
 
                 //if body
@@ -86,7 +86,7 @@ public class Parser {
                     trueBody.getChildren().add(codes);
                 }
                 if(codes == null)
-                    throw new ParserException("Could not find ENDIF statement!");
+                    throw new ParserException("Could not find ENDIF statement!", this);
                 ifNode.getChildren().add(trueBody);
 
                 //else body
@@ -98,7 +98,7 @@ public class Parser {
                         falseBody.getChildren().add(codes);
                     }
                     if(codes == null)
-                        throw new ParserException("Could not find ENDIF statement!");
+                        throw new ParserException("Could not find ENDIF statement!", this);
                     ifNode.getChildren().add(falseBody);
                 }
 
@@ -119,7 +119,7 @@ public class Parser {
 
                 Node condition = parseComparison();
                 if(condition == null)
-                    throw new ParserException("Could not find condition for WHILE statement!");
+                    throw new ParserException("Could not find condition for WHILE statement!", this);
                 whileNode.getChildren().add(condition);
 
                 Node body = new Node(new Token(Type.BODY, "<BODY>"));
@@ -128,7 +128,7 @@ public class Parser {
                     body.getChildren().add(codes);
                 }
                 if(codes == null)
-                    throw new ParserException("Could not find ENDWHILE statement!");
+                    throw new ParserException("Could not find ENDWHILE statement!", this);
                 whileNode.getChildren().add(body);
 
                 return whileNode;
@@ -157,28 +157,28 @@ public class Parser {
                 }else{
                     Node left = parseId();
                     if(left == null)
-                        throw new ParserException("Expected an Id but found nothing");
+                        throw new ParserException("Expected an Id but found nothing", this);
 
                     if(!"=".equals(token.value))
-                        throw new ParserException("Expected '=' but found "+token);
+                        throw new ParserException("Expected '=' after id ["+left.getToken().value+"] but found "+token, this);
                     Node assign = new Node(new Token(Type.OPERATOR, "="));
                     nextToken();
 
                     Node right = parseLogic();
                     if(right == null)
-                        throw new ParserException("Expected logic but found nothing");
+                        throw new ParserException("Expected logic but found nothing", this);
 
                     assign.getChildren().add(left);
                     assign.getChildren().add(right);
 
                     if(token.type != Type.ENDL)
-                        throw new ParserException("Expected end of line but found "+token);
+                        throw new ParserException("Expected end of line but found "+token, this);
                     nextToken();
 
                     return assign;
                 }
             }else{
-                throw new ParserException("Unexpected token "+token);
+                throw new ParserException("Unexpected token "+token, this);
             }
         }else{
             return null;
@@ -228,6 +228,9 @@ public class Parser {
 
         Node parent = parseLogicAndComparison(comparison);
         if(parent != null){
+            if(parent.getChildren().size() != 2)
+                throw new ParserException("Operator "+parent.getToken()+" requires boolean on the left and right of it.", this);
+
             return parent;
         } else{
             return comparison;
@@ -248,7 +251,7 @@ public class Parser {
                 //insert right comparison
                 node.getChildren().add(comparison);
             }else{
-                throw new ParserException("Expected a comparison after ["+node.getToken().value+"] but found ["+token+"] !");
+                throw new ParserException("Expected a comparison after ["+node.getToken().value+"] but found ["+token+"] !", this);
             }
 
             Node termAndexpression = parseLogicAndComparison(node);
@@ -273,9 +276,12 @@ public class Parser {
 
             Node right = parseExpression();
             if(right == null)
-                throw new ParserException("Tried to parse expression after '"+token+"' but failed!");
+                throw new ParserException("Tried to parse expression after '"+token+"' but failed!", this);
             else{
                 node.getChildren().add(right);
+                if(node.getChildren().size() != 2)
+                    throw new ParserException("Comparison "+node.getToken()+" requires number or variable on the left and right of it.", this);
+
                 return node;
             }
         }else{
@@ -288,6 +294,9 @@ public class Parser {
 
         Node parent = parseTermAndExpression(term);
         if(parent != null){
+            if(parent.getChildren().size() != 2)
+                throw new ParserException("Operator "+parent.getToken()+" requires number or variable on the left and right of it.", this);
+
             return parent;
         } else {
             return term;
@@ -308,7 +317,7 @@ public class Parser {
                 //insert right term
                 node.getChildren().add(term);
             }else{
-                throw new ParserException("Expected a term after ["+node.getToken().value+"] but found ["+token+"] !");
+                throw new ParserException("Expected a term after ["+node.getToken().value+"] but found ["+token+"] !", this);
             }
 
             Node termAndexpression = parseTermAndExpression(node);
@@ -327,6 +336,9 @@ public class Parser {
 
         Node parent = parseFactorAndTerm(factor);
         if(parent != null){
+            if(parent.getChildren().size() != 2)
+                throw new ParserException("Operator "+parent.getToken()+" requires number or variable on the left and right of it.", this);
+
             return parent;
         }else{
             return factor;
@@ -345,7 +357,7 @@ public class Parser {
             if(factor != null){
                 node.getChildren().add(factor);
             }else{
-                throw new ParserException("Expected a factor after ["+node.getToken().value+"] but found ["+token+"] !");
+                throw new ParserException("Expected a factor after ["+node.getToken().value+"] but found ["+token+"] !", this);
             }
 
             Node factorAndTerm = parseFactorAndTerm(node);
@@ -373,7 +385,7 @@ public class Parser {
             Node expression = parseLogic();
 
             if(token == null || token.type != Type.OPERATOR || !")".equals(token.value)){
-                throw new ParserException("Expected ')' but found "+token);
+                throw new ParserException("Expected ')' but found "+token, this);
             }
             nextToken();
 
@@ -387,8 +399,6 @@ public class Parser {
         }
 
         if (token.type == Type.GID
-                || token.type == Type.OPERATOR_A
-                || token.type == Type.OPERATOR_L
                 || token.type.isLiteral()) {
 
             Node node = new Node(token);
@@ -396,7 +406,7 @@ public class Parser {
             return node;
         }
 
-        throw new ParserException("Unknown token "+ token);
+        throw new ParserException("Unexpected token "+ token, this);
     }
 
     private Node parseId() throws IOException, LexerException, ParserException {
@@ -406,7 +416,7 @@ public class Parser {
             Token idToken = token;
             nextToken();
 
-            if("(".equals(token.value)){//fuction call
+            if(token != null && "(".equals(token.value)){//fuction call
                 nextToken();
                 Node call = new Node(new Token(Type.CALL, idToken.value));
 
@@ -419,42 +429,42 @@ public class Parser {
                     }while(",".equals(token.value));
 
                     if(token == null || !")".equals(token))
-                        throw new ParserException("Extected ')' but end of stream is reached.");
+                        throw new ParserException("Extected ')' but end of stream is reached.", this);
 
                     nextToken();
 
                     deque.addLast(call);
                 }
-            }else if(".".equals(token.value)){//id
+            }else if(token != null && ".".equals(token.value)){//id
                 deque.addLast(new Node(idToken));
             }else{
                 return new Node(idToken);
             }
 
-            while(".".equals(token.value)){
+            while(token != null && ".".equals(token.value)){
                 nextToken();
                 if(token.type != Type.ID)
-                    throw new ParserException(token+" is not an id!");
+                    throw new ParserException(token+" is not an id!", this);
 
                 idToken = token;
                 nextToken();
 
-                if("(".equals(token.value)){//fuction call
+                if(token != null && "(".equals(token.value)){//fuction call
                     nextToken();
                     Node call = new Node(new Token(Type.CALL, idToken.value));
 
-                    if(")".equals(token.value)){
+                    if(token != null && ")".equals(token.value)){
                         deque.addLast(call);
                         nextToken();
                     }else{
                         call.getChildren().add(parseLogic());
-                        while(",".equals(token.value)){
+                        while(token != null && ",".equals(token.value)){
                             nextToken();
                             call.getChildren().add(parseLogic());
                         }
 
                         if(token == null || !")".equals(token.value))
-                            throw new ParserException("Extected ')' but end of stream is reached.");
+                            throw new ParserException("Extected ')' but end of stream is reached.", this);
                         nextToken();
 
                         deque.addLast(call);
@@ -497,7 +507,9 @@ public class Parser {
                 + "    ELSE\n"
                 + "        #MESSAGE str\n"
                 + "    ENDIF\n"
-                + "    #MESSAGE player.in.hasPermission(x, 2+3, 5 > 4)\n"
+                + "    #MESSAGE player.getTest().in.getHealth()\n"
+                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
+                + "    #MESSAGE player.in.hasPermission(\"t\")\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"
                 + "        #STOP\n"
@@ -505,7 +517,7 @@ public class Parser {
                 + "    #WAIT 1\n"
                 + "ENDWHILE";
 
-       // String text = "#MESSAGE \"빰빰\"";
+        //String text = "#MESSAGE /mw goto ETC";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

@@ -325,7 +325,7 @@ public class Interpreter {
                     }else if(left.type == Type.ID){
                         vars.put(left.value.toString(), right.value);
                     }else{
-                        throw new InterpreterException("Cannot assign value to "+left.type.getClass().getSimpleName());
+                        throw new InterpreterException("Cannot assign value to "+left.value.getClass().getSimpleName());
                     }
                 }
                 break;
@@ -342,7 +342,7 @@ public class Interpreter {
                     left1 = unwrapVariable(left1);
                 }
                 if(!(left1.value instanceof ObjectReference))
-                    throw new InterpreterException("Expected ObjectReference at left of '.' but found "+left1.value.getClass().getSimpleName());
+                    throw new InterpreterException("Expected ObjectReference at left of "+right1+" but found "+left1);
 
                 Object obj = ((ObjectReference) left1.value).getFieldValue(right1.value.toString(), null);
                 if(obj == null)
@@ -369,7 +369,7 @@ public class Interpreter {
             }
 
             if(!(parent.value instanceof ObjectReference))
-                throw new InterpreterException("Expected a ObjectReference value but found "+parent.value.getClass().getSimpleName());
+                throw new InterpreterException("Expected an ObjectReference at left of "+node.getToken()+" but found "+parent);
 
             ObjectReference ref = (ObjectReference) parent.value;
             Object result = ref.invokeMethod((String) node.getToken().value, args);
@@ -488,8 +488,8 @@ public class Interpreter {
                 + "    ELSE\n"
                 + "        #MESSAGE str\n"
                 + "    ENDIF\n"
-                + "    #MESSAGE player.getTest().getTest().health\n"
-                + "    player.getTest().getTest().health = player.getTest().getTest().health + 1.2\n"
+                + "    #MESSAGE text\n"
+                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
                 + "    #MESSAGE player.in.hasPermission(\"t\")\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"
@@ -519,13 +519,14 @@ public class Interpreter {
             }
         }, null);
         interpreter.getVars().put("player", new ObjectReference(reference, "player"));
+        interpreter.getVars().put("text", "hello");
 
         System.out.println();
         System.out.println("result: ");
         interpreter.startWithContext(null);
 
         System.out.println();
-        System.out.println("In player.getTest().getTest().health: "+reference.getTest().getTest().health);
+        System.out.println("In player.getTest().in.getHealth(): "+reference.getTest().in.getHealth());
     }
 
     private static class Test{
@@ -548,5 +549,8 @@ public class Interpreter {
 
     private static class InTest2{
         public double health = 5.23;
+        public double getHealth(){
+            return health;
+        }
     }
 }

@@ -41,8 +41,8 @@ public abstract class TriggerManager extends Manager implements Listener{
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    public class Trigger{
-        private final String script;
+    public class Trigger implements Cloneable{
+        protected final String script;
 
         private final Node root;
         private final Map<String, Executor> executorMap;
@@ -92,6 +92,17 @@ public abstract class TriggerManager extends Manager implements Listener{
                     }
                 }
             }).start();
+        }
+
+        @Override
+        public Trigger clone(){
+            try {
+                Trigger trigger = new Trigger(script);
+                return trigger;
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 

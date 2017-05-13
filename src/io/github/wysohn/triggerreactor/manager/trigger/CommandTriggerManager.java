@@ -120,6 +120,7 @@ public class CommandTriggerManager extends TriggerManager {
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", new ObjectReference(player, "player"));
+        varMap.put("command", cmd);
         if(args.length > 0){
             for(int i = 0; i < args.length; i++){
                 varMap.put("args."+i, args[i]);
@@ -182,6 +183,5 @@ public class CommandTriggerManager extends TriggerManager {
         public CommandTrigger(String script) throws IOException, LexerException, ParserException {
             super(script);
         }
-
     }
 }

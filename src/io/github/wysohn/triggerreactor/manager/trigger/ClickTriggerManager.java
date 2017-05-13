@@ -28,6 +28,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.EquipmentSlot;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
@@ -51,9 +52,12 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         });
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler()
     public void onClickTrigger(PlayerInteractEvent e){
-        if(handleClick(e)){
+        if(e.getHand() != EquipmentSlot.HAND)
+            return;
+
+        if(!e.isCancelled() && handleClick(e)){
             e.setCancelled(true);
         }
     }
@@ -97,9 +101,26 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
 
             super.activate(e, scriptVars);
         }
+
+        @Override
+        public Trigger clone(){
+            try {
+                //TODO: using same handler will be safe?
+                Trigger trigger = new ClickTrigger(script, handler);
+                return trigger;
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     public interface ClickHandler{
         boolean allow(Action action);
+    }
+
+    @Override
+    protected String getTriggerTypeName() {
+        return "Click";
     }
 }

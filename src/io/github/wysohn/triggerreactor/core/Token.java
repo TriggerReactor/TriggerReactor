@@ -63,7 +63,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return type.name()+" - "+value;
+        return "[type: "+type.name()+", value: "+value+"]";
     }
 
     @Override

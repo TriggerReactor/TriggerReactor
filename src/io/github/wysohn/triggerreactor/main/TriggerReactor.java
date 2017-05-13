@@ -221,77 +221,112 @@ public class TriggerReactor extends JavaPlugin {
                                 @Override
                                 public void onSave(String script) {
                                     cmdManager.addCommandTrigger(sender, args[1], script);
+
+                                    sender.sendMessage(ChatColor.GREEN+"Command trigger is binded!");
                                 }
                             });
                         }else{
                             StringBuilder builder = new StringBuilder();
                             for (int i = 2; i < args.length; i++)
                                 builder.append(args[i] + " ");
+
                             cmdManager.addCommandTrigger(sender, args[1], builder.toString());
+
+                            sender.sendMessage(ChatColor.GREEN+"Command trigger is binded!");
                         }
                     }
                     return true;
-                } else if(args.length > 1 && (args[0].equalsIgnoreCase("deletecommand") || args[0].equalsIgnoreCase("delcmd"))){
-                    String commandName = args[1];
+                } else if ((args[0].equalsIgnoreCase("variables") || args[0].equalsIgnoreCase("vars"))) {
+                    if(args.length == 3){
+                        if(args[1].equalsIgnoreCase("Item")){
+                            String name = args[2];
+                            if(!VariableManager.isValidName(name)){
+                                sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
+                                return true;
+                            }
 
-                    if(cmdManager.removeCommandTrigger(commandName)){
-                        sender.sendMessage(ChatColor.GREEN+commandName+" is no longer binded.");
-                    }else{
-                        sender.sendMessage(ChatColor.GRAY+"Cannot find command trigger named "+commandName);
-                    }
+                            ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
+                            if(IS == null || IS.getType() == Material.AIR){
+                                sender.sendMessage(ChatColor.RED+"You are holding nothing on your main hand!");
+                                return true;
+                            }
 
-                    return true;
-                } else if (args.length == 3 && (args[0].equalsIgnoreCase("variables") || args[0].equalsIgnoreCase("vars"))) {
-                    if(args[1].equalsIgnoreCase("Item")){
-                        String name = args[2];
-                        if(!VariableManager.isValidName(name)){
-                            sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
-                            return true;
-                        }
+                            variableManager.put(name, IS);
 
-                        ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
-                        if(IS == null || IS.getType() == Material.AIR){
-                            sender.sendMessage(ChatColor.RED+"You are holding nothing on your main hand!");
-                            return true;
-                        }
+                            sender.sendMessage(ChatColor.GREEN+"Item saved!");
+                        }else if(args[1].equalsIgnoreCase("Location")){
+                            String name = args[2];
+                            if(!VariableManager.isValidName(name)){
+                                sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
+                                return true;
+                            }
 
-                        variableManager.put(name, IS);
-                    }else if(args[1].equalsIgnoreCase("Location")){
-                        String name = args[2];
-                        if(!VariableManager.isValidName(name)){
-                            sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
-                            return true;
-                        }
+                            Location loc = ((Player) sender).getLocation();
+                            variableManager.put(name, loc);
 
-                        Location loc = ((Player) sender).getLocation();
-                        variableManager.put(name, loc);
-                    }else{
-                        String name = args[1];
-                        String value = args[2];
-
-                        if(!VariableManager.isValidName(name)){
-                            sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
-                            return true;
-                        }
-
-                        if(value.matches(INTEGER_REGEX)){
-                            variableManager.put(name, Integer.parseInt(value));
-                        }else if(value.matches(DOUBLE_REGEX)){
-                            variableManager.put(name, Double.parseDouble(value));
+                            sender.sendMessage(ChatColor.GREEN+"Location saved!");
                         }else{
-                            variableManager.put(name, value);
+                            String name = args[1];
+                            String value = args[2];
+
+                            if(!VariableManager.isValidName(name)){
+                                sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
+                                return true;
+                            }
+
+                            if(value.matches(INTEGER_REGEX)){
+                                variableManager.put(name, Integer.parseInt(value));
+                            }else if(value.matches(DOUBLE_REGEX)){
+                                variableManager.put(name, Double.parseDouble(value));
+                            }else if(value.equals("true") || value.equals("false")){
+                                variableManager.put(name, Boolean.parseBoolean(value));
+                            }else{
+                                variableManager.put(name, value);
+                            }
+
+                            sender.sendMessage(ChatColor.GREEN+"Variable saved!");
                         }
+                        return true;
+                    }else if(args.length == 2){
+                        String name = args[1];
+                        sender.sendMessage(ChatColor.GRAY+"Value of "+name+": "+variableManager.get(name));
+
+                        return true;
+                    }else{
+
+                    }
+                }  else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
+                    String key = args[2];
+                    switch (args[1]) {
+                    case "vars":
+                    case "variables":
+                        variableManager.remove(key);
+                        sender.sendMessage(ChatColor.GREEN+"Removed the variable "+ChatColor.GOLD+key);
+                        break;
+                    case "cmd":
+                    case "command":
+                        if(cmdManager.removeCommandTrigger(key)){
+                            sender.sendMessage(ChatColor.GREEN+"Removed the command trigger "+ChatColor.GOLD+key);
+                        }else{
+                            sender.sendMessage(ChatColor.GRAY+"Command trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
+                        }
+                        break;
+                    default:
+                        sender.sendMessage("Ex) /trg del vars player.count");
+                        sender.sendMessage("List: variables[vars], command[cmd]");
+                        break;
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("search")) {
                     Chunk chunk = ((Player) sender).getLocation().getChunk();
                     showGlowStones(sender, clickManager.getTriggersInChunk(chunk));
                     showGlowStones(sender, walkManager.getTriggersInChunk(chunk));
+                    sender.sendMessage(ChatColor.GRAY+"Now trigger blocks will be shown as "+ChatColor.GOLD+"glowstone");
                     return true;
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     for(Manager manager : Manager.getManagers())
                         manager.reload();
-                    getLogger().info("Reload Complete!");
+                    sender.sendMessage("Reload Complete!");
                     return true;
                 }
             }
@@ -327,14 +362,17 @@ public class TriggerReactor extends JavaPlugin {
         sendDetails(sender, "/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
         sendDetails(sender, "To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
 
-        sendCommandDesc(sender, "/triggerreactor[trg] deletecommand[delcmd] <command name>", "delete command trigger.");
-        sendDetails(sender, "/trg delcmd test");
-
         sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] [...]", "set global variables.");
         sendDetails(sender, "&cWarning - This command will delete the previous data associated with the key if exists.");
         sendDetails(sender, "/trg vars Location test &8- &7save current location into global variable 'test'");
         sendDetails(sender, "/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
         sendDetails(sender, "/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] <variable name>", "get the value saved in <variable name>. null if nothing.");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] delete[del] <type> <name>", "Delete specific trigger/variable/etc.");
+        sendDetails(sender, "/trg del vars test &8- &7delete the variable saved in 'test'");
+        sendDetails(sender, "/trg del cmd test &8- &7delete the command trigger 'test'");
 
         sendCommandDesc(sender, "/triggerreactor[trg] search", "Show all trigger blocks in this chunk as glowing stone.");
 
