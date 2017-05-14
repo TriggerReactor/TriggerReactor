@@ -81,8 +81,13 @@ public class Interpreter {
         return vars;
     }
 
-    public void startWithContext(Object obj) throws InterpreterException{
-        context = obj;
+    /**
+     * Start interpretation.
+     * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
+     * @throws InterpreterException
+     */
+    public void startWithContext(Object context) throws InterpreterException{
+        this.context = context;
         for(Node child : root.getChildren())
             try {
                 start(child);
@@ -489,7 +494,7 @@ public class Interpreter {
                 + "        #MESSAGE str\n"
                 + "    ENDIF\n"
                 + "    #MESSAGE text\n"
-                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
+                + "    player = player.getTest().in.getHealth() + 1.2\n"
                 + "    #MESSAGE player.in.hasPermission(\"t\")\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"

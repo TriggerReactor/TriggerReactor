@@ -74,6 +74,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", new ObjectReference(player, "player"));
         varMap.put("block", new ObjectReference(clicked, "block"));
+        varMap.put("item", new ObjectReference(e.getItem(), "item"));
 
         trigger.activate(e, varMap);
         return true;
