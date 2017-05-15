@@ -19,6 +19,8 @@ package io.github.wysohn.triggerreactor.manager;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -28,6 +30,7 @@ import org.bukkit.event.player.PlayerEvent;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.Node;
@@ -36,6 +39,8 @@ import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 
 public abstract class TriggerManager extends Manager implements Listener{
+    private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
+
     public TriggerManager(TriggerReactor plugin) {
         super(plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -69,6 +74,19 @@ public abstract class TriggerManager extends Manager implements Listener{
         }
 
         public void activate(Event e, Map<String, Object> scriptVars) {
+            if(e instanceof PlayerEvent){
+                Player player = ((PlayerEvent) e).getPlayer();
+                UUID uuid = player.getUniqueId();
+
+
+
+                Long end = cooldowns.get(uuid);
+                if(end != null && System.currentTimeMillis() < end){
+                    player.sendMessage(ChatColor.GRAY+"Cooldown: "+(end/1000L)+" secs left.");
+                    return;
+                }
+            }
+
             Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, condition);
             interpreter.getVars().putAll(scriptVars);
 
@@ -76,11 +94,17 @@ public abstract class TriggerManager extends Manager implements Listener{
                 @Override
                 public void run() {
                     try{
-                        interpreter.startWithContext(e);
-                        if(interpreter.isCooldown()){
-                            Player player = ((PlayerEvent) e).getPlayer();
-                            player.sendMessage(ChatColor.RED+"You have to wait for awhile before use this again.");
-                        }
+                        interpreter.startWithContextAndInterupter(e, new ProcessInterrupter(){
+                            @Override
+                            public boolean onNodeProcess(Node node) {
+                                if(interpreter.isCooldown() && e instanceof PlayerEvent){
+                                    Player player = ((PlayerEvent) e).getPlayer();
+                                    UUID uuid = player.getUniqueId();
+                                    cooldowns.put(uuid, interpreter.getCooldownEnd());
+                                }
+                                return false;
+                            }
+                        });
                     }catch(Exception ex){
                         ex.printStackTrace();
                         if(e instanceof PlayerEvent){

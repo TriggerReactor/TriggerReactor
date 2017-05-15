@@ -128,6 +128,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             SimpleChunkLocation cloc = chunkEntry.getKey();
             Map<SimpleLocation, T> slocMap = chunkEntry.getValue();
 
+            Set<SimpleLocation> failed = new HashSet<>();
+
             for(Entry<SimpleLocation, T> entry : slocMap.entrySet()){
                 SimpleLocation sloc = entry.getKey();
                 T trigger = entry.getValue();
@@ -139,8 +141,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                 try{
                     FileUtils.writeToFile(file, script);
                 }catch(Exception e){
+                    e.printStackTrace();
                     plugin.getLogger().severe("Could not save a trigger at "+sloc);
+                    failed.add(sloc);
                 }
+            }
+
+            for(SimpleLocation sloc : failed){
+                slocMap.remove(sloc);
             }
         }
     }

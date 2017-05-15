@@ -74,7 +74,11 @@ public class ObjectReference {
         try {
             if(method != null){
                 method.setAccessible(true);
-                return method.invoke(target, params);
+                if(params.length == 0){
+                    return method.invoke(target);
+                }else{
+                    return method.invoke(target, params);
+                }
             }
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
             e.printStackTrace();

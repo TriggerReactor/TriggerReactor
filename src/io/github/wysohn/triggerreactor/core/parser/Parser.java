@@ -428,7 +428,7 @@ public class Parser {
                         call.getChildren().add(parseLogic());
                     }while(",".equals(token.value));
 
-                    if(token == null || !")".equals(token))
+                    if(token == null || !")".equals(token.value))
                         throw new ParserException("Extected ')' but end of stream is reached.", this);
 
                     nextToken();
@@ -497,7 +497,7 @@ public class Parser {
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException{
         Charset charset = Charset.forName("UTF-8");
-        String text = ""
+/*        String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
                 + "WHILE 1 > 0\n"
@@ -515,8 +515,18 @@ public class Parser {
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";
-
+                + "ENDWHILE";*/
+        String text = ""
+                + "rand = random(2)\n"
+                + "IF rand == 0\n"
+                + "#MESSAGE 0\n"
+                + "ENDIF\n"
+                + "IF rand == 1\n"
+                + "#MESSAGE 1\n"
+                + "ENDIF\n"
+                + "IF rand == 2\n"
+                + "#MESSAGE 2\n"
+                + "ENDIF";
         //String text = "#MESSAGE /mw goto ETC";
         System.out.println("original: \n"+text);
 

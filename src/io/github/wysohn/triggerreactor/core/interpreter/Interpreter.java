@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.parser.Parser;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.wrapper.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
 
 public class Interpreter {
@@ -41,10 +42,11 @@ public class Interpreter {
     private Stack<Token> stack = new Stack<>();
 
     private Object context = null;
+    private ProcessInterrupter interrupter = null;
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
-    private boolean cooldownFlag = false;
+    private long cooldownEnd = -1;
 
     private boolean callReturn = false;
     public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars, InterpretCondition condition) {
@@ -53,12 +55,18 @@ public class Interpreter {
         this.gvars = gvars;
         this.condition = condition;
 
+        initDefaultVariables();
         initDefaultExecutors();
+    }
+
+    private void initDefaultVariables() {
+        vars.put("common", new ObjectReference(new CommonFunctions(), "common"));
     }
 
     private void initDefaultExecutors() {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
+        executorMap.put("PAUSE", EXECUTOR_PAUSE);
     }
 
     public boolean isStopFlag() {
@@ -70,7 +78,11 @@ public class Interpreter {
     }
 
     public boolean isCooldown() {
-        return cooldownFlag;
+        return cooldownEnd != -1;
+    }
+
+    public long getCooldownEnd() {
+        return cooldownEnd;
     }
 
     /**
@@ -88,6 +100,24 @@ public class Interpreter {
      */
     public void startWithContext(Object context) throws InterpreterException{
         this.context = context;
+        for(Node child : root.getChildren())
+            try {
+                start(child);
+            } catch (InterpreterException e) {
+                throw e;
+            }
+    }
+
+    /**
+     * Start interpretation.
+     * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
+     * @param interupter gives the caller to interrupt the execution
+     * @throws InterpreterException
+     */
+    public void startWithContextAndInterupter(Object context, ProcessInterrupter interrupter) throws InterpreterException{
+        this.context = context;
+        this.interrupter = interrupter;
+
         for(Node child : root.getChildren())
             try {
                 start(child);
@@ -123,8 +153,6 @@ public class Interpreter {
         Integer result = interpret(node);
         if(result != null){
             switch(result){
-            case Executor.COOLDOWN:
-                cooldownFlag = true;
             case Executor.STOP:
                 stopFlag = true;
                 return;
@@ -153,6 +181,10 @@ public class Interpreter {
      * @throws InterpreterException
      */
     private Integer interpret(Node node) throws InterpreterException {
+        if(interrupter != null && interrupter.onNodeProcess(node)){
+            return Executor.STOP;
+        }
+
         if (node.getToken().type == Type.BODY
                 || "IF".equals(node.getToken().value)
                 || "WHILE".equals(node.getToken().value)) {
@@ -172,7 +204,7 @@ public class Interpreter {
 
                 if(argument.value instanceof ObjectReference){
                     Token fieldTarget = stack.pop();
-                    argument = new Token(Type.OBJECT, ((ObjectReference) argument.value).getFieldValue(fieldTarget.value.toString(), null));
+                    argument = new Token(Type.EPS, ((ObjectReference) argument.value).getFieldValue(fieldTarget.value.toString(), null));
                 }
 
                 args[i] = argument.value;
@@ -193,12 +225,12 @@ public class Interpreter {
 
             if(left.value instanceof ObjectReference){
                 Token fieldTarget = stack.pop();
-                left = new Token(Type.OBJECT, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
+                left = new Token(Type.EPS, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             if(right.value instanceof ObjectReference){
                 Token fieldTarget = stack.pop();
-                right = new Token(Type.OBJECT, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
+                right = new Token(Type.EPS, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             switch ((String) node.getToken().value) {
@@ -273,12 +305,12 @@ public class Interpreter {
 
             if(left.value instanceof ObjectReference){
                 Token fieldTarget = stack.pop();
-                left = new Token(Type.OBJECT, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
+                left = new Token(Type.EPS, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             if(right.value instanceof ObjectReference){
                 Token fieldTarget = stack.pop();
-                right = new Token(Type.OBJECT, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
+                right = new Token(Type.EPS, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             switch ((String) node.getToken().value) {
@@ -299,12 +331,22 @@ public class Interpreter {
                         ? right.toInt() : right.toDouble())));
                 break;
             case "==":
-                stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) == (right.isInt()
-                        ? right.toInt() : right.toDouble())));
-                break;
+/*                if(left.isObject()){
+                    stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
+                }else{
+                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) == (right.isInt()
+                            ? right.toInt() : right.toDouble())));
+                    break;
+                }*/
+                stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
             case "!=":
-                stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) != (right.isInt()
-                        ? right.toInt() : right.toDouble())));
+/*                if(left.isObject()){
+                    stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
+                }else{
+                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) != (right.isInt()
+                            ? right.toInt() : right.toDouble())));
+                }*/
+                stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
                 break;
             case "&&":
                 stack.push(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean()));
@@ -378,11 +420,13 @@ public class Interpreter {
 
             ObjectReference ref = (ObjectReference) parent.value;
             Object result = ref.invokeMethod((String) node.getToken().value, args);
+            if(result == null)
+                throw new InterpreterException("No such function '"+node.getToken().value+"()' or invalid parameter passed.");
 
             if(isPrimitive(result))
-                stack.push(new Token(Type.OBJECT, result));
+                stack.push(new Token(Type.EPS, result));
             else
-                stack.push(new Token(Type.OBJECT, new ObjectReference(result, (String) node.getToken().value)));
+                stack.push(new Token(Type.EPS, new ObjectReference(result, (String) node.getToken().value)));
             callReturn = true;
         }else if(node.getToken().type == Type.ID || node.getToken().type == Type.GID){
             stack.push(node.getToken());
@@ -394,7 +438,7 @@ public class Interpreter {
             stack.push(new Token(node.getToken().type, Double.parseDouble((String) node.getToken().value)));
         }else if(node.getToken().type == Type.BOOLEAN){
             stack.push(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value)));
-        }else if(node.getToken().type == Type.OBJECT){
+        }else if(node.getToken().type == Type.EPS){
             stack.push(node.getToken());
         }else{
             throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
@@ -417,10 +461,10 @@ public class Interpreter {
     private Token unwrapVariable(Token idToken) throws InterpreterException {
         if(idToken.type == Type.ID){
             Object var = vars.get(idToken.value);
-            if(var == null)
-                throw new InterpreterException("Unresolved id "+idToken);
 
-            if (var.getClass() == Integer.class) {
+            if (var == null) {
+                return new Token(Type.UNKNOWNID, idToken.value);
+            } else if (var.getClass() == Integer.class) {
                 return new Token(Type.INTEGER, var);
             } else if (var.getClass() == Double.class) {
                 return new Token(Type.DECIMAL, var);
@@ -453,8 +497,10 @@ public class Interpreter {
             return new Token(Type.STRING, value);
         } else if (value.getClass() == Boolean.class) {
             return new Token(Type.BOOLEAN, value);
-        } else {
+        } else if (value instanceof ObjectReference){
             return new Token(Type.OBJECT, value);
+        } else {
+            throw new InterpreterException("Unknown variable " + idToken);
         }
     }
 
@@ -480,10 +526,27 @@ public class Interpreter {
             return WAIT;
         }
     };
+    private final Executor EXECUTOR_PAUSE = new Executor(){
+        @Override
+        protected Integer execute(Object context, Object... args) {
+            long mills = Integer.parseInt((String) args[0]) * 1000L;
+            Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
+            return null;
+        }
+    };
+
+    public interface ProcessInterrupter{
+        /**
+         * This will be called every time when a node is processing.
+         * @param node the current node
+         * @return return true will terminate execution
+         */
+        boolean onNodeProcess(Node node);
+    }
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException, InterpreterException{
         Charset charset = Charset.forName("UTF-8");
-        String text = ""
+/*        String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
                 + "WHILE 1 > 0\n"
@@ -494,15 +557,26 @@ public class Interpreter {
                 + "        #MESSAGE str\n"
                 + "    ENDIF\n"
                 + "    #MESSAGE text\n"
-                + "    player = player.getTest().in.getHealth() + 1.2\n"
+                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
                 + "    #MESSAGE player.in.hasPermission(\"t\")\n"
                 + "    X = X - 1\n"
                 + "    IF X < 0\n"
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";
+                + "ENDWHILE";*/
         //String text = "#MESSAGE \"beh\"+{player.health}";
+        String text = ""
+                + "rand = common.random(3)\n"
+                + "IF rand == 0\n"
+                + "#MESSAGE 0\n"
+                + "ENDIF\n"
+                + "IF rand == 1\n"
+                + "#MESSAGE 1\n"
+                + "ENDIF\n"
+                + "IF rand == 2\n"
+                + "#MESSAGE 2\n"
+                + "ENDIF\n";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

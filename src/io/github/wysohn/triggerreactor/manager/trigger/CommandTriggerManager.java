@@ -21,8 +21,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -88,6 +90,7 @@ public class CommandTriggerManager extends TriggerManager {
 
     @Override
     public void saveAll(){
+        Set<String> failed = new HashSet<>();
         for(Entry<String, CommandTrigger> entry : commandTriggerMap.entrySet()){
             String fileName = entry.getKey();
             CommandTrigger trigger = entry.getValue();
@@ -98,8 +101,14 @@ public class CommandTriggerManager extends TriggerManager {
             try{
                 FileUtils.writeToFile(file, script);
             }catch(Exception e){
+                e.printStackTrace();
                 plugin.getLogger().severe("Could not save command trigger for "+fileName);
+                failed.add(fileName);
             }
+        }
+
+        for(String key : failed){
+            commandTriggerMap.remove(key);
         }
     }
 

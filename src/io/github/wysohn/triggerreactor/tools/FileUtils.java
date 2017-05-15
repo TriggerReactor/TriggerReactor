@@ -33,7 +33,7 @@ public class FileUtils {
             }
         }
 
-        File temp = File.createTempFile(file.getName(), ".tmp", file.getParentFile());
+        File temp = File.createTempFile("CopyOf_"+file.getName(), ".tmp", file.getParentFile());
 
         try(FileOutputStream fos = new FileOutputStream(temp);
                 OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");){

@@ -27,7 +27,6 @@ import io.github.wysohn.triggerreactor.main.TriggerReactor;
 public abstract class Executor {
     public static final int STOP = 0;
     public static final int WAIT = 1;
-    public static final int COOLDOWN = 2;
 
     /**
      *

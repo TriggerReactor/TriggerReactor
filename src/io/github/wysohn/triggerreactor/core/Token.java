@@ -45,6 +45,10 @@ public class Token {
         return value instanceof Boolean;
     }
 
+    public boolean isObject(){
+        return !isInt() && !isDouble() && !isBoolean();
+    }
+
     public int toInt(){
         return (int) value;
     }
@@ -100,14 +104,16 @@ public class Token {
         //Literal
         STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
 
-        OBJECT, /**Function Call**/CALL,
+        OBJECT, /**Function Call**/CALL, UNKNOWNID,
 
 
         /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, /**Logical**/OPERATOR_L,
 
-        GID, ID,
+        GID, ID, NULLVALUE,
 
         BODY, COMMAND,
+
+        /**Temporary use only**/EPS,
         ;
 
         private final boolean literal;
