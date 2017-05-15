@@ -78,8 +78,6 @@ public abstract class TriggerManager extends Manager implements Listener{
                 Player player = ((PlayerEvent) e).getPlayer();
                 UUID uuid = player.getUniqueId();
 
-
-
                 Long end = cooldowns.get(uuid);
                 if(end != null && System.currentTimeMillis() < end){
                     player.sendMessage(ChatColor.GRAY+"Cooldown: "+(end/1000L)+" secs left.");
