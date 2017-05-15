@@ -13,6 +13,7 @@ sourceSets {
 		resources {
 			srcDir 'src'
 			include 'Executor/*.js'
+			include '*.yml'
 		}
 	}
 	
