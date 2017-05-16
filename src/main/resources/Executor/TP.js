@@ -19,9 +19,9 @@ function TP(args){
         var world;
         var x, y, z;
         world = player.getWorld();
-        x = parseFloat(args[0]);
-        y = parseFloat(args[1]);
-        z = parseFloat(args[2]);
+        x = args[0];
+        y = args[1];
+        z = args[2];
         
         player.teleport(new Location(world, x, y, z));
         

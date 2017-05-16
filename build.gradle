@@ -1,8 +1,15 @@
 apply plugin: 'java'
 
+buildscript {
+  	ext.bukkit_version = "1.11.2-R0.1-SNAPSHOT"
+}
+
 repositories {
     jcenter()
     mavenCentral()
+    maven {
+    	url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+  	}
 }
 
 sourceSets {
@@ -29,7 +36,9 @@ sourceSets {
 dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 
+	compile 'junit:junit:4.12'
+	compile "org.bukkit:bukkit:$bukkit_version"
+	
     testCompile 'junit:junit:4.12'
-    compile 'junit:junit:4.12'
 }
 

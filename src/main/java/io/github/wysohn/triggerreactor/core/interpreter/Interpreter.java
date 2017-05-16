@@ -66,7 +66,7 @@ public class Interpreter {
     private void initDefaultExecutors() {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
-        executorMap.put("PAUSE", EXECUTOR_PAUSE);
+        executorMap.put("COOLDOWN", EXECUTOR_COOLDOWN);
     }
 
     public boolean isStopFlag() {
@@ -526,7 +526,7 @@ public class Interpreter {
             return WAIT;
         }
     };
-    private final Executor EXECUTOR_PAUSE = new Executor(){
+    private final Executor EXECUTOR_COOLDOWN = new Executor(){
         @Override
         protected Integer execute(Object context, Object... args) {
             long mills = Integer.parseInt((String) args[0]) * 1000L;
