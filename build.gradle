@@ -18,7 +18,7 @@ sourceSets {
 			srcDir 'src'
 		}
 		resources {
-			srcDir 'src'
+			srcDir 'src/main'
 			include 'Executor/*.js'
 			include '*.yml'
 		}
@@ -26,9 +26,7 @@ sourceSets {
 	
 	test{
 	 	java {
-            srcDir 'src'
-            include '*.java'
-
+            srcDirs = ['src/test']
         }
 	}
 }
@@ -36,7 +34,6 @@ sourceSets {
 dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 
-	compile 'junit:junit:4.12'
 	compile "org.bukkit:bukkit:$bukkit_version"
 	
     testCompile 'junit:junit:4.12'
