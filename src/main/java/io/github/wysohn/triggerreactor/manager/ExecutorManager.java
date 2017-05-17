@@ -181,12 +181,12 @@ public class ExecutorManager extends HashMap<String, Executor>{
     }
 
     private class JSExecutor extends Executor{
-        private final String scriptName;
+        private final String executorName;
         private final Map<String, Object> variables = new HashMap<>();
         private final String sourceCode;
 
-        public JSExecutor(String scriptName, File file) throws ScriptException, IOException {
-            this.scriptName = scriptName;
+        public JSExecutor(String executorName, File file) throws ScriptException, IOException {
+            this.executorName = executorName;
 
             StringBuilder builder = new StringBuilder();
             FileReader reader = new FileReader(file);
@@ -249,9 +249,10 @@ public class ExecutorManager extends HashMap<String, Executor>{
                 public Integer call() throws Exception {
                     try {
                         Object argObj = args;
-                        return (Integer) invocable.invokeFunction(scriptName, argObj);
+                        return (Integer) invocable.invokeFunction(executorName, argObj);
                     } catch (NoSuchMethodException | ScriptException ex) {
                         ex.printStackTrace();
+                        plugin.getLogger().warning("#"+executorName+" encountered error.");
                     }
                     return null;
                 }
@@ -263,7 +264,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             } catch (InterruptedException | ExecutionException e1) {
                 e1.printStackTrace();
             } catch (TimeoutException e1) {
-                plugin.getLogger().warning("An trigger ["+scriptName+"] execution was dropped!");
+                plugin.getLogger().warning("An exectuor #"+executorName+" execution was dropped!");
                 plugin.getLogger().warning("Took longer than 5 seconds to process.");
                 plugin.getLogger().warning("Is the server lagging?");
             }

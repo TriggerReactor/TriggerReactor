@@ -104,7 +104,7 @@ public class Token {
         //Literal
         STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
 
-        OBJECT, /**Function Call**/CALL, UNKNOWNID,
+        OBJECT, /**Function Call**/CALL, UNKNOWNID, ACCESS,
 
 
         /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, /**Logical**/OPERATOR_L,

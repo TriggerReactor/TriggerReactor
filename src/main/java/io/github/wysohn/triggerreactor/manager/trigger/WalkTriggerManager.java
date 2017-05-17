@@ -26,7 +26,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
@@ -56,9 +55,9 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
             return false;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", new ObjectReference(player, "player"));
-        varMap.put("from", new ObjectReference(e.getFrom(), "from"));
-        varMap.put("to", new ObjectReference(e.getFrom(), "to"));
+        varMap.put("player", player);
+        varMap.put("from", e.getFrom());
+        varMap.put("to", e.getTo());
 
         trigger.activate(e, varMap);
         return true;

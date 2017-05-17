@@ -517,7 +517,7 @@ public class Parser {
                 + "    #WAIT 1\n"
                 + "ENDWHILE";*/
         String text = ""
-                + "rand = random(2)\n"
+                + "rand = common.random(3)\n"
                 + "IF rand == 0\n"
                 + "#MESSAGE 0\n"
                 + "ENDIF\n"

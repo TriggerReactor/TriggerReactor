@@ -16,21 +16,17 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.interpreter;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
 import io.github.wysohn.triggerreactor.core.Token;
 import io.github.wysohn.triggerreactor.core.Token.Type;
-import io.github.wysohn.triggerreactor.core.lexer.Lexer;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.Node;
-import io.github.wysohn.triggerreactor.core.parser.Parser;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.wrapper.CommonFunctions;
-import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
+import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {
     private Node root;
@@ -40,6 +36,7 @@ public class Interpreter {
     private final InterpretCondition condition;
 
     private Stack<Token> stack = new Stack<>();
+    private Stack<Token> referenceStack = new Stack<>();
 
     private Object context = null;
     private ProcessInterrupter interrupter = null;
@@ -48,7 +45,7 @@ public class Interpreter {
     private boolean waitFlag = false;
     private long cooldownEnd = -1;
 
-    private boolean callReturn = false;
+    private int callArgsSize = 0;
     public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars, InterpretCondition condition) {
         this.root = root;
         this.executorMap = executorMap;
@@ -60,7 +57,7 @@ public class Interpreter {
     }
 
     private void initDefaultVariables() {
-        vars.put("common", new ObjectReference(new CommonFunctions(), "common"));
+        vars.put("common", new CommonFunctions());
     }
 
     private void initDefaultExecutors() {
@@ -202,11 +199,6 @@ public class Interpreter {
                     argument = unwrapVariable(argument);
                 }
 
-                if(argument.value instanceof ObjectReference){
-                    Token fieldTarget = stack.pop();
-                    argument = new Token(Type.EPS, ((ObjectReference) argument.value).getFieldValue(fieldTarget.value.toString(), null));
-                }
-
                 args[i] = argument.value;
             }
 
@@ -221,16 +213,6 @@ public class Interpreter {
 
             if(isVariable(left)){
                 left = unwrapVariable(left);
-            }
-
-            if(left.value instanceof ObjectReference){
-                Token fieldTarget = stack.pop();
-                left = new Token(Type.EPS, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
-            }
-
-            if(right.value instanceof ObjectReference){
-                Token fieldTarget = stack.pop();
-                right = new Token(Type.EPS, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
             }
 
             switch ((String) node.getToken().value) {
@@ -303,16 +285,6 @@ public class Interpreter {
                 left = unwrapVariable(left);
             }
 
-            if(left.value instanceof ObjectReference){
-                Token fieldTarget = stack.pop();
-                left = new Token(Type.EPS, ((ObjectReference) left.value).getFieldValue(fieldTarget.value.toString(), null));
-            }
-
-            if(right.value instanceof ObjectReference){
-                Token fieldTarget = stack.pop();
-                right = new Token(Type.EPS, ((ObjectReference) right.value).getFieldValue(fieldTarget.value.toString(), null));
-            }
-
             switch ((String) node.getToken().value) {
             case "<":
                 stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
@@ -339,6 +311,7 @@ public class Interpreter {
                     break;
                 }*/
                 stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
+                break;
             case "!=":
 /*                if(left.isObject()){
                     stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
@@ -356,80 +329,98 @@ public class Interpreter {
                 break;
             }
         }else if(node.getToken().type == Type.OPERATOR){
+            Token right, left;
             switch ((String) node.getToken().value) {
             case "=":
-                Token right = stack.pop(); //can be access name
-                Token left = stack.pop(); //can be reference
+                right = stack.pop();
+                left = stack.pop();
 
-                if(left.value instanceof ObjectReference){
-                    Token accessName = stack.pop();
-
-                    ObjectReference reference = (ObjectReference) left.value;
-                    reference.setFieldValue(accessName.value.toString(), right.value);
-                }else{
-                    if(left.type == Type.GID){
-                        gvars.put(left.value.toString(), right.value);
-                    }else if(left.type == Type.ID){
-                        vars.put(left.value.toString(), right.value);
-                    }else{
-                        throw new InterpreterException("Cannot assign value to "+left.value.getClass().getSimpleName());
+                if(left.type == Type.ACCESS){
+                    Accessor accessor = (Accessor) left.value;
+                    try {
+                        accessor.setTargetValue(right.value);
+                    } catch (NoSuchFieldException e) {
+                        throw new InterpreterException("Unknown field "+left.value+"."+right.value);
+                    } catch (IllegalArgumentException e) {
+                        throw new InterpreterException("Unknown error "+e.getMessage());
                     }
+                }else if(left.type == Type.GID){
+                    gvars.put(left.value.toString(), right.value);
+                }else if(left.type == Type.ID){
+                    vars.put(left.value.toString(), right.value);
+                }else{
+                    throw new InterpreterException("Cannot assign value to "+left.value.getClass().getSimpleName());
                 }
                 break;
             case ".":
-                if(callReturn){
-                    callReturn = false;
-                    return null;
-                }
+                right = stack.pop();
+                if(right.type == Type.CALL){
+                    Object[] args = new Object[callArgsSize];
+                    for(int i = callArgsSize - 1; i >= 0; i--){
+                        Token argument = stack.pop();
 
-                Token right1 = stack.pop();
-                Token left1 = stack.pop();
+                        if (isVariable(argument)) {
+                            argument = unwrapVariable(argument);
+                        }
 
-                if(isVariable(left1)){
-                    left1 = unwrapVariable(left1);
-                }
-                if(!(left1.value instanceof ObjectReference))
-                    throw new InterpreterException("Expected ObjectReference at left of "+right1+" but found "+left1);
+                        args[i] = argument.value;
+                    }
+                    callArgsSize = 0;
 
-                Object obj = ((ObjectReference) left1.value).getFieldValue(right1.value.toString(), null);
-                if(obj == null)
-                    throw new InterpreterException("No such field "+right1.value);
+                    left = stack.pop();
 
-                if(isPrimitive(obj)){
-                    stack.push(new Token(Type.ID, right1.value.toString()));
-                    stack.push(left1);
+                    if(isVariable(left)){
+                        left = unwrapVariable(left);
+                    }
+
+                    if(left.isObject()){
+                        callFunction(node, right, left, args);
+                    }else{
+                        Accessor accessor = (Accessor) left.value;
+
+                        Object var;
+                        try {
+                            var = accessor.evaluateTarget();
+                        } catch (NoSuchFieldException e) {
+                            throw new InterpreterException("Unknown field " + accessor);
+                        } catch (IllegalArgumentException e) {
+                            throw new InterpreterException("Unknown error " + e.getMessage());
+                        }
+
+                        callFunction(node, right, new Token(Type.EPS, var), args);
+                    }
                 }else{
-                    stack.push(new Token(Type.OBJECT, new ObjectReference(obj, right1.value.toString())));
-                }
+                    left = stack.pop();
 
+                    if(isVariable(left)){
+                        left = unwrapVariable(left);
+                    }
+
+                    if(left.isObject()){
+                        stack.push(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value)));
+                    }else{
+                        Accessor accessor = (Accessor) left.value;
+
+                        Object var;
+                        try {
+                            var = accessor.evaluateTarget();
+                        } catch (NoSuchFieldException e) {
+                            throw new InterpreterException("Unknown field " + accessor);
+                        } catch (IllegalArgumentException e) {
+                            throw new InterpreterException("Unknown error " + e.getMessage());
+                        }
+
+                        stack.push(new Token(Type.ACCESS, new Accessor(var, (String) right.value)));
+                    }
+                }
                 break;
             }
-        }else if(node.getToken().type == Type.CALL){
-            Object[] args = new Object[node.getChildren().size()];
-            for(int i = args.length - 1; i >= 0; i--){
-                args[i] = stack.pop().value;
-            }
-
-            Token parent = stack.pop();
-            if(isVariable(parent)){
-                parent = unwrapVariable(parent);
-            }
-
-            if(!(parent.value instanceof ObjectReference))
-                throw new InterpreterException("Expected an ObjectReference at left of "+node.getToken()+" but found "+parent);
-
-            ObjectReference ref = (ObjectReference) parent.value;
-            Object result = ref.invokeMethod((String) node.getToken().value, args);
-            if(result == null)
-                throw new InterpreterException("No such function '"+node.getToken().value+"()' or invalid parameter passed.");
-
-            if(isPrimitive(result))
-                stack.push(new Token(Type.EPS, result));
-            else
-                stack.push(new Token(Type.EPS, new ObjectReference(result, (String) node.getToken().value)));
-            callReturn = true;
-        }else if(node.getToken().type == Type.ID || node.getToken().type == Type.GID){
+        }else if(node.getToken().type == Type.ID
+                || node.getToken().type == Type.GID){
             stack.push(node.getToken());
+        }else if(node.getToken().type == Type.CALL){
+            stack.push(node.getToken());
+            callArgsSize = node.getChildren().size();
         }else if(node.getToken().type == Type.STRING){
             stack.push(new Token(node.getToken().type, node.getToken().value));
         }else if(node.getToken().type == Type.INTEGER){
@@ -447,6 +438,25 @@ public class Interpreter {
         return null;
     }
 
+    private void callFunction(Node node, Token right, Token left, Object[] args) throws InterpreterException {
+        Object result;
+        try {
+            result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+        } catch (NoSuchMethodException e) {
+            throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist.");
+        } catch (IllegalArgumentException | InvocationTargetException e) {
+            throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"! -- "+e.getMessage());
+        }
+
+        if(result != null){
+            if(isPrimitive(result)){
+                stack.push(new Token(Type.EPS, result));
+            }else{
+                stack.push(new Token(Type.OBJECT, result));
+            }
+        }
+    }
+
     private boolean isPrimitive(Object obj){
         return obj.getClass() == Boolean.class
                 || obj.getClass() == Integer.class
@@ -455,15 +465,17 @@ public class Interpreter {
     }
 
     private boolean isVariable(Token token) {
-        return token.type == Type.ID || token.type == Type.GID;
+        return token.type == Type.ID
+                || token.type == Type.GID
+                || token.type == Type.ACCESS;
     }
 
-    private Token unwrapVariable(Token idToken) throws InterpreterException {
-        if(idToken.type == Type.ID){
-            Object var = vars.get(idToken.value);
+    private Token unwrapVariable(Token varToken) throws InterpreterException {
+        if(varToken.type == Type.ID){
+            Object var = vars.get(varToken.value);
 
             if (var == null) {
-                return new Token(Type.UNKNOWNID, idToken.value);
+                return new Token(Type.UNKNOWNID, varToken.value);
             } else if (var.getClass() == Integer.class) {
                 return new Token(Type.INTEGER, var);
             } else if (var.getClass() == Double.class) {
@@ -472,15 +484,37 @@ public class Interpreter {
                 return new Token(Type.STRING, var);
             } else if (var.getClass() == Boolean.class) {
                 return new Token(Type.BOOLEAN, var);
-            } else if (var instanceof ObjectReference){
-                return new Token(Type.OBJECT, var);
             } else {
-                throw new InterpreterException("Unresolved id "+idToken);
+                return new Token(Type.OBJECT, var);
             }
-        }else if(idToken.type == Type.GID){
-            return convertValue(gvars, idToken);
+        }else if(varToken.type == Type.GID){
+            return convertValue(gvars, varToken);
+        }else if(varToken.type == Type.ACCESS){
+            Accessor accessor = (Accessor) varToken.value;
+            Object var;
+            try {
+                var = accessor.evaluateTarget();
+            } catch (NoSuchFieldException e) {
+                throw new InterpreterException("Unknown field " + accessor);
+            } catch (IllegalArgumentException e) {
+                throw new InterpreterException("Unknown error " + e.getMessage());
+            }
+
+            if (var == null) {
+                return new Token(Type.UNKNOWNID, varToken.value);
+            } else if (var.getClass() == Integer.class) {
+                return new Token(Type.INTEGER, var);
+            } else if (var.getClass() == Double.class) {
+                return new Token(Type.DECIMAL, var);
+            } else if (var.getClass() == String.class) {
+                return new Token(Type.STRING, var);
+            } else if (var.getClass() == Boolean.class) {
+                return new Token(Type.BOOLEAN, var);
+            } else {
+                return new Token(Type.OBJECT, var);
+            }
         }else{
-            throw new InterpreterException("Unresolved id "+idToken);
+            throw new InterpreterException("Unresolved id "+varToken);
         }
     }
 
@@ -497,10 +531,8 @@ public class Interpreter {
             return new Token(Type.STRING, value);
         } else if (value.getClass() == Boolean.class) {
             return new Token(Type.BOOLEAN, value);
-        } else if (value instanceof ObjectReference){
-            return new Token(Type.OBJECT, value);
         } else {
-            throw new InterpreterException("Unknown variable " + idToken);
+            throw new InterpreterException("Unknown type " + idToken.value);
         }
     }
 
@@ -542,94 +574,5 @@ public class Interpreter {
          * @return return true will terminate execution
          */
         boolean onNodeProcess(Node node);
-    }
-
-    public static void main(String[] ar) throws IOException, LexerException, ParserException, InterpreterException{
-        Charset charset = Charset.forName("UTF-8");
-/*        String text = ""
-                + "X = 5\n"
-                + "str = \"abc\"\n"
-                + "WHILE 1 > 0\n"
-                + "    str = str + X\n"
-                + "    IF player.in.health > 2 && player.in.health > 0\n"
-                + "        #MESSAGE 3*4\n"
-                + "    ELSE\n"
-                + "        #MESSAGE str\n"
-                + "    ENDIF\n"
-                + "    #MESSAGE text\n"
-                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
-                + "    #MESSAGE player.in.hasPermission(\"t\")\n"
-                + "    X = X - 1\n"
-                + "    IF X < 0\n"
-                + "        #STOP\n"
-                + "    ENDIF\n"
-                + "    #WAIT 1\n"
-                + "ENDWHILE";*/
-        //String text = "#MESSAGE \"beh\"+{player.health}";
-        String text = ""
-                + "rand = common.random(3)\n"
-                + "IF rand == 0\n"
-                + "#MESSAGE 0\n"
-                + "ENDIF\n"
-                + "IF rand == 1\n"
-                + "#MESSAGE 1\n"
-                + "ENDIF\n"
-                + "IF rand == 2\n"
-                + "#MESSAGE 2\n"
-                + "ENDIF\n";
-        System.out.println("original: \n"+text);
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor(){
-            @Override
-            protected Integer execute(Object context, Object... args) {
-                System.out.println(args[0]);
-                return null;
-            }
-        });
-        Test reference = new Test();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>() {
-            {
-
-            }
-        }, null);
-        interpreter.getVars().put("player", new ObjectReference(reference, "player"));
-        interpreter.getVars().put("text", "hello");
-
-        System.out.println();
-        System.out.println("result: ");
-        interpreter.startWithContext(null);
-
-        System.out.println();
-        System.out.println("In player.getTest().in.getHealth(): "+reference.getTest().in.getHealth());
-    }
-
-    private static class Test{
-        public InTest in = new InTest();
-        public InTest getTest(){
-            return in;
-        }
-    }
-
-    private static class InTest{
-        public InTest2 in = new InTest2();
-        public double health = 0.82;
-        public boolean hasPermission(String tt){
-            return tt.equals("tt");
-        }
-        public InTest2 getTest(){
-            return in;
-        }
-    }
-
-    private static class InTest2{
-        public double health = 5.23;
-        public double getHealth(){
-            return health;
-        }
     }
 }

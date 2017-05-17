@@ -32,7 +32,6 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.wrapper.ObjectReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
@@ -72,9 +71,9 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
             return false;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", new ObjectReference(player, "player"));
-        varMap.put("block", new ObjectReference(clicked, "block"));
-        varMap.put("item", new ObjectReference(e.getItem(), "item"));
+        varMap.put("player", player);
+        varMap.put("block", clicked);
+        varMap.put("item", e.getItem());
 
         trigger.activate(e, varMap);
         return true;

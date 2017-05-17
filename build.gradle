@@ -15,10 +15,10 @@ repositories {
 sourceSets {
 	main {
 		java {
-			srcDir 'src'
+			srcDirs = ['src/main/java']
 		}
 		resources {
-			srcDir 'src/main'
+			srcDirs = ['src/main/resources']
 			include 'Executor/*.js'
 			include '*.yml'
 		}
@@ -26,7 +26,7 @@ sourceSets {
 	
 	test{
 	 	java {
-            srcDirs = ['src/test']
+            srcDirs = ['src/test/java/']
         }
 	}
 }
@@ -36,6 +36,7 @@ dependencies {
 
 	compile "org.bukkit:bukkit:$bukkit_version"
 	
-    testCompile 'junit:junit:4.12'
+    testCompile 'junit:junit:4.+'
+    testCompile "org.mockito:mockito-core:2.+"
 }
 
