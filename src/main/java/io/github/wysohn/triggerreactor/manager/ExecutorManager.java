@@ -43,6 +43,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.event.Event;
@@ -78,6 +79,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         registerClass(Executor.class);
         registerClass(Bukkit.class);
         registerClass(Location.class);
+        registerClass(ChatColor.class);
 
         sem.put("get", new Function<String, Object>(){
             @Override
@@ -110,6 +112,13 @@ public class ExecutorManager extends HashMap<String, Executor>{
             @Override
             public Boolean apply(String t) {
                 return plugin.getVariableManager().has(t);
+            }
+        });
+
+        sem.put("Char", new Function<String, Character>(){
+            @Override
+            public Character apply(String t) {
+                return t.charAt(0);
             }
         });
     }
