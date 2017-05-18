@@ -111,7 +111,7 @@ public class Interpreter {
      * @param interupter gives the caller to interrupt the execution
      * @throws InterpreterException
      */
-    public void startWithContextAndInterupter(Object context, ProcessInterrupter interrupter) throws InterpreterException{
+    public void startWithContextAndInterrupter(Object context, ProcessInterrupter interrupter) throws InterpreterException{
         this.context = context;
         this.interrupter = interrupter;
 
@@ -188,8 +188,6 @@ public class Interpreter {
             return null;
         } else if (node.getToken().type == Type.COMMAND) {
             String command = (String) node.getToken().value;
-            if (!executorMap.containsKey(command))
-                throw new InterpreterException("No executor named #" + command + " found!");
 
             Object[] args = new Object[node.getChildren().size()];
             for (int i = args.length - 1; i >= 0 ; i--) {
@@ -202,7 +200,14 @@ public class Interpreter {
                 args[i] = argument.value;
             }
 
-            return executorMap.get(command).execute(context, args);
+            if (interrupter != null && interrupter.onCommand(context, command, args)) {
+                return null;
+            } else {
+                if (!executorMap.containsKey(command))
+                    throw new InterpreterException("No executor named #" + command + " found!");
+
+                return executorMap.get(command).execute(context, args);
+            }
         } else if (node.getToken().type == Type.OPERATOR_A) {
             Token right = stack.pop();
             Token left = stack.pop();
@@ -560,7 +565,7 @@ public class Interpreter {
     };
     private final Executor EXECUTOR_COOLDOWN = new Executor(){
         @Override
-        protected Integer execute(Object context, Object... args) {
+        public Integer execute(Object context, Object... args) {
             long mills = Integer.parseInt((String) args[0]) * 1000L;
             Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
             return null;
@@ -574,5 +579,13 @@ public class Interpreter {
          * @return return true will terminate execution
          */
         boolean onNodeProcess(Node node);
+
+        /**
+        *
+        * @param commandNode
+        * @param args
+        * @boolean true if consumed it; false to let interpreter continue working on it.
+        */
+        boolean onCommand(Object context, String command, Object[] args);
     }
 }

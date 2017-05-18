@@ -572,6 +572,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         return triggers;
     }
 
+    @Override
+    public Trigger getTrigger(Object key) {
+        if(!(key instanceof Location))
+            throw new RuntimeException(key+" is not a valid for location based(click or walk) trigger!");
+
+        return getTriggerForLocation((Location) key);
+    }
+
     protected abstract void onLocationChange(PlayerMoveEvent e, SimpleLocation from, SimpleLocation to);
 
     private static class ClipBoard{

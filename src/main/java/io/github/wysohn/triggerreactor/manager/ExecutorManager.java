@@ -71,6 +71,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         initScriptEngine();
 
         reload();
+
     }
 
     private void initScriptEngine() throws ScriptException {
@@ -125,7 +126,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         sem.put(name, getNashornEngine().eval("Java.type('"+clazz.getName()+"');"));
     }
 
-    public void reload() throws ScriptException, IOException{
+    public void reload(){
         FileFilter filter = new FileFilter(){
             @Override
             public boolean accept(File pathname) {
@@ -133,8 +134,14 @@ public class ExecutorManager extends HashMap<String, Executor>{
             }
         };
 
-        for(File file : executorFolder.listFiles(filter))
-            reloadExecutors(new Stack<String>(), file, filter);
+        for(File file : executorFolder.listFiles(filter)){
+            try {
+                reloadExecutors(new Stack<String>(), file, filter);
+            } catch (ScriptException | IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Could not load executor "+file.getName());
+            }
+        }
     }
 
     private void reloadExecutors(Stack<String> name, File file, FileFilter filter) throws ScriptException, IOException{

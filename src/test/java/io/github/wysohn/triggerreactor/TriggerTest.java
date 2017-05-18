@@ -44,7 +44,7 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = new Executor(){
             @Override
-            protected Integer execute(Object context, Object... args) {
+            public Integer execute(Object context, Object... args) {
                 String value = String.valueOf(args[0]);
                 Assert.assertTrue("0".equals(value) || "1".equals(value)||"2".equals(value));
                 return null;
@@ -84,7 +84,7 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            protected Integer execute(Object context, Object... args) {
+            public Integer execute(Object context, Object... args) {
                 return null;
             }
         });
@@ -110,7 +110,7 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            protected Integer execute(Object context, Object... args) {
+            public Integer execute(Object context, Object... args) {
                 Assert.assertEquals("beh0.82", args[0]);
                 return null;
             }
@@ -145,21 +145,21 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            protected Integer execute(Object context, Object... args) {
+            public Integer execute(Object context, Object... args) {
                 System.out.println(args[0]);
                 return null;
             }
         });
         executorMap.put("SOUND", new Executor(){
             @Override
-            protected Integer execute(Object context, Object... args) {
+            public Integer execute(Object context, Object... args) {
                 System.out.println(args[0]+","+args[1]+","+args[2]+","+args[3]);
                 return null;
             }
         });
         executorMap.put("CMDCON", new Executor(){
             @Override
-            protected Integer execute(Object context, Object... args) {
+            public Integer execute(Object context, Object... args) {
                 System.out.println("to console: "+args[0]);
                 return null;
             }

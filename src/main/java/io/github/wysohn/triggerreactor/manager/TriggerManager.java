@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
@@ -45,6 +46,8 @@ public abstract class TriggerManager extends Manager implements Listener{
         super(plugin);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
+
+    public abstract Trigger getTrigger(Object key);
 
     public class Trigger implements Cloneable{
         protected final String script;
@@ -92,7 +95,7 @@ public abstract class TriggerManager extends Manager implements Listener{
                 @Override
                 public void run() {
                     try{
-                        interpreter.startWithContextAndInterupter(e, new ProcessInterrupter(){
+                        interpreter.startWithContextAndInterrupter(e, new ProcessInterrupter(){
                             @Override
                             public boolean onNodeProcess(Node node) {
                                 if(interpreter.isCooldown() && e instanceof PlayerEvent){
@@ -102,6 +105,27 @@ public abstract class TriggerManager extends Manager implements Listener{
                                 }
                                 return false;
                             }
+
+                            @Override
+                            public boolean onCommand(Object context, String command, Object[] args) {
+                                if("CALL".equals(command)){
+                                    if(args.length < 1)
+                                        throw new RuntimeException("Need parameter [String] or [Location]");
+
+                                    if(args[0] instanceof Location || args[0] instanceof String){
+                                        Trigger trigger = getTrigger(args[0]);
+                                        if(trigger == null)
+                                            throw new RuntimeException("No trigger found for "+args[0]);
+
+                                        trigger.activate(e, scriptVars);
+                                        return true;
+                                    } else {
+                                        throw new RuntimeException("Parameter type not match. Make sure to put double quotes if it's a string.");
+                                    }
+                                }
+                                return false;
+                            }
+
                         });
                     }catch(Exception ex){
                         ex.printStackTrace();
@@ -127,5 +151,4 @@ public abstract class TriggerManager extends Manager implements Listener{
             return null;
         }
     }
-
 }

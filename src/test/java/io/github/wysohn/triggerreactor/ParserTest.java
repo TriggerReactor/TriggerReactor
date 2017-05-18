@@ -73,6 +73,30 @@ public class ParserTest {
         assertEquals(0, queue.size());
     }
 
+    @Test
+    public void testParam() throws IOException, LexerException, ParserException {
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#SOUND player.getLocation() LEVEL_UP 1.0 1.0";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.ID, "player")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "getLocation")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "LEVEL_UP")), queue.poll());
+        assertEquals(new Node(new Token(Type.DECIMAL, "1.0")), queue.poll());
+        assertEquals(new Node(new Token(Type.DECIMAL, "1.0")), queue.poll());
+        assertEquals(new Node(new Token(Type.COMMAND, "SOUND")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+
     private void serializeNode(Queue<Node> queue, Node node){
         for(Node child : node.getChildren()){
             serializeNode(queue, child);

@@ -186,10 +186,19 @@ public class CommandTriggerManager extends TriggerManager {
         return true;
     }
 
+    @Override
+    public Trigger getTrigger(Object key) {
+        if(!(key instanceof String))
+            throw new RuntimeException(key+" is not valid for command trigger!");
+
+        return commandTriggerMap.get(key);
+    }
+
     private class CommandTrigger extends TriggerManager.Trigger {
 
         public CommandTrigger(String script) throws IOException, LexerException, ParserException {
             super(script);
         }
     }
+
 }
