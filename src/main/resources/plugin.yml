@@ -1,6 +1,6 @@
 name: TriggerReactor
 main: io.github.wysohn.triggerreactor.main.TriggerReactor
-version: 0.0.1
+version: 0.1.0
 author: wysohn
 softdepend: [ChatLib, UserInterfaceLib, SkillsLib, Vault, PlaceHolderAPI]
 commands:

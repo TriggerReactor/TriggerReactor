@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.Token.Type;
 public class Lexer {
     private static final char[] OPERATORS;
     static {
-        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , ',', '.'};
+        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.'};
         Arrays.sort(OPERATORS);
     }
 
@@ -133,10 +133,6 @@ public class Lexer {
 
         if (isOperator(c)) {
             return readOperator();
-        }
-
-        if(c == '{'){
-            return readGlobalId();
         }
 
         if(isIdCharacter(c)){
@@ -310,43 +306,6 @@ public class Lexer {
         }
 
         return new Token(Type.ID, builder.toString());
-    }
-
-    private Token readGlobalId() throws IOException, LexerException{
-        if(c != '{'){
-            throw new LexerException(c+" is not a valid start of global Id!", this);
-        }
-        read();
-
-        StringBuilder builder = new StringBuilder();
-
-        //first character cannot be digit, etc
-        if(isIdCharacter(c)){
-            builder.append(c);
-            read();
-        }
-
-        while(isIdCharacter(c) || Character.isDigit(c)){
-            builder.append(c);
-            read();
-        }
-
-        while(c == '.'){
-            read();
-            builder.append('.');
-            while(isIdCharacter(c) || Character.isDigit(c)){
-                builder.append(c);
-                read();
-            }
-        }
-
-        skipComment();
-        if(c != '}'){
-            throw new LexerException("} expected!", this);
-        }
-        read();
-
-        return new Token(Type.GID, builder.toString());
     }
 
     private Token readEndline() throws IOException {

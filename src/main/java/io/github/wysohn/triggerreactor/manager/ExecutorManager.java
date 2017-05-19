@@ -143,6 +143,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             }
         };
 
+        jsExecutors.clear();
         for(File file : executorFolder.listFiles(filter)){
             try {
                 reloadExecutors(new Stack<String>(), file, filter);

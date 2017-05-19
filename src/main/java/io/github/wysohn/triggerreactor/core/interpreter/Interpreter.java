@@ -220,6 +220,10 @@ public class Interpreter {
                 left = unwrapVariable(left);
             }
 
+            if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
+                throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
+            }
+
             switch ((String) node.getToken().value) {
             case "+":
                 if(left.type == Type.STRING){
@@ -290,6 +294,10 @@ public class Interpreter {
                 left = unwrapVariable(left);
             }
 
+            if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
+                throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
+            }
+
             switch ((String) node.getToken().value) {
             case "<":
                 stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
@@ -308,22 +316,9 @@ public class Interpreter {
                         ? right.toInt() : right.toDouble())));
                 break;
             case "==":
-/*                if(left.isObject()){
-                    stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
-                }else{
-                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) == (right.isInt()
-                            ? right.toInt() : right.toDouble())));
-                    break;
-                }*/
                 stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
                 break;
             case "!=":
-/*                if(left.isObject()){
-                    stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
-                }else{
-                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) != (right.isInt()
-                            ? right.toInt() : right.toDouble())));
-                }*/
                 stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
                 break;
             case "&&":
@@ -350,6 +345,7 @@ public class Interpreter {
                         throw new InterpreterException("Unknown error "+e.getMessage());
                     }
                 }else if(left.type == Type.GID){
+
                     gvars.put(left.value.toString(), right.value);
                 }else if(left.type == Type.ID){
                     vars.put(left.value.toString(), right.value);
@@ -377,6 +373,9 @@ public class Interpreter {
                     if(isVariable(left)){
                         left = unwrapVariable(left);
                     }
+                    if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
+                        throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
+                    }
 
                     if(left.isObject()){
                         callFunction(node, right, left, args);
@@ -400,6 +399,9 @@ public class Interpreter {
                     if(isVariable(left)){
                         left = unwrapVariable(left);
                     }
+                    if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
+                        throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
+                    }
 
                     if(left.isObject()){
                         stack.push(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value)));
@@ -420,9 +422,15 @@ public class Interpreter {
                 }
                 break;
             }
-        }else if(node.getToken().type == Type.ID
-                || node.getToken().type == Type.GID){
+        }else if(node.getToken().type == Type.ID){
             stack.push(node.getToken());
+        }else if(node.getToken().type == Type.GID){
+            Token keyToken = stack.pop();
+            if(keyToken.getType() != Type.STRING){
+                throw new InterpreterException(keyToken+" is not a valid global variable id.");
+            }
+
+            stack.push(new Token(Type.GID, keyToken.value));
         }else if(node.getToken().type == Type.CALL){
             stack.push(node.getToken());
             callArgsSize = node.getChildren().size();

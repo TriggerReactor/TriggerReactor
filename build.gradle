@@ -1,16 +1,30 @@
+import org.yaml.snakeyaml.Yaml
+
 apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'eclipse'
 
 buildscript {
   	ext.bukkit_version = "1.11.2-R0.1-SNAPSHOT"
+  	ext.plugin_version = "0.1.0"
+  	
+  	repositories {
+		jcenter()
+	}
+	
+  	dependencies {
+		classpath 'org.yaml:snakeyaml:1.15'
+    }
 }
 
 repositories {
-    jcenter()
-    mavenCentral()
-    maven {
-    	url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
-  	}
+	jcenter()
+	mavenCentral()
+	maven {
+		url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+	}
 }
+
 
 sourceSets {
 	main {
@@ -33,10 +47,23 @@ sourceSets {
 
 dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
-
+	
 	compile "org.bukkit:bukkit:$bukkit_version"
 	
     testCompile 'junit:junit:4.+'
-    testCompile "org.mockito:mockito-core:2.+"
+    testCompile 'org.mockito:mockito-core:2.+'
+}
+
+task fileYaml {
+	doLast{
+		def yaml = new Yaml()
+		def doc = new File("./src/main/resources/plugin.yml")
+		def map = (Map) yaml.load(doc)
+		map["version"] = "$plugin_version"
+		def newYaml = yaml.dump(map)
+		println(newYaml)
+		def newDoc = new File("./src/main/resources/plugin.yml")
+		newDoc.write(newYaml);
+	}
 }
 

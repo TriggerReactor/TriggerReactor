@@ -146,7 +146,7 @@ public class TriggerTest {
         String text = ""
                 + "IF command == \"iron\"\n"
                 + "    IF common.takeItem(player, 265, 1)\n"
-                + "        #SOUND LEVEL_UP 1.0 1.0 player.getLocation()\n"
+                + "        #SOUND LEVEL_UP 1.0 2.0 player.getLocation()\n"
                 + "        #CMDCON \"econ add \"+player.getName()+\" 10\"\n"
                 + "        #MESSAGE \"Sold!\"\n"
                 + "    ELSE\n"
@@ -162,14 +162,22 @@ public class TriggerTest {
         executorMap.put("MESSAGE", new Executor(){
             @Override
             public Integer execute(Object context, Object... args) {
-                System.out.println(args[0]);
+                if(takeItem){
+                    Assert.assertEquals("not enough iron", args[0]);
+                }else{
+                    Assert.assertEquals("Sold!", args[0]);
+                }
                 return null;
             }
         });
+        Location mockLocation = mock(Location.class);
         executorMap.put("SOUND", new Executor(){
             @Override
             public Integer execute(Object context, Object... args) {
-                System.out.println(args[0]+","+args[1]+","+args[2]+","+args[3]);
+                Assert.assertEquals("LEVEL_UP", args[0]);
+                Assert.assertEquals(1.0, args[1]);
+                Assert.assertEquals(2.0, args[2]);
+                Assert.assertEquals(mockLocation, args[3]);
                 return null;
             }
         });
@@ -184,7 +192,6 @@ public class TriggerTest {
 
         Player mockPlayer = mock(Player.class);
         PlayerInventory mockInven = mock(PlayerInventory.class);
-        Location mockLocation = mock(Location.class);
 
         when(mockPlayer.getInventory()).thenReturn(mockInven);
         when(mockPlayer.getLocation()).thenReturn(mockLocation);
@@ -194,15 +201,47 @@ public class TriggerTest {
         interpreter.getVars().put("text", "hello");
         interpreter.getVars().put("command", "철괴");
 
-        when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(false);
-        System.out.println("takeItem: "+false+"\n");
+        takeItem = false;
+        when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(takeItem);
+        System.out.println("takeItem: "+takeItem+"\n");
         interpreter.startWithContext(null);
 
         System.out.println();
 
-        when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(true);
-        System.out.println("takeItem: "+true+"\n");
+        takeItem = true;
+        when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(takeItem);
+        System.out.println("takeItem: "+takeItem+"\n");
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testGlobalVariable() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "{text+\".something\"} = 12.54\n"
+                + "#MESSAGE {text+\".something\"}\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            @Override
+            public Integer execute(Object context, Object... args) {
+                Assert.assertEquals(12.54, args[0]);
+                return null;
+            }
+        });
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, map, null);
+
+        interpreter.getVars().put("text", "someplayername");
+
+        interpreter.startWithContext(null);
+
+        Assert.assertTrue(map.containsKey("someplayername.something"));
+        Assert.assertEquals(12.54, map.get("someplayername.something"));
     }
 
     private static class TheTest{

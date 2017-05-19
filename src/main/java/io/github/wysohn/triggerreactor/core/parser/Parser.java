@@ -177,8 +177,39 @@ public class Parser {
 
                     return assign;
                 }
-            }else{
-                throw new ParserException("Unexpected token "+token, this);
+            } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
+                nextToken();
+
+                Node left = new Node(new Token(Type.GID, "<GVAR>"));
+                Node keyString = parseLogic();
+
+                left.getChildren().add(keyString);
+
+                if (token == null || token.type != Type.OPERATOR || !"}".equals(token.value)) {
+                    throw new ParserException("Expected '}' but found " + token, this);
+                }
+                nextToken();
+
+                if(!"=".equals(token.value))
+                    throw new ParserException("Expected '=' after id ["+left.getToken().value+"] but found "+token, this);
+                Node assign = new Node(new Token(Type.OPERATOR, "="));
+                nextToken();
+
+                Node right = parseLogic();
+                if(right == null)
+                    throw new ParserException("Expected logic but found nothing", this);
+
+                assign.getChildren().add(left);
+                assign.getChildren().add(right);
+
+                if(token.type != Type.ENDL)
+                    throw new ParserException("Expected end of line but found "+token, this);
+                nextToken();
+
+                return assign;
+            }
+            else {
+                throw new ParserException("Unexpected token " + token, this);
             }
         }else{
             return null;
@@ -379,6 +410,22 @@ public class Parser {
         if(token == null)
             return null;
 
+        if (token.type == Type.OPERATOR && "{".equals(token.value)) {
+            nextToken();
+
+            Node gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
+            Node keyString = parseLogic();
+
+            gvarNode.getChildren().add(keyString);
+
+            if (token == null || token.type != Type.OPERATOR || !"}".equals(token.value)) {
+                throw new ParserException("Expected '}' but found " + token, this);
+            }
+            nextToken();
+
+            return gvarNode;
+        }
+
         if(token.type == Type.OPERATOR && "(".equals(token.value)){
             nextToken();
 
@@ -398,8 +445,7 @@ public class Parser {
             return null;
         }
 
-        if (token.type == Type.GID
-                || token.type.isLiteral()) {
+        if (token.type.isLiteral()) {
 
             Node node = new Node(token);
             nextToken();
