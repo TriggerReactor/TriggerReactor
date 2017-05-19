@@ -34,6 +34,8 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -200,6 +202,9 @@ public class ExecutorManager extends HashMap<String, Executor>{
         private final Map<String, Object> variables = new HashMap<>();
         private final String sourceCode;
 
+        private ScriptEngine engine = getNashornEngine();
+        private CompiledScript compiled = null;
+
         public JSExecutor(String executorName, File file) throws ScriptException, IOException {
             this.executorName = executorName;
 
@@ -210,6 +215,9 @@ public class ExecutorManager extends HashMap<String, Executor>{
                 builder.append((char) read);
             reader.close();
             sourceCode = builder.toString();
+
+            Compilable compiler = (Compilable) engine;
+            compiled = compiler.compile(sourceCode);
         }
 
         private Map<String, Object> extractVariables(Event e){
@@ -236,37 +244,21 @@ public class ExecutorManager extends HashMap<String, Executor>{
             Map<String, Object> vars = extractVariables(e);
             variables.putAll(vars);
 
-            ScriptEngine engine = getNashornEngine();
-/*            Compilable compiler = (Compilable) engine;
-            CompiledScript compiled = null;
-            try {
-                compiled = compiler.compile(sourceCode);
-            } catch (ScriptException e2) {
-                e2.printStackTrace();
-            }*/
-
-            final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            ScriptContext scriptContext = engine.getContext();
+            final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
             for(Map.Entry<String, Object> entry : variables.entrySet()){
                 String key = entry.getKey();
                 Object value = entry.getValue();
                 bindings.put(key, value);
             }
 
-/*            try {
-                compiled.eval(bindings);
-            } catch (ScriptException e2) {
-                e2.printStackTrace();
-            }
-
-            Invocable invocable = (Invocable) compiled.getEngine();*/
-
-            Invocable invocable = (Invocable) engine;
             try {
-                engine.eval(sourceCode, bindings);
+                compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
             }
 
+            Invocable invocable = (Invocable) compiled.getEngine();
             Future<Integer> future = runBukkitTaskForFuture(new Callable<Integer>(){
                 @Override
                 public Integer call() throws Exception {
