@@ -426,6 +426,7 @@ public class Interpreter {
             stack.push(node.getToken());
         }else if(node.getToken().type == Type.GID){
             Token keyToken = stack.pop();
+
             if(keyToken.getType() != Type.STRING){
                 throw new InterpreterException(keyToken+" is not a valid global variable id.");
             }

@@ -34,8 +34,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -213,6 +211,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             reader.close();
             sourceCode = builder.toString();
         }
+
         private Map<String, Object> extractVariables(Event e){
             Map<String, Object> map = new HashMap<String, Object>();
 
@@ -229,7 +228,6 @@ public class ExecutorManager extends HashMap<String, Executor>{
             return map;
         }
 
-
         @Override
         public Integer execute(Object context, Object... args) {
             Event e = (Event) context;
@@ -239,13 +237,13 @@ public class ExecutorManager extends HashMap<String, Executor>{
             variables.putAll(vars);
 
             ScriptEngine engine = getNashornEngine();
-            Compilable compiler = (Compilable) engine;
+/*            Compilable compiler = (Compilable) engine;
             CompiledScript compiled = null;
             try {
                 compiled = compiler.compile(sourceCode);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
-            }
+            }*/
 
             final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             for(Map.Entry<String, Object> entry : variables.entrySet()){
@@ -254,19 +252,37 @@ public class ExecutorManager extends HashMap<String, Executor>{
                 bindings.put(key, value);
             }
 
-            try {
+/*            try {
                 compiled.eval(bindings);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
             }
 
-            Invocable invocable = (Invocable) compiled.getEngine();
+            Invocable invocable = (Invocable) compiled.getEngine();*/
+
+            Invocable invocable = (Invocable) engine;
+            try {
+                engine.eval(sourceCode, bindings);
+            } catch (ScriptException e2) {
+                e2.printStackTrace();
+            }
+
             Future<Integer> future = runBukkitTaskForFuture(new Callable<Integer>(){
                 @Override
                 public Integer call() throws Exception {
                     try {
                         Object argObj = args;
-                        return (Integer) invocable.invokeFunction(executorName, argObj);
+
+                        if(plugin.isDebugging()){
+                            Integer result = null;
+                            long start = System.currentTimeMillis();
+                            result = (Integer) invocable.invokeFunction(executorName, argObj);
+                            long end = System.currentTimeMillis();
+                            plugin.getLogger().info(executorName+" execution -- "+(end - start)+"ms");
+                            return result;
+                        }else{
+                            return (Integer) invocable.invokeFunction(executorName, argObj);
+                        }
                     } catch (NoSuchMethodException | ScriptException ex) {
                         ex.printStackTrace();
                         plugin.getLogger().warning("#"+executorName+" encountered error.");

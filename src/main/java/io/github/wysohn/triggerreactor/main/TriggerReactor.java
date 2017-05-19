@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.script.ScriptException;
 
@@ -55,7 +56,12 @@ public class TriggerReactor extends JavaPlugin {
         return instance;
     }
 
-    public static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+    public static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory(){
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(){{this.setPriority(MIN_PRIORITY);}};
+        }
+    });
 
     private ExecutorManager executorManager;
     private VariableManager variableManager;
@@ -160,6 +166,7 @@ public class TriggerReactor extends JavaPlugin {
     private static final String INTEGER_REGEX = "^[0-9]+$";
     private static final String DOUBLE_REGEX = "^[0-9]+.[0-9]{0,}$";
 
+    private boolean debugging = false;
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(command.getName().equalsIgnoreCase("triggerreactor")){
@@ -167,7 +174,12 @@ public class TriggerReactor extends JavaPlugin {
                 return true;
 
             if(args.length > 0){
-                if(args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")){
+                if(args[0].equalsIgnoreCase("debug")){
+                    debugging = !debugging;
+
+                    getLogger().info("Debugging is set to "+debugging);
+                    return true;
+                }else if(args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")){
                     if(args.length == 1){
                         scriptEditManager.startEdit((Conversable) sender, "Click Trigger", "", new SaveHandler(){
                             @Override
@@ -338,6 +350,11 @@ public class TriggerReactor extends JavaPlugin {
         return true;
     }
 
+    public boolean isDebugging() {
+        return debugging;
+    }
+
+
     @SuppressWarnings("deprecation")
     private void showGlowStones(CommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
         for (Entry<SimpleLocation, Trigger> entry : set) {
@@ -388,5 +405,4 @@ public class TriggerReactor extends JavaPlugin {
         detail = ChatColor.translateAlternateColorCodes('&', detail);
         sender.sendMessage("  "+ChatColor.GRAY+detail);
     }
-
 }
