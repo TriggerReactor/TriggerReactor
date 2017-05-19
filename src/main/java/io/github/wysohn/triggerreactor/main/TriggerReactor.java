@@ -118,6 +118,7 @@ public class TriggerReactor extends JavaPlugin {
     }
 
     private void initFailed(Exception e) {
+        e.printStackTrace();
         getLogger().severe("Initialization failed!");
         getLogger().severe(e.getMessage());
         this.setEnabled(false);

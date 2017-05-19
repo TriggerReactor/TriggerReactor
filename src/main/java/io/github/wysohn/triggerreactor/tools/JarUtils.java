@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -32,11 +32,9 @@ public class JarUtils {
         byte[] buffer = new byte[1024];
 
         File fullPath = null;
-        try {
-            fullPath = new File(JarUtils.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+        String path = JarUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String decodedPath = URLDecoder.decode(path, "UTF-8");
+        fullPath = new File(decodedPath);
         ZipInputStream zis = new ZipInputStream(new FileInputStream(fullPath));
 
         ZipEntry entry;
@@ -45,6 +43,9 @@ public class JarUtils {
                 continue;
 
             String fileName = entry.getName();
+
+            if(fileName.charAt(fileName.length() - 1) == '/')
+                continue;
 
             File file = new File(destFolder + File.separator + fileName);
             if(option == CopyOption.COPY_IF_NOT_EXIST && file.exists())

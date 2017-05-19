@@ -545,7 +545,7 @@ public class Interpreter {
         } else if (value.getClass() == Boolean.class) {
             return new Token(Type.BOOLEAN, value);
         } else {
-            throw new InterpreterException("Unknown type " + idToken.value);
+            return new Token(Type.OBJECT, value);
         }
     }
 
