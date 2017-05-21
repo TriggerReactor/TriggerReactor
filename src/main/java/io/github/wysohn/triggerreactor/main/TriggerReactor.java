@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.main;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +48,7 @@ import io.github.wysohn.triggerreactor.manager.VariableManager;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.manager.trigger.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
@@ -71,6 +73,8 @@ public class TriggerReactor extends JavaPlugin {
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
     private CommandTriggerManager cmdManager;
+
+    private NamedTriggerManager namedTriggerManager;
 
     @Override
     public void onEnable() {
@@ -99,28 +103,7 @@ public class TriggerReactor extends JavaPlugin {
         walkManager = new WalkTriggerManager(this);
         cmdManager = new CommandTriggerManager(this);
 
-        new AutoSavingThread().start();
-    }
-
-    private class AutoSavingThread extends Thread{
-        public AutoSavingThread(){
-            this.setPriority(MIN_PRIORITY);
-            this.setName("TriggerReactor Autosave Thread");
-        }
-
-        @Override
-        public void run() {
-            while(!Thread.interrupted() && instance.isEnabled()){
-                for(Manager manager : Manager.getManagers())
-                    manager.saveAll();
-
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        namedTriggerManager = new NamedTriggerManager(this);
     }
 
     private void initFailed(Exception e) {
@@ -152,6 +135,10 @@ public class TriggerReactor extends JavaPlugin {
 
     public WalkTriggerManager getWalkManager() {
         return walkManager;
+    }
+
+    public NamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
     }
 
     @Override
@@ -336,6 +323,11 @@ public class TriggerReactor extends JavaPlugin {
                     showGlowStones(sender, walkManager.getTriggersInChunk(chunk));
                     sender.sendMessage(ChatColor.GRAY+"Now trigger blocks will be shown as "+ChatColor.GOLD+"glowstone");
                     return true;
+                } else if(args[0].equalsIgnoreCase("saveall")){
+                    for(Manager manager : Manager.getManagers())
+                        manager.saveAll();
+                    sender.sendMessage("Save complete!");
+                    return true;
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     for(Manager manager : Manager.getManagers())
                         manager.reload();
@@ -347,6 +339,35 @@ public class TriggerReactor extends JavaPlugin {
             showHelp(sender);
         }
 
+        return true;
+    }
+
+    private final Set<Class<? extends Manager>> savings = new HashSet<>();
+    public boolean saveAsynchronously(final Manager manager){
+        if(savings.contains(manager))
+            return false;
+
+        new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try{
+                    synchronized(savings){
+                        savings.add(manager.getClass());
+                    }
+
+                    getLogger().info("Saving "+manager.getClass().getSimpleName());
+                    manager.saveAll();
+                    getLogger().info("Saving Done!");
+                }catch(Exception e){
+                    e.printStackTrace();
+                    getLogger().warning("Failed to save "+manager.getClass().getSimpleName());
+                }finally{
+                    synchronized(savings){
+                        savings.remove(manager.getClass());
+                    }
+                }
+            }
+        }){{this.setPriority(MIN_PRIORITY);}}.start();
         return true;
     }
 
@@ -393,6 +414,8 @@ public class TriggerReactor extends JavaPlugin {
         sendDetails(sender, "/trg del cmd test &8- &7delete the command trigger 'test'");
 
         sendCommandDesc(sender, "/triggerreactor[trg] search", "Show all trigger blocks in this chunk as glowing stone.");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] saveall", "Save all scripts, variables, and settings.");
 
         sendCommandDesc(sender, "/triggerreactor[trg] reload", "Reload all scripts, variables, and settings.");
     }
