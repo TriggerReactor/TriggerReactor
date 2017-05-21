@@ -51,9 +51,10 @@ import org.bukkit.event.Event;
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ClassUtil;
-import io.github.wysohn.triggerreactor.tools.JarUtils;
-import io.github.wysohn.triggerreactor.tools.JarUtils.CopyOption;
+import io.github.wysohn.triggerreactor.tools.JarUtil;
+import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 
+@SuppressWarnings("serial")
 public class ExecutorManager extends HashMap<String, Executor>{
     private static final ScriptEngineManager sem = new ScriptEngineManager();
 
@@ -67,7 +68,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         super();
         this.plugin = plugin;
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        JarUtils.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.COPY_IF_NOT_EXIST);
+        JarUtil.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.COPY_IF_NOT_EXIST);
 
         initScriptEngine();
 
@@ -164,7 +165,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         }else{
             StringBuilder builder = new StringBuilder();
             for(int i = name.size() - 1; i >= 0; i--){
-                builder.append(name.get(i)+"@");
+                builder.append(name.get(i)+":");
             }
             String fileName = file.getName();
             fileName = fileName.substring(0, fileName.indexOf("."));

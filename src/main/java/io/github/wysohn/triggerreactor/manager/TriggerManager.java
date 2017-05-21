@@ -23,7 +23,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
@@ -47,7 +46,22 @@ public abstract class TriggerManager extends Manager implements Listener{
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    public abstract Trigger getTrigger(Object key);
+    protected void insertPlayerVariables(Player player, Map<String, Object> varMap) {
+        varMap.put("player", player);
+        varMap.put("name", player.getName());
+        varMap.put("canfly", player.getAllowFlight());
+        varMap.put("bedlocation", player.getBedSpawnLocation());
+        varMap.put("canpickup", player.getCanPickupItems());
+        varMap.put("compasstarget", player.getCompassTarget());
+        varMap.put("displayname", player.getDisplayName());
+        varMap.put("exp", player.getExp());
+        varMap.put("eyeheight", player.getEyeHeight());
+        varMap.put("eyeheightignoresneak", player.getEyeHeight(true));
+        varMap.put("eyelocation", player.getEyeLocation());
+        varMap.put("firetick", player.getFireTicks());
+        varMap.put("worldname", player.getWorld().getName());
+        varMap.put("gamemode", player.getGameMode());
+    }
 
     public class Trigger implements Cloneable{
         protected final String script;
@@ -112,15 +126,16 @@ public abstract class TriggerManager extends Manager implements Listener{
                                     if(args.length < 1)
                                         throw new RuntimeException("Need parameter [String] or [Location]");
 
-                                    if(args[0] instanceof Location || args[0] instanceof String){
-                                        Trigger trigger = getTrigger(args[0]);
+                                    if(args[0] instanceof String){
+                                        Trigger trigger = plugin.getNamedTriggerManager().getTriggerForName((String) args[0]);
                                         if(trigger == null)
                                             throw new RuntimeException("No trigger found for "+args[0]);
 
                                         trigger.activate(e, scriptVars);
                                         return true;
                                     } else {
-                                        throw new RuntimeException("Parameter type not match. Make sure to put double quotes if it's a string.");
+                                        throw new RuntimeException("Parameter type not match; it should be a String."
+                                                + " Make sure to put double quotes, if you provided String literal.");
                                     }
                                 }
                                 return false;
