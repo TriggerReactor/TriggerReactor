@@ -1,9 +1,10 @@
 package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,7 +36,9 @@ public class NamedTriggerManager extends TriggerManager {
     public void reload() {
         triggers.clear();
 
-        load(new Stack<String>(), folder);
+        for(File file : folder.listFiles()){
+            load(new Stack<String>(), file);
+        }
     }
 
     private void load(Stack<String> stack, File file) {
@@ -51,17 +54,17 @@ public class NamedTriggerManager extends TriggerManager {
                 builder.append(stack.get(i)+":");
             }
             String fileName = file.getName();
-            fileName = fileName.substring(0, fileName.indexOf("."));
             builder.append(fileName);
 
             if(triggers.containsKey(builder.toString())){
                 plugin.getLogger().warning(builder.toString()+" already registered! Duplicating executors?");
             }else{
-                try(FileReader fr = new FileReader(file)){
+                try(FileInputStream fis = new FileInputStream(file);
+                        InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
                     StringBuilder scriptBuilder = new StringBuilder();
                     int read = -1;
 
-                    while((read = fr.read()) != -1){
+                    while((read = isr.read()) != -1){
                         scriptBuilder.append((char) read);
                     }
 
