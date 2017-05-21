@@ -129,7 +129,7 @@ public abstract class TriggerManager extends Manager implements Listener{
                                     if(args[0] instanceof String){
                                         Trigger trigger = plugin.getNamedTriggerManager().getTriggerForName((String) args[0]);
                                         if(trigger == null)
-                                            throw new RuntimeException("No trigger found for "+args[0]);
+                                            throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
                                         trigger.activate(e, scriptVars);
                                         return true;
