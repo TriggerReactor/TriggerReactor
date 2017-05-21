@@ -23,7 +23,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 
-public class FileUtils {
+public class FileUtil {
+    /**
+     *
+     * @param file target file
+     * @param str string to save
+     * @throws IOException
+     */
     public static void writeToFile(File file, String str) throws IOException{
         if(!file.exists()){
             try {

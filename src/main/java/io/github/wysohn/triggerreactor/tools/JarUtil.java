@@ -24,7 +24,7 @@ import java.net.URLDecoder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class JarUtils {
+public class JarUtil {
     public static void copyFolderFromJar(String folderName, File destFolder, CopyOption option) throws IOException{
         if(!destFolder.exists())
             destFolder.mkdirs();
@@ -32,7 +32,7 @@ public class JarUtils {
         byte[] buffer = new byte[1024];
 
         File fullPath = null;
-        String path = JarUtils.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String path = JarUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         String decodedPath = URLDecoder.decode(path, "UTF-8");
         fullPath = new File(decodedPath);
         ZipInputStream zis = new ZipInputStream(new FileInputStream(fullPath));

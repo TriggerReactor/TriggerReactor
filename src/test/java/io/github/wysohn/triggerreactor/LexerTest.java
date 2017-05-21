@@ -70,5 +70,4 @@ public class LexerTest {
         assertEquals(new Token(Type.ENDL, null), lexer.getToken());
         assertNull(lexer.getToken());
     }
-
 }

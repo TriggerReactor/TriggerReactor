@@ -127,7 +127,7 @@ public class TriggerTest {
         executorMap.put("MESSAGE", new Executor(){
             @Override
             public Integer execute(Object context, Object... args) {
-                Assert.assertEquals("beh0.82", args[0]);
+                Assert.assertEquals("beh0.82", (String) args[0]);
                 return null;
             }
         });
@@ -162,10 +162,10 @@ public class TriggerTest {
         executorMap.put("MESSAGE", new Executor(){
             @Override
             public Integer execute(Object context, Object... args) {
-                if(takeItem){
-                    Assert.assertEquals("not enough iron", args[0]);
+                if(!takeItem){
+                    Assert.assertEquals("not enough iron", (String) args[0]);
                 }else{
-                    Assert.assertEquals("Sold!", args[0]);
+                    Assert.assertEquals("Sold!", (String) args[0]);
                 }
                 return null;
             }
