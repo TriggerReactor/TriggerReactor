@@ -117,8 +117,17 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                 e.printStackTrace();
             }
 
-            if(sloc != null && trigger != null)
-                setTriggerForLocation(sloc, trigger);
+            if(sloc != null && trigger != null){
+                SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+
+                Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
+                if(!locationTriggers.containsKey(scloc)){
+                    triggerMap = new ConcurrentHashMap<>();
+                    locationTriggers.put(scloc, triggerMap);
+                }
+
+                triggerMap.put(sloc, trigger);
+            }
         }
     }
 
