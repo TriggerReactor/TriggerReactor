@@ -42,6 +42,28 @@ public class VariableManager extends Manager{
         reload();
 
         adapter = new GlobalVariableAdapter();
+
+        new VariableAutoSaveThread().start();
+    }
+
+    private class VariableAutoSaveThread extends Thread{
+        VariableAutoSaveThread(){
+            setPriority(MIN_PRIORITY);
+            this.setName("Trigger Reactor Variable Saving Thread");
+        }
+
+        @Override
+        public void run(){
+            while(!Thread.interrupted() && plugin.isEnabled()){
+                saveAll();
+
+                try {
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     @Override
@@ -55,7 +77,7 @@ public class VariableManager extends Manager{
     }
 
     @Override
-    public void saveAll(){
+    public synchronized void saveAll(){
         try {
             varFileConfig.save(varFile);
         } catch (IOException e) {
@@ -83,6 +105,7 @@ public class VariableManager extends Manager{
         varFileConfig.set(key, null);
     }
 
+    @SuppressWarnings("serial")
     public class GlobalVariableAdapter extends HashMap<String, Object>{
         private GlobalVariableAdapter(){
 
