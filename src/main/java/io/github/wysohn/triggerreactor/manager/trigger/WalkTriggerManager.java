@@ -55,7 +55,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
             return false;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player);
+        insertPlayerVariables(player, varMap);
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 

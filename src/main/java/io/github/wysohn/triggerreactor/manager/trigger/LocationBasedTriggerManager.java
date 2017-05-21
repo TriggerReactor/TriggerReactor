@@ -55,7 +55,7 @@ import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.manager.TriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.tools.FileUtils;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends TriggerManager {
     public static final Material INSPECTION_TOOL = Material.BONE;
@@ -139,7 +139,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
 
                 File file = new File(folder, fileName);
                 try{
-                    FileUtils.writeToFile(file, script);
+                    FileUtil.writeToFile(file, script);
                 }catch(Exception e){
                     e.printStackTrace();
                     plugin.getLogger().severe("Could not save a trigger at "+sloc);
@@ -374,6 +374,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         }
 
         triggerMap.put(sloc, trigger);
+
+        plugin.saveAsynchronously(this);
     }
 
     protected T removeTriggerForLocation(Location loc) {
@@ -394,6 +396,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         File file = new File(folder, this.slocToString(sloc));
         file.delete();
 
+        plugin.saveAsynchronously(this);
         return result;
     }
 
@@ -570,14 +573,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         }
 
         return triggers;
-    }
-
-    @Override
-    public Trigger getTrigger(Object key) {
-        if(!(key instanceof Location))
-            throw new RuntimeException(key+" is not a valid for location based(click or walk) trigger!");
-
-        return getTriggerForLocation((Location) key);
     }
 
     protected abstract void onLocationChange(PlayerMoveEvent e, SimpleLocation from, SimpleLocation to);

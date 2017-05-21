@@ -37,7 +37,7 @@ import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.tools.FileUtils;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class CommandTriggerManager extends TriggerManager {
     private final Map<String, CommandTrigger> commandTriggerMap = new HashMap<>();
@@ -98,7 +98,7 @@ public class CommandTriggerManager extends TriggerManager {
 
             File file = new File(folder, fileName);
             try{
-                FileUtils.writeToFile(file, script);
+                FileUtil.writeToFile(file, script);
             }catch(Exception e){
                 e.printStackTrace();
                 plugin.getLogger().severe("Could not save command trigger for "+fileName);
@@ -127,7 +127,7 @@ public class CommandTriggerManager extends TriggerManager {
             return;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player);
+        insertPlayerVariables(player, varMap);
         varMap.put("command", cmd);
         if(args.length > 0){
             for(int i = 0; i < args.length; i++){
@@ -166,6 +166,8 @@ public class CommandTriggerManager extends TriggerManager {
         }
 
         commandTriggerMap.put(cmd, trigger);
+
+        plugin.saveAsynchronously(this);
         return true;
     }
 
@@ -183,15 +185,8 @@ public class CommandTriggerManager extends TriggerManager {
         File file = new File(folder, cmd);
         file.delete();
 
+        plugin.saveAsynchronously(this);
         return true;
-    }
-
-    @Override
-    public Trigger getTrigger(Object key) {
-        if(!(key instanceof String))
-            throw new RuntimeException(key+" is not valid for command trigger!");
-
-        return commandTriggerMap.get(key);
     }
 
     private class CommandTrigger extends TriggerManager.Trigger {
