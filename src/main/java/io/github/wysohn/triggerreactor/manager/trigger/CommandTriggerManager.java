@@ -193,18 +193,6 @@ public class CommandTriggerManager extends TriggerManager {
 
         public CommandTrigger(String script) throws IOException, LexerException, ParserException {
             super(script);
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CommandTrigger(getScript());
-            } catch (IOException | LexerException | ParserException e) {
-                e.printStackTrace();
-            }
-            return null;
         }
     }
 

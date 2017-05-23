@@ -91,8 +91,6 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         public ClickTrigger(String script, ClickHandler handler) throws IOException, LexerException, ParserException {
             super(script);
             this.handler = handler;
-
-            init();
         }
 
         @Override

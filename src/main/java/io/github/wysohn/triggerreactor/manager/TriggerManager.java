@@ -26,7 +26,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerEvent;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
@@ -61,29 +60,21 @@ public abstract class TriggerManager extends Manager implements Listener{
         varMap.put("eyelocation", player.getEyeLocation());
         varMap.put("firetick", player.getFireTicks());
         varMap.put("worldname", player.getWorld().getName());
+        varMap.put("gamemode", player.getGameMode());
     }
 
-    public abstract class Trigger implements Cloneable{
+    public class Trigger implements Cloneable{
         protected final String script;
 
-        protected Node root;
-        protected Map<String, Executor> executorMap;
-        protected Map<String, Object> gvarMap;
-        protected TriggerConditionManager condition;
+        private final Node root;
+        private final Map<String, Executor> executorMap;
+        private final Map<String, Object> gvarMap;
+        private final TriggerConditionManager condition;
 
-        /**
-         * This constructor <b>does not</b> initialize the fields. It is essential to call init() method
-         * in order to make the Trigger work properly. If you want to create a Trigger with customized
-         * behavior, it's not necessary to call init() but need to override activate() method
-         * @param script
-         */
-        public Trigger(String script)  {
+        public Trigger(String script) throws IOException, LexerException, ParserException {
             super();
-
             this.script = script;
-        }
 
-        protected void init() throws IOException, LexerException, ParserException{
             Charset charset = Charset.forName("UTF-8");
 
             Lexer lexer = new Lexer(script, charset);
@@ -100,55 +91,20 @@ public abstract class TriggerManager extends Manager implements Listener{
         }
 
         public void activate(Event e, Map<String, Object> scriptVars) {
-            if(checkCooldown(e)){
-                return;
-            }
-
-            Interpreter interpreter = initInterpreter(scriptVars);
-
-            startInterpretation(e, scriptVars, interpreter);
-        }
-
-        /**
-         *
-         * @param e
-         * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
-         */
-        protected boolean checkCooldown(Event e) {
-            UUID uuid = null;
-
             if(e instanceof PlayerEvent){
                 Player player = ((PlayerEvent) e).getPlayer();
-                uuid = player.getUniqueId();
-            }else if(e instanceof InventoryInteractEvent){
-                uuid = ((InventoryInteractEvent) e).getWhoClicked().getUniqueId();
-            }
+                UUID uuid = player.getUniqueId();
 
-            if(uuid != null){
                 Long end = cooldowns.get(uuid);
                 if(end != null && System.currentTimeMillis() < end){
-                    return false;
+                    player.sendMessage(ChatColor.GRAY+"Cooldown: "+(end/1000L)+" secs left.");
+                    return;
                 }
-
-                return true;
             }
 
-            return false;
-        }
-
-        protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, condition);
             interpreter.getVars().putAll(scriptVars);
-            return interpreter;
-        }
 
-        /**
-         * Should work asynchronously
-         * @param e
-         * @param scriptVars
-         * @param interpreter
-         */
-        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -168,7 +124,7 @@ public abstract class TriggerManager extends Manager implements Listener{
                             public boolean onCommand(Object context, String command, Object[] args) {
                                 if("CALL".equals(command)){
                                     if(args.length < 1)
-                                        throw new RuntimeException("Need parameter [String]");
+                                        throw new RuntimeException("Need parameter [String] or [Location]");
 
                                     if(args[0] instanceof String){
                                         Trigger trigger = plugin.getNamedTriggerManager().getTriggerForName((String) args[0]);
@@ -200,6 +156,14 @@ public abstract class TriggerManager extends Manager implements Listener{
         }
 
         @Override
-        public abstract Trigger clone();
+        public Trigger clone(){
+            try {
+                Trigger trigger = new Trigger(script);
+                return trigger;
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 }
