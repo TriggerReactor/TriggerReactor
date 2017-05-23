@@ -68,7 +68,7 @@ public class NamedTriggerManager extends TriggerManager {
                         scriptBuilder.append((char) read);
                     }
 
-                    Trigger trigger = new Trigger(scriptBuilder.toString());
+                    Trigger trigger = new NamedTrigger(scriptBuilder.toString());
                     triggers.put(builder.toString(), trigger);
                 }catch(IOException | LexerException | ParserException e){
                     e.printStackTrace();
@@ -111,5 +111,25 @@ public class NamedTriggerManager extends TriggerManager {
      */
     public Trigger getTriggerForName(String name){
         return triggers.get(name);
+    }
+
+    private class NamedTrigger extends Trigger{
+
+        public NamedTrigger(String script) throws IOException, LexerException, ParserException {
+            super(script);
+
+            init();
+        }
+
+        @Override
+        public Trigger clone() {
+            try {
+                return new NamedTrigger(getScript());
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
     }
 }
