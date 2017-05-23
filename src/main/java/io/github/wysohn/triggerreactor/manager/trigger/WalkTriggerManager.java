@@ -74,6 +74,16 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
         public void activate(Event e, Map<String, Object> scriptVars) {
             super.activate(e, scriptVars);
         }
+
+        @Override
+        public Trigger clone() {
+            try {
+                return new WalkTrigger(getScript());
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
 
     @Override
