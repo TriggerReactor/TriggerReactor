@@ -17,7 +17,9 @@
 package io.github.wysohn.triggerreactor.main;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -37,8 +39,11 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import io.github.wysohn.triggerreactor.core.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.manager.Manager;
 import io.github.wysohn.triggerreactor.manager.ScriptEditManager;
@@ -48,6 +53,8 @@ import io.github.wysohn.triggerreactor.manager.VariableManager;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.manager.trigger.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager.InventoryTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
@@ -73,6 +80,7 @@ public class TriggerReactor extends JavaPlugin {
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
     private CommandTriggerManager cmdManager;
+    private InventoryTriggerManager invManager;
 
     private NamedTriggerManager namedTriggerManager;
 
@@ -102,6 +110,7 @@ public class TriggerReactor extends JavaPlugin {
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
         cmdManager = new CommandTriggerManager(this);
+        invManager = new InventoryTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);
     }
@@ -135,6 +144,10 @@ public class TriggerReactor extends JavaPlugin {
 
     public WalkTriggerManager getWalkManager() {
         return walkManager;
+    }
+
+    public InventoryTriggerManager getInvManager() {
+        return invManager;
     }
 
     public NamedTriggerManager getNamedTriggerManager() {
@@ -295,7 +308,187 @@ public class TriggerReactor extends JavaPlugin {
                     }else{
 
                     }
-                }  else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
+                } else if(args[0].equalsIgnoreCase("inventory") || args[2].equalsIgnoreCase("i")){
+                    if(args.length == 4 && args[2].equalsIgnoreCase("create")){
+                        String name = args[1];
+                        int size = -1;
+                        try{
+                            size = Integer.parseInt(args[3]);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(ChatColor.RED+""+size+" is not a valid number");
+                            return true;
+                        }
+
+                        if(invManager.createTrigger(size, name)){
+                            sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
+                        }else{
+                            sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
+                        }
+                    } else if(args.length == 3 && args[2].equalsIgnoreCase("delete")){
+                        String name = args[1];
+
+                        if(invManager.deleteTrigger(name)){
+                            sender.sendMessage(ChatColor.GREEN+"Deleted!");
+                        }else{
+                            sender.sendMessage(ChatColor.GRAY+"No such inventory trigger found.");
+                        }
+                    } else if(args.length == 4 && args[2].equals("item")){
+                        ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
+                        if(IS == null || IS.getType() == Material.AIR){
+                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                            return true;
+                        }
+
+                        String name = args[1];
+
+                        int index = -1;
+                        try{
+                            index = Integer.parseInt(args[3]);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = invManager.getTriggerForName(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            return true;
+                        }
+
+                        if(index > trigger.getItems().length - 1){
+                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Size: "+trigger.getItems().length+")");
+                            return true;
+                        }
+
+                        trigger.getItems()[index] = IS;
+
+                        invManager.saveAll();
+                    } else if(args.length > 3 && args[2].equalsIgnoreCase("slot")){
+                        String name = args[1];
+
+                        int index = -1;
+                        try{
+                            index = Integer.parseInt(args[3]);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = invManager.getTriggerForName(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            return true;
+                        }
+
+                        if(index > trigger.getSlots().length - 1){
+                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Size: "+trigger.getSlots().length+")");
+                            return true;
+                        }
+
+                        if(args.length == 4){
+                            final int copyIndex = index;
+                            scriptEditManager.startEdit((Conversable) sender, "Inventory Trigger Slot", "", new SaveHandler(){
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        trigger.getSlots()[copyIndex] = trigger.new InventorySlot(script);
+                                        invManager.saveAll();
+                                    } catch (IOException | LexerException | ParserException e) {
+                                        e.printStackTrace();
+                                        sender.sendMessage(ChatColor.RED+e.getMessage());
+                                    }
+                                }
+                            });
+                        }else{
+                            StringBuilder builder = new StringBuilder();
+                            for (int i = 4; i < args.length; i++)
+                                builder.append(args[i] + " ");
+
+                            try {
+                                trigger.getSlots()[index] = trigger.new InventorySlot(builder.toString());
+                                invManager.saveAll();
+                            } catch (IOException | LexerException | ParserException e) {
+                                e.printStackTrace();
+                                sender.sendMessage(ChatColor.RED+e.getMessage());
+                            }
+                        }
+                    } else {
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size>", "create a new inventory. <size> must be multiple of 9.");
+                        sendDetails(sender, "/trg i MyInventory create 180");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
+                        sendDetails(sender, "/trg i MyInventory delete");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the holding item. "
+                                + "Clears the slot if you are holding nothing.");
+                        sendDetails(sender, "/trg i MyInventory item 0");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> slot <index> [...]", "Set trigger for the specified slot <index>");
+                        sendDetails(sender, "/trg i MyInventory slot 0 #MESSAGE \"Clicked!\"");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> slot <index>", "Set multiple lined trigger for the specified slot <index>");
+                        sendDetails(sender, "/trg i MyInventory slot 0");
+                    }
+                    return true;
+                } else if(args[0].equalsIgnoreCase("misc")){
+                    if(args.length == 2 && args[1].equalsIgnoreCase("title")){
+                        ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
+                        if(IS == null || IS.getType() == Material.AIR){
+                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                            return true;
+                        }
+
+                        String title = args[2];
+                        ItemMeta IM = IS.getItemMeta();
+                        IM.setDisplayName(title);
+                        IS.setItemMeta(IM);
+
+                        return true;
+                    }else if(args.length == 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("add")){
+                        ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
+                        if(IS == null || IS.getType() == Material.AIR){
+                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                            return true;
+                        }
+
+                        String lore = args[3];
+                        ItemMeta IM = IS.getItemMeta();
+                        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+                        lores.add(lore);
+                        IS.setItemMeta(IM);
+
+                        return true;
+                    }else if(args.length == 5 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("set")){
+                        ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
+                        if(IS == null || IS.getType() == Material.AIR){
+                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                            return true;
+                        }
+
+                        int index = -1;
+                        try{
+                            index = Integer.parseInt(args[3]);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number");
+                            return true;
+                        }
+
+                        String lore = args[4];
+                        ItemMeta IM = IS.getItemMeta();
+                        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+                        if(index > lores.size() - 1){
+                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Lore size: "+lores.size()+")");
+                            return true;
+                        }
+
+                        lores.set(index, lore);
+                        IS.setItemMeta(IM);
+                    }
+
+                    else{
+                        sendCommandDesc(sender, "/triggerreactor[trg] misc title <item title>", "Change the title of holding item");
+                        sendCommandDesc(sender, "/triggerreactor[trg] misc lore add <string>", "Append lore to the holding item");
+                        sendCommandDesc(sender, "/triggerreactor[trg] misc lore set <index> <string>", "Replace lore at the specified index."
+                                + "(Index start from 0)");
+                        sendCommandDesc(sender, "/triggerreactor[trg] misc lore remove <index>", "Append lore to the holding item");
+                    }
+                } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
                     switch (args[1]) {
                     case "vars":
@@ -400,6 +593,11 @@ public class TriggerReactor extends JavaPlugin {
         sendCommandDesc(sender, "/triggerreactor[trg] command[cmd] <command name> [...]", "create a command trigger.");
         sendDetails(sender, "/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
         sendDetails(sender, "To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name>", "Create an inventory trigger named <inventory name>");
+        sendDetails(sender, "/trg i to see more commands...");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] misc", "Miscellaneous. Type it to see the list.");
 
         sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] [...]", "set global variables.");
         sendDetails(sender, "&cWarning - This command will delete the previous data associated with the key if exists.");
