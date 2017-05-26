@@ -46,7 +46,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
@@ -241,9 +243,13 @@ public class ExecutorManager extends HashMap<String, Executor>{
         public Integer execute(Object context, Object... args) {
             Event e = (Event) context;
 
+            ///////////////////////////////
             variables.clear();
             Map<String, Object> vars = extractVariables(e);
             variables.putAll(vars);
+
+            extractCustomVariables(e);
+            ///////////////////////////////
 
             ScriptContext scriptContext = engine.getContext();
             final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -295,6 +301,13 @@ public class ExecutorManager extends HashMap<String, Executor>{
                 plugin.getLogger().warning("Is the server lagging?");
             }
             return result;
+        }
+
+        protected void extractCustomVariables(Event e) {
+            if(e instanceof InventoryInteractEvent){
+                if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
+                    variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
+            }
         }
     }
 

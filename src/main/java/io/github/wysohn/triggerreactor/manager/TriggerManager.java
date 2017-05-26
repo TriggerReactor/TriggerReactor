@@ -127,10 +127,10 @@ public abstract class TriggerManager extends Manager implements Listener{
             if(uuid != null){
                 Long end = cooldowns.get(uuid);
                 if(end != null && System.currentTimeMillis() < end){
-                    return false;
+                    return true;
                 }
 
-                return true;
+                return false;
             }
 
             return false;

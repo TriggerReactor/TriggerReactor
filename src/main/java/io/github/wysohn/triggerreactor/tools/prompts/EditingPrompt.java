@@ -29,6 +29,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChatTabCompleteEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
@@ -59,10 +60,11 @@ public class EditingPrompt implements Prompt, Listener {
 				return new ErrorPrompt(this, e.getMessage());
 			}
 
+			HandlerList.unregisterAll(this);
+
 			if(postWork != null)
 				postWork.run();
 
-			HandlerList.unregisterAll(this);
 			return Prompt.END_OF_CONVERSATION;
 		} else if (arg1.equals("exit")) {
 			return new ExitConfirmPrompt(this, new Runnable(){
@@ -129,4 +131,12 @@ public class EditingPrompt implements Prompt, Listener {
 		e.getTabCompletions().clear();
 		e.getTabCompletions().add(editor.getLine());
 	}
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        if (!e.getPlayer().equals(sender))
+            return;
+
+        HandlerList.unregisterAll(this);
+    }
 }

@@ -38,6 +38,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -308,7 +309,7 @@ public class TriggerReactor extends JavaPlugin {
                     }else{
 
                     }
-                } else if(args[0].equalsIgnoreCase("inventory") || args[2].equalsIgnoreCase("i")){
+                } else if(args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")){
                     if(args.length == 4 && args[2].equalsIgnoreCase("create")){
                         String name = args[1];
                         int size = -1;
@@ -321,6 +322,8 @@ public class TriggerReactor extends JavaPlugin {
 
                         if(invManager.createTrigger(size, name)){
                             sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
+
+                            invManager.saveAll();
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
                         }
@@ -329,6 +332,8 @@ public class TriggerReactor extends JavaPlugin {
 
                         if(invManager.deleteTrigger(name)){
                             sender.sendMessage(ChatColor.GREEN+"Deleted!");
+
+                            invManager.saveAll();
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"No such inventory trigger found.");
                         }
@@ -338,6 +343,7 @@ public class TriggerReactor extends JavaPlugin {
                             sender.sendMessage(ChatColor.RED+"You are holding nothing.");
                             return true;
                         }
+                        IS = IS.clone();
 
                         String name = args[1];
 
@@ -412,6 +418,25 @@ public class TriggerReactor extends JavaPlugin {
                                 sender.sendMessage(ChatColor.RED+e.getMessage());
                             }
                         }
+                    } else if(args.length > 2 && args[2].equalsIgnoreCase("open")){
+                        String name = args[1];
+                        Player forWhom;
+                        if(args.length == 3){
+                            forWhom = (Player) sender;
+                        }else{
+                            forWhom = Bukkit.getPlayer(args[3]);
+                        }
+
+                        if(forWhom == null){
+                            sender.sendMessage(ChatColor.GRAY+"Can't find that player.");
+                            return true;
+                        }
+
+                        Inventory opened = invManager.openGUI(forWhom, name);
+                        if(opened == null){
+                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            return true;
+                        }
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size>", "create a new inventory. <size> must be multiple of 9.");
                         sendDetails(sender, "/trg i MyInventory create 180");
@@ -424,37 +449,42 @@ public class TriggerReactor extends JavaPlugin {
                         sendDetails(sender, "/trg i MyInventory slot 0 #MESSAGE \"Clicked!\"");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> slot <index>", "Set multiple lined trigger for the specified slot <index>");
                         sendDetails(sender, "/trg i MyInventory slot 0");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
                     }
                     return true;
                 } else if(args[0].equalsIgnoreCase("misc")){
-                    if(args.length == 2 && args[1].equalsIgnoreCase("title")){
+                    if(args.length > 2 && args[1].equalsIgnoreCase("title")){
                         ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
                         if(IS == null || IS.getType() == Material.AIR){
                             sender.sendMessage(ChatColor.RED+"You are holding nothing.");
                             return true;
                         }
 
-                        String title = args[2];
+                        String title = mergeArguments(args, 2, args.length - 1);
                         ItemMeta IM = IS.getItemMeta();
                         IM.setDisplayName(title);
                         IS.setItemMeta(IM);
 
+                        ((Player) sender).getInventory().setItemInMainHand(IS);
                         return true;
-                    }else if(args.length == 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("add")){
+                    }else if(args.length > 3 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("add")){
                         ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
                         if(IS == null || IS.getType() == Material.AIR){
                             sender.sendMessage(ChatColor.RED+"You are holding nothing.");
                             return true;
                         }
 
-                        String lore = args[3];
+                        String lore = mergeArguments(args, 3, args.length - 1);
                         ItemMeta IM = IS.getItemMeta();
                         List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
                         lores.add(lore);
+                        IM.setLore(lores);
                         IS.setItemMeta(IM);
 
+                        ((Player) sender).getInventory().setItemInMainHand(IS);
                         return true;
-                    }else if(args.length == 5 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("set")){
+                    }else if(args.length > 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("set")){
                         ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
                         if(IS == null || IS.getType() == Material.AIR){
                             sender.sendMessage(ChatColor.RED+"You are holding nothing.");
@@ -469,7 +499,7 @@ public class TriggerReactor extends JavaPlugin {
                             return true;
                         }
 
-                        String lore = args[4];
+                        String lore = mergeArguments(args, 4, args.length - 1);
                         ItemMeta IM = IS.getItemMeta();
                         List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
                         if(index > lores.size() - 1){
@@ -478,16 +508,48 @@ public class TriggerReactor extends JavaPlugin {
                         }
 
                         lores.set(index, lore);
+                        IM.setLore(lores);
                         IS.setItemMeta(IM);
-                    }
 
-                    else{
+                        ((Player) sender).getInventory().setItemInMainHand(IS);
+                        return true;
+                    } else if (args.length == 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("remove")){
+                        ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
+                        if(IS == null || IS.getType() == Material.AIR){
+                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                            return true;
+                        }
+
+                        int index = -1;
+                        try{
+                            index = Integer.parseInt(args[3]);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number");
+                            return true;
+                        }
+
+                        ItemMeta IM = IS.getItemMeta();
+                        List<String> lores = IM.getLore();
+                        if(lores == null || index > lores.size() - 1 || index < 0){
+                            sender.sendMessage(ChatColor.GRAY+"No lore at index "+index);
+                            return true;
+                        }
+
+                        lores.remove(index);
+                        IM.setLore(lores);
+                        IS.setItemMeta(IM);
+
+                        ((Player) sender).getInventory().setItemInMainHand(IS);
+                        return true;
+                    } else{
                         sendCommandDesc(sender, "/triggerreactor[trg] misc title <item title>", "Change the title of holding item");
                         sendCommandDesc(sender, "/triggerreactor[trg] misc lore add <string>", "Append lore to the holding item");
                         sendCommandDesc(sender, "/triggerreactor[trg] misc lore set <index> <string>", "Replace lore at the specified index."
                                 + "(Index start from 0)");
                         sendCommandDesc(sender, "/triggerreactor[trg] misc lore remove <index>", "Append lore to the holding item");
                     }
+
+                    return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
                     switch (args[1]) {
@@ -533,6 +595,14 @@ public class TriggerReactor extends JavaPlugin {
         }
 
         return true;
+    }
+
+    private String mergeArguments(String[] args, int indexFrom, int indexTo) {
+        StringBuilder builder = new StringBuilder();
+        for(int i = indexFrom; i <= indexTo; i++){
+            builder.append(args[i]+" ");
+        }
+        return builder.toString();
     }
 
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
