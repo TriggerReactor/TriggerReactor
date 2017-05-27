@@ -84,6 +84,8 @@ public class ExecutorManager extends HashMap<String, Executor>{
         registerClass(Location.class);
         registerClass(ChatColor.class);
 
+        sem.put("plugin", this.plugin);
+
         sem.put("get", new Function<String, Object>(){
             @Override
             public Object apply(String t) {
