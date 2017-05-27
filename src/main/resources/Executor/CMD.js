@@ -15,6 +15,18 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function CMD(args){
-    Bukkit.dispatchCommand(player, args[0]);
+	if(args.length == 2 && args[1].equals('true')){
+		var preCommandSize = args[0].split(" ").length;
+		var split = message.split(" ");
+		
+		var merged = "";
+		for(var i = 1; i < split.length; i++)
+			merged += split[i] + " ";
+		
+		Bukkit.dispatchCommand(player, args[0]+" "+merged);
+	} else {
+		Bukkit.dispatchCommand(player, args[0]);
+	}
+
     return null;
 }
