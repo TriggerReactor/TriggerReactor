@@ -613,6 +613,9 @@ public class TriggerReactor extends JavaPlugin {
                 } else if (args[0].equalsIgnoreCase("reload")) {
                     for(Manager manager : Manager.getManagers())
                         manager.reload();
+
+                    executorManager.reload();
+
                     sender.sendMessage("Reload Complete!");
                     return true;
                 }
