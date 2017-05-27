@@ -68,6 +68,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
         public WalkTrigger(String script) throws IOException, LexerException, ParserException {
             super(script);
 
+            init();
         }
 
         @Override
