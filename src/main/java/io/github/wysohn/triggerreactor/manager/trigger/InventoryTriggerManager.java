@@ -402,7 +402,6 @@ public class InventoryTriggerManager extends TriggerManager {
      *
      * @param trigger
      * @param page 1~
-     * @param size
      * @param inventory
      */
     private void fillInventory(InventoryTrigger trigger, int page, Inventory inventory) {
@@ -421,10 +420,38 @@ public class InventoryTriggerManager extends TriggerManager {
                 }
             }
 
-            inventory.setItem(i % InventoryTrigger.SLOTSPERPAGE, item);
+            inventory.setItem(i % InventoryTrigger.SLOTSPERPAGE, getColoredItem(item));
         }
 
         putNavigationButtons(inventory);
+    }
+
+    /**
+     *
+     * @param item
+     * @return copy of colored item
+     */
+    private ItemStack getColoredItem(ItemStack item) {
+        item = item.clone();
+        ItemMeta IM = item.getItemMeta();
+
+        if(IM != null){
+            if(IM.hasDisplayName()){
+                IM.setDisplayName(ChatColor.translateAlternateColorCodes('&', IM.getDisplayName()));
+            }
+
+            if(IM.hasLore()){
+                List<String> lore = new ArrayList<>(IM.getLore());
+                for(int i = 0; i < IM.getLore().size(); i++){
+                    lore.set(i, ChatColor.translateAlternateColorCodes('&', IM.getLore().get(i)));
+                }
+                IM.setLore(lore);
+            }
+
+            item.setItemMeta(IM);
+        }
+
+        return item;
     }
 
     private static final String NAVIGATION_BUTTON_FIRST = ChatColor.GOLD+"<<";
