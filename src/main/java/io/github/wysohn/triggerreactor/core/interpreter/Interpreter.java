@@ -19,24 +19,23 @@ package io.github.wysohn.triggerreactor.core.interpreter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Stack;
 
 import io.github.wysohn.triggerreactor.core.Token;
 import io.github.wysohn.triggerreactor.core.Token.Type;
 import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.wrapper.Accessor;
-import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {
     private Node root;
-    private final Map<String, Executor> executorMap;
+    private final Map<String, Executor> executorMap = new HashMap<>();
     private final Map<String, Object> gvars;
     private final Map<String, Object> vars = new HashMap<>();
     private final InterpretCondition condition;
 
     private Stack<Token> stack = new Stack<>();
-    private Stack<Token> referenceStack = new Stack<>();
 
     private Object context = null;
     private ProcessInterrupter interrupter = null;
@@ -48,16 +47,12 @@ public class Interpreter {
     private int callArgsSize = 0;
     public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars, InterpretCondition condition) {
         this.root = root;
-        this.executorMap = executorMap;
+        for(Entry<String, Executor> entry : executorMap.entrySet())
+            this.executorMap.put(entry.getKey(), entry.getValue());
         this.gvars = gvars;
         this.condition = condition;
 
-        initDefaultVariables();
         initDefaultExecutors();
-    }
-
-    private void initDefaultVariables() {
-        vars.put("common", new CommonFunctions());
     }
 
     private void initDefaultExecutors() {

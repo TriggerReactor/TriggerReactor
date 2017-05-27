@@ -21,9 +21,12 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -201,6 +204,18 @@ public class ExecutorManager extends HashMap<String, Executor>{
         }
         return result;
     }
+
+    @Override
+    public Set<Entry<String, Executor>> entrySet() {
+        Set<Entry<String, Executor>> set = new HashSet<>();
+        set.addAll(super.entrySet());
+        for(Map.Entry<String, JSExecutor> entry : jsExecutors.entrySet()){
+            set.add(new AbstractMap.SimpleEntry<String, Executor>(entry.getKey(), entry.getValue()));
+        }
+        return set;
+    }
+
+
 
     private class JSExecutor extends Executor{
         private final String executorName;

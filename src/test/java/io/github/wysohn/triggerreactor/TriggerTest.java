@@ -35,6 +35,7 @@ import io.github.wysohn.triggerreactor.core.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.parser.Parser;
+import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import junit.framework.Assert;
 
 public class TriggerTest {
@@ -66,7 +67,9 @@ public class TriggerTest {
                 return null;
             }};
         executorMap.put("MESSAGE", mockExecutor);
+
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null);
+        interpreter.getVars().put("common", new CommonFunctions());
 
         interpreter.startWithContext(null);
     }
@@ -237,7 +240,6 @@ public class TriggerTest {
         Interpreter interpreter = new Interpreter(root, executorMap, map, null);
 
         interpreter.getVars().put("text", "someplayername");
-
         interpreter.startWithContext(null);
 
         Assert.assertTrue(map.containsKey("someplayername.something"));

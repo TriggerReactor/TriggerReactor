@@ -38,6 +38,7 @@ import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.parser.Parser;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 
 public abstract class TriggerManager extends Manager implements Listener{
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
@@ -63,6 +64,7 @@ public abstract class TriggerManager extends Manager implements Listener{
         varMap.put("worldname", player.getWorld().getName());
     }
 
+    private static final CommonFunctions common = new CommonFunctions();
     public abstract class Trigger implements Cloneable{
         protected final String script;
 
@@ -138,7 +140,10 @@ public abstract class TriggerManager extends Manager implements Listener{
 
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, condition);
+
             interpreter.getVars().putAll(scriptVars);
+            interpreter.getVars().put("common", common);
+
             return interpreter;
         }
 
