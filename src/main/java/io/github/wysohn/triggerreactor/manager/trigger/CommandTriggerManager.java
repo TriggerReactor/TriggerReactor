@@ -134,6 +134,7 @@ public class CommandTriggerManager extends TriggerManager {
                 varMap.put("args"+i, args[i]);
             }
         }
+        varMap.put("argslength", args.length);
 
         trigger.activate(e, varMap);
         e.setCancelled(true);
