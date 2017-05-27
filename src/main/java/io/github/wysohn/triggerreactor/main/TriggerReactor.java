@@ -418,6 +418,30 @@ public class TriggerReactor extends JavaPlugin {
                                 sender.sendMessage(ChatColor.RED+e.getMessage());
                             }
                         }
+                    } else if(args.length == 4 && args[2].equalsIgnoreCase("delslot")){
+                        String name = args[1];
+
+                        int index = -1;
+                        try{
+                            index = Integer.parseInt(args[3]);
+                        }catch(NumberFormatException e){
+                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = invManager.getTriggerForName(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            return true;
+                        }
+
+                        if(index > trigger.getSlots().length - 1){
+                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Size: "+trigger.getSlots().length+")");
+                            return true;
+                        }
+
+                        trigger.getSlots()[index] = null;
+                        invManager.saveAll();
                     } else if(args.length > 2 && args[2].equalsIgnoreCase("open")){
                         String name = args[1];
                         Player forWhom;
@@ -449,6 +473,9 @@ public class TriggerReactor extends JavaPlugin {
                         sendDetails(sender, "/trg i MyInventory slot 0 #MESSAGE \"Clicked!\"");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> slot <index>", "Set multiple lined trigger for the specified slot <index>");
                         sendDetails(sender, "/trg i MyInventory slot 0");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delslot <index>", "Delete trigger at specified slot <index>. "
+                                + "However, this does not delete the icon.");
+                        sendDetails(sender, "/trg i MyInventory delslot 0");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
                     }
