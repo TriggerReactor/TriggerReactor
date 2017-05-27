@@ -25,7 +25,7 @@ import io.github.wysohn.triggerreactor.core.Token;
 import io.github.wysohn.triggerreactor.core.Token.Type;
 import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.wrapper.Accessor;
-import io.github.wysohn.triggerreactor.core.wrapper.CommonFunctions;
+import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {

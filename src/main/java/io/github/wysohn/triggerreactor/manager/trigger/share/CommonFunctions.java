@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.wrapper;
+package io.github.wysohn.triggerreactor.manager.trigger.share;
 
 import java.util.Random;
 
