@@ -53,6 +53,8 @@ import io.github.wysohn.triggerreactor.manager.TriggerConditionManager;
 import io.github.wysohn.triggerreactor.manager.TriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.manager.VariableManager;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.manager.trigger.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.AreaTriggerManager.AreaTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager;
@@ -84,6 +86,7 @@ public class TriggerReactor extends JavaPlugin {
     private WalkTriggerManager walkManager;
     private CommandTriggerManager cmdManager;
     private InventoryTriggerManager invManager;
+    private AreaTriggerManager areaManager;
 
     private NamedTriggerManager namedTriggerManager;
 
@@ -115,6 +118,7 @@ public class TriggerReactor extends JavaPlugin {
         walkManager = new WalkTriggerManager(this);
         cmdManager = new CommandTriggerManager(this);
         invManager = new InventoryTriggerManager(this);
+        areaManager = new AreaTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);
     }
@@ -152,6 +156,10 @@ public class TriggerReactor extends JavaPlugin {
 
     public InventoryTriggerManager getInvManager() {
         return invManager;
+    }
+
+    public AreaTriggerManager getAreaManager() {
+        return areaManager;
     }
 
     public NamedTriggerManager getNamedTriggerManager() {
@@ -580,6 +588,128 @@ public class TriggerReactor extends JavaPlugin {
                     }
 
                     return true;
+                } else if(args.length > 0 && (args[0].equalsIgnoreCase("area") || args[0].equalsIgnoreCase("a"))){
+                    if(args.length == 2 && args[1].equalsIgnoreCase("toggle")){
+                        boolean result = areaManager.SELECTION_HELPER.toggleSelection((Player) sender);
+
+                        sender.sendMessage(ChatColor.GRAY+"Area selection mode enabled: "+ChatColor.GOLD+result);
+                    } else if (args.length == 3 && args[2].equals("create")){
+                        String name = args[1];
+
+                        AreaTriggerManager.Area selected = areaManager.SELECTION_HELPER.getSelection((Player) sender);
+                        if(selected == null){
+                            sender.sendMessage(ChatColor.GRAY+"Invalid or incomplete area selection.");
+                            return true;
+                        }
+
+                        Set<AreaTriggerManager.Area> conflicts = areaManager.getConflictingAreas(selected);
+                        if(!conflicts.isEmpty()){
+                            sender.sendMessage(ChatColor.GRAY+"Found ["+conflicts.size()+"] conflicting areas:");
+                            for(AreaTriggerManager.Area conflict : conflicts){
+                                sender.sendMessage(ChatColor.LIGHT_PURPLE+"  "+conflict);
+                            }
+                            return true;
+                        }
+
+                        if(areaManager.createArea(name, selected.getSmallest(), selected.getLargest())){
+                            sender.sendMessage(ChatColor.GREEN+"Area Trigger has created!");
+                            areaManager.saveAll();
+
+                            areaManager.SELECTION_HELPER.resetSelections((Player) sender);
+                        }else{
+                            sender.sendMessage(ChatColor.GRAY+"Area Trigger "+name+" already exists.");
+                        }
+                    } else if (args.length == 3 && args[2].equals("delete")){
+                        String name = args[1];
+
+                        if(areaManager.deleteArea(name)){
+                            sender.sendMessage(ChatColor.GREEN+"Area Trigger deleted");
+                            areaManager.saveAll();
+
+                            areaManager.SELECTION_HELPER.resetSelections((Player) sender);
+                        }else{
+                            sender.sendMessage(ChatColor.GRAY+"Area Trigger "+name+" does not exists.");
+                        }
+                    }else if (args.length > 2 && args[2].equals("enter")){
+                        String name = args[1];
+
+                        AreaTrigger trigger = areaManager.getArea(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                            return true;
+                        }
+
+                        if(args.length == 3){
+                            scriptEditManager.startEdit((Conversable) sender, "Area Trigger [Enter]", "", new SaveHandler(){
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        trigger.setEnterTrigger(script);
+                                        areaManager.saveAll();
+                                    } catch (IOException | LexerException | ParserException e) {
+                                        e.printStackTrace();
+                                        sender.sendMessage(ChatColor.RED+"Could not save!");
+                                        sender.sendMessage(e.getMessage());
+                                        sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                    }
+                                }
+                            });
+                        }else{
+                            try {
+                                trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
+                                areaManager.saveAll();
+                            } catch (IOException | LexerException | ParserException e) {
+                                e.printStackTrace();
+                                sender.sendMessage(ChatColor.RED+"Could not save!");
+                                sender.sendMessage(e.getMessage());
+                                sender.sendMessage(ChatColor.RED+"See console for more information.");
+                            }
+                        }
+                    } else if (args.length > 2 && args[2].equals("exit")){
+                        String name = args[1];
+
+                        AreaTrigger trigger = areaManager.getArea(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                            return true;
+                        }
+
+                        if(args.length == 3){
+                            scriptEditManager.startEdit((Conversable) sender, "Area Trigger [Exit]", "", new SaveHandler(){
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        trigger.setExitTrigger(script);
+                                        areaManager.saveAll();
+                                    } catch (IOException | LexerException | ParserException e) {
+                                        e.printStackTrace();
+                                        sender.sendMessage(ChatColor.RED+"Could not save!");
+                                        sender.sendMessage(e.getMessage());
+                                        sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                    }
+                                }
+                            });
+                        }else{
+                            try {
+                                trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
+                                areaManager.saveAll();
+                            } catch (IOException | LexerException | ParserException e) {
+                                e.printStackTrace();
+                                sender.sendMessage(ChatColor.RED+"Could not save!");
+                                sender.sendMessage(e.getMessage());
+                                sender.sendMessage(ChatColor.RED+"See console for more information.");
+                            }
+                        }
+                    } else {
+                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> delete", "Delete area trigger. BE CAREFUL!");
+                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> enter [...]", "Enable/Disable area selection mode.");
+                        sendDetails(sender, "/trg a TestingArea enter #MESSAGE \"Welcome\"");
+                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> exit [...]", "Enable/Disable area selection mode.");
+                        sendDetails(sender, "/trg a TestingArea exit #MESSAGE \"Bye\"");
+                    }
+                    return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
                     switch (args[1]) {
@@ -630,6 +760,13 @@ public class TriggerReactor extends JavaPlugin {
         return true;
     }
 
+    /**
+     *
+     * @param args
+     * @param indexFrom inclusive
+     * @param indexTo inclusive
+     * @return
+     */
     private String mergeArguments(String[] args, int indexFrom, int indexTo) {
         StringBuilder builder = new StringBuilder();
         for(int i = indexFrom; i <= indexTo; i++){
@@ -699,6 +836,9 @@ public class TriggerReactor extends JavaPlugin {
 
         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name>", "Create an inventory trigger named <inventory name>");
         sendDetails(sender, "/trg i to see more commands...");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] area[a]", "Create an area trigger.");
+        sendDetails(sender, "/trg a to see more commands...");
 
         sendCommandDesc(sender, "/triggerreactor[trg] misc", "Miscellaneous. Type it to see the list.");
 

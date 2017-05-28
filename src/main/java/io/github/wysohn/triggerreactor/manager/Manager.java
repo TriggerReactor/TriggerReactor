@@ -19,9 +19,11 @@ package io.github.wysohn.triggerreactor.manager;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.event.Listener;
+
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 
-public abstract class Manager {
+public abstract class Manager implements Listener{
     private static final List<Manager> managers = new ArrayList<Manager>();
     public static List<Manager> getManagers() {
         return managers;
@@ -33,6 +35,8 @@ public abstract class Manager {
         this.plugin = plugin;
 
         managers.add(this);
+
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public abstract void reload();

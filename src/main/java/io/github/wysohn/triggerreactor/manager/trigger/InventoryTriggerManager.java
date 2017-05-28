@@ -53,6 +53,7 @@ import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.CustomSkullType;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class InventoryTriggerManager extends TriggerManager {
     private final Map<String, InventoryTrigger> invenTriggers = new ConcurrentHashMap<>();
@@ -289,22 +290,11 @@ public class InventoryTriggerManager extends TriggerManager {
 
         invenTriggers.remove(name);
         File yamlFile = new File(folder, name+".yml");
-        delete(yamlFile);
+        FileUtil.delete(yamlFile);
         File slotFolder = new File(folder, name);
-        delete(slotFolder);
+        FileUtil.delete(slotFolder);
 
         return true;
-    }
-
-    private void delete(File file){
-        if(file.isFile()){
-            file.delete();
-        }else{
-            for(File f : file.listFiles()){
-                delete(f);
-            }
-            file.delete();
-        }
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////

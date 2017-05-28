@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerEvent;
 
@@ -40,12 +39,11 @@ import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 
-public abstract class TriggerManager extends Manager implements Listener{
+public abstract class TriggerManager extends Manager{
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
     public TriggerManager(TriggerReactor plugin) {
         super(plugin);
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     protected void insertPlayerVariables(Player player, Map<String, Object> varMap) {

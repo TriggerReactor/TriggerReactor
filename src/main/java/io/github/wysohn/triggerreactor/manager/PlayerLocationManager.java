@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -17,7 +18,7 @@ import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 
-public class PlayerLocationManager extends Manager {
+public class PlayerLocationManager extends Manager implements Listener{
     private transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
 
     public PlayerLocationManager(TriggerReactor plugin) {

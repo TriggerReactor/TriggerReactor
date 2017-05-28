@@ -59,4 +59,19 @@ public class FileUtil {
 
         temp.delete();
     }
+
+    /**
+     * same as file.delete() if 'file' is file; recursively deletes all elements inside if 'file' is directory.
+     * @param file
+     */
+    public static void delete(File file){
+        if(file.isFile()){
+            file.delete();
+        }else{
+            for(File f : file.listFiles()){
+                delete(f);
+            }
+            file.delete();
+        }
+    }
 }
