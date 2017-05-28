@@ -22,12 +22,14 @@ import java.util.Map;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
+import io.github.wysohn.triggerreactor.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 
 public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerManager.WalkTrigger> {
@@ -40,12 +42,12 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
         return new WalkTrigger(script);
     }
 
-    @Override
-    protected void onLocationChange(PlayerMoveEvent e, SimpleLocation from, SimpleLocation to) {
-        handleWalk(e, to);
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onMove(PlayerBlockLocationEvent e){
+        handleWalk(e, e.getTo());
     }
 
-    private boolean handleWalk(PlayerMoveEvent e, SimpleLocation to){
+    private boolean handleWalk(PlayerBlockLocationEvent e, SimpleLocation to){
         Player player = e.getPlayer();
         SimpleLocation bottomLoc = to.clone();
         bottomLoc.add(0, -1, 0);

@@ -86,11 +86,35 @@ public class SimpleLocation implements Cloneable{
     }
     @Override
     public String toString() {
-        return "SimpleLocation [world=" + world + ", x=" + x + ", y=" + y + ", z=" + z + "]";
+        return world + "@" + x + "," + y + "," + z;
     }
 
     @Override
     public SimpleLocation clone() {
         return new SimpleLocation(world, x, y, z);
+    }
+
+    public static SimpleLocation valueOf(String str){
+        String[] splitw = str.split("@", 2);
+        if(splitw.length != 2)
+            throw new SimpleLocationFormatException(str);
+
+        String world = splitw[0];
+
+        String[] splitl = splitw[1].split(",", 3);
+        if(splitl.length != 3)
+            throw new SimpleLocationFormatException(str);
+
+        return new SimpleLocation(world,
+                Integer.parseInt(splitl[0]),
+                Integer.parseInt(splitl[1]),
+                Integer.parseInt(splitl[2]));
+    }
+
+    @SuppressWarnings("serial")
+    public static class SimpleLocationFormatException extends RuntimeException{
+        public SimpleLocationFormatException(String message) {
+            super(message);
+        }
     }
 }

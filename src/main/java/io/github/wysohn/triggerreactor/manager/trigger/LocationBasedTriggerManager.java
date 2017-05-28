@@ -42,9 +42,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
@@ -63,8 +60,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
     public static final Material COPY_TOOL = Material.PAPER;
 
     private Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
-
-    private transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
 
     private File folder;
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
@@ -174,38 +169,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         int y = Integer.parseInt(lsplit[1]);
         int z = Integer.parseInt(lsplit[2]);
         return new SimpleLocation(world, x, y, z);
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onJoin(PlayerJoinEvent e){
-        Player player = e.getPlayer();
-        Location loc = player.getLocation();
-        SimpleLocation sloc = new SimpleLocation(loc);
-        locations.put(player.getUniqueId(), sloc);
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onQuit(PlayerQuitEvent e){
-        Player player = e.getPlayer();
-        locations.remove(player.getUniqueId());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onMove(PlayerMoveEvent e){
-        if(e.getTo() == e.getFrom())
-            return;
-
-        Player player = e.getPlayer();
-
-        SimpleLocation from = locations.get(player.getUniqueId());
-        SimpleLocation to = new SimpleLocation(e.getTo());
-
-        if(from.equals(to))
-            return;
-
-        locations.put(player.getUniqueId(), to);
-
-        onLocationChange(e, from, to);
     }
 
     private Map<UUID, Long> lastClick = new HashMap<>();
@@ -583,8 +546,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
 
         return triggers;
     }
-
-    protected abstract void onLocationChange(PlayerMoveEvent e, SimpleLocation from, SimpleLocation to);
 
     private static class ClipBoard{
         final BoardType type;

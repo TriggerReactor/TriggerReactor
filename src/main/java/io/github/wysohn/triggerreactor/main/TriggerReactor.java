@@ -47,6 +47,7 @@ import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.manager.Manager;
+import io.github.wysohn.triggerreactor.manager.PlayerLocationManager;
 import io.github.wysohn.triggerreactor.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.manager.TriggerConditionManager;
 import io.github.wysohn.triggerreactor.manager.TriggerManager.Trigger;
@@ -77,6 +78,7 @@ public class TriggerReactor extends JavaPlugin {
     private VariableManager variableManager;
     private ScriptEditManager scriptEditManager;
     private TriggerConditionManager conditionManager;
+    private PlayerLocationManager locationManager;
 
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
@@ -107,6 +109,7 @@ public class TriggerReactor extends JavaPlugin {
 
         scriptEditManager = new ScriptEditManager(this);
         conditionManager = new TriggerConditionManager(this);
+        locationManager = new PlayerLocationManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);

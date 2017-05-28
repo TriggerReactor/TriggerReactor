@@ -27,14 +27,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 
 public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTriggerManager.ClickTrigger> {
     public ClickTriggerManager(TriggerReactor plugin) {
@@ -77,12 +75,6 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
 
         trigger.activate(e, varMap);
         return true;
-    }
-
-    @Override
-    protected void onLocationChange(PlayerMoveEvent e, SimpleLocation from, SimpleLocation to) {
-        // TODO Auto-generated method stub
-
     }
 
     class ClickTrigger extends TriggerManager.Trigger{
