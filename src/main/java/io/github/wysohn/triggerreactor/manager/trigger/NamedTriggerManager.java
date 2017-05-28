@@ -17,10 +17,7 @@
 package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -75,16 +72,8 @@ public class NamedTriggerManager extends TriggerManager {
             if(triggers.containsKey(builder.toString())){
                 plugin.getLogger().warning(builder.toString()+" already registered! Duplicating executors?");
             }else{
-                try(FileInputStream fis = new FileInputStream(file);
-                        InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
-                    StringBuilder scriptBuilder = new StringBuilder();
-                    int read = -1;
-
-                    while((read = isr.read()) != -1){
-                        scriptBuilder.append((char) read);
-                    }
-
-                    Trigger trigger = new NamedTrigger(scriptBuilder.toString());
+                try{
+                    Trigger trigger = new NamedTrigger(FileUtil.readFromFile(file));
                     triggers.put(builder.toString(), trigger);
                 }catch(IOException | LexerException | ParserException e){
                     e.printStackTrace();
@@ -106,7 +95,7 @@ public class NamedTriggerManager extends TriggerManager {
             if(!file.getParentFile().exists())
                 file.getParentFile().mkdirs();
 
-            try(FileWriter fw = new FileWriter(file)){
+            try{
                 FileUtil.writeToFile(file, trigger.getScript());
             }catch(IOException e){
                 e.printStackTrace();

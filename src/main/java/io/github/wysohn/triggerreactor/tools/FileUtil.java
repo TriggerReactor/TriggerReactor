@@ -20,7 +20,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 
 public class FileUtil {
@@ -44,8 +46,6 @@ public class FileUtil {
         try(FileOutputStream fos = new FileOutputStream(temp);
                 OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8");){
             osw.write(str);
-        }catch(IOException e){
-            throw e;
         }
 
         try (FileInputStream istream = new FileInputStream(temp);
@@ -53,11 +53,24 @@ public class FileUtil {
             FileChannel src = istream.getChannel();
             FileChannel dest = ostream.getChannel();
             dest.transferFrom(src, 0, src.size());
-        } catch (IOException e) {
-            throw e;
         }
 
         temp.delete();
+    }
+
+    public static String readFromFile(File file) throws UnsupportedEncodingException, IOException{
+        if(!file.exists())
+            return null;
+
+        StringBuilder builder = new StringBuilder();
+        try(FileInputStream fis = new FileInputStream(file);
+                InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
+            int read = -1;
+            while((read = isr.read()) != -1){
+                builder.append((char) read);
+            }
+            return builder.toString();
+        }
     }
 
     /**

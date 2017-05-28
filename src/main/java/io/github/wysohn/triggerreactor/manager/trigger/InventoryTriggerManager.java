@@ -18,11 +18,7 @@ package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -129,19 +125,13 @@ public class InventoryTriggerManager extends TriggerManager {
                 if(!slotTrigger.isFile())
                     continue;
 
-                try(FileInputStream fis = new FileInputStream(slotTrigger);
-                        InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
-                    StringBuilder builder = new StringBuilder();
-                    int read = -1;
-                    while((read = isr.read()) != -1){
-                        builder.append((char) read);
-                    }
-                    String script = builder.toString();
-
-                    scriptMap.put(i, script);
+                String script = null;
+                try {
+                    script = FileUtil.readFromFile(slotTrigger);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                scriptMap.put(i, script);
             }
 
             try {
@@ -192,9 +182,8 @@ public class InventoryTriggerManager extends TriggerManager {
                 if(slot == null){
                     slotFile.delete();
                 } else{
-                    try(FileOutputStream fos = new FileOutputStream(slotFile);
-                            OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8")){
-                        osw.write(slot.getScript());
+                    try{
+                        FileUtil.writeToFile(slotFile, slot.getScript());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

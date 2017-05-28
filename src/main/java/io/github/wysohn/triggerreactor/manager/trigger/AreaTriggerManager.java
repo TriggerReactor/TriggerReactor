@@ -2,11 +2,7 @@ package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -100,8 +96,19 @@ public class AreaTriggerManager extends TriggerManager {
                 scriptFolder.mkdirs();
             }
 
-            String enterScript = readFile(new File(scriptFolder, "Enter"));
-            String exitScript = readFile(new File(scriptFolder, "Exit"));
+            String enterScript = null;
+            try {
+                enterScript = FileUtil.readFromFile(new File(scriptFolder, "Enter"));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+            String exitScript = null;
+            try {
+                exitScript = FileUtil.readFromFile(new File(scriptFolder, "Exit"));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
 
             Set<SimpleChunkLocation> set = getAllChunkLocations(area);
             for(SimpleChunkLocation scloc : set){
@@ -177,7 +184,7 @@ public class AreaTriggerManager extends TriggerManager {
 
             if(trigger.enterTrigger != null){
                 try {
-                    writeFile(new File(triggerFolder, "Enter"), trigger.enterTrigger.getScript());
+                    FileUtil.writeToFile(new File(triggerFolder, "Enter"), trigger.enterTrigger.getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().warning("Could not save Area Trigger [Enter] "+trigger.name);
@@ -186,41 +193,12 @@ public class AreaTriggerManager extends TriggerManager {
 
             if(trigger.exitTrigger != null){
                 try {
-                    writeFile(new File(triggerFolder, "Exit"), trigger.exitTrigger.getScript());
+                    FileUtil.writeToFile(new File(triggerFolder, "Exit"), trigger.exitTrigger.getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().warning("Could not save Area Trigger [Exit] "+trigger.name);
                 }
             }
-        }
-    }
-
-    private String readFile(File file) {
-        if(!file.exists())
-            return null;
-
-        StringBuilder builder = new StringBuilder();
-        try(FileInputStream fis = new FileInputStream(file);
-                InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
-            int read = -1;
-            while((read = isr.read()) != -1){
-                builder.append((char) read);
-            }
-            return builder.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private void writeFile(File file, String writing) throws IOException{
-        if(!file.exists()){
-            file.createNewFile();
-        }
-
-        try(FileOutputStream fos = new FileOutputStream(file);
-                OutputStreamWriter osw = new OutputStreamWriter(fos, "UTF-8")){
-            osw.write(writing);
         }
     }
 
