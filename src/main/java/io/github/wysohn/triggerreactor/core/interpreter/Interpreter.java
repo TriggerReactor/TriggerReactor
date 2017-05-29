@@ -454,7 +454,7 @@ public class Interpreter {
         } catch (NoSuchMethodException e) {
             throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist.", e);
         } catch (IllegalArgumentException | InvocationTargetException e) {
-            throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"! -- "+e.getMessage());
+            throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"!", e);
         }
 
         if(result != null){
