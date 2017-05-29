@@ -42,6 +42,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.PluginMessageListener;
+
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
@@ -76,6 +80,8 @@ public class TriggerReactor extends JavaPlugin {
         }
     });
 
+    private BungeeCordHeler bungeeHelper;
+
     private ExecutorManager executorManager;
     private VariableManager variableManager;
     private ScriptEditManager scriptEditManager;
@@ -95,6 +101,8 @@ public class TriggerReactor extends JavaPlugin {
         super.onEnable();
         instance = this;
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
+        bungeeHelper = new BungeeCordHeler();
 
         try {
             executorManager = new ExecutorManager(this);
@@ -128,6 +136,10 @@ public class TriggerReactor extends JavaPlugin {
         getLogger().severe("Initialization failed!");
         getLogger().severe(e.getMessage());
         this.setEnabled(false);
+    }
+
+    public BungeeCordHeler getBungeeHelper() {
+        return bungeeHelper;
     }
 
     public ExecutorManager getExecutorManager() {
@@ -868,5 +880,38 @@ public class TriggerReactor extends JavaPlugin {
     private void sendDetails(CommandSender sender, String detail){
         detail = ChatColor.translateAlternateColorCodes('&', detail);
         sender.sendMessage("  "+ChatColor.GRAY+detail);
+    }
+
+    public class BungeeCordHeler implements PluginMessageListener {
+        private final String CHANNEL = "BungeeCord";
+
+        /**
+         * constructor should only be called from onEnable()
+         */
+        private BungeeCordHeler() {
+            getServer().getMessenger().registerOutgoingPluginChannel(TriggerReactor.this, CHANNEL);
+            getServer().getMessenger().registerIncomingPluginChannel(TriggerReactor.this, CHANNEL, this);
+        }
+
+        @Override
+        public void onPluginMessageReceived(String channel, Player player, byte[] message) {
+            if (!channel.equals("BungeeCord")) {
+                return;
+            }
+/*            ByteArrayDataInput in = ByteStreams.newDataInput(message);
+            String subchannel = in.readUTF();
+            if (subchannel.equals("SomeSubChannel")) {
+                // Use the code sample in the 'Response' sections below to read
+                // the data.
+            }*/
+        }
+
+        public void sendToServer(Player player, String serverName){
+            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+            out.writeUTF("Connecct");
+            out.writeUTF(serverName);
+
+            player.sendPluginMessage(TriggerReactor.this, CHANNEL, out.toByteArray());
+        }
     }
 }
