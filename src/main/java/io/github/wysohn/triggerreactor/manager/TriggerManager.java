@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -38,12 +39,24 @@ import io.github.wysohn.triggerreactor.core.parser.Parser;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.IVaultSupport;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupport;
 
 public abstract class TriggerManager extends Manager{
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
+    private static CommonFunctions common = null;
+
+    private static IVaultSupport vault = null;
+
     public TriggerManager(TriggerReactor plugin) {
         super(plugin);
+
+        if(common == null)
+            common = new CommonFunctions();
+
+        if(vault == null && Bukkit.getPluginManager().isPluginEnabled("Vault"))
+            vault = new VaultSupport(plugin);
     }
 
     protected void insertPlayerVariables(Player player, Map<String, Object> varMap) {
@@ -62,7 +75,6 @@ public abstract class TriggerManager extends Manager{
         varMap.put("worldname", player.getWorld().getName());
     }
 
-    private static final CommonFunctions common = new CommonFunctions();
     public abstract class Trigger implements Cloneable{
         protected final String script;
 
@@ -141,6 +153,9 @@ public abstract class TriggerManager extends Manager{
 
             interpreter.getVars().putAll(scriptVars);
             interpreter.getVars().put("common", common);
+
+            if(vault != null)
+                interpreter.getVars().put("vault", vault);
 
             return interpreter;
         }

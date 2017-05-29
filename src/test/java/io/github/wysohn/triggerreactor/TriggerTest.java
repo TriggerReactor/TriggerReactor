@@ -69,6 +69,7 @@ public class TriggerTest {
         executorMap.put("MESSAGE", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null);
+
         interpreter.getVars().put("common", new CommonFunctions());
 
         interpreter.startWithContext(null);

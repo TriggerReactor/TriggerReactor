@@ -79,6 +79,13 @@ public class ReflectionUtil {
             }
         }
 
-        return null;
+        if (args.length > 1) {
+            StringBuilder builder = new StringBuilder(args[0].getClass().getName());
+            for (int i = 1; i < args.length; i++)
+                builder.append("," + args[i].getClass().getName());
+            throw new NoSuchMethodException(methodName+"("+builder.toString()+")");
+        }else{
+            throw new NoSuchMethodException(methodName+"()");
+        }
     }
 }

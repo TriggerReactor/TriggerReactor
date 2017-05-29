@@ -23,6 +23,9 @@ repositories {
 	maven {
 		url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
 	}
+	maven {
+		url "http://nexus.hc.to/content/repositories/pub_releases/"
+	}
 }
 
 
@@ -49,6 +52,7 @@ dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 	
 	compile "org.bukkit:bukkit:$bukkit_version"
+	compile "net.milkbowl.vault:VaultAPI:1.6"
 	
     testCompile 'junit:junit:4.+'
     testCompile 'org.mockito:mockito-core:2.+'

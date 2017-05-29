@@ -159,6 +159,9 @@ public class Parser {
                     if(left == null)
                         throw new ParserException("Expected an Id but found nothing", this);
 
+                    if(token == null || token.type == Type.ENDL)
+                        return left;
+
                     if(!"=".equals(token.value))
                         throw new ParserException("Expected '=' after id ["+left.getToken().value+"] but found "+token, this);
                     Node assign = new Node(new Token(Type.OPERATOR, "="));

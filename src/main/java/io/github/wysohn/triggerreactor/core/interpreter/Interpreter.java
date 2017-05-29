@@ -452,7 +452,7 @@ public class Interpreter {
         try {
             result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
         } catch (NoSuchMethodException e) {
-            throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist.");
+            throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist.", e);
         } catch (IllegalArgumentException | InvocationTargetException e) {
             throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"! -- "+e.getMessage());
         }
