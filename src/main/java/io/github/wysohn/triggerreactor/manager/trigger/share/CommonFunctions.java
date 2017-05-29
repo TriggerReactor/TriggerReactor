@@ -42,6 +42,15 @@ public class CommonFunctions {
         return true;
     }
 
+    public boolean takeItem(Player player, Integer id, Integer amount, short data){
+        ItemStack IS = new ItemStack(id, amount, data);
+        if(!player.getInventory().containsAtLeast(IS, amount))
+            return false;
+
+        player.getInventory().removeItem(IS);
+        return true;
+    }
+
     public boolean locationEqual(Location loc1, Location loc2){
         return loc1.getWorld() == loc2.getWorld()
                 && loc1.getBlockX() == loc2.getBlockX()
