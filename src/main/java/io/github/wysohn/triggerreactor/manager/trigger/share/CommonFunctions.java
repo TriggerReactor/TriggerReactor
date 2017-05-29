@@ -57,4 +57,8 @@ public class CommonFunctions {
                 && loc1.getBlockY() == loc2.getBlockY()
                 && loc1.getBlockZ() == loc2.getBlockZ();
     }
+
+    public boolean matches(String str, String regex){
+        return str.matches(regex);
+    }
 }
