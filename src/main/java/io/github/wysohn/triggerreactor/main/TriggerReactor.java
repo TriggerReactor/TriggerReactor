@@ -80,7 +80,7 @@ public class TriggerReactor extends JavaPlugin {
         }
     });
 
-    private BungeeCordHeler bungeeHelper;
+    private BungeeCordHelper bungeeHelper;
 
     private ExecutorManager executorManager;
     private VariableManager variableManager;
@@ -102,7 +102,7 @@ public class TriggerReactor extends JavaPlugin {
         instance = this;
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
-        bungeeHelper = new BungeeCordHeler();
+        bungeeHelper = new BungeeCordHelper();
 
         try {
             executorManager = new ExecutorManager(this);
@@ -138,7 +138,7 @@ public class TriggerReactor extends JavaPlugin {
         this.setEnabled(false);
     }
 
-    public BungeeCordHeler getBungeeHelper() {
+    public BungeeCordHelper getBungeeHelper() {
         return bungeeHelper;
     }
 
@@ -882,13 +882,13 @@ public class TriggerReactor extends JavaPlugin {
         sender.sendMessage("  "+ChatColor.GRAY+detail);
     }
 
-    public class BungeeCordHeler implements PluginMessageListener {
+    public class BungeeCordHelper implements PluginMessageListener {
         private final String CHANNEL = "BungeeCord";
 
         /**
          * constructor should only be called from onEnable()
          */
-        private BungeeCordHeler() {
+        private BungeeCordHelper() {
             getServer().getMessenger().registerOutgoingPluginChannel(TriggerReactor.this, CHANNEL);
             getServer().getMessenger().registerIncomingPluginChannel(TriggerReactor.this, CHANNEL, this);
         }
