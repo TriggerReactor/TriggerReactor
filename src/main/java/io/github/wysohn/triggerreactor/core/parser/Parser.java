@@ -407,8 +407,26 @@ public class Parser {
 
     private Node parseFactor() throws IOException, LexerException, ParserException {
         Node idNode = parseId();
-        if(idNode != null)
+        if(idNode != null){
+            //array access
+            if(token != null && token.type == Type.OPERATOR && token.value.equals("[")){
+                nextToken();
+
+                Node right = parseExpression();
+
+                if(token == null || !"]".equals(token.value))
+                    throw new ParserException("Expected ']' but found "+token, this);
+                nextToken();
+
+                Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<ArrayAccess>"));
+                arrAccess.getChildren().add(idNode);
+                arrAccess.getChildren().add(right);
+
+                return arrAccess;
+            }
+
             return idNode;
+        }
 
         if(token == null)
             return null;
@@ -449,8 +467,18 @@ public class Parser {
         }
 
         if (token.type.isLiteral()) {
-
             Node node = new Node(token);
+            nextToken();
+            return node;
+        }
+
+        //unary minus
+        if(token.type == Type.OPERATOR_A && "-".equals(token.value)){
+            nextToken();
+            if(token.type != Type.INTEGER && token.type != Type.DECIMAL)
+                throw new ParserException("Only Integer or Decimal are allowed for unary minus operation!", this);
+
+            Node node = new Node(new Token(token.type, "-"+token.value));
             nextToken();
             return node;
         }
@@ -565,7 +593,7 @@ public class Parser {
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
                 + "ENDWHILE";*/
-        String text = ""
+/*        String text = ""
                 + "rand = common.random(3)\n"
                 + "IF rand == 0\n"
                 + "#MESSAGE 0\n"
@@ -575,8 +603,9 @@ public class Parser {
                 + "ENDIF\n"
                 + "IF rand == 2\n"
                 + "#MESSAGE 2\n"
-                + "ENDIF";
+                + "ENDIF";*/
         //String text = "#MESSAGE /mw goto ETC";
+        String text = "#MESSAGE args[0]";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

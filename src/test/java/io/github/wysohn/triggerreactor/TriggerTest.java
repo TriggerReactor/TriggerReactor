@@ -207,14 +207,12 @@ public class TriggerTest {
 
         takeItem = false;
         when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(takeItem);
-        System.out.println("takeItem: "+takeItem+"\n");
         interpreter.startWithContext(null);
 
         System.out.println();
 
         takeItem = true;
         when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(takeItem);
-        System.out.println("takeItem: "+takeItem+"\n");
         interpreter.startWithContext(null);
     }
 
@@ -245,6 +243,32 @@ public class TriggerTest {
 
         Assert.assertTrue(map.containsKey("someplayername.something"));
         Assert.assertEquals(12.54, map.get("someplayername.something"));
+    }
+
+    @Test
+    public void testArray() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1--1-1]\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            @Override
+            public Integer execute(Object context, Object... args) {
+                Assert.assertEquals("arg1, arg2", args[0]);
+                return null;
+            }
+        });
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, map, null);
+
+        String[] args = new String[]{"arg1", "arg2"};
+        interpreter.getVars().put("args", args);
+        interpreter.startWithContext(null);
     }
 
     private static class TheTest{

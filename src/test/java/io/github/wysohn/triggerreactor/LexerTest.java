@@ -57,7 +57,8 @@ public class LexerTest {
         assertEquals(new Token(Type.OPERATOR, "("), lexer.getToken());
         assertEquals(new Token(Type.INTEGER, "3"), lexer.getToken());
         assertEquals(new Token(Type.OPERATOR_A, "*"), lexer.getToken());
-        assertEquals(new Token(Type.INTEGER, "-4"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "-"), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "4"), lexer.getToken());
         assertEquals(new Token(Type.OPERATOR, ")"), lexer.getToken());
         assertEquals(new Token(Type.OPERATOR, ")"), lexer.getToken());
         assertEquals(new Token(Type.OPERATOR_L, ">="), lexer.getToken());

@@ -16,8 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.interpreter;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
@@ -394,6 +396,7 @@ public class Interpreter {
                     if(isVariable(left)){
                         left = unwrapVariable(left);
                     }
+
                     if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
                         throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
                     }
@@ -416,6 +419,28 @@ public class Interpreter {
                     }
                 }
                 break;
+            }
+        }else if(node.getToken().type == Type.ARRAYACCESS){
+            Token right = stack.pop();
+            Token left = stack.pop();
+
+            if(isVariable(left)){
+                left = unwrapVariable(left);
+            }
+
+            if(!left.isArray())
+                throw new InterpreterException(left+" is not an array!");
+
+            if(!right.isInt())
+                throw new InterpreterException(right+" is not a valid index for array!");
+
+            try{
+                if(left.value instanceof List)
+                    stack.push(parseObject(((List) left.value).get((Integer) right.value)));
+                else
+                    stack.push(parseObject(Array.get(left.value, (Integer) right.value)));
+            }catch(Exception e){
+                throw new InterpreterException("Could not access "+left.value+"["+right.value+"]!", e);
             }
         }else if(node.getToken().type == Type.ID){
             stack.push(node.getToken());
@@ -485,17 +510,9 @@ public class Interpreter {
 
             if (var == null) {
                 return new Token(Type.UNKNOWNID, varToken.value);
-            } else if (var.getClass() == Integer.class) {
-                return new Token(Type.INTEGER, var);
-            } else if (var.getClass() == Double.class) {
-                return new Token(Type.DECIMAL, var);
-            } else if (var.getClass() == String.class) {
-                return new Token(Type.STRING, var);
-            } else if (var.getClass() == Boolean.class) {
-                return new Token(Type.BOOLEAN, var);
-            } else {
-                return new Token(Type.OBJECT, var);
             }
+
+            return parseObject(var);
         }else if(varToken.type == Type.GID){
             return convertValue(gvars, varToken);
         }else if(varToken.type == Type.ACCESS){
@@ -511,19 +528,25 @@ public class Interpreter {
 
             if (var == null) {
                 return new Token(Type.UNKNOWNID, varToken.value);
-            } else if (var.getClass() == Integer.class) {
-                return new Token(Type.INTEGER, var);
-            } else if (var.getClass() == Double.class) {
-                return new Token(Type.DECIMAL, var);
-            } else if (var.getClass() == String.class) {
-                return new Token(Type.STRING, var);
-            } else if (var.getClass() == Boolean.class) {
-                return new Token(Type.BOOLEAN, var);
-            } else {
-                return new Token(Type.OBJECT, var);
             }
+
+            return parseObject(var);
         }else{
             throw new InterpreterException("Unresolved id "+varToken);
+        }
+    }
+
+    private Token parseObject(Object var) {
+        if (var.getClass() == Integer.class) {
+            return new Token(Type.INTEGER, var);
+        } else if (var.getClass() == Double.class) {
+            return new Token(Type.DECIMAL, var);
+        } else if (var.getClass() == String.class) {
+            return new Token(Type.STRING, var);
+        } else if (var.getClass() == Boolean.class) {
+            return new Token(Type.BOOLEAN, var);
+        } else {
+            return new Token(Type.OBJECT, var);
         }
     }
 
@@ -532,17 +555,7 @@ public class Interpreter {
         if (value == null)
             throw new InterpreterException("Cannot find variable " + idToken.value);
 
-        if (value.getClass() == Integer.class) {
-            return new Token(Type.INTEGER, value);
-        } else if (value.getClass() == Double.class) {
-            return new Token(Type.DECIMAL, value);
-        } else if (value.getClass() == String.class) {
-            return new Token(Type.STRING, value);
-        } else if (value.getClass() == Boolean.class) {
-            return new Token(Type.BOOLEAN, value);
-        } else {
-            return new Token(Type.OBJECT, value);
-        }
+        return parseObject(value);
     }
 
     private final Executor EXECUTOR_STOP = new Executor() {

@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.Token.Type;
 public class Lexer {
     private static final char[] OPERATORS;
     static {
-        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.'};
+        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']'};
         Arrays.sort(OPERATORS);
     }
 
@@ -115,18 +115,6 @@ public class Lexer {
             return readNumber();
         }
 
-        //check unary minus
-        if(c == '-'){
-            if(read() && Character.isDigit(c)){
-                return readNegativeNumber();
-            }else if(!eos){//just a minus sign so unread it
-                unread();
-                c = '-';
-            }else{//do nothing as eos is reached
-
-            }
-        }
-
         if(c == '"'){
             return readString();
         }
@@ -182,30 +170,6 @@ public class Lexer {
 
     private Token readNumber() throws IOException, LexerException{
         StringBuilder builder = new StringBuilder();
-
-        while(Character.isDigit(c)){
-            builder.append(c);
-            read();
-        }
-        if(c != '.'){
-            return new Token(Type.INTEGER, builder.toString());
-        }else{
-            builder.append('.');
-            read();
-            if(!Character.isDigit(c))
-                throw new LexerException("Invalid number ["+builder.toString()+"]!", this);
-        }
-        while(Character.isDigit(c)){
-            builder.append(c);
-            read();
-        }
-
-        return new Token(Type.DECIMAL, builder.toString());
-    }
-
-    private Token readNegativeNumber() throws IOException, LexerException{
-        StringBuilder builder = new StringBuilder();
-        builder.append('-');
 
         while(Character.isDigit(c)){
             builder.append(c);
@@ -328,7 +292,7 @@ public class Lexer {
                 + "str = \"abc\"\n"
                 + "WHILE 1 > 0\n"
                 + "    str = str + X\n"
-                + "    IF player.in.health > 2 && player.in.health > 0\n"
+                + "    IF player.in.health > 2 && player.in.health[3] > 0\n"
                 + "        #MESSAGE 3*4\n"
                 + "    ELSE\n"
                 + "        #MESSAGE str\n"

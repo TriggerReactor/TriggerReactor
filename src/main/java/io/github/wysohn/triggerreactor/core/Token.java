@@ -16,6 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core;
 
+import java.util.List;
+
 public class Token {
     public final Type type;
     public final Object value;
@@ -45,8 +47,12 @@ public class Token {
         return value instanceof Boolean;
     }
 
+    public boolean isArray() {
+        return value.getClass().isArray() || value instanceof List;
+    }
+
     public boolean isObject(){
-        return !isInt() && !isDouble() && !isBoolean();
+        return !isInt() && !isDouble() && !isBoolean() && !isArray();
     }
 
     public int toInt(){
@@ -67,7 +73,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return "[type: "+type.name()+", value: "+value+"]";
+        return "[type: "+type.name()+", value: '"+value+"']";
     }
 
     @Override
@@ -104,7 +110,7 @@ public class Token {
         //Literal
         STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
 
-        OBJECT, /**Function Call**/CALL, UNKNOWNID, ACCESS,
+        OBJECT, /**Function Call**/CALL, UNKNOWNID, ACCESS, ARRAYACCESS,
 
 
         /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, /**Logical**/OPERATOR_L,
