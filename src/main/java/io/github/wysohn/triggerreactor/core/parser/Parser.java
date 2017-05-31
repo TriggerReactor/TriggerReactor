@@ -155,7 +155,7 @@ public class Parser {
 
                     return commandNode;
                 }else{
-                    Node left = parseId();
+                    Node left = parseFactor();
                     if(left == null)
                         throw new ParserException("Expected an Id but found nothing", this);
 
@@ -408,23 +408,6 @@ public class Parser {
     private Node parseFactor() throws IOException, LexerException, ParserException {
         Node idNode = parseId();
         if(idNode != null){
-            //array access
-            if(token != null && token.type == Type.OPERATOR && token.value.equals("[")){
-                nextToken();
-
-                Node right = parseExpression();
-
-                if(token == null || !"]".equals(token.value))
-                    throw new ParserException("Expected ']' but found "+token, this);
-                nextToken();
-
-                Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<ArrayAccess>"));
-                arrAccess.getChildren().add(idNode);
-                arrAccess.getChildren().add(right);
-
-                return arrAccess;
-            }
-
             return idNode;
         }
 
@@ -487,46 +470,35 @@ public class Parser {
     }
 
     private Node parseId() throws IOException, LexerException, ParserException {
-        if(token.type == Type.ID){
+        if (token.type == Type.ID) {
             Deque<Node> deque = new LinkedList<>();
 
-            Token idToken = token;
-            nextToken();
-
-            if(token != null && "(".equals(token.value)){//fuction call
-                nextToken();
-                Node call = new Node(new Token(Type.CALL, idToken.value));
-
-                if(")".equals(token.value)){
-                    deque.addLast(call);
+            Token idToken;
+            do{
+                if(".".equals(token.value))
                     nextToken();
-                }else{
-                    do{
-                        call.getChildren().add(parseLogic());
-                    }while(",".equals(token.value));
-
-                    if(token == null || !")".equals(token.value))
-                        throw new ParserException("Extected ')' but end of stream is reached.", this);
-
-                    nextToken();
-
-                    deque.addLast(call);
-                }
-            }else if(token != null && ".".equals(token.value)){//id
-                deque.addLast(new Node(idToken));
-            }else{
-                return new Node(idToken);
-            }
-
-            while(token != null && ".".equals(token.value)){
-                nextToken();
-                if(token.type != Type.ID)
-                    throw new ParserException(token+" is not an id!", this);
 
                 idToken = token;
                 nextToken();
 
-                if(token != null && "(".equals(token.value)){//fuction call
+                //id[i]
+                if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access                                                                                   // access
+                    nextToken();
+
+                    Node index = parseExpression();
+                    Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>"));
+
+                    if (token == null || !"]".equals(token.value))
+                        throw new ParserException("Expected ']' but found " + token, this);
+                    nextToken();
+
+                    arrAccess.getChildren().add(new Node(idToken));
+                    arrAccess.getChildren().add(index);
+
+                    deque.addLast(arrAccess);
+                }
+                //id(args)
+                else if(token != null && "(".equals(token.value)){//fuction call
                     nextToken();
                     Node call = new Node(new Token(Type.CALL, idToken.value));
 
@@ -546,10 +518,31 @@ public class Parser {
 
                         deque.addLast(call);
                     }
-                }else{//id
+
+                    //id(args)[i]
+                    if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access                                                                                   // access
+                        nextToken();
+
+                        Node index = parseExpression();
+                        Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>"));
+
+                        if (token == null || !"]".equals(token.value))
+                            throw new ParserException("Expected ']' but found " + token, this);
+                        nextToken();
+
+                        arrAccess.getChildren().add(index);
+
+                        deque.addLast(arrAccess);
+                    }
+                }
+                //id
+                else{
                     deque.addLast(new Node(idToken));
                 }
-            }
+            }while(token != null && ".".equals(token.value));
+
+            if(deque.peekFirst().getToken().type != Type.THIS)
+                deque.push(new Node(new Token(Type.THIS, "<This>")));
 
             return parseId(deque);
         }else{

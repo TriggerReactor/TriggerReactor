@@ -16,14 +16,21 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.wrapper;
 
+import java.lang.reflect.Array;
+
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Accessor {
     public final Object targetParent;
-    public final String targetName;
+    public final Object target;
     public Accessor(Object targetParent, String targetName) {
         this.targetParent = targetParent;
-        this.targetName = targetName;
+        this.target = targetName;
+    }
+
+    public Accessor(Object array, Integer index){
+        this.targetParent = array;
+        this.target = index;
     }
 
     public Object getTargetParent(){
@@ -31,16 +38,29 @@ public class Accessor {
     }
 
     public Object evaluateTarget() throws NoSuchFieldException, IllegalArgumentException{
-        return ReflectionUtil.getField(targetParent, targetName);
+        if(targetParent.getClass().isArray()){
+            return Array.get(targetParent, (Integer) target);
+        }else{
+            return ReflectionUtil.getField(targetParent, (String) target);
+        }
+
     }
 
     public void setTargetValue(Object value) throws NoSuchFieldException, IllegalArgumentException{
-        ReflectionUtil.setField(targetParent, targetName, value);
+        if(targetParent.getClass().isArray()){
+            Array.set(targetParent, (Integer) target, value);
+        }else{
+            ReflectionUtil.setField(targetParent, (String) target, value);
+        }
     }
 
     @Override
     public String toString() {
-        return targetParent+"."+targetName;
+        if(targetParent.getClass().isArray()){
+            return targetParent+"["+target+"]";
+        }else{
+            return targetParent+"."+target;
+        }
     }
 
 

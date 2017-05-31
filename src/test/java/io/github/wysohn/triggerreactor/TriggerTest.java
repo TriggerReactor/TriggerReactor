@@ -68,7 +68,7 @@ public class TriggerTest {
             }};
         executorMap.put("MESSAGE", mockExecutor);
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
 
         interpreter.getVars().put("common", new CommonFunctions());
 
@@ -109,7 +109,7 @@ public class TriggerTest {
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -136,7 +136,7 @@ public class TriggerTest {
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -192,7 +192,7 @@ public class TriggerTest {
                 return null;
             }
         });
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
 
         Player mockPlayer = mock(Player.class);
         PlayerInventory mockInven = mock(PlayerInventory.class);
@@ -236,7 +236,7 @@ public class TriggerTest {
             }
         });
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, null, null);
 
         interpreter.getVars().put("text", "someplayername");
         interpreter.startWithContext(null);
@@ -249,6 +249,8 @@ public class TriggerTest {
     public void testArray() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
+                + "args[0] = \"arg1\"\n"
+                + "args[1] = \"arg2\"\n"
                 + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1--1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -264,9 +266,9 @@ public class TriggerTest {
             }
         });
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, null, null);
 
-        String[] args = new String[]{"arg1", "arg2"};
+        String[] args = new String[]{"item1", "item2"};
         interpreter.getVars().put("args", args);
         interpreter.startWithContext(null);
     }

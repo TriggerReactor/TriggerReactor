@@ -61,7 +61,7 @@ public abstract class TriggerManager extends Manager{
 
     protected void insertPlayerVariables(Player player, Map<String, Object> varMap) {
         varMap.put("player", player);
-        varMap.put("name", player.getName());
+/*        varMap.put("name", player.getName());
         varMap.put("canfly", player.getAllowFlight());
         varMap.put("bedlocation", player.getBedSpawnLocation());
         varMap.put("canpickup", player.getCanPickupItems());
@@ -72,7 +72,7 @@ public abstract class TriggerManager extends Manager{
         varMap.put("eyeheightignoresneak", player.getEyeHeight(true));
         varMap.put("eyelocation", player.getEyeLocation());
         varMap.put("firetick", player.getFireTicks());
-        varMap.put("worldname", player.getWorld().getName());
+        varMap.put("worldname", player.getWorld().getName());*/
     }
 
     public abstract class Trigger implements Cloneable{
@@ -149,10 +149,9 @@ public abstract class TriggerManager extends Manager{
         }
 
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-            Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, condition);
+            Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, common, condition);
 
             interpreter.getVars().putAll(scriptVars);
-            interpreter.getVars().put("common", common);
 
             if(vault != null)
                 interpreter.getVars().put("vault", vault);
