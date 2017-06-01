@@ -318,7 +318,7 @@ public class TriggerTest {
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "FOR player = getPlayers()\n"
-                + "    #MESSAGE \"test: \"+player\n"
+                + "    #MESSAGE player.getName()\n"
                 + "ENDFOR\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -330,7 +330,7 @@ public class TriggerTest {
             int index = 0;
             @Override
             public Integer execute(boolean sync, Object context, Object... args) {
-                Assert.assertEquals(mockPlayer[index].getName(), "Player"+index);
+                Assert.assertEquals(mockPlayer[index].getName(), args[0]);
                 index++;
                 return null;
             }

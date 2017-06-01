@@ -155,14 +155,14 @@ public class Parser {
                 forNode.getChildren().add(iteration);
                 Node first = parseFactor();
                 if(first == null)
-                    throw new ParserException("Could not find start range for FOR statement!", this);
+                    throw new ParserException("Could not find initial value for FOR statement!", this);
                 iteration.getChildren().add(first);
 
                 if(":".equals(token.value)){
                     nextToken();
                     Node second = parseFactor();
                     if(second == null)
-                        throw new ParserException("Could not find start range for FOR statement!", this);
+                        throw new ParserException("Could not find max limit for FOR statement!", this);
                     iteration.getChildren().add(second);
                 }
 
