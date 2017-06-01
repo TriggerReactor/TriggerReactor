@@ -138,6 +138,51 @@ public class Parser {
                 nextToken();
                 return endWhileNode;
             }
+            else if("FOR".equals(token.value)){
+                Node forNode = new Node(token);
+                nextToken();
+
+                Node varName = parseId();
+                if(varName == null)
+                    throw new ParserException("Could not find variable name for FOR statement!", this);
+                forNode.getChildren().add(varName);
+
+                if(!"=".equals(token.value))
+                    throw new ParserException("Expected '=' but found "+token, this);
+                nextToken();
+
+                Node iteration = new Node(new Token(Type.ITERATOR, "<ITERATOR>"));
+                forNode.getChildren().add(iteration);
+                Node first = parseFactor();
+                if(first == null)
+                    throw new ParserException("Could not find start range for FOR statement!", this);
+                iteration.getChildren().add(first);
+
+                if(":".equals(token.value)){
+                    nextToken();
+                    Node second = parseFactor();
+                    if(second == null)
+                        throw new ParserException("Could not find start range for FOR statement!", this);
+                    iteration.getChildren().add(second);
+                }
+
+                Node body = new Node(new Token(Type.BODY, "<BODY>"));
+                Node codes = null;
+                while((codes = parseStatement()) != null && !"ENDFOR".equals(codes.getToken().value)){
+                    body.getChildren().add(codes);
+                }
+                if(codes == null)
+                    throw new ParserException("Could not find ENDFOR statement!", this);
+
+                forNode.getChildren().add(body);
+
+                return forNode;
+            }
+            else if("ENDFOR".equals(token.value)){
+                Node endForNode = new Node(token);
+                nextToken();
+                return endForNode;
+            }
             else if(token.type == Type.ID){
                 if(((String) token.value).charAt(0) == '#'){
                     String command = ((String) token.value).substring(1);
@@ -598,7 +643,11 @@ public class Parser {
                 + "#MESSAGE 2\n"
                 + "ENDIF";*/
         //String text = "#MESSAGE /mw goto ETC";
-        String text = "#MESSAGE args[0]";
+        //String text = "#MESSAGE args[0]";
+        String text = ""
+                + "FOR i = 0:10\n"
+                + "    #MESSAGE \"test i=\"+i\n"
+                + "ENDFOR\n";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

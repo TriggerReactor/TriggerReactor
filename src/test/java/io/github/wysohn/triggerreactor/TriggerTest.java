@@ -20,6 +20,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,14 +63,14 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 String value = String.valueOf(args[0]);
                 Assert.assertTrue("0".equals(value) || "1".equals(value)||"2".equals(value));
                 return null;
             }};
         executorMap.put("MESSAGE", mockExecutor);
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new CommonFunctions(), null);
 
         interpreter.getVars().put("common", new CommonFunctions());
 
@@ -104,12 +106,12 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 return null;
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new CommonFunctions(), null);
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -130,13 +132,13 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 Assert.assertEquals("beh0.82", (String) args[0]);
                 return null;
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new CommonFunctions(), null);
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -147,11 +149,12 @@ public class TriggerTest {
     @Test
     public void testSimpleTrigger() throws Exception{
         Charset charset = Charset.forName("UTF-8");
+        int ecoValue = 10;
         String text = ""
                 + "IF command == \"iron\"\n"
-                + "    IF common.takeItem(player, 265, 1)\n"
-                + "        #SOUND LEVEL_UP 1.0 2.0 player.getLocation()\n"
-                + "        #CMDCON \"econ add \"+player.getName()+\" 10\"\n"
+                + "    IF takeItem(player, 265, 1)\n"
+                + "        #SOUND \"LEVEL_UP\" 1.0 2.0 player.getLocation()\n"
+                + "        #CMDCON \"econ add \"+player.getName()+\" "+ecoValue+"\"\n"
                 + "        #MESSAGE \"Sold!\"\n"
                 + "    ELSE\n"
                 + "        #MESSAGE \"not enough iron.\"\n"
@@ -165,9 +168,9 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 if(!takeItem){
-                    Assert.assertEquals("not enough iron", (String) args[0]);
+                    Assert.assertEquals("not enough iron.", (String) args[0]);
                 }else{
                     Assert.assertEquals("Sold!", (String) args[0]);
                 }
@@ -177,7 +180,7 @@ public class TriggerTest {
         Location mockLocation = mock(Location.class);
         executorMap.put("SOUND", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 Assert.assertEquals("LEVEL_UP", args[0]);
                 Assert.assertEquals(1.0, args[1]);
                 Assert.assertEquals(2.0, args[2]);
@@ -185,25 +188,27 @@ public class TriggerTest {
                 return null;
             }
         });
+        String playerName = "TestPlayer";
         executorMap.put("CMDCON", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
-                System.out.println("to console: "+args[0]);
+            public Integer execute(boolean sync, Object context, Object... args) {
+                if(takeItem)
+                    Assert.assertEquals("econ add "+playerName+" "+ecoValue, args[0]);
                 return null;
             }
         });
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), null, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new CommonFunctions(), null);
 
         Player mockPlayer = mock(Player.class);
         PlayerInventory mockInven = mock(PlayerInventory.class);
 
         when(mockPlayer.getInventory()).thenReturn(mockInven);
         when(mockPlayer.getLocation()).thenReturn(mockLocation);
-        when(mockPlayer.getName()).thenReturn("Test player");
+        when(mockPlayer.getName()).thenReturn(playerName);
 
         interpreter.getVars().put("player", mockPlayer);
         interpreter.getVars().put("text", "hello");
-        interpreter.getVars().put("command", "철괴");
+        interpreter.getVars().put("command", "iron");
 
         takeItem = false;
         when(mockInven.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).thenReturn(takeItem);
@@ -230,13 +235,13 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 Assert.assertEquals(12.54, args[0]);
                 return null;
             }
         });
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, null, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new CommonFunctions(), null);
 
         interpreter.getVars().put("text", "someplayername");
         interpreter.startWithContext(null);
@@ -260,16 +265,118 @@ public class TriggerTest {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor(){
             @Override
-            public Integer execute(Object context, Object... args) {
+            public Integer execute(boolean sync, Object context, Object... args) {
                 Assert.assertEquals("arg1, arg2", args[0]);
                 return null;
             }
         });
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, null, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new CommonFunctions(), null);
 
         String[] args = new String[]{"item1", "item2"};
         interpreter.getVars().put("args", args);
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testCustomArray() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "args = array(2)\n"
+                + "args[0] = \"arg1\"\n"
+                + "args[1] = \"arg2\"\n"
+                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1--1-1]\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            @Override
+            public Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals("arg1, arg2", args[0]);
+                return null;
+            }
+        });
+        CommonFunctions mockFunctions = mock(CommonFunctions.class);
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new CommonFunctions(), null);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIteration() throws Exception{
+        CommonFunctions mockFunctions = mock(CommonFunctions.class);
+        Player[] mockPlayer = new Player[2];
+        mockPlayer[0] = mock(Player.class);
+        mockPlayer[1] = mock(Player.class);
+        when(mockPlayer[0].getName()).thenReturn("Player0");
+        when(mockPlayer[1].getName()).thenReturn("Player1");
+
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "FOR player = getPlayers()\n"
+                + "    #MESSAGE \"test: \"+player\n"
+                + "ENDFOR\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            int index = 0;
+            @Override
+            public Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals(mockPlayer[index].getName(), "Player"+index);
+                index++;
+                return null;
+            }
+        });
+
+        Collection players = new ArrayList<Player>(){{add(mockPlayer[0]); add(mockPlayer[1]);}};
+        when(mockFunctions.getPlayers()).thenReturn(players);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, map, mockFunctions, null);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIteration2() throws Exception{
+        CommonFunctions mockFunctions = mock(CommonFunctions.class);
+        Player mockPlayer1 = mock(Player.class);
+        Player mockPlayer2 = mock(Player.class);
+
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "FOR i = 0:10\n"
+                + "    #MESSAGE i\n"
+                + "ENDFOR\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            int index = 0;
+            @Override
+            public Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals(index++, args[0]);
+                return null;
+            }
+        });
+
+        Collection players = new ArrayList<Player>(){{add(mockPlayer1); add(mockPlayer2);}};
+        when(mockFunctions.getPlayers()).thenReturn(players);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, map, mockFunctions, null);
+
         interpreter.startWithContext(null);
     }
 

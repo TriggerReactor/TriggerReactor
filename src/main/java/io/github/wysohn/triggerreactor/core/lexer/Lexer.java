@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.Token.Type;
 public class Lexer {
     private static final char[] OPERATORS;
     static {
-        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']'};
+        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']', ':'};
         Arrays.sort(OPERATORS);
     }
 
@@ -290,7 +290,7 @@ public class Lexer {
         String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
-                + "WHILE 1 > 0\n"
+                + "FOR i = 0 : 10\n"
                 + "    str = str + X\n"
                 + "    IF player.in.health > 2 && player.in.health[3] > 0\n"
                 + "        #MESSAGE 3*4\n"
@@ -303,7 +303,7 @@ public class Lexer {
                 + "        #STOP\n"
                 + "    ENDIF\n"
                 + "    #WAIT 1\n"
-                + "ENDWHILE";
+                + "ENDFOR";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n"+text);
 

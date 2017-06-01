@@ -16,8 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.manager.trigger.share;
 
+import java.util.Collection;
 import java.util.Random;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -100,5 +102,17 @@ public class CommonFunctions implements SelfReference {
      */
     public boolean matches(String str, String regex){
         return str.matches(regex);
+    }
+
+    /**
+     * get list of online players online
+     * @return player iterator
+     */
+    public Collection<? extends Player> getPlayers(){
+        return Bukkit.getOnlinePlayers();
+    }
+
+    public Object[] array(Integer size){
+        return new Object[size];
     }
 }
