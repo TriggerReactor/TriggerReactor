@@ -536,7 +536,7 @@ public class InventoryTriggerManager extends TriggerManager {
 
         //intercept and pass interpretation to slots
         @Override
-        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter) {
+        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
             InventoryClickEvent ice = (InventoryClickEvent) e;
 
             int rawSlot = ice.getRawSlot();

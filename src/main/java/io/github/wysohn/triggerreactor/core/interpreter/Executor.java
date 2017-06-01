@@ -34,7 +34,7 @@ public abstract class Executor {
      * @param args
      * @return usually null; return code to intercept execution
      */
-    protected abstract Integer execute(Object context, Object... args);
+    protected abstract Integer execute(boolean sync, Object context, Object... args);
 
     /**
      * This will run in separate thread.

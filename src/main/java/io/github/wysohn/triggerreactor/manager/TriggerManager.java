@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerEvent;
@@ -86,7 +87,8 @@ public abstract class TriggerManager extends Manager{
         /**
          * This constructor <b>does not</b> initialize the fields. It is essential to call init() method
          * in order to make the Trigger work properly. If you want to create a Trigger with customized
-         * behavior, it's not necessary to call init() but need to override activate() method
+         * behavior, it's not necessary to call init() but need to override initInterpreter(),
+         * startInterpretation(), or activate() method as your need
          * @param script
          */
         public Trigger(String script)  {
@@ -111,14 +113,37 @@ public abstract class TriggerManager extends Manager{
             return script;
         }
 
+        /**
+         * Start this trigger. This is same as calling activate(?, ?, false). Read more about it
+         * at {@link #activate(Event, Map, boolean)}
+         * @param e the Event associated with this Trigger
+         * @param scriptVars the temporary local variables
+         */
         public void activate(Event e, Map<String, Object> scriptVars) {
+            activate(e, scriptVars, false);
+        }
+
+        /**
+         * Start this trigger.
+         *
+         * @param e
+         *            the Event associated with this Trigger
+         * @param scriptVars
+         *            the temporary local variables
+         * @param sync
+         *            set it true will make this method run in the thread that
+         *            has called this method. This is useful when this trigger has to cancel an Event;
+         *            set it to false will let it run in separate thread. This is more efficient if you
+         *            only need to read data from Event and never interact with it.
+         */
+        public void activate(Event e, Map<String, Object> scriptVars, boolean sync) {
             if(checkCooldown(e)){
                 return;
             }
 
             Interpreter interpreter = initInterpreter(scriptVars);
 
-            startInterpretation(e, scriptVars, interpreter);
+            startInterpretation(e, scriptVars, interpreter, sync);
         }
 
         /**
@@ -160,60 +185,85 @@ public abstract class TriggerManager extends Manager{
         }
 
         /**
-         * Should work asynchronously
+         * Start interpreting the code.
+         *
          * @param e
+         *            The Event associated with this Trigger
          * @param scriptVars
+         *            temporary variables
          * @param interpreter
+         *            The Interpreter
+         * @param sync
+         *            set it true will make this method run in the thread that
+         *            has called this method. This is useful when this trigger has to cancel an Event;
+         *            set it to false will let it run in separate thread. This is more efficient if you
+         *            only need to read data from Event and never interact with it.
          */
-        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try{
-                        interpreter.startWithContextAndInterrupter(e, new ProcessInterrupter(){
-                            @Override
-                            public boolean onNodeProcess(Node node) {
-                                if(interpreter.isCooldown() && e instanceof PlayerEvent){
-                                    Player player = ((PlayerEvent) e).getPlayer();
-                                    UUID uuid = player.getUniqueId();
-                                    cooldowns.put(uuid, interpreter.getCooldownEnd());
-                                }
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onCommand(Object context, String command, Object[] args) {
-                                if("CALL".equals(command)){
-                                    if(args.length < 1)
-                                        throw new RuntimeException("Need parameter [String]");
-
-                                    if(args[0] instanceof String){
-                                        Trigger trigger = plugin.getNamedTriggerManager().getTriggerForName((String) args[0]);
-                                        if(trigger == null)
-                                            throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
-
-                                        trigger.activate(e, scriptVars);
-                                        return true;
-                                    } else {
-                                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                                + " Make sure to put double quotes, if you provided String literal.");
-                                    }
-                                }
-                                return false;
-                            }
-
-                        });
-                    }catch(Exception ex){
-                        ex.printStackTrace();
-                        if(e instanceof PlayerEvent){
-                            Player player = ((PlayerEvent) e).getPlayer();
-                            player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
-                            player.sendMessage(ChatColor.RED+ex.getMessage());
-                            player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
-                        }
+        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+            if(sync){
+                start(e, scriptVars, interpreter, sync);
+            }else{
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        start(e, scriptVars, interpreter, sync);
                     }
+                }).start();
+            }
+        }
+
+        private void start(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+            try{
+                interpreter.startWithContextAndInterrupter(e, new ProcessInterrupter(){
+                    @Override
+                    public boolean onNodeProcess(Node node) {
+                        if(interpreter.isCooldown() && e instanceof PlayerEvent){
+                            Player player = ((PlayerEvent) e).getPlayer();
+                            UUID uuid = player.getUniqueId();
+                            cooldowns.put(uuid, interpreter.getCooldownEnd());
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onCommand(Object context, String command, Object[] args) {
+                        if("CALL".equals(command)){
+                            if(args.length < 1)
+                                throw new RuntimeException("Need parameter [String]");
+
+                            if(args[0] instanceof String){
+                                Trigger trigger = plugin.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                                if(trigger == null)
+                                    throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
+
+                                trigger.activate(e, scriptVars);
+                                return true;
+                            } else {
+                                throw new RuntimeException("Parameter type not match; it should be a String."
+                                        + " Make sure to put double quotes, if you provided String literal.");
+                            }
+                        } else if("CANCELEVENT".equals(command)) {
+                            if(!sync)
+                                throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+
+                            if(context instanceof Cancellable){
+                                ((Cancellable) context).setCancelled(true);
+                            }
+                        }
+
+                        return false;
+                    }
+
+                });
+            }catch(Exception ex){
+                ex.printStackTrace();
+                if(e instanceof PlayerEvent){
+                    Player player = ((PlayerEvent) e).getPlayer();
+                    player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
+                    player.sendMessage(ChatColor.RED+ex.getMessage());
+                    player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
                 }
-            }).start();
+            }
         }
 
         @Override

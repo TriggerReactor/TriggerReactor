@@ -561,7 +561,7 @@ public class AreaTriggerManager extends TriggerManager {
 
         //intercept and pass interpretation to appropriate trigger
         @Override
-        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter) {
+        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
             switch(type){
             case ENTER:
                 if(enterTrigger != null)

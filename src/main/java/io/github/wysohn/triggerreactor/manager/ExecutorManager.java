@@ -257,7 +257,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         }
 
         @Override
-        public Integer execute(Object context, Object... args) {
+        public Integer execute(boolean sync, Object context, Object... args) {
             Event e = (Event) context;
 
             ///////////////////////////////
@@ -283,7 +283,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             }
 
             Invocable invocable = (Invocable) compiled.getEngine();
-            Future<Integer> future = runBukkitTaskForFuture(new Callable<Integer>(){
+            Callable<Integer> call = new Callable<Integer>(){
                 @Override
                 public Integer call() throws Exception {
                     try {
@@ -305,19 +305,31 @@ public class ExecutorManager extends HashMap<String, Executor>{
                     }
                     return null;
                 }
-            });
+            };
 
-            Integer result = null;
-            try {
-                result = future.get(5, TimeUnit.SECONDS);
-            } catch (InterruptedException | ExecutionException e1) {
-                e1.printStackTrace();
-            } catch (TimeoutException e1) {
-                plugin.getLogger().warning("An exectuor #"+executorName+" execution was dropped!");
-                plugin.getLogger().warning("Took longer than 5 seconds to process.");
-                plugin.getLogger().warning("Is the server lagging?");
+            if(sync){
+                Integer result = null;
+                try {
+                    result = call.call();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                return result;
+            }else{
+                Future<Integer> future = runBukkitTaskForFuture(call);
+
+                Integer result = null;
+                try {
+                    result = future.get(5, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e1) {
+                    e1.printStackTrace();
+                } catch (TimeoutException e1) {
+                    plugin.getLogger().warning("An exectuor #"+executorName+" execution was dropped!");
+                    plugin.getLogger().warning("Took longer than 5 seconds to process.");
+                    plugin.getLogger().warning("Is the server lagging?");
+                }
+                return result;
             }
-            return result;
         }
 
         protected void extractCustomVariables(Event e) {

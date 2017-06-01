@@ -41,6 +41,7 @@ public class Interpreter {
 
     private Object context = null;
     private ProcessInterrupter interrupter = null;
+    private boolean sync = false;
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
@@ -79,6 +80,14 @@ public class Interpreter {
 
     public long getCooldownEnd() {
         return cooldownEnd;
+    }
+
+    public boolean isSync() {
+        return sync;
+    }
+
+    public void setSync(boolean sync) {
+        this.sync = sync;
     }
 
     /**
@@ -140,6 +149,46 @@ public class Interpreter {
                 start(node.getChildren().get(1));
                 start(node.getChildren().get(0));
             }
+        } else if("FOR".equals(node.getToken().value)){
+            start(node.getChildren().get(0));
+            Token idToken = stack.pop();
+
+            if (node.getChildren().get(1).getToken().type != Type.ITERATOR)
+                throw new InterpreterException("Expected <ITERATOR> but found " + node.getChildren().get(1).getToken());
+            Node iterNode = node.getChildren().get(1);
+
+            if(iterNode.getChildren().size() == 1){
+                start(iterNode.getChildren().get(0));
+                Token valueToken = stack.pop();
+
+                if(!valueToken.isIterable())
+                    throw new InterpreterException(valueToken+" is not iterable!");
+
+                for(Object obj : (Iterable)valueToken.value){
+                    assignValue(idToken, parseValue(obj));
+                    start(node.getChildren().get(2));
+                }
+            }else if(iterNode.getChildren().size() == 2){
+                Node initNode = iterNode.getChildren().get(0);
+                if(initNode.getToken().type != Type.INTEGER)
+                    throw new InterpreterException("Init value must be an Integer value!");
+                start(initNode);
+                Token initToken = stack.pop();
+
+                Node limitNode = iterNode.getChildren().get(1);
+                if(limitNode.getToken().type != Type.INTEGER)
+                    throw new InterpreterException("Limit value must be an Integer value!");
+                start(limitNode);
+                Token limitToken = stack.pop();
+
+                for(int i = initToken.toInt(); !stopFlag && i < limitToken.toInt(); i++){
+                    assignValue(idToken, new Token(Type.INTEGER, i));
+                    start(node.getChildren().get(2));
+                }
+            }else{
+                throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
+            }
+
         } else {
             for(Node child : node.getChildren()){
                 start(child);
@@ -205,7 +254,7 @@ public class Interpreter {
                 if (!executorMap.containsKey(command))
                     throw new InterpreterException("No executor named #" + command + " found!");
 
-                return executorMap.get(command).execute(context, args);
+                return executorMap.get(command).execute(sync, context, args);
             }
         } else if (node.getToken().type == Type.OPERATOR_A) {
             Token right = stack.pop();
@@ -217,10 +266,6 @@ public class Interpreter {
 
             if(isVariable(left)){
                 left = unwrapVariable(left);
-            }
-
-            if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
-                throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
             }
 
             switch ((String) node.getToken().value) {
@@ -293,10 +338,6 @@ public class Interpreter {
                 left = unwrapVariable(left);
             }
 
-            if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
-                throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
-            }
-
             switch ((String) node.getToken().value) {
             case "<":
                 stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
@@ -334,22 +375,7 @@ public class Interpreter {
                 right = stack.pop();
                 left = stack.pop();
 
-                if(left.type == Type.ACCESS){
-                    Accessor accessor = (Accessor) left.value;
-                    try {
-                        accessor.setTargetValue(right.value);
-                    } catch (NoSuchFieldException e) {
-                        throw new InterpreterException("Unknown field "+left.value+"."+right.value);
-                    } catch (Exception e) {
-                        throw new InterpreterException("Unknown error ", e);
-                    }
-                } else if(left.type == Type.GID){
-                    gvars.put(left.value.toString(), right.value);
-                }else if(left.type == Type.ID){
-                    vars.put(left.value.toString(), right.value);
-                }else{
-                    throw new InterpreterException("Cannot assign value to "+left.value.getClass().getSimpleName());
-                }
+                assignValue(left, right);
                 break;
             case ".":
                 right = stack.pop();
@@ -374,9 +400,6 @@ public class Interpreter {
                     }else{
                         if(isVariable(left)){
                             left = unwrapVariable(left);
-                        }
-                        if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
-                            throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
                         }
 
                         if(left.isObject()){
@@ -406,10 +429,6 @@ public class Interpreter {
                     }else{
                         if(isVariable(left)){
                             left = unwrapVariable(left);
-                        }
-
-                        if(left.getType() == Type.UNKNOWNID || right.getType() == Type.UNKNOWNID){
-                            throw new InterpreterException("Operation "+left+" "+node.getToken().value+" "+right+" is not valid");
                         }
 
                         if(left.isObject()){
@@ -479,6 +498,25 @@ public class Interpreter {
         return null;
     }
 
+    private void assignValue(Token id, Token value) throws InterpreterException {
+        if(id.type == Type.ACCESS){
+            Accessor accessor = (Accessor) id.value;
+            try {
+                accessor.setTargetValue(value.value);
+            } catch (NoSuchFieldException e) {
+                throw new InterpreterException("Unknown field "+id.value+"."+value.value);
+            } catch (Exception e) {
+                throw new InterpreterException("Unknown error ", e);
+            }
+        } else if(id.type == Type.GID){
+            gvars.put(id.value.toString(), value.value);
+        }else if(id.type == Type.ID){
+            vars.put(id.value.toString(), value.value);
+        }else{
+            throw new InterpreterException("Cannot assign value to "+id.value.getClass().getSimpleName());
+        }
+    }
+
     private void callFunction(Token right, Token left, Object[] args) throws InterpreterException {
         Object result;
         try {
@@ -516,7 +554,7 @@ public class Interpreter {
             Object var = vars.get(varToken.value);
 
             if (var == null) {
-                return new Token(Type.UNKNOWNID, varToken.value);
+                throw new InterpreterException("Unresolved Id "+varToken);
             }
 
             return parseValue(var);
@@ -534,7 +572,7 @@ public class Interpreter {
             }
 
             if (var == null) {
-                return new Token(Type.UNKNOWNID, varToken.value);
+                throw new InterpreterException("Unresolved Id "+varToken);
             }
 
             return parseValue(var);
@@ -567,13 +605,17 @@ public class Interpreter {
 
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
-        public Integer execute(Object context, Object... args) {
+        public Integer execute(boolean sync, Object context, Object... args) {
             return STOP;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(Object context, Object... args) {
+        public Integer execute(boolean sync, Object context, Object... args) {
+            if(sync){
+                throw new RuntimeException("WAIT is illegal in sync mode!");
+            }
+
             double secs = args[0] instanceof Double ? (double) args[0] : (int) args[0];
             Executor.runTaskLater(new Runnable(){
                 @Override
@@ -589,7 +631,7 @@ public class Interpreter {
     };
     private final Executor EXECUTOR_COOLDOWN = new Executor(){
         @Override
-        public Integer execute(Object context, Object... args) {
+        public Integer execute(boolean sync, Object context, Object... args) {
             long mills = Integer.parseInt((String) args[0]) * 1000L;
             Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
             return null;
