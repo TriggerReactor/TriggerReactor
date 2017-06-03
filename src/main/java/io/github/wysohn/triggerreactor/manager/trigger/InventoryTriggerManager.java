@@ -372,7 +372,7 @@ public class InventoryTriggerManager extends TriggerManager {
             player.openInventory(inventory);
             return true;
         case 52://next
-            int next = Math.min(trigger.pageSize - 1, currentPage + 1);
+            int next = Math.min(trigger.pageSize, currentPage + 1);
             inventory = Bukkit.createInventory(null, size, getTitleWithPage(next, name));
             inventoryMap.put(inventory, trigger);
 
@@ -381,10 +381,10 @@ public class InventoryTriggerManager extends TriggerManager {
             player.openInventory(inventory);
             return true;
         case 53://last
-            inventory = Bukkit.createInventory(null, size, getTitleWithPage(trigger.pageSize - 1, name));
+            inventory = Bukkit.createInventory(null, size, getTitleWithPage(trigger.pageSize, name));
             inventoryMap.put(inventory, trigger);
 
-            fillInventory(trigger, trigger.pageSize - 1, inventory);
+            fillInventory(trigger, trigger.pageSize, inventory);
 
             player.openInventory(inventory);
             return true;
@@ -401,8 +401,18 @@ public class InventoryTriggerManager extends TriggerManager {
      */
     private void fillInventory(InventoryTrigger trigger, int page, Inventory inventory) {
         int firstSlot = (page - 1)*InventoryTrigger.SLOTSPERPAGE;
+        int size;
 
-        for(int i = firstSlot; i < firstSlot + 45; i++){
+        if(page == trigger.pageSize){
+            size = trigger.slots.length % InventoryTrigger.SLOTSPERPAGE;
+            if(size == 0){//in case of length exactly multiple of SLOTSPERPAGE
+                size = InventoryTrigger.SLOTSPERPAGE;
+            }
+        }else{
+            size = InventoryTrigger.SLOTSPERPAGE;
+        }
+
+        for(int i = firstSlot; i < firstSlot + size; i++){
             ItemStack item = trigger.items[i];
             if(item == null){
                 if(trigger.slots[i] == null){
