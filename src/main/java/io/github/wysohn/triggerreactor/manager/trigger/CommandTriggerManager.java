@@ -122,11 +122,7 @@ public class CommandTriggerManager extends TriggerManager {
         Map<String, Object> varMap = new HashMap<>();
         insertPlayerVariables(player, varMap);
         varMap.put("command", cmd);
-        if(args.length > 0){
-            for(int i = 0; i < args.length; i++){
-                varMap.put("args"+i, args[i]);
-            }
-        }
+        varMap.put("args", args);
         varMap.put("argslength", args.length);
 
         trigger.activate(e, varMap);
