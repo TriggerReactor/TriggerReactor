@@ -33,33 +33,42 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * get a random integer value between 0 to end
-     * @param end exclusive
+     *
+     * @param end
+     *            exclusive
      * @return
      */
-    public int random(Integer end){
+    public int random(Integer end) {
         return rand.nextInt(end);
     }
 
     /**
      * get a random integer value between start to end
-     * @param start inclusive
-     * @param end exclusive
+     *
+     * @param start
+     *            inclusive
+     * @param end
+     *            exclusive
      * @return
      */
-    public int random(Integer start, Integer end){
+    public int random(Integer start, Integer end) {
         return start + rand.nextInt(end - start);
     }
 
     /**
      * take item from player.
-     * @param player target player
-     * @param id item id
-     * @param amount amount
+     *
+     * @param player
+     *            target player
+     * @param id
+     *            item id
+     * @param amount
+     *            amount
      * @return true if took it; false if player doesn't have it
      */
-    public boolean takeItem(Player player, Integer id, Integer amount){
+    public boolean takeItem(Player player, Integer id, Integer amount) {
         ItemStack IS = new ItemStack(id, amount);
-        if(!player.getInventory().containsAtLeast(IS, amount))
+        if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
 
         player.getInventory().removeItem(IS);
@@ -68,15 +77,20 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * take item from player.
-     * @param player target player
-     * @param id item id
-     * @param amount amount
-     * @param data data of item
+     *
+     * @param player
+     *            target player
+     * @param id
+     *            item id
+     * @param amount
+     *            amount
+     * @param data
+     *            data of item
      * @return true if took it; false if player doesn't have it
      */
-    public boolean takeItem(Player player, Integer id, Integer amount, short data){
+    public boolean takeItem(Player player, Integer id, Integer amount, short data) {
         ItemStack IS = new ItemStack(id, amount, data);
-        if(!player.getInventory().containsAtLeast(IS, amount))
+        if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
 
         player.getInventory().removeItem(IS);
@@ -85,55 +99,106 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * check if two location are equal not considering their decimal points
+     *
      * @param loc1
      * @param loc2
      * @return true if equal; false if not
      */
-    public boolean locationEqual(Location loc1, Location loc2){
-        return loc1.getWorld() == loc2.getWorld()
-                && loc1.getBlockX() == loc2.getBlockX()
-                && loc1.getBlockY() == loc2.getBlockY()
-                && loc1.getBlockZ() == loc2.getBlockZ();
+    public boolean locationEqual(Location loc1, Location loc2) {
+        return loc1.getWorld() == loc2.getWorld() && loc1.getBlockX() == loc2.getBlockX()
+                && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
     }
 
     /**
      * matches the str by using regular expression regex
+     *
      * @param str
      * @param regex
      * @return true if str matches with regex; false if not
      */
-    public boolean matches(String str, String regex){
+    public boolean matches(String str, String regex) {
         return str.matches(regex);
     }
 
     /**
      * get list of online players online
+     *
      * @return player iterator
      */
-    public Collection<? extends Player> getPlayers(){
+    public Collection<? extends Player> getPlayers() {
         return Bukkit.getOnlinePlayers();
     }
 
     /**
      * create an empty array
-     * @param size size of array
+     *
+     * @param size
+     *            size of array
      * @return
      */
-    public Object[] array(Integer size){
+    public Object[] array(Integer size) {
         return new Object[size];
     }
 
     /**
      * Get the name of area where player is currently standing on.
-     * @param player player
+     *
+     * @param player
+     *            player
      * @return name of area; null if player is not on any area.
      */
-    public String currentArea(Player player){
+    public String currentArea(Player player) {
         AreaTriggerManager areaManager = TriggerReactor.getInstance().getAreaManager();
         AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(player.getLocation());
-        if(trigger == null)
+        if (trigger == null)
             return null;
 
         return trigger.getName();
+    }
+
+    /**
+     * Merge array of String. This is specifically useful for args variable of
+     * Command Trigger but not limited to.
+     *
+     * @param argument
+     *            array to merge
+     * @return
+     */
+    public String mergeArguments(String[] args) {
+        return mergeArguments(args, 0, args.length - 1);
+    }
+
+    /**
+     * Merge array of String. This is specifically useful for args variable of
+     * Command Trigger but not limited to.
+     *
+     * @param argument
+     *            array to merge
+     * @param indexFrom
+     *            inclusive
+     * @return
+     */
+    public String mergeArguments(String[] args, Integer indexFrom) {
+        return mergeArguments(args, indexFrom, args.length - 1);
+    }
+
+    /**
+     * Merge array of String. This is specifically useful for args variable of
+     * Command Trigger but not limited to.
+     *
+     * @param argument
+     *            array to merge
+     * @param indexFrom
+     *            inclusive
+     * @param indexTo
+     *            inclusive
+     * @return
+     */
+    public String mergeArguments(String[] args, Integer indexFrom, Integer indexTo) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = indexFrom; i <= indexTo; i++) {
+            builder.append(args[i] + " ");
+        }
+        return builder.toString();
     }
 }
