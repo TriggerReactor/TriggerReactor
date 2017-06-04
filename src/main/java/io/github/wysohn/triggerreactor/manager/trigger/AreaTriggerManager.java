@@ -552,6 +552,14 @@ public class AreaTriggerManager extends TriggerManager {
             this.name = name;
         }
 
+        public Area getArea() {
+            return area;
+        }
+
+        public String getName() {
+            return name;
+        }
+
         //we don't need interpreter for area trigger but enter and exit trigger
         @Override
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {

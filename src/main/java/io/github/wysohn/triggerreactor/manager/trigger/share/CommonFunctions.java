@@ -25,6 +25,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.core.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.manager.trigger.AreaTriggerManager;
 
 public class CommonFunctions implements SelfReference {
     private static final Random rand = new Random();
@@ -112,7 +114,26 @@ public class CommonFunctions implements SelfReference {
         return Bukkit.getOnlinePlayers();
     }
 
+    /**
+     * create an empty array
+     * @param size size of array
+     * @return
+     */
     public Object[] array(Integer size){
         return new Object[size];
+    }
+
+    /**
+     * Get the name of area where player is currently standing on.
+     * @param player player
+     * @return name of area; null if player is not on any area.
+     */
+    public String currentArea(Player player){
+        AreaTriggerManager areaManager = TriggerReactor.getInstance().getAreaManager();
+        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(player.getLocation());
+        if(trigger == null)
+            return null;
+
+        return trigger.getName();
     }
 }
