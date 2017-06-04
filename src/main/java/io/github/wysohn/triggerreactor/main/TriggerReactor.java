@@ -915,7 +915,7 @@ public class TriggerReactor extends JavaPlugin {
 
         @Override
         public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-            if (!channel.equals("BungeeCord")) {
+            if (!channel.equals(CHANNEL)) {
                 return;
             }
 /*            ByteArrayDataInput in = ByteStreams.newDataInput(message);
@@ -928,7 +928,7 @@ public class TriggerReactor extends JavaPlugin {
 
         public void sendToServer(Player player, String serverName){
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF("Connecct");
+            out.writeUTF("Connect");
             out.writeUTF(serverName);
 
             player.sendPluginMessage(TriggerReactor.this, CHANNEL, out.toByteArray());

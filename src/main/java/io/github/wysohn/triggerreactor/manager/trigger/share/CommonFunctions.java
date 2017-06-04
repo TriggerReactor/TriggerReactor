@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -200,5 +201,14 @@ public class CommonFunctions implements SelfReference {
             builder.append(args[i] + " ");
         }
         return builder.toString();
+    }
+
+    /**
+     * Translate & into minecraft color code
+     * @param str unprocessed string
+     * @return string with minecraft color codes
+     */
+    public String color(String str){
+        return ChatColor.translateAlternateColorCodes('&', str);
     }
 }
