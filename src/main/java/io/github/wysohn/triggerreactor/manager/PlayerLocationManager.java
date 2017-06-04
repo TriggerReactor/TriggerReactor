@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,7 +41,7 @@ public class PlayerLocationManager extends Manager implements Listener{
         locations.remove(player.getUniqueId());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onMove(PlayerMoveEvent e){
         if(e.getTo() == e.getFrom())
             return;
@@ -53,9 +54,26 @@ public class PlayerLocationManager extends Manager implements Listener{
         if(from.equals(to))
             return;
 
-        locations.put(player.getUniqueId(), to);
+        PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player, from, to);
+        Bukkit.getPluginManager().callEvent(pble);
+        if(pble.isCancelled()){
+            Location bukkitFrom = convertToBukkitLocation(from);
+            Location result = bukkitFrom.clone();
+            result.setPitch(player.getLocation().getPitch());
+            result.setYaw(player.getLocation().getYaw());
+            e.setFrom(result);
+            e.setTo(result);
+        } else {
+            locations.put(player.getUniqueId(), to);
+        }
+    }
 
-        Bukkit.getPluginManager().callEvent(new PlayerBlockLocationEvent(player, from, to));
+    private Location convertToBukkitLocation(SimpleLocation from) {
+        World world = Bukkit.getWorld(from.getWorld());
+        int x = from.getX();
+        int y = from.getY();
+        int z= from.getZ();
+        return new Location(world, x + 0.5, y, z + 0.5);
     }
 
     @Override

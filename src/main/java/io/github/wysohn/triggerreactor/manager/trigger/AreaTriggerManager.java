@@ -91,6 +91,9 @@ public class AreaTriggerManager extends TriggerManager {
             AreaTrigger trigger = new AreaTrigger(area, name);
             nameMapper.put(name, trigger);
 
+            boolean isSync = yamlFile.getBoolean("Sync", false);
+            trigger.setSync(isSync);
+
             File scriptFolder = new File(folder, name);
             if(!scriptFolder.exists()){
                 scriptFolder.mkdirs();
@@ -170,6 +173,9 @@ public class AreaTriggerManager extends TriggerManager {
             Utf8YamlConfiguration yamlFile = new Utf8YamlConfiguration();
             setSmallestForSection(yamlFile, area.smallest);
             setLargestForSection(yamlFile, area.largest);
+
+            yamlFile.set("Sync", trigger.isSync());
+
             try {
                 yamlFile.save(file);
             } catch (IOException e1) {
@@ -598,6 +604,16 @@ public class AreaTriggerManager extends TriggerManager {
             }
 
             @Override
+            public boolean isSync() {
+                return AreaTrigger.this.isSync();
+            }
+
+            @Override
+            public void setSync(boolean sync) {
+                AreaTrigger.this.setSync(sync);
+            }
+
+            @Override
             public Trigger clone() {
                 try {
                     return new EnterTrigger(script);
@@ -615,6 +631,16 @@ public class AreaTriggerManager extends TriggerManager {
                 super(script);
 
                 init();
+            }
+
+            @Override
+            public boolean isSync() {
+                return AreaTrigger.this.isSync();
+            }
+
+            @Override
+            public void setSync(boolean sync) {
+                AreaTrigger.this.setSync(sync);
             }
 
             @Override

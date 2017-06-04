@@ -84,6 +84,8 @@ public abstract class TriggerManager extends Manager{
         protected Map<String, Object> gvarMap;
         protected TriggerConditionManager condition;
 
+        private boolean sync = false;
+
         /**
          * This constructor <b>does not</b> initialize the fields. It is essential to call init() method
          * in order to make the Trigger work properly. If you want to create a Trigger with customized
@@ -113,6 +115,14 @@ public abstract class TriggerManager extends Manager{
             return script;
         }
 
+        public boolean isSync() {
+            return sync;
+        }
+
+        public void setSync(boolean sync) {
+            this.sync = sync;
+        }
+
         /**
          * Start this trigger. This is same as calling activate(?, ?, false). Read more about it
          * at {@link #activate(Event, Map, boolean)}
@@ -120,30 +130,13 @@ public abstract class TriggerManager extends Manager{
          * @param scriptVars the temporary local variables
          */
         public void activate(Event e, Map<String, Object> scriptVars) {
-            activate(e, scriptVars, false);
-        }
-
-        /**
-         * Start this trigger.
-         *
-         * @param e
-         *            the Event associated with this Trigger
-         * @param scriptVars
-         *            the temporary local variables
-         * @param sync
-         *            set it true will make this method run in the thread that
-         *            has called this method. This is useful when this trigger has to cancel an Event;
-         *            set it to false will let it run in separate thread. This is more efficient if you
-         *            only need to read data from Event and never interact with it.
-         */
-        public void activate(Event e, Map<String, Object> scriptVars, boolean sync) {
             if(checkCooldown(e)){
                 return;
             }
 
             Interpreter interpreter = initInterpreter(scriptVars);
 
-            startInterpretation(e, scriptVars, interpreter, sync);
+            startInterpretation(e, scriptVars, interpreter, isSync());
         }
 
         /**
@@ -175,6 +168,7 @@ public abstract class TriggerManager extends Manager{
 
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, common, condition);
+            interpreter.setSync(isSync());
 
             interpreter.getVars().putAll(scriptVars);
 
@@ -248,6 +242,9 @@ public abstract class TriggerManager extends Manager{
 
                             if(context instanceof Cancellable){
                                 ((Cancellable) context).setCancelled(true);
+                                return true;
+                            } else {
+                                throw new RuntimeException(context+" is not a Cancellable event!");
                             }
                         }
 

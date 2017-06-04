@@ -362,11 +362,7 @@ public class TriggerReactor extends JavaPlugin {
                         }
                     } else if(args.length == 4 && args[2].equals("item")){
                         ItemStack IS = ((Player) sender).getInventory().getItemInMainHand();
-                        if(IS == null || IS.getType() == Material.AIR){
-                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
-                            return true;
-                        }
-                        IS = IS.clone();
+                        IS = IS == null ? null : IS.clone();
 
                         String name = args[1];
 
@@ -712,6 +708,19 @@ public class TriggerReactor extends JavaPlugin {
                                 sender.sendMessage(ChatColor.RED+"See console for more information.");
                             }
                         }
+                    } else if (args.length == 3 && args[2].equals("sync")){
+                        String name = args[1];
+
+                        AreaTrigger trigger = areaManager.getArea(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                            return true;
+                        }
+
+                        trigger.setSync(!trigger.isSync());
+                        areaManager.saveAll();
+
+                        sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.GREEN)+trigger.isSync());
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
@@ -720,6 +729,11 @@ public class TriggerReactor extends JavaPlugin {
                         sendDetails(sender, "/trg a TestingArea enter #MESSAGE \"Welcome\"");
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> exit [...]", "Enable/Disable area selection mode.");
                         sendDetails(sender, "/trg a TestingArea exit #MESSAGE \"Bye\"");
+                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> sync", "Enable/Disable sync mode.");
+                        sendDetails(sender, "Setting it to true when you want to cancel event (with #CANCELEVENT)."
+                                + " However, setting sync mode will make the trigger run on server thread; keep in mind that"
+                                + " it can lag the server if you have too much things going on within the code."
+                                + " Set it to false always if you are not sure.");
                     }
                     return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
