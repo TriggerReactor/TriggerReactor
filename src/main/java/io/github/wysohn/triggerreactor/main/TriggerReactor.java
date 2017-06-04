@@ -604,6 +604,12 @@ public class TriggerReactor extends JavaPlugin {
                     } else if (args.length == 3 && args[2].equals("create")){
                         String name = args[1];
 
+                        AreaTrigger trigger = areaManager.getArea(name);
+                        if(trigger != null){
+                            sender.sendMessage(ChatColor.RED+"Area Trigger "+name+" is already exists!");
+                            return true;
+                        }
+
                         AreaTriggerManager.Area selected = areaManager.SELECTION_HELPER.getSelection((Player) sender);
                         if(selected == null){
                             sender.sendMessage(ChatColor.GRAY+"Invalid or incomplete area selection.");
