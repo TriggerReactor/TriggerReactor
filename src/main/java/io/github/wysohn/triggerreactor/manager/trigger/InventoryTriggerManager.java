@@ -212,11 +212,13 @@ public class InventoryTriggerManager extends TriggerManager {
 
             ItemStack IS = new ItemStack(type, amount, data);
             ItemMeta IM = IS.getItemMeta();
-            if(title != null)
-                IM.setDisplayName(title);
-            if(lore != null)
-                IM.setLore(lore);
-            IS.setItemMeta(IM);
+            if(IM != null){
+                if(title != null)
+                    IM.setDisplayName(title);
+                if(lore != null)
+                    IM.setLore(lore);
+                IS.setItemMeta(IM);
+            }
 
             items.put(i, IS);
         }
