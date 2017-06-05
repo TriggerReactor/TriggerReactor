@@ -207,12 +207,13 @@ public class InventoryTriggerManager extends TriggerManager {
             Material type = Material.valueOf((String) section.get("Type", Material.DIRT.name()));
             int amount = section.getInt("Amount", 1);
             short data = (short) section.getInt("Data", 0);
-            String title = section.getString("Title", null);
-            List<String> lore = section.getStringList("Lore");
 
             ItemStack IS = new ItemStack(type, amount, data);
             ItemMeta IM = IS.getItemMeta();
             if(IM != null){
+                String title = section.getString("Title", null);
+                List<String> lore = section.getStringList("Lore");
+
                 if(title != null)
                     IM.setDisplayName(title);
                 if(lore != null)
