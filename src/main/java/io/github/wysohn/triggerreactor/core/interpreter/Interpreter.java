@@ -226,273 +226,277 @@ public class Interpreter {
      * @throws InterpreterException
      */
     private Integer interpret(Node node) throws InterpreterException {
-        if(interrupter != null && interrupter.onNodeProcess(node)){
-            return Executor.STOP;
-        }
+        try{
+            if(interrupter != null && interrupter.onNodeProcess(node)){
+                return Executor.STOP;
+            }
 
-        if (node.getToken().type == Type.BODY
-                || "IF".equals(node.getToken().value)
-                || "WHILE".equals(node.getToken().value)) {
-            return null;
-        } else if (node.getToken().type == Type.COMMAND) {
-            String command = (String) node.getToken().value;
+            if (node.getToken().type == Type.BODY
+                    || "IF".equals(node.getToken().value)
+                    || "WHILE".equals(node.getToken().value)) {
+                return null;
+            } else if (node.getToken().type == Type.COMMAND) {
+                String command = (String) node.getToken().value;
 
-            Object[] args = new Object[node.getChildren().size()];
-            for (int i = args.length - 1; i >= 0 ; i--) {
-                Token argument = stack.pop();
+                Object[] args = new Object[node.getChildren().size()];
+                for (int i = args.length - 1; i >= 0 ; i--) {
+                    Token argument = stack.pop();
 
-                if (isVariable(argument)) {
-                    argument = unwrapVariable(argument);
+                    if (isVariable(argument)) {
+                        argument = unwrapVariable(argument);
+                    }
+
+                    args[i] = argument.value;
                 }
 
-                args[i] = argument.value;
-            }
+                if (interrupter != null && interrupter.onCommand(context, command, args)) {
+                    return null;
+                } else {
+                    if (!executorMap.containsKey(command))
+                        throw new InterpreterException("No executor named #" + command + " found!");
 
-            if (interrupter != null && interrupter.onCommand(context, command, args)) {
-                return null;
-            } else {
-                if (!executorMap.containsKey(command))
-                    throw new InterpreterException("No executor named #" + command + " found!");
+                    return executorMap.get(command).execute(sync, context, args);
+                }
+            } else if (node.getToken().type == Type.OPERATOR_A) {
+                Token right = stack.pop();
+                Token left = stack.pop();
 
-                return executorMap.get(command).execute(sync, context, args);
-            }
-        } else if (node.getToken().type == Type.OPERATOR_A) {
-            Token right = stack.pop();
-            Token left = stack.pop();
+                if(isVariable(right)){
+                    right = unwrapVariable(right);
+                }
 
-            if(isVariable(right)){
-                right = unwrapVariable(right);
-            }
+                if(isVariable(left)){
+                    left = unwrapVariable(left);
+                }
 
-            if(isVariable(left)){
-                left = unwrapVariable(left);
-            }
-
-            switch ((String) node.getToken().value) {
-            case "+":
-                if(left.type == Type.STRING){
-                    stack.push(new Token(Type.STRING, ((String) left.value) + String.valueOf(right.value)));
-                }else{
+                switch ((String) node.getToken().value) {
+                case "+":
+                    if(left.type == Type.STRING){
+                        stack.push(new Token(Type.STRING, ((String) left.value) + String.valueOf(right.value)));
+                    }else{
+                        if(left.isInt() && right.isInt()){
+                            int leftVal = left.toInt(), rightVal = right.toInt();
+                            stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
+                        }else{
+                            double leftVal = left.isInt() ? left.toInt() : left.toDouble();
+                            double rightVal = right.isInt() ? right.toInt() : right.toDouble();
+                            stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
+                        }
+                    }
+                    break;
+                case "-":
                     if(left.isInt() && right.isInt()){
                         int leftVal = left.toInt(), rightVal = right.toInt();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal - rightVal));
                     }else{
                         double leftVal = left.isInt() ? left.toInt() : left.toDouble();
                         double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal - rightVal));
                     }
-                }
-                break;
-            case "-":
-                if(left.isInt() && right.isInt()){
-                    int leftVal = left.toInt(), rightVal = right.toInt();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal - rightVal));
-                }else{
-                    double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                    double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal - rightVal));
-                }
-                break;
-            case "*":
-                if(left.isInt() && right.isInt()){
-                    int leftVal = left.toInt(), rightVal = right.toInt();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal * rightVal));
-                }else{
-                    double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                    double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal * rightVal));
-                }
-                break;
-            case "/":
-                if(left.isInt() && right.isInt()){
-                    int leftVal = left.toInt(), rightVal = right.toInt();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal / rightVal));
-                }else{
-                    double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                    double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal / rightVal));
-                }
-                break;
-            case "%":
-                if(left.isInt() && right.isInt()){
-                    int leftVal = left.toInt(), rightVal = right.toInt();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal % rightVal));
-                }else{
-                    double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                    double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                    stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal % rightVal));
-                }
-                break;
-            default:
-                throw new InterpreterException("Cannot interpret the unknown operator "+node.getToken().value);
-            }
-        }else if(node.getToken().type == Type.OPERATOR_L){
-            Token right = stack.pop();
-            Token left = stack.pop();
-
-            if(isVariable(right)){
-                right = unwrapVariable(right);
-            }
-
-            if(isVariable(left)){
-                left = unwrapVariable(left);
-            }
-
-            switch ((String) node.getToken().value) {
-            case "<":
-                stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
-                        ? right.toInt() : right.toDouble())));
-                break;
-            case ">":
-                stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) > (right.isInt()
-                        ? right.toInt() : right.toDouble())));
-                break;
-            case "<=":
-                stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) <= (right.isInt()
-                        ? right.toInt() : right.toDouble())));
-                break;
-            case ">=":
-                stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) >= (right.isInt()
-                        ? right.toInt() : right.toDouble())));
-                break;
-            case "==":
-                stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
-                break;
-            case "!=":
-                stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
-                break;
-            case "&&":
-                stack.push(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean()));
-                break;
-            case "||":
-                stack.push(new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean()));
-                break;
-            }
-        }else if(node.getToken().type == Type.OPERATOR){
-            Token right, left;
-            switch ((String) node.getToken().value) {
-            case "=":
-                right = stack.pop();
-                left = stack.pop();
-
-                assignValue(left, right);
-                break;
-            case ".":
-                right = stack.pop();
-                //function call
-                if(right.type == Type.CALL){
-                    Object[] args = new Object[callArgsSize];
-                    for(int i = callArgsSize - 1; i >= 0; i--){
-                        Token argument = stack.pop();
-
-                        if (isVariable(argument)) {
-                            argument = unwrapVariable(argument);
-                        }
-
-                        args[i] = argument.value;
+                    break;
+                case "*":
+                    if(left.isInt() && right.isInt()){
+                        int leftVal = left.toInt(), rightVal = right.toInt();
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal * rightVal));
+                    }else{
+                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
+                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal * rightVal));
                     }
-                    callArgsSize = 0;
+                    break;
+                case "/":
+                    if(left.isInt() && right.isInt()){
+                        int leftVal = left.toInt(), rightVal = right.toInt();
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal / rightVal));
+                    }else{
+                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
+                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal / rightVal));
+                    }
+                    break;
+                case "%":
+                    if(left.isInt() && right.isInt()){
+                        int leftVal = left.toInt(), rightVal = right.toInt();
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal % rightVal));
+                    }else{
+                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
+                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
+                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal % rightVal));
+                    }
+                    break;
+                default:
+                    throw new InterpreterException("Cannot interpret the unknown operator "+node.getToken().value);
+                }
+            }else if(node.getToken().type == Type.OPERATOR_L){
+                Token right = stack.pop();
+                Token left = stack.pop();
 
+                if(isVariable(right)){
+                    right = unwrapVariable(right);
+                }
+
+                if(isVariable(left)){
+                    left = unwrapVariable(left);
+                }
+
+                switch ((String) node.getToken().value) {
+                case "<":
+                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
+                            ? right.toInt() : right.toDouble())));
+                    break;
+                case ">":
+                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) > (right.isInt()
+                            ? right.toInt() : right.toDouble())));
+                    break;
+                case "<=":
+                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) <= (right.isInt()
+                            ? right.toInt() : right.toDouble())));
+                    break;
+                case ">=":
+                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) >= (right.isInt()
+                            ? right.toInt() : right.toDouble())));
+                    break;
+                case "==":
+                    stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
+                    break;
+                case "!=":
+                    stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
+                    break;
+                case "&&":
+                    stack.push(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean()));
+                    break;
+                case "||":
+                    stack.push(new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean()));
+                    break;
+                }
+            }else if(node.getToken().type == Type.OPERATOR){
+                Token right, left;
+                switch ((String) node.getToken().value) {
+                case "=":
+                    right = stack.pop();
                     left = stack.pop();
 
-                    if(left.type == Type.THIS){
-                        callFunction(new Token(Type.OBJECT, right.value), new Token(Type.OBJECT, selfReference), args);
-                    }else{
-                        if(isVariable(left)){
-                            left = unwrapVariable(left);
-                        }
+                    assignValue(left, right);
+                    break;
+                case ".":
+                    right = stack.pop();
+                    //function call
+                    if(right.type == Type.CALL){
+                        Object[] args = new Object[callArgsSize];
+                        for(int i = callArgsSize - 1; i >= 0; i--){
+                            Token argument = stack.pop();
 
-                        if(left.isObject()){
-                            callFunction(right, left, args);
-                        }else{
-                            Accessor accessor = (Accessor) left.value;
-
-                            Object var;
-                            try {
-                                var = accessor.evaluateTarget();
-                            } catch (NoSuchFieldException e) {
-                                throw new InterpreterException("Unknown field " + accessor);
-                            } catch (IllegalArgumentException e) {
-                                throw new InterpreterException("Unknown error " + e.getMessage());
+                            if (isVariable(argument)) {
+                                argument = unwrapVariable(argument);
                             }
 
-                            callFunction(right, new Token(Type.EPS, var), args);
+                            args[i] = argument.value;
                         }
-                    }
-                }
-                //field access
-                else{
-                    left = stack.pop();
+                        callArgsSize = 0;
 
-                    if(left.type == Type.THIS){
-                        stack.push(right);
-                    }else{
-                        if(isVariable(left)){
-                            left = unwrapVariable(left);
-                        }
+                        left = stack.pop();
 
-                        if(left.isObject()){
-                            stack.push(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value)));
+                        if(left.type == Type.THIS){
+                            callFunction(new Token(Type.OBJECT, right.value), new Token(Type.OBJECT, selfReference), args);
                         }else{
-                            Accessor accessor = (Accessor) left.value;
-
-                            Object var;
-                            try {
-                                var = accessor.evaluateTarget();
-                            } catch (NoSuchFieldException e) {
-                                throw new InterpreterException("Unknown field " + accessor);
-                            } catch (IllegalArgumentException e) {
-                                throw new InterpreterException("Unknown error " + e.getMessage());
+                            if(isVariable(left)){
+                                left = unwrapVariable(left);
                             }
 
-                            stack.push(new Token(Type.ACCESS, new Accessor(var, (String) right.value)));
+                            if(left.isObject()){
+                                callFunction(right, left, args);
+                            }else{
+                                Accessor accessor = (Accessor) left.value;
+
+                                Object var;
+                                try {
+                                    var = accessor.evaluateTarget();
+                                } catch (NoSuchFieldException e) {
+                                    throw new InterpreterException("Unknown field " + accessor);
+                                } catch (IllegalArgumentException e) {
+                                    throw new InterpreterException("Unknown error " + e.getMessage());
+                                }
+
+                                callFunction(right, new Token(Type.EPS, var), args);
+                            }
                         }
                     }
+                    //field access
+                    else{
+                        left = stack.pop();
+
+                        if(left.type == Type.THIS){
+                            stack.push(right);
+                        }else{
+                            if(isVariable(left)){
+                                left = unwrapVariable(left);
+                            }
+
+                            if(left.isObject()){
+                                stack.push(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value)));
+                            }else{
+                                Accessor accessor = (Accessor) left.value;
+
+                                Object var;
+                                try {
+                                    var = accessor.evaluateTarget();
+                                } catch (NoSuchFieldException e) {
+                                    throw new InterpreterException("Unknown field " + accessor);
+                                } catch (IllegalArgumentException e) {
+                                    throw new InterpreterException("Unknown error " + e.getMessage());
+                                }
+
+                                stack.push(new Token(Type.ACCESS, new Accessor(var, (String) right.value)));
+                            }
+                        }
+                    }
+                    break;
                 }
-                break;
+            }else if(node.getToken().type == Type.ARRAYACCESS){
+                Token right = stack.pop();
+                Token left = stack.pop();
+
+                if(isVariable(left)){
+                    left = unwrapVariable(left);
+                }
+
+                if(!left.isArray())
+                    throw new InterpreterException(left+" is not an array!");
+
+                if(!right.isInt())
+                    throw new InterpreterException(right+" is not a valid index for array!");
+
+                stack.push(new Token(Type.ACCESS, new Accessor(left.value, (Integer) right.value)));
+            }else if(node.getToken().type == Type.THIS){
+                stack.push(node.getToken());
+            }else if(node.getToken().type == Type.ID){
+                stack.push(node.getToken());
+            }else if(node.getToken().type == Type.GID){
+                Token keyToken = stack.pop();
+
+                if(keyToken.getType() != Type.STRING){
+                    throw new InterpreterException(keyToken+" is not a valid global variable id.");
+                }
+
+                stack.push(new Token(Type.GID, keyToken.value));
+            }else if(node.getToken().type == Type.CALL){
+                stack.push(node.getToken());
+                callArgsSize = node.getChildren().size();
+            }else if(node.getToken().type == Type.STRING){
+                stack.push(new Token(node.getToken().type, node.getToken().value));
+            }else if(node.getToken().type == Type.INTEGER){
+                stack.push(new Token(node.getToken().type, Integer.parseInt((String) node.getToken().value)));
+            }else if(node.getToken().type == Type.DECIMAL){
+                stack.push(new Token(node.getToken().type, Double.parseDouble((String) node.getToken().value)));
+            }else if(node.getToken().type == Type.BOOLEAN){
+                stack.push(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value)));
+            }else if(node.getToken().type == Type.EPS){
+                stack.push(node.getToken());
+            }else{
+                throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
-        }else if(node.getToken().type == Type.ARRAYACCESS){
-            Token right = stack.pop();
-            Token left = stack.pop();
-
-            if(isVariable(left)){
-                left = unwrapVariable(left);
-            }
-
-            if(!left.isArray())
-                throw new InterpreterException(left+" is not an array!");
-
-            if(!right.isInt())
-                throw new InterpreterException(right+" is not a valid index for array!");
-
-            stack.push(new Token(Type.ACCESS, new Accessor(left.value, (Integer) right.value)));
-        }else if(node.getToken().type == Type.THIS){
-            stack.push(node.getToken());
-        }else if(node.getToken().type == Type.ID){
-            stack.push(node.getToken());
-        }else if(node.getToken().type == Type.GID){
-            Token keyToken = stack.pop();
-
-            if(keyToken.getType() != Type.STRING){
-                throw new InterpreterException(keyToken+" is not a valid global variable id.");
-            }
-
-            stack.push(new Token(Type.GID, keyToken.value));
-        }else if(node.getToken().type == Type.CALL){
-            stack.push(node.getToken());
-            callArgsSize = node.getChildren().size();
-        }else if(node.getToken().type == Type.STRING){
-            stack.push(new Token(node.getToken().type, node.getToken().value));
-        }else if(node.getToken().type == Type.INTEGER){
-            stack.push(new Token(node.getToken().type, Integer.parseInt((String) node.getToken().value)));
-        }else if(node.getToken().type == Type.DECIMAL){
-            stack.push(new Token(node.getToken().type, Double.parseDouble((String) node.getToken().value)));
-        }else if(node.getToken().type == Type.BOOLEAN){
-            stack.push(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value)));
-        }else if(node.getToken().type == Type.EPS){
-            stack.push(node.getToken());
-        }else{
-            throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
+        }catch(Exception e){
+            throw new InterpreterException("Error occured while processing Node "+node, e);
         }
 
         return null;
@@ -533,6 +537,8 @@ public class Interpreter {
             }else{
                 stack.push(new Token(Type.OBJECT, result));
             }
+        } else {
+            stack.push(new Token(Type.NULLVALUE, result));
         }
     }
 
@@ -553,10 +559,6 @@ public class Interpreter {
         if(varToken.type == Type.ID){
             Object var = vars.get(varToken.value);
 
-            if (var == null) {
-                throw new InterpreterException("Unresolved Id "+varToken);
-            }
-
             return parseValue(var);
         }else if(varToken.type == Type.GID){
             return convertValue(gvars, varToken);
@@ -571,10 +573,6 @@ public class Interpreter {
                 throw new InterpreterException("Unknown error " + e.getMessage());
             }
 
-            if (var == null) {
-                throw new InterpreterException("Unresolved Id "+varToken);
-            }
-
             return parseValue(var);
         } else{
             throw new InterpreterException("Unresolved id "+varToken);
@@ -582,7 +580,9 @@ public class Interpreter {
     }
 
     private Token parseValue(Object var) {
-        if (var.getClass() == Integer.class) {
+        if(var == null){
+            return new Token(Type.NULLVALUE, "NULL");
+        }else if (var.getClass() == Integer.class) {
             return new Token(Type.INTEGER, var);
         } else if (var.getClass() == Double.class) {
             return new Token(Type.DECIMAL, var);

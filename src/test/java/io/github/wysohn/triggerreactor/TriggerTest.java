@@ -380,6 +380,53 @@ public class TriggerTest {
         interpreter.startWithContext(null);
     }
 
+    @Test
+    public void currentAreaTest() throws Exception{
+        Player mockPlayer = mock(Player.class);
+        CommonFunctions mockFunctions = mock(CommonFunctions.class);
+
+        Charset charset = Charset.forName("UTF-8");
+        String text = "areaName = currentArea(player)\n"
+                + "IF areaName == \"tutorialArea\"\n"
+                + "#MESSAGE \"Not valid in here.\"\n"
+                + "ELSE\n"
+                + "#GUI \"menu\"\n"
+                + "ENDIF\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            @Override
+            public Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals("Not valid in here.", String.valueOf(args[0]));
+                return null;
+            }
+        });
+        executorMap.put("GUI", new Executor(){
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals("menu", String.valueOf(args[0]));
+                return null;
+            }
+        });
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter;
+
+        when(mockFunctions.currentArea(Mockito.any(Player.class))).thenReturn("tutorialArea");
+        interpreter = new Interpreter(root, executorMap, map, mockFunctions, null);
+        interpreter.getVars().put("player", mockPlayer);
+        interpreter.startWithContext(null);
+
+        when(mockFunctions.currentArea(Mockito.any(Player.class))).thenReturn(null);
+        interpreter = new Interpreter(root, executorMap, map, mockFunctions, null);
+        interpreter.getVars().put("player", mockPlayer);
+        interpreter.startWithContext(null);
+    }
+
     private static class TheTest{
         public InTest in = new InTest();
         public InTest getTest(){
