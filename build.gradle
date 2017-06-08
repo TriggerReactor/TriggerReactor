@@ -5,7 +5,7 @@ apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
 buildscript {
-  	ext.bukkit_version = "1.11.2-R0.1-SNAPSHOT"
+  	ext.bukkit_version = "1.12-pre6-SNAPSHOT"
   	ext.plugin_version = "0.1.0"
   	
   	repositories {
