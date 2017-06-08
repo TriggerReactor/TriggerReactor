@@ -42,6 +42,7 @@ import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.IVaultSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupport;
+import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public abstract class TriggerManager extends Manager{
     private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
@@ -124,8 +125,8 @@ public abstract class TriggerManager extends Manager{
         }
 
         /**
-         * Start this trigger. This is same as calling activate(?, ?, false). Read more about it
-         * at {@link #activate(Event, Map, boolean)}
+         * Start this trigger. Variables in scriptVars may be overridden if it has same name as
+         *  the name of fields of Event class.
          * @param e the Event associated with this Trigger
          * @param scriptVars the temporary local variables
          */
@@ -133,6 +134,8 @@ public abstract class TriggerManager extends Manager{
             if(checkCooldown(e)){
                 return;
             }
+
+            scriptVars.putAll(ReflectionUtil.extractVariablesWithEnumAsString(e));
 
             Interpreter interpreter = initInterpreter(scriptVars);
 

@@ -20,9 +20,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -55,9 +53,9 @@ import org.bukkit.event.inventory.InventoryInteractEvent;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.tools.ClassUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
+import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
 public class ExecutorManager extends HashMap<String, Executor>{
@@ -240,29 +238,13 @@ public class ExecutorManager extends HashMap<String, Executor>{
             compiled = compiler.compile(sourceCode);
         }
 
-        private Map<String, Object> extractVariables(Event e){
-            Map<String, Object> map = new HashMap<String, Object>();
-
-            Class<? extends Event> clazz = e.getClass();
-            for(Field field : ClassUtil.getAllFields(new ArrayList<Field>(), clazz)){
-                field.setAccessible(true);
-                try {
-                    map.put(field.getName(), field.get(e));
-                } catch (IllegalArgumentException | IllegalAccessException e1) {
-                    e1.printStackTrace();
-                }
-            }
-
-            return map;
-        }
-
         @Override
         public Integer execute(boolean sync, Object context, Object... args) {
             Event e = (Event) context;
 
             ///////////////////////////////
             variables.clear();
-            Map<String, Object> vars = extractVariables(e);
+            Map<String, Object> vars = ReflectionUtil.extractVariables(e);
             variables.putAll(vars);
 
             extractCustomVariables(e);
