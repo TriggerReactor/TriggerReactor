@@ -70,8 +70,7 @@ public class CustomTriggerManager extends TriggerManager {
         put("onInteractEntity", PlayerInteractEntityEvent.class);
         put("onChat", AsyncPlayerChatEvent.class);
 
-        //Umm the javadoc says it's right there, but it's missing in jar :/
-        //put("onEntitySpawn", EntitySpawnEvent.class);
+        put("onEntitySpawn", EntitySpawnEvent.class);
         put("onEntityDeath", EntityDeathEvent.class);
 
         put("onBlockPlace", BlockPlaceEvent.class);
