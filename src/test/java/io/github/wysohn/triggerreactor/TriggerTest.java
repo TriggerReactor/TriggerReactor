@@ -123,7 +123,13 @@ public class TriggerTest {
     @Test
     public void testStringAppend() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "#MESSAGE \"beh\"+player.in.health";
+        String text = ""
+                + "arr = array(4)\n"
+                + "arr[0] = \"beh\"+player.in.health\n"
+                + "arr[1] = player.in.health+\"beh\"\n"
+                + "arr[2] = \"beh\"+1+1\n"
+                + "arr[3] = \"beh\"+(1+1)\n"
+                + "#MESSAGE arr\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -133,7 +139,11 @@ public class TriggerTest {
         executorMap.put("MESSAGE", new Executor(){
             @Override
             public Integer execute(boolean sync, Object context, Object... args) {
-                Assert.assertEquals("beh0.82", (String) args[0]);
+                Object[] arr = (Object[]) args[0];
+                Assert.assertEquals("beh0.82",  arr[0]);
+                Assert.assertEquals("0.82beh",  arr[1]);
+                Assert.assertEquals("beh11",  arr[2]);
+                Assert.assertEquals("beh2",  arr[3]);
                 return null;
             }
         });
