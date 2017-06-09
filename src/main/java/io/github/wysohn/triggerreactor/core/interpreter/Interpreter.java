@@ -271,9 +271,9 @@ public class Interpreter {
 
                 switch ((String) node.getToken().value) {
                 case "+":
-                    if(left.type == Type.STRING){
-                        stack.push(new Token(Type.STRING, ((String) left.value) + String.valueOf(right.value)));
-                    }else{
+                    if(left.type == Type.STRING || right.type == Type.STRING){
+                        stack.push(new Token(Type.STRING, String.valueOf(left.value) + String.valueOf(right.value)));
+                    } else{
                         if(left.isInt() && right.isInt()){
                             int leftVal = left.toInt(), rightVal = right.toInt();
                             stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
