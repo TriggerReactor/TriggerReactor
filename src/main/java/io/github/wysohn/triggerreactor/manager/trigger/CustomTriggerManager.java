@@ -173,6 +173,8 @@ public class CustomTriggerManager extends TriggerManager {
                 plugin.getLogger().warning("Could not load "+file);
             }
 
+            boolean isSync = yamlFile.getBoolean("Sync", false);
+
             String fileName = file.getName().substring(0, file.getName().indexOf('.'));
             File codeFile = new File(folder, fileName);
 
@@ -186,7 +188,8 @@ public class CustomTriggerManager extends TriggerManager {
                 }
 
                 try {
-                    CustomTrigger trigger = new CustomTrigger(event, fileName, read);
+                    CustomTrigger trigger = new CustomTrigger(event, eventName, fileName, read);
+                    trigger.setSync(isSync);
 
                     triggers.add(trigger);
                     nameMap.put(fileName, trigger);
@@ -210,7 +213,7 @@ public class CustomTriggerManager extends TriggerManager {
      * @param name name of event to search
      * @return the event class
      * @throws ClassNotFoundException
-     *             throws if full class name search fails or the result event is
+     *             throws if search fails or the result event is
      *             a event that cannot receive events.
      */
     protected Class<? extends Event> getEventFromName(String name) throws ClassNotFoundException{
@@ -224,7 +227,7 @@ public class CustomTriggerManager extends TriggerManager {
         }
 
         try {
-            event.getClass().getDeclaredMethod("getHandlerList");
+            event.getDeclaredMethod("getHandlerList");
         } catch (NoSuchMethodException | SecurityException e) {
             throw new ClassNotFoundException(event+" is a base event so cannot receive events!");
         }
@@ -238,6 +241,20 @@ public class CustomTriggerManager extends TriggerManager {
             CustomTrigger trigger = entry.getValue();
 
             File file = new File(folder, trigger.name);
+
+            Utf8YamlConfiguration yamlFile = new Utf8YamlConfiguration();
+            try {
+                File yfile = new File(folder, trigger.name+".yml");
+                if(yfile.exists())
+                    yamlFile.load(yfile);
+                yamlFile.set("Sync", trigger.isSync());
+                yamlFile.set("Event", trigger.eventName);
+                yamlFile.save(yfile);
+            } catch (IOException | InvalidConfigurationException e1) {
+                e1.printStackTrace();
+                continue;
+            }
+
             try {
                 FileUtil.writeToFile(file, trigger.getScript());
             } catch (IOException e) {
@@ -247,7 +264,7 @@ public class CustomTriggerManager extends TriggerManager {
     }
 
     protected void handleEvent(Event e){
-        Set<CustomTrigger> triggers = triggerMap.get(e);
+        Set<CustomTrigger> triggers = triggerMap.get(e.getClass());
         if(triggers == null)
             return;
 
@@ -257,13 +274,103 @@ public class CustomTriggerManager extends TriggerManager {
         }
     }
 
+    /**
+     * Create a new CustomTrigger.
+     *
+     * @param eventName
+     *            the class name of the Event that this Custom Trigger will
+     *            handle.
+     * @param name name of trigger (unique)
+     * @param script the script
+     * @return true if created; false if trigger with the 'name' already exists.
+     * @throws ClassNotFoundException
+     *             throws if className is not in abbreviation list, not a valid
+     *             class name, or the specified event is not a valid event to handle.
+     * @throws ParserException
+     * @throws LexerException
+     * @throws IOException
+     */
+    public boolean createCustomTrigger(String eventName, String name, String script) throws ClassNotFoundException,
+    IOException, LexerException, ParserException {
+        if(nameMap.containsKey(name))
+            return false;
+
+        Class<? extends Event> clazz = this.getEventFromName(eventName);
+
+        Set<CustomTrigger> triggers = triggerMap.get(clazz);
+        if(triggers == null){
+            triggers = new HashSet<>();
+            triggerMap.put(clazz, triggers);
+        }
+
+        CustomTrigger trigger = new CustomTrigger(clazz, eventName, name, script);
+
+        triggers.add(trigger);
+        nameMap.put(name, trigger);
+
+        return true;
+    }
+
+    /**
+     * Find and return Custom Trigger with the 'name'
+     * @param name
+     * @return null if no such trigger with that name; CustomTrigger if found
+     */
+    public CustomTrigger getTriggerForName(String name){
+        return nameMap.get(name);
+    }
+
+    /**
+     * get set of triggers associated with 'className' Event
+     * @param eventName the abbreviation, simple event name, or full event name. See {@link #getEventFromName(String)}
+     * @return set of triggers; null if nothing is registered with the 'className'
+     * @throws ClassNotFoundException See {@link #getEventFromName(String)}
+     */
+    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException{
+        Class<? extends Event> clazz = this.getEventFromName(eventName);
+
+        return triggerMap.get(clazz);
+    }
+
+    /**
+     * Delete the Custom Trigger with 'name'
+     * @param name
+     * @return false if no such trigger exists with 'name'; true if deleted
+     */
+    public boolean removeTriggerForName(String name){
+        if(!nameMap.containsKey(name))
+            return false;
+
+        CustomTrigger trigger = nameMap.remove(name);
+        Set<CustomTrigger> triggers = triggerMap.get(trigger.event);
+        if(triggers != null){
+            triggers.remove(trigger);
+        }
+
+        FileUtil.delete(new File(folder, name));
+        FileUtil.delete(new File(folder, name+".yml"));
+
+        return true;
+    }
+
     public class CustomTrigger extends Trigger{
         final Class<? extends Event> event;
+        final String eventName;
         final String name;
 
-        public CustomTrigger(Class<? extends Event> event, String name, String script) throws IOException, LexerException, ParserException {
+        /**
+         *
+         * @param event
+         * @param name
+         * @param script
+         * @throws IOException {@link Trigger#init()}
+         * @throws LexerException {@link Trigger#init()}
+         * @throws ParserException {@link Trigger#init()}
+         */
+        public CustomTrigger(Class<? extends Event> event, String eventName, String name, String script) throws IOException, LexerException, ParserException {
             super(script);
             this.event = event;
+            this.eventName = eventName;
             this.name = name;
 
             init();
@@ -272,12 +379,36 @@ public class CustomTriggerManager extends TriggerManager {
         @Override
         public Trigger clone() {
             try {
-                return new CustomTrigger(event, name, this.getScript());
+                return new CustomTrigger(event, eventName, name, this.getScript());
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }
             return null;
         }
 
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((name == null) ? 0 : name.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            CustomTrigger other = (CustomTrigger) obj;
+            if (name == null) {
+                if (other.name != null)
+                    return false;
+            } else if (!name.equals(other.name))
+                return false;
+            return true;
+        }
     }
 }

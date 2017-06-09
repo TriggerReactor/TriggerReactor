@@ -75,7 +75,7 @@ public class FileUtil {
 
     /**
      * same as file.delete() if 'file' is file; recursively deletes all elements inside if 'file' is directory.
-     * @param file
+     * @param file folder or file
      */
     public static void delete(File file){
         if(file.isFile()){

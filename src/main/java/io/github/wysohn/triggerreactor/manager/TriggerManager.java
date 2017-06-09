@@ -100,6 +100,12 @@ public abstract class TriggerManager extends Manager{
             this.script = script;
         }
 
+        /**
+         *
+         * @throws IOException low level exception from Lexer
+         * @throws LexerException throws if lexical analysis failed
+         * @throws ParserException throws if parsing failed
+         */
         protected void init() throws IOException, LexerException, ParserException{
             Charset charset = Charset.forName("UTF-8");
 

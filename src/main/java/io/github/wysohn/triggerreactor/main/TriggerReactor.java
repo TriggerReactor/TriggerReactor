@@ -61,6 +61,8 @@ import io.github.wysohn.triggerreactor.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.AreaTriggerManager.AreaTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.CustomTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.CustomTriggerManager.CustomTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager.InventoryTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.NamedTriggerManager;
@@ -93,6 +95,7 @@ public class TriggerReactor extends JavaPlugin {
     private CommandTriggerManager cmdManager;
     private InventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
+    private CustomTriggerManager customManager;
 
     private NamedTriggerManager namedTriggerManager;
 
@@ -127,6 +130,7 @@ public class TriggerReactor extends JavaPlugin {
         cmdManager = new CommandTriggerManager(this);
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this);
+        customManager = new CustomTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);
     }
@@ -742,6 +746,67 @@ public class TriggerReactor extends JavaPlugin {
                                 + " Set it to false always if you are not sure.");
                     }
                     return true;
+                } else if (args.length > 2 && args[0].equalsIgnoreCase("custom")) {
+                    String eventName = args[1];
+                    String name = args[2];
+
+                    if(customManager.getTriggerForName(name) != null){
+                        sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                        return true;
+                    }
+
+                    if(args.length == 3){
+                        scriptEditManager.startEdit((Conversable) sender,
+                                "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
+                                new SaveHandler() {
+                                    @Override
+                                    public void onSave(String script) {
+                                        try {
+                                            customManager.createCustomTrigger(eventName, name, script);
+
+                                            customManager.saveAll();
+
+                                            sender.sendMessage(ChatColor.GREEN+"Custom Trigger created!");
+                                        } catch (ClassNotFoundException | IOException | LexerException
+                                                | ParserException e) {
+                                            e.printStackTrace();
+                                            sender.sendMessage(ChatColor.RED+"Could not save! "+e.getMessage());
+                                            sender.sendMessage(ChatColor.RED+"See console for detailed messages.");
+                                        }
+                                    }
+                                });
+                    }else{
+                        String script = mergeArguments(args, 3, args.length - 1);
+
+                        try {
+                            customManager.createCustomTrigger(eventName, name, script);
+
+                            customManager.saveAll();
+
+                            sender.sendMessage(ChatColor.GREEN+"Custom Trigger created!");
+                        } catch (IOException | LexerException | ParserException e) {
+                            e.printStackTrace();
+                            sender.sendMessage(ChatColor.RED+"Could not save! "+e.getMessage());
+                            sender.sendMessage(ChatColor.RED+"See console for detailed messages.");
+                        } catch(ClassNotFoundException e2){
+                            sender.sendMessage(ChatColor.RED+"Could not save! "+e2.getMessage());
+                            sender.sendMessage(ChatColor.RED+"Provided event name is not valid.");
+                        }
+                    }
+                    return true;
+                } else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
+                    String name = args[1];
+
+                    CustomTrigger trigger = customManager.getTriggerForName(name);
+                    if(trigger == null){
+                        sender.sendMessage(ChatColor.GRAY+"No Custom Trigger found with that name.");
+                        return true;
+                    }
+
+                    trigger.setSync(!trigger.isSync());
+
+                    sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.GREEN)+trigger.isSync());
+                    return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
                     switch (args[1]) {
@@ -758,9 +823,16 @@ public class TriggerReactor extends JavaPlugin {
                             sender.sendMessage(ChatColor.GRAY+"Command trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
                         }
                         break;
+                    case "custom":
+                        if(customManager.removeTriggerForName(key)){
+                            sender.sendMessage(ChatColor.GREEN+"Removed the custom trigger "+ChatColor.GOLD+key);
+                        }else{
+                            sender.sendMessage(ChatColor.GRAY+"Custom Trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
+                        }
+                        break;
                     default:
                         sender.sendMessage("Ex) /trg del vars player.count");
-                        sender.sendMessage("List: variables[vars], command[cmd]");
+                        sender.sendMessage("List: variables[vars], command[cmd], custom");
                         break;
                     }
                     return true;
@@ -872,6 +944,11 @@ public class TriggerReactor extends JavaPlugin {
         sendCommandDesc(sender, "/triggerreactor[trg] area[a]", "Create an area trigger.");
         sendDetails(sender, "/trg a to see more commands...");
 
+        sendCommandDesc(sender, "/triggerreactor[trg] custom <event> <name> [...]", "Create an area trigger.");
+        sendDetails(sender, "/trg custom onJoin Greet #BROADCAST \"&aPlease welcome &6\"+player.getName()+\"&a!\"");
+        sendCommandDesc(sender, "/triggerreactor[trg] synccustom[sync] <name>", "Toggle Sync/Async mode of custom trigger <name>");
+        sendDetails(sender, "/trg synccustom Greet");
+
         sendCommandDesc(sender, "/triggerreactor[trg] misc", "Miscellaneous. Type it to see the list.");
 
         sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] [...]", "set global variables.");
@@ -885,8 +962,9 @@ public class TriggerReactor extends JavaPlugin {
         sendCommandDesc(sender, "/triggerreactor[trg] delete[del] <type> <name>", "Delete specific trigger/variable/etc.");
         sendDetails(sender, "/trg del vars test &8- &7delete the variable saved in 'test'");
         sendDetails(sender, "/trg del cmd test &8- &7delete the command trigger 'test'");
+        sendDetails(sender, "/trg del custom Greet &8- &7delete the command trigger 'test'");
 
-        sendCommandDesc(sender, "/triggerreactor[trg] search", "Show all trigger blocks in this chunk as glowing stone.");
+        sendCommandDesc(sender, "/triggerreactor[trg] search", "Show all trigger blocks in this chunk as glowing stones.");
 
         sendCommandDesc(sender, "/triggerreactor[trg] saveall", "Save all scripts, variables, and settings.");
 
