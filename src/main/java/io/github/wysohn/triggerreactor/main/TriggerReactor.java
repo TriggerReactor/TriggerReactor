@@ -337,7 +337,7 @@ public class TriggerReactor extends JavaPlugin {
 
                     }
                 } else if(args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")){
-                    if(args.length == 4 && args[2].equalsIgnoreCase("create")){
+                    if(args.length > 3 && args[2].equalsIgnoreCase("create")){
                         String name = args[1];
                         int size = -1;
                         try{
@@ -347,12 +347,38 @@ public class TriggerReactor extends JavaPlugin {
                             return true;
                         }
 
-                        if(invManager.createTrigger(size, name)){
-                            sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
+                        if(args.length == 4){
+                            final int sizeCopy = size;
+                            scriptEditManager.startEdit((Conversable) sender, "Inventory Trigger", "", new SaveHandler() {
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        if(invManager.createTrigger(sizeCopy, name, script)){
+                                            sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
 
-                            invManager.saveAll();
+                                            invManager.saveAll();
+                                        }else{
+                                            sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
+                                        }
+                                    } catch (IOException | LexerException | ParserException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
+                            String script = mergeArguments(args, 4, args.length - 1);
+
+                            try {
+                                if(invManager.createTrigger(size, name, script)){
+                                    sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
+
+                                    invManager.saveAll();
+                                }else{
+                                    sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
+                                }
+                            } catch (IOException | LexerException | ParserException e) {
+                                e.printStackTrace();
+                            }
                         }
                     } else if(args.length == 3 && args[2].equalsIgnoreCase("delete")){
                         String name = args[1];
@@ -392,79 +418,6 @@ public class TriggerReactor extends JavaPlugin {
                         trigger.getItems()[index] = IS;
 
                         invManager.saveAll();
-                    } else if(args.length > 3 && args[2].equalsIgnoreCase("slot")){
-                        String name = args[1];
-
-                        int index = -1;
-                        try{
-                            index = Integer.parseInt(args[3]);
-                        }catch(NumberFormatException e){
-                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number.");
-                            return true;
-                        }
-
-                        InventoryTrigger trigger = invManager.getTriggerForName(name);
-                        if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
-                            return true;
-                        }
-
-                        if(index > trigger.getSlots().length - 1){
-                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Size: "+trigger.getSlots().length+")");
-                            return true;
-                        }
-
-                        if(args.length == 4){
-                            final int copyIndex = index;
-                            scriptEditManager.startEdit((Conversable) sender, "Inventory Trigger Slot", "", new SaveHandler(){
-                                @Override
-                                public void onSave(String script) {
-                                    try {
-                                        trigger.getSlots()[copyIndex] = trigger.new InventorySlot(script);
-                                        invManager.saveAll();
-                                    } catch (IOException | LexerException | ParserException e) {
-                                        e.printStackTrace();
-                                        sender.sendMessage(ChatColor.RED+e.getMessage());
-                                    }
-                                }
-                            });
-                        }else{
-                            StringBuilder builder = new StringBuilder();
-                            for (int i = 4; i < args.length; i++)
-                                builder.append(args[i] + " ");
-
-                            try {
-                                trigger.getSlots()[index] = trigger.new InventorySlot(builder.toString());
-                                invManager.saveAll();
-                            } catch (IOException | LexerException | ParserException e) {
-                                e.printStackTrace();
-                                sender.sendMessage(ChatColor.RED+e.getMessage());
-                            }
-                        }
-                    } else if(args.length == 4 && args[2].equalsIgnoreCase("delslot")){
-                        String name = args[1];
-
-                        int index = -1;
-                        try{
-                            index = Integer.parseInt(args[3]);
-                        }catch(NumberFormatException e){
-                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number.");
-                            return true;
-                        }
-
-                        InventoryTrigger trigger = invManager.getTriggerForName(name);
-                        if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
-                            return true;
-                        }
-
-                        if(index > trigger.getSlots().length - 1){
-                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Size: "+trigger.getSlots().length+")");
-                            return true;
-                        }
-
-                        trigger.getSlots()[index] = null;
-                        invManager.saveAll();
                     } else if(args.length > 2 && args[2].equalsIgnoreCase("open")){
                         String name = args[1];
                         Player forWhom;
@@ -484,23 +437,32 @@ public class TriggerReactor extends JavaPlugin {
                             sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
                             return true;
                         }
-                    } else {
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size>", "create a new inventory. <size> must be multiple of 9.");
-                        sendDetails(sender, "/trg i MyInventory create 180");
+                    } /*else if(args.length == 3 && args[2].equalsIgnoreCase("sync")){
+                        String name = args[1];
+
+                        InventoryTrigger trigger = invManager.getTriggerForName(name);
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            return true;
+                        }
+
+                        trigger.setSync(!trigger.isSync());
+
+                        invManager.saveAll();
+
+                        sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
+                    } */else {
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
+                                + " The <size> cannot be larger than 54");
+                        sendDetails(sender, "/trg i MyInventory create 54");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the holding item. "
                                 + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> slot <index> [...]", "Set trigger for the specified slot <index>");
-                        sendDetails(sender, "/trg i MyInventory slot 0 #MESSAGE \"Clicked!\"");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> slot <index>", "Set multiple lined trigger for the specified slot <index>");
-                        sendDetails(sender, "/trg i MyInventory slot 0");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delslot <index>", "Delete trigger at specified slot <index>. "
-                                + "However, this does not delete the icon.");
-                        sendDetails(sender, "/trg i MyInventory delslot 0");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
+                        //sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> sync", "Toggle sync/async mode.");
                     }
                     return true;
                 } else if(args[0].equalsIgnoreCase("misc")){
@@ -730,7 +692,7 @@ public class TriggerReactor extends JavaPlugin {
                         trigger.setSync(!trigger.isSync());
                         areaManager.saveAll();
 
-                        sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.GREEN)+trigger.isSync());
+                        sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
@@ -805,7 +767,7 @@ public class TriggerReactor extends JavaPlugin {
 
                     trigger.setSync(!trigger.isSync());
 
-                    sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.GREEN)+trigger.isSync());
+                    sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
                     return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];

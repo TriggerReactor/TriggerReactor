@@ -33,7 +33,7 @@ public class Interpreter {
     private Node root;
     private final Map<String, Executor> executorMap = new HashMap<>();
     private final Map<String, Object> gvars;
-    private final Map<String, Object> vars = new HashMap<>();
+    private final Map<String, Object> vars;
     private final SelfReference selfReference;
     private final InterpretCondition condition;
 
@@ -48,12 +48,26 @@ public class Interpreter {
     private long cooldownEnd = -1;
 
     private int callArgsSize = 0;
-    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
+/*    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
             SelfReference selfReference, InterpretCondition condition) {
         this.root = root;
         for(Entry<String, Executor> entry : executorMap.entrySet())
             this.executorMap.put(entry.getKey(), entry.getValue());
         this.gvars = gvars;
+        this.vars = new HashMap<>();
+        this.selfReference = selfReference;
+        this.condition = condition;
+
+        initDefaultExecutors();
+    }
+*/
+    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars, Map<String, Object> localVars,
+            SelfReference selfReference, InterpretCondition condition) {
+        this.root = root;
+        for(Entry<String, Executor> entry : executorMap.entrySet())
+            this.executorMap.put(entry.getKey(), entry.getValue());
+        this.gvars = gvars;
+        this.vars = localVars;
         this.selfReference = selfReference;
         this.condition = condition;
 
@@ -137,11 +151,22 @@ public class Interpreter {
 
         if ("IF".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
-            boolean result = (boolean) stack.pop().value;
-            if (result) {
-                start(node.getChildren().get(1));
-            } else if (node.getChildren().size() > 2) {
-                start(node.getChildren().get(2));
+            Token resultToken = stack.pop();
+            if(isVariable(resultToken)){
+                resultToken = unwrapVariable(resultToken);
+            }
+
+            if(resultToken.type == Type.NULLVALUE){
+                if(node.getChildren().size() > 2){
+                    start(node.getChildren().get(2));
+                }
+            }else{
+                boolean result = (boolean) resultToken.value;
+                if (result) {
+                    start(node.getChildren().get(1));
+                } else if (node.getChildren().size() > 2) {
+                    start(node.getChildren().get(2));
+                }
             }
         } else if ("WHILE".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
@@ -165,6 +190,9 @@ public class Interpreter {
                     throw new InterpreterException(valueToken+" is not iterable!");
 
                 for(Object obj : (Iterable)valueToken.value){
+                    if(stopFlag)
+                        break;
+
                     assignValue(idToken, parseValue(obj));
                     start(node.getChildren().get(2));
                 }
@@ -632,7 +660,7 @@ public class Interpreter {
     private final Executor EXECUTOR_COOLDOWN = new Executor(){
         @Override
         public Integer execute(boolean sync, Object context, Object... args) {
-            long mills = Integer.parseInt((String) args[0]) * 1000L;
+            long mills = Long.parseLong(String.valueOf(args[0])) * 1000L;
             Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
             return null;
         }

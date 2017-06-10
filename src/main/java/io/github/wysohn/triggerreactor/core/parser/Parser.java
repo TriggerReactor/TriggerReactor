@@ -219,7 +219,7 @@ public class Parser {
                     assign.getChildren().add(left);
                     assign.getChildren().add(right);
 
-                    if(token.type != Type.ENDL)
+                    if(token != null && token.type != Type.ENDL)
                         throw new ParserException("Expected end of line but found "+token, this);
                     nextToken();
 
@@ -451,6 +451,12 @@ public class Parser {
     }
 
     private Node parseFactor() throws IOException, LexerException, ParserException {
+        if("true".equals(token.value) || "false".equals(token.value)){
+            Node node = new Node(new Token(Type.BOOLEAN, token.value));
+            nextToken();
+            return node;
+        }
+
         Node idNode = parseId();
         if(idNode != null){
             return idNode;

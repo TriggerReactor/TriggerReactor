@@ -45,7 +45,7 @@ import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupp
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public abstract class TriggerManager extends Manager{
-    private final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
+    protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
     private static CommonFunctions common = null;
 
@@ -135,10 +135,11 @@ public abstract class TriggerManager extends Manager{
          *  the name of fields of Event class.
          * @param e the Event associated with this Trigger
          * @param scriptVars the temporary local variables
+         * @return true if activated; false if on cooldown
          */
-        public void activate(Event e, Map<String, Object> scriptVars) {
+        public boolean activate(Event e, Map<String, Object> scriptVars) {
             if(checkCooldown(e)){
-                return;
+                return false;
             }
 
             scriptVars.putAll(ReflectionUtil.extractVariablesWithEnumAsString(e));
@@ -146,6 +147,7 @@ public abstract class TriggerManager extends Manager{
             Interpreter interpreter = initInterpreter(scriptVars);
 
             startInterpretation(e, scriptVars, interpreter, isSync());
+            return true;
         }
 
         /**
@@ -176,7 +178,7 @@ public abstract class TriggerManager extends Manager{
         }
 
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-            Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, common, condition);
+            Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, scriptVars, common, condition);
             interpreter.setSync(isSync());
 
             interpreter.getVars().putAll(scriptVars);
@@ -215,7 +217,14 @@ public abstract class TriggerManager extends Manager{
             }
         }
 
-        private void start(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+        /**
+         * The actual execution part. The Trigger can be sync/async depends on which thread invokes this method.
+         * @param e
+         * @param scriptVars
+         * @param interpreter
+         * @param sync
+         */
+        protected void start(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
             try{
                 interpreter.startWithContextAndInterrupter(e, new ProcessInterrupter(){
                     @Override

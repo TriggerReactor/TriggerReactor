@@ -134,4 +134,9 @@ public class Token {
             return literal;
         }
     }
+
+    public static void main(String[] ar){
+        Object bool = true;
+        System.out.println(bool instanceof Boolean);
+    }
 }

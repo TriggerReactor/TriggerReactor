@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ClassUtils;
 import org.bukkit.event.Event;
 
 public class ReflectionUtil {
@@ -70,7 +71,7 @@ public class ReflectionUtil {
 
             boolean matches = true;
             for (int i = 0; i < parameterTypes.length; i++) {
-                if (!parameterTypes[i].isAssignableFrom(args[i].getClass())) {
+                if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
                     matches = false;
                     break;
                 }
@@ -167,5 +168,9 @@ public class ReflectionUtil {
         }
 
         return methods;
+    }
+
+    public static void main(String[] ar){
+       System.out.println(ClassUtils.isAssignable(Integer.class, double.class, true));
     }
 }

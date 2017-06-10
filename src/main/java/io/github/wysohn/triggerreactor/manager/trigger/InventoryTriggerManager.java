@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
@@ -31,29 +32,35 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
-import io.github.wysohn.triggerreactor.tools.CustomSkullType;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class InventoryTriggerManager extends TriggerManager {
     private final Map<String, InventoryTrigger> invenTriggers = new ConcurrentHashMap<>();
+
     private final Map<Inventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
+    private final Map<Inventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
     private final File folder;
 
@@ -80,12 +87,17 @@ public class InventoryTriggerManager extends TriggerManager {
             String fileName = file.getName();
             String triggerName = fileName.substring(0, fileName.indexOf('.'));
 
-            File triggerFolder = new File(folder, triggerName);
-            if(!triggerFolder.isDirectory()){
-                plugin.getLogger().warning(triggerFolder+" is not a directory!");
+            File triggerFile = new File(folder, triggerName);
+            if(!triggerFile.exists()){
+                plugin.getLogger().warning(triggerFile+" does not exists!");
+                plugin.getLogger().warning(triggerFile+" is skipped.");
                 continue;
-            }else if(!triggerFolder.exists()){
-                triggerFolder.mkdirs();
+            }
+
+            if(triggerFile.isDirectory()){
+                plugin.getLogger().warning(triggerFile+" should be a file not a directory!");
+                plugin.getLogger().warning(triggerFile+" is skipped.");
+                continue;
             }
 
             Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
@@ -106,6 +118,11 @@ public class InventoryTriggerManager extends TriggerManager {
                 plugin.getLogger().warning("Size: must be multiple of 9!");
                 continue;
             }
+            if(size > InventoryTrigger.MAXSIZE){
+                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                plugin.getLogger().warning("Size: cannot be larger than "+InventoryTrigger.MAXSIZE);
+                continue;
+            }
 
             Map<Integer, ItemStack> items = new HashMap<>();
             ConfigurationSection itemSection = yaml.getConfigurationSection("Items");
@@ -116,30 +133,31 @@ public class InventoryTriggerManager extends TriggerManager {
 
             parseItemsList(itemSection, items, size);
 
-            Map<Integer, String> scriptMap = new HashMap<>();
-            for(int i = 0; i < size; i++){
-                File slotTrigger = new File(triggerFolder, String.valueOf(i));
-                if(!slotTrigger.exists())
-                    continue;
+            //boolean isSync = yaml.getBoolean("Sync", false);
 
-                if(!slotTrigger.isFile())
-                    continue;
-
-                String script = null;
-                try {
-                    script = FileUtil.readFromFile(slotTrigger);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                scriptMap.put(i, script);
-            }
-
+            String script = null;
             try {
-                invenTriggers.put(triggerName, new InventoryTrigger(size, items, scriptMap));
-            } catch (InvalidSlotException e) {
+                script = FileUtil.readFromFile(triggerFile);
+            } catch (IOException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
             }
+
+            InventoryTrigger trigger = null;
+            try {
+                trigger = new InventoryTrigger(size, triggerName, items, script);
+                //trigger.setSync(isSync);
+            } catch (IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                continue;
+            } catch (LexerException | ParserException e){
+                e.printStackTrace();
+                plugin.getLogger().warning("Failed to interpret the script for "+triggerName);
+                continue;
+            }
+
+            invenTriggers.put(triggerName, trigger);
         }
     }
 
@@ -164,30 +182,19 @@ public class InventoryTriggerManager extends TriggerManager {
                 e1.printStackTrace();
             }
 
-            yaml.set("Size", trigger.slots.length);
+            yaml.set("Size", trigger.items.length);
 
             if(!yaml.isSet("Items"))
                 yaml.createSection("Items");
             writeItemList(yaml.getConfigurationSection("Items"), trigger.items);
 
-            File slotFolder = new File(folder, triggerName);
-            if(!slotFolder.exists()){
-                slotFolder.mkdirs();
-            }
+            //yaml.set("Sync", trigger.isSync());
 
-            for(int i = 0; i < trigger.slots.length; i++){
-                File slotFile = new File(slotFolder, String.valueOf(i));
-                InventoryTrigger.InventorySlot slot = trigger.slots[i];
-
-                if(slot == null){
-                    slotFile.delete();
-                } else{
-                    try{
-                        FileUtil.writeToFile(slotFile, slot.getScript());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+            try {
+                FileUtil.writeToFile(new File(folder, triggerName), trigger.getScript());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                plugin.getLogger().warning("Could not save "+triggerName);
             }
 
             try {
@@ -255,18 +262,17 @@ public class InventoryTriggerManager extends TriggerManager {
 
     /**
      *
-     * @param name
+     * @param name this can contain color code &, but you should specify exact name for the title.
      * @return true on success; false if already exist
+     * @throws ParserException See {@link Trigger#init()}
+     * @throws LexerException See {@link Trigger#init()}
+     * @throws IOException See {@link Trigger#init()}
      */
-    public boolean createTrigger(int size, String name){
+    public boolean createTrigger(int size, String name, String script) throws IOException, LexerException, ParserException{
         if(invenTriggers.containsKey(name))
             return false;
 
-        try {
-            invenTriggers.put(name, new InventoryTrigger(size, new HashMap<>(), new HashMap<>()));
-        } catch (InvalidSlotException e) {
-            e.printStackTrace();
-        }
+        invenTriggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), script));
 
         return true;
     }
@@ -283,8 +289,8 @@ public class InventoryTriggerManager extends TriggerManager {
         invenTriggers.remove(name);
         File yamlFile = new File(folder, name+".yml");
         FileUtil.delete(yamlFile);
-        File slotFolder = new File(folder, name);
-        FileUtil.delete(slotFolder);
+        File triggerFile = new File(folder, name);
+        FileUtil.delete(triggerFile);
 
         return true;
     }
@@ -301,10 +307,15 @@ public class InventoryTriggerManager extends TriggerManager {
         if(trigger == null)
             return null;
 
-        Inventory inventory = Bukkit.createInventory(null, 6*9, getTitleWithPage(1, name));
+        Inventory inventory = Bukkit.createInventory(null, trigger.items.length,
+                ChatColor.translateAlternateColorCodes('&', name));
         inventoryMap.put(inventory, trigger);
 
-        fillInventory(trigger, 1, inventory);
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("inventory", inventory);
+        inventorySharedVars.put(inventory, varMap);
+
+        fillInventory(trigger, trigger.items.length, inventory);
 
         player.openInventory(inventory);
 
@@ -333,105 +344,37 @@ public class InventoryTriggerManager extends TriggerManager {
         if(!(e.getWhoClicked() instanceof Player))
             return;
 
-        String name = extractNameFromTitle(inventory.getTitle());
-        int page = extractPageFromTitle(inventory.getTitle());
-
         if(e.getRawSlot() < 0)
             return;
 
-        // check if navigation button
-        if (handleNavigation((Player) e.getWhoClicked(), name, trigger, e.getRawSlot(), page))
-            return;
-
-        Map<String, Object> varMap = new HashMap<>();
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
         insertPlayerVariables((Player) e.getWhoClicked(), varMap);
-        varMap.put("inventory", e.getInventory());
-        varMap.put("item", e.getCurrentItem());
+        if(e.getRawSlot() < trigger.items.length){
+            if(trigger.items[e.getRawSlot()] == null)
+                varMap.put("item", new ItemStack(Material.AIR));
+            else
+                varMap.put("item", trigger.items[e.getRawSlot()].clone());
+        }
         varMap.put("slot", e.getRawSlot());
+        varMap.put("click", e.getClick().name());
+        varMap.put("hotbar", e.getHotbarButton());
 
         trigger.activate(e, varMap);
-    }
-
-    private boolean handleNavigation(Player player, String name, InventoryTrigger trigger, int rawSlot, int currentPage) {
-        int size = 6*9;
-
-        Inventory inventory;
-        switch(rawSlot){
-        case 45://first
-            inventory = Bukkit.createInventory(null, size, getTitleWithPage(1, name));
-            inventoryMap.put(inventory, trigger);
-
-            fillInventory(trigger, 1, inventory);
-
-            player.openInventory(inventory);
-            return true;
-        case 46://previous
-            int previous = Math.max(1, currentPage - 1);
-            inventory = Bukkit.createInventory(null, size, getTitleWithPage(previous, name));
-            inventoryMap.put(inventory, trigger);
-
-            fillInventory(trigger, previous, inventory);
-
-            player.openInventory(inventory);
-            return true;
-        case 52://next
-            int next = Math.min(trigger.pageSize, currentPage + 1);
-            inventory = Bukkit.createInventory(null, size, getTitleWithPage(next, name));
-            inventoryMap.put(inventory, trigger);
-
-            fillInventory(trigger, next, inventory);
-
-            player.openInventory(inventory);
-            return true;
-        case 53://last
-            inventory = Bukkit.createInventory(null, size, getTitleWithPage(trigger.pageSize, name));
-            inventoryMap.put(inventory, trigger);
-
-            fillInventory(trigger, trigger.pageSize, inventory);
-
-            player.openInventory(inventory);
-            return true;
-        default:
-            return false;
-        }
     }
 
     /**
      *
      * @param trigger
-     * @param page 1~
+     * @param size mutiple of 9; must be less than or equalt to 54 (exclusive)
      * @param inventory
      */
-    private void fillInventory(InventoryTrigger trigger, int page, Inventory inventory) {
-        int firstSlot = (page - 1)*InventoryTrigger.SLOTSPERPAGE;
-        int size;
-
-        if(page == trigger.pageSize){
-            size = trigger.slots.length % InventoryTrigger.SLOTSPERPAGE;
-            if(size == 0){//in case of length exactly multiple of SLOTSPERPAGE
-                size = InventoryTrigger.SLOTSPERPAGE;
-            }
-        }else{
-            size = InventoryTrigger.SLOTSPERPAGE;
-        }
-
-        for(int i = firstSlot; i < firstSlot + size; i++){
+    private void fillInventory(InventoryTrigger trigger, int size, Inventory inventory) {
+        for(int i = 0; i < size; i++){
             ItemStack item = trigger.items[i];
-            if(item == null){
-                if(trigger.slots[i] == null){
-                    item = new ItemStack(Material.AIR);
-                }else {
-                    item = new ItemStack(Material.STONE);
-                    ItemMeta IM = item.getItemMeta();
-                    IM.setDisplayName(i+". Item Not Set");
-                    item.setItemMeta(IM);
-                }
+            if(item != null){
+                inventory.setItem(i, getColoredItem(item));
             }
-
-            inventory.setItem(i % InventoryTrigger.SLOTSPERPAGE, getColoredItem(item));
         }
-
-        putNavigationButtons(inventory);
     }
 
     /**
@@ -461,170 +404,147 @@ public class InventoryTriggerManager extends TriggerManager {
 
         return item;
     }
-
-    private static final String NAVIGATION_BUTTON_FIRST = ChatColor.GOLD+"<<";
-    private static final String NAVIGATION_BUTTON_PREVIOUS = ChatColor.GOLD+"<";
-    private static final String NAVIGATION_BUTTON_NEXT = ChatColor.GOLD+">";
-    private static final String NAVIGATION_BUTTON_LAST = ChatColor.GOLD+">>";
-    private void putNavigationButtons(Inventory inv){
-        ItemStack skullFirst = getSkull(CustomSkullType.ARROW_UP, NAVIGATION_BUTTON_FIRST,
-                ChatColor.LIGHT_PURPLE+"FIRST");
-        ItemStack skullPrevious = getSkull(CustomSkullType.ARROW_LEFT, NAVIGATION_BUTTON_PREVIOUS,
-                ChatColor.LIGHT_PURPLE+"PREVIOUS");
-        ItemStack skullNext = getSkull(CustomSkullType.ARROW_RIGHT, NAVIGATION_BUTTON_NEXT,
-                ChatColor.LIGHT_PURPLE+"NEXT");
-        ItemStack skullLast = getSkull(CustomSkullType.ARROW_DOWN, NAVIGATION_BUTTON_LAST,
-                ChatColor.LIGHT_PURPLE+"LAST");
-
-        int firstSlotOfSixthLine = 5*9;
-        inv.setItem(firstSlotOfSixthLine + 0, skullFirst);
-        inv.setItem(firstSlotOfSixthLine + 1, skullPrevious);
-        inv.setItem(firstSlotOfSixthLine + 7, skullNext);
-        inv.setItem(firstSlotOfSixthLine + 8, skullLast);
-    }
-
-    private ItemStack getSkull(CustomSkullType type, String name, String... lore){
-        ItemStack IS = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-        ItemMeta IM = IS.getItemMeta();
-        SkullMeta SM = (SkullMeta) IM;
-
-        SM.setOwner(type.getOwner());
-        SM.setDisplayName(name);
-        List<String> lores = new ArrayList<String>();
-        for(String str : lore)
-            lores.add(str);
-        SM.setLore(lores);
-
-        IS.setItemMeta(SM);
-
-        return IS;
-    }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @EventHandler
     public void onClose(InventoryCloseEvent e){
         Inventory inventory = e.getInventory();
         inventoryMap.remove(inventory);
+        inventorySharedVars.remove(inventory);
     }
 
     public class InventoryTrigger extends Trigger{
-        final static int SLOTSPERPAGE = 5*9;
+        final static int MAXSIZE = 6*9;
 
+        final String name;
         final ItemStack[] items;
-        /**
-         * it's save to assume that slot length is always multiple of 9
-         */
-        final InventorySlot[] slots;
-        final int pageSize;
 
-        public InventoryTrigger(int size, Map<Integer, ItemStack> items, Map<Integer, String> scriptMap) throws InvalidSlotException{
-            super(null);
+        private InventoryTrigger(String name, String script, ItemStack[] items) throws IOException, LexerException, ParserException {
+            super(script);
+            this.name = name;
+            this.items = items;
 
+            init();
+        }
+
+        public InventoryTrigger(int size, String name, Map<Integer, ItemStack> items, String script) throws IOException, LexerException, ParserException{
+            super(script);
+
+            this.name = name;
             if(size < 9 || size % 9 != 0)
                 throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
 
+            if(size > MAXSIZE)
+                throw new IllegalArgumentException("Inventory Size cannot be larger than "+MAXSIZE);
+
             this.items = new ItemStack[size];
-            this.slots = new InventorySlot[size];
 
             for(Map.Entry<Integer, ItemStack> entry : items.entrySet()){
                 this.items[entry.getKey()] = entry.getValue();
             }
 
-            for(Map.Entry<Integer, String> entry : scriptMap.entrySet()){
-                try {
-                    this.slots[entry.getKey()] = new InventorySlot(entry.getValue());
-                } catch (IOException | LexerException | ParserException e) {
-                    throw new InvalidSlotException(entry.getKey(), e);
+            init();
+        }
+
+        @Override
+        protected void start(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+            try{
+                interpreter.startWithContextAndInterrupter(e, new ProcessInterrupter(){
+                    @Override
+                    public boolean onNodeProcess(Node node) {
+                        if (interpreter.isCooldown()) {
+                            if(e instanceof InventoryInteractEvent){
+                                HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
+                                if(he instanceof Player){
+                                    Player player = (Player) he;
+                                    UUID uuid = player.getUniqueId();
+                                    cooldowns.put(uuid, interpreter.getCooldownEnd());
+                                }
+                            }
+                            return false;
+                        }
+
+                        if(e instanceof InventoryClickEvent){
+                            Inventory inv = ((InventoryClickEvent) e).getWhoClicked().getOpenInventory().getTopInventory();
+
+                            //it's not GUI so stop execution
+                            if(!inventoryMap.containsKey(inv))
+                                return true;
+                        }
+
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onCommand(Object context, String command, Object[] args) {
+                        if("CALL".equals(command)){
+                            if(args.length < 1)
+                                throw new RuntimeException("Need parameter [String]");
+
+                            if(args[0] instanceof String){
+                                Trigger trigger = plugin.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                                if(trigger == null)
+                                    throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
+
+                                trigger.activate(e, scriptVars);
+                                return true;
+                            } else {
+                                throw new RuntimeException("Parameter type not match; it should be a String."
+                                        + " Make sure to put double quotes, if you provided String literal.");
+                            }
+                        } else if("CANCELEVENT".equals(command)) {
+                            if(!sync)
+                                throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+
+                            if(context instanceof Cancellable){
+                                ((Cancellable) context).setCancelled(true);
+                                return true;
+                            } else {
+                                throw new RuntimeException(context+" is not a Cancellable event!");
+                            }
+                        }
+
+                        return false;
+                    }
+
+                });
+            }catch(Exception ex){
+                ex.printStackTrace();
+                if(e instanceof PlayerEvent){
+                    Player player = ((PlayerEvent) e).getPlayer();
+                    player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
+                    player.sendMessage(ChatColor.RED+ex.getMessage());
+                    player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
                 }
             }
-
-            this.pageSize = (size / SLOTSPERPAGE) + 1;
         }
 
-        //we don't need interpreter for inventory trigger but its slots
-        @Override
-        protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-            return null;
-        }
-
-        //intercept and pass interpretation to slots
-        @Override
-        protected void startInterpretation(Event e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-            InventoryClickEvent ice = (InventoryClickEvent) e;
-
-            int rawSlot = ice.getRawSlot();
-            if(rawSlot >= 0 && rawSlot < SLOTSPERPAGE){
-                Inventory inventory = ice.getInventory();
-                int page = extractPageFromTitle(inventory.getTitle());
-
-                InventoryTrigger.InventorySlot slot = slots[ice.getRawSlot()
-                        + InventoryTrigger.SLOTSPERPAGE * (page - 1)];
-                if (slot == null)
-                    return;
-
-                slot.activate(ice, scriptVars);
+        private void updateGUI(Event e) {
+            if(e instanceof InventoryClickEvent){
+                HumanEntity hm = ((InventoryClickEvent) e).getWhoClicked();
+                if(hm instanceof Player){
+                    Bukkit.getScheduler().runTask(plugin, new Runnable(){
+                        @Override
+                        public void run() {
+                            openGUI((Player) hm, name);
+                        }
+                    });
+                }
             }
-
         }
 
         @Override
         public Trigger clone() {
-            // TODO Auto-generated method stub
+            try {
+                return new InventoryTrigger(name, script, items);
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
             return null;
-        }
-
-        public InventorySlot[] getSlots() {
-            return slots;
         }
 
         public ItemStack[] getItems() {
             return items;
         }
-
-        /////////////////////////////////////////////////////////////////////////////////////////////////
-
-        public class InventorySlot extends Trigger{
-
-            public InventorySlot(String script) throws IOException, LexerException, ParserException {
-                super(script);
-
-                init();
-            }
-
-            @Override
-            public Trigger clone() {
-                return null;
-            }
-
-        }
-    }
-
-    @SuppressWarnings("serial")
-    static class InvalidSlotException extends Exception{
-        public InvalidSlotException(int slot, Throwable cause) {
-            super("Slot "+slot+" could not be initialized!", cause);
-        }
-    }
-
-    private static final String SEPARATOR = ":";
-    /**
-     *
-     * @param page starting from 1
-     * @param title
-     * @return combined title
-     */
-    public static String getTitleWithPage(int page, String title){
-        return page+SEPARATOR+title;
-    }
-    /**
-     *
-     * @param title
-     * @return starting from 1
-     */
-    public static int extractPageFromTitle(String title){
-        return Integer.parseInt(title.split(SEPARATOR, 2)[0]);
-    }
-    public static String extractNameFromTitle(String title){
-        return title.split(SEPARATOR, 2)[1];
     }
 }

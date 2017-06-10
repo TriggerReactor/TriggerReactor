@@ -16,7 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.manager.trigger.share;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -24,6 +26,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.wysohn.triggerreactor.core.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
@@ -210,5 +213,105 @@ public class CommonFunctions implements SelfReference {
      */
     public String color(String str){
         return ChatColor.translateAlternateColorCodes('&', str);
+    }
+
+    /**
+     * Set title of the specified ItemStack
+     * @param IS
+     * @param title
+     */
+    public void setItemTitle(ItemStack IS, String title){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if(IM == null)
+            return;
+        IM.setDisplayName(color(title));
+        IS.setItemMeta(IM);
+    }
+
+    /**
+     * Append a lore to the specified ItemStack
+     * @param IS
+     * @param lore
+     */
+    public void addLore(ItemStack IS, String lore){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if(IM == null)
+            return;
+        List<String> lores = IM.getLore();
+        if(lores == null)
+            lores = new ArrayList<>();
+        lores.add(color(lore));
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+    }
+
+    /**
+     * Replace a lore at 'index' for the specified ItemStack
+     * @param IS
+     * @param index
+     * @param lore
+     */
+    public void setLore(ItemStack IS, int index, String lore){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if(IM == null)
+            return;
+        List<String> lores = IM.getLore();
+        if(lores == null)
+            lores = new ArrayList<>();
+        lores.set(index, color(lore));
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+    }
+
+    /**
+     * Remove lore at the 'index' of the specified ItemStack
+     * @param IS
+     * @param index
+     */
+    public void removeLore(ItemStack IS, int index){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if(IM == null)
+            return;
+        List<String> lores = IM.getLore();
+        if(lores == null)
+            lores = new ArrayList<>();
+        lores.remove(index);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+    }
+
+    /**
+     * Clear all lores from item.
+     * @param IS
+     */
+    public void clearLore(ItemStack IS){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            return;
+        IM.setLore(new ArrayList<>());
+        IS.setItemMeta(IM);
+    }
+
+    /**
+     * get size of the lores for the specified ItemStack
+     * @param IS
+     * @return
+     */
+    public int loreSize(ItemStack IS){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            return 0;
+        List<String> lores = IM.getLore();
+        if(lores == null)
+            return 0;
+        return lores.size();
     }
 }

@@ -88,12 +88,12 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         }
 
         @Override
-        public void activate(Event e, Map<String, Object> scriptVars) {
+        public boolean activate(Event e, Map<String, Object> scriptVars) {
             Action action = ((PlayerInteractEvent) e).getAction();
             if(!handler.allow(action))
-                return;
+                return true;
 
-            super.activate(e, scriptVars);
+            return super.activate(e, scriptVars);
         }
 
         @Override

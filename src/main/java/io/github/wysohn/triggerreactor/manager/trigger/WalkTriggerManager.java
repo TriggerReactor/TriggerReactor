@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
@@ -71,11 +70,6 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
             super(script);
 
             init();
-        }
-
-        @Override
-        public void activate(Event e, Map<String, Object> scriptVars) {
-            super.activate(e, scriptVars);
         }
 
         @Override
