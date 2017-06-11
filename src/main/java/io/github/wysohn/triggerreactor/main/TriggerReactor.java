@@ -20,8 +20,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -36,7 +38,6 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -44,6 +45,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import com.google.common.collect.Iterables;
+import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
@@ -99,6 +102,7 @@ public class TriggerReactor extends JavaPlugin {
 
     private NamedTriggerManager namedTriggerManager;
 
+    private Thread bungeeConnectionThread;
     @Override
     public void onEnable() {
         super.onEnable();
@@ -106,6 +110,9 @@ public class TriggerReactor extends JavaPlugin {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
         bungeeHelper = new BungeeCordHelper();
+        bungeeConnectionThread = new Thread(bungeeHelper);
+        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
+        bungeeConnectionThread.start();
 
         try {
             executorManager = new ExecutorManager(this);
@@ -188,6 +195,7 @@ public class TriggerReactor extends JavaPlugin {
 
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
+        bungeeConnectionThread.interrupt();
         getLogger().info("Shut down complete!");
     }
 
@@ -209,7 +217,7 @@ public class TriggerReactor extends JavaPlugin {
                     return true;
                 }else if(args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")){
                     if(args.length == 1){
-                        scriptEditManager.startEdit((Conversable) sender, "Click Trigger", "", new SaveHandler(){
+                        scriptEditManager.startEdit((Player) sender, "Click Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
                                 if(clickManager.startLocationSet((Player) sender, script)){
@@ -232,7 +240,7 @@ public class TriggerReactor extends JavaPlugin {
                     return true;
                 } else if (args[0].equalsIgnoreCase("walk") || args[0].equalsIgnoreCase("w")) {
                     if(args.length == 1){
-                        scriptEditManager.startEdit((Conversable) sender, "Walk Trigger", "", new SaveHandler(){
+                        scriptEditManager.startEdit((Player) sender, "Walk Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
                                 if (walkManager.startLocationSet((Player) sender, script)) {
@@ -258,7 +266,7 @@ public class TriggerReactor extends JavaPlugin {
                         sender.sendMessage(ChatColor.GRAY + "This command is already binded!");
                     }else{
                         if(args.length == 2){
-                            scriptEditManager.startEdit((Conversable) sender, "Command Trigger", "", new SaveHandler(){
+                            scriptEditManager.startEdit((Player) sender, "Command Trigger", "", new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     cmdManager.addCommandTrigger(sender, args[1], script);
@@ -349,7 +357,7 @@ public class TriggerReactor extends JavaPlugin {
 
                         if(args.length == 4){
                             final int sizeCopy = size;
-                            scriptEditManager.startEdit((Conversable) sender, "Inventory Trigger", "", new SaveHandler() {
+                            scriptEditManager.startEdit((Player) sender, "Inventory Trigger", "", new SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
@@ -620,7 +628,7 @@ public class TriggerReactor extends JavaPlugin {
                         }
 
                         if(args.length == 3){
-                            scriptEditManager.startEdit((Conversable) sender, "Area Trigger [Enter]", "", new SaveHandler(){
+                            scriptEditManager.startEdit((Player) sender, "Area Trigger [Enter]", "", new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     try {
@@ -655,7 +663,7 @@ public class TriggerReactor extends JavaPlugin {
                         }
 
                         if(args.length == 3){
-                            scriptEditManager.startEdit((Conversable) sender, "Area Trigger [Exit]", "", new SaveHandler(){
+                            scriptEditManager.startEdit((Player) sender, "Area Trigger [Exit]", "", new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     try {
@@ -718,7 +726,7 @@ public class TriggerReactor extends JavaPlugin {
                     }
 
                     if(args.length == 3){
-                        scriptEditManager.startEdit((Conversable) sender,
+                        scriptEditManager.startEdit((Player) sender,
                                 "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
                                 new SaveHandler() {
                                     @Override
@@ -842,6 +850,8 @@ public class TriggerReactor extends JavaPlugin {
     }
 
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
+
+    public String SUB_PLAYERCOUNT;
     public boolean saveAsynchronously(final Manager manager){
         if(savings.contains(manager))
             return false;
@@ -942,8 +952,13 @@ public class TriggerReactor extends JavaPlugin {
         sender.sendMessage("  "+ChatColor.GRAY+detail);
     }
 
-    public class BungeeCordHelper implements PluginMessageListener {
+    public class BungeeCordHelper implements PluginMessageListener, Runnable{
         private final String CHANNEL = "BungeeCord";
+
+        private final String SUB_SERVERLIST = "ServerList";
+        private final String SUB_USERCOUNT = "UserCount";
+
+        private final Map<String, Integer> playerCounts = new ConcurrentHashMap<>();
 
         /**
          * constructor should only be called from onEnable()
@@ -958,12 +973,21 @@ public class TriggerReactor extends JavaPlugin {
             if (!channel.equals(CHANNEL)) {
                 return;
             }
-/*            ByteArrayDataInput in = ByteStreams.newDataInput(message);
+
+            ByteArrayDataInput in = ByteStreams.newDataInput(message);
             String subchannel = in.readUTF();
-            if (subchannel.equals("SomeSubChannel")) {
-                // Use the code sample in the 'Response' sections below to read
-                // the data.
-            }*/
+            if (subchannel.equals(SUB_SERVERLIST)) {
+                String[] serverList = in.readUTF().split(", ");
+                playerCounts.clear();
+                for(String server : serverList){
+                    playerCounts.put(server, -1);
+                }
+            } else if(subchannel.equals(SUB_USERCOUNT)){
+                String server = in.readUTF(); // Name of server, as given in the arguments
+                int playercount = in.readInt();
+
+                playerCounts.put(server, playercount);
+            }
         }
 
         public void sendToServer(Player player, String serverName){
@@ -972,6 +996,45 @@ public class TriggerReactor extends JavaPlugin {
             out.writeUTF(serverName);
 
             player.sendPluginMessage(TriggerReactor.this, CHANNEL, out.toByteArray());
+        }
+
+        public String[] getServerNames(){
+            String[] servers = playerCounts.keySet().toArray(new String[playerCounts.size()]);
+            return servers;
+        }
+
+        public int getPlayerCount(String serverName){
+            return playerCounts.getOrDefault(serverName, -1);
+        }
+
+        @Override
+        public void run(){
+            while(!Thread.interrupted()){
+                Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
+                if(player == null)
+                    return;
+
+                ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                out.writeUTF(SUB_SERVERLIST);
+                out.writeUTF("GetServers");
+                player.sendPluginMessage(instance, SUB_SERVERLIST, out.toByteArray());
+
+                if(!playerCounts.isEmpty()){
+                    for(Entry<String, Integer> entry : playerCounts.entrySet()){
+                        ByteArrayDataOutput out2 = ByteStreams.newDataOutput();
+                        out2.writeUTF(SUB_PLAYERCOUNT);
+                        out2.writeUTF("PlayerCount");
+                        out2.writeUTF(entry.getKey());
+                        player.sendPluginMessage(instance, SUB_PLAYERCOUNT, out2.toByteArray());
+                    }
+                }
+
+                try {
+                    Thread.sleep(5 * 1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
