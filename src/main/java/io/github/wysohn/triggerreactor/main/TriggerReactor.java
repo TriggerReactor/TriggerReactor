@@ -46,6 +46,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
@@ -978,9 +979,21 @@ public class TriggerReactor extends JavaPlugin {
             String subchannel = in.readUTF();
             if (subchannel.equals(SUB_SERVERLIST)) {
                 String[] serverList = in.readUTF().split(", ");
-                playerCounts.clear();
-                for(String server : serverList){
-                    playerCounts.put(server, -1);
+                Set<String> serverListSet = Sets.newHashSet(serverList);
+
+                for(String server : serverListSet){
+                    if(!playerCounts.containsKey(server))
+                        playerCounts.put(server, -1);
+                }
+
+                Set<String> deleteServer = new HashSet<>();
+                for(Entry<String, Integer> entry : playerCounts.entrySet()){
+                    if(!serverListSet.contains(entry.getKey()))
+                        deleteServer.add(entry.getKey());
+                }
+
+                for(String delete : deleteServer){
+                    playerCounts.remove(delete);
                 }
             } else if(subchannel.equals(SUB_USERCOUNT)){
                 String server = in.readUTF(); // Name of server, as given in the arguments
