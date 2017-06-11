@@ -94,8 +94,9 @@ public class ScriptEditor{
 	private void printFooter(Conversable conversable) {
 		printSeparator(conversable);
 		conversable.sendRawMessage(ChatColor.LIGHT_PURPLE + "u <lines>" + ChatColor.DARK_GRAY + ", "
-				+ ChatColor.LIGHT_PURPLE + "d <lines>" + ChatColor.DARK_GRAY + ", " + ChatColor.LIGHT_PURPLE + "il"
-				+ ChatColor.DARK_GRAY + ", " + ChatColor.LIGHT_PURPLE + "dl");
+				+ ChatColor.LIGHT_PURPLE + "d <lines>" + ChatColor.DARK_GRAY + ", "
+		        + ChatColor.LIGHT_PURPLE + "il"+ ChatColor.DARK_GRAY + ", "
+				+ ChatColor.LIGHT_PURPLE + "dl");
 	}
 
 	public void save() throws IOException, ScriptException{
