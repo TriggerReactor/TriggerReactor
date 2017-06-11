@@ -145,13 +145,18 @@ public class Interpreter {
             }
     }
 
+    //Check if stopFlag is on before pop Token from stack.
     private void start(Node node) throws InterpreterException{
         if(stopFlag)
             return;
 
         if ("IF".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
+
+            if(stopFlag)
+                return;
             Token resultToken = stack.pop();
+
             if(isVariable(resultToken)){
                 resultToken = unwrapVariable(resultToken);
             }
@@ -176,6 +181,9 @@ public class Interpreter {
             }
         } else if("FOR".equals(node.getToken().value)){
             start(node.getChildren().get(0));
+
+            if(stopFlag)
+                return;
             Token idToken = stack.pop();
 
             if (node.getChildren().get(1).getToken().type != Type.ITERATOR)
@@ -184,6 +192,9 @@ public class Interpreter {
 
             if(iterNode.getChildren().size() == 1){
                 start(iterNode.getChildren().get(0));
+
+                if(stopFlag)
+                    return;
                 Token valueToken = stack.pop();
 
                 if(!valueToken.isIterable())
@@ -201,12 +212,18 @@ public class Interpreter {
                 if(initNode.getToken().type != Type.INTEGER)
                     throw new InterpreterException("Init value must be an Integer value!");
                 start(initNode);
+
+                if(stopFlag)
+                    return;
                 Token initToken = stack.pop();
 
                 Node limitNode = iterNode.getChildren().get(1);
                 if(limitNode.getToken().type != Type.INTEGER)
                     throw new InterpreterException("Limit value must be an Integer value!");
                 start(limitNode);
+
+                if(stopFlag)
+                    return;
                 Token limitToken = stack.pop();
 
                 for(int i = initToken.toInt(); !stopFlag && i < limitToken.toInt(); i++){

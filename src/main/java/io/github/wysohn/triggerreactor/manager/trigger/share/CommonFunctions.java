@@ -216,6 +216,27 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * Create a new ItemStack
+     * @param type typeId
+     * @param amount amount of item
+     * @param data data
+     * @return the ItemStack
+     */
+    public ItemStack item(int type, int amount, int data){
+        return new ItemStack(type, amount, (short) data);
+    }
+
+    /**
+     * Create a new ItemStack
+     * @param type typeId
+     * @param amount amount of item
+     * @return the ItemStack
+     */
+    public ItemStack item(int type, int amount){
+        return item(type, amount, 0);
+    }
+
+    /**
      * Set title of the specified ItemStack
      * @param IS
      * @param title

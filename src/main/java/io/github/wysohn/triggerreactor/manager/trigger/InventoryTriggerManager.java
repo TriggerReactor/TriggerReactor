@@ -40,7 +40,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -324,6 +326,20 @@ public class InventoryTriggerManager extends TriggerManager {
         return inventory;
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////
+    @EventHandler
+    public void onOpen(InventoryOpenEvent e){
+        Inventory inventory = e.getInventory();
+
+        if (!inventoryMap.containsKey(inventory))
+            return;
+        InventoryTrigger trigger = inventoryMap.get(inventory);
+
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        insertPlayerVariables((Player) e.getPlayer(), varMap);
+        varMap.put("trigger", "open");
+
+        trigger.activate(e, varMap);
+    }
 
     @EventHandler(ignoreCancelled = true)
     public void onDrag(InventoryDragEvent e) {
@@ -350,7 +366,6 @@ public class InventoryTriggerManager extends TriggerManager {
             return;
 
         Map<String, Object> varMap = inventorySharedVars.get(inventory);
-        insertPlayerVariables((Player) e.getWhoClicked(), varMap);
         if(e.getRawSlot() < trigger.items.length){
             if(trigger.items[e.getRawSlot()] == null)
                 varMap.put("item", new ItemStack(Material.AIR));
@@ -360,6 +375,7 @@ public class InventoryTriggerManager extends TriggerManager {
         varMap.put("slot", e.getRawSlot());
         varMap.put("click", e.getClick().name());
         varMap.put("hotbar", e.getHotbarButton());
+        varMap.put("trigger", "click");
 
         trigger.activate(e, varMap);
     }
@@ -411,6 +427,17 @@ public class InventoryTriggerManager extends TriggerManager {
     @EventHandler
     public void onClose(InventoryCloseEvent e){
         Inventory inventory = e.getInventory();
+
+        if (!inventoryMap.containsKey(inventory))
+            return;
+        InventoryTrigger trigger = inventoryMap.get(inventory);
+
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        insertPlayerVariables((Player) e.getPlayer(), varMap);
+        varMap.put("trigger", "close");
+
+        trigger.activate(e, varMap);
+
         inventoryMap.remove(inventory);
         inventorySharedVars.remove(inventory);
     }
@@ -466,8 +493,12 @@ public class InventoryTriggerManager extends TriggerManager {
                             return false;
                         }
 
-                        if(e instanceof InventoryClickEvent){
-                            Inventory inv = ((InventoryClickEvent) e).getWhoClicked().getOpenInventory().getTopInventory();
+                        //safety feature to stop all trigger immediately if executing on 'open' or 'click'
+                        //  is still running after the inventory is closed.
+                        //TODO: documentation about loop in 'close' can fail really bad
+                        if(e instanceof InventoryOpenEvent
+                                || e instanceof InventoryClickEvent){
+                            Inventory inv = ((InventoryEvent) e).getInventory();
 
                             //it's not GUI so stop execution
                             if(!inventoryMap.containsKey(inv))
@@ -517,20 +548,6 @@ public class InventoryTriggerManager extends TriggerManager {
                     player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
                     player.sendMessage(ChatColor.RED+ex.getMessage());
                     player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
-                }
-            }
-        }
-
-        private void updateGUI(Event e) {
-            if(e instanceof InventoryClickEvent){
-                HumanEntity hm = ((InventoryClickEvent) e).getWhoClicked();
-                if(hm instanceof Player){
-                    Bukkit.getScheduler().runTask(plugin, new Runnable(){
-                        @Override
-                        public void run() {
-                            openGUI((Player) hm, name);
-                        }
-                    });
                 }
             }
         }
