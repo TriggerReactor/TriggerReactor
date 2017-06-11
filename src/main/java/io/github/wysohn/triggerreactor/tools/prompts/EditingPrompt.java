@@ -99,11 +99,9 @@ public class EditingPrompt implements Prompt, Listener {
 			}
 
 			editor.down(lines);
-		} else {
-			editor.intput(arg1);
+		} else{
+			editor.intput(arg1.replaceAll("\\$", " "));
 		}
-
-		//editor.printScript(arg0.getForWhom());
 		return this;
 	}
 

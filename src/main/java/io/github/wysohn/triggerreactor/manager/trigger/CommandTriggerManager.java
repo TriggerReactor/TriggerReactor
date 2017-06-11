@@ -67,6 +67,7 @@ public class CommandTriggerManager extends TriggerManager {
                 script = FileUtil.readFromFile(file);
             } catch (IOException e) {
                 e.printStackTrace();
+                continue;
             }
 
             CommandTrigger trigger = null;
@@ -74,6 +75,7 @@ public class CommandTriggerManager extends TriggerManager {
                 trigger = new CommandTrigger(script);
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
+                continue;
             }
 
             commandTriggerMap.put(fileName, trigger);

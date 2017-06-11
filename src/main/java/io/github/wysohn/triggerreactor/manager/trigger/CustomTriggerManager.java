@@ -171,6 +171,7 @@ public class CustomTriggerManager extends TriggerManager {
             } catch (ClassNotFoundException e1) {
                 e1.printStackTrace();
                 plugin.getLogger().warning("Could not load "+file);
+                continue;
             }
 
             boolean isSync = yamlFile.getBoolean("Sync", false);

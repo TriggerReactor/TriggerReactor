@@ -106,6 +106,7 @@ public class InventoryTriggerManager extends TriggerManager {
             } catch (IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                continue;
             }
 
             if(!yaml.contains("Size")){
@@ -141,6 +142,7 @@ public class InventoryTriggerManager extends TriggerManager {
             } catch (IOException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                continue;
             }
 
             InventoryTrigger trigger = null;

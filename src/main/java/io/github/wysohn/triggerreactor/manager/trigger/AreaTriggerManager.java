@@ -90,6 +90,7 @@ public class AreaTriggerManager extends TriggerManager {
             } catch (IOException | InvalidConfigurationException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load Area Trigger "+file);
+                continue;
             }
 
             String name = file.getName().substring(0, file.getName().indexOf('.'));
@@ -120,6 +121,7 @@ public class AreaTriggerManager extends TriggerManager {
                 enterScript = FileUtil.readFromFile(new File(scriptFolder, "Enter"));
             } catch (IOException e1) {
                 e1.printStackTrace();
+                continue;
             }
 
             String exitScript = null;
@@ -127,6 +129,7 @@ public class AreaTriggerManager extends TriggerManager {
                 exitScript = FileUtil.readFromFile(new File(scriptFolder, "Exit"));
             } catch (IOException e1) {
                 e1.printStackTrace();
+                continue;
             }
 
             Set<SimpleChunkLocation> set = getAllChunkLocations(area);
@@ -146,6 +149,7 @@ public class AreaTriggerManager extends TriggerManager {
                 }
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
+                continue;
             }
 
             try {
@@ -154,6 +158,7 @@ public class AreaTriggerManager extends TriggerManager {
                 }
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
+                continue;
             }
         }
     }

@@ -156,6 +156,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             } catch (ScriptException | IOException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load executor "+file.getName());
+                continue;
             }
         }
     }

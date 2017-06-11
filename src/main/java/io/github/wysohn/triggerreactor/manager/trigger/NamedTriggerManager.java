@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -49,36 +50,37 @@ public class NamedTriggerManager extends TriggerManager {
     public void reload() {
         triggers.clear();
 
-        for(File file : folder.listFiles()){
-            load(new Stack<String>(), file);
+        for (File file : folder.listFiles()) {
+            try {
+                load(new Stack<String>(), file);
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+                continue;
+            }
         }
     }
 
-    private void load(Stack<String> stack, File file) {
-        if(file.isDirectory()){
+    private void load(Stack<String> stack, File file)
+            throws UnsupportedEncodingException, IOException, LexerException, ParserException {
+        if (file.isDirectory()) {
             stack.push(file.getName());
-            for(File f : file.listFiles()){
+            for (File f : file.listFiles()) {
                 load(stack, f);
             }
             stack.pop();
-        }else{
+        } else {
             StringBuilder builder = new StringBuilder();
-            for(int i = stack.size() - 1; i >= 0; i--){
-                builder.append(stack.get(i)+":");
+            for (int i = stack.size() - 1; i >= 0; i--) {
+                builder.append(stack.get(i) + ":");
             }
             String fileName = file.getName();
             builder.append(fileName);
 
-            if(triggers.containsKey(builder.toString())){
-                plugin.getLogger().warning(builder.toString()+" already registered! Duplicating executors?");
-            }else{
-                try{
-                    Trigger trigger = new NamedTrigger(FileUtil.readFromFile(file));
-                    triggers.put(builder.toString(), trigger);
-                }catch(IOException | LexerException | ParserException e){
-                    e.printStackTrace();
-                    plugin.getLogger().warning("Failed to load trigger "+builder.toString()+"!");
-                }
+            if (triggers.containsKey(builder.toString())) {
+                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
+            } else {
+                Trigger trigger = new NamedTrigger(FileUtil.readFromFile(file));
+                triggers.put(builder.toString(), trigger);
             }
         }
     }

@@ -89,6 +89,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                 sloc = stringToSloc(fileName);
             }catch(Exception e){
                 e.printStackTrace();
+                continue;
             }
 
             String script = null;
@@ -96,6 +97,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                 script = FileUtil.readFromFile(file);
             } catch (IOException e1) {
                 e1.printStackTrace();
+                continue;
             }
 
             T trigger = null;
@@ -103,6 +105,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                 trigger = constructTrigger(script);
             } catch (LexerException | ParserException | IOException e) {
                 e.printStackTrace();
+                continue;
             }
 
             if(sloc != null && trigger != null){
