@@ -27,9 +27,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.event.PlayerBlockLocationEvent;
@@ -45,6 +47,22 @@ public class PlayerLocationManager extends Manager implements Listener{
 
     @EventHandler(priority = EventPriority.LOW)
     public void onJoin(PlayerJoinEvent e){
+        Player player = e.getPlayer();
+        Location loc = player.getLocation();
+        SimpleLocation sloc = new SimpleLocation(loc);
+        locations.put(player.getUniqueId(), sloc);
+    }
+
+    @EventHandler
+    public void onSpawn(PlayerRespawnEvent e){
+        Player player = e.getPlayer();
+        Location loc = player.getLocation();
+        SimpleLocation sloc = new SimpleLocation(loc);
+        locations.put(player.getUniqueId(), sloc);
+    }
+
+    @EventHandler
+    public void onTeleport(PlayerChangedWorldEvent e){
         Player player = e.getPlayer();
         Location loc = player.getLocation();
         SimpleLocation sloc = new SimpleLocation(loc);
