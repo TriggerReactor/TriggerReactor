@@ -272,6 +272,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         showTriggerInfo(player, clicked);
 
         stopLocationSet(player);
+
+        plugin.saveAsynchronously(this);
     }
 
     @EventHandler(priority = EventPriority.LOW)

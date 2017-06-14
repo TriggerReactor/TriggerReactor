@@ -49,7 +49,7 @@ public class VariableManager extends Manager{
     private class VariableAutoSaveThread extends Thread{
         VariableAutoSaveThread(){
             setPriority(MIN_PRIORITY);
-            this.setName("Trigger Reactor Variable Saving Thread");
+            this.setName("TriggerReactor Variable Saving Thread");
         }
 
         @Override
