@@ -273,6 +273,8 @@ public class TriggerReactor extends JavaPlugin {
                                     cmdManager.addCommandTrigger(sender, args[1], script);
 
                                     sender.sendMessage(ChatColor.GREEN+"Command trigger is binded!");
+
+                                    saveAsynchronously(cmdManager);
                                 }
                             });
                         }else{
@@ -283,6 +285,8 @@ public class TriggerReactor extends JavaPlugin {
                             cmdManager.addCommandTrigger(sender, args[1], builder.toString());
 
                             sender.sendMessage(ChatColor.GREEN+"Command trigger is binded!");
+
+                            saveAsynchronously(cmdManager);
                         }
                     }
                     return true;
@@ -342,8 +346,6 @@ public class TriggerReactor extends JavaPlugin {
                         sender.sendMessage(ChatColor.GRAY+"Value of "+name+": "+variableManager.get(name));
 
                         return true;
-                    }else{
-
                     }
                 } else if(args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")){
                     if(args.length > 3 && args[2].equalsIgnoreCase("create")){
@@ -365,7 +367,7 @@ public class TriggerReactor extends JavaPlugin {
                                         if(invManager.createTrigger(sizeCopy, name, script)){
                                             sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
 
-                                            invManager.saveAll();
+                                            saveAsynchronously(invManager);
                                         }else{
                                             sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
                                         }
@@ -381,7 +383,7 @@ public class TriggerReactor extends JavaPlugin {
                                 if(invManager.createTrigger(size, name, script)){
                                     sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
 
-                                    invManager.saveAll();
+                                    saveAsynchronously(invManager);
                                 }else{
                                     sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
                                 }
@@ -395,7 +397,7 @@ public class TriggerReactor extends JavaPlugin {
                         if(invManager.deleteTrigger(name)){
                             sender.sendMessage(ChatColor.GREEN+"Deleted!");
 
-                            invManager.saveAll();
+                            saveAsynchronously(invManager);
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"No such inventory trigger found.");
                         }
@@ -426,7 +428,7 @@ public class TriggerReactor extends JavaPlugin {
 
                         trigger.getItems()[index] = IS;
 
-                        invManager.saveAll();
+                        saveAsynchronously(invManager);
                     } else if(args.length > 2 && args[2].equalsIgnoreCase("open")){
                         String name = args[1];
                         Player forWhom;
@@ -602,7 +604,8 @@ public class TriggerReactor extends JavaPlugin {
 
                         if(areaManager.createArea(name, selected.getSmallest(), selected.getLargest())){
                             sender.sendMessage(ChatColor.GREEN+"Area Trigger has created!");
-                            areaManager.saveAll();
+
+                            saveAsynchronously(areaManager);
 
                             areaManager.SELECTION_HELPER.resetSelections((Player) sender);
                         }else{
@@ -613,7 +616,8 @@ public class TriggerReactor extends JavaPlugin {
 
                         if(areaManager.deleteArea(name)){
                             sender.sendMessage(ChatColor.GREEN+"Area Trigger deleted");
-                            areaManager.saveAll();
+
+                            saveAsynchronously(areaManager);
 
                             areaManager.SELECTION_HELPER.resetSelections((Player) sender);
                         }else{
@@ -634,7 +638,8 @@ public class TriggerReactor extends JavaPlugin {
                                 public void onSave(String script) {
                                     try {
                                         trigger.setEnterTrigger(script);
-                                        areaManager.saveAll();
+
+                                        saveAsynchronously(areaManager);
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
                                         sender.sendMessage(ChatColor.RED+"Could not save!");
@@ -646,7 +651,8 @@ public class TriggerReactor extends JavaPlugin {
                         }else{
                             try {
                                 trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
-                                areaManager.saveAll();
+
+                                saveAsynchronously(areaManager);
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
                                 sender.sendMessage(ChatColor.RED+"Could not save!");
@@ -669,7 +675,8 @@ public class TriggerReactor extends JavaPlugin {
                                 public void onSave(String script) {
                                     try {
                                         trigger.setExitTrigger(script);
-                                        areaManager.saveAll();
+
+                                        saveAsynchronously(areaManager);
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
                                         sender.sendMessage(ChatColor.RED+"Could not save!");
@@ -681,7 +688,8 @@ public class TriggerReactor extends JavaPlugin {
                         }else{
                             try {
                                 trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
-                                areaManager.saveAll();
+
+                                saveAsynchronously(areaManager);
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
                                 sender.sendMessage(ChatColor.RED+"Could not save!");
@@ -699,7 +707,8 @@ public class TriggerReactor extends JavaPlugin {
                         }
 
                         trigger.setSync(!trigger.isSync());
-                        areaManager.saveAll();
+
+                        saveAsynchronously(areaManager);
 
                         sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
                     } else {
@@ -735,7 +744,7 @@ public class TriggerReactor extends JavaPlugin {
                                         try {
                                             customManager.createCustomTrigger(eventName, name, script);
 
-                                            customManager.saveAll();
+                                            saveAsynchronously(customManager);
 
                                             sender.sendMessage(ChatColor.GREEN+"Custom Trigger created!");
                                         } catch (ClassNotFoundException | IOException | LexerException
@@ -752,7 +761,7 @@ public class TriggerReactor extends JavaPlugin {
                         try {
                             customManager.createCustomTrigger(eventName, name, script);
 
-                            customManager.saveAll();
+                            saveAsynchronously(customManager);
 
                             sender.sendMessage(ChatColor.GREEN+"Custom Trigger created!");
                         } catch (IOException | LexerException | ParserException e) {
@@ -776,6 +785,8 @@ public class TriggerReactor extends JavaPlugin {
 
                     trigger.setSync(!trigger.isSync());
 
+                    saveAsynchronously(customManager);
+
                     sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
                     return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
@@ -790,6 +801,8 @@ public class TriggerReactor extends JavaPlugin {
                     case "command":
                         if(cmdManager.removeCommandTrigger(key)){
                             sender.sendMessage(ChatColor.GREEN+"Removed the command trigger "+ChatColor.GOLD+key);
+
+                            saveAsynchronously(cmdManager);
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"Command trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
                         }
@@ -797,6 +810,8 @@ public class TriggerReactor extends JavaPlugin {
                     case "custom":
                         if(customManager.removeTriggerForName(key)){
                             sender.sendMessage(ChatColor.GREEN+"Removed the custom trigger "+ChatColor.GOLD+key);
+
+                            saveAsynchronously(customManager);
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"Custom Trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
                         }
@@ -852,7 +867,6 @@ public class TriggerReactor extends JavaPlugin {
 
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
 
-    public String SUB_PLAYERCOUNT;
     public boolean saveAsynchronously(final Manager manager){
         if(savings.contains(manager))
             return false;
@@ -1035,10 +1049,10 @@ public class TriggerReactor extends JavaPlugin {
                 if(!playerCounts.isEmpty()){
                     for(Entry<String, Integer> entry : playerCounts.entrySet()){
                         ByteArrayDataOutput out2 = ByteStreams.newDataOutput();
-                        out2.writeUTF(SUB_PLAYERCOUNT);
+                        out2.writeUTF(SUB_USERCOUNT);
                         out2.writeUTF("PlayerCount");
                         out2.writeUTF(entry.getKey());
-                        player.sendPluginMessage(instance, SUB_PLAYERCOUNT, out2.toByteArray());
+                        player.sendPluginMessage(instance, SUB_USERCOUNT, out2.toByteArray());
                     }
                 }
 
