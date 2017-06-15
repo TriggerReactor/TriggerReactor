@@ -47,5 +47,7 @@ public abstract class APISupport {
             throw new APISupportException(targetPluginName);
 
         target = plugin;
+
+        this.plugin.getLogger().info("Enabled support for "+targetPluginName+" "+target.getDescription().getFullName());
     }
 }

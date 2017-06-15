@@ -17,10 +17,10 @@
 package io.github.wysohn.triggerreactor.manager;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,6 +42,7 @@ import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.mcmmo.McMmoSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
@@ -55,25 +56,28 @@ public abstract class TriggerManager extends Manager{
     public TriggerManager(TriggerReactor plugin) {
         super(plugin);
 
-        addSharedVars("vault", new VaultSupport(plugin));
-        addSharedVars("mcmmo", new VaultSupport(plugin));
-
-        initSharedVars();
+        addSharedVars("vault", VaultSupport.class);
+        addSharedVars("mcmmo", McMmoSupport.class);
     }
 
-    public void addSharedVars(String varName, APISupport obj){
+    public void addSharedVars(String varName, Class<? extends APISupport> clazz){
         if(!sharedVars.containsKey(varName)){
-            sharedVars.put(varName, obj);
-        }
-    }
+            Constructor con = null;
+            try {
+                con = clazz.getConstructor(TriggerReactor.class);
+            } catch (NoSuchMethodException | SecurityException e1) {
+                e1.printStackTrace();
+            }
 
-    private void initSharedVars() {
-        for(Entry<String, APISupport> entry : sharedVars.entrySet()){
-            try{
-                entry.getValue().init();
-            }catch(Exception e){
+            APISupport api = null;
+            try {
+                api = (APISupport) con.newInstance(plugin);
+                api.init();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            sharedVars.put(varName, api);
         }
     }
 
