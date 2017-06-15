@@ -79,6 +79,10 @@ public class VaultSupport extends APISupport {
         return (economy != null);
     }
 
+    /**
+     * This allows the direct access to the object.
+     * @return
+     */
     public Object permission() {
         if(permission == null)
             throw new APISupportException("Vault", "Permission");
@@ -86,6 +90,10 @@ public class VaultSupport extends APISupport {
         return permission;
     }
 
+    /**
+     * This allows the direct access to the object.
+     * @return
+     */
     public Object economy() {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
@@ -93,6 +101,10 @@ public class VaultSupport extends APISupport {
         return economy;
     }
 
+    /**
+     * This allows the direct access to the object.
+     * @return
+     */
     public Object chat() {
         if(chat == null)
             throw new APISupportException("Vault", "Chat");
@@ -100,6 +112,12 @@ public class VaultSupport extends APISupport {
         return chat;
     }
 
+    /**
+     * Check if player has the specified amount.
+     * @param offp
+     * @param amount
+     * @return true if has; false if not enough fund
+     */
     public boolean has(Player offp, Double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
@@ -107,6 +125,13 @@ public class VaultSupport extends APISupport {
         return economy.has(offp, amount);
     }
 
+    /**
+     * Give amount to the player. This return true most of the time, but it might be false if your economy
+     *  plugin has maximum limit, or any other reason to not allow adding more money to the player.
+     * @param player
+     * @param amount
+     * @return true on success; false on fail
+     */
     public boolean give(Player player, Double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
@@ -114,6 +139,12 @@ public class VaultSupport extends APISupport {
         return economy.depositPlayer(player, amount).transactionSuccess();
     }
 
+    /**
+     * Take money from the player. It returns false if player doesn't have enough money.
+     * @param player
+     * @param amount
+     * @return true on success; false if not enough fund or any other reason depends on economy plugin.
+     */
     public boolean take(Player player, Double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
@@ -121,6 +152,12 @@ public class VaultSupport extends APISupport {
         return economy.withdrawPlayer(player, amount).transactionSuccess();
     }
 
+    /**
+     * Set exact amount of money for specified player.
+     * @param player
+     * @param amount
+     * @return true most of time; false if something unexpected happen.
+     */
     public boolean set(Player player, Double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
@@ -131,6 +168,11 @@ public class VaultSupport extends APISupport {
         return economy.depositPlayer(player, amount).transactionSuccess();
     }
 
+    /**
+     * Get current balance of the player.
+     * @param player
+     * @return balance of the player. It can be negative if the economy plugin allows it.
+     */
     public double balance(Player player) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
