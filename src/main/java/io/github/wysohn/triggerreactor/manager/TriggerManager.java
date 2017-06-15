@@ -162,6 +162,7 @@ public abstract class TriggerManager extends Manager{
                 return false;
             }
 
+            scriptVars.put("event", e);
             scriptVars.putAll(ReflectionUtil.extractVariablesWithEnumAsString(e));
 
             Interpreter interpreter = initInterpreter(scriptVars);
