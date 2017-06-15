@@ -118,7 +118,7 @@ public class VaultSupport extends APISupport {
      * @param amount
      * @return true if has; false if not enough fund
      */
-    public boolean has(Player offp, Double amount) {
+    public boolean has(Player offp, double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
 
@@ -132,7 +132,7 @@ public class VaultSupport extends APISupport {
      * @param amount
      * @return true on success; false on fail
      */
-    public boolean give(Player player, Double amount) {
+    public boolean give(Player player, double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
 
@@ -145,7 +145,7 @@ public class VaultSupport extends APISupport {
      * @param amount
      * @return true on success; false if not enough fund or any other reason depends on economy plugin.
      */
-    public boolean take(Player player, Double amount) {
+    public boolean take(Player player, double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
 
@@ -158,7 +158,7 @@ public class VaultSupport extends APISupport {
      * @param amount
      * @return true most of time; false if something unexpected happen.
      */
-    public boolean set(Player player, Double amount) {
+    public boolean set(Player player, double amount) {
         if(economy == null)
             throw new APISupportException("Vault", "Economy");
 
