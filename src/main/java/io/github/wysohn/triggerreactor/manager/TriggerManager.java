@@ -55,10 +55,16 @@ public abstract class TriggerManager extends Manager{
     public TriggerManager(TriggerReactor plugin) {
         super(plugin);
 
-        sharedVars.put("vault", new VaultSupport(plugin));
-        sharedVars.put("mcmmo", new VaultSupport(plugin));
+        addSharedVars("vault", new VaultSupport(plugin));
+        addSharedVars("mcmmo", new VaultSupport(plugin));
 
         initSharedVars();
+    }
+
+    public void addSharedVars(String varName, APISupport obj){
+        if(!sharedVars.containsKey(varName)){
+            sharedVars.put(varName, obj);
+        }
     }
 
     private void initSharedVars() {
