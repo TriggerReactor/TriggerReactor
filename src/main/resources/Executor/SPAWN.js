@@ -18,7 +18,7 @@ function SPAWN(args){
 	var EntityType = Java.type("org.bukkit.entity.EntityType");
 	var world = player.getWorld();
 	
-	if(args.lenth == 1){
+	if(args.length == 1){
 		var entity = EntityType.valueOf(args[0]);
 		
 		world.spawnEntity(player.getLocation(), entity);
@@ -26,7 +26,7 @@ function SPAWN(args){
 		var loc = args[0];
 		var entity = EntityType.valueOf(args[1]);
 		
-		world.spawnEntity(entity);
+		world.spawnEntity(loc, entity);
 	}else{
 		throw new Error("Invalid parameters. Need [String] or [Location, String]")
 	}
