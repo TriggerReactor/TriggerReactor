@@ -237,6 +237,20 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * Get title of the specified ItemStack. Empty String if not exist.
+     * @param IS
+     * @return
+     */
+    public String getItemTitle(ItemStack IS){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            return "";
+
+        String dispName = IM.getDisplayName();
+        return dispName == null ? "" : dispName;
+    }
+
+    /**
      * Set title of the specified ItemStack
      * @param IS
      * @param title
