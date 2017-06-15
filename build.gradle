@@ -4,6 +4,10 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 
+configurations {
+	jaxDoclet
+}
+
 buildscript {
   	ext.bukkit_version = "1.12-R0.1-SNAPSHOT"
   	ext.plugin_version = "0.1.0"
@@ -75,3 +79,12 @@ task fileYaml {
 	}
 }
 
+javadoc {
+	source = sourceSets.main.allJava
+	classpath = configurations.compile
+	failOnError = false
+	options { 
+       links "http://docs.oracle.com/javase/8/docs/api/" 
+       links "https://hub.spigotmc.org/javadocs/bukkit/"
+    } 
+}
