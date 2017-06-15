@@ -14,19 +14,20 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function SOUNDALL(args){
-	if(args.length == 4){
-        var Sound = Java.type('org.bukkit.Sound');
-        
+function SOUNDALL(args) {
+	if (args.length == 4) {
+		var Sound = Java.type('org.bukkit.Sound');
+
 		var location = args[0];
 		var volume = args[2];
 		var pitch = args[3];
-		
-        var sound = Sound.valueOf(args[1]);
-		
+
+		var sound = Sound.valueOf(args[1]);
+
 		player.getWorld().playSound(location, sound, volume, pitch);
 	} else {
-		throw new Error("Invalid parameters. Need [Location, Sound, Number, Number]")
+		throw new Error(
+				"Invalid parameters. Need [Location, Sound, Number, Number]")
 	}
 	return null;
 }
