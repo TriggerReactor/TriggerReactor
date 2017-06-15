@@ -121,20 +121,6 @@ public class CustomTriggerManager extends TriggerManager {
                 continue;
 
             EVENTS.put(info.getSimpleName(), clazz);
-
-            try{
-                plugin.getServer().getPluginManager().registerEvent(clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
-                    @Override
-                    public void execute(Listener arg0, Event arg1) throws EventException {
-                        handleEvent(arg1);
-                    }
-                }, plugin);
-            }catch(IllegalPluginAccessException e){
-                //event with no handler list will throw this exception
-                //which means it's a base event
-                if(!BASEEVENTS.contains(BASEEVENTS))
-                    BASEEVENTS.add(clazz);
-            }
         }
     }
 
@@ -182,11 +168,7 @@ public class CustomTriggerManager extends TriggerManager {
             try {
                 String read = FileUtil.readFromFile(codeFile);
 
-                Set<CustomTrigger> triggers = triggerMap.get(event);
-                if(triggers == null){
-                    triggers = new HashSet<>();
-                    triggerMap.put(event, triggers);
-                }
+                Set<CustomTrigger> triggers = getTriggerSetForEvent(event);
 
                 try {
                     CustomTrigger trigger = new CustomTrigger(event, eventName, fileName, read);
@@ -202,6 +184,40 @@ public class CustomTriggerManager extends TriggerManager {
                 e.printStackTrace();
                 continue;
             }
+        }
+    }
+
+    /**
+     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
+     *  if couldn't find existing one already, and register it so can handle the event.
+     * @param event any event that extends Event (and HandlerList of course)
+     * @return Set of CustomTriggers associated with the event
+     */
+    private Set<CustomTrigger> getTriggerSetForEvent(Class<? extends Event> event) {
+        Set<CustomTrigger> triggers = triggerMap.get(event);
+        if(triggers == null){
+            //this will allow TriggerReactor to hook events from other plugins as well.
+            registerEvent(plugin, event);
+
+            triggers = new HashSet<>();
+            triggerMap.put(event, triggers);
+        }
+        return triggers;
+    }
+
+    private void registerEvent(Plugin plugin, Class<? extends Event> clazz) {
+        try{
+            plugin.getServer().getPluginManager().registerEvent(clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
+                @Override
+                public void execute(Listener arg0, Event arg1) throws EventException {
+                    handleEvent(arg1);
+                }
+            }, plugin);
+        }catch(IllegalPluginAccessException e){
+            //event with no handler list will throw this exception
+            //which means it's a base event
+            if(!BASEEVENTS.contains(BASEEVENTS))
+                BASEEVENTS.add(clazz);
         }
     }
 
@@ -296,15 +312,11 @@ public class CustomTriggerManager extends TriggerManager {
         if(nameMap.containsKey(name))
             return false;
 
-        Class<? extends Event> clazz = this.getEventFromName(eventName);
+        Class<? extends Event> event = this.getEventFromName(eventName);
 
-        Set<CustomTrigger> triggers = triggerMap.get(clazz);
-        if(triggers == null){
-            triggers = new HashSet<>();
-            triggerMap.put(clazz, triggers);
-        }
+        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
 
-        CustomTrigger trigger = new CustomTrigger(clazz, eventName, name, script);
+        CustomTrigger trigger = new CustomTrigger(event, eventName, name, script);
 
         triggers.add(trigger);
         nameMap.put(name, trigger);
