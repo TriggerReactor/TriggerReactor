@@ -18,11 +18,12 @@ package io.github.wysohn.triggerreactor.manager;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -40,25 +41,34 @@ import io.github.wysohn.triggerreactor.core.parser.Parser;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.IVaultSupport;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public abstract class TriggerManager extends Manager{
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
-    private static CommonFunctions common = null;
+    private static final CommonFunctions common = new CommonFunctions();
 
-    private static IVaultSupport vault = null;
+    private static Map<String, APISupport> sharedVars = new HashMap<>();
 
     public TriggerManager(TriggerReactor plugin) {
         super(plugin);
 
-        if(common == null)
-            common = new CommonFunctions();
+        sharedVars.put("vault", new VaultSupport(plugin));
+        sharedVars.put("mcmmo", new VaultSupport(plugin));
 
-        if(vault == null && Bukkit.getPluginManager().isPluginEnabled("Vault"))
-            vault = new VaultSupport(plugin);
+        initSharedVars();
+    }
+
+    private void initSharedVars() {
+        for(Entry<String, APISupport> entry : sharedVars.entrySet()){
+            try{
+                entry.getValue().init();
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     protected void insertPlayerVariables(Player player, Map<String, Object> varMap) {
@@ -182,9 +192,7 @@ public abstract class TriggerManager extends Manager{
             interpreter.setSync(isSync());
 
             interpreter.getVars().putAll(scriptVars);
-
-            if(vault != null)
-                interpreter.getVars().put("vault", vault);
+            interpreter.getVars().putAll(sharedVars);
 
             return interpreter;
         }

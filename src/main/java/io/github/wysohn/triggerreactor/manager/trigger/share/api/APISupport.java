@@ -16,14 +16,36 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.manager.trigger.share.api;
 
+import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
+
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 
 public abstract class APISupport {
     protected final TriggerReactor plugin;
+    private final String targetPluginName;
 
-    public APISupport(TriggerReactor plugin) {
+    protected Plugin target;
+
+    public APISupport(TriggerReactor plugin, String targetPluginName) {
         super();
+        Validate.notNull(plugin);
+        Validate.notNull(targetPluginName);
+
         this.plugin = plugin;
+        this.targetPluginName = targetPluginName;
     }
 
+    /**
+     * Initialize this API. It may throw APISupportException if the plugin is not found.
+     * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
+     */
+    public void init() throws APISupportException{
+        Plugin plugin = Bukkit.getPluginManager().getPlugin(targetPluginName);
+        if(plugin == null || !plugin.isEnabled())
+            throw new APISupportException(targetPluginName);
+
+        target = plugin;
+    }
 }

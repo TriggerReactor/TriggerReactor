@@ -21,17 +21,23 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupportException;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
-public class VaultSupport extends APISupport implements IVaultSupport {
+public class VaultSupport extends APISupport {
     public Permission permission = null;
     public Economy economy = null;
     public Chat chat = null;
 
     public VaultSupport(TriggerReactor plugin) {
-        super(plugin);
+        super(plugin, "Vault");
+    }
+
+    @Override
+    public void init() throws APISupportException {
+        super.init();
 
         if(setupPermissions()){
             plugin.getLogger().info("Vault permission hooked.");
@@ -73,47 +79,62 @@ public class VaultSupport extends APISupport implements IVaultSupport {
         return (economy != null);
     }
 
-    @Override
+    public Object permission() {
+        if(permission == null)
+            throw new APISupportException("Vault", "Permission");
+
+        return permission;
+    }
+
+    public Object economy() {
+        if(economy == null)
+            throw new APISupportException("Vault", "Economy");
+
+        return economy;
+    }
+
+    public Object chat() {
+        if(chat == null)
+            throw new APISupportException("Vault", "Chat");
+
+        return chat;
+    }
+
     public boolean has(Player offp, Double amount) {
         if(economy == null)
-            throw new VaultSupportException("Economy");
+            throw new APISupportException("Vault", "Economy");
 
         return economy.has(offp, amount);
     }
 
-    @Override
     public boolean give(Player player, Double amount) {
         if(economy == null)
-            throw new VaultSupportException("Economy");
+            throw new APISupportException("Vault", "Economy");
 
         return economy.depositPlayer(player, amount).transactionSuccess();
     }
 
-    @Override
     public boolean take(Player player, Double amount) {
         if(economy == null)
-            throw new VaultSupportException("Economy");
+            throw new APISupportException("Vault", "Economy");
 
         return economy.withdrawPlayer(player, amount).transactionSuccess();
     }
 
-    @Override
     public boolean set(Player player, Double amount) {
         if(economy == null)
-            throw new VaultSupportException("Economy");
+            throw new APISupportException("Vault", "Economy");
 
         if(!economy.withdrawPlayer(player, balance(player)).transactionSuccess())
-            throw new VaultSupportException("Economy withdraw");
+            throw new APISupportException("Vault", "Economy withdraw");
 
         return economy.depositPlayer(player, amount).transactionSuccess();
     }
 
-    @Override
     public double balance(Player player) {
         if(economy == null)
-            throw new VaultSupportException("Economy");
+            throw new APISupportException("Vault", "Economy");
 
         return economy.getBalance(player);
     }
-
 }

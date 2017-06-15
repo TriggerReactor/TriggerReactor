@@ -55,6 +55,7 @@ dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 	
 	compile "org.spigotmc:spigot-api:$bukkit_version"
+	
 	compile "net.milkbowl.vault:VaultAPI:1.6"
 	
     testCompile 'junit:junit:4.+'

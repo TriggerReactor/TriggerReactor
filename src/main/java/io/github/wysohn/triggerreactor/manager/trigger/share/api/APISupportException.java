@@ -14,11 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.manager.trigger.share.api.vault;
+package io.github.wysohn.triggerreactor.manager.trigger.share.api;
 
 @SuppressWarnings("serial")
-public class VaultSupportException extends RuntimeException {
-    public VaultSupportException(String type) {
-        super(type + " is not hooked!");
+public class APISupportException extends RuntimeException {
+    public APISupportException(String type) {
+        super("[" + type + "] is not hooked!");
+    }
+
+    public APISupportException(String type, String child) {
+        super("[" + type + " @ " + child + "] is not hooked!");
     }
 }
