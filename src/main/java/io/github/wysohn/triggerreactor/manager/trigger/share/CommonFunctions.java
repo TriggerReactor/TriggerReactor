@@ -199,9 +199,9 @@ public class CommonFunctions implements SelfReference {
      * @return
      */
     public String mergeArguments(String[] args, Integer indexFrom, Integer indexTo) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = indexFrom; i <= indexTo; i++) {
-            builder.append(args[i] + " ");
+        StringBuilder builder = new StringBuilder(args[indexFrom]);
+        for(int i = indexFrom + 1; i <= indexTo; i++){
+            builder.append(" "+args[i]);
         }
         return builder.toString();
     }
