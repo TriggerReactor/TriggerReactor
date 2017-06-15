@@ -208,7 +208,7 @@ public class Parser {
                         return left;
 
                     if(!"=".equals(token.value))
-                        throw new ParserException("Expected '=' after id ["+left.getToken().value+"] but found "+token, this);
+                        throw new ParserException("Expected '=' after id ["+left.getToken()+"] but found "+token, this);
                     Node assign = new Node(new Token(Type.OPERATOR, "="));
                     nextToken();
 
