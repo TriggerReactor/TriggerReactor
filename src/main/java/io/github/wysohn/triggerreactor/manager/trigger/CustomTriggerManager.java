@@ -34,6 +34,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -132,6 +133,9 @@ public class CustomTriggerManager extends TriggerManager {
                 return pathname.getName().endsWith(".yml");
             }
         };
+
+        triggerMap.clear();
+        HandlerList.unregisterAll(listener);
 
         for(File file : folder.listFiles(filter)){
             if(!file.isFile())
