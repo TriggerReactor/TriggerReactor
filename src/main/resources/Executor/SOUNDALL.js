@@ -16,10 +16,13 @@
  *******************************************************************************/
 function SOUNDALL(args){
 	if(args.length == 4){
+        var Sound = Java.type('org.bukkit.Sound');
+        
 		var location = args[0];
-		var sound = args[1];
 		var volume = args[2];
 		var pitch = args[3];
+		
+        var sound = Sound.valueOf(args[1]);
 		
 		player.getWorld().playSound(location, sound, volume, pitch);
 	} else {
