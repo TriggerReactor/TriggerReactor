@@ -330,7 +330,7 @@ public class Parser {
                 //insert right comparison
                 node.getChildren().add(comparison);
             }else{
-                throw new ParserException("Expected a logic after ["+node.getToken().value+"] but found ["+token+"] !", this);
+                throw new ParserException("Expected a comparison after ["+node.getToken().value+"] but found ["+token+"] !", this);
             }
 
             Node logicAndComparison = parseLogicAndComparison(node);
