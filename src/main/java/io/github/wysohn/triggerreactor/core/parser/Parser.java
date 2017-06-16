@@ -330,12 +330,12 @@ public class Parser {
                 //insert right comparison
                 node.getChildren().add(comparison);
             }else{
-                throw new ParserException("Expected a comparison after ["+node.getToken().value+"] but found ["+token+"] !", this);
+                throw new ParserException("Expected a logic after ["+node.getToken().value+"] but found ["+token+"] !", this);
             }
 
-            Node termAndexpression = parseLogicAndComparison(node);
-            if(termAndexpression != null){
-                return termAndexpression;
+            Node logicAndComparison = parseLogicAndComparison(node);
+            if(logicAndComparison != null){
+                return logicAndComparison;
             }else{
                 return node;
             }
@@ -347,7 +347,10 @@ public class Parser {
     private Node parseComparison() throws IOException, LexerException, ParserException{
         Node expression = parseExpression();
 
-        if(token != null && token.type == Type.OPERATOR_L){
+        if(token != null && token.type == Type.OPERATOR_L
+                && ("<".equals(token.value) || "<=".equals(token.value)
+                        || ">".equals(token.value) || ">=".equals(token.value)
+                        || "==".equals(token.value)  || "!=".equals(token.value) )){
             Node node = new Node(token);
             nextToken();
 
@@ -514,6 +517,17 @@ public class Parser {
 
             Node node = new Node(new Token(token.type, "-"+token.value));
             nextToken();
+            return node;
+        }
+
+        //negation
+        if(token.type == Type.OPERATOR_L && "!".equals(token.value)){
+            Node node = new Node(token);
+            nextToken();
+
+            Node child = parseLogic();
+            node.getChildren().add(child);
+
             return node;
         }
 

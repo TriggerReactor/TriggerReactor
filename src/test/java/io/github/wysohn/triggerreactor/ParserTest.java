@@ -133,6 +133,48 @@ public class ParserTest {
         assertEquals(0, queue.size());
     }
 
+    @Test
+    public void testNegation() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "IF !(true && false && true || 2 < 1 && 1 < 2)\n"
+                + "    #MESSAGE \"test i=\"+i\n"
+                + "ENDIF\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "false")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "&&")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "&&")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "<")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "||")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "<")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "&&")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "!")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "test i=")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.COMMAND, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "IF")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+
     private void serializeNode(Queue<Node> queue, Node node){
         for(Node child : node.getChildren()){
             serializeNode(queue, child);
