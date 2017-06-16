@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -435,6 +436,37 @@ public class TriggerTest {
         interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions, null);
         interpreter.getVars().put("player", mockPlayer);
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNegation() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "arr = array(6)\n"
+                + "arr[0] = true\n"
+                + "arr[1] = !true\n"
+                + "arr[2] = !true || false\n"
+                + "arr[3] = true && !false\n"
+                + "arr[4] = true && 1 < 2 && 5 > 4 && (false || 2*2 > 3)\n"
+                + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(), null);
+
+        interpreter.startWithContext(null);
+
+        Object arr = interpreter.getVars().get("arr");
+        Assert.assertTrue((boolean) Array.get(arr, 0));
+        Assert.assertFalse((boolean) Array.get(arr, 1));
+        Assert.assertFalse((boolean) Array.get(arr, 2));
+        Assert.assertTrue((boolean) Array.get(arr, 3));
+        Assert.assertTrue((boolean) Array.get(arr, 4));
+        Assert.assertTrue((boolean) Array.get(arr, 5));
     }
 
     private static class TheTest{

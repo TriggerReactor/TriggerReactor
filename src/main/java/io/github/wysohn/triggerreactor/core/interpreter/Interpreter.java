@@ -373,46 +373,59 @@ public class Interpreter {
                     throw new InterpreterException("Cannot interpret the unknown operator "+node.getToken().value);
                 }
             }else if(node.getToken().type == Type.OPERATOR_L){
-                Token right = stack.pop();
-                Token left = stack.pop();
+                if("!".equals(node.getToken().value)){
+                    Token boolval = stack.pop();
 
-                if(isVariable(right)){
-                    right = unwrapVariable(right);
-                }
+                    if(!boolval.isBoolean())
+                        throw new InterpreterException("Cannot negate non-boolean value "+boolval);
 
-                if(isVariable(left)){
-                    left = unwrapVariable(left);
-                }
+                    if(isVariable(boolval)){
+                        boolval = unwrapVariable(boolval);
+                    }
 
-                switch ((String) node.getToken().value) {
-                case "<":
-                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
-                            ? right.toInt() : right.toDouble())));
-                    break;
-                case ">":
-                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) > (right.isInt()
-                            ? right.toInt() : right.toDouble())));
-                    break;
-                case "<=":
-                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) <= (right.isInt()
-                            ? right.toInt() : right.toDouble())));
-                    break;
-                case ">=":
-                    stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) >= (right.isInt()
-                            ? right.toInt() : right.toDouble())));
-                    break;
-                case "==":
-                    stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
-                    break;
-                case "!=":
-                    stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
-                    break;
-                case "&&":
-                    stack.push(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean()));
-                    break;
-                case "||":
-                    stack.push(new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean()));
-                    break;
+                    stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
+                } else {
+                    Token right = stack.pop();
+                    Token left = stack.pop();
+
+                    if(isVariable(right)){
+                        right = unwrapVariable(right);
+                    }
+
+                    if(isVariable(left)){
+                        left = unwrapVariable(left);
+                    }
+
+                    switch ((String) node.getToken().value) {
+                    case "<":
+                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
+                                ? right.toInt() : right.toDouble())));
+                        break;
+                    case ">":
+                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) > (right.isInt()
+                                ? right.toInt() : right.toDouble())));
+                        break;
+                    case "<=":
+                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) <= (right.isInt()
+                                ? right.toInt() : right.toDouble())));
+                        break;
+                    case ">=":
+                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) >= (right.isInt()
+                                ? right.toInt() : right.toDouble())));
+                        break;
+                    case "==":
+                        stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
+                        break;
+                    case "!=":
+                        stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
+                        break;
+                    case "&&":
+                        stack.push(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean()));
+                        break;
+                    case "||":
+                        stack.push(new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean()));
+                        break;
+                    }
                 }
             }else if(node.getToken().type == Type.OPERATOR){
                 Token right, left;
