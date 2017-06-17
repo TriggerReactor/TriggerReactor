@@ -460,6 +460,12 @@ public class Parser {
             return node;
         }
 
+        if("null".equals(token.value)){
+            Node node = new Node(new Token(Type.NULLVALUE));
+            nextToken();
+            return node;
+        }
+
         Node idNode = parseId();
         if(idNode != null){
             return idNode;

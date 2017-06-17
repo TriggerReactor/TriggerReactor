@@ -376,12 +376,12 @@ public class Interpreter {
                 if("!".equals(node.getToken().value)){
                     Token boolval = stack.pop();
 
-                    if(!boolval.isBoolean())
-                        throw new InterpreterException("Cannot negate non-boolean value "+boolval);
-
                     if(isVariable(boolval)){
                         boolval = unwrapVariable(boolval);
                     }
+
+                    if(!boolval.isBoolean())
+                        throw new InterpreterException("Cannot negate non-boolean value "+boolval);
 
                     stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
                 } else {
@@ -532,6 +532,10 @@ public class Interpreter {
             }else if(node.getToken().type == Type.GID){
                 Token keyToken = stack.pop();
 
+                if(isVariable(keyToken)){
+                    keyToken = unwrapVariable(keyToken);
+                }
+
                 if(keyToken.getType() != Type.STRING){
                     throw new InterpreterException(keyToken+" is not a valid global variable id.");
                 }
@@ -550,6 +554,8 @@ public class Interpreter {
                 stack.push(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value)));
             }else if(node.getToken().type == Type.EPS){
                 stack.push(node.getToken());
+            }else if(node.getToken().type == Type.NULLVALUE){
+                stack.push(node.getToken());
             }else{
                 throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
@@ -564,7 +570,11 @@ public class Interpreter {
         if(id.type == Type.ACCESS){
             Accessor accessor = (Accessor) id.value;
             try {
-                accessor.setTargetValue(value.value);
+                if(value.type == Type.NULLVALUE){
+                    accessor.setTargetValue(null);
+                }else{
+                    accessor.setTargetValue(value.value);
+                }
             } catch (NoSuchFieldException e) {
                 throw new InterpreterException("Unknown field "+id.value+"."+value.value);
             } catch (Exception e) {
@@ -639,7 +649,7 @@ public class Interpreter {
 
     private Token parseValue(Object var) {
         if(var == null){
-            return new Token(Type.NULLVALUE, "NULL");
+            return new Token(Type.NULLVALUE, "null");
         }else if (var.getClass() == Integer.class) {
             return new Token(Type.INTEGER, var);
         } else if (var.getClass() == Double.class) {
