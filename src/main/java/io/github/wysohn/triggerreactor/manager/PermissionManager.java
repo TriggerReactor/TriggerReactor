@@ -32,6 +32,8 @@ public class PermissionManager extends Manager implements Listener{
             plugin.getConfig().options().copyDefaults(true);
             plugin.saveConfig();
         }
+
+        reload();
     }
 
     @Override
