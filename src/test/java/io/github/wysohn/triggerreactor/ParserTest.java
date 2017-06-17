@@ -103,9 +103,9 @@ public class ParserTest {
     public void testFor() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
-                + "FOR i = 0:10\n"
-                + "    #MESSAGE \"test i=\"+i\n"
-                + "ENDFOR\n";
+                + "FOR i = 0:10;"
+                + "    #MESSAGE \"test i=\"+i;"
+                + "ENDFOR;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);

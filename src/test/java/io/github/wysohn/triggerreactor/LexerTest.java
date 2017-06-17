@@ -85,4 +85,20 @@ public class LexerTest {
         assertEquals(new Token(Type.ENDL, null), lexer.getToken());
         assertNull(lexer.getToken());
     }
+
+    @Test
+    public void testSemicolon() throws Exception {
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#MESSAGE !true;#MESSAGE \"next\"";
+
+        Lexer lexer = new Lexer(text, charset);
+
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_L, "!"), lexer.getToken());
+        assertEquals(new Token(Type.ID, "true"), lexer.getToken());
+        assertEquals(new Token(Type.ENDL, null), lexer.getToken());
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "next"), lexer.getToken());
+        assertNull(lexer.getToken());
+    }
 }

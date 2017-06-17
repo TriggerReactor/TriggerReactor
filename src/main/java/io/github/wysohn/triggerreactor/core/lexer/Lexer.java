@@ -127,7 +127,7 @@ public class Lexer {
             return readId();
         }
 
-        if(c == '\n'){
+        if(c == '\n' || c == ';'){
             return readEndline();
         }
 

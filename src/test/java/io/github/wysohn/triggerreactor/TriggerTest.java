@@ -46,14 +46,14 @@ public class TriggerTest {
     public void testRandom() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
-                + "rand = common.random(3)\n"
+                + "rand = common.random(3);"
                 + "IF rand == 0\n"
                 + "#MESSAGE 0\n"
+                + "ENDIF;"
+                + "IF rand == 1;\n"
+                + "#MESSAGE 1;\n"
                 + "ENDIF\n"
-                + "IF rand == 1\n"
-                + "#MESSAGE 1\n"
-                + "ENDIF\n"
-                + "IF rand == 2\n"
+                + "IF rand == 2;"
                 + "#MESSAGE 2\n"
                 + "ENDIF\n";
 
