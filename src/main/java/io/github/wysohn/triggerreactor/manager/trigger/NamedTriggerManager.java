@@ -77,7 +77,7 @@ public class NamedTriggerManager extends TriggerManager {
             builder.append(fileName);
 
             if (triggers.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
+                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
             } else {
                 Trigger trigger = new NamedTrigger(FileUtil.readFromFile(file));
                 triggers.put(builder.toString(), trigger);
