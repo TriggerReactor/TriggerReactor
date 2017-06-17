@@ -125,6 +125,24 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * parse the string that contains integer into real integer value.
+     * @param str the string that contains integer
+     * @return the real integer
+     */
+    public int parseInt(String str){
+        return Integer.parseInt(str);
+    }
+
+    /**
+     * parse the string that contains decimal into real decimal value.
+     * @param str the string that contains decimal
+     * @return the real decimal
+     */
+    public double parseDouble(String str){
+        return Double.parseDouble(str);
+    }
+
+    /**
      * get list of online players online
      *
      * @return player iterator

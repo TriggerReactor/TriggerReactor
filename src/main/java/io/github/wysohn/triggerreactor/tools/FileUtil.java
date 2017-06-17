@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
@@ -65,6 +66,17 @@ public class FileUtil {
         StringBuilder builder = new StringBuilder();
         try(FileInputStream fis = new FileInputStream(file);
                 InputStreamReader isr = new InputStreamReader(fis, "UTF-8")){
+            int read = -1;
+            while((read = isr.read()) != -1){
+                builder.append((char) read);
+            }
+            return builder.toString();
+        }
+    }
+
+    public static String readFromStream(InputStream stream) throws UnsupportedEncodingException, IOException{
+        StringBuilder builder = new StringBuilder();
+        try(InputStreamReader isr = new InputStreamReader(stream, "UTF-8")){
             int read = -1;
             while((read = isr.read()) != -1){
                 builder.append((char) read);

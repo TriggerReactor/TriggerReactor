@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.tools;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -37,6 +38,48 @@ public class ReflectionUtil {
 
         try {
             field.set(obj, value);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setFinalField(Object obj, String fieldName, Object value) throws NoSuchFieldException{
+        setFinalField(obj.getClass(), obj, fieldName, value);
+    }
+
+    public static void setFinalField(Class<?> clazz, Object obj, String fieldName, Object value) throws NoSuchFieldException{
+        Field field = clazz.getDeclaredField(fieldName);
+
+        setFinalField(obj, field, value);
+    }
+
+    /**
+     * https://stackoverflow.com/questions/3301635/change-private-static-final-field-using-java-reflection
+     * @param field
+     * @param newValue
+     * @throws SecurityException
+     * @throws NoSuchFieldException
+     * @throws Exception
+     */
+    private static void setFinalField(Object target, Field field, Object newValue) throws NoSuchFieldException{
+        field.setAccessible(true);
+
+        Field modifiersField = null;
+        try {
+            modifiersField = Field.class.getDeclaredField("modifiers");
+        } catch (SecurityException e1) {
+            e1.printStackTrace();
+        }
+
+        modifiersField.setAccessible(true);
+        try {
+            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            field.set(target, newValue);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -169,6 +212,8 @@ public class ReflectionUtil {
 
         return methods;
     }
+
+
 
     public static void main(String[] ar){
        System.out.println(ClassUtils.isAssignable(Integer.class, double.class, true));
