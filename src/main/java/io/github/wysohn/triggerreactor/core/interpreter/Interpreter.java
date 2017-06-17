@@ -665,8 +665,6 @@ public class Interpreter {
 
     private Token convertValue(Map<String, Object> varMap, Token idToken) throws InterpreterException {
         Object value = varMap.get(idToken.value);
-        if (value == null)
-            throw new InterpreterException("Cannot find variable " + idToken.value);
 
         return parseValue(value);
     }
