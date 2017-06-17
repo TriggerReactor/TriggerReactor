@@ -284,6 +284,25 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * Check if the specified ItemStack contains the 'lore.' At least one is contained
+     *  in the lore will return true.
+     * @param IS
+     * @param lore
+     * @return true if 'lore' is in IS; false if not
+     */
+    public boolean hasLore(ItemStack IS, String lore){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            return false;
+
+        List<String> lores = IM.getLore();
+        if(lore == null)
+            return false;
+
+        return lores.contains(lore);
+    }
+
+    /**
      * Append a lore to the specified ItemStack
      * @param IS
      * @param lore
