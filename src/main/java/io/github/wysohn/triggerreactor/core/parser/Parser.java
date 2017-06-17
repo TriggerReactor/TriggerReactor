@@ -250,7 +250,7 @@ public class Parser {
                 assign.getChildren().add(left);
                 assign.getChildren().add(right);
 
-                if(token.type != Type.ENDL)
+                if(token != null && token.type != Type.ENDL)
                     throw new ParserException("Expected end of line but found "+token, this);
                 nextToken();
 
