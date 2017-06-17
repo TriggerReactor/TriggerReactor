@@ -447,7 +447,7 @@ public class TriggerTest {
                 + "arr[1] = !true\n"
                 + "arr[2] = !true || false\n"
                 + "arr[3] = true && !false\n"
-                + "arr[4] = true && 1 < 2 && 5 > 4 && (false || 2*2 > 3)\n"
+                + "arr[4] = true && 1 < 2 && 5 > 4 && 1 != 2 && 2 == 2 && (false || 2*2 > 3)\n"
                 + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)";
 
         Lexer lexer = new Lexer(text, charset);
