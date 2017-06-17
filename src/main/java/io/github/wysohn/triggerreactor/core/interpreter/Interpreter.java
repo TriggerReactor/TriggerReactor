@@ -380,10 +380,14 @@ public class Interpreter {
                         boolval = unwrapVariable(boolval);
                     }
 
-                    if(!boolval.isBoolean())
+                    if(boolval.type != Type.NULLVALUE && !boolval.isBoolean())
                         throw new InterpreterException("Cannot negate non-boolean value "+boolval);
 
-                    stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
+                    if(boolval.type == Type.NULLVALUE){//treat null as false
+                        stack.push(new Token(Type.BOOLEAN, true));
+                    }else{
+                        stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
+                    }
                 } else {
                     Token right = stack.pop();
                     Token left = stack.pop();
