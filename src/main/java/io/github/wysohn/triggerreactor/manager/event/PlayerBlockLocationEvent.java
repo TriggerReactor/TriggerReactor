@@ -23,6 +23,12 @@ import org.bukkit.event.player.PlayerEvent;
 
 import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 
+/**
+ * This event fires depends on the player's block location. Unlike the PlayerMoveEvent, it only checks wether a player moved
+ *  from a block to block. This significantly reduces the server load when you want to check player entering area, etc.
+ * @author wysohn
+ *
+ */
 public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable{
     private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled;

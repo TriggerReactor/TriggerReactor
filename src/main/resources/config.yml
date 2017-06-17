@@ -1,0 +1,2 @@
+PermissionManager:
+  Intercept: false #set this to 'true' in order to use PlayerPermissionCheckEvent. 
