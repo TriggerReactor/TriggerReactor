@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.main;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,6 +73,7 @@ import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager.InventoryTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public class TriggerReactor extends JavaPlugin {
@@ -111,6 +113,17 @@ public class TriggerReactor extends JavaPlugin {
         super.onEnable();
         instance = this;
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
+        File file = new File(getDataFolder(), "config.yml");
+        if(!file.exists()){
+            try{
+                String configStr = FileUtil.readFromStream(getResource("config.yml"));
+                FileUtil.writeToFile(file, configStr);
+            }catch(IOException e){
+                e.printStackTrace();
+                this.setEnabled(false);
+            }
+        }
 
         bungeeHelper = new BungeeCordHelper();
         bungeeConnectionThread = new Thread(bungeeHelper);

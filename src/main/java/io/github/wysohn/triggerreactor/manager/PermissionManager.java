@@ -1,7 +1,5 @@
 package io.github.wysohn.triggerreactor.manager;
 
-import java.io.File;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,7 +11,6 @@ import org.bukkit.permissions.Permission;
 
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.event.PlayerPermissionCheckEvent;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class PermissionManager extends Manager implements Listener{
@@ -22,16 +19,8 @@ public class PermissionManager extends Manager implements Listener{
     public PermissionManager(TriggerReactor plugin) {
         super(plugin);
 
-        try {
-            String configStr = FileUtil.readFromStream(plugin.getResource("config.yml"));
-            FileUtil.writeToFile(new File(plugin.getDataFolder(), "config.yml"), configStr);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            plugin.getConfig().addDefault("PermissionManager.Intercept", true);
-            plugin.getConfig().options().copyDefaults(true);
-            plugin.saveConfig();
-        }
+        plugin.getConfig().addDefault("PermissionManager.Intercept", true);
+        plugin.saveConfig();
 
         reload();
     }
