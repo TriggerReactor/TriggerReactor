@@ -76,7 +76,7 @@ public class PermissionManager extends Manager implements Listener{
 
         try {
             PermissibleBase original = (PermissibleBase) ReflectionUtil.getField(clazz, player, "perm");
-            List<PermissionAttachment> attachments = (List<PermissionAttachment>) ReflectionUtil.getField(original, "attachments");
+            List<PermissionAttachment> attachments = (List<PermissionAttachment>) ReflectionUtil.getField(PermissibleBase.class, original, "attachments");
 
             ReflectionUtil.setFinalField(PermissibleBase.class, newPermissible, "attachments", attachments);
 
