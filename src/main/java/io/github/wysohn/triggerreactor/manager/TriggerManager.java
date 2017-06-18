@@ -42,6 +42,7 @@ import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.mcmmo.McMmoSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
@@ -69,15 +70,20 @@ public abstract class TriggerManager extends Manager{
                 e1.printStackTrace();
             }
 
+            boolean initSuccess = true;
             APISupport api = null;
             try {
                 api = (APISupport) con.newInstance(plugin);
                 api.init();
+            } catch(APISupportException e){
+                initSuccess = false;
             } catch (Exception e) {
+                initSuccess = false;
                 e.printStackTrace();
+            } finally {
+                if(api != null && initSuccess)
+                    sharedVars.put(varName, api);
             }
-
-            sharedVars.put(varName, api);
         }
     }
 
