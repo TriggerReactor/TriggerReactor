@@ -54,6 +54,7 @@ import com.google.common.io.ByteStreams;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.manager.Manager;
 import io.github.wysohn.triggerreactor.manager.PermissionManager;
@@ -97,6 +98,7 @@ public class TriggerReactor extends JavaPlugin {
     private TriggerConditionManager conditionManager;
     private PlayerLocationManager locationManager;
     private PermissionManager permissionManager;
+    private AreaSelectionManager selectionManager;
 
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
@@ -148,6 +150,7 @@ public class TriggerReactor extends JavaPlugin {
         conditionManager = new TriggerConditionManager(this);
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
+        selectionManager = new AreaSelectionManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
@@ -591,7 +594,7 @@ public class TriggerReactor extends JavaPlugin {
                     return true;
                 } else if(args.length > 0 && (args[0].equalsIgnoreCase("area") || args[0].equalsIgnoreCase("a"))){
                     if(args.length == 2 && args[1].equalsIgnoreCase("toggle")){
-                        boolean result = areaManager.SELECTION_HELPER.toggleSelection((Player) sender);
+                        boolean result = selectionManager.toggleSelection((Player) sender);
 
                         sender.sendMessage(ChatColor.GRAY+"Area selection mode enabled: "+ChatColor.GOLD+result);
                     } else if (args.length == 3 && args[2].equals("create")){
@@ -603,7 +606,7 @@ public class TriggerReactor extends JavaPlugin {
                             return true;
                         }
 
-                        AreaTriggerManager.Area selected = areaManager.SELECTION_HELPER.getSelection((Player) sender);
+                        AreaTriggerManager.Area selected = selectionManager.getSelection((Player) sender);
                         if(selected == null){
                             sender.sendMessage(ChatColor.GRAY+"Invalid or incomplete area selection.");
                             return true;
@@ -623,7 +626,7 @@ public class TriggerReactor extends JavaPlugin {
 
                             saveAsynchronously(areaManager);
 
-                            areaManager.SELECTION_HELPER.resetSelections((Player) sender);
+                            selectionManager.resetSelections((Player) sender);
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"Area Trigger "+name+" already exists.");
                         }
@@ -635,7 +638,7 @@ public class TriggerReactor extends JavaPlugin {
 
                             saveAsynchronously(areaManager);
 
-                            areaManager.SELECTION_HELPER.resetSelections((Player) sender);
+                            selectionManager.resetSelections((Player) sender);
                         }else{
                             sender.sendMessage(ChatColor.GRAY+"Area Trigger "+name+" does not exists.");
                         }
