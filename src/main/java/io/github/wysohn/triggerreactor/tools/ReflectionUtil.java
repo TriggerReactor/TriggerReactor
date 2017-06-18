@@ -88,7 +88,20 @@ public class ReflectionUtil {
     public static Object getField(Object obj, String fieldName) throws NoSuchFieldException, IllegalArgumentException{
         Class<?> clazz = obj.getClass();
 
-        Field field = clazz.getField(fieldName);
+        Field field = clazz.getDeclaredField(fieldName);
+        field.setAccessible(true);
+
+        try {
+            return field.get(obj);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static Object getField(Class<?> clazz, Object obj, String fieldName) throws NoSuchFieldException, IllegalArgumentException{
+        Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
         try {
