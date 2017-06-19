@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.manager;
 
 import java.util.List;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -11,6 +12,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.permissions.PermissibleBase;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
+import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.event.PlayerPermissionCheckEvent;
@@ -156,6 +159,110 @@ public class PermissionManager extends Manager implements Listener{
             }
 
             return super.hasPermission(perm);
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
+            if(original != null)
+                return original.addAttachment(plugin, name, value);
+
+            return super.addAttachment(plugin, name, value);
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin) {
+            if(original != null)
+                return original.addAttachment(plugin);
+
+            return super.addAttachment(plugin);
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value, int ticks) {
+            if(original != null)
+                return original.addAttachment(plugin, name, value, ticks);
+
+            return super.addAttachment(plugin, name, value, ticks);
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
+            if(original != null)
+                return original.addAttachment(plugin, ticks);
+
+            return super.addAttachment(plugin, ticks);
+        }
+
+        @Override
+        public boolean isOp() {
+            if(original != null)
+                return original.isOp();
+
+            return super.isOp();
+        }
+
+        @Override
+        public void setOp(boolean value) {
+            if(original != null){
+                original.setOp(value);
+                return;
+            }
+
+            super.setOp(value);
+        }
+
+        @Override
+        public boolean isPermissionSet(String name) {
+            if(original != null)
+                return original.isPermissionSet(name);
+
+            return super.isPermissionSet(name);
+        }
+
+        @Override
+        public boolean isPermissionSet(Permission perm) {
+            if(original != null)
+                original.isPermissionSet(perm);
+
+            return super.isPermissionSet(perm);
+        }
+
+        @Override
+        public void removeAttachment(PermissionAttachment attachment) {
+            if(original != null){
+                original.removeAttachment(attachment);
+                return;
+            }
+
+            super.removeAttachment(attachment);
+        }
+
+        @Override
+        public synchronized void clearPermissions() {
+            if(original != null){
+                original.clearPermissions();
+                return;
+            }
+
+            super.clearPermissions();
+        }
+
+        @Override
+        public Set<PermissionAttachmentInfo> getEffectivePermissions() {
+            if(original != null)
+                return original.getEffectivePermissions();
+
+            return super.getEffectivePermissions();
+        }
+
+        @Override
+        public void recalculatePermissions() {
+            if(original != null){
+                original.recalculatePermissions();
+                return;
+            }
+
+            super.recalculatePermissions();
         }
 
 
