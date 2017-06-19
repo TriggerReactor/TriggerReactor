@@ -18,6 +18,12 @@ function MESSAGE(args){
     var str = "";
     for(var i = 0; i < args.length ; i++)
         str += args[i];
+    
+    if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
+    	var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+    	str = PlaceholderAPI.setPlaceholders(player, str);
+    }
+    
     player.sendMessage(ChatColor.translateAlternateColorCodes(Char('&'), str));
     return null;
 }
