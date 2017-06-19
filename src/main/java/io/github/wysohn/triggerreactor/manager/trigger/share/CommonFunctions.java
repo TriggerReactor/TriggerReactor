@@ -296,10 +296,28 @@ public class CommonFunctions implements SelfReference {
             return false;
 
         List<String> lores = IM.getLore();
-        if(lore == null)
+        if(lores == null)
             return false;
 
         return lores.contains(lore);
+    }
+
+    /**
+     * get Lore at the specified index
+     * @param IS
+     * @param index
+     * @return String of lore; null if not found
+     */
+    public String getLore(ItemStack IS, int index){
+        ItemMeta IM = IS.getItemMeta();
+        if(IM == null)
+            return null;
+
+        List<String> lores = IM.getLore();
+        if(lores == null)
+            return null;
+
+        return lores.get(index);
     }
 
     /**
