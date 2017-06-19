@@ -179,4 +179,28 @@ public class VaultSupport extends APISupport {
 
         return economy.getBalance(player);
     }
+
+    /**
+     * Add permission to specified player.
+     * @param player
+     * @param perm
+     */
+    public void permit(Player player, String perm){
+        if(permission == null)
+            throw new APISupportException("Vault", "Permission");
+
+        permission.playerAdd(player, perm);
+    }
+
+    /**
+     * Remove player from specified player.
+     * @param player
+     * @param perm
+     */
+    public void revoke(Player player, String perm){
+        if(permission == null)
+            throw new APISupportException("Vault", "Permission");
+
+        permission.playerRemove(player, perm);
+    }
 }
