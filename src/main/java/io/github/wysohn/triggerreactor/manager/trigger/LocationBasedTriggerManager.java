@@ -493,7 +493,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
      * @return true if pasted; false if nothing in the clipboard
      */
     private boolean pasteTrigger(Player player, SimpleLocation sloc){
-        ClipBoard board = clipboard.remove(player.getUniqueId());
+        ClipBoard board = clipboard.get(player.getUniqueId());
         if(board == null)
             return false;
 
