@@ -16,9 +16,11 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.manager.trigger.share;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -403,5 +405,28 @@ public class CommonFunctions implements SelfReference {
         if(lores == null)
             return 0;
         return lores.size();
+    }
+
+    /**
+     * Translate money into specified country's currency format. You need to provide exact locale provided
+     *  in http://www.oracle.com/technetwork/java/javase/java8locales-2095355.html
+     * @param money
+     * @param locale1 language code (Ex. en)
+     * @param locale2 country code (Ex. US)
+     * @return formatted currecy
+     */
+    public String formatCurrency(double money, String locale1, String locale2){
+        Locale locale = new Locale(locale1, locale2);
+        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
+        return currencyFormatter.format(money);
+    }
+
+    /**
+     * Translate money into specified country's currency format. US currency will be used.
+     * @param money
+     * @return formatted currecy
+     */
+    public String formatCurrency(double money){
+        return formatCurrency(money, "en", "US");
     }
 }
