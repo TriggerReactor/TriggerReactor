@@ -531,7 +531,7 @@ public class Parser {
             Node node = new Node(token);
             nextToken();
 
-            Node child = parseLogic();
+            Node child = parseFactor();
             node.getChildren().add(child);
 
             return node;
