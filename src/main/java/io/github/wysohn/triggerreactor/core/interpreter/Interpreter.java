@@ -166,11 +166,17 @@ public class Interpreter {
                     start(node.getChildren().get(2));
                 }
             }else{
-                boolean result = (boolean) resultToken.value;
-                if (result) {
+                if(resultToken.isBoolean()){
+                    boolean result = (boolean) resultToken.value;
+                    if (result) {
+                        start(node.getChildren().get(1));
+                    } else if (node.getChildren().size() > 2) {
+                        start(node.getChildren().get(2));
+                    }
+                }else if(resultToken.isObject()){//always true if object
                     start(node.getChildren().get(1));
-                } else if (node.getChildren().size() > 2) {
-                    start(node.getChildren().get(2));
+                }else{
+                    throw new InterpreterException("Unexpected token for IF statement " + resultToken);
                 }
             }
         } else if ("WHILE".equals(node.getToken().value)) {

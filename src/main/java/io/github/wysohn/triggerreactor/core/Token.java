@@ -22,6 +22,10 @@ public class Token {
 
     public Token(Type type, Object value) {
         this.type = type;
+
+        if(value instanceof Float){
+            value = (double) ((float) value);
+        }
         this.value = value;
     }
 
