@@ -189,7 +189,7 @@ public class VaultSupport extends APISupport {
         if(permission == null)
             throw new APISupportException("Vault", "Permission");
 
-        permission.playerAdd(player, perm);
+        permission.playerAdd(null, player, perm);
     }
 
     /**
@@ -201,6 +201,6 @@ public class VaultSupport extends APISupport {
         if(permission == null)
             throw new APISupportException("Vault", "Permission");
 
-        permission.playerRemove(player, perm);
+        permission.playerRemove(null, player, perm);
     }
 }
