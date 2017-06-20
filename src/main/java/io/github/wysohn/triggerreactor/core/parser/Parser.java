@@ -429,7 +429,7 @@ public class Parser {
 
     private Node parseFactorAndTerm(Node left) throws IOException, LexerException, ParserException{
         if(token != null && token.type == Type.OPERATOR_A
-                && ("*".equals(token.value) || "/".equals(token.value))){
+                && ("*".equals(token.value) || "/".equals(token.value) || "%".equals(token.value))){
             Node node = new Node(token);
             nextToken();
 
