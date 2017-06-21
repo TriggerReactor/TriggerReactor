@@ -29,6 +29,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.core.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
@@ -59,6 +60,15 @@ public class CommonFunctions implements SelfReference {
      */
     public int random(Integer start, Integer end) {
         return start + rand.nextInt(end - start);
+    }
+
+    /**
+     * Simply try to get plugin object directly.
+     * @param name name of the plugin.
+     * @return Plugin object on success; null if plugin not found or loaded.
+     */
+    public Plugin plugin(String name){
+        return Bukkit.getPluginManager().getPlugin(name);
     }
 
     /**
