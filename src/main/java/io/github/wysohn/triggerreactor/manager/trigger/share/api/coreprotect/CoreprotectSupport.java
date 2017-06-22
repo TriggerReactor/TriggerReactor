@@ -11,7 +11,7 @@ public class CoreprotectSupport extends APISupport {
      * I'm just too lazy to add all those methods. Please use this to access directly with api.
      * http://minerealm.com/community/viewtopic.php?f=32&t=16534
      */
-    private CoreProtectAPI api;
+    protected CoreProtectAPI api;
     public CoreprotectSupport(TriggerReactor plugin) {
         super(plugin, "CoreProtect");
     }

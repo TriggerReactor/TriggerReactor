@@ -21,9 +21,18 @@ import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupportException;
 
 public class FactionsSupport extends APISupport {
-    private Faction none;
-    private Faction safeZone;
-    private Faction warZone;
+    /**
+     * Represents empty zone
+     */
+    protected Faction none;
+    /**
+     * Represents safe zone
+     */
+    protected Faction safeZone;
+    /**
+     * Represents ware zone
+     */
+    protected Faction warZone;
 
     public FactionsSupport(TriggerReactor plugin) {
         super(plugin, "Factions");
