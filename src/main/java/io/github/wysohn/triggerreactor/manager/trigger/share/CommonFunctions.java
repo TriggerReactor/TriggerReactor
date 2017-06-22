@@ -16,6 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.manager.trigger.share;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,6 +72,84 @@ public class CommonFunctions implements SelfReference {
      */
     public Plugin plugin(String name){
         return Bukkit.getPluginManager().getPlugin(name);
+    }
+
+    /**
+     * Try to get static value for specified field from specified class.
+     * @param className the full class name
+     * @param fieldName the name of static field
+     * @return the value in the static field
+     * @throws ClassNotFoundException error if the specified 'className' does not exist
+     * @throws NoSuchFieldException error if the specified 'fieldName' field does not exist in the class.
+     */
+    public Object staticGetFieldValue(String className, String fieldName) throws ClassNotFoundException, NoSuchFieldException{
+        Class<?> clazz = Class.forName(className);
+
+        Field field = clazz.getField(fieldName);
+
+        try {
+            return field.get(null);
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            e.printStackTrace();
+            //Unexpected error
+        }
+
+        return null;
+    }
+
+    /**
+     * Try to set static value for specified field from specified class.
+     *  This can lead any plugin to catastrpohic failuer if you don't what exactly you are doing.
+     *  Use it with your own risk.
+     * @param className full name of the class
+     * @param fieldName name of the static field
+     * @param value the value to save into the field
+     * @throws ClassNotFoundException error if the specified 'className' does not exist
+     * @throws NoSuchFieldException error if the specified 'fieldName' field does not exist in the class.
+     * @throws IllegalArgumentException if the 'value' is incompatible with the field type.
+     */
+    public void staticSetFieldValue(String className, String fieldName, Object value) throws ClassNotFoundException, NoSuchFieldException, IllegalArgumentException{
+        Class<?> clazz = Class.forName(className);
+
+        Field field = clazz.getField(fieldName);
+
+        try {
+            field.set(null, value);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            //Unexpected error
+        }
+    }
+
+    /**
+     * Invoke the static method of provided class.
+     * @param className the full name of the class.
+     * @param methodName the name of static method.
+     * @param args array of arguments. This can be empty if the method doesn't have any arguments.
+     *  (Ex. staticMethod("my.class", "PewPew")
+     * @return some value depends on the method; it can be null if the method returns nothing.
+     * @throws ClassNotFoundException error if the 'className' does not exist.
+     * @throws NoSuchMethodException error if the 'methodName' does not exist in the class.
+     * @throws IllegalArgumentException error if invalid 'args' are passed to the method.
+     */
+    public Object staticMethod(String className, String methodName, Object... args) throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException{
+        Class<?> clazz = Class.forName(className);
+
+        List<Class<?>> types = new ArrayList<>();
+        for(Object obj : args){
+            types.add(obj.getClass());
+        }
+
+        try{
+            Method method = clazz.getMethod(methodName, types.toArray(new Class[types.size()]));
+
+            return method.invoke(null, args);
+        }catch(SecurityException | IllegalAccessException | InvocationTargetException e){
+            e.printStackTrace();
+            //Unexpected error
+        }
+
+        return null;
     }
 
     /**
