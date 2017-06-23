@@ -33,7 +33,7 @@ public class ReflectionUtil {
     public static void setField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException{
         Class<?> clazz = obj.getClass();
 
-        Field field = clazz.getField(fieldName);
+        Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
         try {
