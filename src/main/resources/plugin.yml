@@ -1,6 +1,6 @@
 name: TriggerReactor
 main: io.github.wysohn.triggerreactor.main.TriggerReactor
-version: 1.1.0
+version: 1.1.1
 author: wysohn
 softdepend: [Vault, PlaceholderAPI, mcMMO, TheGuild, Factions, CoreProtect]
 commands:
