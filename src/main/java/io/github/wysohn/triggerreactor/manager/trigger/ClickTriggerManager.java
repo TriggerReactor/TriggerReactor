@@ -41,7 +41,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
 
     @Override
     protected ClickTrigger constructTrigger(String script) throws IOException, LexerException, ParserException {
-        return new ClickTrigger(script, new ClickHandler(){
+        return new ClickTrigger(null, script, new ClickHandler(){
             @Override
             public boolean allow(Action action) {
                 return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
@@ -80,8 +80,8 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
     class ClickTrigger extends TriggerManager.Trigger{
         private ClickHandler handler;
 
-        public ClickTrigger(String script, ClickHandler handler) throws IOException, LexerException, ParserException {
-            super(script);
+        public ClickTrigger(String name, String script, ClickHandler handler) throws IOException, LexerException, ParserException {
+            super(name, script);
             this.handler = handler;
 
             init();
@@ -100,7 +100,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         public Trigger clone(){
             try {
                 //TODO: using same handler will be safe?
-                Trigger trigger = new ClickTrigger(script, handler);
+                Trigger trigger = new ClickTrigger(triggerName, script, handler);
                 return trigger;
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();

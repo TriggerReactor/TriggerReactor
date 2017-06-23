@@ -261,11 +261,11 @@ public class CustomTriggerManager extends TriggerManager {
         for(Entry<String, CustomTrigger> entry : nameMap.entrySet()){
             CustomTrigger trigger = entry.getValue();
 
-            File file = new File(folder, trigger.name);
+            File file = new File(folder, trigger.getTriggerName());
 
             Utf8YamlConfiguration yamlFile = new Utf8YamlConfiguration();
             try {
-                File yfile = new File(folder, trigger.name+".yml");
+                File yfile = new File(folder, trigger.getTriggerName()+".yml");
                 if(yfile.exists())
                     yamlFile.load(yfile);
                 yamlFile.set("Sync", trigger.isSync());
@@ -373,7 +373,6 @@ public class CustomTriggerManager extends TriggerManager {
     public class CustomTrigger extends Trigger{
         final Class<? extends Event> event;
         final String eventName;
-        final String name;
 
         /**
          *
@@ -385,10 +384,9 @@ public class CustomTriggerManager extends TriggerManager {
          * @throws ParserException {@link Trigger#init()}
          */
         public CustomTrigger(Class<? extends Event> event, String eventName, String name, String script) throws IOException, LexerException, ParserException {
-            super(script);
+            super(name, script);
             this.event = event;
             this.eventName = eventName;
-            this.name = name;
 
             init();
         }
@@ -396,7 +394,7 @@ public class CustomTriggerManager extends TriggerManager {
         @Override
         public Trigger clone() {
             try {
-                return new CustomTrigger(event, eventName, name, this.getScript());
+                return new CustomTrigger(event, eventName, triggerName, this.getScript());
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }
@@ -407,7 +405,7 @@ public class CustomTriggerManager extends TriggerManager {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((name == null) ? 0 : name.hashCode());
+            result = prime * result + ((triggerName == null) ? 0 : triggerName.hashCode());
             return result;
         }
 
@@ -420,10 +418,10 @@ public class CustomTriggerManager extends TriggerManager {
             if (getClass() != obj.getClass())
                 return false;
             CustomTrigger other = (CustomTrigger) obj;
-            if (name == null) {
-                if (other.name != null)
+            if (triggerName == null) {
+                if (other.triggerName != null)
                     return false;
-            } else if (!name.equals(other.name))
+            } else if (!triggerName.equals(other.triggerName))
                 return false;
             return true;
         }

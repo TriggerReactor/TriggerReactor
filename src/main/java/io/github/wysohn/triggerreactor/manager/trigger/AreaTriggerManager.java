@@ -168,7 +168,7 @@ public class AreaTriggerManager extends TriggerManager {
         for(AreaTrigger trigger : saveReady){
             Area area = trigger.area;
 
-            File file = new File(folder, trigger.name+".yml");
+            File file = new File(folder, trigger.getTriggerName()+".yml");
             if(!file.exists()){
                 try {
                     file.createNewFile();
@@ -191,7 +191,7 @@ public class AreaTriggerManager extends TriggerManager {
                 plugin.getLogger().warning("Could not save "+file);
             }
 
-            File triggerFolder = new File(folder, trigger.name);
+            File triggerFolder = new File(folder, trigger.getTriggerName());
             if(!triggerFolder.exists()){
                 triggerFolder.mkdirs();
             }
@@ -201,7 +201,7 @@ public class AreaTriggerManager extends TriggerManager {
                     FileUtil.writeToFile(new File(triggerFolder, "Enter"), trigger.enterTrigger.getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
-                    plugin.getLogger().warning("Could not save Area Trigger [Enter] "+trigger.name);
+                    plugin.getLogger().warning("Could not save Area Trigger [Enter] "+trigger.getTriggerName());
                 }
             }
 
@@ -210,7 +210,7 @@ public class AreaTriggerManager extends TriggerManager {
                     FileUtil.writeToFile(new File(triggerFolder, "Exit"), trigger.exitTrigger.getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
-                    plugin.getLogger().warning("Could not save Area Trigger [Exit] "+trigger.name);
+                    plugin.getLogger().warning("Could not save Area Trigger [Exit] "+trigger.getTriggerName());
                 }
             }
         }
@@ -398,9 +398,9 @@ public class AreaTriggerManager extends TriggerManager {
             map.remove(trigger.area);
         }
 
-        File areafile = new File(folder, trigger.name+".yml");
+        File areafile = new File(folder, trigger.getTriggerName()+".yml");
         FileUtil.delete(areafile);
-        File areafolder = new File(folder, trigger.name);
+        File areafolder = new File(folder, trigger.getTriggerName());
         FileUtil.delete(areafolder);
 
         nameMapper.remove(name);
@@ -425,34 +425,28 @@ public class AreaTriggerManager extends TriggerManager {
             map.remove(areaEntry.getKey());
         }
 
-        File areafile = new File(folder, trigger.name+".yml");
+        File areafile = new File(folder, trigger.getTriggerName()+".yml");
         FileUtil.delete(areafile);
-        File areafolder = new File(folder, trigger.name);
+        File areafolder = new File(folder, trigger.getTriggerName());
         FileUtil.delete(areafolder);
 
-        nameMapper.remove(trigger.name);
+        nameMapper.remove(trigger.getTriggerName());
         return true;
     }
 
     public class AreaTrigger extends Trigger{
         final Area area;
-        final String name;
 
         EnterTrigger enterTrigger;
         ExitTrigger exitTrigger;
 
         public AreaTrigger(Area area, String name) {
-            super(null);
+            super(name, null);
             this.area = area;
-            this.name = name;
         }
 
         public Area getArea() {
             return area;
-        }
-
-        public String getName() {
-            return name;
         }
 
         //we don't need interpreter for area trigger but enter and exit trigger
@@ -501,7 +495,7 @@ public class AreaTriggerManager extends TriggerManager {
         private class EnterTrigger extends Trigger{
 
             public EnterTrigger(String script) throws IOException, LexerException, ParserException {
-                super(script);
+                super(AreaTrigger.this.triggerName, script);
 
                 init();
             }
@@ -531,7 +525,7 @@ public class AreaTriggerManager extends TriggerManager {
         private class ExitTrigger extends Trigger{
 
             public ExitTrigger(String script) throws IOException, LexerException, ParserException {
-                super(script);
+                super(AreaTrigger.this.triggerName, script);
 
                 init();
             }

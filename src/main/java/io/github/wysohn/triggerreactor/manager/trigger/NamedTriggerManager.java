@@ -79,7 +79,7 @@ public class NamedTriggerManager extends TriggerManager {
             if (triggers.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
             } else {
-                Trigger trigger = new NamedTrigger(FileUtil.readFromFile(file));
+                Trigger trigger = new NamedTrigger(builder.toString(), FileUtil.readFromFile(file));
                 triggers.put(builder.toString(), trigger);
             }
         }
@@ -122,8 +122,8 @@ public class NamedTriggerManager extends TriggerManager {
 
     private class NamedTrigger extends Trigger{
 
-        public NamedTrigger(String script) throws IOException, LexerException, ParserException {
-            super(script);
+        public NamedTrigger(String name, String script) throws IOException, LexerException, ParserException {
+            super(name, script);
 
             init();
         }
@@ -131,7 +131,7 @@ public class NamedTriggerManager extends TriggerManager {
         @Override
         public Trigger clone() {
             try {
-                return new NamedTrigger(getScript());
+                return new NamedTrigger(triggerName, getScript());
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }

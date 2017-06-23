@@ -72,7 +72,7 @@ public class CommandTriggerManager extends TriggerManager {
 
             CommandTrigger trigger = null;
             try {
-                trigger = new CommandTrigger(script);
+                trigger = new CommandTrigger(fileName, script);
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
                 continue;
@@ -148,7 +148,7 @@ public class CommandTriggerManager extends TriggerManager {
 
         CommandTrigger trigger = null;
         try {
-            trigger = new CommandTrigger(script);
+            trigger = new CommandTrigger(cmd, script);
         } catch (IOException | LexerException | ParserException e1) {
             adding.sendMessage(ChatColor.RED + "Encounterd an error!");
             adding.sendMessage(ChatColor.RED + e1.getMessage());
@@ -183,8 +183,8 @@ public class CommandTriggerManager extends TriggerManager {
 
     private class CommandTrigger extends TriggerManager.Trigger {
 
-        public CommandTrigger(String script) throws IOException, LexerException, ParserException {
-            super(script);
+        public CommandTrigger(String name, String script) throws IOException, LexerException, ParserException {
+            super(name, script);
 
             init();
         }
@@ -192,7 +192,7 @@ public class CommandTriggerManager extends TriggerManager {
         @Override
         public Trigger clone() {
             try {
-                return new CommandTrigger(getScript());
+                return new CommandTrigger(triggerName, getScript());
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }

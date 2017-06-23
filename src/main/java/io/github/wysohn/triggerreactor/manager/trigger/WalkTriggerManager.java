@@ -38,7 +38,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
 
     @Override
     protected WalkTrigger constructTrigger(String script) throws IOException, LexerException, ParserException {
-        return new WalkTrigger(script);
+        return new WalkTrigger(null, script);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -66,8 +66,8 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
 
     class WalkTrigger extends TriggerManager.Trigger{
 
-        public WalkTrigger(String script) throws IOException, LexerException, ParserException {
-            super(script);
+        public WalkTrigger(String name, String script) throws IOException, LexerException, ParserException {
+            super(name, script);
 
             init();
         }
@@ -75,7 +75,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
         @Override
         public Trigger clone() {
             try {
-                return new WalkTrigger(getScript());
+                return new WalkTrigger(triggerName, getScript());
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }

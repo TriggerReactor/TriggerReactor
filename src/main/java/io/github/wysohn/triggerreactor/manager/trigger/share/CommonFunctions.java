@@ -268,7 +268,7 @@ public class CommonFunctions implements SelfReference {
         if (trigger == null)
             return null;
 
-        return trigger.getName();
+        return trigger.getTriggerName();
     }
 
     /**

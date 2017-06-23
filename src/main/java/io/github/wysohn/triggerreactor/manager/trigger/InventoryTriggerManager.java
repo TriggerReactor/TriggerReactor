@@ -445,21 +445,17 @@ public class InventoryTriggerManager extends TriggerManager {
     public class InventoryTrigger extends Trigger{
         final static int MAXSIZE = 6*9;
 
-        final String name;
         final ItemStack[] items;
 
         private InventoryTrigger(String name, String script, ItemStack[] items) throws IOException, LexerException, ParserException {
-            super(script);
-            this.name = name;
+            super(name, script);
             this.items = items;
 
             init();
         }
 
         public InventoryTrigger(int size, String name, Map<Integer, ItemStack> items, String script) throws IOException, LexerException, ParserException{
-            super(script);
-
-            this.name = name;
+            super(name, script);
             if(size < 9 || size % 9 != 0)
                 throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
 
@@ -555,7 +551,7 @@ public class InventoryTriggerManager extends TriggerManager {
         @Override
         public Trigger clone() {
             try {
-                return new InventoryTrigger(name, script, items);
+                return new InventoryTrigger(triggerName, script, items);
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }

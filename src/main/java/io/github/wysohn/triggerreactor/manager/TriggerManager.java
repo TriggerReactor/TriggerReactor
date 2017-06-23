@@ -112,6 +112,7 @@ public abstract class TriggerManager extends Manager{
     }
 
     public abstract class Trigger implements Cloneable{
+        protected final String triggerName;
         protected final String script;
 
         protected Node root;
@@ -128,10 +129,15 @@ public abstract class TriggerManager extends Manager{
          * startInterpretation(), or activate() method as your need
          * @param script
          */
-        public Trigger(String script)  {
+        public Trigger(String triggerName, String script)  {
             super();
 
+            this.triggerName = triggerName;
             this.script = script;
+        }
+
+        public String getTriggerName() {
+            return triggerName;
         }
 
         /**
