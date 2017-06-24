@@ -222,7 +222,6 @@ public abstract class TriggerManager extends Manager{
             Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, scriptVars, common, condition);
             interpreter.setSync(isSync());
 
-            interpreter.getVars().putAll(scriptVars);
             interpreter.getVars().putAll(sharedVars);
 
             return interpreter;
@@ -287,7 +286,7 @@ public abstract class TriggerManager extends Manager{
                                 if(trigger == null)
                                     throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
-                                trigger.activate(e, scriptVars);
+                                trigger.activate(e, interpreter.getVars());
                                 return true;
                             } else {
                                 throw new RuntimeException("Parameter type not match; it should be a String."

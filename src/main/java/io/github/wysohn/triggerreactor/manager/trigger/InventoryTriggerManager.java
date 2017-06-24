@@ -515,7 +515,7 @@ public class InventoryTriggerManager extends TriggerManager {
                                 if(trigger == null)
                                     throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
-                                trigger.activate(e, scriptVars);
+                                trigger.activate(e, interpreter.getVars());
                                 return true;
                             } else {
                                 throw new RuntimeException("Parameter type not match; it should be a String."
