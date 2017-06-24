@@ -49,7 +49,9 @@ import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
@@ -319,6 +321,12 @@ public class ExecutorManager extends HashMap<String, Executor>{
             if(e instanceof InventoryInteractEvent){
                 if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
                     variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
+            } else if(e instanceof InventoryCloseEvent){
+                if(((InventoryCloseEvent) e).getPlayer() instanceof Player)
+                    variables.put("player", ((InventoryCloseEvent) e).getPlayer());
+            } else if(e instanceof InventoryOpenEvent){
+                if(((InventoryOpenEvent) e).getPlayer() instanceof Player)
+                    variables.put("player", ((InventoryOpenEvent) e).getPlayer());
             }
         }
     }
