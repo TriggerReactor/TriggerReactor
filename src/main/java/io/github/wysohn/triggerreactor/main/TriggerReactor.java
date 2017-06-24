@@ -884,6 +884,10 @@ public class TriggerReactor extends JavaPlugin {
         return builder.toString();
     }
 
+    public File getJarFile(){
+        return super.getFile();
+    }
+
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
 
     public boolean saveAsynchronously(final Manager manager){

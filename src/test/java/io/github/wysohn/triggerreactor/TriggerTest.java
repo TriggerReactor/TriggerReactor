@@ -431,11 +431,6 @@ public class TriggerTest {
         interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions, null);
         interpreter.getVars().put("player", mockPlayer);
         interpreter.startWithContext(null);
-
-        when(mockFunctions.currentArea(Mockito.any(Player.class))).thenReturn(null);
-        interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions, null);
-        interpreter.getVars().put("player", mockPlayer);
-        interpreter.startWithContext(null);
     }
 
     @Test
