@@ -537,7 +537,7 @@ public class Interpreter {
                 }
 
                 if(isVariable(right)){
-                    left = unwrapVariable(right);
+                    right = unwrapVariable(right);
                 }
 
                 if(!left.isArray())
