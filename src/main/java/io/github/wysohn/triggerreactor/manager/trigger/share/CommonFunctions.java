@@ -29,6 +29,7 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -192,6 +193,14 @@ public class CommonFunctions implements SelfReference {
 
         player.getInventory().removeItem(IS);
         return true;
+    }
+
+    public Location location(String world, int x, int y, int z){
+        return new Location(Bukkit.getWorld(world), x, y, z);
+    }
+
+    public Block block(String world, int x, int y, int z){
+        return location(world, x, y, z).getBlock();
     }
 
     /**
