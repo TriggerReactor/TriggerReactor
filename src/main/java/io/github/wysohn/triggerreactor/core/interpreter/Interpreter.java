@@ -566,9 +566,9 @@ public class Interpreter {
             }else if(node.getToken().type == Type.BOOLEAN){
                 stack.push(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value)));
             }else if(node.getToken().type == Type.EPS){
-                stack.push(node.getToken());
+                stack.push(new Token(node.getToken().type, node.getToken().value));
             }else if(node.getToken().type == Type.NULLVALUE){
-                stack.push(node.getToken());
+                stack.push(new Token(node.getToken().type, "null"));
             }else{
                 throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
@@ -670,7 +670,7 @@ public class Interpreter {
 
     private Token parseValue(Object var) {
         if(var == null){
-            return new Token(Type.NULLVALUE, "null");
+            return new Token(Type.NULLVALUE, null);
         }else if (var.getClass() == Integer.class) {
             return new Token(Type.INTEGER, var);
         } else if (var.getClass() == Double.class) {
