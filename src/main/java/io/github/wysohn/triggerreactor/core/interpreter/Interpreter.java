@@ -393,7 +393,7 @@ public class Interpreter {
 
                     if (boolval.type == Type.NULLVALUE) {// treat null as false
                         stack.push(new Token(Type.BOOLEAN, true));
-                    } else if (boolval.type == Type.BOOLEAN) {
+                    } else if (boolval.isBoolean()) {
                         stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
                     } else if(boolval.isDouble()){
                         stack.push(new Token(Type.BOOLEAN, boolval.toDouble() == 0.0));
