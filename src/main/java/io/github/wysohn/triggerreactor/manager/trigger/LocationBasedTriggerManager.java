@@ -264,6 +264,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             player.sendMessage(ChatColor.RED+e1.getMessage());
             player.sendMessage(ChatColor.RED+"If you are an administrator, check console to see details.");
             e1.printStackTrace();
+
+            stopLocationSet(player);
             return;
         }
 
