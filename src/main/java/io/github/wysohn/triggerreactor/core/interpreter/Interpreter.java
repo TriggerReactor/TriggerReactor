@@ -701,15 +701,16 @@ public class Interpreter {
             }
 
             double secs = args[0] instanceof Double ? (double) args[0] : (int) args[0];
+            long later = (long) (secs * 1000);
             Executor.runTaskLater(new Runnable(){
                 @Override
                 public void run() {
                     synchronized(Interpreter.this){
                         Interpreter.this.waitFlag = false;
-                        Interpreter.this.notifyAll();
+                        Interpreter.this.notify();
                     }
                 }
-            }, (long) (secs * 1000L));
+            }, later);
             return WAIT;
         }
     };
