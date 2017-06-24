@@ -80,6 +80,7 @@ public class NamedTriggerManager extends TriggerManager {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
             } else {
                 Trigger trigger = new NamedTrigger(builder.toString(), FileUtil.readFromFile(file));
+                trigger.setSync(true);
                 triggers.put(builder.toString(), trigger);
             }
         }
