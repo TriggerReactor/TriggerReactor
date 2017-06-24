@@ -37,6 +37,7 @@ import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.core.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.manager.trigger.AreaTriggerManager;
 
 public class CommonFunctions implements SelfReference {
@@ -197,6 +198,10 @@ public class CommonFunctions implements SelfReference {
 
     public Location location(String world, int x, int y, int z){
         return new Location(Bukkit.getWorld(world), x, y, z);
+    }
+
+    public SimpleLocation slocation(String world, int x, int y, int z){
+        return new SimpleLocation(world, x, y, z);
     }
 
     public Block block(String world, int x, int y, int z){
