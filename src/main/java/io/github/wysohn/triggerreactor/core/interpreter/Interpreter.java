@@ -390,8 +390,10 @@ public class Interpreter {
                         stack.push(new Token(Type.BOOLEAN, true));
                     } else if (boolval.type == Type.BOOLEAN) {
                         stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
-                    } else if(boolval.isDouble() || boolval.isInt()){
-                        stack.push(new Token(Type.BOOLEAN, boolval.toDouble() != 0));
+                    } else if(boolval.isDouble()){
+                        stack.push(new Token(Type.BOOLEAN, boolval.toDouble() != 0.0));
+                    } else if(boolval.isInt()){
+                        stack.push(new Token(Type.BOOLEAN, boolval.toInt() != 0));
                     } else {
                         throw new InterpreterException("Cannot negate non-boolean value " + boolval);
                     }
