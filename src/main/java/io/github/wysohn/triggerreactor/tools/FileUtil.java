@@ -34,6 +34,10 @@ public class FileUtil {
      * @throws IOException
      */
     public static void writeToFile(File file, String str) throws IOException{
+        if(!file.getParentFile().exists()){
+            file.getParentFile().mkdirs();
+        }
+
         if(!file.exists()){
             try {
                 file.createNewFile();
