@@ -386,13 +386,14 @@ public class Interpreter {
                         boolval = unwrapVariable(boolval);
                     }
 
-                    if(boolval.type != Type.NULLVALUE && !boolval.isBoolean())
-                        throw new InterpreterException("Cannot negate non-boolean value "+boolval);
-
-                    if(boolval.type == Type.NULLVALUE){//treat null as false
+                    if (boolval.type == Type.NULLVALUE) {// treat null as false
                         stack.push(new Token(Type.BOOLEAN, true));
-                    }else{
+                    } else if (boolval.type == Type.BOOLEAN) {
                         stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
+                    } else if(boolval.isDouble() || boolval.isInt()){
+                        stack.push(new Token(Type.BOOLEAN, boolval.toDouble() != 0));
+                    } else {
+                        throw new InterpreterException("Cannot negate non-boolean value " + boolval);
                     }
                 } else {
                     Token right = stack.pop();
