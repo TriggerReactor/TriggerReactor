@@ -229,6 +229,11 @@ public class Interpreter {
                 if(stopFlag)
                     return;
                 Token limitToken = stack.pop();
+
+                if(isVariable(limitToken)){
+                    limitToken = unwrapVariable(limitToken);
+                }
+
                 if(limitToken.type != Type.INTEGER)
                     throw new InterpreterException("Limit value must be an Integer value!");
 
