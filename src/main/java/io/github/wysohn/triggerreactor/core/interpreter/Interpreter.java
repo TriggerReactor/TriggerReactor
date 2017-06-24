@@ -536,6 +536,10 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
+                if(isVariable(right)){
+                    left = unwrapVariable(right);
+                }
+
                 if(!left.isArray())
                     throw new InterpreterException(left+" is not an array!");
 
