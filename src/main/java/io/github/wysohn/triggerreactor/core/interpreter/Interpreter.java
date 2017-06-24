@@ -224,13 +224,13 @@ public class Interpreter {
                 Token initToken = stack.pop();
 
                 Node limitNode = iterNode.getChildren().get(1);
-                if(limitNode.getToken().type != Type.INTEGER)
-                    throw new InterpreterException("Limit value must be an Integer value!");
                 start(limitNode);
 
                 if(stopFlag)
                     return;
                 Token limitToken = stack.pop();
+                if(limitToken.type != Type.INTEGER)
+                    throw new InterpreterException("Limit value must be an Integer value!");
 
                 for(int i = initToken.toInt(); !stopFlag && i < limitToken.toInt(); i++){
                     assignValue(idToken, new Token(Type.INTEGER, i));
