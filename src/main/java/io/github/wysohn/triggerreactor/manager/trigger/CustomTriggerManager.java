@@ -50,15 +50,13 @@ import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
 
-import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.ClassPath.ClassInfo;
-
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
 import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class CustomTriggerManager extends TriggerManager {
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
@@ -105,7 +103,7 @@ public class CustomTriggerManager extends TriggerManager {
     private static final Listener listener = new Listener(){};
     private void initEvents(Plugin plugin) throws IOException{
         //thanks google and spigot!
-        ClassPath cp = ClassPath.from(Bukkit.class.getClassLoader());
+/*        ClassPath cp = ClassPath.from(Bukkit.class.getClassLoader());
         for (ClassInfo info : cp.getTopLevelClassesRecursive(basePackageName)) {
             Class<?> test = null;
             try {
@@ -122,6 +120,24 @@ public class CustomTriggerManager extends TriggerManager {
                 continue;
 
             EVENTS.put(info.getSimpleName(), clazz);
+        }*/
+
+        for(String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)){
+            Class<?> test = null;
+            try {
+                test = Class.forName(clazzName);
+            } catch (ClassNotFoundException e1) {
+                e1.printStackTrace();
+            }
+
+            if(!Event.class.isAssignableFrom(test))
+                continue;
+
+            Class<? extends Event> clazz = (Class<? extends Event>) test;
+            if(clazz.equals(Event.class))
+                continue;
+
+            EVENTS.put(clazz.getSimpleName(), clazz);
         }
     }
 
@@ -159,8 +175,8 @@ public class CustomTriggerManager extends TriggerManager {
             try {
                 event = getEventFromName(eventName);
             } catch (ClassNotFoundException e1) {
-                e1.printStackTrace();
                 plugin.getLogger().warning("Could not load "+file);
+                plugin.getLogger().warning(e1.getMessage() + " does not exist.");
                 continue;
             }
 
