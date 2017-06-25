@@ -47,6 +47,7 @@ import io.github.wysohn.triggerreactor.manager.trigger.share.api.coreprotect.Cor
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.faction.FactionsSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.mcmmo.McMmoSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.placeholder.PlaceHolderSupport;
+import io.github.wysohn.triggerreactor.manager.trigger.share.api.protocollib.ProtocolLibSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.theguild.TheGuildSupport;
 import io.github.wysohn.triggerreactor.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
@@ -67,6 +68,7 @@ public abstract class TriggerManager extends Manager{
         addSharedVars("placeholder", PlaceHolderSupport.class);
         addSharedVars("factions", FactionsSupport.class);
         addSharedVars("coreprotect", CoreprotectSupport.class);
+        addSharedVars("protocollib", ProtocolLibSupport.class);
     }
 
     public void addSharedVars(String varName, Class<? extends APISupport> clazz){
