@@ -179,14 +179,14 @@ public class Interpreter {
                     int value = resultToken.toInt();
                     if(value != 0){
                         start(node.getChildren().get(1));
-                    }else{
+                    } else if (node.getChildren().size() > 2) {
                         start(node.getChildren().get(2));
                     }
                 }else if(resultToken.isDouble()){
                     double value = resultToken.toDouble();
                     if(value != 0.0){
                         start(node.getChildren().get(1));
-                    }else{
+                    } else if (node.getChildren().size() > 2) {
                         start(node.getChildren().get(2));
                     }
                 }else{
