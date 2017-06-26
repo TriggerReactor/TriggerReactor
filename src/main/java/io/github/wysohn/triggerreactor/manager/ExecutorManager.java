@@ -147,7 +147,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         FileFilter filter = new FileFilter(){
             @Override
             public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".js");
+                return pathname.isDirectory() || pathname.getName().endsWith(".js");
             }
         };
 
