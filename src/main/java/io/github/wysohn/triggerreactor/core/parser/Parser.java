@@ -186,8 +186,17 @@ public class Parser {
             else if(token.type == Type.ID){
                 if(((String) token.value).charAt(0) == '#'){
                     String command = ((String) token.value).substring(1);
-                    Node commandNode = new Node(new Token(Type.COMMAND, command));
+                    StringBuilder builder = new StringBuilder(command);
                     nextToken();
+
+                    while(":".equals(token.value)){
+                        nextToken();
+
+                        builder.append(":"+token.value);
+                        nextToken();
+                    }
+
+                    Node commandNode = new Node(new Token(Type.COMMAND, builder.toString()));
 
                     List<Node> args = new ArrayList<>();
                     while(token != null && token.type != Type.ENDL){
@@ -672,7 +681,7 @@ public class Parser {
         //String text = "#MESSAGE args[0]";
         String text = ""
                 + "FOR i = 0:10\n"
-                + "    #MESSAGE \"test i=\"+i\n"
+                + "    #TEST:MESSAGE \"test i=\"+i\n"
                 + "ENDFOR\n";
         System.out.println("original: \n"+text);
 
