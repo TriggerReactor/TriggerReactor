@@ -220,7 +220,6 @@ public class ExecutorManager extends HashMap<String, Executor>{
 
     private class JSExecutor extends Executor{
         private final String executorName;
-        private final Map<String, Object> variables = new HashMap<>();
         private final String sourceCode;
 
         private ScriptEngine engine = getNashornEngine();
@@ -242,15 +241,15 @@ public class ExecutorManager extends HashMap<String, Executor>{
         }
 
         @Override
-        public Integer execute(boolean sync, Object context, Object... args) {
+        public synchronized Integer execute(boolean sync, Object context, Object... args) {
             Event e = (Event) context;
 
             ///////////////////////////////
-            variables.clear();
+            Map<String, Object> variables = new HashMap<>();
             Map<String, Object> vars = ReflectionUtil.extractVariables(e);
             variables.putAll(vars);
 
-            extractCustomVariables(e);
+            extractCustomVariables(variables, e);
             ///////////////////////////////
 
             ScriptContext scriptContext = engine.getContext();
@@ -317,7 +316,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
             }
         }
 
-        protected void extractCustomVariables(Event e) {
+        protected void extractCustomVariables(Map<String, Object> variables, Event e) {
             if(e instanceof InventoryInteractEvent){
                 if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
                     variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
