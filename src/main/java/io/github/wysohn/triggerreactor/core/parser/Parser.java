@@ -189,7 +189,7 @@ public class Parser {
                     StringBuilder builder = new StringBuilder(command);
                     nextToken();
 
-                    while(":".equals(token.value)){
+                    while(token != null && ":".equals(token.value)){
                         nextToken();
 
                         builder.append(":"+token.value);
