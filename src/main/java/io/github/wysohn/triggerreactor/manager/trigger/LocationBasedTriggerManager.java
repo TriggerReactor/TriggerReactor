@@ -33,6 +33,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -372,21 +373,21 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         return result;
     }
 
-    public void showTriggerInfo(Player player, Block clicked) {
+    public void showTriggerInfo(CommandSender sender, Block clicked) {
         Trigger trigger = getTriggerForLocation(clicked.getLocation());
         if(trigger == null){
             return;
         }
 
-        player.sendMessage("- - - - - - - - - - - - - -");
-        player.sendMessage("Trigger: "+getTriggerTypeName());
-        player.sendMessage("Block Type: " + clicked.getType().name());
-        player.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
+        sender.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("Trigger: "+getTriggerTypeName());
+        sender.sendMessage("Block Type: " + clicked.getType().name());
+        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
                 + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
-        player.sendMessage("");
-        player.sendMessage("Script:");
-        player.sendMessage("  "+trigger.getScript());
-        player.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("");
+        sender.sendMessage("Script:");
+        sender.sendMessage(trigger.getScript());
+        sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     private Map<UUID, String> settingLocation = new HashMap<>();

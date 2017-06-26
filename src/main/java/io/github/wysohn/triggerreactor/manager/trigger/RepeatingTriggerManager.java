@@ -17,13 +17,18 @@
 package io.github.wysohn.triggerreactor.manager.trigger;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import io.github.wysohn.triggerreactor.core.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.parser.ParserException;
@@ -31,6 +36,7 @@ import io.github.wysohn.triggerreactor.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
 public class RepeatingTriggerManager extends TriggerManager {
     private static final String TRIGGER = "trigger";
@@ -43,22 +49,110 @@ public class RepeatingTriggerManager extends TriggerManager {
     public RepeatingTriggerManager(TriggerReactor plugin) {
         super(plugin);
 
-        this.folder = plugin.getDataFolder();
+        this.folder = new File(plugin.getDataFolder(), "RepeatTrigger");
         if(!this.folder.exists()){
             this.folder.mkdirs();
         }
+
+        reload();
     }
 
     @Override
     public void reload() {
-        // TODO Auto-generated method stub
+        FileFilter filter = new FileFilter(){
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".yml");
+            }
+        };
 
+        repeatTriggers.clear();
+        for(Entry<String, Thread> entry : runningThreads.entrySet()){
+            entry.getValue().interrupt();
+        }
+        runningThreads.clear();
+
+        for(File file : folder.listFiles(filter)){
+            String fileName = file.getName();
+            String triggerName = fileName.substring(0, fileName.indexOf('.'));
+
+            Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
+            try {
+                yaml.load(file);
+            } catch (IOException | InvalidConfigurationException e) {
+                e.printStackTrace();
+            }
+
+            boolean autoStart = yaml.getBoolean("AutoStart", false);
+            long interval = yaml.getLong("Interval", 1000L);
+
+            String script = null;
+            try {
+                script = FileUtil.readFromFile(new File(folder, triggerName));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+            RepeatingTrigger trigger = null;
+            try {
+                trigger = new RepeatingTrigger(triggerName, script, interval);
+                //let repeating thread to handle the work, not the newly created thread.
+                trigger.setSync(true);
+            } catch (IOException | LexerException | ParserException e) {
+                e.printStackTrace();
+            }
+            trigger.setAutoStart(autoStart);
+            trigger.setInterval(interval);
+
+            repeatTriggers.put(triggerName, trigger);
+
+            final RepeatingTrigger triggerCopy = trigger;
+            //start 1 tick later so other managers can be initialized.
+            new BukkitRunnable(){
+                @Override
+                public void run() {
+                    if(triggerCopy.isAutoStart()){
+                        startTrigger(triggerName);
+                    }
+                }}.runTask(plugin);
+        }
     }
 
     @Override
     public void saveAll() {
-        // TODO Auto-generated method stub
+        for(Entry<String, RepeatingTrigger> entry : repeatTriggers.entrySet()){
+            String triggerName = entry.getKey();
+            RepeatingTrigger trigger = entry.getValue();
 
+            Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
+            yaml.set("AutoStart", trigger.isAutoStart());
+            yaml.set("Interval", trigger.getInterval());
+            try {
+                yaml.save(new File(folder, triggerName+".yml"));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                FileUtil.writeToFile(new File(folder, triggerName), trigger.getScript());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void showTriggerInfo(CommandSender sender, RepeatingTrigger trigger) {
+        sender.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("Trigger: "+trigger.getTriggerName());
+        sender.sendMessage("Auto Start: " + trigger.isAutoStart());
+        sender.sendMessage("Interval: " + TimeUtil.milliSecondsToString(trigger.interval));
+        sender.sendMessage("");
+        sender.sendMessage("Paused: " + trigger.isPaused());
+        sender.sendMessage("Running: "+isRunning(trigger.getTriggerName()));
+        sender.sendMessage("");
+        sender.sendMessage("Script:");
+        sender.sendMessage(trigger.getScript());
+        sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     /**
@@ -90,8 +184,8 @@ public class RepeatingTriggerManager extends TriggerManager {
         repeatTriggers.put(triggerName, trigger);
 
         Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
-        yaml.set("Interval", interval);
         yaml.set("AutoStart", false);
+        yaml.set("Interval", interval);
         yaml.save(new File(folder, triggerName+".yml"));
 
         FileUtil.writeToFile(new File(folder, triggerName), script);
@@ -163,6 +257,7 @@ public class RepeatingTriggerManager extends TriggerManager {
         if(!isRunning(triggerName)){
             Map<String, Object> vars = new HashMap<>();
             vars.put(TRIGGER, "init");
+
             trigger.activate(EMPTY, vars);
 
             Thread thread = new Thread(trigger);
@@ -173,39 +268,6 @@ public class RepeatingTriggerManager extends TriggerManager {
             runningThreads.put(triggerName, thread);
         }
 
-        return true;
-    }
-
-    /**
-     * Check whether the Repeating Trigger is currently paused or not. However, it
-     *  can return false when there is no such trigger named 'triggerName.' So it's
-     *  a better practice to check it with {@link #getTrigger(String)} to see if
-     *  the trigger actually exists.
-     * @param triggerName name of the trigger
-     * @return true if it's paused; false if not paused (or no trigger)
-     */
-    public boolean isPaused(String triggerName){
-        RepeatingTrigger trigger = repeatTriggers.get(triggerName);
-        if(trigger == null){
-            return false;
-        }
-
-        return trigger.isPaused();
-    }
-
-    /**
-     * Set trigger to paused/resume state.
-     * @param triggerName name of the trigger
-     * @param pause state to set
-     * @return true if set; false if no trigger with name 'triggerName' found.
-     */
-    public boolean setPaused(String triggerName, boolean pause){
-        RepeatingTrigger trigger = repeatTriggers.get(triggerName);
-        if(trigger == null){
-            return false;
-        }
-
-        trigger.setPaused(pause);
         return true;
     }
 
@@ -236,6 +298,7 @@ public class RepeatingTriggerManager extends TriggerManager {
         };
 
         private long interval = 1000L;
+        private boolean autoStart = false;
         private Map<String, Object> vars;
 
         public RepeatingTrigger(String name, String script) throws IOException, LexerException, ParserException {
@@ -266,6 +329,22 @@ public class RepeatingTriggerManager extends TriggerManager {
         @Override
         protected boolean checkCooldown(Event e) {
             return false;
+        }
+
+        public long getInterval() {
+            return interval;
+        }
+
+        public void setInterval(long interval) {
+            this.interval = interval;
+        }
+
+        public boolean isAutoStart() {
+            return autoStart;
+        }
+
+        public void setAutoStart(boolean autoStart) {
+            this.autoStart = autoStart;
         }
 
         @Override
@@ -299,20 +378,14 @@ public class RepeatingTriggerManager extends TriggerManager {
         @Override
         public void run() {
             try{
-                vars.put(TRIGGER, "start");
-                activate(EMPTY, vars);
-            }catch(Exception e){
-                throwableHandler.onFail(e);
-            }
-
-            try{
-                vars.put(TRIGGER, "repeat");
                 while(!Thread.interrupted()){
                     synchronized (this) {
                         while (paused && !Thread.interrupted()) {
                             this.wait();
                         }
                     }
+
+                    vars.put(TRIGGER, "repeat");
 
                     //we re-use the variables over and over.
                     activate(EMPTY, vars);

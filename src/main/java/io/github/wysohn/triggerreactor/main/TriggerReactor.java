@@ -39,6 +39,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -73,9 +74,12 @@ import io.github.wysohn.triggerreactor.manager.trigger.CustomTriggerManager.Cust
 import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.manager.trigger.InventoryTriggerManager.InventoryTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.NamedTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.RepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.manager.trigger.RepeatingTriggerManager.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
+import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
 public class TriggerReactor extends JavaPlugin {
     private static TriggerReactor instance;
@@ -106,6 +110,7 @@ public class TriggerReactor extends JavaPlugin {
     private InventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
     private CustomTriggerManager customManager;
+    private RepeatingTriggerManager repeatManager;
 
     private NamedTriggerManager namedTriggerManager;
 
@@ -158,6 +163,7 @@ public class TriggerReactor extends JavaPlugin {
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this);
         customManager = new CustomTriggerManager(this);
+        repeatManager = new RepeatingTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);
     }
@@ -793,7 +799,141 @@ public class TriggerReactor extends JavaPlugin {
                         }
                     }
                     return true;
-                } else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
+                }  else if(args.length > 0 && (args[0].equalsIgnoreCase("repeat") || args[0].equalsIgnoreCase("r"))){
+                    if(args.length == 2){
+                        String name = args[1];
+
+                        if(repeatManager.getTrigger(name) != null){
+                            sender.sendMessage(ChatColor.GRAY+"This named is already in use.");
+                            return true;
+                        }
+
+                        this.scriptEditManager.startEdit((Conversable) sender, "Repeating Trigger", "", new SaveHandler(){
+                            @Override
+                            public void onSave(String script) {
+                                try {
+                                    repeatManager.createTrigger(name, script);
+                                } catch (IOException | LexerException | ParserException e) {
+                                    e.printStackTrace();
+                                    sender.sendMessage(ChatColor.RED+"Could not save!");
+                                    sender.sendMessage(e.getMessage());
+                                    sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                }
+
+                                saveAsynchronously(repeatManager);
+                            }
+                        });
+                    } else if (args.length == 4 && args[2].equalsIgnoreCase("interval")) {
+                        String name = args[1];
+
+                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            return true;
+                        }
+
+                        String intervalValue = args[3];
+                        long interval = TimeUtil.parseTime(intervalValue);
+
+                        trigger.setInterval(interval);
+
+                        saveAsynchronously(repeatManager);
+
+                        sender.sendMessage(ChatColor.GREEN+"Now "+
+                                ChatColor.GOLD+"["+name+"]"+
+                                ChatColor.GREEN+" will run every "+
+                                ChatColor.GOLD+"["+TimeUtil.milliSecondsToString(interval)+"]");
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
+                        String name = args[1];
+
+                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            return true;
+                        }
+
+                        trigger.setAutoStart(!trigger.isAutoStart());
+
+                        saveAsynchronously(repeatManager);
+
+                        sender.sendMessage("Auto start: "+(trigger.isAutoStart() ? ChatColor.GREEN : ChatColor.RED)+trigger.isAutoStart());
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("toggle")) {
+                        String name = args[1];
+
+                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            return true;
+                        }
+
+                        if(repeatManager.isRunning(name)){
+                            repeatManager.stopTrigger(name);
+                            sender.sendMessage(ChatColor.GREEN+"Scheduled stop. It may take some time depends on CPU usage.");
+                        } else {
+                            repeatManager.startTrigger(name);
+                            sender.sendMessage(ChatColor.GREEN+"Scheduled start up. It may take some time depends on CPU usage.");
+                        }
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("pause")) {
+                        String name = args[1];
+
+                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            return true;
+                        }
+
+                        trigger.setPaused(!trigger.isPaused());
+
+                        sender.sendMessage("Paused: "+(trigger.isPaused() ? ChatColor.GREEN : ChatColor.RED)+trigger.isPaused());
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("status")) {
+                        String name = args[1];
+
+                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            return true;
+                        }
+
+                        repeatManager.showTriggerInfo(sender, trigger);
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("delete")) {
+                        String name = args[1];
+
+                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+
+                        if(trigger == null){
+                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            return true;
+                        }
+
+                        repeatManager.deleteTrigger(name);
+                    } else {
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
+                        sendDetails(sender, ChatColor.DARK_RED+"Quick create is not supported.");
+                        sendDetails(sender, "This creates a Repeating Trigger with default settings. You probably will want to change default values"
+                                + " using other commands below. Also, creating Repeating Trigger doesn't start it automatically.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> interval <time format>", "Change the interval of this trigger.");
+                        sendDetails(sender, "Notice the <time format> is not just a number but has specific format for it. For example, you first"
+                                + " type what number you want to set and also define the unit of it. If you want it to repeat it every 1 hour, 20 minutes,"
+                                + " and 50seconds, then it will be "+ChatColor.GOLD+"/trg r BlahBlah interval 1h20m50s."+ChatColor.GRAY+" Currently only h, m,"
+                                + " and s are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
+                                + ChatColor.GOLD+" /trg r BlahBlah interval 30s40s"+ChatColor.GRAY+" will be added up to 70seconds total. All units other than"
+                                + " h, m, or s will be ignored.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> autostart", "Enable/Disable automatic start for this trigger.");
+                        sendDetails(sender, "By setting this to "+ChatColor.GREEN+"true"+ChatColor.GRAY+", this trigger will start on plugin enables itself. "
+                                + "Otherwise, you have to start it yourself every time.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> toggle", "Start or stop the Repeating Trigger.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> pause", "Pause or unpause the Repeating Trigger.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> status", "See brief information about this trigger.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> delete", "Delete repeating trigger.");
+                    }
+
+                    return true;
+                }  else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
                     String name = args[1];
 
                     CustomTrigger trigger = customManager.getTriggerForName(name);
@@ -953,6 +1093,9 @@ public class TriggerReactor extends JavaPlugin {
 
         sendCommandDesc(sender, "/triggerreactor[trg] area[a]", "Create an area trigger.");
         sendDetails(sender, "/trg a to see more commands...");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r]", "Create an repeating trigger.");
+        sendDetails(sender, "/trg r to see more commands...");
 
         sendCommandDesc(sender, "/triggerreactor[trg] custom <event> <name> [...]", "Create an area trigger.");
         sendDetails(sender, "/trg custom onJoin Greet #BROADCAST \"&aPlease welcome &6\"+player.getName()+\"&a!\"");
