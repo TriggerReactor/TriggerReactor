@@ -175,6 +175,20 @@ public class Interpreter {
                     }
                 }else if(resultToken.isObject()){//always true if object
                     start(node.getChildren().get(1));
+                }else if(resultToken.isInt()){
+                    int value = resultToken.toInt();
+                    if(value != 0){
+                        start(node.getChildren().get(1));
+                    }else{
+                        start(node.getChildren().get(2));
+                    }
+                }else if(resultToken.isDouble()){
+                    double value = resultToken.toDouble();
+                    if(value != 0.0){
+                        start(node.getChildren().get(1));
+                    }else{
+                        start(node.getChildren().get(2));
+                    }
                 }else{
                     throw new InterpreterException("Unexpected token for IF statement " + resultToken);
                 }
