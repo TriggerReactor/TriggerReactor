@@ -29,6 +29,7 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -247,6 +248,25 @@ public class CommonFunctions implements SelfReference {
      */
     public double parseDouble(String str){
         return Double.parseDouble(str);
+    }
+
+    /**
+     * try to get a player from name. Mostly online player.
+     * @param name name of player
+     * @return the Player object; it can be null if no player is found with the name
+     */
+    public Player player(String name){
+        return Bukkit.getPlayer(name);
+    }
+
+    /**
+     * try to get offline player from name.
+     * @param name name of player
+     * @return the OfflinePlayer object; it never returns null but always return an offline player even if the player
+     * doesn't exist.
+     */
+    public OfflinePlayer oplayer(String name){
+        return Bukkit.getOfflinePlayer(name);
     }
 
     /**
