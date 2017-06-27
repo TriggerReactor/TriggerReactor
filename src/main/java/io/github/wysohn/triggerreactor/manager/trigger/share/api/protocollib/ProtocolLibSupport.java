@@ -186,8 +186,6 @@ public class ProtocolLibSupport extends APISupport {
     public void sendEntitiesDestroy(Player p, Object[] entityId) throws InvocationTargetException{
         PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_DESTROY.name());
 
-        container.getIntegers().write(0, entityId.length);
-
         int[] intArray = new int[entityId.length];
         for(int i = 0; i < intArray.length; i++){
             if(!(entityId[i] instanceof Integer))
@@ -226,12 +224,12 @@ public class ProtocolLibSupport extends APISupport {
             boolean onGround) throws InvocationTargetException{
         PacketContainer container = createPacket(PacketType.Play.Server.REL_ENTITY_MOVE.name());
 
-        container.getIntegers().write(0, entityId);
+        container.getIntegers()
+            .write(0, entityId)
+            .write(1, dX)
+            .write(2, dY)
+            .write(3, dZ);
 
-        container.getShorts()
-            .write(0, (short) dX)
-            .write(1, (short) dY)
-            .write(2, (short) dZ);
 
         container.getBooleans().write(0, onGround);
 
