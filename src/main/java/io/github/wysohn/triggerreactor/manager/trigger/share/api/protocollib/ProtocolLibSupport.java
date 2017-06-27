@@ -91,11 +91,14 @@ public class ProtocolLibSupport extends APISupport {
     public void sendEntitySpawn(Player p, int entityId, UUID entityUuid, int type,
             double x, double y, double z, double yaw, double pitch, double headPitch,
             int velX, int velY, int velZ) throws InvocationTargetException{
-        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY.name());
+        PacketContainer container = createPacket(PacketType.Play.Server.SPAWN_ENTITY_LIVING.name());
 
         container.getIntegers()
             .write(0, entityId)
-            .write(1, type);
+            .write(1, type)
+            .write(2, (int) yaw)
+            .write(3, (int) pitch)
+            .write(4, (int) headPitch);
 
         container.getUUIDs()
             .write(0, entityUuid == null ? UUID.randomUUID() : entityUuid);
@@ -105,15 +108,10 @@ public class ProtocolLibSupport extends APISupport {
             .write(1, y)
             .write(2, z);
 
-        container.getFloat()
-            .write(0, (float) yaw)
-            .write(1, (float) pitch)
-            .write(2, (float) headPitch);
-
-        container.getShorts()
-            .write(0, (short) velX)
-            .write(1, (short) velX)
-            .write(2, (short) velX);
+        container.getBytes()
+            .write(0, (byte) velX)
+            .write(1, (byte) velX)
+            .write(2, (byte) velX);
 
         container.getDataWatcherModifier()
             .write(0, createEmptyWatcher());
