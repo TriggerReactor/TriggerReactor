@@ -44,7 +44,7 @@ public class Node {
         if(!children.isEmpty()){
             str += " {";
             for(int i = 0; i < children.size(); i++){
-                str += "("+children.get(i)+") ";
+                str += "("+children.get(i).token+") ";
             }
             str += " }";
         }

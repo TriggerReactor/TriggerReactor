@@ -704,9 +704,9 @@ public class Parser {
 
     private static void setNode(DefaultMutableTreeNode parent, Node node){
         if(node.getChildren().isEmpty()){
-            parent.add(new DefaultMutableTreeNode(node.getToken().value));
+            parent.add(new DefaultMutableTreeNode(node.toString()));
         }else{
-            DefaultMutableTreeNode holder = new DefaultMutableTreeNode(node.getToken().value);
+            DefaultMutableTreeNode holder = new DefaultMutableTreeNode(node.toString());
             for(Node child : node.getChildren()){
                 setNode(holder, child);
                 parent.add(holder);
