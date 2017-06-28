@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2017 soliddanii, wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,12 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
  function DROPITEM(args) {
-	if (args.length == 4 || args.length == 6) {
+    if (args.length == 2){
+        var item = args[0];
+        var location = args[1];
+        
+        location.getWorld().dropItem(location, item);
+    }else if (args.length == 4 || args.length == 6) {
 		var itemID = args[0];
 		var amount = args[1];
 		var enchan = args[2];
@@ -43,9 +48,13 @@
 		if(enchan.toUpperCase() !== 'NONE'){
 			var encharg = enchan.split(',');
 			for each (en in encharg){
-				ItemStack.addEnchantment(
-					Enchantment.getByName(en.split(':')[0].toUpperCase()), 
-					parseInt(en.split(':')[1]));
+                var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
+                var level = parseInt(en.split(':')[1]);
+                
+                if(!ench)
+                    throw Error(en.split(':')[0]+" is not a valid Enchantment.");
+                
+				ItemStack.addUnsafeEnchantment(ench, level);
 			}
 		}
 
@@ -80,9 +89,13 @@
 		if(enchan.toUpperCase() !== 'NONE'){
 			var encharg = enchan.split(',');
 			for each (en in encharg){
-				ItemStack.addEnchantment(
-					Enchantment.getByName(en.split(':')[0]), 
-					parseInt(en.split(':')[1]));
+                var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
+                var level = parseInt(en.split(':')[1]);
+                
+                if(!ench)
+                    throw Error(en.split(':')[0]+" is not a valid Enchantment.");
+                
+				ItemStack.addUnsafeEnchantment(ench, level);
 			}
 		}
 

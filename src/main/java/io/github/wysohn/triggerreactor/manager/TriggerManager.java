@@ -312,10 +312,16 @@ public abstract class TriggerManager extends Manager{
                 });
             }catch(Exception ex){
                 ex.printStackTrace();
+
+                Throwable tw = ex;
                 if(e instanceof PlayerEvent){
                     Player player = ((PlayerEvent) e).getPlayer();
                     player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
-                    player.sendMessage(ChatColor.RED+ex.getMessage());
+                    while(tw != null){
+                        player.sendMessage(ChatColor.RED+" >> Caused by:");
+                        player.sendMessage(ChatColor.RED+tw.getMessage());
+                        tw = tw.getCause();
+                    }
                     player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
                 }
             }

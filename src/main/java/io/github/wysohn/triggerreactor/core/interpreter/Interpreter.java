@@ -522,7 +522,7 @@ public class Interpreter {
                                 left = unwrapVariable(left);
                             }
 
-                            if(left.isObject()){
+                            if(left.isObject() || left.isArray()){
                                 stack.push(new Token(Type.ACCESS, new Accessor(left.value, (String) right.value)));
                             }else{
                                 Accessor accessor = (Accessor) left.value;

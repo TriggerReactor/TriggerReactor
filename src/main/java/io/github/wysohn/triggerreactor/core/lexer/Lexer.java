@@ -40,8 +40,8 @@ public class Lexer {
     private boolean eos = false;
     private char c = 0;
 
-    private int row = 0;
-    private int col = 0;
+    private int row = 1;
+    private int col = 1;
 
     public Lexer(InputStream stream) throws IOException {
         this.stream = stream;
