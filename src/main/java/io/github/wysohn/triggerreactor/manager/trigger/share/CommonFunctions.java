@@ -22,6 +22,7 @@ import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -29,6 +30,7 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -553,5 +555,15 @@ public class CommonFunctions implements SelfReference {
      */
     public String formatCurrency(double money){
         return formatCurrency(money, "en", "US");
+    }
+
+    /**
+     * Get the block which player is looking at
+     * @param player
+     * @param maxDistance
+     * @return block
+     */
+    public Block getTargetBlock(Player player, int maxDistance){
+        return player.getTargetBlock((HashSet<Material>)null, maxDistance);
     }
 }
