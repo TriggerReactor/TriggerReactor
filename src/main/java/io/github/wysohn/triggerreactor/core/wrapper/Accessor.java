@@ -39,7 +39,13 @@ public class Accessor {
 
     public Object evaluateTarget() throws NoSuchFieldException, IllegalArgumentException{
         if(targetParent.getClass().isArray()){
-            return Array.get(targetParent, (Integer) target);
+            if(target instanceof Integer){
+                return Array.get(targetParent, (Integer) target);
+            }else if(target instanceof String && ((String) target).equals("length")){
+                return Array.getLength(targetParent);
+            }else{
+                throw new IllegalArgumentException(target.getClass()+" is not a valid type for array operation.");
+            }
         }else{
             return ReflectionUtil.getField(targetParent, (String) target);
         }
