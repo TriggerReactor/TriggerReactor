@@ -241,7 +241,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         }
 
         @Override
-        public synchronized Integer execute(boolean sync, Object context, Object... args) {
+        public synchronized Integer execute(boolean sync, Object context, Object... args) throws Exception {
             Event e = (Event) context;
 
             ///////////////////////////////
@@ -270,24 +270,18 @@ public class ExecutorManager extends HashMap<String, Executor>{
             Callable<Integer> call = new Callable<Integer>(){
                 @Override
                 public Integer call() throws Exception {
-                    try {
-                        Object argObj = args;
+                    Object argObj = args;
 
-                        if(plugin.isDebugging()){
-                            Integer result = null;
-                            long start = System.currentTimeMillis();
-                            result = (Integer) invocable.invokeFunction(executorName, argObj);
-                            long end = System.currentTimeMillis();
-                            plugin.getLogger().info(executorName+" execution -- "+(end - start)+"ms");
-                            return result;
-                        }else{
-                            return (Integer) invocable.invokeFunction(executorName, argObj);
-                        }
-                    } catch (NoSuchMethodException | ScriptException ex) {
-                        ex.printStackTrace();
-                        plugin.getLogger().warning("#"+executorName+" encountered error.");
+                    if(plugin.isDebugging()){
+                        Integer result = null;
+                        long start = System.currentTimeMillis();
+                        result = (Integer) invocable.invokeFunction(executorName, argObj);
+                        long end = System.currentTimeMillis();
+                        plugin.getLogger().info(executorName+" execution -- "+(end - start)+"ms");
+                        return result;
+                    }else{
+                        return (Integer) invocable.invokeFunction(executorName, argObj);
                     }
-                    return null;
                 }
             };
 
@@ -297,6 +291,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
                     result = call.call();
                 } catch (Exception e1) {
                     e1.printStackTrace();
+                    throw new Exception("#"+executorName+" encountered error.", e1);
                 }
                 return result;
             }else{
@@ -306,11 +301,9 @@ public class ExecutorManager extends HashMap<String, Executor>{
                 try {
                     result = future.get(5, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e1) {
-                    e1.printStackTrace();
+                    throw new Exception("#"+executorName+" encountered error.", e1);
                 } catch (TimeoutException e1) {
-                    plugin.getLogger().warning("An exectuor #"+executorName+" execution was dropped!");
-                    plugin.getLogger().warning("Took longer than 5 seconds to process.");
-                    plugin.getLogger().warning("Is the server lagging?");
+                    throw new Exception("#"+executorName+" was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
                 }
                 return result;
             }
