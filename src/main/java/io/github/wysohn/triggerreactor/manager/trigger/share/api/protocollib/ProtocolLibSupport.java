@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -19,10 +20,15 @@ import io.github.wysohn.triggerreactor.manager.trigger.share.api.APISupportExcep
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 public class ProtocolLibSupport extends APISupport {
+    private String nmsVersion;
+
     private ProtocolManager protocolManager;
 
     public ProtocolLibSupport(TriggerReactor plugin) {
         super(plugin, "ProtocolLib");
+
+        String packageName = plugin.getServer().getClass().getPackage().getName();
+        nmsVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
     }
 
     @Override
@@ -183,7 +189,7 @@ public class ProtocolLibSupport extends APISupport {
      * @param entityId entity ids.
      * @throws InvocationTargetException
      */
-    public void sendEntitiesDestroy(Player p, Object[] entityId) throws InvocationTargetException{
+    public void sendEntitiesDestroy(Player p, Object... entityId) throws InvocationTargetException{
         PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_DESTROY.name());
 
         int[] intArray = new int[entityId.length];
@@ -261,5 +267,24 @@ public class ProtocolLibSupport extends APISupport {
         this.sendEntityMove(p, entityId, dX, dY, dZ, onGround);
     }
 
+    /**
+     * Sends equip packet to player for specified entity.
+     * @param p player to send packet
+     * @param entityId the id of entity to equip item
+     * @param slot the slot name. String must be same as one of the enum in {@link EnumItemSlot}
+     * @param item the item to equip.
+     * @throws ClassNotFoundException This throws if EnumItemSlot doesn't exist in nms package. This can be the case
+     *  where you are trying to use this method in somewhere 1.8 version environment. It's advised to create your own with
+     *  {@link #createPacket(String)} as PacketPlayoutEntityEquipment.class around 1.8 version specify everything using primitive types.
+     */
+    public void sendEntityEquip(Player p, int entityId, String slot, ItemStack item) throws ClassNotFoundException{
+        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT.name());
 
+        Class<?> clazz = Class.forName("net.minecraft.server."+nmsVersion+".EnumItemSlot");
+        container.getEnumModifier(EnumItemSlot.class, clazz).write(0, EnumItemSlot.valueOf(slot));
+    }
+
+    public enum EnumItemSlot{
+        MAINHAND, OFFHAND, LEFT, LEGS, CHEST, HEAD;
+    }
 }
