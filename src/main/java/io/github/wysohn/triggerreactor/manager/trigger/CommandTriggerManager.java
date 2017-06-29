@@ -181,6 +181,10 @@ public class CommandTriggerManager extends TriggerManager {
         return true;
     }
 
+    public CommandTrigger createTempCommandTrigger(String script) throws IOException, LexerException, ParserException{
+        return new CommandTrigger("temp", script);
+    }
+
     private class CommandTrigger extends TriggerManager.Trigger {
 
         public CommandTrigger(String name, String script) throws IOException, LexerException, ParserException {

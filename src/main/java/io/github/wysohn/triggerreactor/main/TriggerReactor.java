@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.main;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -372,6 +375,23 @@ public class TriggerReactor extends JavaPlugin {
 
                         return true;
                     }
+                } else if(args.length > 1 && args[0].equalsIgnoreCase("run")){
+                    String script = mergeArguments(args, 1, args.length - 1);
+
+                    try {
+                        Trigger trigger = cmdManager.createTempCommandTrigger(script);
+
+                        trigger.activate(new PlayerEvent((Player) sender){
+                            @Override
+                            public HandlerList getHandlers() {
+                                return null;
+                            }}, new HashMap<>());
+
+                    } catch (IOException | LexerException | ParserException e) {
+                        e.printStackTrace();
+                    }
+
+                    return true;
                 } else if(args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")){
                     if(args.length > 3 && args[2].equalsIgnoreCase("create")){
                         String name = args[1];
@@ -1111,6 +1131,9 @@ public class TriggerReactor extends JavaPlugin {
         sendDetails(sender, "/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
 
         sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] <variable name>", "get the value saved in <variable name>. null if nothing.");
+
+        sendCommandDesc(sender, "/triggerreactor[trg] run [...]", "Run simple code treating it as Command Trigger.");
+        sendDetails(sender, "/trg run #TP {\"MahPlace\"}");
 
         sendCommandDesc(sender, "/triggerreactor[trg] delete[del] <type> <name>", "Delete specific trigger/variable/etc.");
         sendDetails(sender, "/trg del vars test &8- &7delete the variable saved in 'test'");
