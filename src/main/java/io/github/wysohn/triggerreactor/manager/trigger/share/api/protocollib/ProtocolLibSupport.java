@@ -281,8 +281,12 @@ public class ProtocolLibSupport extends APISupport {
     public void sendEntityEquip(Player p, int entityId, String slot, ItemStack item) throws ClassNotFoundException, InvocationTargetException{
         PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT.name());
 
+        container.getIntegers().write(0, entityId);
+
         Class<?> clazz = Class.forName("net.minecraft.server."+nmsVersion+".EnumItemSlot");
         container.getEnumModifier(EnumItemSlot.class, clazz).write(0, EnumItemSlot.valueOf(slot));
+
+        container.getItemModifier().write(0, item);
 
         this.sendPacket(p, container);
     }
