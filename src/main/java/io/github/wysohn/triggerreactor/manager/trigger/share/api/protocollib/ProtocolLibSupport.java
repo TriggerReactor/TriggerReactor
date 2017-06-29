@@ -276,12 +276,15 @@ public class ProtocolLibSupport extends APISupport {
      * @throws ClassNotFoundException This throws if EnumItemSlot doesn't exist in nms package. This can be the case
      *  where you are trying to use this method in somewhere 1.8 version environment. It's advised to create your own with
      *  {@link #createPacket(String)} as PacketPlayoutEntityEquipment.class around 1.8 version specify everything using primitive types.
+     * @throws InvocationTargetException
      */
-    public void sendEntityEquip(Player p, int entityId, String slot, ItemStack item) throws ClassNotFoundException{
+    public void sendEntityEquip(Player p, int entityId, String slot, ItemStack item) throws ClassNotFoundException, InvocationTargetException{
         PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT.name());
 
         Class<?> clazz = Class.forName("net.minecraft.server."+nmsVersion+".EnumItemSlot");
         container.getEnumModifier(EnumItemSlot.class, clazz).write(0, EnumItemSlot.valueOf(slot));
+
+        this.sendPacket(p, container);
     }
 
     public enum EnumItemSlot{
