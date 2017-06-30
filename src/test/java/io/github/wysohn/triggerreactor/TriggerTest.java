@@ -33,12 +33,12 @@ import org.bukkit.inventory.PlayerInventory;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.parser.Node;
 import io.github.wysohn.triggerreactor.core.parser.Parser;
-import io.github.wysohn.triggerreactor.manager.trigger.share.CommonFunctions;
 import junit.framework.Assert;
 
 public class TriggerTest {

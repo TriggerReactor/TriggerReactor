@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 
-import io.github.wysohn.triggerreactor.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 
 public abstract class Executor {
     public static final int STOP = 0;
