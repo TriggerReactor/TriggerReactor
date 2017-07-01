@@ -16,8 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.location;
 
-import org.bukkit.Chunk;
-
 public class SimpleChunkLocation {
     String world;
     int i,j;
@@ -26,12 +24,6 @@ public class SimpleChunkLocation {
         this.world = world;
         this.i = i;
         this.j = j;
-    }
-    public SimpleChunkLocation(Chunk chunk) {
-        super();
-        this.world = chunk.getWorld().getName();
-        this.i = chunk.getX();
-        this.j = chunk.getZ();
     }
     public SimpleChunkLocation(SimpleLocation sloc) {
         super();

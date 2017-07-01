@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -14,9 +15,9 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 public class ProtocolLibSupport extends APISupport {
@@ -27,7 +28,8 @@ public class ProtocolLibSupport extends APISupport {
     public ProtocolLibSupport(TriggerReactor plugin) {
         super(plugin, "ProtocolLib");
 
-        String packageName = plugin.getServer().getClass().getPackage().getName();
+        Plugin bukkitPlugin = plugin.getMain();
+        String packageName = bukkitPlugin.getServer().getClass().getPackage().getName();
         nmsVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
     }
 

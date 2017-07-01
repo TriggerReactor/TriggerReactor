@@ -15,17 +15,19 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEvent;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
-public class PermissionManager extends Manager implements Listener{
+public class PermissionManager extends AbstractPermissionManager implements Listener{
     private boolean inject = true;
 
     public PermissionManager(TriggerReactor plugin) {
         super(plugin);
 
-        plugin.getConfig().addDefault("PermissionManager.Intercept", true);
+        if(!plugin.isConfigSet("PermissionManager.Intercept"))
+            plugin.setConfig("PermissionManager.Intercept", true);
         plugin.saveConfig();
 
         reload();
@@ -35,7 +37,7 @@ public class PermissionManager extends Manager implements Listener{
     public void reload() {
         plugin.reloadConfig();
 
-        inject = plugin.getConfig().getBoolean("PermissionManager.Intercept", false);
+        inject = plugin.getConfig("PermissionManager.Intercept", false);
 
         for(Player p : Bukkit.getOnlinePlayers()){
             PermissibleBase original = getPermissible(p);

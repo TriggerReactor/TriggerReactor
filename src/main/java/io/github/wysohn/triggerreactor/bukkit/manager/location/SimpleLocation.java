@@ -16,11 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.location;
 
-import org.bukkit.Location;
-
 public class SimpleLocation implements Cloneable{
     String world;
     int x, y, z;
+    float pitch, yaw;
     public SimpleLocation(String world, int x, int y, int z) {
         super();
         this.world = world;
@@ -28,13 +27,17 @@ public class SimpleLocation implements Cloneable{
         this.y = y;
         this.z = z;
     }
-    public SimpleLocation(Location loc) {
+
+    public SimpleLocation(String world, int x, int y, int z, float pitch, float yaw) {
         super();
-        this.world = loc.getWorld().getName();
-        this.x = loc.getBlockX();
-        this.y = loc.getBlockY();
-        this.z = loc.getBlockZ();
+        this.world = world;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.pitch = pitch;
+        this.yaw = yaw;
     }
+
     public String getWorld() {
         return world;
     }

@@ -21,13 +21,11 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -48,17 +46,16 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.IllegalPluginAccessException;
-import org.bukkit.plugin.Plugin;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
-public class CustomTriggerManager extends TriggerManager {
+public class CustomTriggerManager extends AbstractCustomTriggerManager {
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
@@ -77,16 +74,13 @@ public class CustomTriggerManager extends TriggerManager {
         put("onBlockBreak", BlockBreakEvent.class);
     }};
 
-    private final File folder;
-
-    private final Map<Class<? extends Event>, Set<CustomTrigger>> triggerMap = new ConcurrentHashMap<>();
-    private final Map<String, CustomTrigger> nameMap = new ConcurrentHashMap<>();
+    final File folder;
 
     public CustomTriggerManager(TriggerReactor plugin) {
         super(plugin);
 
         try {
-            initEvents(plugin);
+            initEvents();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,48 +91,6 @@ public class CustomTriggerManager extends TriggerManager {
         }
 
         reload();
-    }
-
-    private static final String basePackageName = "org.bukkit.event";
-    private static final Listener listener = new Listener(){};
-    private void initEvents(Plugin plugin) throws IOException{
-        //thanks google and spigot!
-/*        ClassPath cp = ClassPath.from(Bukkit.class.getClassLoader());
-        for (ClassInfo info : cp.getTopLevelClassesRecursive(basePackageName)) {
-            Class<?> test = null;
-            try {
-                test = Class.forName(info.getName());
-            } catch (ClassNotFoundException e1) {
-                e1.printStackTrace();
-            }
-
-            if(!Event.class.isAssignableFrom(test))
-                continue;
-
-            Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if(clazz.equals(Event.class))
-                continue;
-
-            EVENTS.put(info.getSimpleName(), clazz);
-        }*/
-
-        for(String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)){
-            Class<?> test = null;
-            try {
-                test = Class.forName(clazzName);
-            } catch (ClassNotFoundException e1) {
-                e1.printStackTrace();
-            }
-
-            if(!Event.class.isAssignableFrom(test))
-                continue;
-
-            Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if(clazz.equals(Event.class))
-                continue;
-
-            EVENTS.put(clazz.getSimpleName(), clazz);
-        }
     }
 
     @Override
@@ -173,7 +125,7 @@ public class CustomTriggerManager extends TriggerManager {
 
             Class<? extends Event> event = null;
             try {
-                event = getEventFromName(eventName);
+                event = (Class<? extends Event>) getEventFromName(eventName);
             } catch (ClassNotFoundException e1) {
                 plugin.getLogger().warning("Could not load "+file);
                 plugin.getLogger().warning(e1.getMessage() + " does not exist.");
@@ -207,37 +159,42 @@ public class CustomTriggerManager extends TriggerManager {
         }
     }
 
-    /**
-     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
-     *  if couldn't find existing one already, and register it so can handle the event.
-     * @param event any event that extends Event (and HandlerList of course)
-     * @return Set of CustomTriggers associated with the event
-     */
-    private Set<CustomTrigger> getTriggerSetForEvent(Class<? extends Event> event) {
-        Set<CustomTrigger> triggers = triggerMap.get(event);
-        if(triggers == null){
-            //this will allow TriggerReactor to hook events from other plugins as well.
-            registerEvent(plugin, event);
+    private static final String basePackageName = "org.bukkit.event";
+    static final Listener listener = new Listener(){};
+    protected void initEvents() throws IOException{
+        for(String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)){
+            Class<?> test = null;
+            try {
+                test = Class.forName(clazzName);
+            } catch (ClassNotFoundException e1) {
+                e1.printStackTrace();
+            }
 
-            triggers = new HashSet<>();
-            triggerMap.put(event, triggers);
+            if(!Event.class.isAssignableFrom(test))
+                continue;
+
+            Class<? extends Event> clazz = (Class<? extends Event>) test;
+            if(clazz.equals(Event.class))
+                continue;
+
+            EVENTS.put(clazz.getSimpleName(), clazz);
         }
-        return triggers;
     }
 
-    private void registerEvent(Plugin plugin, Class<? extends Event> clazz) {
+    @Override
+    protected void registerEvent(TriggerReactor plugin, Class<?> clazz) {
         try{
-            plugin.getServer().getPluginManager().registerEvent(clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
+            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
                 @Override
                 public void execute(Listener arg0, Event arg1) throws EventException {
                     handleEvent(arg1);
                 }
-            }, plugin);
+            }, plugin.getMain());
         }catch(IllegalPluginAccessException e){
             //event with no handler list will throw this exception
             //which means it's a base event
             if(!BASEEVENTS.contains(BASEEVENTS))
-                BASEEVENTS.add(clazz);
+                BASEEVENTS.add((Class<? extends Event>) clazz);
         }
     }
 
@@ -253,7 +210,8 @@ public class CustomTriggerManager extends TriggerManager {
      *             throws if search fails or the result event is
      *             a event that cannot receive events.
      */
-    protected Class<? extends Event> getEventFromName(String name) throws ClassNotFoundException{
+    @Override
+    protected Class<?> getEventFromName(String name) throws ClassNotFoundException{
         Class<? extends Event> event;
         if(ABBREVIATIONS.containsKey(name)){
             event = ABBREVIATIONS.get(name);
@@ -285,7 +243,7 @@ public class CustomTriggerManager extends TriggerManager {
                 if(yfile.exists())
                     yamlFile.load(yfile);
                 yamlFile.set("Sync", trigger.isSync());
-                yamlFile.set("Event", trigger.eventName);
+                yamlFile.set("Event", trigger.getEventName());
                 yamlFile.save(yfile);
             } catch (IOException | InvalidConfigurationException e1) {
                 e1.printStackTrace();
@@ -300,7 +258,8 @@ public class CustomTriggerManager extends TriggerManager {
         }
     }
 
-    protected void handleEvent(Event e){
+    @Override
+    protected void handleEvent(Object e){
         Set<CustomTrigger> triggers = triggerMap.get(e.getClass());
         if(triggers == null)
             return;
@@ -311,135 +270,9 @@ public class CustomTriggerManager extends TriggerManager {
         }
     }
 
-    /**
-     * Create a new CustomTrigger.
-     *
-     * @param eventName
-     *            the class name of the Event that this Custom Trigger will
-     *            handle.
-     * @param name name of trigger (unique)
-     * @param script the script
-     * @return true if created; false if trigger with the 'name' already exists.
-     * @throws ClassNotFoundException
-     *             throws if className is not in abbreviation list, not a valid
-     *             class name, or the specified event is not a valid event to handle.
-     * @throws ParserException
-     * @throws LexerException
-     * @throws IOException
-     */
-    public boolean createCustomTrigger(String eventName, String name, String script) throws ClassNotFoundException,
-    IOException, LexerException, ParserException {
-        if(nameMap.containsKey(name))
-            return false;
-
-        Class<? extends Event> event = this.getEventFromName(eventName);
-
-        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
-
-        CustomTrigger trigger = new CustomTrigger(event, eventName, name, script);
-
-        triggers.add(trigger);
-        nameMap.put(name, trigger);
-
-        return true;
-    }
-
-    /**
-     * Find and return Custom Trigger with the 'name'
-     * @param name
-     * @return null if no such trigger with that name; CustomTrigger if found
-     */
-    public CustomTrigger getTriggerForName(String name){
-        return nameMap.get(name);
-    }
-
-    /**
-     * get set of triggers associated with 'className' Event
-     * @param eventName the abbreviation, simple event name, or full event name. See {@link #getEventFromName(String)}
-     * @return set of triggers; null if nothing is registered with the 'className'
-     * @throws ClassNotFoundException See {@link #getEventFromName(String)}
-     */
-    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException{
-        Class<? extends Event> clazz = this.getEventFromName(eventName);
-
-        return triggerMap.get(clazz);
-    }
-
-    /**
-     * Delete the Custom Trigger with 'name'
-     * @param name
-     * @return false if no such trigger exists with 'name'; true if deleted
-     */
-    public boolean removeTriggerForName(String name){
-        if(!nameMap.containsKey(name))
-            return false;
-
-        CustomTrigger trigger = nameMap.remove(name);
-        Set<CustomTrigger> triggers = triggerMap.get(trigger.event);
-        if(triggers != null){
-            triggers.remove(trigger);
-        }
-
-        FileUtil.delete(new File(folder, name));
-        FileUtil.delete(new File(folder, name+".yml"));
-
-        return true;
-    }
-
-    public class CustomTrigger extends Trigger{
-        final Class<? extends Event> event;
-        final String eventName;
-
-        /**
-         *
-         * @param event
-         * @param name
-         * @param script
-         * @throws IOException {@link Trigger#init()}
-         * @throws LexerException {@link Trigger#init()}
-         * @throws ParserException {@link Trigger#init()}
-         */
-        public CustomTrigger(Class<? extends Event> event, String eventName, String name, String script) throws IOException, LexerException, ParserException {
-            super(name, script);
-            this.event = event;
-            this.eventName = eventName;
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CustomTrigger(event, eventName, triggerName, this.getScript());
-            } catch (IOException | LexerException | ParserException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((triggerName == null) ? 0 : triggerName.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            CustomTrigger other = (CustomTrigger) obj;
-            if (triggerName == null) {
-                if (other.triggerName != null)
-                    return false;
-            } else if (!triggerName.equals(other.triggerName))
-                return false;
-            return true;
-        }
+    @Override
+    protected void deleteInfo(CustomTrigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()));
+        FileUtil.delete(new File(folder, trigger.getTriggerName()+".yml"));
     }
 }

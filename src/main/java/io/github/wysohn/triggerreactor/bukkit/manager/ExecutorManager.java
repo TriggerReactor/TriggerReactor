@@ -24,6 +24,7 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.Callable;
@@ -53,24 +54,25 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
-public class ExecutorManager extends HashMap<String, Executor>{
+public class ExecutorManager extends AbstractExecutorManager{
     private static final ScriptEngineManager sem = new ScriptEngineManager();
 
     public static final String Invocable = null;
 
     private TriggerReactor plugin;
     private File executorFolder;
-    private Map<String, JSExecutor> jsExecutors = new HashMap<>();
+    private Map<String, Executor> jsExecutors = new HashMap<>();
 
     public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
-        super();
+        super(plugin);
         this.plugin = plugin;
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
         JarUtil.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.COPY_IF_NOT_EXIST);
@@ -143,6 +145,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
         sem.put(name, getNashornEngine().eval("Java.type('"+clazz.getName()+"');"));
     }
 
+    @Override
     public void reload(){
         FileFilter filter = new FileFilter(){
             @Override
@@ -189,36 +192,36 @@ public class ExecutorManager extends HashMap<String, Executor>{
     }
 
     @Override
+    public void saveAll() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
     public Executor get(Object key) {
-        Executor executor = super.get(key);
-        if(executor == null){
-            executor = jsExecutors.get(key);
-        }
-        return executor;
+        return jsExecutors.get(key);
     }
 
     @Override
     public boolean containsKey(Object key) {
-        boolean result = super.containsKey(key);
-        if(!result){
-            result = jsExecutors.containsKey(key);
-        }
-        return result;
+        return jsExecutors.containsKey(key);
     }
 
     @Override
     public Set<Entry<String, Executor>> entrySet() {
         Set<Entry<String, Executor>> set = new HashSet<>();
-        set.addAll(super.entrySet());
-        for(Map.Entry<String, JSExecutor> entry : jsExecutors.entrySet()){
+        for(Entry<String, Executor> entry : jsExecutors.entrySet()){
             set.add(new AbstractMap.SimpleEntry<String, Executor>(entry.getKey(), entry.getValue()));
         }
         return set;
     }
 
+    @Override
+    public Map<String, Executor> getExecutorMap() {
+        return this.jsExecutors;
+    }
 
-
-    private class JSExecutor extends Executor{
+    class JSExecutor extends Executor{
         private final String executorName;
         private final String sourceCode;
 
@@ -295,7 +298,7 @@ public class ExecutorManager extends HashMap<String, Executor>{
                 }
                 return result;
             }else{
-                Future<Integer> future = runBukkitTaskForFuture(call);
+                Future<Integer> future = runSyncTaskForFuture(call);
 
                 Integer result = null;
                 try {

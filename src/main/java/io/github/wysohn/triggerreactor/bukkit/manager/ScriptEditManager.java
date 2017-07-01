@@ -16,31 +16,33 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationFactory;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.prompts.EditingPrompt;
 import io.github.wysohn.triggerreactor.tools.prompts.UsagePrompt;
 
-public class ScriptEditManager extends Manager implements ConversationAbandonedListener{
+public class ScriptEditManager extends AbstractScriptEditManager implements ConversationAbandonedListener{
 	public ScriptEditManager(TriggerReactor plugin) {
 	    super(plugin);
 	}
 
-	public void startEdit(Conversable sender, String title, String script, SaveHandler saveHandler){
-		ConversationFactory factory = new ConversationFactory(plugin);
+	@Override
+    public void startEdit(IPlayer sender, String title, String script, SaveHandler saveHandler){
+		ConversationFactory factory = new ConversationFactory(plugin.getMain());
 
-		EditingPrompt prompt = new EditingPrompt(plugin, sender, new ScriptEditor(title, script, saveHandler));
+		EditingPrompt prompt = new EditingPrompt(plugin.getMain(), sender.get(), new ScriptEditor(title, script, saveHandler));
 		Conversation conv = factory.thatExcludesNonPlayersWithMessage("Sorry, this is in-game only feature!")
 				.withFirstPrompt(new UsagePrompt(prompt))
 				.addConversationAbandonedListener(this)
-				.buildConversation(sender);
+				.buildConversation(sender.get());
 		conv.getContext().setSessionData("edit", prompt);
 
 		conv.begin();

@@ -16,13 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -33,12 +28,16 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 
-public class PlayerLocationManager extends Manager implements Listener{
-    private transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
+public class PlayerLocationManager extends AbstractPlayerLocationManager implements Listener{
+
 
     public PlayerLocationManager(TriggerReactor plugin) {
         super(plugin);
@@ -49,30 +48,30 @@ public class PlayerLocationManager extends Manager implements Listener{
     public void onJoin(PlayerJoinEvent e){
         Player player = e.getPlayer();
         Location loc = player.getLocation();
-        SimpleLocation sloc = new SimpleLocation(loc);
-        locations.put(player.getUniqueId(), sloc);
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        setCurrentBlockLocation(player.getUniqueId(), sloc);
     }
 
     @EventHandler
     public void onSpawn(PlayerRespawnEvent e){
         Player player = e.getPlayer();
         Location loc = player.getLocation();
-        SimpleLocation sloc = new SimpleLocation(loc);
-        locations.put(player.getUniqueId(), sloc);
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        setCurrentBlockLocation(player.getUniqueId(), sloc);
     }
 
     @EventHandler
     public void onTeleport(PlayerChangedWorldEvent e){
         Player player = e.getPlayer();
         Location loc = player.getLocation();
-        SimpleLocation sloc = new SimpleLocation(loc);
-        locations.put(player.getUniqueId(), sloc);
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        setCurrentBlockLocation(player.getUniqueId(), sloc);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onQuit(PlayerQuitEvent e){
         Player player = e.getPlayer();
-        locations.remove(player.getUniqueId());
+        removeCurrentBlockLocation(player.getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -82,32 +81,42 @@ public class PlayerLocationManager extends Manager implements Listener{
 
         Player player = e.getPlayer();
 
-        SimpleLocation from = locations.get(player.getUniqueId());
-        SimpleLocation to = new SimpleLocation(e.getTo());
+        SimpleLocation from = getCurrentBlockLocation(player.getUniqueId());
+        SimpleLocation to = LocationUtil.convertToSimpleLocation(e.getTo());
 
-        if(from.equals(to))
-            return;
-
-        PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player, from, to);
-        Bukkit.getPluginManager().callEvent(pble);
-        if(pble.isCancelled()){
-            Location bukkitFrom = convertToBukkitLocation(from);
-            Location result = bukkitFrom.clone();
-            result.setPitch(player.getLocation().getPitch());
-            result.setYaw(player.getLocation().getYaw());
-            e.setFrom(result);
-            e.setTo(result);
-        } else {
-            locations.put(player.getUniqueId(), to);
+        SimpleLocation backTo = onMove(new BukkitPlayer(player), from, to);
+        if(backTo != null){
+            e.setFrom(LocationUtil.convertToBukkitLocation(backTo));
+            e.setTo(LocationUtil.convertToBukkitLocation(backTo));
         }
     }
 
-    private Location convertToBukkitLocation(SimpleLocation from) {
-        World world = Bukkit.getWorld(from.getWorld());
-        int x = from.getX();
-        int y = from.getY();
-        int z= from.getZ();
-        return new Location(world, x + 0.5, y, z + 0.5);
+    @Override
+    protected SimpleLocation onMove(IPlayer player, SimpleLocation from, SimpleLocation to) {
+        if(from.equals(to))
+            return null;
+
+        PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player.get(), from, to);
+        Bukkit.getPluginManager().callEvent(pble);
+        if(pble.isCancelled()){
+            Location bukkitFrom = LocationUtil.convertToBukkitLocation(from);
+            Location result = bukkitFrom.clone();
+
+            Player p = player.get();
+            Location loc = p.getLocation();
+
+            result.setPitch(loc.getPitch());
+            result.setYaw(loc.getYaw());
+            return new SimpleLocation(result.getWorld().getName(),
+                    result.getBlockX(),
+                    result.getBlockY(),
+                    result.getBlockZ(),
+                    result.getPitch(),
+                    result.getYaw());
+        } else {
+            setCurrentBlockLocation(player.getUniqueId(), to);
+            return null;
+        }
     }
 
     @Override

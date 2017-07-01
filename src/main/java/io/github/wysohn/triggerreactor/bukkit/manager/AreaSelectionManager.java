@@ -1,9 +1,5 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
@@ -15,22 +11,19 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager.Area;
+import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 
-public class AreaSelectionManager extends Manager implements Listener{
-    private final Set<UUID> selecting = new HashSet<>();
-    private final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();
-    private final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
-
+public class AreaSelectionManager extends AbstractAreaSelectionManager implements Listener{
     public AreaSelectionManager(TriggerReactor plugin) {
         super(plugin);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e){
-        resetSelections(e.getPlayer());
+        resetSelections(e.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -46,11 +39,44 @@ public class AreaSelectionManager extends Manager implements Listener{
         if(e.getHand() != EquipmentSlot.HAND)
             return;
 
-        SimpleLocation sloc = new SimpleLocation(e.getClickedBlock().getLocation());
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getClickedBlock().getLocation());
 
+        ClickResult result = null;
         if(e.getAction() == Action.LEFT_CLICK_BLOCK){
-            leftPosition.put(uuid, sloc);
+            result = onClick(ClickAction.LEFT_CLICK_BLOCK, uuid, sloc);
         }else if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
+            result = onClick(ClickAction.RIGHT_CLICK_BLOCK, uuid, sloc);
+        }
+
+        if(result != null){
+            switch(result){
+            case DIFFERENTWORLD:
+                player.sendMessage(ChatColor.RED+"Positions have different world name.");
+                break;
+            case COMPLETE:
+                SimpleLocation left = leftPosition.get(uuid);
+                SimpleLocation right = rightPosition.get(uuid);
+
+                SimpleLocation smallest = getSmallest(left, right);
+                SimpleLocation largest = getLargest(left, right);
+
+                player.sendMessage(ChatColor.LIGHT_PURPLE+"Smallest: "+smallest+" , Largest: "+largest);
+                break;
+            case LEFTSET:
+                player.sendMessage(ChatColor.GREEN+"Left ready");
+                break;
+            case RIGHTSET:
+                player.sendMessage(ChatColor.GREEN+"Right ready");
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
+        if(action == ClickAction.LEFT_CLICK_BLOCK){
+            leftPosition.put(uuid, sloc);
+        }else if(action == ClickAction.RIGHT_CLICK_BLOCK){
             rightPosition.put(uuid, sloc);
         }
 
@@ -58,78 +84,14 @@ public class AreaSelectionManager extends Manager implements Listener{
         SimpleLocation right = rightPosition.get(uuid);
         if(left != null && right != null){
             if(!left.getWorld().equals(right.getWorld())){
-                player.sendMessage(ChatColor.RED+"Positions have different world name.");
-                return;
+                return ClickResult.DIFFERENTWORLD;
             }
 
-            SimpleLocation smallest = getSmallest(left, right);
-            SimpleLocation largest = getLargest(left, right);
-
-            player.sendMessage(ChatColor.LIGHT_PURPLE+"Smallest: "+smallest+" , Largest: "+largest);
+            return ClickResult.COMPLETE;
         } else if (left != null){
-            player.sendMessage(ChatColor.GREEN+"Left ready");
+            return ClickResult.LEFTSET;
         } else if (right != null){
-            player.sendMessage(ChatColor.GREEN+"Right ready");
-        }
-    }
-
-    private SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
-        return new SimpleLocation(left.getWorld(),
-                Math.min(left.getX(), right.getX()),
-                Math.min(left.getY(), right.getY()),
-                Math.min(left.getZ(), right.getZ()));
-    }
-
-    private SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
-        return new SimpleLocation(right.getWorld(),
-                Math.max(left.getX(), right.getX()),
-                Math.max(left.getY(), right.getY()),
-                Math.max(left.getZ(), right.getZ()));
-    }
-
-    /**
-     *
-     * @param player
-     * @return true if on; false if off
-     */
-    public boolean toggleSelection(Player player){
-        if(selecting.contains(player.getUniqueId())){
-            selecting.remove(player.getUniqueId());
-            resetSelections(player);
-            return false;
-        }else{
-            selecting.add(player.getUniqueId());
-            return true;
-        }
-    }
-
-    public void resetSelections(Player player){
-        selecting.remove(player.getUniqueId());
-        leftPosition.remove(player.getUniqueId());
-        rightPosition.remove(player.getUniqueId());
-    }
-
-    /**
-     *
-     * @param player
-     * @return null if invalid selection; Area if done (this Area's name is always null)
-     */
-    public Area getSelection(Player player){
-        UUID uuid = player.getUniqueId();
-
-        SimpleLocation left = leftPosition.get(uuid);
-        SimpleLocation right = rightPosition.get(uuid);
-
-        if(left != null && right != null){
-            if(!left.getWorld().equals(right.getWorld())){
-                player.sendMessage(ChatColor.RED+"Positions have different world name.");
-                return null;
-            }
-
-            SimpleLocation smallest = getSmallest(left, right);
-            SimpleLocation largest = getLargest(left, right);
-
-            return new Area(smallest, largest);
+            return ClickResult.RIGHTSET;
         } else {
             return null;
         }

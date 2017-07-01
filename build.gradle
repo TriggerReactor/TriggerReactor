@@ -20,8 +20,8 @@ plugins {
     id 'org.spongepowered.plugin' version '0.8.1'
 }
 
-group = 'com.example'
-description = 'An example plugin'
+group = 'io.github.wysohn.triggerreactor'
+description = 'Simple script parser with infinite possibility'
 
 configurations {
 	jaxDoclet

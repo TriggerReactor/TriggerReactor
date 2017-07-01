@@ -7,8 +7,8 @@ import com.gmail.nossr50.datatypes.skills.AbilityType;
 import com.gmail.nossr50.datatypes.skills.SkillType;
 import com.gmail.nossr50.util.player.UserManager;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 public class McMmoSupport extends APISupport {
 

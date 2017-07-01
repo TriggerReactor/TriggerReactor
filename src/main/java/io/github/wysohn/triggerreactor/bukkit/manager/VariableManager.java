@@ -19,15 +19,15 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 
-public class VariableManager extends Manager{
+public class VariableManager extends AbstractVariableManager{
     private File varFile;
     private FileConfiguration varFileConfig;
     private GlobalVariableAdapter adapter;
@@ -85,22 +85,27 @@ public class VariableManager extends Manager{
         }
     }
 
+    @Override
     public GlobalVariableAdapter getGlobalVariableAdapter(){
         return adapter;
     }
 
+    @Override
     public Object get(String key){
         return varFileConfig.get(key);
     }
 
+    @Override
     public void put(String key, Object value){
         varFileConfig.set(key, value);
     }
 
+    @Override
     public boolean has(String key){
         return varFileConfig.contains(key);
     }
 
+    @Override
     public void remove(String key){
         varFileConfig.set(key, null);
     }
@@ -144,25 +149,5 @@ public class VariableManager extends Manager{
             varFileConfig.set(key, value);
             return before;
         }
-    }
-
-    private static final Pattern pattern = Pattern.compile(
-            "# Match a valid Windows filename (unspecified file system).          \n" +
-            "^                                # Anchor to start of string.        \n" +
-            "(?!                              # Assert filename is not: CON, PRN, \n" +
-            "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n" +
-            "    CON|PRN|AUX|NUL|             # COM5, COM6, COM7, COM8, COM9,     \n" +
-            "    COM[1-9]|LPT[1-9]            # LPT1, LPT2, LPT3, LPT4, LPT5,     \n" +
-            "  )                              # LPT6, LPT7, LPT8, and LPT9...     \n" +
-            "  (?:\\.[^.]*)?                  # followed by optional extension    \n" +
-            "  $                              # and end of string                 \n" +
-            ")                                # End negative lookahead assertion. \n" +
-            "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n" +
-            "[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]  # Last char is not a space or dot.  \n" +
-            "$                                # Anchor to end of string.            ",
-            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
-
-    public static boolean isValidName(String str){
-        return pattern.matcher(str).matches();
     }
 }

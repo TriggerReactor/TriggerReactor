@@ -177,10 +177,10 @@ public class ReflectionUtil {
         return map;
     }
 
-    public static Map<String, Object> extractVariablesWithEnumAsString(Event e){
+    public static Map<String, Object> extractVariablesWithEnumAsString(Object e){
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Class<? extends Event> clazz = e.getClass();
+        Class<?> clazz = e.getClass();
         for(Field field : getAllFields(new ArrayList<Field>(), clazz)){
             field.setAccessible(true);
             try {

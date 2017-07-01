@@ -24,14 +24,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
-public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerManager.WalkTrigger> {
+public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> {
     public WalkTriggerManager(TriggerReactor plugin) {
         super(plugin, "WalkTrigger");
     }
@@ -56,31 +56,12 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTriggerM
             return false;
 
         Map<String, Object> varMap = new HashMap<>();
-        insertPlayerVariables(player, varMap);
+        varMap.put("player", player);
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 
         trigger.activate(e, varMap);
         return true;
-    }
-
-    class WalkTrigger extends TriggerManager.Trigger{
-
-        public WalkTrigger(String name, String script) throws IOException, LexerException, ParserException {
-            super(name, script);
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new WalkTrigger(triggerName, getScript());
-            } catch (IOException | LexerException | ParserException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
     }
 
     @Override

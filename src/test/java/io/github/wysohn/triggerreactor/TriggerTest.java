@@ -34,11 +34,11 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.core.interpreter.Executor;
-import io.github.wysohn.triggerreactor.core.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.lexer.Lexer;
-import io.github.wysohn.triggerreactor.core.parser.Node;
-import io.github.wysohn.triggerreactor.core.parser.Parser;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
+import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import junit.framework.Assert;
 
 public class TriggerTest {
@@ -71,9 +71,9 @@ public class TriggerTest {
             }};
         executorMap.put("MESSAGE", mockExecutor);
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
 
-        interpreter.getVars().put("common", new CommonFunctions());
+        interpreter.getVars().put("common", new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -112,7 +112,7 @@ public class TriggerTest {
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -149,7 +149,7 @@ public class TriggerTest {
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -208,7 +208,7 @@ public class TriggerTest {
                 return null;
             }
         });
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
 
         Player mockPlayer = mock(Player.class);
         PlayerInventory mockInven = mock(PlayerInventory.class);
@@ -252,7 +252,7 @@ public class TriggerTest {
             }
         });
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), new CommonFunctions(null));
 
         interpreter.getVars().put("text", "someplayername");
         interpreter.startWithContext(null);
@@ -282,7 +282,7 @@ public class TriggerTest {
             }
         });
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), new CommonFunctions(null));
 
         String[] args = new String[]{"item1", "item2"};
         interpreter.getVars().put("args", args);
@@ -312,7 +312,7 @@ public class TriggerTest {
         });
         CommonFunctions mockFunctions = mock(CommonFunctions.class);
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -351,7 +351,7 @@ public class TriggerTest {
         when(mockFunctions.getPlayers()).thenReturn(players);
 
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions);
 
         interpreter.startWithContext(null);
     }
@@ -386,7 +386,7 @@ public class TriggerTest {
         when(mockFunctions.getPlayers()).thenReturn(players);
 
         Map<String, Object> map = new HashMap<String, Object>();
-        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions, null);
+        Interpreter interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions);
 
         interpreter.startWithContext(null);
     }
@@ -428,7 +428,7 @@ public class TriggerTest {
         Interpreter interpreter;
 
         when(mockFunctions.currentArea(Mockito.any(Player.class))).thenReturn("tutorialArea");
-        interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions, null);
+        interpreter = new Interpreter(root, executorMap, map, new HashMap<>(), mockFunctions);
         interpreter.getVars().put("player", mockPlayer);
         interpreter.startWithContext(null);
     }
@@ -451,7 +451,7 @@ public class TriggerTest {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(), null);
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
 

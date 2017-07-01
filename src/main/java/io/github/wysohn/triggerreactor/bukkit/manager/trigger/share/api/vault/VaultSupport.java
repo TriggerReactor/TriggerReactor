@@ -17,11 +17,12 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault;
 
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -52,7 +53,8 @@ public class VaultSupport extends APISupport {
 
     private boolean setupPermissions()
     {
-        RegisteredServiceProvider<Permission> permissionProvider = plugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        Plugin bukkitPlugin = plugin.getMain();
+        RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
         }
@@ -61,7 +63,8 @@ public class VaultSupport extends APISupport {
 
     private boolean setupChat()
     {
-        RegisteredServiceProvider<Chat> chatProvider = plugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+        Plugin bukkitPlugin = plugin.getMain();
+        RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (chatProvider != null) {
             chat = chatProvider.getProvider();
         }
@@ -71,7 +74,8 @@ public class VaultSupport extends APISupport {
 
     private boolean setupEconomy()
     {
-        RegisteredServiceProvider<Economy> economyProvider = plugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        Plugin bukkitPlugin = plugin.getMain();
+        RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
         }

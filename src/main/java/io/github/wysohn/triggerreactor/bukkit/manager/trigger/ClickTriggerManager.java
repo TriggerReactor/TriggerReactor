@@ -23,18 +23,17 @@ import java.util.Map;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
-public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTriggerManager.ClickTrigger> {
+public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> {
     public ClickTriggerManager(TriggerReactor plugin) {
         super(plugin, "ClickTrigger");
     }
@@ -69,48 +68,12 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
             return false;
 
         Map<String, Object> varMap = new HashMap<>();
-        insertPlayerVariables(player, varMap);
+        varMap.put("player", e.getPlayer());
         varMap.put("block", clicked);
         varMap.put("item", e.getItem());
 
         trigger.activate(e, varMap);
         return true;
-    }
-
-    class ClickTrigger extends TriggerManager.Trigger{
-        private ClickHandler handler;
-
-        public ClickTrigger(String name, String script, ClickHandler handler) throws IOException, LexerException, ParserException {
-            super(name, script);
-            this.handler = handler;
-
-            init();
-        }
-
-        @Override
-        public boolean activate(Event e, Map<String, Object> scriptVars) {
-            Action action = ((PlayerInteractEvent) e).getAction();
-            if(!handler.allow(action))
-                return true;
-
-            return super.activate(e, scriptVars);
-        }
-
-        @Override
-        public Trigger clone(){
-            try {
-                //TODO: using same handler will be safe?
-                Trigger trigger = new ClickTrigger(triggerName, script, handler);
-                return trigger;
-            } catch (IOException | LexerException | ParserException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public interface ClickHandler{
-        boolean allow(Action action);
     }
 
     @Override

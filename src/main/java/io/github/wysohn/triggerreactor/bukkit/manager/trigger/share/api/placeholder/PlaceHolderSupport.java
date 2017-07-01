@@ -2,8 +2,8 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeho
 
 import org.bukkit.entity.Player;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 public class PlaceHolderSupport extends APISupport {

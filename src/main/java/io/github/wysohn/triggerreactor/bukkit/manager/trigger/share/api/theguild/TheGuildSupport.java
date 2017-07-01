@@ -7,9 +7,9 @@ import org.theguild.costants.guild.Guild;
 import org.theguild.costants.member.Member;
 import org.theguild.main.TheGuild;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 public class TheGuildSupport extends APISupport {
 

@@ -18,13 +18,10 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.ChatColor;
@@ -33,7 +30,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -44,25 +40,29 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public abstract class LocationBasedTriggerManager<T extends Trigger> extends TriggerManager {
+public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T> {
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
-    private Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
-
-    private File folder;
+    private final File folder;
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
-        super(plugin);
+        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars());
 
         File dataFolder = plugin.getDataFolder();
         if(!dataFolder.exists())
@@ -154,36 +154,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         }
     }
 
-    private String slocToString(SimpleLocation sloc){
-        return sloc.getWorld()+"@"+sloc.getX()+","+sloc.getY()+","+sloc.getZ();
-    }
-
-    private SimpleLocation stringToSloc(String str){
-        String[] wsplit = str.split("@");
-        String world = wsplit[0];
-        String[] lsplit = wsplit[1].split(",");
-        int x = Integer.parseInt(lsplit[0]);
-        int y = Integer.parseInt(lsplit[1]);
-        int z = Integer.parseInt(lsplit[2]);
-        return new SimpleLocation(world, x, y, z);
-    }
-
-    private Map<UUID, Long> lastClick = new HashMap<>();
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(PlayerInteractEvent e){
         if(e.getHand() != EquipmentSlot.HAND)
             return;
 
         Player player = e.getPlayer();
-
-/*        long current = System.currentTimeMillis();
-        Long last = lastClick.get(player.getUniqueId());
-
-        if(last == null || current > last + 400L){
-            lastClick.put(player.getUniqueId(), current + 400L);
-        }else{
-            return;
-        }*/
 
         ItemStack IS = player.getInventory().getItemInMainHand();
         Block clicked = e.getClickedBlock();
@@ -203,14 +179,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                     player.sendMessage(ChatColor.GREEN+"A trigger has deleted.");
                     e.setCancelled(true);
                 }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
-                    this.showTriggerInfo(player, clicked);
+                    this.showTriggerInfo(new BukkitPlayer(player), clicked);
                     e.setCancelled(true);
                 }
             }else if(IS.getType() == CUT_TOOL){
                 if(e.getAction() == Action.LEFT_CLICK_BLOCK){
                     if(pasteTrigger(player, clicked.getLocation())){
                         player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
-                        this.showTriggerInfo(player, clicked);
+                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
                         e.setCancelled(true);
                     }
                 }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
@@ -224,7 +200,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
                 if(e.getAction() == Action.LEFT_CLICK_BLOCK){
                     if(pasteTrigger(player, clicked.getLocation())){
                         player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
-                        this.showTriggerInfo(player, clicked);
+                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
                         e.setCancelled(true);
                     }
                 }else if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
@@ -237,13 +213,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
             }
         }
 
-        if(!e.isCancelled() && isLocationSetting(player)){
+        if(!e.isCancelled() && isLocationSetting(new BukkitPlayer(player))){
             handleLocationSetting(clicked, player);
             e.setCancelled(true);
         }
     }
 
-    private void handleLocationSetting(Block clicked, Player player){
+    private void handleLocationSetting(Block clicked, Player p){
+        IPlayer player = new BukkitPlayer(p);
+
         Location loc = clicked.getLocation();
         T trigger = getTriggerForLocation(loc);
         if(trigger != null){
@@ -310,71 +288,34 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         e.setCancelled(true);
     }
 
-    protected abstract T constructTrigger(String script) throws IOException, LexerException, ParserException;
-    protected abstract String getTriggerTypeName();
+    @EventHandler
+    public void onItemSwap(PlayerItemHeldEvent e){
+        onItemSwap(new BukkitPlayer(e.getPlayer()));
+    }
+
+    @Override
+    protected void deleteFileForLocation(SimpleLocation sloc) {
+        File file = new File(folder, this.slocToString(sloc));
+        file.delete();
+    }
 
     protected T getTriggerForLocation(Location loc) {
-        SimpleLocation sloc = new SimpleLocation(loc);
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
         return getTriggerForLocation(sloc);
     }
 
-    protected T getTriggerForLocation(SimpleLocation sloc) {
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-        if(!locationTriggers.containsKey(scloc))
-            return null;
-
-        Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-        if(!triggerMap.containsKey(sloc))
-            return null;
-
-        T trigger = triggerMap.get(sloc);
-        return trigger;
-    }
-
     protected void setTriggerForLocation(Location loc, T trigger) {
-        SimpleLocation sloc = new SimpleLocation(loc);
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
         setTriggerForLocation(sloc, trigger);
     }
 
-    protected void setTriggerForLocation(SimpleLocation sloc, T trigger) {
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-        Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-        if(!locationTriggers.containsKey(scloc)){
-            triggerMap = new ConcurrentHashMap<>();
-            locationTriggers.put(scloc, triggerMap);
-        }
-
-        triggerMap.put(sloc, trigger);
-
-        plugin.saveAsynchronously(this);
-    }
-
     protected T removeTriggerForLocation(Location loc) {
-        SimpleLocation sloc = new SimpleLocation(loc);
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
         return removeTriggerForLocation(sloc);
     }
 
-    protected T removeTriggerForLocation(SimpleLocation sloc) {
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-        Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-        if(!locationTriggers.containsKey(scloc)){
-            return null;
-        }
-
-        T result = triggerMap.remove(sloc);
-
-        File file = new File(folder, this.slocToString(sloc));
-        file.delete();
-
-        plugin.saveAsynchronously(this);
-        return result;
-    }
-
-    public void showTriggerInfo(CommandSender sender, Block clicked) {
-        Trigger trigger = getTriggerForLocation(clicked.getLocation());
+    protected void showTriggerInfo(ICommandSender sender, Block clicked) {
+        Trigger trigger = getTriggerForLocation(LocationUtil.convertToSimpleLocation(clicked.getLocation()));
         if(trigger == null){
             return;
         }
@@ -390,38 +331,25 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
-    private Map<UUID, String> settingLocation = new HashMap<>();
-    public boolean isLocationSetting(Player player){
-        return settingLocation.containsKey(player.getUniqueId());
-    }
+    @Override
+    protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc) {
+        Trigger trigger = getTriggerForLocation(sloc);
+        if(trigger == null){
+            return;
+        }
 
-    public boolean startLocationSet(Player player, String script){
-        if(settingLocation.containsKey(player.getUniqueId()))
-            return false;
+        Location loc = LocationUtil.convertToBukkitLocation(sloc);
+        Block clicked = loc.getBlock();
 
-        settingLocation.put(player.getUniqueId(), script);
-
-        return true;
-    }
-
-    public boolean stopLocationSet(Player player){
-        if(!settingLocation.containsKey(player.getUniqueId()))
-            return false;
-
-        settingLocation.remove(player.getUniqueId());
-
-        return true;
-    }
-
-    public String getSettingLocationScript(Player player){
-        return settingLocation.get(player.getUniqueId());
-    }
-
-    private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
-
-    @EventHandler
-    public void onItemSwap(PlayerItemHeldEvent e){
-        clipboard.remove(e.getPlayer().getUniqueId());
+        sender.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("Trigger: "+getTriggerTypeName());
+        sender.sendMessage("Block Type: " + clicked.getType().name());
+        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
+                + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
+        sender.sendMessage("");
+        sender.sendMessage("Script:");
+        sender.sendMessage(trigger.getScript());
+        sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     /**
@@ -430,25 +358,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
     * @param loc
     * @return true if cut ready; false if no trigger found at the location
     */
-    private boolean cutTrigger(Player player, Location loc){
-        SimpleLocation sloc = new SimpleLocation(loc);
-        return cutTrigger(player, sloc);
-    }
-
-    /**
-     *
-     * @param player
-     * @param sloc
-     * @return true if cut ready; false if no trigger found at the location
-     */
-    private boolean cutTrigger(Player player, SimpleLocation sloc) {
-        T trigger = getTriggerForLocation(sloc);
-        if(trigger == null){
-            return false;
-        }
-
-        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.CUT, sloc));
-        return true;
+    protected boolean cutTrigger(Player player, Location loc) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        return cutTrigger(new BukkitPlayer(player), sloc);
     }
 
     /**
@@ -457,25 +369,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
     * @param loc
     * @return true if copy ready; false if no trigger found at the location
     */
-    private boolean copyTrigger(Player player, Location loc){
-        SimpleLocation sloc = new SimpleLocation(loc);
-        return copyTrigger(player, sloc);
-    }
-
-    /**
-     *
-     * @param player
-     * @param sloc
-     * @return true if copy ready; false if no trigger found at the location
-     */
-    private boolean copyTrigger(Player player, SimpleLocation sloc) {
-        T trigger = getTriggerForLocation(sloc);
-        if(trigger == null){
-            return false;
-        }
-
-        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.COPY, sloc));
-        return true;
+    protected boolean copyTrigger(Player player, Location loc) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        return copyTrigger(new BukkitPlayer(player), sloc);
     }
 
     /**
@@ -484,80 +380,13 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Tri
     * @param loc
     * @return true if pasted; false if nothing in the clipboard
     */
-    private boolean pasteTrigger(Player player, Location loc){
-        SimpleLocation sloc = new SimpleLocation(loc);
-        return pasteTrigger(player, sloc);
+    protected boolean pasteTrigger(Player player, Location loc) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        return pasteTrigger(new BukkitPlayer(player), sloc);
     }
 
-    /**
-     *
-     * @param player
-     * @param sloc
-     * @return true if pasted; false if nothing in the clipboard
-     */
-    private boolean pasteTrigger(Player player, SimpleLocation sloc){
-        ClipBoard board = clipboard.get(player.getUniqueId());
-        if(board == null)
-            return false;
-
-        SimpleLocation from = board.location;
-        if(from == null){
-            return false;
-        }
-
-        T trigger = getTriggerForLocation(from);
-        if(trigger == null){
-            player.sendMessage(ChatColor.RED+"Could not find the trigger.");
-            player.sendMessage(ChatColor.RED+"Your previous cut/copy seems deleted by other user.");
-            return true;
-        }
-
-        T previous = null;
-        try{
-            if(board.type == ClipBoard.BoardType.CUT)
-                previous = removeTriggerForLocation(from);
-
-            setTriggerForLocation(sloc, trigger);
-        }catch(Exception e){
-            e.printStackTrace();
-            //put it back if failed
-            if(board.type == ClipBoard.BoardType.CUT && previous != null){
-                setTriggerForLocation(sloc, (T) previous.clone());
-            }
-        }
-
-        return true;
-    }
-
-    public Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk){
-        SimpleChunkLocation scloc = new SimpleChunkLocation(chunk);
+    protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
+        SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
         return getTriggersInChunk(scloc);
-    }
-
-    public Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(SimpleChunkLocation scloc){
-        Set<Map.Entry<SimpleLocation, Trigger>> triggers = new HashSet<>();
-        if(!locationTriggers.containsKey(scloc))
-            return triggers;
-
-        for(Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : locationTriggers.entrySet()){
-            for(Entry<SimpleLocation, T> entryIn : entry.getValue().entrySet()){
-                triggers.add(new SimpleEntry<SimpleLocation, Trigger>(entryIn.getKey(), entryIn.getValue()));
-            }
-        }
-
-        return triggers;
-    }
-
-    private static class ClipBoard{
-        final BoardType type;
-        final SimpleLocation location;
-        public ClipBoard(BoardType type, SimpleLocation location) {
-            this.type = type;
-            this.location = location;
-        }
-
-        enum BoardType{
-            CUT, COPY;
-        }
     }
 }

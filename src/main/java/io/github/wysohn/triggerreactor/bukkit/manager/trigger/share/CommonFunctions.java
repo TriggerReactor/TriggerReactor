@@ -38,13 +38,21 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public class CommonFunctions implements SelfReference {
     private static final Random rand = new Random();
+
+    private final TriggerReactor plugin;
+    public CommonFunctions(TriggerReactor plugin) {
+        super();
+        this.plugin = plugin;
+    }
 
     /**
      * get a random integer value between 0 to end
@@ -299,8 +307,8 @@ public class CommonFunctions implements SelfReference {
      * @return name of area; null if player is not on any area.
      */
     public String currentArea(Player player) {
-        AreaTriggerManager areaManager = TriggerReactor.getInstance().getAreaManager();
-        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(player.getLocation());
+        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
+        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(LocationUtil.convertToSimpleLocation(player.getLocation()));
         if (trigger == null)
             return null;
 

@@ -24,23 +24,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public class CommandTriggerManager extends TriggerManager {
-    private final Map<String, CommandTrigger> commandTriggerMap = new HashMap<>();
-
-    private File folder;
+public class CommandTriggerManager extends AbstractCommandTriggerManager {
+    File folder;
     public CommandTriggerManager(TriggerReactor plugin) {
         super(plugin);
 
@@ -122,7 +118,7 @@ public class CommandTriggerManager extends TriggerManager {
             return;
 
         Map<String, Object> varMap = new HashMap<>();
-        insertPlayerVariables(player, varMap);
+        varMap.put("player", e.getPlayer());
         varMap.put("command", cmd);
         varMap.put("args", args);
         varMap.put("argslength", args.length);
@@ -131,77 +127,9 @@ public class CommandTriggerManager extends TriggerManager {
         e.setCancelled(true);
     }
 
-    public boolean hasCommandTrigger(String cmd){
-        return commandTriggerMap.containsKey(cmd);
-    }
-
-    /**
-     *
-     * @param adding CommandSender to send error message on script error
-     * @param cmd command to intercept
-     * @param script script to be executed
-     * @return true on success; false if cmd already binded.
-     */
-    public boolean addCommandTrigger(CommandSender adding, String cmd, String script){
-        if(commandTriggerMap.containsKey(cmd))
-            return false;
-
-        CommandTrigger trigger = null;
-        try {
-            trigger = new CommandTrigger(cmd, script);
-        } catch (IOException | LexerException | ParserException e1) {
-            adding.sendMessage(ChatColor.RED + "Encounterd an error!");
-            adding.sendMessage(ChatColor.RED + e1.getMessage());
-            adding.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
-            e1.printStackTrace();
-            return false;
-        }
-
-        commandTriggerMap.put(cmd, trigger);
-
-        plugin.saveAsynchronously(this);
-        return true;
-    }
-
-    /**
-     *
-     * @param cmd command to stop intercept
-     * @return true on success; false if cmd does not exist.
-     */
-    public boolean removeCommandTrigger(String cmd){
-        if(!commandTriggerMap.containsKey(cmd))
-            return false;
-
-        commandTriggerMap.remove(cmd);
-
-        File file = new File(folder, cmd);
-        file.delete();
-
-        plugin.saveAsynchronously(this);
-        return true;
-    }
-
-    public CommandTrigger createTempCommandTrigger(String script) throws IOException, LexerException, ParserException{
-        return new CommandTrigger("temp", script);
-    }
-
-    private class CommandTrigger extends TriggerManager.Trigger {
-
-        public CommandTrigger(String name, String script) throws IOException, LexerException, ParserException {
-            super(name, script);
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CommandTrigger(triggerName, getScript());
-            } catch (IOException | LexerException | ParserException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
+    @Override
+    protected void removeInfo(CommandTrigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 
 }

@@ -18,22 +18,17 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.manager.TriggerManager;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public class NamedTriggerManager extends TriggerManager {
-    private final Map<String, Trigger> triggers = new HashMap<>();
+public class NamedTriggerManager extends AbstractNamedTriggerManager {
     private final File folder;
 
     public NamedTriggerManager(TriggerReactor plugin) {
@@ -52,36 +47,10 @@ public class NamedTriggerManager extends TriggerManager {
 
         for (File file : folder.listFiles()) {
             try {
-                load(new Stack<String>(), file);
+                load(file);
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
                 continue;
-            }
-        }
-    }
-
-    private void load(Stack<String> stack, File file)
-            throws UnsupportedEncodingException, IOException, LexerException, ParserException {
-        if (file.isDirectory()) {
-            stack.push(file.getName());
-            for (File f : file.listFiles()) {
-                load(stack, f);
-            }
-            stack.pop();
-        } else {
-            StringBuilder builder = new StringBuilder();
-            for (int i = stack.size() - 1; i >= 0; i--) {
-                builder.append(stack.get(i) + ":");
-            }
-            String fileName = file.getName();
-            builder.append(fileName);
-
-            if (triggers.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
-            } else {
-                Trigger trigger = new NamedTrigger(builder.toString(), FileUtil.readFromFile(file));
-                trigger.setSync(true);
-                triggers.put(builder.toString(), trigger);
             }
         }
     }
@@ -117,27 +86,8 @@ public class NamedTriggerManager extends TriggerManager {
      * @param name the trigger name including path if any exists
      * @return the Trigger; null if no such trigger
      */
+    @Override
     public Trigger getTriggerForName(String name){
         return triggers.get(name);
-    }
-
-    private class NamedTrigger extends Trigger{
-
-        public NamedTrigger(String name, String script) throws IOException, LexerException, ParserException {
-            super(name, script);
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new NamedTrigger(triggerName, getScript());
-            } catch (IOException | LexerException | ParserException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
     }
 }

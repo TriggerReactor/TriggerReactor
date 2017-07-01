@@ -16,24 +16,33 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.faction.FactionsSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.theguild.TheGuildSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 
-public abstract class APISupport {
-    protected final TriggerReactor plugin;
+public abstract class APISupport extends AbstractAPISupport {
     private final String targetPluginName;
 
     protected Plugin target;
 
     public APISupport(TriggerReactor plugin, String targetPluginName) {
-        super();
+        super(plugin);
         Validate.notNull(plugin);
         Validate.notNull(targetPluginName);
 
-        this.plugin = plugin;
         this.targetPluginName = targetPluginName;
     }
 
@@ -49,5 +58,17 @@ public abstract class APISupport {
         target = plugin;
 
         this.plugin.getLogger().info("Enabled support for "+targetPluginName+" "+target.getDescription().getFullName());
+    }
+
+    public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
+        Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<>();
+        sharedVars.put("vault", VaultSupport.class);
+        sharedVars.put("mcmmo", McMmoSupport.class);
+        sharedVars.put("theguild", TheGuildSupport.class);
+        sharedVars.put("placeholder", PlaceHolderSupport.class);
+        sharedVars.put("factions", FactionsSupport.class);
+        sharedVars.put("coreprotect", CoreprotectSupport.class);
+        sharedVars.put("protocollib", ProtocolLibSupport.class);
+        return sharedVars;
     }
 }

@@ -21,7 +21,10 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
+import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.event.IPlayerBlockLocationEvent;
 
 /**
  * This event fires depends on the player's block location. Unlike the PlayerMoveEvent, it only checks wether a player moved
@@ -29,24 +32,17 @@ import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
  * @author wysohn
  *
  */
-public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable{
+public class PlayerBlockLocationEvent extends PlayerEvent implements IPlayerBlockLocationEvent, Cancellable{
     private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled;
-    private final SimpleLocation from;
-    private final SimpleLocation to;
 
-	public PlayerBlockLocationEvent(Player who, SimpleLocation from, SimpleLocation to) {
+	private final SimpleLocation from;
+	private final SimpleLocation to;
+
+    public PlayerBlockLocationEvent(Player who, SimpleLocation from, SimpleLocation to) {
         super(who);
         this.from = from;
         this.to = to;
-    }
-
-    public SimpleLocation getFrom() {
-        return from;
-    }
-
-    public SimpleLocation getTo() {
-        return to;
     }
 
     @Override
@@ -67,5 +63,20 @@ public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable
 	public static HandlerList getHandlerList() {
 		return handlers;
 	}
+
+    @Override
+    public IPlayer getIPlayer() {
+        return new BukkitPlayer(player);
+    }
+
+    @Override
+    public SimpleLocation getFrom() {
+        return from;
+    }
+
+    @Override
+    public SimpleLocation getTo() {
+        return to;
+    }
 
 }
