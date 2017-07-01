@@ -199,10 +199,15 @@ public class Parser {
                     Node commandNode = new Node(new Token(Type.COMMAND, builder.toString()));
 
                     List<Node> args = new ArrayList<>();
-                    while(token != null && token.type != Type.ENDL){
-                        Node node = parseComparison();
-                        if(node != null)
-                            args.add(node);
+                    if(token != null && token.type != Type.ENDL){
+                        do{
+                            Node node = parseLogic();
+                            if(node != null)
+                                args.add(node);
+
+                            if(token != null && ",".equals(token.value))
+                                nextToken();
+                        }while((token != null && token.type != Type.ENDL));
                     }
                     commandNode.getChildren().addAll(args);
                     nextToken();
