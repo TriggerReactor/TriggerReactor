@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
+import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
@@ -700,6 +701,8 @@ public class Interpreter {
             return new Token(Type.STRING, var);
         } else if (var.getClass() == Boolean.class) {
             return new Token(Type.BOOLEAN, var);
+        } else if(var instanceof IScriptObject){
+            return new Token(Type.OBJECT, ((IScriptObject) var).get());
         } else {
             return new Token(Type.OBJECT, var);
         }

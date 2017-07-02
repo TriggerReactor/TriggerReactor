@@ -1,9 +1,7 @@
 package io.github.wysohn.triggerreactor.bridge;
 
-public interface IMinecraftObject {
-    /**
-     * upwrap this interface.
-     * @return
-     */
-    public <T> T get();
+import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
+
+public interface IMinecraftObject extends IScriptObject{
+
 }
