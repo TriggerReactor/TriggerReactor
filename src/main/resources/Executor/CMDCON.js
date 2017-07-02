@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function CMDCON(args){
-	if(args.length == 2 && args[1].equals('true')){
+	if(args.length == 2 && args[1].equals(true)){
 		var preCommandSize = args[0].split(" ").length;
 		var split = message.split(" ");
 		
