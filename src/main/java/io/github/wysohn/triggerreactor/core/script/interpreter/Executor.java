@@ -97,6 +97,6 @@ public abstract class Executor {
     }
 
     public static <T> Future<T> runSyncTaskForFuture(Callable<T> call){
-        return TriggerReactor.getInstance().callSyncMethod(TriggerReactor.getInstance(), call);
+        return TriggerReactor.getInstance().callSyncMethod(call);
     }
 }
