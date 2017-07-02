@@ -19,8 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.event.Listener;
-
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 /**
@@ -29,7 +27,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
  * @author wysohn
  *
  */
-public abstract class Manager implements Listener{
+public abstract class Manager{
     private static final List<Manager> managers = new ArrayList<Manager>();
     public static List<Manager> getManagers() {
         return managers;

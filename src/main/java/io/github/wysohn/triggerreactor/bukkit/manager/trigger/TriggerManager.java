@@ -16,12 +16,14 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import org.bukkit.event.Listener;
+
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 
-public abstract class TriggerManager extends AbstractTriggerManager{
+public abstract class TriggerManager extends AbstractTriggerManager implements Listener{
     public TriggerManager(TriggerReactor plugin) {
         super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars());
     }

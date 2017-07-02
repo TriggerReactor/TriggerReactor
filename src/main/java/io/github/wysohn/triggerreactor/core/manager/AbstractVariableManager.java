@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
-public abstract class AbstractVariableManager extends Manager {
+public abstract class AbstractVariableManager extends Manager{
 
     private static final Pattern pattern = Pattern.compile(
                 "# Match a valid Windows filename (unspecified file system).          \n" +

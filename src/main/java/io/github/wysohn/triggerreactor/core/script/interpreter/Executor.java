@@ -19,9 +19,6 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitTask;
-
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 public abstract class Executor {
@@ -66,34 +63,6 @@ public abstract class Executor {
      */
     public static void runTaskLater(Runnable task){
         runTaskLater(task, 0L);
-    }
-
-    private static class SyncTaskAdapter implements Callable<Void>{
-        private final Runnable run;
-        private SyncTaskAdapter(Runnable run) {
-            super();
-            this.run = run;
-        }
-
-        @Override
-        public Void call() throws Exception {
-            BukkitTask task = Bukkit.getScheduler().runTask(TriggerReactor.getInstance().getMain(), run);
-            while(Bukkit.getScheduler().isCurrentlyRunning(task.getTaskId())){
-                Thread.yield();
-            }
-            return null;
-        }
-    }
-
-    /**
-     * This will block the thread until the task is done. So do not call this on main thread.
-     * @param task
-     */
-    public static void runSyncTask(Runnable task){
-        SyncTaskAdapter adapter = new SyncTaskAdapter(task);
-        Future<Void> future = TriggerReactor.cachedThreadPool.submit(adapter);
-        while(!future.isDone())
-            Thread.yield();
     }
 
     public static <T> Future<T> runSyncTaskForFuture(Callable<T> call){

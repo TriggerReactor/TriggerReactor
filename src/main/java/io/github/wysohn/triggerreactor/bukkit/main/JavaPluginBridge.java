@@ -24,6 +24,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
@@ -161,7 +162,8 @@ public class JavaPluginBridge extends TriggerReactor{
 
     @Override
     public void registerEvents(Manager manager) {
-        Bukkit.getPluginManager().registerEvents(manager, this.bukkitPlugin);
+        if(manager instanceof Listener)
+            Bukkit.getPluginManager().registerEvents((Listener) manager, this.bukkitPlugin);
     }
 
     @Override
@@ -236,6 +238,17 @@ public class JavaPluginBridge extends TriggerReactor{
             }
             player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
         }
+    }
+
+    @Override
+    public void handleException(ICommandSender sender, Throwable ex) {
+        sender.sendMessage(ChatColor.RED+"Could not execute this trigger.");
+        while(ex != null){
+            sender.sendMessage(ChatColor.RED+" >> Caused by:");
+            sender.sendMessage(ChatColor.RED+ex.getMessage());
+            ex = ex.getCause();
+        }
+        sender.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
     }
 
     @Override
@@ -540,4 +553,6 @@ public class JavaPluginBridge extends TriggerReactor{
 
         return true;
     }
+
+
 }

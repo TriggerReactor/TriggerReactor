@@ -1152,6 +1152,13 @@ public abstract class TriggerReactor {
     public abstract void handleException(Object e, Throwable ex);
 
     /**
+     * Handle the exception caused by Executors or Triggers.
+     * @param e the context
+     * @param ex the exception that was thrown
+     */
+    public abstract void handleException(ICommandSender sender, Throwable ex);
+
+    /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
      * interrupter to handle
      * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.

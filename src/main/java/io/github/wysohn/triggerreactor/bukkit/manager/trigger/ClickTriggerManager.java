@@ -33,7 +33,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
-public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> {
+public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger>{
     public ClickTriggerManager(TriggerReactor plugin) {
         super(plugin, "ClickTrigger");
     }
@@ -42,8 +42,13 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
     protected ClickTrigger constructTrigger(String slocstr, String script) throws IOException, LexerException, ParserException {
         return new ClickTrigger(slocstr, script, new ClickHandler(){
             @Override
-            public boolean allow(Action action) {
-                return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
+            public boolean allow(Object context) {
+                if(context instanceof PlayerInteractEvent){
+                    Action action = ((PlayerInteractEvent) context).getAction();
+                    return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
+                }
+
+                return true;
             }
         });
     }

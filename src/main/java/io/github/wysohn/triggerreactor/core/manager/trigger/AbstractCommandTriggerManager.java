@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bukkit.ChatColor;
-
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -54,10 +52,7 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         try {
             trigger = new CommandTrigger(cmd, script);
         } catch (IOException | LexerException | ParserException e1) {
-            adding.sendMessage(ChatColor.RED + "Encounterd an error!");
-            adding.sendMessage(ChatColor.RED + e1.getMessage());
-            adding.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
-            e1.printStackTrace();
+            plugin.handleException(adding, e1);
             return false;
         }
 

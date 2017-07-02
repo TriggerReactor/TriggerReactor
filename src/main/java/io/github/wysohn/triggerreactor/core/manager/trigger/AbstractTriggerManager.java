@@ -216,8 +216,6 @@ public abstract class AbstractTriggerManager extends Manager {
             try{
                 interpreter.startWithContextAndInterrupter(e, TriggerReactor.getInstance().createInterrupter(e, interpreter, cooldowns));
             }catch(Exception ex){
-                ex.printStackTrace();
-
                 TriggerReactor.getInstance().handleException(e, ex);
             }
         }

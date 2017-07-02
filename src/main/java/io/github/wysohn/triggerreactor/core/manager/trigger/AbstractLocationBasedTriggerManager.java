@@ -10,9 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
@@ -268,8 +265,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
         @Override
         public boolean activate(Object e, Map<String, Object> scriptVars) {
-            Action action = ((PlayerInteractEvent) e).getAction();
-            if(!handler.allow(action))
+            if(!handler.allow(e))
                 return true;
 
             return super.activate(e, scriptVars);
@@ -289,6 +285,11 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     public interface ClickHandler{
-        boolean allow(Action action);
+        /**
+         * Check if click is allowed for this context. If it were Bukkit API, it will be PlayerInteractEvent.
+         * @param context the context
+         * @return true if allowed; false if not (the click will be ignored in this case)
+         */
+        boolean allow(Object context);
     }
 }
