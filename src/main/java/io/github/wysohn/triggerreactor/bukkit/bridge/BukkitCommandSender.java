@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
+import net.md_5.bungee.api.ChatColor;
 
 public class BukkitCommandSender implements ICommandSender {
     private final org.bukkit.command.CommandSender sender;
@@ -11,7 +12,7 @@ public class BukkitCommandSender implements ICommandSender {
 
     @Override
     public void sendMessage(String message) {
-        sender.sendMessage(message);
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
     @Override
