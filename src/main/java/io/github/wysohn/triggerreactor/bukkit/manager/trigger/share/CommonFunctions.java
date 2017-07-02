@@ -36,6 +36,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
@@ -573,5 +574,19 @@ public class CommonFunctions implements SelfReference {
      */
     public Block getTargetBlock(Player player, int maxDistance){
         return player.getTargetBlock((HashSet<Material>)null, maxDistance);
+    }
+
+    /**
+     * Create a player head with given name.
+     * @param targetName name of the owner of head
+     * @return the ItemStack head
+     */
+    public ItemStack head(String targetName){
+        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+        ItemMeta IM = head.getItemMeta();
+        SkullMeta SM = (SkullMeta) IM;
+        SM.setOwner(targetName);
+        head.setItemMeta(SM);
+        return head;
     }
 }
