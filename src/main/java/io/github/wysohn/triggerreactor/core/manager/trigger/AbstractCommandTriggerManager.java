@@ -76,12 +76,10 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         if(!commandTriggerMap.containsKey(cmd))
             return false;
 
-        removeInfo(commandTriggerMap.remove(cmd));
+        deleteInfo(commandTriggerMap.remove(cmd));
 
         return true;
     }
-
-    protected abstract void removeInfo(CommandTrigger trigger);
 
     public CommandTrigger createTempCommandTrigger(String script) throws IOException, LexerException, ParserException {
         return new CommandTrigger("temp", script);

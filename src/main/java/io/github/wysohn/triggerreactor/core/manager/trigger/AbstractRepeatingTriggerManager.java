@@ -107,8 +107,6 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
         return true;
     }
 
-    protected abstract void deleteInfo(RepeatingTrigger trigger);
-
     /**
      * Checks whether the specified trigger is running. However, this also can
      * return false even if the trigger with name 'triggerName' does not exists.

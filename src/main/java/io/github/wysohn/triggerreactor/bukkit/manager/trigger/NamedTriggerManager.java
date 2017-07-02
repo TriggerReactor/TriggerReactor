@@ -90,4 +90,9 @@ public class NamedTriggerManager extends AbstractNamedTriggerManager {
     public Trigger getTriggerForName(String name){
         return triggers.get(name);
     }
+
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        //We don't delete named triggers in-game
+    }
 }

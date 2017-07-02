@@ -15,7 +15,6 @@ import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.event.IInventoryCloseEvent;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
@@ -154,8 +153,6 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
         return true;
     }
 
-    protected abstract void deleteInfo(InventoryTrigger trigger);
-
     /**
      *
      * @param trigger
@@ -165,7 +162,7 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
     protected abstract void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected void onInventoryClose(IInventoryCloseEvent e, IPlayer player, IInventory inventory) {
+    protected void onInventoryClose(Object e, IPlayer player, IInventory inventory) {
         if (!inventoryMap.containsKey(inventory))
             return;
         InventoryTrigger trigger = inventoryMap.get(inventory);

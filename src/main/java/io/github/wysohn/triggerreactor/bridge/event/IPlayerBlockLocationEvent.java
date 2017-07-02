@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.event;
+package io.github.wysohn.triggerreactor.bridge.event;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 

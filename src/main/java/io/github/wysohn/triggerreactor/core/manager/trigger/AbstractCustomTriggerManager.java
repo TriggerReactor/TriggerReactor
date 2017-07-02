@@ -176,8 +176,6 @@ public abstract class AbstractCustomTriggerManager extends TriggerManager {
         return true;
     }
 
-    protected abstract void deleteInfo(CustomTrigger trigger);
-
     public AbstractCustomTriggerManager(TriggerReactor plugin) {
         super(plugin);
     }

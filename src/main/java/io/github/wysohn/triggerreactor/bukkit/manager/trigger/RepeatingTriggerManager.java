@@ -139,7 +139,7 @@ public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager {
     }
 
     @Override
-    protected void deleteInfo(RepeatingTrigger trigger) {
+    protected void deleteInfo(Trigger trigger) {
         FileUtil.delete(new File(folder, trigger.getTriggerName() + ".yml"));
         FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }

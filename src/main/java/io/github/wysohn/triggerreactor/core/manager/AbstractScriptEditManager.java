@@ -10,6 +10,13 @@ public abstract class AbstractScriptEditManager extends Manager {
         super(plugin);
     }
 
+    /**
+     * Start the script editor.
+     * @param sender the sender to start editor
+     * @param title title to be shown on the editor
+     * @param script the actual script. It can be empty string
+     * @param saveHandler the callback interface that allows you to save the script written by editor.
+     */
     public abstract void startEdit(IPlayer sender, String title, String script, SaveHandler saveHandler);
 
 }

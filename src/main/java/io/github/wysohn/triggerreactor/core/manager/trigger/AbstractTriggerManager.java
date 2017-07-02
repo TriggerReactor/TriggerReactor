@@ -37,6 +37,13 @@ public abstract class AbstractTriggerManager extends Manager {
         }
     }
 
+    /**
+     * Delete this trigger from file system. It is abstract as we don't know what file structure the
+     * TriggerManager is using.
+     * @param trigger trigger to delete
+     */
+    protected abstract void deleteInfo(Trigger trigger);
+
     public static abstract class Trigger implements Cloneable{
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
         public final String triggerName;

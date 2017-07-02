@@ -39,8 +39,8 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
     }
 
     @Override
-    protected ClickTrigger constructTrigger(String script) throws IOException, LexerException, ParserException {
-        return new ClickTrigger(null, script, new ClickHandler(){
+    protected ClickTrigger constructTrigger(String slocstr, String script) throws IOException, LexerException, ParserException {
+        return new ClickTrigger(slocstr, script, new ClickHandler(){
             @Override
             public boolean allow(Action action) {
                 return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;

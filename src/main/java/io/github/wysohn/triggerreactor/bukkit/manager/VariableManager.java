@@ -112,7 +112,7 @@ public class VariableManager extends AbstractVariableManager{
 
     @SuppressWarnings("serial")
     public class GlobalVariableAdapter extends HashMap<String, Object>{
-        private GlobalVariableAdapter(){
+        GlobalVariableAdapter(){
 
         }
         @Override

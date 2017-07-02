@@ -21,10 +21,6 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
-import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
-import io.github.wysohn.triggerreactor.core.manager.event.IPlayerPermissionCheckEvent;
-
 /**
  * This event is designed to intercept the permission. You might can create CustomTrigger that hook
  *  io.github.wysohn.triggerreactor.manager.event.PlayerPermissionCheckEvent, and by canceling this event,
@@ -34,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.manager.event.IPlayerPermissionCheck
  * @author wysohn
  *
  */
-public class PlayerPermissionCheckEvent extends PlayerEvent implements IPlayerPermissionCheckEvent, Cancellable{
+public class PlayerPermissionCheckEvent extends PlayerEvent implements Cancellable{
 	private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled;
 
@@ -65,24 +61,16 @@ public class PlayerPermissionCheckEvent extends PlayerEvent implements IPlayerPe
         this.requestedPermission = requestedPermission;
     }
 
-    @Override
-    public IPlayer getIPlayer() {
-        return new BukkitPlayer(getPlayer());
-    }
-
-    @Override
-    public String getRequestedPermission() {
-        return requestedPermission;
-    }
-
-    @Override
     public boolean isAllowed() {
         return allowed;
     }
 
-    @Override
     public void setAllowed(boolean allowed) {
         this.allowed = allowed;
+    }
+
+    public String getRequestedPermission() {
+        return requestedPermission;
     }
 
 

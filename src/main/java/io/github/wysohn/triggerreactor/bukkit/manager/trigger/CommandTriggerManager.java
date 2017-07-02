@@ -128,7 +128,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
     }
 
     @Override
-    protected void removeInfo(CommandTrigger trigger) {
+    protected void deleteInfo(Trigger trigger) {
         FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 

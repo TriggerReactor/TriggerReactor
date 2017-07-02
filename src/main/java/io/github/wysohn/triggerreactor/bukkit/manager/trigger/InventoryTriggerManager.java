@@ -42,7 +42,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import io.github.wysohn.triggerreactor.bridge.IInventory;
 import io.github.wysohn.triggerreactor.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventoryCloseEvent;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -304,15 +303,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
 
     @EventHandler
     public void onClose(InventoryCloseEvent e){
-        onInventoryClose(new BukkitInventoryCloseEvent(e), new BukkitPlayer((Player) e.getPlayer()), new BukkitInventory(e.getInventory()));
-    }
-
-    @Override
-    protected void deleteInfo(InventoryTrigger trigger) {
-        File yamlFile = new File(folder, trigger.getTriggerName()+".yml");
-        FileUtil.delete(yamlFile);
-        File triggerFile = new File(folder, trigger.getTriggerName());
-        FileUtil.delete(triggerFile);
+        onInventoryClose(e, new BukkitPlayer((Player) e.getPlayer()), new BukkitInventory(e.getInventory()));
     }
 
     @Override
@@ -353,4 +344,12 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
 
        return item;
    }
+
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        File yamlFile = new File(folder, trigger.getTriggerName()+".yml");
+        FileUtil.delete(yamlFile);
+        File triggerFile = new File(folder, trigger.getTriggerName());
+        FileUtil.delete(triggerFile);
+    }
 }

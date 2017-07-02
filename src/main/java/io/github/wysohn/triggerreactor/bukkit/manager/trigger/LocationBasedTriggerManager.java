@@ -103,7 +103,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
             T trigger = null;
             try {
-                trigger = constructTrigger(script);
+                trigger = constructTrigger(sloc.toString(), script);
             } catch (LexerException | ParserException | IOException e) {
                 e.printStackTrace();
                 continue;
@@ -237,7 +237,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         }
 
         try {
-            trigger = constructTrigger(script);
+            trigger = constructTrigger(trigger.getTriggerName(), script);
         } catch (IOException | LexerException | ParserException e1) {
             player.sendMessage(ChatColor.RED+"Encounterd an error!");
             player.sendMessage(ChatColor.RED+e1.getMessage());
@@ -291,12 +291,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     @EventHandler
     public void onItemSwap(PlayerItemHeldEvent e){
         onItemSwap(new BukkitPlayer(e.getPlayer()));
-    }
-
-    @Override
-    protected void deleteFileForLocation(SimpleLocation sloc) {
-        File file = new File(folder, this.slocToString(sloc));
-        file.delete();
     }
 
     protected T getTriggerForLocation(Location loc) {
@@ -388,5 +382,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
         SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
         return getTriggersInChunk(scloc);
+    }
+
+
+
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 }

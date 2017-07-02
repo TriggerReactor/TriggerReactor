@@ -1,8 +1,8 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.VariableManager.GlobalVariableAdapter;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 public abstract class AbstractVariableManager extends Manager {
@@ -23,22 +23,52 @@ public abstract class AbstractVariableManager extends Manager {
                 "$                                # Anchor to end of string.            ",
                 Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
 
-    public abstract void remove(String key);
-
-    public abstract boolean has(String key);
-
-    public abstract void put(String key, Object value);
-
-    public abstract Object get(String key);
-
-    public abstract GlobalVariableAdapter getGlobalVariableAdapter();
-
-    public static boolean isValidName(String str) {
-        return pattern.matcher(str).matches();
-    }
-
     public AbstractVariableManager(TriggerReactor plugin) {
         super(plugin);
     }
 
+
+    /**
+     * Remove global variable named 'key.' The 'key' might can contains '.' to indicate the grouping
+     * of yaml.
+     * @param key the key
+     */
+    public abstract void remove(String key);
+
+    /**
+     * Check if the key is set
+     * @param key the key
+     * @return true if set; false if nothing is set with 'key'
+     */
+    public abstract boolean has(String key);
+
+    /**
+     * Save new value. This should replace the value if already exists.
+     * @param key the key. (This can contains '.' to indicate grouping of yaml)
+     * @param value the value to save
+     */
+    public abstract void put(String key, Object value);
+
+    /**
+     * get value saved with the 'key'
+     * @param key the key
+     * @return the value object if exists; null if nothing found
+     */
+    public abstract Object get(String key);
+
+    /**
+     * Get global variable adapter that will be used by Triggers. The adapter should extends HashMap and
+     * override get() put() has() remove() methods in order to work properly.
+     * @return
+     */
+    public abstract HashMap<String, Object> getGlobalVariableAdapter();
+
+    /**
+     * Check if the string is valid as key.
+     * @param str the string to test
+     * @return true if valid; false if cannot be used as key
+     */
+    public static boolean isValidName(String str) {
+        return pattern.matcher(str).matches();
+    }
 }

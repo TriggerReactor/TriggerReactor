@@ -23,6 +23,12 @@ import org.bukkit.event.Listener;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
+/**
+ * The base class represents Manager. Child classes are responsible for only one objective per manager.
+ * So if the child class is ClickTriggerManager, it only has to deal with ClickTrigger.
+ * @author wysohn
+ *
+ */
 public abstract class Manager implements Listener{
     private static final List<Manager> managers = new ArrayList<Manager>();
     public static List<Manager> getManagers() {
@@ -39,6 +45,13 @@ public abstract class Manager implements Listener{
         plugin.registerEvents(this);
     }
 
+    /**
+     * Reload all triggers
+     */
     public abstract void reload();
+
+    /**
+     * Save all triggers
+     */
     public abstract void saveAll();
 }

@@ -31,6 +31,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bridge.IInventory;
+import io.github.wysohn.triggerreactor.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
@@ -67,7 +68,7 @@ import io.github.wysohn.triggerreactor.tools.TimeUtil;
 /**
  * The main abstract class of TriggerReactor. Interacting with any platform should extends this class to
  * create important internal components. All the protected fields ends with Manager should be initialized
- * with the sub class that is responsible to interacting with the platform it is supporting.
+ * by the sub-class that is responsible to interacting with the platform it is supporting.
  * @author wysohn
  *
  */
@@ -1225,4 +1226,10 @@ public abstract class TriggerReactor {
      * @return the future object.
      */
     public abstract <T> Future<T> callSyncMethod(Callable<T> call);
+
+    /**
+     * Call event so that it can be heard by listeners
+     * @param event
+     */
+    public abstract void callEvent(IEvent event);
 }

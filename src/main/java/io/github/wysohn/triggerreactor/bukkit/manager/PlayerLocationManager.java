@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,6 +28,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
@@ -97,7 +97,7 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
             return null;
 
         PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player.get(), from, to);
-        Bukkit.getPluginManager().callEvent(pble);
+        plugin.callEvent(new BukkitPlayerBlockLocationEvent(pble));
         if(pble.isCancelled()){
             Location bukkitFrom = LocationUtil.convertToBukkitLocation(from);
             Location result = bukkitFrom.clone();

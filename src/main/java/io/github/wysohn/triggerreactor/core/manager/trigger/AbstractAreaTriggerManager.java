@@ -12,7 +12,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocati
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.event.IPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
@@ -44,7 +43,7 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
         }
 
         private EventType type = null;
-        public void activate(IPlayerBlockLocationEvent e, Map<String, Object> scriptVars, EventType type){
+        public void activate(Object e, Map<String, Object> scriptVars, EventType type){
             this.type = type;
 
             super.activate(e, scriptVars);
@@ -319,8 +318,6 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
         deleteInfo(nameMapper.remove(trigger.getTriggerName()));
         return true;
     }
-
-    protected abstract void deleteInfo(AreaTrigger trigger);
 
     public enum EventType{
         ENTER, EXIT;

@@ -48,7 +48,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return new SimpleLocation(world, x, y, z);
     }
 
-    protected abstract T constructTrigger(String script) throws IOException, LexerException, ParserException;
+    protected abstract T constructTrigger(String slocString, String script) throws IOException, LexerException, ParserException;
 
     protected abstract String getTriggerTypeName();
 
@@ -90,13 +90,11 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
         T result = triggerMap.remove(sloc);
 
-        deleteFileForLocation(sloc);
+        deleteInfo(result);
 
         plugin.saveAsynchronously(this);
         return result;
     }
-
-    protected abstract void deleteFileForLocation(SimpleLocation sloc);
 
     protected abstract void showTriggerInfo(ICommandSender sender, SimpleLocation sloc);
 

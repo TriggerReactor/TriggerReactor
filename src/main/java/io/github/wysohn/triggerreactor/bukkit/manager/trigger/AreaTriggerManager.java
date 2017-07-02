@@ -246,7 +246,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
             return;
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", e.getIPlayer());
+        varMap.put("player", e.getPlayer());
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 
@@ -260,7 +260,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
     }
 
     @Override
-    protected void deleteInfo(AreaTrigger trigger) {
+    protected void deleteInfo(Trigger trigger) {
         File areafile = new File(folder, trigger.getTriggerName()+".yml");
         FileUtil.delete(areafile);
         File areafolder = new File(folder, trigger.getTriggerName());

@@ -39,6 +39,7 @@ import com.google.common.io.ByteStreams;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bridge.IInventory;
+import io.github.wysohn.triggerreactor.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
@@ -462,5 +463,10 @@ public class JavaPluginBridge extends TriggerReactor{
     @Override
     public void disablePlugin() {
         Bukkit.getPluginManager().disablePlugin(bukkitPlugin);
+    }
+
+    @Override
+    public void callEvent(IEvent event) {
+        Bukkit.getPluginManager().callEvent(event.get());
     }
 }

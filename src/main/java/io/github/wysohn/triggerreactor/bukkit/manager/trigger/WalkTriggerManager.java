@@ -37,8 +37,8 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
     }
 
     @Override
-    protected WalkTrigger constructTrigger(String script) throws IOException, LexerException, ParserException {
-        return new WalkTrigger(null, script);
+    protected WalkTrigger constructTrigger(String slocstr, String script) throws IOException, LexerException, ParserException {
+        return new WalkTrigger(slocstr, script);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
