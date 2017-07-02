@@ -21,7 +21,7 @@ import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationFactory;
 
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
@@ -35,7 +35,7 @@ public class ScriptEditManager extends AbstractScriptEditManager implements Conv
 	}
 
 	@Override
-    public void startEdit(IPlayer sender, String title, String script, SaveHandler saveHandler){
+    public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler){
 		ConversationFactory factory = new ConversationFactory(plugin.getMain());
 
 		EditingPrompt prompt = new EditingPrompt(plugin.getMain(), sender.get(), new ScriptEditor(title, script, saveHandler));

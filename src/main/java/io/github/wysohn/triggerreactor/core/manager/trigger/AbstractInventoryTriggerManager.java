@@ -5,14 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.inventory.Inventory;
-
 import io.github.wysohn.triggerreactor.bridge.IInventory;
 import io.github.wysohn.triggerreactor.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -20,10 +15,10 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 public abstract class AbstractInventoryTriggerManager extends TriggerManager {
+    private final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
 
     protected final Map<String, InventoryTrigger> invenTriggers = new ConcurrentHashMap<>();
-    protected static final Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
-    protected final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
+    private final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
     public static class InventoryTrigger extends Trigger{
         public static final int MAXSIZE = 6*9;
@@ -87,25 +82,32 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
     * @param name
     * @return the opened Inventory's reference; null if no Inventory Trigger found
     */
-   public Inventory openGUI(IPlayer player, String name){
+   public IInventory openGUI(IPlayer player, String name){
        InventoryTrigger trigger = invenTriggers.get(name);
        if(trigger == null)
            return null;
 
-       Inventory inventory = Bukkit.createInventory(null, trigger.getItems().length,
-               ChatColor.translateAlternateColorCodes('&', name));
-       inventoryMap.put(new BukkitInventory(inventory), trigger);
+       IInventory inventory = createInventory(trigger.getItems().length, name);
+       inventoryMap.put(inventory, trigger);
 
        Map<String, Object> varMap = new HashMap<>();
        varMap.put("inventory", inventory);
-       inventorySharedVars.put(new BukkitInventory(inventory), varMap);
+       inventorySharedVars.put(inventory, varMap);
 
-       fillInventory(trigger, trigger.getItems().length, new BukkitInventory(inventory));
+       fillInventory(trigger, trigger.getItems().length, inventory);
 
-       player.openInventory(new BukkitInventory(inventory));
+       player.openInventory(inventory);
 
        return inventory;
    }
+
+   /**
+    * Create actual inventory.
+    * @param size size of inventory. Must be multiple of 9.
+    * @param name name of the inventory. & will be used as color code.
+    * @return the inventory
+    */
+   protected abstract IInventory createInventory(int size, String name);
 
     /**
      *
@@ -175,6 +177,18 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
 
         inventoryMap.remove(inventory);
         inventorySharedVars.remove(inventory);
+    }
+
+    public boolean hasInventoryOpen(IInventory inventory){
+        return inventoryMap.containsKey(inventory);
+    }
+
+    public InventoryTrigger getTriggerForOpenInventory(IInventory inventory){
+        return inventoryMap.get(inventory);
+    }
+
+    public Map<String, Object> getSharedVarsForInventory(IInventory inventory){
+        return inventorySharedVars.get(inventory);
     }
 
     public AbstractInventoryTriggerManager(TriggerReactor plugin) {

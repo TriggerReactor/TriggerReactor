@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
@@ -17,6 +17,6 @@ public abstract class AbstractScriptEditManager extends Manager {
      * @param script the actual script. It can be empty string
      * @param saveHandler the callback interface that allows you to save the script written by editor.
      */
-    public abstract void startEdit(IPlayer sender, String title, String script, SaveHandler saveHandler);
+    public abstract void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler);
 
 }

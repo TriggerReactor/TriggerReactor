@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -249,11 +250,11 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
     public void onOpen(InventoryOpenEvent e){
         Inventory inventory = e.getInventory();
 
-        if (!inventoryMap.containsKey(inventory))
+        if (!this.hasInventoryOpen(new BukkitInventory(inventory)))
             return;
-        InventoryTrigger trigger = inventoryMap.get(inventory);
+        InventoryTrigger trigger = getTriggerForOpenInventory(new BukkitInventory(inventory));
 
-        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        Map<String, Object> varMap = getSharedVarsForInventory(new BukkitInventory(inventory));
         varMap.put("player", e.getPlayer());
         varMap.put("trigger", "open");
 
@@ -262,7 +263,9 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
 
     @EventHandler(ignoreCancelled = true)
     public void onDrag(InventoryDragEvent e) {
-        if (!inventoryMap.containsKey(e.getInventory()))
+        Inventory inventory = e.getInventory();
+
+        if (!this.hasInventoryOpen(new BukkitInventory(inventory)))
             return;
         e.setCancelled(true);
     }
@@ -271,9 +274,9 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
     public void onClick(InventoryClickEvent e) {
         Inventory inventory = e.getInventory();
 
-        if (!inventoryMap.containsKey(inventory))
+        if (!this.hasInventoryOpen(new BukkitInventory(inventory)))
             return;
-        InventoryTrigger trigger = inventoryMap.get(inventory);
+        InventoryTrigger trigger = getTriggerForOpenInventory(new BukkitInventory(inventory));
 
         // just always cancel if it's GUI
         e.setCancelled(true);
@@ -284,7 +287,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
         if(e.getRawSlot() < 0)
             return;
 
-        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        Map<String, Object> varMap = getSharedVarsForInventory(new BukkitInventory(inventory));
         if(e.getRawSlot() < trigger.getItems().length){
             if(trigger.getItems()[e.getRawSlot()] == null)
                 varMap.put("item", new ItemStack(Material.AIR));
@@ -351,5 +354,10 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
         FileUtil.delete(yamlFile);
         File triggerFile = new File(folder, trigger.getTriggerName());
         FileUtil.delete(triggerFile);
+    }
+
+    @Override
+    protected IInventory createInventory(int size, String name) {
+        return new BukkitInventory(Bukkit.createInventory(null, size, ChatColor.translateAlternateColorCodes('&', name)));
     }
 }

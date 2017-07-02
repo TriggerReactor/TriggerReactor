@@ -50,6 +50,10 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     protected abstract T constructTrigger(String slocString, String script) throws IOException, LexerException, ParserException;
 
+    protected T constructTrigger(SimpleLocation sloc, String script) throws IOException, LexerException, ParserException{
+        return constructTrigger(sloc.toString(), script);
+    }
+
     protected abstract String getTriggerTypeName();
 
     protected T getTriggerForLocation(SimpleLocation sloc) {
@@ -200,17 +204,19 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
             return false;
         }
 
-        T previous = null;
         try{
             if(board.type == ClipBoard.BoardType.CUT)
-                previous = removeTriggerForLocation(from);
+                trigger = removeTriggerForLocation(board.location);
 
-            setTriggerForLocation(sloc, trigger);
+            T copy = (T) trigger.clone();
+            copy.setTriggerName(sloc.toString());
+
+            setTriggerForLocation(sloc, copy);
         }catch(Exception e){
             e.printStackTrace();
             //put it back if failed
-            if(board.type == ClipBoard.BoardType.CUT && previous != null){
-                setTriggerForLocation(sloc, (T) previous.clone());
+            if(board.type == ClipBoard.BoardType.CUT && trigger != null){
+                setTriggerForLocation(board.location, (T) trigger.clone());
             }
         }
 

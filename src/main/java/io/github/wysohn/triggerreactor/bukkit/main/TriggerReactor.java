@@ -26,6 +26,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -66,10 +67,17 @@ public class TriggerReactor extends JavaPlugin {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return this.javaPluginBridge.onCommand(
-                new BukkitPlayer((Player) sender),
-                command.getName(),
-                args);
+        if(sender instanceof Player){
+            return this.javaPluginBridge.onCommand(
+                    new BukkitPlayer((Player) sender),
+                    command.getName(),
+                    args);
+        }else{
+            return this.javaPluginBridge.onCommand(
+                    new BukkitCommandSender(sender),
+                    command.getName(),
+                    args);
+        }
     }
 
     public File getJarFile(){

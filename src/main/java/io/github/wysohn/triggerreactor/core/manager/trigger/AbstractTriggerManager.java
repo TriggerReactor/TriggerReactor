@@ -46,7 +46,7 @@ public abstract class AbstractTriggerManager extends Manager {
 
     public static abstract class Trigger implements Cloneable{
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
-        public final String triggerName;
+        protected String triggerName;
         protected final String script;
 
         protected Node root;
@@ -75,6 +75,10 @@ public abstract class AbstractTriggerManager extends Manager {
          */
         public String getTriggerName() {
             return triggerName;
+        }
+
+        public void setTriggerName(String triggerName) {
+            this.triggerName = triggerName;
         }
 
         /**

@@ -4,7 +4,9 @@ function GUI(args){
 	
 	var guiName = args[0];
 	
-	var inventory = plugin.getInvManager().openGUI(player, guiName);
+	var BukkitPlayer = Java.type('io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer');
+	
+	var inventory = plugin.getInvManager().openGUI(new BukkitPlayer(player), guiName);
 	if(inventory == null)
 		throw new Error("No such Inventory Trigger named "+guiName);
 }

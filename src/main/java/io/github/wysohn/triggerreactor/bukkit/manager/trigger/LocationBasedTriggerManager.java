@@ -237,7 +237,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         }
 
         try {
-            trigger = constructTrigger(trigger.getTriggerName(), script);
+            trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
         } catch (IOException | LexerException | ParserException e1) {
             player.sendMessage(ChatColor.RED+"Encounterd an error!");
             player.sendMessage(ChatColor.RED+e1.getMessage());

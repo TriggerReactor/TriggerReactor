@@ -2,9 +2,7 @@ package io.github.wysohn.triggerreactor.core.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -16,29 +14,16 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
-
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bridge.IInventory;
+import io.github.wysohn.triggerreactor.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.bridge.ILocation;
 import io.github.wysohn.triggerreactor.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
-import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.VariableManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
-import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
@@ -174,7 +159,7 @@ public abstract class TriggerReactor {
     private static final String DOUBLE_REGEX = "^[0-9]+.[0-9]{0,}$";
 
     private boolean debugging = false;
-    public boolean onCommand(IPlayer sender, String command, String[] args){
+    public boolean onCommand(ICommandSender sender, String command, String[] args){
         if(command.equalsIgnoreCase("triggerreactor")){
             if(!sender.hasPermission("triggerreactor.admin"))
                 return true;
@@ -190,10 +175,10 @@ public abstract class TriggerReactor {
                         scriptEditManager.startEdit(sender, "Click Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
-                                if(clickManager.startLocationSet(sender, script)){
-                                    sender.sendMessage(ChatColor.GRAY+"Now click the block to set click trigger.");
+                                if(clickManager.startLocationSet((IPlayer) sender, script)){
+                                    sender.sendMessage("&7Now click the block to set click trigger.");
                                 }else{
-                                    sender.sendMessage(ChatColor.GRAY+"Already on progress.");
+                                    sender.sendMessage("&7Already on progress.");
                                 }
                             }
                         });
@@ -201,10 +186,10 @@ public abstract class TriggerReactor {
                         StringBuilder builder = new StringBuilder();
                         for(int i = 1; i < args.length; i++)
                             builder.append(args[i] + " ");
-                        if(clickManager.startLocationSet(sender, builder.toString())){
-                            sender.sendMessage(ChatColor.GRAY+"Now click the block to set click trigger.");
+                        if(clickManager.startLocationSet((IPlayer) sender, builder.toString())){
+                            sender.sendMessage("&7Now click the block to set click trigger.");
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"Already on progress.");
+                            sender.sendMessage("&7Already on progress.");
                         }
                     }
                     return true;
@@ -213,10 +198,10 @@ public abstract class TriggerReactor {
                         scriptEditManager.startEdit(sender, "Walk Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
-                                if (walkManager.startLocationSet(sender, script)) {
-                                    sender.sendMessage(ChatColor.GRAY + "Now click the block to set walk trigger.");
+                                if (walkManager.startLocationSet((IPlayer) sender, script)) {
+                                    sender.sendMessage("&7Now click the block to set walk trigger.");
                                 } else {
-                                    sender.sendMessage(ChatColor.GRAY + "Already on progress.");
+                                    sender.sendMessage("&7Already on progress.");
                                 }
                             }
                         });
@@ -224,16 +209,16 @@ public abstract class TriggerReactor {
                         StringBuilder builder = new StringBuilder();
                         for (int i = 1; i < args.length; i++)
                             builder.append(args[i] + " ");
-                        if (walkManager.startLocationSet(sender, builder.toString())) {
-                            sender.sendMessage(ChatColor.GRAY + "Now click the block to set walk trigger.");
+                        if (walkManager.startLocationSet((IPlayer) sender, builder.toString())) {
+                            sender.sendMessage("&7Now click the block to set walk trigger.");
                         } else {
-                            sender.sendMessage(ChatColor.GRAY + "Already on progress.");
+                            sender.sendMessage("&7Already on progress.");
                         }
                     }
                     return true;
                 } else if(args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))){
                     if(cmdManager.hasCommandTrigger(args[1])){
-                        sender.sendMessage(ChatColor.GRAY + "This command is already binded!");
+                        sender.sendMessage("&7This command is already binded!");
                     }else{
                         if(args.length == 2){
                             scriptEditManager.startEdit(sender, "Command Trigger", "", new SaveHandler(){
@@ -241,7 +226,7 @@ public abstract class TriggerReactor {
                                 public void onSave(String script) {
                                     cmdManager.addCommandTrigger(sender, args[1], script);
 
-                                    sender.sendMessage(ChatColor.GREEN+"Command trigger is binded!");
+                                    sender.sendMessage("&aCommand trigger is binded!");
 
                                     saveAsynchronously(cmdManager);
                                 }
@@ -253,7 +238,7 @@ public abstract class TriggerReactor {
 
                             cmdManager.addCommandTrigger(sender, args[1], builder.toString());
 
-                            sender.sendMessage(ChatColor.GREEN+"Command trigger is binded!");
+                            sender.sendMessage("&aCommand trigger is binded!");
 
                             saveAsynchronously(cmdManager);
                         }
@@ -264,38 +249,36 @@ public abstract class TriggerReactor {
                         if(args[1].equalsIgnoreCase("Item")){
                             String name = args[2];
                             if(!VariableManager.isValidName(name)){
-                                sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
+                                sender.sendMessage("&c"+name+" is not a valid key!");
                                 return true;
                             }
 
-                            PlayerInventory inv = sender.getInventory().get();
-                            ItemStack IS = inv.getItemInMainHand();
-                            if(IS == null || IS.getType() == Material.AIR){
-                                sender.sendMessage(ChatColor.RED+"You are holding nothing on your main hand!");
+                            IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                            if(IS == null || IS.getTypeId() == 0){
+                                sender.sendMessage("&c"+"You are holding nothing on your main hand!");
                                 return true;
                             }
 
-                            variableManager.put(name, IS);
+                            variableManager.put(name, IS.get());
 
-                            sender.sendMessage(ChatColor.GREEN+"Item saved!");
+                            sender.sendMessage("&aItem saved!");
                         }else if(args[1].equalsIgnoreCase("Location")){
                             String name = args[2];
                             if(!VariableManager.isValidName(name)){
-                                sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
+                                sender.sendMessage("&c"+name+" is not a valid key!");
                                 return true;
                             }
 
-                            Player player = sender.get();
-                            Location loc = player.getLocation();
-                            variableManager.put(name, loc);
+                            ILocation loc = ((IPlayer) sender).getLocation();
+                            variableManager.put(name, loc.get());
 
-                            sender.sendMessage(ChatColor.GREEN+"Location saved!");
+                            sender.sendMessage("&aLocation saved!");
                         }else{
                             String name = args[1];
                             String value = args[2];
 
                             if(!VariableManager.isValidName(name)){
-                                sender.sendMessage(ChatColor.RED+name+" is not a valid key!");
+                                sender.sendMessage("&c"+name+" is not a valid key!");
                                 return true;
                             }
 
@@ -309,12 +292,12 @@ public abstract class TriggerReactor {
                                 variableManager.put(name, value);
                             }
 
-                            sender.sendMessage(ChatColor.GREEN+"Variable saved!");
+                            sender.sendMessage("&aVariable saved!");
                         }
                         return true;
                     }else if(args.length == 2){
                         String name = args[1];
-                        sender.sendMessage(ChatColor.GRAY+"Value of "+name+": "+variableManager.get(name));
+                        sender.sendMessage("&7Value of "+name+": "+variableManager.get(name));
 
                         return true;
                     }
@@ -324,11 +307,7 @@ public abstract class TriggerReactor {
                     try {
                         Trigger trigger = cmdManager.createTempCommandTrigger(script);
 
-                        trigger.activate(new PlayerEvent(sender.get()){
-                            @Override
-                            public HandlerList getHandlers() {
-                                return null;
-                            }}, new HashMap<>());
+                        trigger.activate(createEmptyPlayerEvent((IPlayer) sender), new HashMap<>());
 
                     } catch (IOException | LexerException | ParserException e) {
                         e.printStackTrace();
@@ -342,7 +321,7 @@ public abstract class TriggerReactor {
                         try{
                             size = Integer.parseInt(args[3]);
                         }catch(NumberFormatException e){
-                            sender.sendMessage(ChatColor.RED+""+size+" is not a valid number");
+                            sender.sendMessage("&c"+""+size+" is not a valid number");
                             return true;
                         }
 
@@ -353,11 +332,11 @@ public abstract class TriggerReactor {
                                 public void onSave(String script) {
                                     try {
                                         if(invManager.createTrigger(sizeCopy, name, script)){
-                                            sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
+                                            sender.sendMessage("&aInventory Trigger created!");
 
                                             saveAsynchronously(invManager);
                                         }else{
-                                            sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
+                                            sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                         }
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
@@ -369,11 +348,11 @@ public abstract class TriggerReactor {
 
                             try {
                                 if(invManager.createTrigger(size, name, script)){
-                                    sender.sendMessage(ChatColor.GREEN+"Inventory Trigger created!");
+                                    sender.sendMessage("&aInventory Trigger created!");
 
                                     saveAsynchronously(invManager);
                                 }else{
-                                    sender.sendMessage(ChatColor.GRAY+"Another Inventory Trigger with that name already exists");
+                                    sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                 }
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
@@ -383,15 +362,14 @@ public abstract class TriggerReactor {
                         String name = args[1];
 
                         if(invManager.deleteTrigger(name)){
-                            sender.sendMessage(ChatColor.GREEN+"Deleted!");
+                            sender.sendMessage("&aDeleted!");
 
                             saveAsynchronously(invManager);
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"No such inventory trigger found.");
+                            sender.sendMessage("&7No such inventory trigger found.");
                         }
                     } else if(args.length == 4 && args[2].equals("item")){
-                        PlayerInventory inv = sender.getInventory().get();
-                        ItemStack IS = inv.getItemInMainHand();
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                         IS = IS == null ? null : IS.clone();
 
                         String name = args[1];
@@ -400,43 +378,43 @@ public abstract class TriggerReactor {
                         try{
                             index = Integer.parseInt(args[3]);
                         }catch(NumberFormatException e){
-                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number.");
+                            sender.sendMessage("&c"+""+index+" is not a valid number.");
                             return true;
                         }
 
                         InventoryTrigger trigger = invManager.getTriggerForName(name);
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
                         }
 
                         if(index > trigger.getItems().length - 1){
-                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Size: "+trigger.getItems().length+")");
+                            sender.sendMessage("&c"+""+index+" is out of bound. (Size: "+trigger.getItems().length+")");
                             return true;
                         }
 
-                        trigger.getItems()[index] = new BukkitItemStack(IS);
+                        trigger.getItems()[index] = IS;
 
                         saveAsynchronously(invManager);
                     } else if(args.length > 2 && args[2].equalsIgnoreCase("open")){
                         String name = args[1];
                         IPlayer forWhom = null;
                         if(args.length == 3){
-                            forWhom = sender;
+                            forWhom = (IPlayer) sender;
                         }else{
-                            Player p = Bukkit.getPlayer(args[3]);
+                            IPlayer p = getPlayer(args[3]);
                             if(p != null)
-                                forWhom = new BukkitPlayer(p);
+                                forWhom = p;
                         }
 
                         if(forWhom == null){
-                            sender.sendMessage(ChatColor.GRAY+"Can't find that player.");
+                            sender.sendMessage("&7Can't find that player.");
                             return true;
                         }
 
-                        Inventory opened = invManager.openGUI(forWhom, name);
+                        IInventory opened = invManager.openGUI(forWhom, name);
                         if(opened == null){
-                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
                         }
                     } /*else if(args.length == 3 && args[2].equalsIgnoreCase("sync")){
@@ -444,7 +422,7 @@ public abstract class TriggerReactor {
 
                         InventoryTrigger trigger = invManager.getTriggerForName(name);
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No such Inventory Trigger named "+name);
+                            sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
                         }
 
@@ -452,7 +430,7 @@ public abstract class TriggerReactor {
 
                         invManager.saveAll();
 
-                        sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
+                        sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                     } */else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
@@ -469,42 +447,33 @@ public abstract class TriggerReactor {
                     return true;
                 } else if(args[0].equalsIgnoreCase("misc")){
                     if(args.length > 2 && args[1].equalsIgnoreCase("title")){
-                        PlayerInventory inv = sender.getInventory().get();
-                        ItemStack IS = inv.getItemInMainHand();
-                        if(IS == null || IS.getType() == Material.AIR){
-                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        if(IS == null || IS.getTypeId() == 0){
+                            sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
 
                         String title = mergeArguments(args, 2, args.length - 1);
-                        ItemMeta IM = IS.getItemMeta();
-                        IM.setDisplayName(title);
-                        IS.setItemMeta(IM);
+                        setItemTitle(IS, title);
 
-                        inv.setItemInMainHand(IS);
+                        ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
                     }else if(args.length > 3 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("add")){
-                        PlayerInventory inv = sender.getInventory().get();
-                        ItemStack IS = inv.getItemInMainHand();
-                        if(IS == null || IS.getType() == Material.AIR){
-                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        if(IS == null || IS.getTypeId() == 0){
+                            sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
 
                         String lore = mergeArguments(args, 3, args.length - 1);
-                        ItemMeta IM = IS.getItemMeta();
-                        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-                        lores.add(lore);
-                        IM.setLore(lores);
-                        IS.setItemMeta(IM);
+                        addItemLore(IS, lore);
 
-                        inv.setItemInMainHand(IS);
+                        ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
                     }else if(args.length > 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("set")){
-                        PlayerInventory inv = sender.getInventory().get();
-                        ItemStack IS = inv.getItemInMainHand();
-                        if(IS == null || IS.getType() == Material.AIR){
-                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        if(IS == null || IS.getTypeId() == 0){
+                            sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
 
@@ -512,29 +481,23 @@ public abstract class TriggerReactor {
                         try{
                             index = Integer.parseInt(args[3]);
                         }catch(NumberFormatException e){
-                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number");
+                            sender.sendMessage("&c"+""+index+" is not a valid number");
                             return true;
                         }
 
                         String lore = mergeArguments(args, 4, args.length - 1);
-                        ItemMeta IM = IS.getItemMeta();
-                        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-                        if(index > lores.size() - 1){
-                            sender.sendMessage(ChatColor.RED+""+index+" is out of bound. (Lore size: "+lores.size()+")");
+
+                        if(!setLore(IS, index, lore)){
+                            sender.sendMessage("&c"+""+index+" is out of bound.");
                             return true;
                         }
 
-                        lores.set(index, lore);
-                        IM.setLore(lores);
-                        IS.setItemMeta(IM);
-
-                       inv.setItemInMainHand(IS);
+                        ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
                     } else if (args.length == 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("remove")){
-                        PlayerInventory inv = sender.getInventory().get();
-                        ItemStack IS = inv.getItemInMainHand();
-                        if(IS == null || IS.getType() == Material.AIR){
-                            sender.sendMessage(ChatColor.RED+"You are holding nothing.");
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        if(IS == null || IS.getTypeId() == 0){
+                            sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
 
@@ -542,22 +505,16 @@ public abstract class TriggerReactor {
                         try{
                             index = Integer.parseInt(args[3]);
                         }catch(NumberFormatException e){
-                            sender.sendMessage(ChatColor.RED+""+index+" is not a valid number");
+                            sender.sendMessage("&c"+""+index+" is not a valid number");
                             return true;
                         }
 
-                        ItemMeta IM = IS.getItemMeta();
-                        List<String> lores = IM.getLore();
-                        if(lores == null || index > lores.size() - 1 || index < 0){
-                            sender.sendMessage(ChatColor.GRAY+"No lore at index "+index);
+                        if(!removeLore(IS, index)){
+                            sender.sendMessage("&7No lore at index "+index);
                             return true;
                         }
 
-                        lores.remove(index);
-                        IM.setLore(lores);
-                        IS.setItemMeta(IM);
-
-                        inv.setItemInMainHand(IS);
+                        ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
                     } else{
                         sendCommandDesc(sender, "/triggerreactor[trg] misc title <item title>", "Change the title of holding item");
@@ -570,60 +527,60 @@ public abstract class TriggerReactor {
                     return true;
                 } else if(args.length > 0 && (args[0].equalsIgnoreCase("area") || args[0].equalsIgnoreCase("a"))){
                     if(args.length == 2 && args[1].equalsIgnoreCase("toggle")){
-                        boolean result = selectionManager.toggleSelection(sender.getUniqueId());
+                        boolean result = selectionManager.toggleSelection(((IPlayer) sender).getUniqueId());
 
-                        sender.sendMessage(ChatColor.GRAY+"Area selection mode enabled: "+ChatColor.GOLD+result);
+                        sender.sendMessage("&7Area selection mode enabled: &6"+result);
                     } else if (args.length == 3 && args[2].equals("create")){
                         String name = args[1];
 
                         AreaTrigger trigger = areaManager.getArea(name);
                         if(trigger != null){
-                            sender.sendMessage(ChatColor.RED+"Area Trigger "+name+" is already exists!");
+                            sender.sendMessage("&c"+"Area Trigger "+name+" is already exists!");
                             return true;
                         }
 
-                        AreaTriggerManager.Area selected = selectionManager.getSelection(sender.getUniqueId());
+                        AreaTriggerManager.Area selected = selectionManager.getSelection(((IPlayer) sender).getUniqueId());
                         if(selected == null){
-                            sender.sendMessage(ChatColor.GRAY+"Invalid or incomplete area selection.");
+                            sender.sendMessage("&7Invalid or incomplete area selection.");
                             return true;
                         }
 
                         Set<AreaTriggerManager.Area> conflicts = areaManager.getConflictingAreas(selected);
                         if(!conflicts.isEmpty()){
-                            sender.sendMessage(ChatColor.GRAY+"Found ["+conflicts.size()+"] conflicting areas:");
+                            sender.sendMessage("&7Found ["+conflicts.size()+"] conflicting areas:");
                             for(AreaTriggerManager.Area conflict : conflicts){
-                                sender.sendMessage(ChatColor.LIGHT_PURPLE+"  "+conflict);
+                                sender.sendMessage("&d  "+conflict);
                             }
                             return true;
                         }
 
                         if(areaManager.createArea(name, selected.getSmallest(), selected.getLargest())){
-                            sender.sendMessage(ChatColor.GREEN+"Area Trigger has created!");
+                            sender.sendMessage("&aArea Trigger has created!");
 
                             saveAsynchronously(areaManager);
 
-                            selectionManager.resetSelections(sender.getUniqueId());
+                            selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"Area Trigger "+name+" already exists.");
+                            sender.sendMessage("&7Area Trigger "+name+" already exists.");
                         }
                     } else if (args.length == 3 && args[2].equals("delete")){
                         String name = args[1];
 
                         if(areaManager.deleteArea(name)){
-                            sender.sendMessage(ChatColor.GREEN+"Area Trigger deleted");
+                            sender.sendMessage("&aArea Trigger deleted");
 
                             saveAsynchronously(areaManager);
 
-                            selectionManager.resetSelections(sender.getUniqueId());
+                            selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"Area Trigger "+name+" does not exists.");
+                            sender.sendMessage("&7Area Trigger "+name+" does not exists.");
                         }
                     }else if (args.length > 2 && args[2].equals("enter")){
                         String name = args[1];
 
                         AreaTrigger trigger = areaManager.getArea(name);
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                            sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
@@ -637,9 +594,9 @@ public abstract class TriggerReactor {
                                         saveAsynchronously(areaManager);
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
-                                        sender.sendMessage(ChatColor.RED+"Could not save!");
+                                        sender.sendMessage("&c"+"Could not save!");
                                         sender.sendMessage(e.getMessage());
-                                        sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                        sender.sendMessage("&c"+"See console for more information.");
                                     }
                                 }
                             });
@@ -650,9 +607,9 @@ public abstract class TriggerReactor {
                                 saveAsynchronously(areaManager);
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
-                                sender.sendMessage(ChatColor.RED+"Could not save!");
+                                sender.sendMessage("&c"+"Could not save!");
                                 sender.sendMessage(e.getMessage());
-                                sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                sender.sendMessage("&c"+"See console for more information.");
                             }
                         }
                     } else if (args.length > 2 && args[2].equals("exit")){
@@ -660,7 +617,7 @@ public abstract class TriggerReactor {
 
                         AreaTrigger trigger = areaManager.getArea(name);
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                            sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
@@ -674,9 +631,9 @@ public abstract class TriggerReactor {
                                         saveAsynchronously(areaManager);
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
-                                        sender.sendMessage(ChatColor.RED+"Could not save!");
+                                        sender.sendMessage("&c"+"Could not save!");
                                         sender.sendMessage(e.getMessage());
-                                        sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                        sender.sendMessage("&c"+"See console for more information.");
                                     }
                                 }
                             });
@@ -687,9 +644,9 @@ public abstract class TriggerReactor {
                                 saveAsynchronously(areaManager);
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
-                                sender.sendMessage(ChatColor.RED+"Could not save!");
+                                sender.sendMessage("&c"+"Could not save!");
                                 sender.sendMessage(e.getMessage());
-                                sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                sender.sendMessage("&c"+"See console for more information.");
                             }
                         }
                     } else if (args.length == 3 && args[2].equals("sync")){
@@ -697,7 +654,7 @@ public abstract class TriggerReactor {
 
                         AreaTrigger trigger = areaManager.getArea(name);
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                            sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
@@ -705,7 +662,7 @@ public abstract class TriggerReactor {
 
                         saveAsynchronously(areaManager);
 
-                        sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
+                        sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
@@ -726,7 +683,7 @@ public abstract class TriggerReactor {
                     String name = args[2];
 
                     if(customManager.getTriggerForName(name) != null){
-                        sender.sendMessage(ChatColor.GRAY+"No Area Trigger found with that name.");
+                        sender.sendMessage("&7No Area Trigger found with that name.");
                         return true;
                     }
 
@@ -741,12 +698,12 @@ public abstract class TriggerReactor {
 
                                             saveAsynchronously(customManager);
 
-                                            sender.sendMessage(ChatColor.GREEN+"Custom Trigger created!");
+                                            sender.sendMessage("&aCustom Trigger created!");
                                         } catch (ClassNotFoundException | IOException | LexerException
                                                 | ParserException e) {
                                             e.printStackTrace();
-                                            sender.sendMessage(ChatColor.RED+"Could not save! "+e.getMessage());
-                                            sender.sendMessage(ChatColor.RED+"See console for detailed messages.");
+                                            sender.sendMessage("&c"+"Could not save! "+e.getMessage());
+                                            sender.sendMessage("&c"+"See console for detailed messages.");
                                         }
                                     }
                                 });
@@ -758,14 +715,14 @@ public abstract class TriggerReactor {
 
                             saveAsynchronously(customManager);
 
-                            sender.sendMessage(ChatColor.GREEN+"Custom Trigger created!");
+                            sender.sendMessage("&aCustom Trigger created!");
                         } catch (IOException | LexerException | ParserException e) {
                             e.printStackTrace();
-                            sender.sendMessage(ChatColor.RED+"Could not save! "+e.getMessage());
-                            sender.sendMessage(ChatColor.RED+"See console for detailed messages.");
+                            sender.sendMessage("&c"+"Could not save! "+e.getMessage());
+                            sender.sendMessage("&c"+"See console for detailed messages.");
                         } catch(ClassNotFoundException e2){
-                            sender.sendMessage(ChatColor.RED+"Could not save! "+e2.getMessage());
-                            sender.sendMessage(ChatColor.RED+"Provided event name is not valid.");
+                            sender.sendMessage("&c"+"Could not save! "+e2.getMessage());
+                            sender.sendMessage("&c"+"Provided event name is not valid.");
                         }
                     }
                     return true;
@@ -774,7 +731,7 @@ public abstract class TriggerReactor {
                         String name = args[1];
 
                         if(repeatManager.getTrigger(name) != null){
-                            sender.sendMessage(ChatColor.GRAY+"This named is already in use.");
+                            sender.sendMessage("&7This named is already in use.");
                             return true;
                         }
 
@@ -785,9 +742,9 @@ public abstract class TriggerReactor {
                                     repeatManager.createTrigger(name, script);
                                 } catch (IOException | LexerException | ParserException e) {
                                     e.printStackTrace();
-                                    sender.sendMessage(ChatColor.RED+"Could not save!");
+                                    sender.sendMessage("&c"+"Could not save!");
                                     sender.sendMessage(e.getMessage());
-                                    sender.sendMessage(ChatColor.RED+"See console for more information.");
+                                    sender.sendMessage("&c"+"See console for more information.");
                                 }
 
                                 saveAsynchronously(repeatManager);
@@ -799,7 +756,7 @@ public abstract class TriggerReactor {
                         RepeatingTrigger trigger = repeatManager.getTrigger(name);
 
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
@@ -810,17 +767,17 @@ public abstract class TriggerReactor {
 
                         saveAsynchronously(repeatManager);
 
-                        sender.sendMessage(ChatColor.GREEN+"Now "+
-                                ChatColor.GOLD+"["+name+"]"+
-                                ChatColor.GREEN+" will run every "+
-                                ChatColor.GOLD+"["+TimeUtil.milliSecondsToString(interval)+"]");
+                        sender.sendMessage("&aNow "+
+                                "&6["+name+"]"+
+                                "&a will run every "+
+                                "&6["+TimeUtil.milliSecondsToString(interval)+"]");
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
                         String name = args[1];
 
                         RepeatingTrigger trigger = repeatManager.getTrigger(name);
 
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
@@ -828,23 +785,23 @@ public abstract class TriggerReactor {
 
                         saveAsynchronously(repeatManager);
 
-                        sender.sendMessage("Auto start: "+(trigger.isAutoStart() ? ChatColor.GREEN : ChatColor.RED)+trigger.isAutoStart());
+                        sender.sendMessage("Auto start: "+(trigger.isAutoStart() ? "&a" : "&c")+trigger.isAutoStart());
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("toggle")) {
                         String name = args[1];
 
                         RepeatingTrigger trigger = repeatManager.getTrigger(name);
 
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
                         if(repeatManager.isRunning(name)){
                             repeatManager.stopTrigger(name);
-                            sender.sendMessage(ChatColor.GREEN+"Scheduled stop. It may take some time depends on CPU usage.");
+                            sender.sendMessage("&aScheduled stop. It may take some time depends on CPU usage.");
                         } else {
                             repeatManager.startTrigger(name);
-                            sender.sendMessage(ChatColor.GREEN+"Scheduled start up. It may take some time depends on CPU usage.");
+                            sender.sendMessage("&aScheduled start up. It may take some time depends on CPU usage.");
                         }
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("pause")) {
                         String name = args[1];
@@ -852,20 +809,20 @@ public abstract class TriggerReactor {
                         RepeatingTrigger trigger = repeatManager.getTrigger(name);
 
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
                         trigger.setPaused(!trigger.isPaused());
 
-                        sender.sendMessage("Paused: "+(trigger.isPaused() ? ChatColor.GREEN : ChatColor.RED)+trigger.isPaused());
+                        sender.sendMessage("Paused: "+(trigger.isPaused() ? "&a" : "&c")+trigger.isPaused());
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("status")) {
                         String name = args[1];
 
                         RepeatingTrigger trigger = repeatManager.getTrigger(name);
 
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
@@ -876,25 +833,25 @@ public abstract class TriggerReactor {
                         RepeatingTrigger trigger = repeatManager.getTrigger(name);
 
                         if(trigger == null){
-                            sender.sendMessage(ChatColor.GRAY+"No Repeating Trigger with name "+name);
+                            sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
                         repeatManager.deleteTrigger(name);
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
-                        sendDetails(sender, ChatColor.DARK_RED+"Quick create is not supported.");
+                        sendDetails(sender, "&4Quick create is not supported.");
                         sendDetails(sender, "This creates a Repeating Trigger with default settings. You probably will want to change default values"
                                 + " using other commands below. Also, creating Repeating Trigger doesn't start it automatically.");
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> interval <time format>", "Change the interval of this trigger.");
                         sendDetails(sender, "Notice the <time format> is not just a number but has specific format for it. For example, you first"
                                 + " type what number you want to set and also define the unit of it. If you want it to repeat it every 1 hour, 20 minutes,"
-                                + " and 50seconds, then it will be "+ChatColor.GOLD+"/trg r BlahBlah interval 1h20m50s."+ChatColor.GRAY+" Currently only h, m,"
+                                + " and 50seconds, then it will be &6"+"/trg r BlahBlah interval 1h20m50s."+"&7 Currently only h, m,"
                                 + " and s are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
-                                + ChatColor.GOLD+" /trg r BlahBlah interval 30s40s"+ChatColor.GRAY+" will be added up to 70seconds total. All units other than"
+                                + "&6 /trg r BlahBlah interval 30s40s"+"&7 will be added up to 70seconds total. All units other than"
                                 + " h, m, or s will be ignored.");
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> autostart", "Enable/Disable automatic start for this trigger.");
-                        sendDetails(sender, "By setting this to "+ChatColor.GREEN+"true"+ChatColor.GRAY+", this trigger will start on plugin enables itself. "
+                        sendDetails(sender, "By setting this to "+"&atrue"+"&7, this trigger will start on plugin enables itself. "
                                 + "Otherwise, you have to start it yourself every time.");
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> toggle", "Start or stop the Repeating Trigger.");
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> pause", "Pause or unpause the Repeating Trigger.");
@@ -908,7 +865,7 @@ public abstract class TriggerReactor {
 
                     CustomTrigger trigger = customManager.getTriggerForName(name);
                     if(trigger == null){
-                        sender.sendMessage(ChatColor.GRAY+"No Custom Trigger found with that name.");
+                        sender.sendMessage("&7No Custom Trigger found with that name.");
                         return true;
                     }
 
@@ -916,7 +873,7 @@ public abstract class TriggerReactor {
 
                     saveAsynchronously(customManager);
 
-                    sender.sendMessage(ChatColor.GRAY+"Sync mode: "+(trigger.isSync() ? ChatColor.GREEN : ChatColor.RED)+trigger.isSync());
+                    sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                     return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
@@ -924,25 +881,25 @@ public abstract class TriggerReactor {
                     case "vars":
                     case "variables":
                         variableManager.remove(key);
-                        sender.sendMessage(ChatColor.GREEN+"Removed the variable "+ChatColor.GOLD+key);
+                        sender.sendMessage("&aRemoved the variable &6"+key);
                         break;
                     case "cmd":
                     case "command":
                         if(cmdManager.removeCommandTrigger(key)){
-                            sender.sendMessage(ChatColor.GREEN+"Removed the command trigger "+ChatColor.GOLD+key);
+                            sender.sendMessage("&aRemoved the command trigger &6"+key);
 
                             saveAsynchronously(cmdManager);
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"Command trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
+                            sender.sendMessage("&7Command trigger &6"+key+"&7 does not exist");
                         }
                         break;
                     case "custom":
                         if(customManager.removeTriggerForName(key)){
-                            sender.sendMessage(ChatColor.GREEN+"Removed the custom trigger "+ChatColor.GOLD+key);
+                            sender.sendMessage("&aRemoved the custom trigger &6"+key);
 
                             saveAsynchronously(customManager);
                         }else{
-                            sender.sendMessage(ChatColor.GRAY+"Custom Trigger "+ChatColor.GOLD+key+ChatColor.GRAY+" does not exist");
+                            sender.sendMessage("&7Custom Trigger &6"+key+"&7 does not exist");
                         }
                         break;
                     default:
@@ -952,11 +909,10 @@ public abstract class TriggerReactor {
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("search")) {
-                    Player p = sender.get();
-                    Chunk chunk = p.getLocation().getChunk();
-                    showGlowStones(sender, clickManager.getTriggersInChunk(LocationUtil.convertToSimpleChunkLocation(chunk)));
-                    showGlowStones(sender, walkManager.getTriggersInChunk(LocationUtil.convertToSimpleChunkLocation(chunk)));
-                    sender.sendMessage(ChatColor.GRAY+"Now trigger blocks will be shown as "+ChatColor.GOLD+"glowstone");
+                    SimpleChunkLocation scloc = ((IPlayer) sender).getChunk();
+                    showGlowStones(sender, clickManager.getTriggersInChunk(scloc));
+                    showGlowStones(sender, walkManager.getTriggersInChunk(scloc));
+                    sender.sendMessage("&7Now trigger blocks will be shown as &6"+"glowstone");
                     return true;
                 } else if(args[0].equalsIgnoreCase("saveall")){
                     for(Manager manager : Manager.getManagers())
@@ -980,8 +936,20 @@ public abstract class TriggerReactor {
         return true;
     }
 
+    protected abstract boolean removeLore(IItemStack iS, int index);
+
+    protected abstract boolean setLore(IItemStack iS, int index, String lore);
+
+    protected abstract void addItemLore(IItemStack iS, String lore);
+
+    protected abstract void setItemTitle(IItemStack iS, String title);
+
+    protected abstract IPlayer getPlayer(String string);
+
+    protected abstract Object createEmptyPlayerEvent(IPlayer sender);
+
     private void showHelp(ICommandSender sender) {
-        sender.sendMessage(ChatColor.GRAY+"-----     "+ChatColor.GOLD+getPluginDescription()+ChatColor.GRAY+"    ----");
+        sender.sendMessage("&7-----     &6"+getPluginDescription()+"&7    ----");
 
         sendCommandDesc(sender, "/triggerreactor[trg] walk[w] [...]", "create a walk trigger.");
         sendDetails(sender, "/trg w #MESSAGE \"HEY YOU WALKED!\"");

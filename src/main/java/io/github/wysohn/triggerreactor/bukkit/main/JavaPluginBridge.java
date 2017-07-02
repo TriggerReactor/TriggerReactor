@@ -2,7 +2,9 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,6 +30,8 @@ import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
@@ -39,7 +43,10 @@ import com.google.common.io.ByteStreams;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bridge.IInventory;
+import io.github.wysohn.triggerreactor.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
@@ -145,7 +152,8 @@ public class JavaPluginBridge extends TriggerReactor{
     protected void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
         for (Entry<SimpleLocation, Trigger> entry : set) {
             SimpleLocation sloc = entry.getKey();
-            ((Player) sender).sendBlockChange(
+            Player player = sender.get();
+            player.sendBlockChange(
                     new Location(Bukkit.getWorld(sloc.getWorld()), sloc.getX(), sloc.getY(), sloc.getZ()),
                     Material.GLOWSTONE, (byte) 0);
         }
@@ -303,7 +311,7 @@ public class JavaPluginBridge extends TriggerReactor{
                     Inventory inv = ((InventoryEvent) e).getInventory();
 
                     //it's not GUI so stop execution
-                    if(!inventoryMap.containsKey(inv))
+                    if(!inventoryMap.containsKey(new BukkitInventory(inv)))
                         return true;
                 }
 
@@ -468,5 +476,68 @@ public class JavaPluginBridge extends TriggerReactor{
     @Override
     public void callEvent(IEvent event) {
         Bukkit.getPluginManager().callEvent(event.get());
+    }
+
+    @Override
+    protected IPlayer getPlayer(String string) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected Object createEmptyPlayerEvent(IPlayer sender) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected void setItemTitle(IItemStack iS, String title) {
+        ItemStack IS = iS.get();
+        ItemMeta IM = IS.getItemMeta();
+        IM.setDisplayName(title);
+        IS.setItemMeta(IM);
+    }
+
+    @Override
+    protected void addItemLore(IItemStack iS, String lore) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        lores.add(lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+    }
+
+    @Override
+    protected boolean setLore(IItemStack iS, int index, String lore) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        if(lore == null || index < 0 || index > lores.size() - 1)
+            return false;
+
+        lores.set(index, lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+
+        return true;
+    }
+
+    @Override
+    protected boolean removeLore(IItemStack iS, int index) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.getLore();
+        if(lores == null || index < 0 || index > lores.size() - 1)
+            return false;
+
+        lores.remove(index);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+
+        return true;
     }
 }

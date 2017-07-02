@@ -17,4 +17,14 @@ public class BukkitItemStack implements IItemStack {
         return (T) itemStack;
     }
 
+    @Override
+    public int getTypeId() {
+        return itemStack.getTypeId();
+    }
+
+    @Override
+    public IItemStack clone() {
+        return new BukkitItemStack(itemStack.clone());
+    }
+
 }
