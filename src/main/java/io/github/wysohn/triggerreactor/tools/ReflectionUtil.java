@@ -161,10 +161,10 @@ public class ReflectionUtil {
         }
     }
 
-    public static Map<String, Object> extractVariables(Event e){
+    public static Map<String, Object> extractVariables(Object e){
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Class<? extends Event> clazz = e.getClass();
+        Class<?> clazz = e.getClass();
         for(Field field : getAllFields(new ArrayList<Field>(), clazz)){
             field.setAccessible(true);
             try {

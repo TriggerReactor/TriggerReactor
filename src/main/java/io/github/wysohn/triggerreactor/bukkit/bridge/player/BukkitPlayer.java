@@ -14,6 +14,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
+import net.md_5.bungee.api.ChatColor;
 
 public class BukkitPlayer implements IPlayer {
     private final Player player;
@@ -35,7 +36,7 @@ public class BukkitPlayer implements IPlayer {
 
     @Override
     public void sendMessage(String message) {
-        player.sendMessage(message);
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
     @Override

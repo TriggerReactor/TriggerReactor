@@ -49,7 +49,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -244,9 +243,7 @@ public class ExecutorManager extends AbstractExecutorManager{
         }
 
         @Override
-        public synchronized Integer execute(boolean sync, Object context, Object... args) throws Exception {
-            Event e = (Event) context;
-
+        public synchronized Integer execute(boolean sync, Object e, Object... args) throws Exception {
             ///////////////////////////////
             Map<String, Object> variables = new HashMap<>();
             Map<String, Object> vars = ReflectionUtil.extractVariables(e);
@@ -312,7 +309,7 @@ public class ExecutorManager extends AbstractExecutorManager{
             }
         }
 
-        protected void extractCustomVariables(Map<String, Object> variables, Event e) {
+        protected void extractCustomVariables(Map<String, Object> variables, Object e) {
             if(e instanceof InventoryInteractEvent){
                 if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
                     variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());

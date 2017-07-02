@@ -228,6 +228,7 @@ public class JavaPluginBridge extends TriggerReactor{
 
     @Override
     public void handleException(Object e, Throwable ex) {
+        ex.printStackTrace();
         if(e instanceof PlayerEvent){
             Player player = ((PlayerEvent) e).getPlayer();
             player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
@@ -242,6 +243,7 @@ public class JavaPluginBridge extends TriggerReactor{
 
     @Override
     public void handleException(ICommandSender sender, Throwable ex) {
+        ex.printStackTrace();
         sender.sendMessage(ChatColor.RED+"Could not execute this trigger.");
         while(ex != null){
             sender.sendMessage(ChatColor.RED+" >> Caused by:");
