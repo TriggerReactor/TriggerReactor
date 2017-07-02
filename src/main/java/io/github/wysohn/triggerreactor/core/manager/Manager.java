@@ -36,7 +36,7 @@ public abstract class Manager implements Listener{
 
         managers.add(this);
 
-        plugin.registerEvents(this, plugin);
+        plugin.registerEvents(this);
     }
 
     public abstract void reload();

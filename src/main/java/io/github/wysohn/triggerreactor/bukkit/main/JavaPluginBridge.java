@@ -151,7 +151,7 @@ public class JavaPluginBridge extends TriggerReactor{
     }
 
     @Override
-    public void registerEvents(Manager manager, io.github.wysohn.triggerreactor.core.main.TriggerReactor plugin) {
+    public void registerEvents(Manager manager) {
         Bukkit.getPluginManager().registerEvents(manager, this.bukkitPlugin);
     }
 
@@ -455,7 +455,7 @@ public class JavaPluginBridge extends TriggerReactor{
     }
 
     @Override
-    public <T> Future<T> callSyncMethod(TriggerReactor instance2, Callable<T> call) {
+    public <T> Future<T> callSyncMethod(Callable<T> call) {
         return Bukkit.getScheduler().callSyncMethod(bukkitPlugin, call);
     }
 

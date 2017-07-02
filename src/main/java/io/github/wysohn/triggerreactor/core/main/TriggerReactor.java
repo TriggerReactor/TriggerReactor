@@ -64,7 +64,17 @@ import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
+/**
+ * The main abstract class of TriggerReactor. Interacting with any platform should extends this class to
+ * create important internal components. All the protected fields ends with Manager should be initialized
+ * with the sub class that is responsible to interacting with the platform it is supporting.
+ * @author wysohn
+ *
+ */
 public abstract class TriggerReactor {
+    /**
+     * Cached Pool for thread execution. It is used by {@link io.github.wysohn.triggerreactor.core.script.interpreter.Executor#runSyncTask(Runnable)}
+     */
     public static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory(){
         @Override
         public Thread newThread(Runnable r) {
@@ -74,6 +84,10 @@ public abstract class TriggerReactor {
 
     private static TriggerReactor instance;
 
+    /**
+     * get instance of this class.
+     * @return
+     */
     public static TriggerReactor getInstance() {
         return instance;
     }
@@ -1019,10 +1033,26 @@ public abstract class TriggerReactor {
         sendCommandDesc(sender, "/triggerreactor[trg] reload", "Reload all scripts, variables, and settings.");
     }
 
+    /**
+     * Send command description.
+     * @param sender sender to show description
+     * @param command the command to explain
+     * @param desc description
+     */
     protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
 
+    /**
+     * Send detail under the command. It is usually called after {@link #sendCommandDesc(ICommandSender, String, String)}
+     * to add more information or example about the command.
+     * @param sender sender to show description
+     * @param detail detail to show
+     */
     protected abstract void sendDetails(ICommandSender sender, String detail);
 
+    /**
+     * get Plugin's description.
+     * @return returns the full name of the plugin and its version.
+     */
     protected abstract String getPluginDescription();
 
     /**
@@ -1044,16 +1074,42 @@ public abstract class TriggerReactor {
         return debugging;
     }
 
+    /**
+     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
+     * instead of changing the real block.
+     * @param sender sender to show the glow stones
+     * @param set the set contains location of block and its associated trigger.
+     */
     protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
 
-    public abstract void registerEvents(Manager manager, TriggerReactor plugin);
+    /**
+     * Register events for Managers. If it was Bukkit API, we can assume that the 'manager' will implement Listener
+     * interface, yet we need to verify it with instanceof to avoid any problems.
+     * @param manager the object instance of Manager
+     */
+    public abstract void registerEvents(Manager manager);
 
+    /**
+     * Get folder where the plugin files will be saved.
+     * @return folder to save plugin files.
+     */
     public abstract File getDataFolder();
 
+    /**
+     * get Logger.
+     * @return Logger.
+     */
     public abstract Logger getLogger();
 
+    /**
+     * Check if this plugin is enabled.
+     * @return true if enabled; false if disabled.
+     */
     public abstract boolean isEnabled();
 
+    /**
+     * Disable this plugin.
+     */
     public abstract void disablePlugin();
 
     /**
@@ -1062,30 +1118,111 @@ public abstract class TriggerReactor {
      */
     public abstract <T> T getMain();
 
+    /**
+     * Check if the 'key' is set in the config.yml. This might be only case for Bukkit API
+     * @param key the key
+     * @return true if set; false if not set
+     */
     public abstract boolean isConfigSet(String key);
 
+    /**
+     * Save the 'value' to the associated 'key' in config.yml. This might be only case for Bukkit API.
+     * The new value should override the value if already exists.
+     * This does not actually save values into config.yml unless you invoke {@link #saveConfig()}
+     * @param key the key
+     * @param value the value to set.
+     */
     public abstract void setConfig(String key, Object value);
 
+    /**
+     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
+     * @param key the key
+     * @return the value; null if not set.
+     */
     public abstract Object getConfig(String key);
 
+    /**
+     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
+     *
+     * @param key the key
+     * @param def the default value to return if the 'key' is not set
+     * @return the value; null if not set.
+     */
     public abstract <T> T getConfig(String key, T def);
 
+    /**
+     * Save all configs to config.yml.
+     */
     public abstract void saveConfig();
 
+    /**
+     * Save all configs from config.yml.
+     */
     public abstract void reloadConfig();
 
+    /**
+     * Run task on the server thread. Usually it happens via scheduler.
+     * @param runnable the Runnable to run
+     */
     public abstract void runTask(Runnable runnable);
 
+    /**
+     * Call saveAll() on separated thread. It should also check if a saving task is already
+     * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
+     * @param manager
+     */
     public abstract void saveAsynchronously(Manager manager);
 
+    /**
+     * Handle the exception caused by Executors or Triggers. The 'e' is the context when the 'event' was
+     * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
+     * related to this Exception and show useful information to the game.
+     * @param e the context
+     * @param ex the exception that was thrown
+     */
     public abstract void handleException(Object e, Throwable ex);
 
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
+     * @param e the context
+     * @param interpreter the interpreter
+     * @param cooldowns list of current cooldowns.
+     * @return the interrupter created.
+     */
     public abstract ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns);
 
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
+     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
+     * the Inventory was closed, it is the iterrupter's responsibility to do that.
+     * @param e the context
+     * @param interpreter the interpreter
+     * @param cooldowns list of current cooldowns.
+     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
+     *   IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
+     *   that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
+     *   object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
+     *   from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
+     * @return
+     */
     public abstract ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
             Map<IInventory, InventoryTrigger> inventoryMap);
 
+    /**
+     * Try to extract UUID from the context 'e'. This is the UUID that will be used to check the cooldown for Triggers.
+     * @param e the context
+     * @return the UUID extracted. Can be null if the context doesn't have any UUID.
+     */
     public abstract UUID extractUUIDFromContext(Object e);
 
-    public abstract <T> Future<T> callSyncMethod(TriggerReactor instance2, Callable<T> call);
+    /**
+     * Run Callable on the server thread.
+     * @param call the callable
+     * @return the future object.
+     */
+    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
 }
