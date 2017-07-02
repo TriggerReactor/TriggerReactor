@@ -294,6 +294,6 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     public enum EnumItemSlot{
-        MAINHAND, OFFHAND, LEFT, LEGS, CHEST, HEAD;
+        MAINHAND, OFFHAND, FEET, LEGS, CHEST, HEAD;
     }
 }
