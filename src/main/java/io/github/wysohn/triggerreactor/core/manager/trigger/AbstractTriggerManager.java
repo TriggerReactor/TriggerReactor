@@ -56,10 +56,10 @@ public abstract class AbstractTriggerManager extends Manager {
         private boolean sync = false;
 
         /**
-         * This constructor <b>does not</b> initialize the fields. It is essential to call init() method
+         * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
          * in order to make the Trigger work properly. If you want to create a Trigger with customized
-         * behavior, it's not necessary to call init() but need to override initInterpreter(),
-         * startInterpretation(), or activate() method as your need
+         * behavior, it's not necessary to call {@link #init()} but need to override {@link #initInterpreter(Map)},
+         * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as your need
          * @param script
          */
         public Trigger(String triggerName, String script)  {
@@ -69,6 +69,10 @@ public abstract class AbstractTriggerManager extends Manager {
             this.script = script;
         }
 
+        /**
+         * Get this trigger's name.
+         * @return
+         */
         public String getTriggerName() {
             return triggerName;
         }
@@ -90,14 +94,26 @@ public abstract class AbstractTriggerManager extends Manager {
             gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();
         }
 
+        /**
+         * get the actual plain code of this trigger.
+         * @return
+         */
         public String getScript() {
             return script;
         }
 
+        /**
+         * Check if this Trigger is sync mode.
+         * @return
+         */
         public boolean isSync() {
             return sync;
         }
 
+        /**
+         * Set this Trigger's sync mode.
+         * @param sync
+         */
         public void setSync(boolean sync) {
             this.sync = sync;
         }
@@ -143,6 +159,11 @@ public abstract class AbstractTriggerManager extends Manager {
             return false;
         }
 
+        /**
+         * Create interpreter with appropriate options and variables.
+         * @param scriptVars
+         * @return
+         */
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, scriptVars, common);
             interpreter.setSync(isSync());
