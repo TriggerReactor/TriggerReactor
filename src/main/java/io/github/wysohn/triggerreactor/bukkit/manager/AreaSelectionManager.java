@@ -73,31 +73,6 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager implement
     }
 
     @Override
-    protected ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
-        if(action == ClickAction.LEFT_CLICK_BLOCK){
-            leftPosition.put(uuid, sloc);
-        }else if(action == ClickAction.RIGHT_CLICK_BLOCK){
-            rightPosition.put(uuid, sloc);
-        }
-
-        SimpleLocation left = leftPosition.get(uuid);
-        SimpleLocation right = rightPosition.get(uuid);
-        if(left != null && right != null){
-            if(!left.getWorld().equals(right.getWorld())){
-                return ClickResult.DIFFERENTWORLD;
-            }
-
-            return ClickResult.COMPLETE;
-        } else if (left != null){
-            return ClickResult.LEFTSET;
-        } else if (right != null){
-            return ClickResult.RIGHTSET;
-        } else {
-            return null;
-        }
-    }
-
-    @Override
     public void reload() {
         // TODO Auto-generated method stub
 

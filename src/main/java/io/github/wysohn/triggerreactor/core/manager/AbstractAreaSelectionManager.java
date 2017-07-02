@@ -19,6 +19,13 @@ public abstract class AbstractAreaSelectionManager extends Manager {
         super(plugin);
     }
 
+    /**
+     * get the smallest point between two coordinates. Smallest means that the x, y, and z are all
+     * the minimum value between two coordinates.
+     * @param left coordinate 1
+     * @param right coordinate 2
+     * @return the smallest between two
+     */
     protected static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
         return new SimpleLocation(left.getWorld(),
                 Math.min(left.getX(), right.getX()),
@@ -26,6 +33,13 @@ public abstract class AbstractAreaSelectionManager extends Manager {
                 Math.min(left.getZ(), right.getZ()));
     }
 
+    /**
+     * get the largest point between two coordinates. Largest means that the x, y, and z are all
+     * the maximum value between two coordinates.
+     * @param left coordinate 1
+     * @param right coordinate 2
+     * @return the largest between two
+     */
     protected static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
         return new SimpleLocation(right.getWorld(),
                 Math.max(left.getX(), right.getX()),
@@ -33,7 +47,37 @@ public abstract class AbstractAreaSelectionManager extends Manager {
                 Math.max(left.getZ(), right.getZ()));
     }
 
-    protected abstract ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc);
+    /**
+     * gets called when player clicks on a block.
+     * <b>This should be called manually by the child class upon player interaction event.</b>
+     * @param action the {@link ClickAction} associated with this player interaction.
+     * @param uuid the uuid of player
+     * @param sloc location where interaction occurred
+     * @return the result as {@link ClickResult}
+     */
+    protected ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
+        if(action == ClickAction.LEFT_CLICK_BLOCK){
+            leftPosition.put(uuid, sloc);
+        }else if(action == ClickAction.RIGHT_CLICK_BLOCK){
+            rightPosition.put(uuid, sloc);
+        }
+
+        SimpleLocation left = leftPosition.get(uuid);
+        SimpleLocation right = rightPosition.get(uuid);
+        if(left != null && right != null){
+            if(!left.getWorld().equals(right.getWorld())){
+                return ClickResult.DIFFERENTWORLD;
+            }
+
+            return ClickResult.COMPLETE;
+        } else if (left != null){
+            return ClickResult.LEFTSET;
+        } else if (right != null){
+            return ClickResult.RIGHTSET;
+        } else {
+            return null;
+        }
+    }
 
     /**
     *
@@ -60,7 +104,7 @@ public abstract class AbstractAreaSelectionManager extends Manager {
    /**
     *
     * @param player
-    * @return null if invalid selection; Area if done (this Area's name is always null)
+    * @return null if invalid selection; Area if done
     */
    public Area getSelection(UUID uuid){
        SimpleLocation left = leftPosition.get(uuid);
@@ -81,10 +125,11 @@ public abstract class AbstractAreaSelectionManager extends Manager {
    }
 
     public enum ClickAction{
-        LEFT_CLICK_BLOCK, RIGHT_CLICK_BLOCK;
+        /**Left clicked on block**/LEFT_CLICK_BLOCK, /**Right clicked on block**/RIGHT_CLICK_BLOCK;
     }
 
     public enum ClickResult{
-        DIFFERENTWORLD, COMPLETE, LEFTSET, RIGHTSET;
+        /**When two selections are in different worlds**/DIFFERENTWORLD, /**Two coordinates are ready**/COMPLETE,
+        /**Only left clicked coordinate is ready**/LEFTSET, /**Only right clicked coordinated is ready**/RIGHTSET;
     }
 }

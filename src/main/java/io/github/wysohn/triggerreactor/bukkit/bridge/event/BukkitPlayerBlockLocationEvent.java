@@ -34,4 +34,14 @@ public class BukkitPlayerBlockLocationEvent implements IPlayerBlockLocationEvent
         return (T) event;
     }
 
+    @Override
+    public boolean isCancelled() {
+        return event.isCancelled();
+    }
+
+    @Override
+    public void setCancelled(boolean b) {
+        event.setCancelled(true);
+    }
+
 }

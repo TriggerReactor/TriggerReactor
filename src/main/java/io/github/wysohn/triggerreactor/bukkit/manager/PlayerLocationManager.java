@@ -27,9 +27,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
@@ -84,38 +82,14 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
         SimpleLocation from = getCurrentBlockLocation(player.getUniqueId());
         SimpleLocation to = LocationUtil.convertToSimpleLocation(e.getTo());
 
-        SimpleLocation backTo = onMove(new BukkitPlayer(player), from, to);
-        if(backTo != null){
-            e.setFrom(LocationUtil.convertToBukkitLocation(backTo));
-            e.setTo(LocationUtil.convertToBukkitLocation(backTo));
-        }
-    }
-
-    @Override
-    protected SimpleLocation onMove(IPlayer player, SimpleLocation from, SimpleLocation to) {
-        if(from.equals(to))
-            return null;
-
-        PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player.get(), from, to);
-        plugin.callEvent(new BukkitPlayerBlockLocationEvent(pble));
+        PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player, from, to);
+        onMove(new BukkitPlayerBlockLocationEvent(pble));
         if(pble.isCancelled()){
-            Location bukkitFrom = LocationUtil.convertToBukkitLocation(from);
-            Location result = bukkitFrom.clone();
-
-            Player p = player.get();
-            Location loc = p.getLocation();
-
-            result.setPitch(loc.getPitch());
-            result.setYaw(loc.getYaw());
-            return new SimpleLocation(result.getWorld().getName(),
-                    result.getBlockX(),
-                    result.getBlockY(),
-                    result.getBlockZ(),
-                    result.getPitch(),
-                    result.getYaw());
-        } else {
-            setCurrentBlockLocation(player.getUniqueId(), to);
-            return null;
+            Location loc = LocationUtil.convertToBukkitLocation(from);
+            loc.setPitch(e.getPlayer().getLocation().getPitch());
+            loc.setYaw(e.getPlayer().getLocation().getPitch());
+            e.setFrom(loc);
+            e.setTo(loc);
         }
     }
 

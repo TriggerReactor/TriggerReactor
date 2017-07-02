@@ -8,4 +8,8 @@ public interface IPlayerBlockLocationEvent extends IPlayerEvent{
 
     public SimpleLocation getTo();
 
+    public boolean isCancelled();
+
+    public void setCancelled(boolean b);
+
 }
