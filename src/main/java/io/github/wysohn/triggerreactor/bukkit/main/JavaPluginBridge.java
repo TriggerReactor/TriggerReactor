@@ -24,6 +24,7 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -48,6 +49,7 @@ import io.github.wysohn.triggerreactor.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
+import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
@@ -495,14 +497,20 @@ public class JavaPluginBridge extends TriggerReactor{
 
     @Override
     protected IPlayer getPlayer(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        Player player = Bukkit.getPlayer(string);
+        if(player != null)
+            return new BukkitPlayer(player);
+        else
+            return null;
     }
 
     @Override
     protected Object createEmptyPlayerEvent(IPlayer sender) {
-        // TODO Auto-generated method stub
-        return null;
+        return new PlayerEvent(sender.get()){
+            @Override
+            public HandlerList getHandlers() {
+                return null;
+            }};
     }
 
     @Override
