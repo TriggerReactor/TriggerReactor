@@ -1,13 +1,13 @@
-package io.github.wysohn.triggerreactor.bukkit.bridge;
+package io.github.wysohn.triggerreactor.sponge.bridge;
 
-import org.bukkit.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.bridge.IItemStack;
 
-public class BukkitItemStack implements IItemStack {
+public class SpongeItemStack implements IItemStack {
     private final ItemStack itemStack;
 
-    public BukkitItemStack(ItemStack itemStack) {
+    public SpongeItemStack(ItemStack itemStack) {
         super();
         this.itemStack = itemStack;
     }
@@ -18,16 +18,16 @@ public class BukkitItemStack implements IItemStack {
     }
 
     /**
-     * Returns the Material of the item
+     * Returns the full name of item as String.
      */
     @Override
     public <T> T getType() {
-        return (T) itemStack.getType();
+        return (T) itemStack.getItem().getType().getId();
     }
 
     @Override
     public IItemStack clone() {
-        return new BukkitItemStack(itemStack.clone());
+        return new SpongeItemStack(itemStack.copy());
     }
 
 }

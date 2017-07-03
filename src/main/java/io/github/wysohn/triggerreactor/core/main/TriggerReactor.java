@@ -254,7 +254,7 @@ public abstract class TriggerReactor {
                             }
 
                             IItemStack IS = ((IPlayer) sender).getItemInMainHand();
-                            if(IS == null || IS.getTypeId() == 0){
+                            if(IS == null){
                                 sender.sendMessage("&c"+"You are holding nothing on your main hand!");
                                 return true;
                             }
@@ -448,7 +448,7 @@ public abstract class TriggerReactor {
                 } else if(args[0].equalsIgnoreCase("misc")){
                     if(args.length > 2 && args[1].equalsIgnoreCase("title")){
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
-                        if(IS == null || IS.getTypeId() == 0){
+                        if(IS == null){
                             sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
@@ -460,7 +460,7 @@ public abstract class TriggerReactor {
                         return true;
                     }else if(args.length > 3 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("add")){
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
-                        if(IS == null || IS.getTypeId() == 0){
+                        if(IS == null){
                             sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
@@ -472,7 +472,7 @@ public abstract class TriggerReactor {
                         return true;
                     }else if(args.length > 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("set")){
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
-                        if(IS == null || IS.getTypeId() == 0){
+                        if(IS == null){
                             sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }
@@ -496,7 +496,7 @@ public abstract class TriggerReactor {
                         return true;
                     } else if (args.length == 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("remove")){
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
-                        if(IS == null || IS.getTypeId() == 0){
+                        if(IS == null){
                             sender.sendMessage("&c"+"You are holding nothing.");
                             return true;
                         }

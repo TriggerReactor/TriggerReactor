@@ -10,9 +10,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocati
 
 public interface IPlayer extends ICommandSender{
 
-    @Override
-    <T> T get();
-
     UUID getUniqueId();
 
     IInventory getInventory();
@@ -21,6 +18,10 @@ public interface IPlayer extends ICommandSender{
 
     SimpleChunkLocation getChunk();
 
+    /**
+     * Get item in this player's main hand.
+     * @return IItemStack in the main hand; null if holding anything.
+     */
     IItemStack getItemInMainHand();
 
     ILocation getLocation();
