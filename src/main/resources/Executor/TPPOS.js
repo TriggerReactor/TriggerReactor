@@ -14,34 +14,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function TP(args){
+function TPPOS(args){
+    args = args[0].split(" ");
+
     if(args.length == 3){
-        var world;
-        var x = player.getX(), y = player.getY(), z = player.getZ();
-        world = player.getWorld();
-        x = args[0].contains('~') ? x + parseFloat(args[0].subString(args[0].indexOf('~')) : parseFloat(args[0]));
-        y = args[1].contains('~') ? y + parseFloat(args[1].subString(args[1].indexOf('~')) : parseFloat(args[1]));
-        z = args[2].contains('~') ? z + parseFloat(args[2].subString(args[2].indexOf('~')) : parseFloat(args[2]));
+        var world = player.getLocation().getWorld();
+        var x = player.getLocation().getX(), y = player.getLocation().getY(), z = player.getLocation().getZ();
+        x = x + (args[0].contains('~') ? parseFloat(args[0].substring(args[0].indexOf('~')+1)) : parseFloat(args[0]));
+        y = y + (args[1].contains('~') ? parseFloat(args[1].substring(args[1].indexOf('~')+1)) : parseFloat(args[1]));
+        z = z + (args[2].contains('~') ? parseFloat(args[2].substring(args[2].indexOf('~')+1)) : parseFloat(args[2]));
         
-        player.teleport(new Location(world, x, y, z));
+        player.teleport(new Location(world, x, Math.min(256, Math.max(-10 ,y)), z));
         
         return null;
     }else if(args.length == 4){
-        var player = Bukkit.getPlayer(args[0]);
+        player = Bukkit.getPlayer(args[3]);
         if(player == null){
-            print("Teleport Cancelled. Player "+args[0]+" does not exist.");
+            print("Teleport Cancelled. Player "+args[3]+" does not exist.");
             
             return Executor.STOP;
         }
     	
-    	var world;
-        var x = player.getX(), y = player.getY(), z = player.getZ();
-        world = player.getWorld();
-        x = args[1].contains('~') ? x + parseFloat(args[1].subString(args[1].indexOf('~')) : parseFloat(args[1]));
-        y = args[2].contains('~') ? y + parseFloat(args[2].subString(args[2].indexOf('~')) : parseFloat(args[2]));
-        z = args[3].contains('~') ? z + parseFloat(args[3].subString(args[3].indexOf('~')) : parseFloat(args[3]));
+        var world = player.getLocation().getWorld();
+        var x = player.getLocation().getX(), y = player.getLocation().getY(), z = player.getLocation().getZ();
+        x = x + (args[0].contains('~') ? parseFloat(args[0].substring(args[0].indexOf('~')+1)) : parseFloat(args[0]));
+        y = y + (args[1].contains('~') ? parseFloat(args[1].substring(args[1].indexOf('~')+1)) : parseFloat(args[1]));
+        z = z + (args[2].contains('~') ? parseFloat(args[2].substring(args[2].indexOf('~')+1)) : parseFloat(args[2]));
         
-        player.teleport(new Location(world, x, y, z));
+        player.teleport(new Location(world, x, Math.min(256, Math.max(-10 ,y)), z));
         
         return null;
     }else{
