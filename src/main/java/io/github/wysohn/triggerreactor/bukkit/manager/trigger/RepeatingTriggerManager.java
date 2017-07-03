@@ -82,8 +82,6 @@ public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager {
             RepeatingTrigger trigger = null;
             try {
                 trigger = new RepeatingTrigger(triggerName, script, interval);
-                //let repeating thread to handle the work, not the newly created thread.
-                trigger.setSync(true);
             } catch (IOException | LexerException | ParserException e) {
                 e.printStackTrace();
             }
