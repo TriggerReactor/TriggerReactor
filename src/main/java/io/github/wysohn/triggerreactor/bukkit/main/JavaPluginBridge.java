@@ -279,6 +279,7 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
+                        trigger.setSync(interpreter.isSync());
                         trigger.activate(context, interpreter.getVars());
                         return true;
                     } else {
@@ -346,6 +347,7 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
+                        trigger.setSync(interpreter.isSync());
                         trigger.activate(e, interpreter.getVars());
                         return true;
                     } else {
