@@ -141,7 +141,9 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
             Map<String, Object> vars = new HashMap<>();
             vars.put(TRIGGER, "init");
 
+            trigger.setSync(true);
             trigger.activate(new Object(), vars);
+            trigger.setSync(false);
 
             Thread thread = new Thread(trigger);
             thread.setName("TRG Repeating Trigger -- " + triggerName);

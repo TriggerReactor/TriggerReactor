@@ -17,7 +17,65 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
 
     protected final Map<String, Trigger> triggers = new HashMap<>();
 
-    public abstract Trigger getTriggerForName(String name);
+    public AbstractNamedTriggerManager(TriggerReactor plugin) {
+        super(plugin);
+    }
+
+    /**
+     * The naming follows this rule: triggers saved in the NamedTriggers folder will have name exactly same as the file name.
+     * However, if you have another folder under NamedTriggers, and the trigger is saved under that folder,
+     * you need to specify the folder in front of the file name.
+     * For example, if you have your trigger path NamedTriggers/SomeFolder/AnotherFolder/yourtrigger, then the name will be like
+     * this: <b>NamedTriggers:SomeFolder:AnotherFolder:yourtrigger</b>.
+     * @param name the trigger name including path if any exists
+     * @return the Trigger; null if no such trigger
+     */
+    public Trigger getTriggerForName(String name){
+        return triggers.get(name);
+    }
+
+    /**
+     * Load script file or folder recursively. If given file is file, it will
+     * just load the trigger, but if it is folder, it will recursively load the
+     * trigger with their path named appended with ':' sign. For example, if
+     * Test is under Hi folder, it will be named Hi:Test.
+     *
+     * @param file
+     *            the file/folder
+     * @throws UnsupportedEncodingException
+     * @throws IOException
+     * @throws LexerException
+     * @throws ParserException
+     */
+    protected void load(File file) throws UnsupportedEncodingException, IOException, LexerException, ParserException {
+        load(new Stack<>(), file);
+    }
+
+    private void load(Stack<String> stack, File file)
+            throws UnsupportedEncodingException, IOException, LexerException, ParserException {
+        if (file.isDirectory()) {
+            stack.push(file.getName());
+            for (File f : file.listFiles()) {
+                load(stack, f);
+            }
+            stack.pop();
+        } else {
+            StringBuilder builder = new StringBuilder();
+            for (int i = stack.size() - 1; i >= 0; i--) {
+                builder.append(stack.get(i) + ":");
+            }
+            String fileName = file.getName();
+            builder.append(fileName);
+
+            if (triggers.containsKey(builder.toString())) {
+                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
+            } else {
+                Trigger trigger = new NamedTrigger(builder.toString(), FileUtil.readFromFile(file));
+                trigger.setSync(true);
+                triggers.put(builder.toString(), trigger);
+            }
+        }
+    }
 
     protected static class NamedTrigger extends Trigger{
 
@@ -37,53 +95,6 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
             return null;
         }
 
-    }
-
-    /**
-     * Load script file or folder recursively. If given file is file, it will just load
-     * the trigger, but if it is folder, it will recursively load the trigger
-     * with their path named appended with ':' sign. For example, if Test is
-     * under Hi folder, it will be named Hi:Test.
-     * @param file
-     *            the file/folder
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     * @throws LexerException
-     * @throws ParserException
-     */
-    protected void load(File file)
-            throws UnsupportedEncodingException, IOException, LexerException, ParserException {
-                load(new Stack<>(), file);
-            }
-
-    private void load(Stack<String> stack, File file)
-            throws UnsupportedEncodingException, IOException, LexerException, ParserException {
-                if (file.isDirectory()) {
-                    stack.push(file.getName());
-                    for (File f : file.listFiles()) {
-                        load(stack, f);
-                    }
-                    stack.pop();
-                } else {
-                    StringBuilder builder = new StringBuilder();
-                    for (int i = stack.size() - 1; i >= 0; i--) {
-                        builder.append(stack.get(i) + ":");
-                    }
-                    String fileName = file.getName();
-                    builder.append(fileName);
-
-                    if (triggers.containsKey(builder.toString())) {
-                        plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
-                    } else {
-                        Trigger trigger = new NamedTrigger(builder.toString(), FileUtil.readFromFile(file));
-                        trigger.setSync(true);
-                        triggers.put(builder.toString(), trigger);
-                    }
-                }
-            }
-
-    public AbstractNamedTriggerManager(TriggerReactor plugin) {
-        super(plugin);
     }
 
 }

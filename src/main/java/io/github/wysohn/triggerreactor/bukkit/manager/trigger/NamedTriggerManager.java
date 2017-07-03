@@ -77,20 +77,6 @@ public class NamedTriggerManager extends AbstractNamedTriggerManager {
         }
     }
 
-    /**
-     * The naming follows this rule: triggers saved in the NamedTriggers folder will have name exactly same as the file name.
-     * However, if you have another folder under NamedTriggers, and the trigger is saved under that folder,
-     * you need to specify the folder in front of the file name.
-     * For example, if you have your trigger path NamedTriggers/SomeFolder/AnotherFolder/yourtrigger, then the name will be like
-     * this: <b>NamedTriggers:SomeFolder:AnotherFolder:yourtrigger</b>.
-     * @param name the trigger name including path if any exists
-     * @return the Trigger; null if no such trigger
-     */
-    @Override
-    public Trigger getTriggerForName(String name){
-        return triggers.get(name);
-    }
-
     @Override
     protected void deleteInfo(Trigger trigger) {
         //We don't delete named triggers in-game
