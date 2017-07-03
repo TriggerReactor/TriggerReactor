@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -109,6 +111,44 @@ public abstract class AbstractExecutorManager extends Manager {
         sem.put(name, getNashornEngine().eval("Java.type('"+clazz.getName()+"');"));
     }
 
+    /**
+     * Loads all the Executor files and files under the folders. If Executors are inside the folder, the folder
+     * name will be added infront of them. For example, an Executor named test is under folder named hi, then
+     * its name will be hi:test; therefore, you should #hi:test to call this executor.
+     * @param file the target file/folder
+     * @param filter the filter for Executors. Usually you check if the file ends withd .js or is a folder.
+     * @throws ScriptException
+     * @throws IOException
+     */
+    protected void reloadExecutors(File file, FileFilter filter) throws ScriptException, IOException{
+        reloadExecutors(new Stack<String>(), file, filter);
+    }
+
+    private void reloadExecutors(Stack<String> name, File file, FileFilter filter) throws ScriptException, IOException{
+        if(file.isDirectory()){
+            name.push(file.getName());
+            for(File f : file.listFiles(filter)){
+                reloadExecutors(name, f, filter);
+            }
+            name.pop();
+        }else{
+            StringBuilder builder = new StringBuilder();
+            for(int i = name.size() - 1; i >= 0; i--){
+                builder.append(name.get(i)+":");
+            }
+            String fileName = file.getName();
+            fileName = fileName.substring(0, fileName.indexOf("."));
+            builder.append(fileName);
+
+            if(jsExecutors.containsKey(builder.toString())){
+                plugin.getLogger().warning(builder.toString()+" already registered! Duplicating executors?");
+            }else{
+                JSExecutor exec = new JSExecutor(fileName, file);
+                jsExecutors.put(builder.toString(), exec);
+            }
+        }
+    }
+
     public Executor get(Object key) {
         return jsExecutors.get(key);
     }
@@ -133,6 +173,13 @@ public abstract class AbstractExecutorManager extends Manager {
         return sem.getEngineByName("nashorn");
     }
 
+    /**
+     * Extract and put necessary variables needed for the Executors to work properly. For Bukkit API for example,
+     * you will have to extract 'player' variable manually for inventory events as Player instance is not saved in
+     * the field of Inventory evnet classes.
+     * @param variables the local variable map.
+     * @param e the context.
+     */
     protected abstract void extractCustomVariables(Map<String, Object> variables, Object e);
 
     public static class JSExecutor extends Executor{

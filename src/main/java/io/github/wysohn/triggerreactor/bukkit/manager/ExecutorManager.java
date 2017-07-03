@@ -58,7 +58,7 @@ public class ExecutorManager extends AbstractExecutorManager{
         jsExecutors.clear();
         for(File file : executorFolder.listFiles(filter)){
             try {
-                reloadExecutors(new Stack<String>(), file, filter);
+                reloadExecutors(file, filter);
             } catch (ScriptException | IOException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load executor "+file.getName());
@@ -67,30 +67,7 @@ public class ExecutorManager extends AbstractExecutorManager{
         }
     }
 
-    private void reloadExecutors(Stack<String> name, File file, FileFilter filter) throws ScriptException, IOException{
-        if(file.isDirectory()){
-            name.push(file.getName());
-            for(File f : file.listFiles(filter)){
-                reloadExecutors(name, f, filter);
-            }
-            name.pop();
-        }else{
-            StringBuilder builder = new StringBuilder();
-            for(int i = name.size() - 1; i >= 0; i--){
-                builder.append(name.get(i)+":");
-            }
-            String fileName = file.getName();
-            fileName = fileName.substring(0, fileName.indexOf("."));
-            builder.append(fileName);
 
-            if(jsExecutors.containsKey(builder.toString())){
-                plugin.getLogger().warning(builder.toString()+" already registered! Duplicating executors?");
-            }else{
-                JSExecutor exec = new JSExecutor(fileName, file);
-                jsExecutors.put(builder.toString(), exec);
-            }
-        }
-    }
 
     @Override
     public void saveAll() {
