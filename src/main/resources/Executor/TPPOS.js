@@ -17,30 +17,31 @@
 function TP(args){
     if(args.length == 3){
         var world;
-        var x, y, z;
+        var x = player.getX(), y = player.getY(), z = player.getZ();
         world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
+        x = args[0].contains('~') ? x + parseFloat(args[0].subString(args[0].indexOf('~')) : parseFloat(args[0]));
+        y = args[1].contains('~') ? y + parseFloat(args[1].subString(args[1].indexOf('~')) : parseFloat(args[1]));
+        z = args[2].contains('~') ? z + parseFloat(args[2].subString(args[2].indexOf('~')) : parseFloat(args[2]));
         
         player.teleport(new Location(world, x, y, z));
         
         return null;
     }else if(args.length == 4){
-        var world;
-        var x, y, z;
+        var player = Bukkit.getPlayer(args[0]);
+        if(player == null){
+            print("Teleport Cancelled. Player "+args[0]+" does not exist.");
+            
+            return Executor.STOP;
+        }
+    	
+    	var world;
+        var x = player.getX(), y = player.getY(), z = player.getZ();
         world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
+        x = args[1].contains('~') ? x + parseFloat(args[1].subString(args[1].indexOf('~')) : parseFloat(args[1]));
+        y = args[2].contains('~') ? y + parseFloat(args[2].subString(args[2].indexOf('~')) : parseFloat(args[2]));
+        z = args[3].contains('~') ? z + parseFloat(args[3].subString(args[3].indexOf('~')) : parseFloat(args[3]));
         
-        var target = Bukkit.getPlayer(args[3]);
-        target.teleport(new Location(world, x, y, z));
-        
-        return null;
-    }else if(args.length == 1){
-        var loc = args[0];
-        player.teleport(loc);
+        player.teleport(new Location(world, x, y, z));
         
         return null;
     }else{
