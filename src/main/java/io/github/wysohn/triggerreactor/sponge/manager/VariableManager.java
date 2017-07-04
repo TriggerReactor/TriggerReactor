@@ -14,29 +14,33 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.bukkit.manager;
+package io.github.wysohn.triggerreactor.sponge.manager;
 
 import java.io.File;
 import java.io.IOException;
 
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
-
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
-import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
+import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 public class VariableManager extends AbstractVariableManager{
     private File varFile;
-    private FileConfiguration varFileConfig;
+
+    private ConfigurationLoader<ConfigurationNode> varFileConfigLoader;
+    private ConfigurationNode varFileConfig;
+
     private final GlobalVariableAdapter adapter;
 
-    public VariableManager(TriggerReactor plugin) throws IOException, InvalidConfigurationException {
+    public VariableManager(TriggerReactor plugin) throws IOException {
         super(plugin);
 
         varFile = new File(plugin.getDataFolder(), "var.yml");
         if(!varFile.exists())
             varFile.createNewFile();
+
+        varFileConfigLoader = YAMLConfigurationLoader.builder().setPath(varFile.toPath()).build();
 
         reload();
 
@@ -67,10 +71,9 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public void reload(){
-        varFileConfig = new Utf8YamlConfiguration();
         try {
-            varFileConfig.load(varFile);
-        } catch (IOException | InvalidConfigurationException e) {
+            varFileConfig = varFileConfigLoader.load();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -78,7 +81,7 @@ public class VariableManager extends AbstractVariableManager{
     @Override
     public synchronized void saveAll(){
         try {
-            varFileConfig.save(varFile);
+            varFileConfigLoader.save(varFileConfig);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,31 +92,43 @@ public class VariableManager extends AbstractVariableManager{
         return adapter;
     }
 
+    private ConfigurationNode getNodeByKeyString(String key){
+        String[] pathes = key.split("\\.");
+        Object[] objs = new Object[pathes.length];
+        for(int i = 0; i < objs.length; i++){
+            objs[i] = pathes[i];
+        }
+
+        return varFileConfig.getNode(objs);
+    }
+
     @Override
     public Object get(String key){
-        return varFileConfig.get(key);
+        ConfigurationNode targetNode = getNodeByKeyString(key);
+        return targetNode.getValue();
     }
 
     @Override
     public void put(String key, Object value){
-        varFileConfig.set(key, value);
+        ConfigurationNode targetNode = getNodeByKeyString(key);
+        targetNode.setValue(value);
     }
 
     @Override
     public boolean has(String key){
-        return varFileConfig.contains(key);
+        ConfigurationNode targetNode = getNodeByKeyString(key);
+        return !targetNode.isVirtual();
     }
 
     @Override
     public void remove(String key){
-        varFileConfig.set(key, null);
+        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode parent = targetNode.getParent();
+        parent.removeChild(targetNode.getKey());
     }
 
     @SuppressWarnings("serial")
     public class VariableAdapter extends GlobalVariableAdapter{
-        VariableAdapter() {
-            super();
-        }
 
         @Override
         public Object get(Object key) {
@@ -122,8 +137,9 @@ public class VariableManager extends AbstractVariableManager{
             //try global if none found in local
             if(value == null && key instanceof String){
                 String keyStr = (String) key;
-                if(varFileConfig.contains(keyStr)){
-                    value = varFileConfig.get(keyStr);
+                if(has(keyStr)){
+                    ConfigurationNode targetNode = getNodeByKeyString(keyStr);
+                    value = targetNode.getValue();
                 }
             }
 
@@ -137,7 +153,8 @@ public class VariableManager extends AbstractVariableManager{
             //check global if none found in local
             if(!result && key instanceof String){
                 String keyStr = (String) key;
-                result = varFileConfig.contains(keyStr);
+                ConfigurationNode targetNode = getNodeByKeyString(keyStr);
+                result = !targetNode.isVirtual();
             }
 
             return result;
@@ -145,8 +162,9 @@ public class VariableManager extends AbstractVariableManager{
 
         @Override
         public Object put(String key, Object value) {
-            Object before = varFileConfig.get(key);
-            varFileConfig.set(key, value);
+            ConfigurationNode targetNode = getNodeByKeyString(key);
+            Object before = targetNode.getValue();
+            targetNode.setValue(value);
             return before;
         }
     }

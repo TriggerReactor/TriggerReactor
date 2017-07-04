@@ -27,7 +27,6 @@ public abstract class AbstractVariableManager extends Manager{
         super(plugin);
     }
 
-
     /**
      * Remove global variable named 'key.' The 'key' might can contains '.' to indicate the grouping
      * of yaml.
@@ -70,5 +69,20 @@ public abstract class AbstractVariableManager extends Manager{
      */
     public static boolean isValidName(String str) {
         return pattern.matcher(str).matches();
+    }
+
+    @SuppressWarnings("serial")
+    public static abstract class GlobalVariableAdapter extends HashMap<String, Object>{
+        protected GlobalVariableAdapter(){
+
+        }
+        @Override
+        public abstract Object get(Object key);
+
+        @Override
+        public abstract boolean containsKey(Object key);
+
+        @Override
+        public abstract Object put(String key, Object value);
     }
 }
