@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.bukkit.util;
+package io.github.wysohn.triggerreactor.bukkit.tools;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;

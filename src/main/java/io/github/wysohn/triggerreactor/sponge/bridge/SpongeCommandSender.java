@@ -34,4 +34,23 @@ public class SpongeCommandSender implements ICommandSender {
         }
     }
 
+    @Override
+    public int hashCode() {
+        return sender.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (sender == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (sender.getClass() != obj.getClass())
+            return false;
+        if (!sender.equals(obj))
+            return false;
+        return true;
+    }
+
+
 }

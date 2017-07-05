@@ -22,12 +22,12 @@ import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationFactory;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.bukkit.tools.prompts.EditingPrompt;
+import io.github.wysohn.triggerreactor.bukkit.tools.prompts.UsagePrompt;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
-import io.github.wysohn.triggerreactor.tools.prompts.EditingPrompt;
-import io.github.wysohn.triggerreactor.tools.prompts.UsagePrompt;
 
 public class ScriptEditManager extends AbstractScriptEditManager implements ConversationAbandonedListener{
 	public ScriptEditManager(TriggerReactor plugin) {

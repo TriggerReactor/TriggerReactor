@@ -13,7 +13,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.bukkit.util.LocationUtil;
+import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import net.md_5.bungee.api.ChatColor;
 
 public class BukkitPlayer implements IPlayer {
