@@ -36,18 +36,25 @@ public class SpongeCommandSender implements ICommandSender {
 
     @Override
     public int hashCode() {
-        return sender.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((sender == null) ? 0 : sender.hashCode());
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (sender == obj)
+        if (this == obj)
             return true;
         if (obj == null)
             return false;
-        if (sender.getClass() != obj.getClass())
+        if (getClass() != obj.getClass())
             return false;
-        if (!sender.equals(obj))
+        SpongeCommandSender other = (SpongeCommandSender) obj;
+        if (sender == null) {
+            if (other.sender != null)
+                return false;
+        } else if (!sender.equals(other.sender))
             return false;
         return true;
     }
