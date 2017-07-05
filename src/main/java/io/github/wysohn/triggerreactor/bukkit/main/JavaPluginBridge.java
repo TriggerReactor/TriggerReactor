@@ -78,6 +78,10 @@ public class JavaPluginBridge extends TriggerReactor{
 
     private BungeeCordHelper bungeeHelper;
 
+    public BungeeCordHelper getBungeeHelper() {
+        return bungeeHelper;
+    }
+
     private Thread bungeeConnectionThread;
 
     public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor plugin){
