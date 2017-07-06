@@ -124,14 +124,17 @@ public class ReflectionUtil {
         Class<?> clazz = obj.getClass();
 
         try{
+            Class<?>[] parameterTypes = null;
             for (Method method : clazz.getMethods()) {
                 if (!method.getName().equals(methodName)) {
                     continue;
                 }
 
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if(parameterTypes.length != args.length)
+                parameterTypes = method.getParameterTypes();
+                if(parameterTypes.length != args.length){
+                    parameterTypes = null;
                     continue;
+                }
 
                 boolean matches = true;
                 for (int i = 0; i < parameterTypes.length; i++) {
@@ -152,10 +155,25 @@ public class ReflectionUtil {
             }
 
             if (args.length > 1) {
-                StringBuilder builder = new StringBuilder(args[0].getClass().getName());
+                StringBuilder builder = null;
+                String expected = null;
+
+                if(parameterTypes != null && parameterTypes.length > 1){
+                    builder = new StringBuilder(parameterTypes[0].getClass().getName());
+                    for (int i = 1; i < parameterTypes.length; i++)
+                        builder.append("," + parameterTypes[i].getClass().getSimpleName());
+                    expected = methodName+"("+builder.toString()+")";
+                }
+
+                builder = new StringBuilder(args[0].getClass().getName());
                 for (int i = 1; i < args.length; i++)
-                    builder.append("," + args[i].getClass().getName());
-                throw new NoSuchMethodException(methodName+"("+builder.toString()+")");
+                    builder.append("," + args[i].getClass().getSimpleName());
+                String actual = methodName+"("+builder.toString()+")";
+
+                if(expected != null)
+                    throw new NoSuchMethodException("Expected -- "+expected+"    Actual -- "+actual);
+                else
+                    throw new NoSuchMethodException(actual);
             }else{
                 throw new NoSuchMethodException(methodName+"()");
             }
