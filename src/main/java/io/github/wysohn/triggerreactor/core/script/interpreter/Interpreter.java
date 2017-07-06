@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -119,11 +118,7 @@ public class Interpreter {
     public void startWithContext(Object context) throws InterpreterException{
         this.context = context;
         for(Node child : root.getChildren())
-            try {
-                start(child);
-            } catch (InterpreterException e) {
-                throw e;
-            }
+            start(child);
     }
 
     /**
@@ -137,11 +132,7 @@ public class Interpreter {
         this.interrupter = interrupter;
 
         for(Node child : root.getChildren())
-            try {
-                start(child);
-            } catch (InterpreterException e) {
-                throw e;
-            }
+            start(child);
     }
 
     //Check if stopFlag is on before pop Token from stack.
@@ -507,9 +498,9 @@ public class Interpreter {
                                 try {
                                     var = accessor.evaluateTarget();
                                 } catch (NoSuchFieldException e) {
-                                    throw new InterpreterException("Unknown field " + accessor);
-                                } catch (IllegalArgumentException e) {
-                                    throw new InterpreterException("Unknown error " + e.getMessage());
+                                    throw new InterpreterException("Unknown field " + accessor, e);
+                                } catch (Exception e) {
+                                    throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                 }
 
                                 callFunction(right, new Token(Type.EPS, var), args);
@@ -542,9 +533,9 @@ public class Interpreter {
                                 try {
                                     var = accessor.evaluateTarget();
                                 } catch (NoSuchFieldException e) {
-                                    throw new InterpreterException("Unknown field " + accessor);
-                                } catch (IllegalArgumentException e) {
-                                    throw new InterpreterException("Unknown error " + e.getMessage());
+                                    throw new InterpreterException("Unknown field " + accessor, e);
+                                } catch (Exception e) {
+                                    throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                 }
 
                                 stack.push(new Token(Type.ACCESS, new Accessor(var, (String) right.value)));
@@ -650,7 +641,7 @@ public class Interpreter {
             result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
         } catch (NoSuchMethodException e) {
             throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist.", e);
-        } catch (IllegalArgumentException | InvocationTargetException e) {
+        } catch (Exception e) {
             throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"!", e);
         }
 
@@ -691,9 +682,9 @@ public class Interpreter {
             try {
                 var = accessor.evaluateTarget();
             } catch (NoSuchFieldException e) {
-                throw new InterpreterException("Unknown field " + accessor);
-            } catch (IllegalArgumentException e) {
-                throw new InterpreterException("Unknown error " + e.getMessage());
+                throw new InterpreterException("Unknown field " + accessor, e);
+            } catch (Exception e) {
+                throw new InterpreterException("Unknown error " + e.getMessage(), e);
             }
 
             return parseValue(var);
