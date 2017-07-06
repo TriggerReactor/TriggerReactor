@@ -488,8 +488,14 @@ public class Interpreter {
                         if(left.type == Type.THIS){
                             callFunction(new Token(Type.OBJECT, right.value), new Token(Type.OBJECT, selfReference), args);
                         }else{
+                            Token temp = left;
+
                             if(isVariable(left)){
                                 left = unwrapVariable(left);
+                            }
+
+                            if(left.getType() == Type.NULLVALUE){
+                                throw new InterpreterException("Could not access "+temp+" because it doesn't exist!");
                             }
 
                             if(left.isObject()){
@@ -517,8 +523,14 @@ public class Interpreter {
                         if(left.type == Type.THIS){
                             stack.push(right);
                         }else{
+                            Token temp = left;
+
                             if(isVariable(left)){
                                 left = unwrapVariable(left);
+                            }
+
+                            if(left.getType() == Type.NULLVALUE){
+                                throw new InterpreterException("Could not access "+temp+" because it doesn't exist!");
                             }
 
                             if(left.isObject() || left.isArray()){
