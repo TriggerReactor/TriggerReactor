@@ -35,7 +35,6 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.lang.ClassUtils;
-import org.bukkit.event.Event;
 
 public class ReflectionUtil {
     public static void setField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException{
@@ -124,40 +123,47 @@ public class ReflectionUtil {
     public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
         Class<?> clazz = obj.getClass();
 
-        for (Method method : clazz.getMethods()) {
-            if (!method.getName().equals(methodName)) {
-                continue;
-            }
+        try{
+            for (Method method : clazz.getMethods()) {
+                if (!method.getName().equals(methodName)) {
+                    continue;
+                }
 
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if(parameterTypes.length != args.length)
-                continue;
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                if(parameterTypes.length != args.length)
+                    continue;
 
-            boolean matches = true;
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-                    matches = false;
-                    break;
+                boolean matches = true;
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if (matches) {
+                    try {
+                        method.setAccessible(true);
+                        return method.invoke(obj, args);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            if (matches) {
-                try {
-                    method.setAccessible(true);
-                    return method.invoke(obj, args);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
+            if (args.length > 1) {
+                StringBuilder builder = new StringBuilder(args[0].getClass().getName());
+                for (int i = 1; i < args.length; i++)
+                    builder.append("," + args[i].getClass().getName());
+                throw new NoSuchMethodException(methodName+"("+builder.toString()+")");
+            }else{
+                throw new NoSuchMethodException(methodName+"()");
             }
-        }
-
-        if (args.length > 1) {
-            StringBuilder builder = new StringBuilder(args[0].getClass().getName());
+        }catch(NullPointerException e){
+            StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
             for (int i = 1; i < args.length; i++)
-                builder.append("," + args[i].getClass().getName());
-            throw new NoSuchMethodException(methodName+"("+builder.toString()+")");
-        }else{
-            throw new NoSuchMethodException(methodName+"()");
+                builder.append("," + String.valueOf(args[i]));
+            throw new NullPointerException("Call "+methodName+"("+builder.toString()+")");
         }
     }
 
