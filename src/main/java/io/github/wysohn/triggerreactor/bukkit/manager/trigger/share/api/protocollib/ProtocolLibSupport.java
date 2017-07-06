@@ -88,9 +88,9 @@ public class ProtocolLibSupport extends APISupport {
      * @param x
      * @param y
      * @param z
-     * @param yaw
-     * @param pitch
-     * @param headPitch
+     * @param yaw in degree
+     * @param pitch in degree
+     * @param headPitch in degree
      * @param velX See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
      * @param velY See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
      * @param velZ See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
@@ -135,9 +135,9 @@ public class ProtocolLibSupport extends APISupport {
      * @param x
      * @param y
      * @param z
-     * @param yaw
-     * @param pitch
-     * @param headPitch
+     * @param yaw in degree
+     * @param pitch in degree
+     * @param headPitch in degree
      * @throws InvocationTargetException
      */
     public void sendEntitySpawn(Player p, int entityId, int type,
