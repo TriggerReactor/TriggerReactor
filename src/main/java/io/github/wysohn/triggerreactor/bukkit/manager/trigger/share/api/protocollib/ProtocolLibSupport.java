@@ -104,9 +104,9 @@ public class ProtocolLibSupport extends APISupport {
         container.getIntegers()
             .write(0, entityId)
             .write(1, type)
-            .write(2, (int) yaw)
-            .write(3, (int) pitch)
-            .write(4, (int) headPitch);
+            .write(2, velX)
+            .write(3, velY)
+            .write(4, velZ);
 
         container.getUUIDs()
             .write(0, entityUuid == null ? UUID.randomUUID() : entityUuid);
@@ -117,9 +117,9 @@ public class ProtocolLibSupport extends APISupport {
             .write(2, z);
 
         container.getBytes()
-            .write(0, (byte) velX)
-            .write(1, (byte) velX)
-            .write(2, (byte) velX);
+            .write(0, (byte) (yaw * 256.0F / 360.0F))
+            .write(1, (byte) (pitch * 256.0F / 360.0F))
+            .write(2, (byte) (headPitch * 256.0F / 360.0F));
 
         container.getDataWatcherModifier()
             .write(0, createEmptyWatcher());
