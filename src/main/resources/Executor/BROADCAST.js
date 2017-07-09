@@ -21,7 +21,7 @@ function BROADCAST(args){
     
     if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
     	var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-    	str = PlaceholderAPI.setPlaceholders(player, str);
+    	str = PlaceholderAPI.setPlaceholders(null, str);
     }
     
     Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes(Char('&'), str));
