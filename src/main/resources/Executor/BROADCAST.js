@@ -19,11 +19,21 @@ function BROADCAST(args){
     for(var i = 0; i < args.length ; i++)
         str += args[i];
     
+    str = ChatColor.translateAlternateColorCodes(Char('&'), str);
+    
+    var PlaceholderAPI;
     if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
-    	var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-    	str = PlaceholderAPI.setPlaceholders(null, str);
+    	PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
     }
     
-    Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes(Char('&'), str));
+    for(var p in Bukkit.getOnlinePlayers()){
+        if(PlaceholderAPI){
+        	p.sendMessage(p, PlaceholderAPI.setPlaceholders(p, str));
+        } else {
+        	p.sendMessage(str);
+        }
+    }
+    
+    Bukkit.broadcastMessage();
     return null;
 }
