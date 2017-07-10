@@ -47,7 +47,7 @@ public abstract class AbstractTriggerManager extends Manager {
     public static abstract class Trigger implements Cloneable{
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
         protected String triggerName;
-        protected final String script;
+        protected String script;
 
         protected Node root;
         protected Map<String, Executor> executorMap;
@@ -104,6 +104,17 @@ public abstract class AbstractTriggerManager extends Manager {
          */
         public String getScript() {
             return script;
+        }
+
+        /**
+         * Replace the code for this trigger's script
+         * @param script
+         */
+        public void setScript(String script) {
+            if(script == null)
+                throw new RuntimeException("script cannot be null.");
+
+            this.script = script;
         }
 
         /**

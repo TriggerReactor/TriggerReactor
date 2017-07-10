@@ -55,6 +55,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T> implements Listener{
     public static final Material INSPECTION_TOOL = Material.BONE;
@@ -180,8 +181,13 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                     player.sendMessage(ChatColor.GREEN+"A trigger has deleted.");
                     e.setCancelled(true);
                 }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
-                    this.showTriggerInfo(new BukkitPlayer(player), clicked);
-                    e.setCancelled(true);
+                    if(e.getPlayer().isSneaking()){
+                        handleScriptEdit(player, trigger);
+                        e.setCancelled(true);
+                    }else{
+                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
+                        e.setCancelled(true);
+                    }
                 }
             }else if(IS.getType() == CUT_TOOL){
                 if(e.getAction() == Action.LEFT_CLICK_BLOCK){
@@ -256,6 +262,20 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         stopLocationSet(player);
 
         plugin.saveAsynchronously(this);
+    }
+
+    private void handleScriptEdit(Player player, T trigger) {
+
+        plugin.getScriptEditManager().startEdit(new BukkitPlayer(player), trigger.getTriggerName(), trigger.getScript(),
+                new SaveHandler() {
+                    @Override
+                    public void onSave(String script) {
+                        trigger.setScript(script);
+
+                        plugin.saveAsynchronously(plugin.getScriptEditManager());
+                    }
+
+                });
     }
 
     @EventHandler(priority = EventPriority.LOW)
