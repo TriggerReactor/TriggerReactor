@@ -66,8 +66,21 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.NamedTriggerManage
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
@@ -77,6 +90,93 @@ public class JavaPluginBridge extends TriggerReactor{
     private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
 
     private BungeeCordHelper bungeeHelper;
+
+    private AbstractExecutorManager executorManager;
+    private AbstractVariableManager variableManager;
+    private AbstractScriptEditManager scriptEditManager;
+    private AbstractPlayerLocationManager locationManager;
+    private AbstractPermissionManager permissionManager;
+    private AbstractAreaSelectionManager selectionManager;
+
+    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
+    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
+    private AbstractCommandTriggerManager cmdManager;
+    private AbstractInventoryTriggerManager invManager;
+    private AbstractAreaTriggerManager areaManager;
+    private AbstractCustomTriggerManager customManager;
+    private AbstractRepeatingTriggerManager repeatManager;
+
+    private AbstractNamedTriggerManager namedTriggerManager;
+
+    @Override
+    public AbstractExecutorManager getExecutorManager() {
+        return executorManager;
+    }
+
+    @Override
+    public AbstractVariableManager getVariableManager() {
+        return variableManager;
+    }
+
+    @Override
+    public AbstractScriptEditManager getScriptEditManager() {
+        return scriptEditManager;
+    }
+
+    @Override
+    public AbstractPlayerLocationManager getLocationManager() {
+        return locationManager;
+    }
+
+    @Override
+    public AbstractPermissionManager getPermissionManager() {
+        return permissionManager;
+    }
+
+    @Override
+    public AbstractAreaSelectionManager getSelectionManager() {
+        return selectionManager;
+    }
+
+    @Override
+    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
+        return clickManager;
+    }
+
+    @Override
+    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
+        return walkManager;
+    }
+
+    @Override
+    public AbstractCommandTriggerManager getCmdManager() {
+        return cmdManager;
+    }
+
+    @Override
+    public AbstractInventoryTriggerManager getInvManager() {
+        return invManager;
+    }
+
+    @Override
+    public AbstractAreaTriggerManager getAreaManager() {
+        return areaManager;
+    }
+
+    @Override
+    public AbstractCustomTriggerManager getCustomManager() {
+        return customManager;
+    }
+
+    @Override
+    public AbstractRepeatingTriggerManager getRepeatManager() {
+        return repeatManager;
+    }
+
+    @Override
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
+    }
 
     public BungeeCordHelper getBungeeHelper() {
         return bungeeHelper;

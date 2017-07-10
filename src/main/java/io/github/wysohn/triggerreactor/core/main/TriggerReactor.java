@@ -20,7 +20,6 @@ import io.github.wysohn.triggerreactor.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.bridge.ILocation;
 import io.github.wysohn.triggerreactor.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
-import io.github.wysohn.triggerreactor.bukkit.manager.VariableManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
@@ -52,8 +51,7 @@ import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
 /**
  * The main abstract class of TriggerReactor. Interacting with any platform should extends this class to
- * create important internal components. All the protected fields ends with Manager should be initialized
- * by the sub-class that is responsible to interacting with the platform it is supporting.
+ * create important internal components.
  * @author wysohn
  *
  */
@@ -78,82 +76,37 @@ public abstract class TriggerReactor {
         return instance;
     }
 
-    protected AbstractExecutorManager executorManager;
-    protected AbstractVariableManager variableManager;
-    protected AbstractScriptEditManager scriptEditManager;
-    protected AbstractPlayerLocationManager locationManager;
-    protected AbstractPermissionManager permissionManager;
-    protected AbstractAreaSelectionManager selectionManager;
-
-    protected AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
-    protected AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
-    protected AbstractCommandTriggerManager cmdManager;
-    protected AbstractInventoryTriggerManager invManager;
-    protected AbstractAreaTriggerManager areaManager;
-    protected AbstractCustomTriggerManager customManager;
-    protected AbstractRepeatingTriggerManager repeatManager;
-
-    protected AbstractNamedTriggerManager namedTriggerManager;
-
     protected TriggerReactor(){
         instance = this;
     }
 
-    public AbstractExecutorManager getExecutorManager() {
-        return executorManager;
-    }
+    public abstract AbstractExecutorManager getExecutorManager();
 
-    public AbstractVariableManager getVariableManager() {
-        return variableManager;
-    }
+    public abstract AbstractVariableManager getVariableManager();
 
-    public AbstractScriptEditManager getScriptEditManager() {
-        return scriptEditManager;
-    }
+    public abstract AbstractScriptEditManager getScriptEditManager();
 
-    public AbstractPlayerLocationManager getLocationManager() {
-        return locationManager;
-    }
+    public abstract AbstractPlayerLocationManager getLocationManager();
 
-    public AbstractPermissionManager getPermissionManager() {
-        return permissionManager;
-    }
+    public abstract AbstractPermissionManager getPermissionManager();
 
-    public AbstractAreaSelectionManager getSelectionManager() {
-        return selectionManager;
-    }
+    public abstract AbstractAreaSelectionManager getSelectionManager();
 
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
-        return clickManager;
-    }
+    public abstract AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager();
 
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
-        return walkManager;
-    }
+    public abstract AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager();
 
-    public AbstractCommandTriggerManager getCmdManager() {
-        return cmdManager;
-    }
+    public abstract AbstractCommandTriggerManager getCmdManager();
 
-    public AbstractInventoryTriggerManager getInvManager() {
-        return invManager;
-    }
+    public abstract AbstractInventoryTriggerManager getInvManager();
 
-    public AbstractAreaTriggerManager getAreaManager() {
-        return areaManager;
-    }
+    public abstract AbstractAreaTriggerManager getAreaManager();
 
-    public AbstractCustomTriggerManager getCustomManager() {
-        return customManager;
-    }
+    public abstract AbstractCustomTriggerManager getCustomManager();
 
-    public AbstractRepeatingTriggerManager getRepeatManager() {
-        return repeatManager;
-    }
+    public abstract AbstractRepeatingTriggerManager getRepeatManager();
 
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        return namedTriggerManager;
-    }
+    public abstract AbstractNamedTriggerManager getNamedTriggerManager();
 
     private static final String INTEGER_REGEX = "^[0-9]+$";
     private static final String DOUBLE_REGEX = "^[0-9]+.[0-9]{0,}$";
@@ -172,10 +125,10 @@ public abstract class TriggerReactor {
                     return true;
                 }else if(args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")){
                     if(args.length == 1){
-                        scriptEditManager.startEdit(sender, "Click Trigger", "", new SaveHandler(){
+                        getScriptEditManager().startEdit(sender, "Click Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
-                                if(clickManager.startLocationSet((IPlayer) sender, script)){
+                                if(getClickManager().startLocationSet((IPlayer) sender, script)){
                                     sender.sendMessage("&7Now click the block to set click trigger.");
                                 }else{
                                     sender.sendMessage("&7Already on progress.");
@@ -186,7 +139,7 @@ public abstract class TriggerReactor {
                         StringBuilder builder = new StringBuilder();
                         for(int i = 1; i < args.length; i++)
                             builder.append(args[i] + " ");
-                        if(clickManager.startLocationSet((IPlayer) sender, builder.toString())){
+                        if(getClickManager().startLocationSet((IPlayer) sender, builder.toString())){
                             sender.sendMessage("&7Now click the block to set click trigger.");
                         }else{
                             sender.sendMessage("&7Already on progress.");
@@ -195,10 +148,10 @@ public abstract class TriggerReactor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("walk") || args[0].equalsIgnoreCase("w")) {
                     if(args.length == 1){
-                        scriptEditManager.startEdit(sender, "Walk Trigger", "", new SaveHandler(){
+                        getScriptEditManager().startEdit(sender, "Walk Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
-                                if (walkManager.startLocationSet((IPlayer) sender, script)) {
+                                if (getWalkManager().startLocationSet((IPlayer) sender, script)) {
                                     sender.sendMessage("&7Now click the block to set walk trigger.");
                                 } else {
                                     sender.sendMessage("&7Already on progress.");
@@ -209,7 +162,7 @@ public abstract class TriggerReactor {
                         StringBuilder builder = new StringBuilder();
                         for (int i = 1; i < args.length; i++)
                             builder.append(args[i] + " ");
-                        if (walkManager.startLocationSet((IPlayer) sender, builder.toString())) {
+                        if (getWalkManager().startLocationSet((IPlayer) sender, builder.toString())) {
                             sender.sendMessage("&7Now click the block to set walk trigger.");
                         } else {
                             sender.sendMessage("&7Already on progress.");
@@ -217,18 +170,18 @@ public abstract class TriggerReactor {
                     }
                     return true;
                 } else if(args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))){
-                    if(cmdManager.hasCommandTrigger(args[1])){
+                    if(getCmdManager().hasCommandTrigger(args[1])){
                         sender.sendMessage("&7This command is already binded!");
                     }else{
                         if(args.length == 2){
-                            scriptEditManager.startEdit(sender, "Command Trigger", "", new SaveHandler(){
+                            getScriptEditManager().startEdit(sender, "Command Trigger", "", new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
-                                    cmdManager.addCommandTrigger(sender, args[1], script);
+                                    getCmdManager().addCommandTrigger(sender, args[1], script);
 
                                     sender.sendMessage("&aCommand trigger is binded!");
 
-                                    saveAsynchronously(cmdManager);
+                                    saveAsynchronously(getCmdManager());
                                 }
                             });
                         }else{
@@ -236,11 +189,11 @@ public abstract class TriggerReactor {
                             for (int i = 2; i < args.length; i++)
                                 builder.append(args[i] + " ");
 
-                            cmdManager.addCommandTrigger(sender, args[1], builder.toString());
+                            getCmdManager().addCommandTrigger(sender, args[1], builder.toString());
 
                             sender.sendMessage("&aCommand trigger is binded!");
 
-                            saveAsynchronously(cmdManager);
+                            saveAsynchronously(getCmdManager());
                         }
                     }
                     return true;
@@ -248,7 +201,7 @@ public abstract class TriggerReactor {
                     if(args.length == 3){
                         if(args[1].equalsIgnoreCase("Item")){
                             String name = args[2];
-                            if(!VariableManager.isValidName(name)){
+                            if(!getVariableManager().isValidName(name)){
                                 sender.sendMessage("&c"+name+" is not a valid key!");
                                 return true;
                             }
@@ -259,37 +212,37 @@ public abstract class TriggerReactor {
                                 return true;
                             }
 
-                            variableManager.put(name, IS.get());
+                            getVariableManager().put(name, IS.get());
 
                             sender.sendMessage("&aItem saved!");
                         }else if(args[1].equalsIgnoreCase("Location")){
                             String name = args[2];
-                            if(!VariableManager.isValidName(name)){
+                            if(!getVariableManager().isValidName(name)){
                                 sender.sendMessage("&c"+name+" is not a valid key!");
                                 return true;
                             }
 
                             ILocation loc = ((IPlayer) sender).getLocation();
-                            variableManager.put(name, loc.get());
+                            getVariableManager().put(name, loc.get());
 
                             sender.sendMessage("&aLocation saved!");
                         }else{
                             String name = args[1];
                             String value = args[2];
 
-                            if(!VariableManager.isValidName(name)){
+                            if(!getVariableManager().isValidName(name)){
                                 sender.sendMessage("&c"+name+" is not a valid key!");
                                 return true;
                             }
 
                             if(value.matches(INTEGER_REGEX)){
-                                variableManager.put(name, Integer.parseInt(value));
+                                getVariableManager().put(name, Integer.parseInt(value));
                             }else if(value.matches(DOUBLE_REGEX)){
-                                variableManager.put(name, Double.parseDouble(value));
+                                getVariableManager().put(name, Double.parseDouble(value));
                             }else if(value.equals("true") || value.equals("false")){
-                                variableManager.put(name, Boolean.parseBoolean(value));
+                                getVariableManager().put(name, Boolean.parseBoolean(value));
                             }else{
-                                variableManager.put(name, value);
+                                getVariableManager().put(name, value);
                             }
 
                             sender.sendMessage("&aVariable saved!");
@@ -297,7 +250,7 @@ public abstract class TriggerReactor {
                         return true;
                     }else if(args.length == 2){
                         String name = args[1];
-                        sender.sendMessage("&7Value of "+name+": "+variableManager.get(name));
+                        sender.sendMessage("&7Value of "+name+": "+getVariableManager().get(name));
 
                         return true;
                     }
@@ -305,7 +258,7 @@ public abstract class TriggerReactor {
                     String script = mergeArguments(args, 1, args.length - 1);
 
                     try {
-                        Trigger trigger = cmdManager.createTempCommandTrigger(script);
+                        Trigger trigger = getCmdManager().createTempCommandTrigger(script);
 
                         trigger.activate(createEmptyPlayerEvent((IPlayer) sender), new HashMap<>());
 
@@ -327,14 +280,14 @@ public abstract class TriggerReactor {
 
                         if(args.length == 4){
                             final int sizeCopy = size;
-                            scriptEditManager.startEdit(sender, "Inventory Trigger", "", new SaveHandler() {
+                            getScriptEditManager().startEdit(sender, "Inventory Trigger", "", new SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
-                                        if(invManager.createTrigger(sizeCopy, name, script)){
+                                        if(getInvManager().createTrigger(sizeCopy, name, script)){
                                             sender.sendMessage("&aInventory Trigger created!");
 
-                                            saveAsynchronously(invManager);
+                                            saveAsynchronously(getInvManager());
                                         }else{
                                             sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                         }
@@ -347,10 +300,10 @@ public abstract class TriggerReactor {
                             String script = mergeArguments(args, 4, args.length - 1);
 
                             try {
-                                if(invManager.createTrigger(size, name, script)){
+                                if(getInvManager().createTrigger(size, name, script)){
                                     sender.sendMessage("&aInventory Trigger created!");
 
-                                    saveAsynchronously(invManager);
+                                    saveAsynchronously(getInvManager());
                                 }else{
                                     sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                 }
@@ -361,10 +314,10 @@ public abstract class TriggerReactor {
                     } else if(args.length == 3 && args[2].equalsIgnoreCase("delete")){
                         String name = args[1];
 
-                        if(invManager.deleteTrigger(name)){
+                        if(getInvManager().deleteTrigger(name)){
                             sender.sendMessage("&aDeleted!");
 
-                            saveAsynchronously(invManager);
+                            saveAsynchronously(getInvManager());
                         }else{
                             sender.sendMessage("&7No such inventory trigger found.");
                         }
@@ -382,7 +335,7 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = invManager.getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
                         if(trigger == null){
                             sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
@@ -395,7 +348,7 @@ public abstract class TriggerReactor {
 
                         trigger.getItems()[index] = IS;
 
-                        saveAsynchronously(invManager);
+                        saveAsynchronously(getInvManager());
                     } else if(args.length > 2 && args[2].equalsIgnoreCase("open")){
                         String name = args[1];
                         IPlayer forWhom = null;
@@ -412,7 +365,7 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        IInventory opened = invManager.openGUI(forWhom, name);
+                        IInventory opened = getInvManager().openGUI(forWhom, name);
                         if(opened == null){
                             sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
@@ -420,7 +373,7 @@ public abstract class TriggerReactor {
                     } /*else if(args.length == 3 && args[2].equalsIgnoreCase("sync")){
                         String name = args[1];
 
-                        InventoryTrigger trigger = invManager.getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
                         if(trigger == null){
                             sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
@@ -428,7 +381,7 @@ public abstract class TriggerReactor {
 
                         trigger.setSync(!trigger.isSync());
 
-                        invManager.saveAll();
+                        getInvManager().saveAll();
 
                         sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                     } */else {
@@ -527,25 +480,25 @@ public abstract class TriggerReactor {
                     return true;
                 } else if(args.length > 0 && (args[0].equalsIgnoreCase("area") || args[0].equalsIgnoreCase("a"))){
                     if(args.length == 2 && args[1].equalsIgnoreCase("toggle")){
-                        boolean result = selectionManager.toggleSelection(((IPlayer) sender).getUniqueId());
+                        boolean result = getSelectionManager().toggleSelection(((IPlayer) sender).getUniqueId());
 
                         sender.sendMessage("&7Area selection mode enabled: &6"+result);
                     } else if (args.length == 3 && args[2].equals("create")){
                         String name = args[1];
 
-                        AreaTrigger trigger = areaManager.getArea(name);
+                        AreaTrigger trigger = getAreaManager().getArea(name);
                         if(trigger != null){
                             sender.sendMessage("&c"+"Area Trigger "+name+" is already exists!");
                             return true;
                         }
 
-                        AreaTriggerManager.Area selected = selectionManager.getSelection(((IPlayer) sender).getUniqueId());
+                        AreaTriggerManager.Area selected = getSelectionManager().getSelection(((IPlayer) sender).getUniqueId());
                         if(selected == null){
                             sender.sendMessage("&7Invalid or incomplete area selection.");
                             return true;
                         }
 
-                        Set<AreaTriggerManager.Area> conflicts = areaManager.getConflictingAreas(selected);
+                        Set<AreaTriggerManager.Area> conflicts = getAreaManager().getConflictingAreas(selected);
                         if(!conflicts.isEmpty()){
                             sender.sendMessage("&7Found ["+conflicts.size()+"] conflicting areas:");
                             for(AreaTriggerManager.Area conflict : conflicts){
@@ -554,44 +507,44 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        if(areaManager.createArea(name, selected.getSmallest(), selected.getLargest())){
+                        if(getAreaManager().createArea(name, selected.getSmallest(), selected.getLargest())){
                             sender.sendMessage("&aArea Trigger has created!");
 
-                            saveAsynchronously(areaManager);
+                            saveAsynchronously(getAreaManager());
 
-                            selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
+                            getSelectionManager().resetSelections(((IPlayer) sender).getUniqueId());
                         }else{
                             sender.sendMessage("&7Area Trigger "+name+" already exists.");
                         }
                     } else if (args.length == 3 && args[2].equals("delete")){
                         String name = args[1];
 
-                        if(areaManager.deleteArea(name)){
+                        if(getAreaManager().deleteArea(name)){
                             sender.sendMessage("&aArea Trigger deleted");
 
-                            saveAsynchronously(areaManager);
+                            saveAsynchronously(getAreaManager());
 
-                            selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
+                            getSelectionManager().resetSelections(((IPlayer) sender).getUniqueId());
                         }else{
                             sender.sendMessage("&7Area Trigger "+name+" does not exists.");
                         }
                     }else if (args.length > 2 && args[2].equals("enter")){
                         String name = args[1];
 
-                        AreaTrigger trigger = areaManager.getArea(name);
+                        AreaTrigger trigger = getAreaManager().getArea(name);
                         if(trigger == null){
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
                         if(args.length == 3){
-                            scriptEditManager.startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler(){
+                            getScriptEditManager().startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     try {
                                         trigger.setEnterTrigger(script);
 
-                                        saveAsynchronously(areaManager);
+                                        saveAsynchronously(getAreaManager());
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
                                         sender.sendMessage("&c"+"Could not save!");
@@ -604,7 +557,7 @@ public abstract class TriggerReactor {
                             try {
                                 trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
 
-                                saveAsynchronously(areaManager);
+                                saveAsynchronously(getAreaManager());
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
                                 sender.sendMessage("&c"+"Could not save!");
@@ -615,20 +568,20 @@ public abstract class TriggerReactor {
                     } else if (args.length > 2 && args[2].equals("exit")){
                         String name = args[1];
 
-                        AreaTrigger trigger = areaManager.getArea(name);
+                        AreaTrigger trigger = getAreaManager().getArea(name);
                         if(trigger == null){
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
                         if(args.length == 3){
-                            scriptEditManager.startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler(){
+                            getScriptEditManager().startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     try {
                                         trigger.setExitTrigger(script);
 
-                                        saveAsynchronously(areaManager);
+                                        saveAsynchronously(getAreaManager());
                                     } catch (IOException | LexerException | ParserException e) {
                                         e.printStackTrace();
                                         sender.sendMessage("&c"+"Could not save!");
@@ -641,7 +594,7 @@ public abstract class TriggerReactor {
                             try {
                                 trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
 
-                                saveAsynchronously(areaManager);
+                                saveAsynchronously(getAreaManager());
                             } catch (IOException | LexerException | ParserException e) {
                                 e.printStackTrace();
                                 sender.sendMessage("&c"+"Could not save!");
@@ -652,7 +605,7 @@ public abstract class TriggerReactor {
                     } else if (args.length == 3 && args[2].equals("sync")){
                         String name = args[1];
 
-                        AreaTrigger trigger = areaManager.getArea(name);
+                        AreaTrigger trigger = getAreaManager().getArea(name);
                         if(trigger == null){
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
@@ -660,7 +613,7 @@ public abstract class TriggerReactor {
 
                         trigger.setSync(!trigger.isSync());
 
-                        saveAsynchronously(areaManager);
+                        saveAsynchronously(getAreaManager());
 
                         sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                     } else {
@@ -682,21 +635,21 @@ public abstract class TriggerReactor {
                     String eventName = args[1];
                     String name = args[2];
 
-                    if(customManager.getTriggerForName(name) != null){
+                    if(getCustomManager().getTriggerForName(name) != null){
                         sender.sendMessage("&7No Area Trigger found with that name.");
                         return true;
                     }
 
                     if(args.length == 3){
-                        scriptEditManager.startEdit(sender,
+                        getScriptEditManager().startEdit(sender,
                                 "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
                                 new SaveHandler() {
                                     @Override
                                     public void onSave(String script) {
                                         try {
-                                            customManager.createCustomTrigger(eventName, name, script);
+                                            getCustomManager().createCustomTrigger(eventName, name, script);
 
-                                            saveAsynchronously(customManager);
+                                            saveAsynchronously(getCustomManager());
 
                                             sender.sendMessage("&aCustom Trigger created!");
                                         } catch (ClassNotFoundException | IOException | LexerException
@@ -711,9 +664,9 @@ public abstract class TriggerReactor {
                         String script = mergeArguments(args, 3, args.length - 1);
 
                         try {
-                            customManager.createCustomTrigger(eventName, name, script);
+                            getCustomManager().createCustomTrigger(eventName, name, script);
 
-                            saveAsynchronously(customManager);
+                            saveAsynchronously(getCustomManager());
 
                             sender.sendMessage("&aCustom Trigger created!");
                         } catch (IOException | LexerException | ParserException e) {
@@ -730,16 +683,16 @@ public abstract class TriggerReactor {
                     if(args.length == 2){
                         String name = args[1];
 
-                        if(repeatManager.getTrigger(name) != null){
+                        if(getRepeatManager().getTrigger(name) != null){
                             sender.sendMessage("&7This named is already in use.");
                             return true;
                         }
 
-                        this.scriptEditManager.startEdit(sender, "Repeating Trigger", "", new SaveHandler(){
+                        this.getScriptEditManager().startEdit(sender, "Repeating Trigger", "", new SaveHandler(){
                             @Override
                             public void onSave(String script) {
                                 try {
-                                    repeatManager.createTrigger(name, script);
+                                    getRepeatManager().createTrigger(name, script);
                                 } catch (IOException | LexerException | ParserException e) {
                                     e.printStackTrace();
                                     sender.sendMessage("&c"+"Could not save!");
@@ -747,13 +700,13 @@ public abstract class TriggerReactor {
                                     sender.sendMessage("&c"+"See console for more information.");
                                 }
 
-                                saveAsynchronously(repeatManager);
+                                saveAsynchronously(getRepeatManager());
                             }
                         });
                     } else if (args.length == 4 && args[2].equalsIgnoreCase("interval")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
 
                         if(trigger == null){
                             sender.sendMessage("&7No Repeating Trigger with name "+name);
@@ -765,7 +718,7 @@ public abstract class TriggerReactor {
 
                         trigger.setInterval(interval);
 
-                        saveAsynchronously(repeatManager);
+                        saveAsynchronously(getRepeatManager());
 
                         sender.sendMessage("&aNow "+
                                 "&6["+name+"]"+
@@ -774,7 +727,7 @@ public abstract class TriggerReactor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
 
                         if(trigger == null){
                             sender.sendMessage("&7No Repeating Trigger with name "+name);
@@ -783,30 +736,30 @@ public abstract class TriggerReactor {
 
                         trigger.setAutoStart(!trigger.isAutoStart());
 
-                        saveAsynchronously(repeatManager);
+                        saveAsynchronously(getRepeatManager());
 
                         sender.sendMessage("Auto start: "+(trigger.isAutoStart() ? "&a" : "&c")+trigger.isAutoStart());
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("toggle")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
 
                         if(trigger == null){
                             sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
-                        if(repeatManager.isRunning(name)){
-                            repeatManager.stopTrigger(name);
+                        if(getRepeatManager().isRunning(name)){
+                            getRepeatManager().stopTrigger(name);
                             sender.sendMessage("&aScheduled stop. It may take some time depends on CPU usage.");
                         } else {
-                            repeatManager.startTrigger(name);
+                            getRepeatManager().startTrigger(name);
                             sender.sendMessage("&aScheduled start up. It may take some time depends on CPU usage.");
                         }
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("pause")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
 
                         if(trigger == null){
                             sender.sendMessage("&7No Repeating Trigger with name "+name);
@@ -819,25 +772,25 @@ public abstract class TriggerReactor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("status")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
 
                         if(trigger == null){
                             sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
-                        repeatManager.showTriggerInfo(sender, trigger);
+                        getRepeatManager().showTriggerInfo(sender, trigger);
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("delete")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = repeatManager.getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
 
                         if(trigger == null){
                             sender.sendMessage("&7No Repeating Trigger with name "+name);
                             return true;
                         }
 
-                        repeatManager.deleteTrigger(name);
+                        getRepeatManager().deleteTrigger(name);
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
                         sendDetails(sender, "&4Quick create is not supported.");
@@ -863,7 +816,7 @@ public abstract class TriggerReactor {
                 }  else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
                     String name = args[1];
 
-                    CustomTrigger trigger = customManager.getTriggerForName(name);
+                    CustomTrigger trigger = getCustomManager().getTriggerForName(name);
                     if(trigger == null){
                         sender.sendMessage("&7No Custom Trigger found with that name.");
                         return true;
@@ -871,7 +824,7 @@ public abstract class TriggerReactor {
 
                     trigger.setSync(!trigger.isSync());
 
-                    saveAsynchronously(customManager);
+                    saveAsynchronously(getCustomManager());
 
                     sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                     return true;
@@ -880,24 +833,24 @@ public abstract class TriggerReactor {
                     switch (args[1]) {
                     case "vars":
                     case "variables":
-                        variableManager.remove(key);
+                        getVariableManager().remove(key);
                         sender.sendMessage("&aRemoved the variable &6"+key);
                         break;
                     case "cmd":
                     case "command":
-                        if(cmdManager.removeCommandTrigger(key)){
+                        if(getCmdManager().removeCommandTrigger(key)){
                             sender.sendMessage("&aRemoved the command trigger &6"+key);
 
-                            saveAsynchronously(cmdManager);
+                            saveAsynchronously(getCmdManager());
                         }else{
                             sender.sendMessage("&7Command trigger &6"+key+"&7 does not exist");
                         }
                         break;
                     case "custom":
-                        if(customManager.removeTriggerForName(key)){
+                        if(getCustomManager().removeTriggerForName(key)){
                             sender.sendMessage("&aRemoved the custom trigger &6"+key);
 
-                            saveAsynchronously(customManager);
+                            saveAsynchronously(getCustomManager());
                         }else{
                             sender.sendMessage("&7Custom Trigger &6"+key+"&7 does not exist");
                         }
@@ -910,8 +863,8 @@ public abstract class TriggerReactor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("search")) {
                     SimpleChunkLocation scloc = ((IPlayer) sender).getChunk();
-                    showGlowStones(sender, clickManager.getTriggersInChunk(scloc));
-                    showGlowStones(sender, walkManager.getTriggersInChunk(scloc));
+                    showGlowStones(sender, getClickManager().getTriggersInChunk(scloc));
+                    showGlowStones(sender, getWalkManager().getTriggersInChunk(scloc));
                     sender.sendMessage("&7Now trigger blocks will be shown as &6"+"glowstone");
                     return true;
                 } else if(args[0].equalsIgnoreCase("saveall")){
@@ -923,7 +876,7 @@ public abstract class TriggerReactor {
                     for(Manager manager : Manager.getManagers())
                         manager.reload();
 
-                    executorManager.reload();
+                    getExecutorManager().reload();
 
                     sender.sendMessage("Reload Complete!");
                     return true;
