@@ -622,6 +622,8 @@ public class Parser {
                 }
                 //id
                 else{
+                    if(idToken.type != Type.ID)
+                        throw new ParserException("Expected an ID but found " +idToken, this);
                     deque.addLast(new Node(idToken));
                 }
             }while(token != null && ".".equals(token.value));
@@ -686,7 +688,7 @@ public class Parser {
         //String text = "#MESSAGE args[0]";
         String text = ""
                 + "FOR i = 0:10\n"
-                + "    #TEST:MESSAGE \"test i=\"+i\n"
+                + "    #TEST:MESSAGE \"test i=\"+i..i\n"
                 + "ENDFOR\n";
         System.out.println("original: \n"+text);
 
