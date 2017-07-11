@@ -246,6 +246,16 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
         }
     }
 
+    /**
+    *
+    * @param player
+    * @param name
+    * @return the opened Inventory's reference; null if no Inventory Trigger found
+    */
+   public IInventory openGUI(Player player, String name){
+       return openGUI(new BukkitPlayer(player), name);
+   }
+
     @EventHandler
     public void onOpen(InventoryOpenEvent e){
         Inventory inventory = e.getInventory();
