@@ -98,8 +98,9 @@ public abstract class AbstractTriggerManager extends Manager {
                 root = parser.parse();
                 executorMap = TriggerReactor.getInstance().getExecutorManager().getExecutorMap();
                 gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();
-            }catch(Exception ex){
-                throw new TriggerInitFailedException("Failed to initialize Trigger ["+triggerName+"]!", ex);
+            } catch (Exception ex) {
+                throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
+                        + " -- " + triggerName + "]!", ex);
             }
         }
 
