@@ -26,14 +26,13 @@ function BROADCAST(args){
     	PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
     }
     
-    for(var p in Bukkit.getOnlinePlayers()){
-        if(PlaceholderAPI){
-        	p.sendMessage(p, PlaceholderAPI.setPlaceholders(p, str));
+	Bukkit.getOnlinePlayers().forEach(function(p, i){
+		if(PlaceholderAPI){
+        	p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
         } else {
         	p.sendMessage(str);
         }
-    }
-    
-    Bukkit.broadcastMessage();
+	});
+
     return null;
 }
