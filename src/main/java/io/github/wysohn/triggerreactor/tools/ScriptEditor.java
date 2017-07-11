@@ -104,7 +104,7 @@ public class ScriptEditor{
 		for(int i = 0; i < lines.size(); i++){
 			builder.append((i != 0 ? separater : "") + lines.get(i));
 		}
-		handler.onSave(builder.toString().replaceAll("\r", ""));
+		handler.onSave(builder.toString());
 	}
 
 	public void up(int lines){
