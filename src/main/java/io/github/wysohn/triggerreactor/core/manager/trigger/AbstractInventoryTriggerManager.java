@@ -25,14 +25,14 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
 
         final IItemStack[] items;
 
-        private InventoryTrigger(String name, String script, IItemStack[] items) throws IOException, LexerException, ParserException {
+        private InventoryTrigger(String name, String script, IItemStack[] items) throws TriggerInitFailedException {
             super(name, script);
             this.items = items;
 
             init();
         }
 
-        public InventoryTrigger(int size, String name, Map<Integer, IItemStack> items, String script) throws IOException, LexerException, ParserException{
+        public InventoryTrigger(int size, String name, Map<Integer, IItemStack> items, String script) throws TriggerInitFailedException{
             super(name, script);
             if(size < 9 || size % 9 != 0)
                 throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
@@ -63,7 +63,7 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
         public Trigger clone() {
             try {
                 return new InventoryTrigger(triggerName, script, items);
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             return null;
@@ -130,7 +130,7 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
      *             See {@link Trigger#init()}
      */
     public boolean createTrigger(int size, String name, String script)
-            throws IOException, LexerException, ParserException {
+            throws TriggerInitFailedException {
         if (invenTriggers.containsKey(name))
             return false;
 

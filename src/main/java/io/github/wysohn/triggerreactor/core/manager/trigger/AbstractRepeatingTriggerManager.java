@@ -48,7 +48,7 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
      *             See {@link Trigger#init()}
      */
     public boolean createTrigger(String triggerName, String script, long interval)
-            throws IOException, LexerException, ParserException {
+            throws TriggerInitFailedException, IOException {
         if (getTrigger(triggerName) != null) {
             return false;
         }
@@ -79,7 +79,7 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
      *             See {@link Trigger#init()}
      */
     public boolean createTrigger(String triggerName, String script)
-            throws IOException, LexerException, ParserException {
+            throws TriggerInitFailedException, IOException {
         return createTrigger(triggerName, script, 1000L);
     }
 
@@ -190,14 +190,14 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
         private boolean autoStart = false;
         private Map<String, Object> vars;
 
-        public RepeatingTrigger(String name, String script) throws IOException, LexerException, ParserException {
+        public RepeatingTrigger(String name, String script) throws TriggerInitFailedException {
             super(name, script);
 
             init();
         }
 
         public RepeatingTrigger(String name, String script, long interval)
-                throws IOException, LexerException, ParserException {
+                throws TriggerInitFailedException {
             this(name, script);
 
             this.interval = interval;
@@ -242,7 +242,7 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
         public Trigger clone() {
             try {
                 return new RepeatingTrigger(this.triggerName, this.getScript(), interval);
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
 

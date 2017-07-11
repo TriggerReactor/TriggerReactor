@@ -47,8 +47,6 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -140,13 +138,9 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
             try {
                 trigger = new InventoryTrigger(size, triggerName, items, script);
                 //trigger.setSync(isSync);
-            } catch (IOException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
-                continue;
-            } catch (LexerException | ParserException e){
-                e.printStackTrace();
-                plugin.getLogger().warning("Failed to interpret the script for "+triggerName);
                 continue;
             }
 

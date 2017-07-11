@@ -25,8 +25,6 @@ import org.bukkit.configuration.InvalidConfigurationException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -82,7 +80,7 @@ public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager {
             RepeatingTrigger trigger = null;
             try {
                 trigger = new RepeatingTrigger(triggerName, script, interval);
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             trigger.setAutoStart(autoStart);

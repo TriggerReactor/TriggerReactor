@@ -1,7 +1,6 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,8 +43,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTri
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
@@ -178,7 +175,7 @@ public abstract class TriggerReactor {
                             public void onSave(String script) {
                                 try {
                                     trigger.setScript(script);
-                                } catch (IOException | LexerException | ParserException e) {
+                                } catch (Exception e) {
                                     handleException(sender, e);
                                 }
 
@@ -277,7 +274,7 @@ public abstract class TriggerReactor {
 
                         trigger.activate(createEmptyPlayerEvent((IPlayer) sender), new HashMap<>());
 
-                    } catch (IOException | LexerException | ParserException e) {
+                    } catch (Exception e) {
                         handleException(sender, e);
                     }
 
@@ -306,7 +303,7 @@ public abstract class TriggerReactor {
                                         }else{
                                             sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                         }
-                                    } catch (IOException | LexerException | ParserException e) {
+                                    } catch (Exception e) {
                                         handleException(sender, e);
                                     }
                                 }
@@ -322,7 +319,7 @@ public abstract class TriggerReactor {
                                 }else{
                                     sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                 }
-                            } catch (IOException | LexerException | ParserException e) {
+                            } catch (Exception e) {
                                 handleException(sender, e);
                             }
                         }
@@ -399,7 +396,7 @@ public abstract class TriggerReactor {
                             public void onSave(String script) {
                                 try {
                                     trigger.setScript(script);
-                                } catch (IOException | LexerException | ParserException e) {
+                                } catch (Exception e) {
                                     handleException(sender, e);
                                 }
 
@@ -571,7 +568,7 @@ public abstract class TriggerReactor {
                                         saveAsynchronously(getAreaManager());
 
                                         sender.sendMessage("&aScript is updated!");
-                                    } catch (IOException | LexerException | ParserException e) {
+                                    } catch (Exception e) {
                                         handleException(sender, e);
                                     }
                                 }
@@ -585,7 +582,7 @@ public abstract class TriggerReactor {
                                             trigger.setEnterTrigger(script);
 
                                             saveAsynchronously(getAreaManager());
-                                        } catch (IOException | LexerException | ParserException e) {
+                                        } catch (Exception e) {
                                             handleException(sender, e);
                                         }
                                     }
@@ -595,7 +592,7 @@ public abstract class TriggerReactor {
                                     trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
 
                                     saveAsynchronously(getAreaManager());
-                                } catch (IOException | LexerException | ParserException e) {
+                                } catch (Exception e) {
                                     handleException(sender, e);
                                 }
                             }
@@ -619,7 +616,7 @@ public abstract class TriggerReactor {
                                         saveAsynchronously(getAreaManager());
 
                                         sender.sendMessage("&aScript is updated!");
-                                    } catch (IOException | LexerException | ParserException e) {
+                                    } catch (Exception e) {
                                         handleException(sender, e);
                                     }
                                 }
@@ -633,7 +630,7 @@ public abstract class TriggerReactor {
                                             trigger.setExitTrigger(script);
 
                                             saveAsynchronously(getAreaManager());
-                                        } catch (IOException | LexerException | ParserException e) {
+                                        } catch (Exception e) {
                                             handleException(sender, e);
                                         }
                                     }
@@ -643,7 +640,7 @@ public abstract class TriggerReactor {
                                     trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
 
                                     saveAsynchronously(getAreaManager());
-                                } catch (IOException | LexerException | ParserException e) {
+                                } catch (Exception e) {
                                     handleException(sender, e);
                                 }
                             }
@@ -688,7 +685,7 @@ public abstract class TriggerReactor {
                             public void onSave(String script) {
                                 try {
                                     trigger.setScript(script);
-                                } catch (IOException | LexerException | ParserException e) {
+                                } catch (Exception e) {
                                     handleException(sender, e);
                                 }
 
@@ -710,8 +707,7 @@ public abstract class TriggerReactor {
                                                 saveAsynchronously(getCustomManager());
 
                                                 sender.sendMessage("&aCustom Trigger created!");
-                                            } catch (ClassNotFoundException | IOException | LexerException
-                                                    | ParserException e) {
+                                            } catch (Exception e) {
                                                 e.printStackTrace();
                                                 sender.sendMessage("&c"+"Could not save! "+e.getMessage());
                                                 sender.sendMessage("&c"+"See console for detailed messages.");
@@ -727,11 +723,11 @@ public abstract class TriggerReactor {
                                 saveAsynchronously(getCustomManager());
 
                                 sender.sendMessage("&aCustom Trigger created!");
-                            } catch (IOException | LexerException | ParserException e) {
+                            } catch (ClassNotFoundException e2) {
+                                sender.sendMessage("&c" + "Could not save! " + e2.getMessage());
+                                sender.sendMessage("&c" + "Provided event name is not valid.");
+                            } catch (Exception e) {
                                 handleException(sender, e);
-                            } catch(ClassNotFoundException e2){
-                                sender.sendMessage("&c"+"Could not save! "+e2.getMessage());
-                                sender.sendMessage("&c"+"Provided event name is not valid.");
                             }
                         }
                     }
@@ -747,7 +743,7 @@ public abstract class TriggerReactor {
                                 public void onSave(String script) {
                                     try {
                                         trigger.setScript(script);
-                                    } catch (IOException | LexerException | ParserException e) {
+                                    } catch (Exception e) {
                                         handleException(sender, e);
                                     }
 
@@ -762,7 +758,7 @@ public abstract class TriggerReactor {
                                 public void onSave(String script) {
                                     try {
                                         getRepeatManager().createTrigger(name, script);
-                                    } catch (IOException | LexerException | ParserException e) {
+                                    } catch (Exception e) {
                                         handleException(sender, e);
                                     }
 

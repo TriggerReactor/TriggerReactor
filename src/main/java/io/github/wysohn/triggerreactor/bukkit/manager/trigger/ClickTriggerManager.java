@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,8 +29,6 @@ import org.bukkit.inventory.EquipmentSlot;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger>{
     public ClickTriggerManager(TriggerReactor plugin) {
@@ -39,7 +36,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
     }
 
     @Override
-    protected ClickTrigger constructTrigger(String slocstr, String script) throws IOException, LexerException, ParserException {
+    protected ClickTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
         return new ClickTrigger(slocstr, script, new ClickHandler(){
             @Override
             public boolean allow(Object context) {

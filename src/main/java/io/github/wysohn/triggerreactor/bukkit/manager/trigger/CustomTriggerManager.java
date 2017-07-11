@@ -49,8 +49,6 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
@@ -148,7 +146,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
 
                     triggers.add(trigger);
                     nameMap.put(fileName, trigger);
-                } catch (LexerException | ParserException e) {
+                } catch (TriggerInitFailedException e) {
                     e.printStackTrace();
                     continue;
                 }

@@ -31,8 +31,6 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager {
@@ -69,7 +67,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
             CommandTrigger trigger = null;
             try {
                 trigger = new CommandTrigger(fileName, script);
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
                 continue;
             }

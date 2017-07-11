@@ -1,6 +1,5 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,8 +17,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTriggerManager {
@@ -45,9 +42,9 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return new SimpleLocation(world, x, y, z);
     }
 
-    protected abstract T constructTrigger(String slocString, String script) throws IOException, LexerException, ParserException;
+    protected abstract T constructTrigger(String slocString, String script) throws TriggerInitFailedException;
 
-    protected T constructTrigger(SimpleLocation sloc, String script) throws IOException, LexerException, ParserException{
+    protected T constructTrigger(SimpleLocation sloc, String script) throws TriggerInitFailedException{
         return constructTrigger(sloc.toString(), script);
     }
 
@@ -236,7 +233,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     public static class WalkTrigger extends TriggerManager.Trigger{
 
-        public WalkTrigger(String name, String script) throws IOException, LexerException, ParserException {
+        public WalkTrigger(String name, String script) throws TriggerInitFailedException {
             super(name, script);
 
             init();
@@ -246,7 +243,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         public Trigger clone() {
             try {
                 return new WalkTrigger(triggerName, getScript());
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             return null;
@@ -256,7 +253,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     public static class ClickTrigger extends TriggerManager.Trigger{
         private ClickHandler handler;
 
-        public ClickTrigger(String name, String script, ClickHandler handler) throws IOException, LexerException, ParserException {
+        public ClickTrigger(String name, String script, ClickHandler handler) throws TriggerInitFailedException {
             super(name, script);
             this.handler = handler;
 
@@ -277,7 +274,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                 //TODO: using same handler will be safe?
                 Trigger trigger = new ClickTrigger(triggerName, script, handler);
                 return trigger;
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             return null;

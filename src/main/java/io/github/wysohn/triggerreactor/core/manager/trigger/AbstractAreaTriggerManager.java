@@ -1,6 +1,5 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -13,8 +12,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 public abstract class AbstractAreaTriggerManager extends TriggerManager {
 
@@ -71,11 +68,11 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
             return null;
         }
 
-        public void setEnterTrigger(String script) throws IOException, LexerException, ParserException{
+        public void setEnterTrigger(String script) throws TriggerInitFailedException{
             enterTrigger = new EnterTrigger(this, script);
         }
 
-        public void setExitTrigger(String script) throws IOException, LexerException, ParserException{
+        public void setExitTrigger(String script) throws TriggerInitFailedException{
             exitTrigger = new ExitTrigger(this, script);
         }
 
@@ -98,7 +95,7 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
         public static class EnterTrigger extends Trigger{
             private final AreaTrigger areaTrigger;
 
-            public EnterTrigger(AreaTrigger areaTrigger, String script) throws IOException, LexerException, ParserException {
+            public EnterTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
                 super(areaTrigger.triggerName, script);
                 this.areaTrigger = areaTrigger;
 
@@ -119,7 +116,7 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
             public Trigger clone() {
                 try {
                     return new EnterTrigger(areaTrigger, script);
-                } catch (IOException | LexerException | ParserException e) {
+                } catch (TriggerInitFailedException e) {
                     e.printStackTrace();
                 }
                 return null;
@@ -130,7 +127,7 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
         public static class ExitTrigger extends Trigger{
             private final AreaTrigger areaTrigger;
 
-            public ExitTrigger(AreaTrigger areaTrigger, String script) throws IOException, LexerException, ParserException {
+            public ExitTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
                 super(areaTrigger.getTriggerName(), script);
                 this.areaTrigger = areaTrigger;
 
@@ -151,7 +148,7 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
             public Trigger clone() {
                 try {
                     return new ExitTrigger(areaTrigger, script);
-                } catch (IOException | LexerException | ParserException e) {
+                } catch (TriggerInitFailedException e) {
                     e.printStackTrace();
                 }
                 return null;

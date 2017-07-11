@@ -34,7 +34,7 @@ public abstract class AbstractCustomTriggerManager extends TriggerManager {
          * @throws LexerException {@link Trigger#init()}
          * @throws ParserException {@link Trigger#init()}
          */
-        public CustomTrigger(Class<?> event, String eventName, String name, String script) throws IOException, LexerException, ParserException {
+        public CustomTrigger(Class<?> event, String eventName, String name, String script) throws TriggerInitFailedException {
             super(name, script);
             this.event = event;
             this.eventName = eventName;
@@ -46,7 +46,7 @@ public abstract class AbstractCustomTriggerManager extends TriggerManager {
         public Trigger clone() {
             try {
                 return new CustomTrigger(event, getEventName(), triggerName, this.getScript());
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             return null;
@@ -119,7 +119,7 @@ public abstract class AbstractCustomTriggerManager extends TriggerManager {
      * @throws IOException
      */
     public boolean createCustomTrigger(String eventName, String name, String script)
-            throws ClassNotFoundException, IOException, LexerException, ParserException {
+            throws ClassNotFoundException, TriggerInitFailedException {
                 if(nameMap.containsKey(name))
                     return false;
 

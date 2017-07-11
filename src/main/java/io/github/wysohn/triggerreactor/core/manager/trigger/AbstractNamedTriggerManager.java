@@ -2,7 +2,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -42,17 +41,16 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
      *
      * @param file
      *            the file/folder
-     * @throws UnsupportedEncodingException
      * @throws IOException
      * @throws LexerException
      * @throws ParserException
      */
-    protected void load(File file) throws UnsupportedEncodingException, IOException, LexerException, ParserException {
+    protected void load(File file) throws TriggerInitFailedException, IOException {
         load(new Stack<>(), file);
     }
 
     private void load(Stack<String> stack, File file)
-            throws UnsupportedEncodingException, IOException, LexerException, ParserException {
+            throws TriggerInitFailedException, IOException {
         if (file.isDirectory()) {
             stack.push(file.getName());
             for (File f : file.listFiles()) {
@@ -78,7 +76,7 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
 
     protected static class NamedTrigger extends Trigger{
 
-        public NamedTrigger(String name, String script) throws IOException, LexerException, ParserException {
+        public NamedTrigger(String name, String script) throws TriggerInitFailedException {
             super(name, script);
 
             init();
@@ -94,7 +92,7 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
         public Trigger clone() {
             try {
                 return new NamedTrigger(triggerName, getScript());
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             return null;

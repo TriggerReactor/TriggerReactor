@@ -86,16 +86,21 @@ public abstract class AbstractTriggerManager extends Manager {
          * @throws IOException low level exception from Lexer
          * @throws LexerException throws if lexical analysis failed
          * @throws ParserException throws if parsing failed
+         * @throws TriggerInitFailedException
          */
-        public void init() throws IOException, LexerException, ParserException{
-            Charset charset = Charset.forName("UTF-8");
+        public void init() throws TriggerInitFailedException{
+            try{
+                Charset charset = Charset.forName("UTF-8");
 
-            Lexer lexer = new Lexer(script, charset);
-            Parser parser = new Parser(lexer);
+                Lexer lexer = new Lexer(script, charset);
+                Parser parser = new Parser(lexer);
 
-            root = parser.parse();
-            executorMap = TriggerReactor.getInstance().getExecutorManager().getExecutorMap();
-            gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();
+                root = parser.parse();
+                executorMap = TriggerReactor.getInstance().getExecutorManager().getExecutorMap();
+                gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();
+            }catch(Exception ex){
+                throw new TriggerInitFailedException("Failed to initialize Trigger ["+triggerName+"]!", ex);
+            }
         }
 
         /**
@@ -106,7 +111,7 @@ public abstract class AbstractTriggerManager extends Manager {
             return script;
         }
 
-        public void setScript(String script) throws IOException, LexerException, ParserException {
+        public void setScript(String script) throws TriggerInitFailedException {
             if(script == null)
                 throw new RuntimeException("script cannot be null.");
 
@@ -116,7 +121,7 @@ public abstract class AbstractTriggerManager extends Manager {
             this.script = script;
             try{
                 init();
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 failed = true;
                 throw e;
             } finally {
@@ -241,5 +246,14 @@ public abstract class AbstractTriggerManager extends Manager {
 
         @Override
         public abstract Trigger clone();
+    }
+
+    @SuppressWarnings("serial")
+    public static final class TriggerInitFailedException extends Exception{
+
+        public TriggerInitFailedException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
     }
 }

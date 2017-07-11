@@ -24,8 +24,6 @@ import java.util.Set;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class NamedTriggerManager extends AbstractNamedTriggerManager {
@@ -48,7 +46,7 @@ public class NamedTriggerManager extends AbstractNamedTriggerManager {
         for (File file : folder.listFiles()) {
             try {
                 load(file);
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException | IOException e) {
                 e.printStackTrace();
                 continue;
             }

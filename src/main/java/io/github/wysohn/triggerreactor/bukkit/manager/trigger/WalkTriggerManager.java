@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +27,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationE
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> {
     public WalkTriggerManager(TriggerReactor plugin) {
@@ -37,7 +34,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
     }
 
     @Override
-    protected WalkTrigger constructTrigger(String slocstr, String script) throws IOException, LexerException, ParserException {
+    protected WalkTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
         return new WalkTrigger(slocstr, script);
     }
 

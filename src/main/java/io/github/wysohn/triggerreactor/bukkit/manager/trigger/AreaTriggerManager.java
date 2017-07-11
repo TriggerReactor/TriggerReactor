@@ -36,8 +36,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocati
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -128,7 +126,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                 if(enterScript != null){
                     trigger.setEnterTrigger(enterScript);
                 }
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
                 continue;
             }
@@ -137,7 +135,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                 if(exitScript != null){
                     trigger.setExitTrigger(exitScript);
                 }
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
                 continue;
             }

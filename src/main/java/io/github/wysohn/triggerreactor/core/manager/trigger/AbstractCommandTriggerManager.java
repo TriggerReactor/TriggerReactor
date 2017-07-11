@@ -1,14 +1,11 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 public abstract class AbstractCommandTriggerManager extends TriggerManager {
 
@@ -16,7 +13,7 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
 
     public static class CommandTrigger extends TriggerManager.Trigger {
 
-        public CommandTrigger(String name, String script) throws IOException, LexerException, ParserException {
+        public CommandTrigger(String name, String script) throws TriggerInitFailedException {
             super(name, script);
 
             init();
@@ -26,7 +23,7 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         public Trigger clone() {
             try {
                 return new CommandTrigger(triggerName, getScript());
-            } catch (IOException | LexerException | ParserException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
             return null;
@@ -55,7 +52,7 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         CommandTrigger trigger = null;
         try {
             trigger = new CommandTrigger(cmd, script);
-        } catch (IOException | LexerException | ParserException e1) {
+        } catch (TriggerInitFailedException e1) {
             plugin.handleException(adding, e1);
             return false;
         }
@@ -80,7 +77,7 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         return true;
     }
 
-    public CommandTrigger createTempCommandTrigger(String script) throws IOException, LexerException, ParserException {
+    public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
         return new CommandTrigger("temp", script);
     }
 

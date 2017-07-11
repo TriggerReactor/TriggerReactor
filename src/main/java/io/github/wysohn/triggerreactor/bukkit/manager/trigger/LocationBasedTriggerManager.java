@@ -52,8 +52,6 @@ import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
@@ -106,7 +104,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             T trigger = null;
             try {
                 trigger = constructTrigger(sloc.toString(), script);
-            } catch (LexerException | ParserException | IOException e) {
+            } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
                 continue;
             }
@@ -245,7 +243,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         try {
             trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
-        } catch (IOException | LexerException | ParserException e1) {
+        } catch (TriggerInitFailedException e1) {
             player.sendMessage(ChatColor.RED+"Encounterd an error!");
             player.sendMessage(ChatColor.RED+e1.getMessage());
             player.sendMessage(ChatColor.RED+"If you are an administrator, check console to see details.");
@@ -272,7 +270,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                     public void onSave(String script) {
                         try {
                             trigger.setScript(script);
-                        } catch (IOException | LexerException | ParserException e) {
+                        } catch (TriggerInitFailedException e) {
                             plugin.handleException(new BukkitPlayer(player), e);
                         }
 
