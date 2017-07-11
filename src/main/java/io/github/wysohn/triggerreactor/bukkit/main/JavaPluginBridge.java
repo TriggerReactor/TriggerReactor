@@ -333,30 +333,42 @@ public class JavaPluginBridge extends TriggerReactor{
     }
 
     @Override
-    public void handleException(Object e, Throwable ex) {
-        ex.printStackTrace();
-        if(e instanceof PlayerEvent){
-            Player player = ((PlayerEvent) e).getPlayer();
-            player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
-            while(ex != null){
-                player.sendMessage(ChatColor.RED+" >> Caused by:");
-                player.sendMessage(ChatColor.RED+ex.getMessage());
-                ex = ex.getCause();
-            }
-            player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
+    public void handleException(Object context, Throwable e) {
+        e.printStackTrace();
+        if(context instanceof PlayerEvent){
+            Player player = ((PlayerEvent) context).getPlayer();
+            runTask(new Runnable(){
+                @Override
+                public void run() {
+                    Throwable ex = e;
+                    player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
+                    while(ex != null){
+                        player.sendMessage(ChatColor.RED+" >> Caused by:");
+                        player.sendMessage(ChatColor.RED+ex.getMessage());
+                        ex = ex.getCause();
+                    }
+                    player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
+                }
+            });
         }
     }
 
     @Override
-    public void handleException(ICommandSender sender, Throwable ex) {
-        ex.printStackTrace();
-        sender.sendMessage(ChatColor.RED+"Could not execute this trigger.");
-        while(ex != null){
-            sender.sendMessage(ChatColor.RED+" >> Caused by:");
-            sender.sendMessage(ChatColor.RED+ex.getMessage());
-            ex = ex.getCause();
-        }
-        sender.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
+    public void handleException(ICommandSender sender, Throwable e) {
+        e.printStackTrace();
+        runTask(new Runnable(){
+            @Override
+            public void run() {
+                Throwable ex = e;
+                sender.sendMessage(ChatColor.RED+"Could not execute this trigger.");
+                while(ex != null){
+                    sender.sendMessage(ChatColor.RED+" >> Caused by:");
+                    sender.sendMessage(ChatColor.RED+ex.getMessage());
+                    ex = ex.getCause();
+                }
+                sender.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
+            }
+        });
     }
 
     @Override

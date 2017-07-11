@@ -416,7 +416,7 @@ public abstract class TriggerReactor {
                         sendDetails(sender, "/trg i MyInventory item 0");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
-                        //sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> sync", "Toggle sync/async mode.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
                     }
                     return true;
                 } else if(args[0].equalsIgnoreCase("misc")){
