@@ -47,7 +47,7 @@ public class ScriptEditor{
 	private void load(){
 		String[] strs = script.split(separater);
 		for(String str : strs){
-			lines.add(str);
+			lines.add(str.replaceAll("\\t", "    "));
 		}
 	}
 
