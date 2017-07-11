@@ -41,7 +41,7 @@ public class ExecutorManager extends AbstractExecutorManager{
     public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
         super(plugin);
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        JarUtil.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.COPY_IF_NOT_EXIST);
+        JarUtil.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         reload();
     }

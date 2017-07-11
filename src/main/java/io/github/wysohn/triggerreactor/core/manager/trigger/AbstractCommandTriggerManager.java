@@ -37,6 +37,10 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         return commandTriggerMap.containsKey(cmd);
     }
 
+    public CommandTrigger getCommandTrigger(String cmd){
+        return commandTriggerMap.get(cmd);
+    }
+
     /**
      *
      * @param adding CommandSender to send error message on script error

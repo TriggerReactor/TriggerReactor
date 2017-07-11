@@ -270,9 +270,13 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 new SaveHandler() {
                     @Override
                     public void onSave(String script) {
-                        trigger.setScript(script);
+                        try {
+                            trigger.setScript(script);
+                        } catch (IOException | LexerException | ParserException e) {
+                            plugin.handleException(new BukkitPlayer(player), e);
+                        }
 
-                        plugin.saveAsynchronously(plugin.getScriptEditManager());
+                        plugin.saveAsynchronously(LocationBasedTriggerManager.this);
                     }
 
                 });

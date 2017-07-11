@@ -106,15 +106,23 @@ public abstract class AbstractTriggerManager extends Manager {
             return script;
         }
 
-        /**
-         * Replace the code for this trigger's script
-         * @param script
-         */
-        public void setScript(String script) {
+        public void setScript(String script) throws IOException, LexerException, ParserException {
             if(script == null)
                 throw new RuntimeException("script cannot be null.");
 
+            String temp = this.script;
+
+            boolean failed = false;
             this.script = script;
+            try{
+                init();
+            } catch (IOException | LexerException | ParserException e) {
+                failed = true;
+                throw e;
+            } finally {
+                if(failed)
+                    this.script = temp;
+            }
         }
 
         /**

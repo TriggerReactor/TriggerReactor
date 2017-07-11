@@ -171,7 +171,22 @@ public abstract class TriggerReactor {
                     return true;
                 } else if(args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))){
                     if(getCmdManager().hasCommandTrigger(args[1])){
-                        sender.sendMessage("&7This command is already binded!");
+                        Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
+                            @Override
+                            public void onSave(String script) {
+                                try {
+                                    trigger.setScript(script);
+                                } catch (IOException | LexerException | ParserException e) {
+                                    handleException(sender, e);
+                                }
+
+                                sender.sendMessage("&aScript is updated!");
+
+                                saveAsynchronously(getCmdManager());
+                            }
+                        });
                     }else{
                         if(args.length == 2){
                             getScriptEditManager().startEdit(sender, "Command Trigger", "", new SaveHandler(){
@@ -263,7 +278,7 @@ public abstract class TriggerReactor {
                         trigger.activate(createEmptyPlayerEvent((IPlayer) sender), new HashMap<>());
 
                     } catch (IOException | LexerException | ParserException e) {
-                        e.printStackTrace();
+                        handleException(sender, e);
                     }
 
                     return true;
@@ -292,7 +307,7 @@ public abstract class TriggerReactor {
                                             sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                         }
                                     } catch (IOException | LexerException | ParserException e) {
-                                        e.printStackTrace();
+                                        handleException(sender, e);
                                     }
                                 }
                             });
@@ -308,7 +323,7 @@ public abstract class TriggerReactor {
                                     sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                 }
                             } catch (IOException | LexerException | ParserException e) {
-                                e.printStackTrace();
+                                handleException(sender, e);
                             }
                         }
                     } else if(args.length == 3 && args[2].equalsIgnoreCase("delete")){
@@ -370,7 +385,7 @@ public abstract class TriggerReactor {
                             sender.sendMessage("&7No such Inventory Trigger named "+name);
                             return true;
                         }
-                    } /*else if(args.length == 3 && args[2].equalsIgnoreCase("sync")){
+                    } else if(args.length == 3 && args[2].equalsIgnoreCase("edit")){
                         String name = args[1];
 
                         InventoryTrigger trigger = getInvManager().getTriggerForName(name);
@@ -379,12 +394,21 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        trigger.setSync(!trigger.isSync());
+                        getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
+                            @Override
+                            public void onSave(String script) {
+                                try {
+                                    trigger.setScript(script);
+                                } catch (IOException | LexerException | ParserException e) {
+                                    handleException(sender, e);
+                                }
 
-                        getInvManager().saveAll();
+                                sender.sendMessage("&aScript is updated!");
 
-                        sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
-                    } */else {
+                                saveAsynchronously(getInvManager());
+                            }
+                        });
+                    } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
                         sendDetails(sender, "/trg i MyInventory create 54");
@@ -537,32 +561,43 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        if(args.length == 3){
-                            getScriptEditManager().startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler(){
+                        if(trigger.getEnterTrigger() != null){
+                            getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     try {
                                         trigger.setEnterTrigger(script);
 
                                         saveAsynchronously(getAreaManager());
+
+                                        sender.sendMessage("&aScript is updated!");
                                     } catch (IOException | LexerException | ParserException e) {
-                                        e.printStackTrace();
-                                        sender.sendMessage("&c"+"Could not save!");
-                                        sender.sendMessage(e.getMessage());
-                                        sender.sendMessage("&c"+"See console for more information.");
+                                        handleException(sender, e);
                                     }
                                 }
                             });
-                        }else{
-                            try {
-                                trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
+                        } else {
+                            if(args.length == 3){
+                                getScriptEditManager().startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler(){
+                                    @Override
+                                    public void onSave(String script) {
+                                        try {
+                                            trigger.setEnterTrigger(script);
 
-                                saveAsynchronously(getAreaManager());
-                            } catch (IOException | LexerException | ParserException e) {
-                                e.printStackTrace();
-                                sender.sendMessage("&c"+"Could not save!");
-                                sender.sendMessage(e.getMessage());
-                                sender.sendMessage("&c"+"See console for more information.");
+                                            saveAsynchronously(getAreaManager());
+                                        } catch (IOException | LexerException | ParserException e) {
+                                            handleException(sender, e);
+                                        }
+                                    }
+                                });
+                            }else{
+                                try {
+                                    trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
+
+                                    saveAsynchronously(getAreaManager());
+                                } catch (IOException | LexerException | ParserException e) {
+                                    handleException(sender, e);
+                                }
                             }
                         }
                     } else if (args.length > 2 && args[2].equals("exit")){
@@ -574,32 +609,43 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        if(args.length == 3){
-                            getScriptEditManager().startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler(){
+                        if(trigger.getExitTrigger() != null){
+                            getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getExitTrigger().getScript(), new SaveHandler(){
                                 @Override
                                 public void onSave(String script) {
                                     try {
                                         trigger.setExitTrigger(script);
 
                                         saveAsynchronously(getAreaManager());
+
+                                        sender.sendMessage("&aScript is updated!");
                                     } catch (IOException | LexerException | ParserException e) {
-                                        e.printStackTrace();
-                                        sender.sendMessage("&c"+"Could not save!");
-                                        sender.sendMessage(e.getMessage());
-                                        sender.sendMessage("&c"+"See console for more information.");
+                                        handleException(sender, e);
                                     }
                                 }
                             });
                         }else{
-                            try {
-                                trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
+                            if(args.length == 3){
+                                getScriptEditManager().startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler(){
+                                    @Override
+                                    public void onSave(String script) {
+                                        try {
+                                            trigger.setExitTrigger(script);
 
-                                saveAsynchronously(getAreaManager());
-                            } catch (IOException | LexerException | ParserException e) {
-                                e.printStackTrace();
-                                sender.sendMessage("&c"+"Could not save!");
-                                sender.sendMessage(e.getMessage());
-                                sender.sendMessage("&c"+"See console for more information.");
+                                            saveAsynchronously(getAreaManager());
+                                        } catch (IOException | LexerException | ParserException e) {
+                                            handleException(sender, e);
+                                        }
+                                    }
+                                });
+                            }else{
+                                try {
+                                    trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
+
+                                    saveAsynchronously(getAreaManager());
+                                } catch (IOException | LexerException | ParserException e) {
+                                    handleException(sender, e);
+                                }
                             }
                         }
                     } else if (args.length == 3 && args[2].equals("sync")){
@@ -635,47 +681,58 @@ public abstract class TriggerReactor {
                     String eventName = args[1];
                     String name = args[2];
 
-                    if(getCustomManager().getTriggerForName(name) != null){
-                        sender.sendMessage("&7No Area Trigger found with that name.");
-                        return true;
-                    }
+                    CustomTrigger trigger = getCustomManager().getTriggerForName(name);
+                    if(trigger != null){
+                        getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
+                            @Override
+                            public void onSave(String script) {
+                                try {
+                                    trigger.setScript(script);
+                                } catch (IOException | LexerException | ParserException e) {
+                                    handleException(sender, e);
+                                }
 
-                    if(args.length == 3){
-                        getScriptEditManager().startEdit(sender,
-                                "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
-                                new SaveHandler() {
-                                    @Override
-                                    public void onSave(String script) {
-                                        try {
-                                            getCustomManager().createCustomTrigger(eventName, name, script);
+                                sender.sendMessage("&aScript is updated!");
 
-                                            saveAsynchronously(getCustomManager());
+                                saveAsynchronously(getCustomManager());
+                            }
+                        });
+                    } else {
+                        if(args.length == 3){
+                            getScriptEditManager().startEdit(sender,
+                                    "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
+                                    new SaveHandler() {
+                                        @Override
+                                        public void onSave(String script) {
+                                            try {
+                                                getCustomManager().createCustomTrigger(eventName, name, script);
 
-                                            sender.sendMessage("&aCustom Trigger created!");
-                                        } catch (ClassNotFoundException | IOException | LexerException
-                                                | ParserException e) {
-                                            e.printStackTrace();
-                                            sender.sendMessage("&c"+"Could not save! "+e.getMessage());
-                                            sender.sendMessage("&c"+"See console for detailed messages.");
+                                                saveAsynchronously(getCustomManager());
+
+                                                sender.sendMessage("&aCustom Trigger created!");
+                                            } catch (ClassNotFoundException | IOException | LexerException
+                                                    | ParserException e) {
+                                                e.printStackTrace();
+                                                sender.sendMessage("&c"+"Could not save! "+e.getMessage());
+                                                sender.sendMessage("&c"+"See console for detailed messages.");
+                                            }
                                         }
-                                    }
-                                });
-                    }else{
-                        String script = mergeArguments(args, 3, args.length - 1);
+                                    });
+                        }else{
+                            String script = mergeArguments(args, 3, args.length - 1);
 
-                        try {
-                            getCustomManager().createCustomTrigger(eventName, name, script);
+                            try {
+                                getCustomManager().createCustomTrigger(eventName, name, script);
 
-                            saveAsynchronously(getCustomManager());
+                                saveAsynchronously(getCustomManager());
 
-                            sender.sendMessage("&aCustom Trigger created!");
-                        } catch (IOException | LexerException | ParserException e) {
-                            e.printStackTrace();
-                            sender.sendMessage("&c"+"Could not save! "+e.getMessage());
-                            sender.sendMessage("&c"+"See console for detailed messages.");
-                        } catch(ClassNotFoundException e2){
-                            sender.sendMessage("&c"+"Could not save! "+e2.getMessage());
-                            sender.sendMessage("&c"+"Provided event name is not valid.");
+                                sender.sendMessage("&aCustom Trigger created!");
+                            } catch (IOException | LexerException | ParserException e) {
+                                handleException(sender, e);
+                            } catch(ClassNotFoundException e2){
+                                sender.sendMessage("&c"+"Could not save! "+e2.getMessage());
+                                sender.sendMessage("&c"+"Provided event name is not valid.");
+                            }
                         }
                     }
                     return true;
@@ -683,26 +740,36 @@ public abstract class TriggerReactor {
                     if(args.length == 2){
                         String name = args[1];
 
-                        if(getRepeatManager().getTrigger(name) != null){
-                            sender.sendMessage("&7This named is already in use.");
-                            return true;
-                        }
+                        Trigger trigger = getRepeatManager().getTrigger(name);
+                        if(trigger != null){
+                            getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        trigger.setScript(script);
+                                    } catch (IOException | LexerException | ParserException e) {
+                                        handleException(sender, e);
+                                    }
 
-                        this.getScriptEditManager().startEdit(sender, "Repeating Trigger", "", new SaveHandler(){
-                            @Override
-                            public void onSave(String script) {
-                                try {
-                                    getRepeatManager().createTrigger(name, script);
-                                } catch (IOException | LexerException | ParserException e) {
-                                    e.printStackTrace();
-                                    sender.sendMessage("&c"+"Could not save!");
-                                    sender.sendMessage(e.getMessage());
-                                    sender.sendMessage("&c"+"See console for more information.");
+                                    sender.sendMessage("&aScript is updated!");
+
+                                    saveAsynchronously(getRepeatManager());
                                 }
+                            });
+                        } else {
+                            this.getScriptEditManager().startEdit(sender, "Repeating Trigger", "", new SaveHandler(){
+                                @Override
+                                public void onSave(String script) {
+                                    try {
+                                        getRepeatManager().createTrigger(name, script);
+                                    } catch (IOException | LexerException | ParserException e) {
+                                        handleException(sender, e);
+                                    }
 
-                                saveAsynchronously(getRepeatManager());
-                            }
-                        });
+                                    saveAsynchronously(getRepeatManager());
+                                }
+                            });
+                        }
                     } else if (args.length == 4 && args[2].equalsIgnoreCase("interval")) {
                         String name = args[1];
 
