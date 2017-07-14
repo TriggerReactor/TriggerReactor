@@ -22,9 +22,14 @@ function SOUNDALL(args) {
 		var volume = args[2];
 		var pitch = args[3];
 
-		var sound = Sound.valueOf(args[1]);
-
-		player.getWorld().playSound(location, sound, volume, pitch);
+		var sound;
+		try{
+			sound = Sound.valueOf(args[1]);
+		}catch(ex){
+			sound = args[1];
+		}finally{
+			player.playSound(location, sound, volume, pitch);
+		}
 	} else {
 		throw new Error(
 				"Invalid parameters. Need [Location, Sound, Number, Number]")
