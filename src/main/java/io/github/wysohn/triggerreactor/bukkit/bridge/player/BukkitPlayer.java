@@ -60,9 +60,10 @@ public class BukkitPlayer implements IPlayer {
         return LocationUtil.convertToSimpleChunkLocation(player.getLocation().getChunk());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public IItemStack getItemInMainHand() {
-        return new BukkitItemStack(player.getInventory().getItemInMainHand());
+        return new BukkitItemStack(player.getInventory().getItemInHand());
     }
 
     @Override
