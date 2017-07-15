@@ -14,25 +14,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function BROADCAST(args){
-    var str = "";
-    for(var i = 0; i < args.length ; i++)
-        str += args[i];
-    
-    str = ChatColor.translateAlternateColorCodes(Char('&'), str);
-    
-    var PlaceholderAPI;
-    if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
-    	PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-    }
-    
-	Bukkit.getOnlinePlayers().forEach(function(p, i){
-		if(PlaceholderAPI){
-        	p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
-        } else {
-        	p.sendMessage(str);
-        }
-	});
+function BROADCAST(args) {
+	var str = "";
+	for (var i = 0; i < args.length; i++)
+		str += args[i];
 
-    return null;
+	str = ChatColor.translateAlternateColorCodes(Char('&'), str);
+
+	var PlaceholderAPI;
+	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+		PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+	}
+
+	var players = Bukkit.getOnlinePlayers();
+	for (var iter = players.iterator(); iter.hasNext();) {
+		p = iter.next();
+		if (PlaceholderAPI) {
+			p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
+		} else {
+			p.sendMessage(str);
+		}
+	}
+
+	return null;
 }
