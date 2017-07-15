@@ -52,7 +52,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
 
     @EventHandler()
     public void onClickTrigger(PlayerInteractEvent e){
-        if(e.getHand() != EquipmentSlot.HAND)
+        if(!oldInteractEvent && e.getHand() != EquipmentSlot.HAND)
             return;
 
         if(!e.isCancelled() && handleClick(e)){

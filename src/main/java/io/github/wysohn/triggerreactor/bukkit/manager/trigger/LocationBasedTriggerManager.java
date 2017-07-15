@@ -73,6 +73,20 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             folder.mkdirs();
 
         reload();
+
+        check();
+    }
+
+    protected boolean oldInteractEvent = false;
+    private void check() {
+        Class<?> clazz = PlayerInteractEvent.class;
+        try {
+            clazz.getMethod("getHand");
+        } catch (NoSuchMethodException e) {
+            oldInteractEvent = true;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -154,14 +168,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(PlayerInteractEvent e){
-        if(e.getHand() != EquipmentSlot.HAND)
+        if(!oldInteractEvent && e.getHand() != EquipmentSlot.HAND)
             return;
 
         Player player = e.getPlayer();
 
-        ItemStack IS = player.getInventory().getItemInMainHand();
+        ItemStack IS = player.getInventory().getItemInHand();
         Block clicked = e.getClickedBlock();
         if(clicked == null)
             return;
