@@ -10,13 +10,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import javax.inject.Inject;
-
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
+
+import com.google.inject.Inject;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.bridge.IInventory;
