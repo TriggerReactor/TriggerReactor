@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.World;
 
 import com.flowpowered.math.vector.Vector3i;
@@ -17,7 +18,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocati
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeLocation;
-import io.github.wysohn.triggerreactor.sponge.util.ChatColorUtil;
 
 public class SpongePlayer implements IPlayer {
     private final Player player;
@@ -29,7 +29,7 @@ public class SpongePlayer implements IPlayer {
 
     @Override
     public void sendMessage(String message) {
-        player.sendMessage(ChatColorUtil.translateColorcodes(message));
+        player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
     }
 
     @Override

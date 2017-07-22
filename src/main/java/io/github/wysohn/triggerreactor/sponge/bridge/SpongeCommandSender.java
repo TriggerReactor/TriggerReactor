@@ -2,9 +2,9 @@ package io.github.wysohn.triggerreactor.sponge.bridge;
 
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.channel.MessageReceiver;
+import org.spongepowered.api.text.serializer.TextSerializers;
 
 import io.github.wysohn.triggerreactor.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.sponge.util.ChatColorUtil;
 
 public class SpongeCommandSender implements ICommandSender {
     private final MessageReceiver sender;
@@ -21,7 +21,7 @@ public class SpongeCommandSender implements ICommandSender {
 
     @Override
     public void sendMessage(String message) {
-        sender.sendMessage(ChatColorUtil.translateColorcodes(message));
+        sender.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
     }
 
     @Override
