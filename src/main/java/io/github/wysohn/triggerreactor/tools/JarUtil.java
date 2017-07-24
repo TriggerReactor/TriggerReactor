@@ -44,8 +44,14 @@ public class JarUtil {
 
             String fileName = entry.getName();
 
-            if(fileName.charAt(fileName.length() - 1) == '/')
+            if (fileName.charAt(fileName.length() - 1) == '/') {
+                File file = new File(destFolder + File.separator + fileName);
+                if(file.isFile()){
+                    file.delete();
+                }
+                file.mkdirs();
                 continue;
+            }
 
             File file = new File(destFolder + File.separator + fileName);
             if(option == CopyOption.COPY_IF_NOT_EXIST && file.exists())
