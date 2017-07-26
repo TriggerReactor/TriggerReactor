@@ -37,7 +37,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -65,7 +64,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         put("onInteractEntity", PlayerInteractEntityEvent.class);
         put("onChat", AsyncPlayerChatEvent.class);
 
-        put("onEntitySpawn", EntitySpawnEvent.class);
+        //put("onEntitySpawn", EntitySpawnEvent.class);
         put("onEntityDeath", EntityDeathEvent.class);
 
         put("onBlockPlace", BlockPlaceEvent.class);
