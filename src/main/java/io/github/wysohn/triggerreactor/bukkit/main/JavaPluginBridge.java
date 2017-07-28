@@ -65,6 +65,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerMa
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
@@ -569,7 +570,7 @@ public class JavaPluginBridge extends TriggerReactor{
         @Override
         public void run(){
             while(!Thread.interrupted()){
-                Player player = Iterables.getFirst(Bukkit.getOnlinePlayers(), null);
+                Player player = Iterables.getFirst(BukkitUtil.getOnlinePlayers(), null);
                 if(player == null)
                     return;
 

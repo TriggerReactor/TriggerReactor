@@ -16,6 +16,7 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEvent;
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
@@ -39,7 +40,7 @@ public class PermissionManager extends AbstractPermissionManager implements List
 
         inject = plugin.getConfig("PermissionManager.Intercept", false);
 
-        for(Player p : Bukkit.getOnlinePlayers()){
+        for(Player p : BukkitUtil.getOnlinePlayers()){
             PermissibleBase original = getPermissible(p);
             if(inject){
                 //inject if not already injected

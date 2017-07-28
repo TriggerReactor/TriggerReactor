@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge.player;
 
 import java.util.UUID;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
@@ -14,7 +15,6 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import net.md_5.bungee.api.ChatColor;
 
 public class BukkitPlayer implements IPlayer {
     private final Player player;

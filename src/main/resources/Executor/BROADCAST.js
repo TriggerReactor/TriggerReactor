@@ -26,7 +26,7 @@ function BROADCAST(args) {
 		PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
 	}
 
-	var players = Bukkit.getOnlinePlayers();
+	var players = BukkitUtil.getOnlinePlayers();
 	for (var iter = players.iterator(); iter.hasNext();) {
 		p = iter.next();
 		if (PlaceholderAPI) {
