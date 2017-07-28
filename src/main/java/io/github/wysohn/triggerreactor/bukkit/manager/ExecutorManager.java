@@ -21,9 +21,15 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Stack;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.script.ScriptException;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
@@ -31,6 +37,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 
@@ -87,6 +94,57 @@ public class ExecutorManager extends AbstractExecutorManager{
             if(((InventoryOpenEvent) e).getPlayer() instanceof Player)
                 variables.put("player", ((InventoryOpenEvent) e).getPlayer());
         }
+    }
+
+    @Override
+    protected void initScriptEngine() throws ScriptException {
+        registerClass(Executor.class);
+        registerClass(Bukkit.class);
+        registerClass(Location.class);
+        registerClass(ChatColor.class);
+
+        sem.put("plugin", this.plugin);
+
+        sem.put("get", new Function<String, Object>(){
+            @Override
+            public Object apply(String t) {
+                return plugin.getVariableManager().get(t);
+            }
+        });
+
+        sem.put("put", new BiFunction<String, Object, Void>(){
+            @Override
+            public Void apply(String a, Object b) {
+                if(!VariableManager.isValidName(a))
+                    throw new RuntimeException("["+a+"] cannot be used as key");
+
+                if(a != null && b != null){
+                    if(!(b instanceof String) && !(b instanceof Number) && !(b instanceof Boolean)
+                            && !(b instanceof ConfigurationSerializable))
+                        throw new RuntimeException("["+b.getClass().getSimpleName()+"] is not a valid type to be saved.");
+
+                    plugin.getVariableManager().put(a, b);
+                }else if(a != null && b == null){
+                    plugin.getVariableManager().remove(a);
+                }
+
+                return null;
+            }
+        });
+
+        sem.put("has", new Function<String, Boolean>(){
+            @Override
+            public Boolean apply(String t) {
+                return plugin.getVariableManager().has(t);
+            }
+        });
+
+        sem.put("Char", new Function<String, Character>(){
+            @Override
+            public Character apply(String t) {
+                return t.charAt(0);
+            }
+        });
     }
 
     public static void main(String[] ar){
