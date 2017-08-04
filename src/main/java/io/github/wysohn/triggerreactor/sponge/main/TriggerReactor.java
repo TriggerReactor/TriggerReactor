@@ -18,12 +18,12 @@ import org.spongepowered.api.plugin.Plugin;
 
 import com.google.inject.Inject;
 
-import io.github.wysohn.triggerreactor.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.bridge.IInventory;
-import io.github.wysohn.triggerreactor.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;

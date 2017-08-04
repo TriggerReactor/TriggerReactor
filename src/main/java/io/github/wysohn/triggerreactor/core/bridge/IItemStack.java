@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.bridge;
+package io.github.wysohn.triggerreactor.core.bridge;
 
 public interface IItemStack extends IMinecraftObject, Cloneable {
 

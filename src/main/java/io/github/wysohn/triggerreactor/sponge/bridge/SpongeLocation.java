@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.sponge.bridge;
 
 import org.spongepowered.api.world.Location;
 
-import io.github.wysohn.triggerreactor.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 
 public class SpongeLocation implements ILocation {
     private final Location location;

@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.sponge.bridge;
 
 import org.spongepowered.api.item.inventory.ItemStack;
 
-import io.github.wysohn.triggerreactor.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 
 public class SpongeItemStack implements IItemStack {
     private final ItemStack itemStack;

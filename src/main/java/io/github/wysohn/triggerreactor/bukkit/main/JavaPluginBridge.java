@@ -43,11 +43,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
-import io.github.wysohn.triggerreactor.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.bridge.IInventory;
-import io.github.wysohn.triggerreactor.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
@@ -66,6 +61,11 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.NamedTriggerManage
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;

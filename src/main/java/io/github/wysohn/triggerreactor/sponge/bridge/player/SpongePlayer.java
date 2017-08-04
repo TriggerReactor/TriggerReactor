@@ -10,11 +10,11 @@ import org.spongepowered.api.world.World;
 
 import com.flowpowered.math.vector.Vector3i;
 
-import io.github.wysohn.triggerreactor.bridge.IInventory;
-import io.github.wysohn.triggerreactor.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.bridge.ILocation;
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeLocation;

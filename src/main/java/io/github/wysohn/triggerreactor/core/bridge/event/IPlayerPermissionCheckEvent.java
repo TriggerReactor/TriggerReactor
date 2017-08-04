@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.bridge.event;
+package io.github.wysohn.triggerreactor.core.bridge.event;
 
 public interface IPlayerPermissionCheckEvent extends IPlayerEvent{
 

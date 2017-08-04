@@ -1,8 +1,8 @@
 package io.github.wysohn.triggerreactor.sponge.bridge.event;
 
-import io.github.wysohn.triggerreactor.bridge.event.IPlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
+import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 
 public class SpongePlayerBlockLocationEvent implements IPlayerBlockLocationEvent {
 

@@ -4,7 +4,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.channel.MessageReceiver;
 import org.spongepowered.api.text.serializer.TextSerializers;
 
-import io.github.wysohn.triggerreactor.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 
 public class SpongeCommandSender implements ICommandSender {
     private final MessageReceiver sender;

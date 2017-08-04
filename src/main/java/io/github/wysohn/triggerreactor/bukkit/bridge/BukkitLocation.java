@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import org.bukkit.Location;
 
-import io.github.wysohn.triggerreactor.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 
 public class BukkitLocation implements ILocation {
     private final Location location;

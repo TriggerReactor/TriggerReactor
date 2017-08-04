@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import org.bukkit.ChatColor;
 
-import io.github.wysohn.triggerreactor.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 
 public class BukkitCommandSender implements ICommandSender {
     private final org.bukkit.command.CommandSender sender;

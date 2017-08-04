@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import org.bukkit.inventory.Inventory;
 
-import io.github.wysohn.triggerreactor.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 
 public class BukkitInventory implements IInventory {
     private final Inventory inventory;

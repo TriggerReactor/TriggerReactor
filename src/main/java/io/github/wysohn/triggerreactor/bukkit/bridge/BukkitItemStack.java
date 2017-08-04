@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import org.bukkit.inventory.ItemStack;
 
-import io.github.wysohn.triggerreactor.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 
 public class BukkitItemStack implements IItemStack {
     private final ItemStack itemStack;

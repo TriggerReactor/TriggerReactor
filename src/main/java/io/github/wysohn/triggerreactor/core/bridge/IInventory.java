@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.bridge;
+package io.github.wysohn.triggerreactor.core.bridge;
 
 /**
  * For the sake of InventoryTrigger support, all child classes must override hashCode() and equals()
