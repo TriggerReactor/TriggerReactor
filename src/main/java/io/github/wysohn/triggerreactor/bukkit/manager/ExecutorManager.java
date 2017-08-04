@@ -35,6 +35,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
@@ -102,6 +103,7 @@ public class ExecutorManager extends AbstractExecutorManager{
         registerClass(Bukkit.class);
         registerClass(Location.class);
         registerClass(ChatColor.class);
+        registerClass(BukkitUtil.class);
 
         sem.put("plugin", this.plugin);
 
