@@ -218,12 +218,6 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
             event = (Class<? extends Event>) Class.forName(name);
         }
 
-        try {
-            event.getDeclaredMethod("getHandlerList");
-        } catch (NoSuchMethodException | SecurityException e) {
-            throw new ClassNotFoundException(event+" is a base event so cannot receive events!");
-        }
-
         return event;
     }
 
