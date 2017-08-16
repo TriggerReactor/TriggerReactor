@@ -262,7 +262,7 @@ public class ProtocolLibSupport extends APISupport {
             double toX, double toY, double toZ,
             boolean onGround) throws InvocationTargetException{
 
-        int dX = (int) ((fromX * 32 - toZ * 32) * 128);
+        int dX = (int) ((fromX * 32 - toX * 32) * 128);
         int dY = (int) ((fromY * 32 - toY * 32) * 128);
         int dZ = (int) ((fromZ * 32 - toZ * 32) * 128);
 
