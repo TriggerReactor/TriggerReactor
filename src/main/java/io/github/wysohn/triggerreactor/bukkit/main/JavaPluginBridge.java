@@ -397,8 +397,8 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
-                        if(args.length > 1){
-                            trigger.setSync(Boolean.valueOf((String) args[1]));
+                        if(args.length > 1 && args[1] instanceof Boolean){
+                            trigger.setSync((boolean) args[1]);
                         } else {
                             trigger.setSync(interpreter.isSync());
                         }
@@ -475,8 +475,8 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
-                        if(args.length > 1){
-                            trigger.setSync(Boolean.valueOf((String) args[1]));
+                        if(args.length > 1 && args[1] instanceof Boolean){
+                            trigger.setSync((boolean) args[1]);
                         } else {
                             trigger.setSync(interpreter.isSync());
                         }
