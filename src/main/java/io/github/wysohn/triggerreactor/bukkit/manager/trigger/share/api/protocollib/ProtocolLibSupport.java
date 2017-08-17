@@ -270,6 +270,76 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
+     * Send entity look packet
+     * @param p
+     * @param entityId
+     * @param yaw A rotation angle in steps of 1/256 of a full turn
+     * @param pitch A rotation angle in steps of 1/256 of a full turn
+     * @throws InvocationTargetException
+     */
+    public void sendEntityLook(Player p, int entityId, int yaw, int pitch) throws InvocationTargetException{
+        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_LOOK.name());
+
+        container.getIntegers().write(0, entityId);
+
+        container.getBytes()
+            .write(0, (byte) (yaw % 256))
+            .write(1, (byte) (pitch % 256));
+
+        this.sendPacket(p, container);
+
+        container = createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION.name());
+
+        container.getIntegers().write(0, entityId);
+
+        container.getBytes()
+            .write(0, (byte) (yaw % 256));
+
+        this.sendPacket(p, container);
+    }
+
+    /**
+     * Send entity look packet relative to the coordinates
+     * @param p
+     * @param entityId
+     * @param fromX
+     * @param fromY
+     * @param fromZ
+     * @param toX
+     * @param toY
+     * @param toZ
+     * @throws InvocationTargetException
+     */
+    public void sendEntityLook(Player p, int entityId,
+            double fromX, double fromY, double fromZ,
+            double toX, double toY, double toZ) throws InvocationTargetException{
+        double result[] = getAngle(fromX, fromY, fromZ, toX, toY, toZ);
+
+        this.sendEntityLook(p, entityId, (int)result[0], (int)result[1]);
+    }
+
+    public double[] getAngle(double fromX, double fromY, double fromZ,
+            double toX, double toY, double toZ){
+        double[] result = new double[2];
+
+        double relX = toX - fromX;
+        double relY = toY - fromY;
+        double relZ = toZ - fromZ;
+
+        double r = Math.sqrt(relX*relX + relY*relY + relZ*relZ);
+
+        double yaw = -Math.atan2(relX, relZ)/Math.PI*180 + 180;
+        while(yaw < 0)
+            yaw += 360;
+        double pitch = -Math.asin(relY/r)/Math.PI*180;
+
+        result[0] = yaw * 256/360;
+        result[1] = pitch * 256/360;
+
+        return result;
+    }
+
+    /**
      * Sends equip packet to player for specified entity.
      * @param p player to send packet
      * @param entityId the id of entity to equip item
