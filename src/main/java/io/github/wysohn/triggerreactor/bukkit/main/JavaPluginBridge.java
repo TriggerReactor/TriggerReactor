@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -388,7 +389,7 @@ public class JavaPluginBridge extends TriggerReactor{
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
                 if("CALL".equals(command)){
-                    if(args.length < 1)
+                    if(args.length < 2)
                         throw new RuntimeException("Need parameter [String]");
 
                     if(args[0] instanceof String){
@@ -396,8 +397,18 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
-                        trigger.setSync(interpreter.isSync());
-                        trigger.activate(context, interpreter.getVars());
+                        if(args.length > 1){
+                            trigger.setSync(Boolean.valueOf((String) args[1]));
+                        } else {
+                            trigger.setSync(interpreter.isSync());
+                        }
+
+                        if(trigger.isSync()){
+                            trigger.activate(e, interpreter.getVars());
+                        }else{//use snapshot to avoid concurrent modification
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                        }
+
                         return true;
                     } else {
                         throw new RuntimeException("Parameter type not match; it should be a String."
@@ -464,7 +475,18 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
 
-                        trigger.activate(e, interpreter.getVars());
+                        if(args.length > 1){
+                            trigger.setSync(Boolean.valueOf((String) args[1]));
+                        } else {
+                            trigger.setSync(interpreter.isSync());
+                        }
+
+                        if(trigger.isSync()){
+                            trigger.activate(e, interpreter.getVars());
+                        }else{//use snapshot to avoid concurrent modification
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                        }
+
                         return true;
                     } else {
                         throw new RuntimeException("Parameter type not match; it should be a String."
