@@ -83,12 +83,6 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
         }
 
         @Override
-        public boolean isSync() {
-            // Let named trigger be always sync (as the caller will be sync/async anyway.)
-            return true;
-        }
-
-        @Override
         public Trigger clone() {
             try {
                 return new NamedTrigger(triggerName, getScript());
