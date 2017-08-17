@@ -400,7 +400,7 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(args.length > 1 && args[1] instanceof Boolean){
                             trigger.setSync((boolean) args[1]);
                         } else {
-                            trigger.setSync(interpreter.isSync());
+                            trigger.setSync(true);
                         }
 
                         if(trigger.isSync()){
@@ -478,7 +478,7 @@ public class JavaPluginBridge extends TriggerReactor{
                         if(args.length > 1 && args[1] instanceof Boolean){
                             trigger.setSync((boolean) args[1]);
                         } else {
-                            trigger.setSync(interpreter.isSync());
+                            trigger.setSync(true);
                         }
 
                         if(trigger.isSync()){
