@@ -262,9 +262,9 @@ public class ProtocolLibSupport extends APISupport {
             double toX, double toY, double toZ,
             boolean onGround) throws InvocationTargetException{
 
-        int dX = (int) ((fromX * 32 - toX * 32) * 128);
-        int dY = (int) ((fromY * 32 - toY * 32) * 128);
-        int dZ = (int) ((fromZ * 32 - toZ * 32) * 128);
+        int dX = (int) ((toX * 32 - fromX * 32) * 128);
+        int dY = (int) ((toY * 32 - fromY * 32) * 128);
+        int dZ = (int) ((toZ * 32 - fromZ * 32) * 128);
 
         this.sendEntityMove(p, entityId, dX, dY, dZ, onGround);
     }
@@ -328,7 +328,7 @@ public class ProtocolLibSupport extends APISupport {
 
         double r = Math.sqrt(relX*relX + relY*relY + relZ*relZ);
 
-        double yaw = -Math.atan2(relX, relZ)/Math.PI*180 + 180;
+        double yaw = -Math.atan2(relX, relZ)/Math.PI*180;
         while(yaw < 0)
             yaw += 360;
         double pitch = -Math.asin(relY/r)/Math.PI*180;
