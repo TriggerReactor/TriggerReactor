@@ -389,8 +389,8 @@ public class JavaPluginBridge extends TriggerReactor{
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
                 if("CALL".equals(command)){
-                    if(args.length < 2)
-                        throw new RuntimeException("Need parameter [String]");
+                    if(args.length < 1)
+                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if(args[0] instanceof String){
                         Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
@@ -468,7 +468,7 @@ public class JavaPluginBridge extends TriggerReactor{
             public boolean onCommand(Object context, String command, Object[] args) {
                 if("CALL".equals(command)){
                     if(args.length < 1)
-                        throw new RuntimeException("Need parameter [String]");
+                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if(args[0] instanceof String){
                         Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
