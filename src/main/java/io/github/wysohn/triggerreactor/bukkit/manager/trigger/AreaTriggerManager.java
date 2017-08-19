@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -62,6 +61,8 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
             }
         };
 
+        areaTriggers.clear();
+
         for(File file : folder.listFiles(filter)){
             Utf8YamlConfiguration yamlFile = new Utf8YamlConfiguration();
             try {
@@ -82,13 +83,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                 plugin.getLogger().warning("Could not find Smallest: or Largest:");
                 continue;
             }
-
-            Area area = new Area(smallest, largest);
-            AreaTrigger trigger = new AreaTrigger(area, name);
-            nameMapper.put(name, trigger);
-
-            boolean isSync = yamlFile.getBoolean("Sync", false);
-            trigger.setSync(isSync);
 
             File scriptFolder = new File(folder, name);
             if(!scriptFolder.exists()){
@@ -111,16 +105,14 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                 continue;
             }
 
-            Set<SimpleChunkLocation> set = getAllChunkLocations(area);
-            for(SimpleChunkLocation scloc : set){
-                Map<Area, AreaTrigger> triggerMap = areaTriggers.get(scloc);
-                if(triggerMap == null){
-                    triggerMap = new ConcurrentHashMap<>();
-                    areaTriggers.put(scloc, triggerMap);
-                }
+            Area area = new Area(smallest, largest);
+            AreaTrigger trigger = new AreaTrigger(area, name);
+            nameMapper.put(name, trigger);
 
-                triggerMap.put(area, trigger);
-            }
+            boolean isSync = yamlFile.getBoolean("Sync", false);
+            trigger.setSync(isSync);
+
+            this.setupArea(trigger);
 
             try {
                 if(enterScript != null){

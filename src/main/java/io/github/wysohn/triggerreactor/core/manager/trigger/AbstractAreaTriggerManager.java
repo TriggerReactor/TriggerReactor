@@ -238,6 +238,18 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
         AreaTrigger trigger = new AreaTrigger(area, name);
         nameMapper.put(name, trigger);
 
+        setupArea(trigger);
+
+        return true;
+    }
+
+    /**
+     * reset the area cache. Should be called for reloading.
+     * @param trigger
+     */
+    protected void setupArea(AreaTrigger trigger) {
+        Area area = trigger.area;
+
         Set<SimpleChunkLocation> sclocs = getAllChunkLocations(area);
         for(SimpleChunkLocation scloc : sclocs){
             Map<Area, AreaTrigger> map = areaTriggers.get(scloc);
@@ -248,8 +260,6 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
 
             map.put(area, trigger);
         }
-
-        return true;
     }
 
     /**
