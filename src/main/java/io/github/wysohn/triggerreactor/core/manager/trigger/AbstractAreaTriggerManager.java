@@ -163,14 +163,23 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
 
         Set<SimpleChunkLocation> set = new HashSet<>();
 
-        for(int i = smallest.getX(); i <= largest.getX(); i += 16){
-            for(int j = smallest.getZ(); j <= largest.getZ(); j += 16){
-                int chunkX = i >> 4;
-                int chunkZ = j >> 4;
+        for(int x = smallest.getX(); x <= largest.getX(); x += 16){
+            for(int z = smallest.getZ(); z <= largest.getZ(); z += 16){
+                int chunkX = x >> 4;
+                int chunkZ = z >> 4;
 
                 set.add(new SimpleChunkLocation(smallest.getWorld(), chunkX, chunkZ));
             }
         }
+
+        int z = largest.getZ();
+        int chunkZ = z >> 4;
+        for (int x = smallest.getX(); x <= largest.getX(); x += 16) {
+            int chunkX = x >> 4;
+            set.add(new SimpleChunkLocation(smallest.getWorld(), chunkX, chunkZ));
+        }
+
+        set.add(new SimpleChunkLocation(smallest.getWorld(), largest.getX() >> 4, z >> 4));
 
         return set;
     }
