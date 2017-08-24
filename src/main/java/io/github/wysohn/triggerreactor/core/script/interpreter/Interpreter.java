@@ -163,8 +163,6 @@ public class Interpreter {
                     } else if (node.getChildren().size() > 2) {
                         start(node.getChildren().get(2));
                     }
-                }else if(resultToken.isObject()){//always true if object
-                    start(node.getChildren().get(1));
                 }else if(resultToken.isInt()){
                     int value = resultToken.toInt();
                     if(value != 0){
@@ -179,6 +177,8 @@ public class Interpreter {
                     } else if (node.getChildren().size() > 2) {
                         start(node.getChildren().get(2));
                     }
+                }else if(resultToken.value != null){//always true if not null
+                    start(node.getChildren().get(1));
                 }else{
                     throw new InterpreterException("Unexpected token for IF statement " + resultToken);
                 }
