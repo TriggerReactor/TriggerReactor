@@ -22,10 +22,13 @@ import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -299,6 +302,18 @@ public class CommonFunctions implements SelfReference {
      */
     public Object[] array(Integer size) {
         return new Object[size];
+    }
+
+    public List list(){
+        return new ArrayList();
+    }
+
+    public Map map(){
+        return new HashMap();
+    }
+
+    public Set set(){
+        return new HashSet();
     }
 
     /**
