@@ -34,7 +34,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 
 public class ReflectionUtil {
     public static void setField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException{
