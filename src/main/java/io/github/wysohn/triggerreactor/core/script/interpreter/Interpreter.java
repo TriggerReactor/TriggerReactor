@@ -207,6 +207,10 @@ public class Interpreter {
                     return;
                 Token valueToken = stack.pop();
 
+                if(isVariable(valueToken)){
+                    valueToken = unwrapVariable(valueToken);
+                }
+
                 if(!valueToken.isIterable())
                     throw new InterpreterException(valueToken+" is not iterable!");
 
