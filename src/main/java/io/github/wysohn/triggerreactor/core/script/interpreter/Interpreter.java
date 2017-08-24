@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -136,6 +137,7 @@ public class Interpreter {
     }
 
     //Check if stopFlag is on before pop Token from stack.
+    @SuppressWarnings("unchecked")
     private void start(Node node) throws InterpreterException{
         if(stopFlag)
             return;
@@ -214,12 +216,23 @@ public class Interpreter {
                 if(!valueToken.isIterable())
                     throw new InterpreterException(valueToken+" is not iterable!");
 
-                for(Object obj : (Iterable)valueToken.value){
-                    if(stopFlag)
-                        break;
+                if (valueToken.isArray()) {
+                    for (int i = 0; i < Array.getLength(valueToken.value); i++) {
+                        Object obj = Array.get(valueToken.value, i);
+                        if (stopFlag)
+                            break;
 
-                    assignValue(idToken, parseValue(obj));
-                    start(node.getChildren().get(2));
+                        assignValue(idToken, parseValue(obj));
+                        start(node.getChildren().get(2));
+                    }
+                } else {
+                    for (Object obj : (Iterable<?>) valueToken.value) {
+                        if (stopFlag)
+                            break;
+
+                        assignValue(idToken, parseValue(obj));
+                        start(node.getChildren().get(2));
+                    }
                 }
             }else if(iterNode.getChildren().size() == 2){
                 Node initNode = iterNode.getChildren().get(0);
