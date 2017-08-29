@@ -13,8 +13,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
-import com.avaje.ebeaninternal.api.ClassUtil;
-
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
@@ -77,8 +75,6 @@ public abstract class TriggerReactor {
 
     protected TriggerReactor(){
         instance = this;
-
-        Thread.currentThread().setContextClassLoader(ClassUtil.class.getClassLoader());
     }
 
     public abstract AbstractExecutorManager getExecutorManager();
