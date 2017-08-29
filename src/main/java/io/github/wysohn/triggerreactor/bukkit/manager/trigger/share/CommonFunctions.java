@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +48,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class CommonFunctions implements SelfReference {
     private static final Random rand = new Random();
@@ -153,18 +153,10 @@ public class CommonFunctions implements SelfReference {
     public Object staticMethod(String className, String methodName, Object... args) throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException{
         Class<?> clazz = Class.forName(className);
 
-        List<Class<?>> types = new ArrayList<>();
-        for(Object obj : args){
-            types.add(obj.getClass());
-        }
-
-        try{
-            Method method = clazz.getMethod(methodName, types.toArray(new Class[types.size()]));
-
-            return method.invoke(null, args);
-        }catch(SecurityException | IllegalAccessException | InvocationTargetException e){
+        try {
+            return ReflectionUtil.invokeMethod(clazz, null, methodName, args);
+        } catch (InvocationTargetException e) {
             e.printStackTrace();
-            //Unexpected error
         }
 
         return null;

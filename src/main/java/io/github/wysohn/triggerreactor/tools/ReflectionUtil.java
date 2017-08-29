@@ -120,9 +120,7 @@ public class ReflectionUtil {
         return null;
     }
 
-    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
-        Class<?> clazz = obj.getClass();
-
+    public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
         try{
             Class<?>[] parameterTypes = null;
             for (Method method : clazz.getMethods()) {
@@ -183,6 +181,12 @@ public class ReflectionUtil {
                 builder.append("," + String.valueOf(args[i]));
             throw new NullPointerException("Call "+methodName+"("+builder.toString()+")");
         }
+    }
+
+    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
+        Class<?> clazz = obj.getClass();
+
+        return invokeMethod(clazz, obj, methodName, args);
     }
 
     public static Map<String, Object> extractVariables(Object e){
