@@ -138,6 +138,9 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
 
     protected void onItemSwap(IPlayer player) {
+        if(player.getUniqueId() == null)
+            return;
+
         clipboard.remove(player.getUniqueId());
     }
 
