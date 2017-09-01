@@ -60,15 +60,17 @@ public abstract class APISupport extends AbstractAPISupport {
         this.plugin.getLogger().info("Enabled support for "+targetPluginName+" "+target.getDescription().getFullName());
     }
 
+    @SuppressWarnings("serial")
+    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>(){{
+        put("vault", VaultSupport.class);
+        put("mcmmo", McMmoSupport.class);
+        put("theguild", TheGuildSupport.class);
+        put("placeholder", PlaceHolderSupport.class);
+        put("factions", FactionsSupport.class);
+        put("coreprotect", CoreprotectSupport.class);
+        put("protocollib", ProtocolLibSupport.class);
+    }};
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
-        Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<>();
-        sharedVars.put("vault", VaultSupport.class);
-        sharedVars.put("mcmmo", McMmoSupport.class);
-        sharedVars.put("theguild", TheGuildSupport.class);
-        sharedVars.put("placeholder", PlaceHolderSupport.class);
-        sharedVars.put("factions", FactionsSupport.class);
-        sharedVars.put("coreprotect", CoreprotectSupport.class);
-        sharedVars.put("protocollib", ProtocolLibSupport.class);
         return sharedVars;
     }
 }
