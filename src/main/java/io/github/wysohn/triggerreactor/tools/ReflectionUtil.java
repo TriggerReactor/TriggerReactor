@@ -144,10 +144,10 @@ public class ReflectionUtil {
                                 matches = false;
                                 break;
                             }
+                        }else{
+                            matches = false;
+                            break;
                         }
-
-                        matches = false;
-                        break;
                     }
                 }
 
