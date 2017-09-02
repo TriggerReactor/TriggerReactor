@@ -29,7 +29,6 @@ import javax.script.ScriptException;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
@@ -120,14 +119,14 @@ public class ExecutorManager extends AbstractExecutorManager{
                 if(!VariableManager.isValidName(a))
                     throw new RuntimeException("["+a+"] cannot be used as key");
 
-                if(a != null && b != null){
-                    if(!(b instanceof String) && !(b instanceof Number) && !(b instanceof Boolean)
-                            && !(b instanceof ConfigurationSerializable))
-                        throw new RuntimeException("["+b.getClass().getSimpleName()+"] is not a valid type to be saved.");
-
-                    plugin.getVariableManager().put(a, b);
-                }else if(a != null && b == null){
+                if(a != null && b == null){
                     plugin.getVariableManager().remove(a);
+                } else{
+                    try {
+                        plugin.getVariableManager().put(a, b);
+                    } catch (Exception e) {
+                        ExecutorManager.this.plugin.handleException("Executor -- put("+a+","+b+")", e);
+                    }
                 }
 
                 return null;

@@ -18,21 +18,13 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.NumberConversions;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
@@ -51,8 +43,6 @@ public class TriggerReactor extends JavaPlugin {
         super.onEnable();
 
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-
-        checkConfigurationSerialization();
 
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){
@@ -126,48 +116,5 @@ public class TriggerReactor extends JavaPlugin {
 
     public boolean isDebugging() {
         return this.javaPluginBridge.isDebugging();
-    }
-
-    private void checkConfigurationSerialization() {
-        if(!ConfigurationSerializable.class.isAssignableFrom(Location.class)){
-            ConfigurationSerialization.registerClass(LocationSerializer.class, Location.class.getSimpleName());
-        }
-    }
-
-    private static class LocationSerializer extends Location implements ConfigurationSerializable{
-
-        public LocationSerializer(World world, double x, double y, double z) {
-            super(world, x, y, z);
-        }
-
-        public LocationSerializer(World world, double x, double y, double z, float yaw, float pitch) {
-            super(world, x, y, z, yaw, pitch);
-        }
-
-        @Override
-        public Map<String, Object> serialize() {
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("world", this.getWorld().getName());
-
-            data.put("x", this.getX());
-            data.put("y", this.getY());
-            data.put("z", this.getZ());
-
-            data.put("yaw", this.getYaw());
-            data.put("pitch", this.getPitch());
-
-            return data;
-        }
-
-        public static Location deserialize(Map<String, Object> args) {
-            World world = Bukkit.getWorld((String) args.get("world"));
-            if (world == null) {
-                throw new IllegalArgumentException("unknown world");
-            }
-
-            return new Location(world, NumberConversions.toDouble(args.get("x")),
-                    NumberConversions.toDouble(args.get("y")), NumberConversions.toDouble(args.get("z")),
-                    NumberConversions.toFloat(args.get("yaw")), NumberConversions.toFloat(args.get("pitch")));
-        }
     }
 }

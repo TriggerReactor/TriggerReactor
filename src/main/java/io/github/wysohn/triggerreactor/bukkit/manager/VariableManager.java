@@ -18,9 +18,18 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.configuration.serialization.SerializableAs;
+import org.bukkit.util.NumberConversions;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
@@ -37,6 +46,8 @@ public class VariableManager extends AbstractVariableManager{
         varFile = new File(plugin.getDataFolder(), "var.yml");
         if(!varFile.exists())
             varFile.createNewFile();
+
+        checkConfigurationSerialization();
 
         reload();
 
@@ -95,7 +106,19 @@ public class VariableManager extends AbstractVariableManager{
     }
 
     @Override
-    public void put(String key, Object value){
+    public void put(String key, Object value) throws Exception{
+        if (!(value instanceof String) && !(value instanceof Number) && !(value instanceof Boolean)
+                && !(value instanceof ConfigurationSerializable)){
+
+            //hard code it for now
+            if(value instanceof Location){
+                varFileConfig.set(key, new SerializableLocation((Location) value));
+                return;
+            }
+
+            throw new Exception("[" + value.getClass().getSimpleName() + "] is not a valid type to be saved.");
+        }
+
         varFileConfig.set(key, value);
     }
 
@@ -148,6 +171,55 @@ public class VariableManager extends AbstractVariableManager{
             Object before = varFileConfig.get(key);
             varFileConfig.set(key, value);
             return before;
+        }
+    }
+
+    private static void checkConfigurationSerialization() {
+        if(!ConfigurationSerializable.class.isAssignableFrom(Location.class)){
+            ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");
+        }
+    }
+
+    @SerializableAs(value = "org.bukkit.Location")
+    private static class SerializableLocation extends Location implements ConfigurationSerializable{
+
+        public SerializableLocation(Location location) {
+            super(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(),
+                    location.getPitch());
+        }
+
+        public SerializableLocation(World world, double x, double y, double z) {
+            super(world, x, y, z);
+        }
+
+        public SerializableLocation(World world, double x, double y, double z, float yaw, float pitch) {
+            super(world, x, y, z, yaw, pitch);
+        }
+
+        @Override
+        public Map<String, Object> serialize() {
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("world", this.getWorld().getName());
+
+            data.put("x", this.getX());
+            data.put("y", this.getY());
+            data.put("z", this.getZ());
+
+            data.put("yaw", this.getYaw());
+            data.put("pitch", this.getPitch());
+
+            return data;
+        }
+
+        public static Location deserialize(Map<String, Object> args) {
+            World world = Bukkit.getWorld((String) args.get("world"));
+            if (world == null) {
+                throw new IllegalArgumentException("unknown world");
+            }
+
+            return new Location(world, NumberConversions.toDouble(args.get("x")),
+                    NumberConversions.toDouble(args.get("y")), NumberConversions.toDouble(args.get("z")),
+                    NumberConversions.toFloat(args.get("yaw")), NumberConversions.toFloat(args.get("pitch")));
         }
     }
 }

@@ -45,8 +45,9 @@ public abstract class AbstractVariableManager extends Manager{
      * Save new value. This should replace the value if already exists.
      * @param key the key. (This can contains '.' to indicate grouping of yaml)
      * @param value the value to save
+     * @throws Exception
      */
-    public abstract void put(String key, Object value);
+    public abstract void put(String key, Object value) throws Exception;
 
     /**
      * get value saved with the 'key'

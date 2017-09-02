@@ -224,7 +224,11 @@ public abstract class TriggerReactor {
                                 return true;
                             }
 
-                            getVariableManager().put(name, IS.get());
+                            try {
+                                getVariableManager().put(name, IS.get());
+                            } catch (Exception e) {
+                                this.handleException(sender, e);
+                            }
 
                             sender.sendMessage("&aItem saved!");
                         }else if(args[1].equalsIgnoreCase("Location")){
@@ -235,7 +239,11 @@ public abstract class TriggerReactor {
                             }
 
                             ILocation loc = ((IPlayer) sender).getLocation();
-                            getVariableManager().put(name, loc.get());
+                            try {
+                                getVariableManager().put(name, loc.get());
+                            } catch (Exception e) {
+                                this.handleException(sender, e);
+                            }
 
                             sender.sendMessage("&aLocation saved!");
                         }else{
@@ -248,13 +256,29 @@ public abstract class TriggerReactor {
                             }
 
                             if(value.matches(INTEGER_REGEX)){
-                                getVariableManager().put(name, Integer.parseInt(value));
+                                try {
+                                    getVariableManager().put(name, Integer.parseInt(value));
+                                } catch (Exception e) {
+                                    this.handleException(sender, e);
+                                }
                             }else if(value.matches(DOUBLE_REGEX)){
-                                getVariableManager().put(name, Double.parseDouble(value));
+                                try {
+                                    getVariableManager().put(name, Double.parseDouble(value));
+                                } catch (Exception e) {
+                                    this.handleException(sender, e);
+                                }
                             }else if(value.equals("true") || value.equals("false")){
-                                getVariableManager().put(name, Boolean.parseBoolean(value));
+                                try {
+                                    getVariableManager().put(name, Boolean.parseBoolean(value));
+                                } catch (Exception e) {
+                                    this.handleException(sender, e);
+                                }
                             }else{
-                                getVariableManager().put(name, value);
+                                try {
+                                    getVariableManager().put(name, value);
+                                } catch (Exception e) {
+                                    this.handleException(sender, e);
+                                }
                             }
 
                             sender.sendMessage("&aVariable saved!");
