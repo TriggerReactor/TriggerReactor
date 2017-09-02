@@ -143,6 +143,8 @@ public class ReflectionUtil {
                                     parameterTypes[i], true)) {
                                 matches = false;
                                 break;
+                            }else{
+                                Object[] varargs = new Object[args.length - parameterTypes.length + 1];
                             }
                         }else{
                             matches = false;

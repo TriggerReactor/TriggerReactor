@@ -181,7 +181,7 @@ public class VariableManager extends AbstractVariableManager{
     }
 
     @SerializableAs(value = "org.bukkit.Location")
-    private static class SerializableLocation extends Location implements ConfigurationSerializable{
+    public static class SerializableLocation extends Location implements ConfigurationSerializable{
 
         public SerializableLocation(Location location) {
             super(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(),
@@ -211,15 +211,15 @@ public class VariableManager extends AbstractVariableManager{
             return data;
         }
 
-        public static Location deserialize(Map<String, Object> args) {
+        public static SerializableLocation deserialize(Map<String, Object> args) {
             World world = Bukkit.getWorld((String) args.get("world"));
             if (world == null) {
                 throw new IllegalArgumentException("unknown world");
             }
 
-            return new Location(world, NumberConversions.toDouble(args.get("x")),
+            return new SerializableLocation(new Location(world, NumberConversions.toDouble(args.get("x")),
                     NumberConversions.toDouble(args.get("y")), NumberConversions.toDouble(args.get("z")),
-                    NumberConversions.toFloat(args.get("yaw")), NumberConversions.toFloat(args.get("pitch")));
+                    NumberConversions.toFloat(args.get("yaw")), NumberConversions.toFloat(args.get("pitch"))));
         }
     }
 }
