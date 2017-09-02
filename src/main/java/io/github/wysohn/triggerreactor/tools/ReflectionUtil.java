@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -139,12 +140,22 @@ public class ReflectionUtil {
                 for (int i = 0; i < parameterTypes.length; i++) {
                     if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
                         if (method.isVarArgs() && i == parameterTypes.length - 1) {
-                            if (!ClassUtils.isAssignable(parameterTypes[i].getClass().getComponentType(),
-                                    parameterTypes[i], true)) {
-                                matches = false;
+                            if (ClassUtils.isAssignable(parameterTypes[i].getClass(), args[i].getClass(), true)) {
                                 break;
                             }else{
-                                Object[] varargs = new Object[args.length - parameterTypes.length + 1];
+                                Object varargs = Array.newInstance(parameterTypes[i].getComponentType(),
+                                        args.length - parameterTypes.length + 1);
+                                for (int k = 0; k < Array.getLength(varargs); k++) {
+                                    Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                                }
+
+                                Object[] newArgs = new Object[parameterTypes.length];
+                                for(int k = 0; k < newArgs.length - 2; k++){
+                                    newArgs[k] = args[k];
+                                }
+                                newArgs[newArgs.length - 1] = varargs;
+
+                                args = newArgs;
                             }
                         }else{
                             matches = false;
