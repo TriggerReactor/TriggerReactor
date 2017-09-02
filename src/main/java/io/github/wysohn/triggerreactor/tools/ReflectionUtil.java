@@ -132,32 +132,42 @@ public class ReflectionUtil {
                 boolean matches = true;
 
                 parameterTypes = method.getParameterTypes();
-                if(parameterTypes.length != args.length){
-                    parameterTypes = null;
-                    continue;
+                if (method.isVarArgs()) {
+                    if (method.isVarArgs() && (parameterTypes.length - args.length >= 2)) {
+                        parameterTypes = null;
+                        continue;
+                    }
+                } else {
+                    if (parameterTypes.length != args.length) {
+                        parameterTypes = null;
+                        continue;
+                    }
                 }
 
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-                        if (method.isVarArgs() && i == parameterTypes.length - 1) {
-                            if (ClassUtils.isAssignable(parameterTypes[i].getClass(), args[i].getClass(), true)) {
-                                break;
-                            }else{
-                                Object varargs = Array.newInstance(parameterTypes[i].getComponentType(),
-                                        args.length - parameterTypes.length + 1);
-                                for (int k = 0; k < Array.getLength(varargs); k++) {
-                                    Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
-                                }
+                if (method.isVarArgs()) {
+                    for (int i = 0; i < parameterTypes.length - 1; i++) {
+                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                            matches = false;
+                            break;
+                        }
+                    }
 
-                                Object[] newArgs = new Object[parameterTypes.length];
-                                for(int k = 0; k < newArgs.length - 2; k++){
-                                    newArgs[k] = args[k];
-                                }
-                                newArgs[newArgs.length - 1] = varargs;
+                    Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
+                            args.length - parameterTypes.length + 1);
+                    for (int k = 0; k < Array.getLength(varargs); k++) {
+                        Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                    }
 
-                                args = newArgs;
-                            }
-                        }else{
+                    Object[] newArgs = new Object[parameterTypes.length];
+                    for(int k = 0; k < newArgs.length - 1; k++){
+                        newArgs[k] = args[k];
+                    }
+                    newArgs[newArgs.length - 1] = varargs;
+
+                    args = newArgs;
+                } else {
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
                             matches = false;
                             break;
                         }
