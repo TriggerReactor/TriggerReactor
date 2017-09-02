@@ -130,7 +130,7 @@ public class TriggerReactor extends JavaPlugin {
 
     private void checkConfigurationSerialization() {
         if(!ConfigurationSerializable.class.isAssignableFrom(Location.class)){
-            ConfigurationSerialization.registerClass(LocationSerializer.class, Location.class.getName());
+            ConfigurationSerialization.registerClass(LocationSerializer.class, Location.class.getSimpleName());
         }
     }
 
