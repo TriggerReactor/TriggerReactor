@@ -128,17 +128,20 @@ public class ReflectionUtil {
                     continue;
                 }
 
-                parameterTypes = method.getParameterTypes();
-                if(parameterTypes.length != args.length){
-                    parameterTypes = null;
-                    continue;
-                }
-
                 boolean matches = true;
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-                        matches = false;
-                        break;
+
+                if(!method.isVarArgs()){
+                    parameterTypes = method.getParameterTypes();
+                    if(parameterTypes.length != args.length){
+                        parameterTypes = null;
+                        continue;
+                    }
+
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                            matches = false;
+                            break;
+                        }
                     }
                 }
 
