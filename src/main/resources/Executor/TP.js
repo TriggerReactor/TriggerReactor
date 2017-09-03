@@ -26,6 +26,18 @@ function TP(args){
         player.teleport(new Location(world, x, y, z));
         
         return null;
+    }else if(args.length == 4){
+        var world;
+        var x, y, z;
+        world = player.getWorld();
+        x = args[0];
+        y = args[1];
+        z = args[2];
+        
+        var target = Bukkit.getPlayer(args[3]);
+        target.teleport(new Location(world, x, y, z));
+        
+        return null;
     }else if(args.length == 1){
         var loc = args[0];
         player.teleport(loc);

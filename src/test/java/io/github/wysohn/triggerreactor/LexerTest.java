@@ -23,9 +23,9 @@ import java.nio.charset.Charset;
 
 import org.junit.Test;
 
-import io.github.wysohn.triggerreactor.core.Token;
-import io.github.wysohn.triggerreactor.core.Token.Type;
-import io.github.wysohn.triggerreactor.core.lexer.Lexer;
+import io.github.wysohn.triggerreactor.core.script.Token;
+import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 
 public class LexerTest {
 

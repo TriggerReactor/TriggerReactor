@@ -25,13 +25,13 @@ import java.util.Queue;
 
 import org.junit.Test;
 
-import io.github.wysohn.triggerreactor.core.Token;
-import io.github.wysohn.triggerreactor.core.Token.Type;
-import io.github.wysohn.triggerreactor.core.lexer.Lexer;
-import io.github.wysohn.triggerreactor.core.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.parser.Node;
-import io.github.wysohn.triggerreactor.core.parser.Parser;
-import io.github.wysohn.triggerreactor.core.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.Token;
+import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
+import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.parser.Parser;
+import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
 public class ParserTest {
 

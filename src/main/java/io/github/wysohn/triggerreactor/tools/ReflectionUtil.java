@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,8 +35,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.lang.ClassUtils;
-import org.bukkit.event.Event;
+import org.apache.commons.lang3.ClassUtils;
 
 public class ReflectionUtil {
     public static void setField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException{
@@ -121,50 +121,110 @@ public class ReflectionUtil {
         return null;
     }
 
-    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
-        Class<?> clazz = obj.getClass();
+    public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
+        try{
+            Class<?>[] parameterTypes = null;
+            for (Method method : clazz.getMethods()) {
+                if (!method.getName().equals(methodName)) {
+                    continue;
+                }
 
-        for (Method method : clazz.getMethods()) {
-            if (!method.getName().equals(methodName)) {
-                continue;
-            }
+                boolean matches = true;
 
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if(parameterTypes.length != args.length)
-                continue;
+                parameterTypes = method.getParameterTypes();
+                if (method.isVarArgs()) {
+                    if (method.isVarArgs() && (parameterTypes.length - args.length >= 2)) {
+                        parameterTypes = null;
+                        continue;
+                    }
+                } else {
+                    if (parameterTypes.length != args.length) {
+                        parameterTypes = null;
+                        continue;
+                    }
+                }
 
-            boolean matches = true;
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-                    matches = false;
-                    break;
+                if (method.isVarArgs()) {
+                    for (int i = 0; i < parameterTypes.length - 1; i++) {
+                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                            matches = false;
+                            break;
+                        }
+                    }
+
+                    Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
+                            args.length - parameterTypes.length + 1);
+                    for (int k = 0; k < Array.getLength(varargs); k++) {
+                        Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                    }
+
+                    Object[] newArgs = new Object[parameterTypes.length];
+                    for(int k = 0; k < newArgs.length - 1; k++){
+                        newArgs[k] = args[k];
+                    }
+                    newArgs[newArgs.length - 1] = varargs;
+
+                    args = newArgs;
+                } else {
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                            matches = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (matches) {
+                    try {
+                        method.setAccessible(true);
+                        return method.invoke(obj, args);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
 
-            if (matches) {
-                try {
-                    method.setAccessible(true);
-                    return method.invoke(obj, args);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+            if (args.length > 1) {
+                StringBuilder builder = null;
+                String expected = null;
 
-        if (args.length > 1) {
-            StringBuilder builder = new StringBuilder(args[0].getClass().getName());
+                if(parameterTypes != null && parameterTypes.length > 1){
+                    builder = new StringBuilder(parameterTypes[0].getClass().getName());
+                    for (int i = 1; i < parameterTypes.length; i++)
+                        builder.append("," + parameterTypes[i].getClass().getSimpleName());
+                    expected = methodName+"("+builder.toString()+")";
+                }
+
+                builder = new StringBuilder(args[0].getClass().getName());
+                for (int i = 1; i < args.length; i++)
+                    builder.append("," + args[i].getClass().getSimpleName());
+                String actual = methodName+"("+builder.toString()+")";
+
+                if(expected != null)
+                    throw new NoSuchMethodException("Expected -- "+expected+"    Actual -- "+actual);
+                else
+                    throw new NoSuchMethodException(actual);
+            }else{
+                throw new NoSuchMethodException(methodName+"()");
+            }
+        }catch(NullPointerException e){
+            StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
             for (int i = 1; i < args.length; i++)
-                builder.append("," + args[i].getClass().getName());
-            throw new NoSuchMethodException(methodName+"("+builder.toString()+")");
-        }else{
-            throw new NoSuchMethodException(methodName+"()");
+                builder.append("," + String.valueOf(args[i]));
+            throw new NullPointerException("Call "+methodName+"("+builder.toString()+")");
         }
     }
 
-    public static Map<String, Object> extractVariables(Event e){
+    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
+        Class<?> clazz = obj.getClass();
+
+        return invokeMethod(clazz, obj, methodName, args);
+    }
+
+    public static Map<String, Object> extractVariables(Object e){
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Class<? extends Event> clazz = e.getClass();
+        Class<?> clazz = e.getClass();
         for(Field field : getAllFields(new ArrayList<Field>(), clazz)){
             field.setAccessible(true);
             try {
@@ -177,10 +237,10 @@ public class ReflectionUtil {
         return map;
     }
 
-    public static Map<String, Object> extractVariablesWithEnumAsString(Event e){
+    public static Map<String, Object> extractVariablesWithEnumAsString(Object e){
         Map<String, Object> map = new HashMap<String, Object>();
 
-        Class<? extends Event> clazz = e.getClass();
+        Class<?> clazz = e.getClass();
         for(Field field : getAllFields(new ArrayList<Field>(), clazz)){
             field.setAccessible(true);
             try {
