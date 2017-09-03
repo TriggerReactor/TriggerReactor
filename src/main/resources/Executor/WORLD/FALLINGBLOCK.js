@@ -14,7 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function FALLINGBLOCK(args) {
+function FALLINGBLOCK(args) {
+
+	var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
+
 	if (args.length == 2 || args.length == 4) {
 		var blockID = args[0];
 		var location;
@@ -29,12 +32,20 @@
 		Block = location.getBlock();
 
 		if(typeof blockID==='number' && (blockID%1)===0){
-			location.getWorld().spawnFallingBlock(location, blockID, 0);
+			plugin.runTask(new Runnable() {
+				run: function() {
+					location.getWorld().spawnFallingBlock(location, blockID, 0);
+				}
+			});
 		}else{
 			var Material = Java.type('org.bukkit.Material');
 			var someBlock = Material.valueOf(blockID.toUpperCase());
 			if(someBlock.isBlock()){
-				location.getWorld().spawnFallingBlock(location, someBlock, 0);
+				plugin.runTask(new Runnable() {
+					run: function() {
+						location.getWorld().spawnFallingBlock(location, someBlock, 0);
+					}
+				});
 			}
 		}
 
@@ -53,12 +64,20 @@
 		Block = location.getBlock();
 
 		if(typeof blockID==='number' && (blockID%1)===0){
-			location.getWorld().spawnFallingBlock(location, blockID, blockData);
+			plugin.runTask(new Runnable() {
+				run: function() {
+					location.getWorld().spawnFallingBlock(location, blockID, blockData);
+				}
+			});
 		}else{
 			var Material = Java.type('org.bukkit.Material');
 			var someBlock = Material.valueOf(blockID.toUpperCase());
 			if(someBlock.isBlock()){
-				location.getWorld().spawnFallingBlock(location, someBlock, blockData);
+				plugin.runTask(new Runnable() {
+					run: function() {
+						location.getWorld().spawnFallingBlock(location, someBlock, blockData);
+					}
+				});
 			}
 		}
 

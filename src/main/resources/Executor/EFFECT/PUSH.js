@@ -14,41 +14,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function LEVEROFF(args) {
-	if (args.length == 1 || args.length == 3) {
-		var location;
+function PUSH(args){
+	if(args.length == 4){ 
+		var entity = args[0];
+		var motionX = args[1];
+		var motionY = args[2];
+		var motionZ = args[3];
 
-		if(args.length == 1){
-			location = args[0];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
+		if(typeof entity == "string"){
+			entity = Bukkit.getPlayer(entity);
 		}
 
-		try{
-			Block = location.getBlock();
-			BlockState = Block.getState();
-			Lever = BlockState.getData();
-
-			Lever.setPowered(false);
-			BlockState.setData(Lever);
-
-			var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
-			plugin.runTask(new Runnable() {
-				run: function() {
-					BlockState.update(true);
-				}
-			});
-
-		}catch(err){
-			throw new Error(
-				'Invalid lever. '+err);
-		}
-        
+		var Vector = Java.type('org.bukkit.util.Vector');
+		entity.setVelocity(new Vector(motionX.toFixed(2), motionY.toFixed(2), motionZ.toFixed(2)));
 
 	}else {
 		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
+			'Invalid parameters. Need [Entity<entity or string>, Number, Number, Number]');
 	}
 	return null;
 }

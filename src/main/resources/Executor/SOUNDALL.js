@@ -28,7 +28,7 @@ function SOUNDALL(args) {
 		}catch(ex){
 			sound = args[1];
 		}finally{
-			player.playSound(location, sound, volume, pitch);
+			location.getWorld().playSound(location, sound, volume, pitch);
 		}
 	} else {
 		throw new Error(

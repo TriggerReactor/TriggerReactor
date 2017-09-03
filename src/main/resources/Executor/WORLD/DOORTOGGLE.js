@@ -35,7 +35,14 @@
 				Openable.setOpen(true);
 			}
 			BlockState.setData(Openable);
-			BlockState.update();
+
+			var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
+			plugin.runTask(new Runnable() {
+				run: function() {
+					BlockState.update();
+				}
+			});
+
 		}catch(err){
 			throw new Error(
 				'Invalid door. That block is not a valid door!');
