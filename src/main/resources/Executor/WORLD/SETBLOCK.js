@@ -15,6 +15,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
  function SETBLOCK(args) {
+ 
+	var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
+
 	if (args.length == 2 || args.length == 4) {
 		var blockID = args[0];
 		var location;
@@ -34,7 +37,11 @@
 			var Material = Java.type('org.bukkit.Material');
 			var someBlock = Material.valueOf(blockID.toUpperCase());
 			if(someBlock.isBlock()){
-				Block.setType(someBlock);
+				plugin.runTask(new Runnable() {
+					run: function() {
+						Block.setType(someBlock);
+					}
+				});
 			}
 		}
 
@@ -60,8 +67,12 @@
 			var Material = Java.type('org.bukkit.Material');
 			var someBlock = Material.valueOf(blockID.toUpperCase());
 			if(someBlock.isBlock()){
-				Block.setType(someBlock);
-				Block.setData(blockData);
+				plugin.runTask(new Runnable() {
+					run: function() {
+						Block.setType(someBlock);
+						Block.setData(blockData);
+					}
+				});
 			}
 		}
 

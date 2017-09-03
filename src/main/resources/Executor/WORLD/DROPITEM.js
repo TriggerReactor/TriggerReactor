@@ -15,12 +15,21 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
  function DROPITEM(args) {
-    if (args.length == 2){
-        var item = args[0];
-        var location = args[1];
-        
-        location.getWorld().dropItem(location, item);
-    }else if (args.length == 4 || args.length == 6) {
+
+	var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
+
+	if (args.length == 2){
+		var item = args[0];
+		var location = args[1];
+
+		plugin.runTask(new Runnable() {
+			run: function() {
+				location.getWorld().dropItem(location, item);
+			}
+		});
+
+
+	}else if (args.length == 4 || args.length == 6) {
 		var itemID = args[0];
 		var amount = args[1];
 		var enchan = args[2];
@@ -48,17 +57,22 @@
 		if(enchan.toUpperCase() !== 'NONE'){
 			var encharg = enchan.split(',');
 			for each (en in encharg){
-                var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
-                var level = parseInt(en.split(':')[1]);
-                
-                if(!ench)
-                    throw Error(en.split(':')[0]+" is not a valid Enchantment.");
-                
+				var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
+				var level = parseInt(en.split(':')[1]);
+
+				if(!ench)
+					throw Error(en.split(':')[0]+" is not a valid Enchantment.");
+
 				ItemStack.addUnsafeEnchantment(ench, level);
 			}
 		}
 
-		location.getWorld().dropItem(location, ItemStack);
+		plugin.runTask(new Runnable() {
+			run: function() {
+				location.getWorld().dropItem(location, ItemStack);
+			}
+		});
+
 
 	}else if(args.length == 5 || args.length == 7){ 
 		var itemID = args[0];
@@ -73,7 +87,7 @@
 			var world = player.getWorld();          
 			location = new Location(world, args[4], args[5], args[6]);
 		}
-        
+
 		var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
 		var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 		Block = location.getBlock();
@@ -89,21 +103,26 @@
 		if(enchan.toUpperCase() !== 'NONE'){
 			var encharg = enchan.split(',');
 			for each (en in encharg){
-                var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
-                var level = parseInt(en.split(':')[1]);
-                
-                if(!ench)
-                    throw Error(en.split(':')[0]+" is not a valid Enchantment.");
-                
+				var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
+				var level = parseInt(en.split(':')[1]);
+
+				if(!ench)
+					throw Error(en.split(':')[0]+" is not a valid Enchantment.");
+
 				ItemStack.addUnsafeEnchantment(ench, level);
 			}
 		}
 
-		location.getWorld().dropItem(location, ItemStack);
+		plugin.runTask(new Runnable() {
+			run: function() {
+				location.getWorld().dropItem(location, ItemStack);
+			}
+		});
+
 
 	}else {
 		throw new Error(
-			'Invalid parameters. Need [Item<string or number>, Quantity<number>, Enchantments<string>, Location<location or number number number>]');
+			'Invalid parameters. Need [Item, Location or Item<string or number>, Quantity<number>, Enchantments<string>, Location<location or number number number>]');
 	}
 	return null;
 }
