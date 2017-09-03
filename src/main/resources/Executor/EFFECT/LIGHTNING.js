@@ -14,41 +14,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function LEVEROFF(args) {
-	if (args.length == 1 || args.length == 3) {
+function LIGHTNING(args){
+	if(args.length == 2 || args.length == 4){ 
+		var damage = args[0];
 		var location;
 
-		if(args.length == 1){
-			location = args[0];
+		if(args.length == 2){
+			location = args[1];
 		}else{
 			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
+			location = new Location(world, args[1], args[2], args[3]);
 		}
 
-		try{
-			Block = location.getBlock();
-			BlockState = Block.getState();
-			Lever = BlockState.getData();
-
-			Lever.setPowered(false);
-			BlockState.setData(Lever);
-
-			var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
-			plugin.runTask(new Runnable() {
-				run: function() {
-					BlockState.update(true);
-				}
-			});
-
-		}catch(err){
-			throw new Error(
-				'Invalid lever. '+err);
+		if(damage){
+			location.getWorld().strikeLightning(location);
+		}else{
+			location.getWorld().strikeLightningEffect(location);
 		}
-        
 
 	}else {
 		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
+			'Invalid parameters. Need [Damage<boolean>, Location<location or number number number>]');
 	}
 	return null;
 }
