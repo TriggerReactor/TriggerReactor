@@ -3,25 +3,28 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldgu
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
-import org.generallib.pluginbase.PluginAPISupport.APISupport;
-import org.generallib.pluginbase.PluginBase;
 
 import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+
 public class WorldguardSupport extends APISupport {
     private WorldGuardPlugin wg;
-    public WorldguardSupport(PluginBase base) {
-        super(base);
+    public WorldguardSupport(TriggerReactor plugin) {
+        super(plugin, "WorldGuard");
     }
 
     @Override
-    public void init() throws Exception {
-        Plugin plugin = base.getServer().getPluginManager().getPlugin("WorldGuard");
+    public void init() throws APISupportException {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("WorldGuard");
 
         if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
             return;

@@ -30,6 +30,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placehol
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.theguild.TheGuildSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 
@@ -69,6 +70,7 @@ public abstract class APISupport extends AbstractAPISupport {
         put("factions", FactionsSupport.class);
         put("coreprotect", CoreprotectSupport.class);
         put("protocollib", ProtocolLibSupport.class);
+        put("worldguard", WorldguardSupport.class);
     }};
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
         return sharedVars;

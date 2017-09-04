@@ -3,7 +3,7 @@ main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
 version: 1.2.4
 author: wysohn
 authors: [soliddanii]
-softdepend: [Vault, PlaceholderAPI, mcMMO, TheGuild, Factions, CoreProtect, ProtocolLib]
+softdepend: [Vault, PlaceholderAPI, mcMMO, TheGuild, Factions, CoreProtect, ProtocolLib, WorldGuard]
 commands:
   triggerreactor:
     aliases: [trigger, trg]
