@@ -84,7 +84,7 @@ public class ScriptEditor{
 
 		int j = 0;
 		for(int i = currentIndex; i < Math.min(lines.size(), currentIndex + 16); i++){
-			display[j++] = (i+1)+". "+lines.get(i) + (currentCursor == i ? ChatColor.RED+"<<" : "");
+			display[j++] = width(String.valueOf(i+1), 3)+". "+lines.get(i) + (currentCursor == i ? ChatColor.RED+"<<" : "");
 		}
 
 		for(String dis : display)
@@ -156,5 +156,18 @@ public class ScriptEditor{
 
 	public interface SaveHandler{
 	    void onSave(String script);
+	}
+
+	private static String width(String str, int length){
+	    int d = length - str.length();
+	    if(d <= 0)
+	        return str;
+
+	    StringBuilder builder = new StringBuilder();
+	    for(int i = 0; i < d; i++)
+	        builder.append(" ");
+	    builder.append(str);
+
+	    return builder.toString();
 	}
 }
