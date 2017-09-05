@@ -28,7 +28,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.faction.
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.theguild.TheGuildSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -65,7 +64,6 @@ public abstract class APISupport extends AbstractAPISupport {
     private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>(){{
         put("vault", VaultSupport.class);
         put("mcmmo", McMmoSupport.class);
-        put("theguild", TheGuildSupport.class);
         put("placeholder", PlaceHolderSupport.class);
         put("factions", FactionsSupport.class);
         put("coreprotect", CoreprotectSupport.class);
