@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
@@ -306,6 +307,26 @@ public class CommonFunctions implements SelfReference {
 
     public Set set(){
         return new HashSet();
+    }
+
+    public Object newInstance(String className, Object... args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalArgumentException, InvocationTargetException{
+        Class<?> clazz = Class.forName(className);
+
+        Class<?>[] types = new Class[args.length];
+        for(int i = 0; i < types.length; i++){
+            types[i] = args[i].getClass();
+        }
+
+        Constructor con = clazz.getConstructor(types);
+        con.setAccessible(true);
+
+        try {
+            return con.newInstance(args);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     /**
