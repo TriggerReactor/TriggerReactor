@@ -63,6 +63,8 @@ public class WorldguardSupport extends APISupport {
         Location[] locs = new Location[2];
 
         ProtectedRegion region = wg.getRegionManager(world).getRegion(regionName);
+        if(region == null)
+            return null;
 
         BlockVector min = region.getMinimumPoint();
         BlockVector max = region.getMaximumPoint();
