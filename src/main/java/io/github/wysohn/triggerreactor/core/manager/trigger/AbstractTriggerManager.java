@@ -6,7 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
@@ -219,7 +224,34 @@ public abstract class AbstractTriggerManager extends Manager {
          */
         protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
             if(sync){
-                start(e, scriptVars, interpreter, sync);
+                Callable<Void> call = new Callable<Void>(){
+                    @Override
+                    public Void call() throws Exception {
+                        start(e, scriptVars, interpreter, sync);
+                        return null;
+                    }
+                };
+
+                if (TriggerReactor.getInstance().isServerThread()) {
+                    try {
+                        call.call();
+                    } catch (Exception e1) {
+                        TriggerReactor.getInstance().handleException(e, new Exception(
+                                "Error occurred while processing Trigger [" + getTriggerName() + "]!", e1));
+                    }
+                } else {
+                    Future<Void> future = TriggerReactor.getInstance().callSyncMethod(call);
+                    try {
+                        future.get(3, TimeUnit.SECONDS);
+                    } catch (InterruptedException | ExecutionException e1) {
+                        TriggerReactor.getInstance().handleException(e, new Exception(
+                                "Error occurred while processing Trigger [" + getTriggerName() + "]!", e1));
+                    } catch (TimeoutException e1) {
+                        TriggerReactor.getInstance().handleException(e, new RuntimeException(
+                                "Took too long to process Trigger [" + getTriggerName() + "]! Is the server lagging?",
+                                e1));
+                    }
+                }
             }else{
                 new Thread(new Runnable() {
                     @Override
@@ -241,7 +273,8 @@ public abstract class AbstractTriggerManager extends Manager {
             try{
                 interpreter.startWithContextAndInterrupter(e, TriggerReactor.getInstance().createInterrupter(e, interpreter, cooldowns));
             }catch(Exception ex){
-                TriggerReactor.getInstance().handleException(e, ex);
+                TriggerReactor.getInstance().handleException(e,
+                        new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
             }
         }
 

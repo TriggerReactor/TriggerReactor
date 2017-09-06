@@ -1247,4 +1247,10 @@ public abstract class TriggerReactor {
      * @param event
      */
     public abstract void callEvent(IEvent event);
+
+    /**
+     * Check if the current Thread is the Server
+     * @return
+     */
+    public abstract boolean isServerThread();
 }

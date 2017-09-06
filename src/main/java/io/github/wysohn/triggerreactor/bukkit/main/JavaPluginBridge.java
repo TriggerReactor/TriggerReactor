@@ -704,5 +704,16 @@ public class JavaPluginBridge extends TriggerReactor{
         return true;
     }
 
+    @Override
+    public boolean isServerThread() {
+        boolean result = false;
+
+        synchronized(this){
+            result = Bukkit.isPrimaryThread();
+        }
+
+        return result;
+    }
+
 
 }

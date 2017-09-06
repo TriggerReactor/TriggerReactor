@@ -2,6 +2,11 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -136,11 +141,38 @@ public class PermissionManager extends AbstractPermissionManager implements List
 
         @Override
         public boolean hasPermission(String inName) {
-            PlayerPermissionCheckEvent ppce = new PlayerPermissionCheckEvent(player, inName);
-            Bukkit.getPluginManager().callEvent(ppce);
-            if(ppce.isCancelled()){
-                return ppce.isAllowed();
+            Callable<Boolean> call = new Callable<Boolean>(){
+
+                @Override
+                public Boolean call() throws Exception {
+                    PlayerPermissionCheckEvent ppce = new PlayerPermissionCheckEvent(player, inName);
+                    Bukkit.getPluginManager().callEvent(ppce);
+                    if(ppce.isCancelled()){
+                        return ppce.isAllowed();
+                    }
+                    return false;
+                }
+
+            };
+
+            if(Bukkit.isPrimaryThread()){
+                try {
+                    if(call.call())
+                        return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }else{
+                Future<Boolean> future = TriggerReactor.getInstance().callSyncMethod(call);
+                try {
+                    return future.get(1, TimeUnit.SECONDS);
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                } catch (TimeoutException e) {
+                    throw new RuntimeException("Took too long to process PlayerPermissionCheckEvent.");
+                }
             }
+
 
             if(original != null){
                 return original.hasPermission(inName);

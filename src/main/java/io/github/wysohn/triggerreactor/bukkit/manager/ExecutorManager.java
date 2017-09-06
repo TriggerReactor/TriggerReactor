@@ -125,7 +125,7 @@ public class ExecutorManager extends AbstractExecutorManager{
                     try {
                         plugin.getVariableManager().put(a, b);
                     } catch (Exception e) {
-                        ExecutorManager.this.plugin.handleException("Executor -- put("+a+","+b+")", e);
+                        throw new RuntimeException("Executor -- put("+a+","+b+")", e);
                     }
                 }
 

@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
@@ -329,5 +330,16 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     public void callEvent(IEvent event) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public boolean isServerThread() {
+        boolean result = false;
+
+        synchronized(this){
+            result = Sponge.getServer().isMainThread();
+        }
+
+        return result;
     }
 }

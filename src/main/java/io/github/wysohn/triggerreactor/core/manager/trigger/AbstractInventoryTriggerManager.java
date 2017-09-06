@@ -55,7 +55,8 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
                 interpreter.startWithContextAndInterrupter(e,
                         TriggerReactor.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap));
             } catch (Exception ex) {
-                TriggerReactor.getInstance().handleException(e, ex);
+                TriggerReactor.getInstance().handleException(e,
+                        new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
             }
         }
 
