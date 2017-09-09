@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.script.Token.Type;
 public class Lexer {
     private static final char[] OPERATORS;
     static {
-        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']', ':'};
+        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']', ':', '\\'};
         Arrays.sort(OPERATORS);
     }
 
@@ -195,7 +195,17 @@ public class Lexer {
         StringBuilder builder = new StringBuilder();
 
         while(read() && c != '"'){
-            builder.append(c);
+            if(c == '\\'){
+                read();
+
+                if(c == '\\' || c == '"'){
+                    builder.append(c);
+                }else{
+                    throw new LexerException("Expected an escaping character after \\ but found "+c+" instead.", this);
+                }
+            } else {
+                builder.append(c);
+            }
         }
         read();
 

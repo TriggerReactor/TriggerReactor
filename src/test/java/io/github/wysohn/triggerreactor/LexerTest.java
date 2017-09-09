@@ -101,4 +101,16 @@ public class LexerTest {
         assertEquals(new Token(Type.STRING, "next"), lexer.getToken());
         assertNull(lexer.getToken());
     }
+
+    @Test
+    public void testEscapeCharacter() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#MESSAGE \"HI \\\"X\\\"! \\\\\"";
+
+        Lexer lexer = new Lexer(text, charset);
+
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "HI \"X\"! \\"), lexer.getToken());
+        assertNull(lexer.getToken());
+    }
 }
