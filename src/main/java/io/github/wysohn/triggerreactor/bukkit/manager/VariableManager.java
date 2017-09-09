@@ -47,6 +47,8 @@ public class VariableManager extends AbstractVariableManager{
         if(!varFile.exists())
             varFile.createNewFile();
 
+        varFileConfig = new Utf8YamlConfiguration();
+
         checkConfigurationSerialization();
 
         reload();
@@ -78,9 +80,10 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public void reload(){
-        varFileConfig = new Utf8YamlConfiguration();
         try {
-            varFileConfig.load(varFile);
+            synchronized(varFileConfig){
+                varFileConfig.load(varFile);
+            }
         } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
         }
@@ -89,7 +92,9 @@ public class VariableManager extends AbstractVariableManager{
     @Override
     public synchronized void saveAll(){
         try {
-            varFileConfig.save(varFile);
+            synchronized(varFileConfig){
+                varFileConfig.save(varFile);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -102,7 +107,9 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public Object get(String key){
-        return varFileConfig.get(key);
+        synchronized(varFileConfig){
+            return varFileConfig.get(key);
+        }
     }
 
     @Override
@@ -112,24 +119,32 @@ public class VariableManager extends AbstractVariableManager{
 
             //hard code it for now
             if(value instanceof Location){
-                varFileConfig.set(key, new SerializableLocation((Location) value));
+                synchronized(varFileConfig){
+                    varFileConfig.set(key, new SerializableLocation((Location) value));
+                }
                 return;
             }
 
             throw new Exception("[" + value.getClass().getSimpleName() + "] is not a valid type to be saved.");
         }
 
-        varFileConfig.set(key, value);
+        synchronized(varFileConfig){
+            varFileConfig.set(key, value);
+        }
     }
 
     @Override
     public boolean has(String key){
-        return varFileConfig.contains(key);
+        synchronized(varFileConfig){
+            return varFileConfig.contains(key);
+        }
     }
 
     @Override
     public void remove(String key){
-        varFileConfig.set(key, null);
+        synchronized(varFileConfig){
+            varFileConfig.set(key, null);
+        }
     }
 
     @SuppressWarnings("serial")
@@ -145,8 +160,10 @@ public class VariableManager extends AbstractVariableManager{
             //try global if none found in local
             if(value == null && key instanceof String){
                 String keyStr = (String) key;
-                if(varFileConfig.contains(keyStr)){
-                    value = varFileConfig.get(keyStr);
+                synchronized(varFileConfig){
+                    if(varFileConfig.contains(keyStr)){
+                        value = varFileConfig.get(keyStr);
+                    }
                 }
             }
 
@@ -160,7 +177,9 @@ public class VariableManager extends AbstractVariableManager{
             //check global if none found in local
             if(!result && key instanceof String){
                 String keyStr = (String) key;
-                result = varFileConfig.contains(keyStr);
+                synchronized(varFileConfig){
+                    result = varFileConfig.contains(keyStr);
+                }
             }
 
             return result;
@@ -168,8 +187,12 @@ public class VariableManager extends AbstractVariableManager{
 
         @Override
         public Object put(String key, Object value) {
-            Object before = varFileConfig.get(key);
-            varFileConfig.set(key, value);
+            Object before;
+            synchronized(varFileConfig){
+                before = varFileConfig.get(key);
+                varFileConfig.set(key, value);
+            }
+
             return before;
         }
     }
