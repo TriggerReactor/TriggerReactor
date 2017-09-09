@@ -207,6 +207,10 @@ public class Lexer {
                 builder.append(c);
             }
         }
+
+        if(eos)
+            throw new LexerException("End of stream is reached before finding '\"'", this);
+
         read();
 
         return new Token(Type.STRING, builder.toString());
