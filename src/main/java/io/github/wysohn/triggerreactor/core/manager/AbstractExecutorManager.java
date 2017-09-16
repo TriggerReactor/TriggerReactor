@@ -195,7 +195,7 @@ public abstract class AbstractExecutorManager extends Manager {
                 }
             };
 
-            if(sync){
+            if(TriggerReactor.getInstance().isServerThread()){
                 Integer result = null;
                 try {
                     result = call.call();
