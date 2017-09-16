@@ -90,7 +90,7 @@ public class VariableManager extends AbstractVariableManager{
     }
 
     @Override
-    public synchronized void saveAll(){
+    public void saveAll(){
         try {
             synchronized(varFileConfig){
                 varFileConfig.save(varFile);

@@ -153,7 +153,7 @@ public abstract class AbstractExecutorManager extends Manager {
         }
 
         @Override
-        public synchronized Integer execute(boolean sync, Object e, Object... args) throws Exception {
+        public Integer execute(boolean sync, Object e, Object... args) throws Exception {
             ///////////////////////////////
             Map<String, Object> variables = new HashMap<>();
             Map<String, Object> vars = ReflectionUtil.extractVariables(e);
