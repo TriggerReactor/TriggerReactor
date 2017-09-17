@@ -273,7 +273,7 @@ public class PermissionManager extends AbstractPermissionManager implements List
         }
 
         @Override
-        public synchronized void clearPermissions() {
+        public void clearPermissions() {
             if(original != null){
                 original.clearPermissions();
                 return;

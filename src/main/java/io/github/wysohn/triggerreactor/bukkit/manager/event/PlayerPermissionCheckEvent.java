@@ -23,7 +23,7 @@ import org.bukkit.event.player.PlayerEvent;
 
 /**
  * This event is designed to intercept the permission. You might can create CustomTrigger that hook
- *  io.github.wysohn.triggerreactor.manager.event.PlayerPermissionCheckEvent, and by canceling this event,
+ *  io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEvent, and by canceling this event,
  *  you can enforce the permissible action not from permission plugins but your CustomTrigger. You can check
  *  'requestedPermission' to see what permission it is checking, and use setAllowed() function to change the
  *  permission check up behavior.
