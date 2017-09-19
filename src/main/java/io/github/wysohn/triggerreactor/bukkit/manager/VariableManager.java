@@ -94,7 +94,7 @@ public class VariableManager extends AbstractVariableManager{
     @Override
     public void reload(){
         try {
-            synchronized(varFile){
+            synchronized(varCache){
                 varCache.load(varFile);
             }
         } catch (IOException | InvalidConfigurationException e) {
