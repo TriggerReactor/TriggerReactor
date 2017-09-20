@@ -27,11 +27,10 @@ import java.nio.charset.Charset;
 
 import org.apache.commons.lang.Validate;
 import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.google.common.io.Files;
 
-public class Utf8YamlConfiguration extends YamlConfiguration {
+public class Utf8YamlConfiguration extends CopyYamlConfiguration {
 
     public static Charset UTF8_CHARSET = Charset.forName("UTF-8");
 

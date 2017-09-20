@@ -20,8 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -36,16 +34,10 @@ import org.bukkit.util.NumberConversions;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class VariableManager extends AbstractVariableManager{
-    private static final ExecutorService sequencialPool = Executors.newFixedThreadPool(1);
-
     private File varFile;
-
-    private FileConfiguration varCache;
     private FileConfiguration varFileConfig;
-
     private final GlobalVariableAdapter adapter;
 
     public VariableManager(TriggerReactor plugin) throws IOException, InvalidConfigurationException {
@@ -54,9 +46,6 @@ public class VariableManager extends AbstractVariableManager{
         varFile = new File(plugin.getDataFolder(), "var.yml");
         if(!varFile.exists())
             varFile.createNewFile();
-
-        varCache = new Utf8YamlConfiguration();;
-        varFileConfig = new Utf8YamlConfiguration();
 
         checkConfigurationSerialization();
 
@@ -76,63 +65,38 @@ public class VariableManager extends AbstractVariableManager{
         @Override
         public void run(){
             while(!Thread.interrupted() && plugin.isEnabled()){
-                saveAll();
-
                 try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
+                    saveAll();
+                } catch (Exception e) {
                     e.printStackTrace();
-                }
-            }
-
-            saveAll();
-        }
-    }
-
-
-
-    @Override
-    public void reload(){
-        try {
-            synchronized(varCache){
-                varCache.load(varFile);
-            }
-        } catch (IOException | InvalidConfigurationException e) {
-            e.printStackTrace();
-        }
-
-        sequencialPool.execute(new Runnable(){
-
-            @Override
-            public void run() {
-                synchronized(varFileConfig){
+                } finally {
                     try {
-                        varFileConfig.load(varFile);
-                    } catch (IOException | InvalidConfigurationException e) {
+                        Thread.sleep(1000L);
+                    } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
+        }
+    }
 
-        });
+    @Override
+    public void reload(){
+        varFileConfig = new Utf8YamlConfiguration();
+        try {
+            varFileConfig.load(varFile);
+        } catch (IOException | InvalidConfigurationException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void saveAll(){
-        sequencialPool.execute(new Runnable(){
-
-            @Override
-            public void run() {
-                synchronized(varFileConfig){
-                    try {
-                        FileUtil.writeToFile(varFile, varFileConfig.saveToString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-        });
+        try {
+            varFileConfig.save(varFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -142,64 +106,34 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public Object get(String key){
-        synchronized(varCache){
-            return varCache.get(key);
-        }
+        return varFileConfig.get(key);
     }
 
     @Override
-    public void put(String key, Object value) throws Exception {
-        //old Location
-        if (value instanceof Location && !(value instanceof ConfigurationSerializable)) {
-            value = new SerializableLocation((Location) value);
-        }
+    public void put(String key, Object value) throws Exception{
+        if (!(value instanceof String) && !(value instanceof Number) && !(value instanceof Boolean)
+                && !(value instanceof ConfigurationSerializable)){
 
-        if (value instanceof String || value instanceof Number || value instanceof Boolean
-                || value instanceof ConfigurationSerializable) {
-            synchronized(varCache){
-                varCache.set(key, value);
+            //hard code it for now
+            if(value instanceof Location){
+                varFileConfig.set(key, new SerializableLocation((Location) value));
+                return;
             }
 
-            final Object copy = value;
-            sequencialPool.execute(new Runnable() {
-
-                @Override
-                public void run() {
-                    synchronized (varFileConfig) {
-                        varFileConfig.set(key, copy);
-                    }
-                }
-
-            });
-        } else {
             throw new Exception("[" + value.getClass().getSimpleName() + "] is not a valid type to be saved.");
         }
+
+        varFileConfig.set(key, value);
     }
 
     @Override
     public boolean has(String key){
-        synchronized(varCache){
-            return varCache.contains(key);
-        }
+        return varFileConfig.contains(key);
     }
 
     @Override
     public void remove(String key){
-        synchronized(varCache){
-            varCache.set(key, null);
-        }
-
-        sequencialPool.execute(new Runnable(){
-
-            @Override
-            public void run() {
-                synchronized(varFileConfig){
-                    varFileConfig.set(key, null);
-                }
-            }
-
-        });
-
+        varFileConfig.set(key, null);
     }
 
     @SuppressWarnings("serial")
@@ -215,11 +149,9 @@ public class VariableManager extends AbstractVariableManager{
             //try global if none found in local
             if(value == null && key instanceof String){
                 String keyStr = (String) key;
-
-                synchronized(varCache){
-                    value = varCache.get(keyStr);
+                if(varFileConfig.contains(keyStr)){
+                    value = varFileConfig.get(keyStr);
                 }
-
             }
 
             return value;
@@ -232,11 +164,7 @@ public class VariableManager extends AbstractVariableManager{
             //check global if none found in local
             if(!result && key instanceof String){
                 String keyStr = (String) key;
-
-                synchronized(varCache){
-                    result = varCache.contains(keyStr);
-                }
-
+                result = varFileConfig.contains(keyStr);
             }
 
             return result;
@@ -244,25 +172,8 @@ public class VariableManager extends AbstractVariableManager{
 
         @Override
         public Object put(String key, Object value) {
-            Object before;
-
-            synchronized(varCache){
-                before = varCache.get(key);
-                varCache.set(key, value);
-            }
-
-            sequencialPool.execute(new Runnable(){
-
-                @Override
-                public void run() {
-                    synchronized (varFileConfig) {
-                        varFileConfig.set(key, value);
-                    }
-                }
-
-            });
-
-
+            Object before = varFileConfig.get(key);
+            varFileConfig.set(key, value);
             return before;
         }
     }
