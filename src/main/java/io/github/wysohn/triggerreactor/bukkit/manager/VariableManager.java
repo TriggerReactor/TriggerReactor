@@ -34,6 +34,7 @@ import org.bukkit.util.NumberConversions;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class VariableManager extends AbstractVariableManager{
     private File varFile;
@@ -93,7 +94,7 @@ public class VariableManager extends AbstractVariableManager{
     @Override
     public void saveAll(){
         try {
-            varFileConfig.save(varFile);
+            FileUtil.writeToFile(varFile, varFileConfig.saveToString());
         } catch (IOException e) {
             e.printStackTrace();
         }
