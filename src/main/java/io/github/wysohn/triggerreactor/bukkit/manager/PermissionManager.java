@@ -2,11 +2,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,6 +16,7 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEventAsync;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
@@ -141,38 +137,19 @@ public class PermissionManager extends AbstractPermissionManager implements List
 
         @Override
         public boolean hasPermission(String inName) {
-            Callable<Boolean> call = new Callable<Boolean>(){
-
-                @Override
-                public Boolean call() throws Exception {
-                    PlayerPermissionCheckEvent ppce = new PlayerPermissionCheckEvent(player, inName);
-                    Bukkit.getPluginManager().callEvent(ppce);
-                    if(ppce.isCancelled()){
-                        return ppce.isAllowed();
-                    }
-                    return false;
-                }
-
-            };
-
             if(Bukkit.isPrimaryThread()){
-                try {
-                    if(call.call())
-                        return true;
-                } catch (Exception e) {
-                    e.printStackTrace();
+                PlayerPermissionCheckEvent ppce = new PlayerPermissionCheckEvent(player, inName);
+                Bukkit.getPluginManager().callEvent(ppce);
+                if(ppce.isCancelled()){
+                    return ppce.isAllowed();
                 }
             }else{
-                Future<Boolean> future = TriggerReactor.getInstance().callSyncMethod(call);
-                try {
-                    return future.get(1, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                } catch (TimeoutException e) {
-                    throw new RuntimeException("Took too long to process PlayerPermissionCheckEvent.");
+                PlayerPermissionCheckEventAsync ppce = new PlayerPermissionCheckEventAsync(player, inName);
+                Bukkit.getPluginManager().callEvent(ppce);
+                if(ppce.isCancelled()){
+                    return ppce.isAllowed();
                 }
             }
-
 
             if(original != null){
                 return original.hasPermission(inName);
@@ -183,17 +160,7 @@ public class PermissionManager extends AbstractPermissionManager implements List
 
         @Override
         public boolean hasPermission(Permission perm) {
-            PlayerPermissionCheckEvent ppce = new PlayerPermissionCheckEvent(player, perm.getName());
-            Bukkit.getPluginManager().callEvent(ppce);
-            if(ppce.isCancelled()){
-                return ppce.isAllowed();
-            }
-
-            if(original != null){
-                return original.hasPermission(perm);
-            }
-
-            return super.hasPermission(perm);
+            return hasPermission(perm.getName());
         }
 
         @Override
