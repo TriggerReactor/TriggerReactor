@@ -147,7 +147,7 @@ public class ReflectionUtil {
 
                 if (method.isVarArgs()) {
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
-                        matches = checkMatch(parameterTypes, matches, i, args);
+                        matches = checkMatch(parameterTypes[i], args[i]);
                         if(!matches)
                             break;
                     }
@@ -167,7 +167,7 @@ public class ReflectionUtil {
                     args = newArgs;
                 } else {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        matches = checkMatch(parameterTypes, matches, i, args);
+                        matches = checkMatch(parameterTypes[i], args[i]);
                         if(!matches)
                             break;
                     }
@@ -225,13 +225,13 @@ public class ReflectionUtil {
         }
     }
 
-    private static boolean checkMatch(Class<?>[] parameterTypes, boolean matches, int i, Object... args) {
-        //skip enum if argument was String. We will try valueOf() later
-        if (!(args[i] instanceof String && parameterTypes[i].isEnum())
-                && !ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-            matches = false;
+    private static boolean checkMatch(Class<?> parameterType, Object arg) {
+        // skip enum if argument was String. We will try valueOf() later
+        if (!(arg instanceof String && parameterType.isEnum())
+                && !ClassUtils.isAssignable(arg.getClass(), parameterType, true)) {
+            return false;
         }
-        return matches;
+        return true;
     }
 
     public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
@@ -363,8 +363,8 @@ public class ReflectionUtil {
         return classes;
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
+/*
+    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
         System.out.println(ClassUtils.isAssignable(Integer.class, double.class, true));
 
         System.out.println(invokeMethod(ReflectionUtil.class, (Object) null, "testMethod", "SOMETHING"));
