@@ -147,12 +147,9 @@ public class ReflectionUtil {
 
                 if (method.isVarArgs()) {
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
-                        //skip enum if argument was String. We will try valueOf() later
-                        if (!(args[i] instanceof String && parameterTypes[i].isEnum())
-                                && !ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-                            matches = false;
+                        matches = checkMatch(parameterTypes, matches, i, args);
+                        if(!matches)
                             break;
-                        }
                     }
 
                     Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
@@ -170,12 +167,9 @@ public class ReflectionUtil {
                     args = newArgs;
                 } else {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        //skip enum if argument was String. We will try valueOf() later
-                        if (!(args[i] instanceof String && parameterTypes[i].isEnum())
-                                && !ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
-                            matches = false;
+                        matches = checkMatch(parameterTypes, matches, i, args);
+                        if(!matches)
                             break;
-                        }
                     }
                 }
 
@@ -229,6 +223,15 @@ public class ReflectionUtil {
                 builder.append("," + String.valueOf(args[i]));
             throw new NullPointerException("Call "+methodName+"("+builder.toString()+")");
         }
+    }
+
+    private static boolean checkMatch(Class<?>[] parameterTypes, boolean matches, int i, Object... args) {
+        //skip enum if argument was String. We will try valueOf() later
+        if (!(args[i] instanceof String && parameterTypes[i].isEnum())
+                && !ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+            matches = false;
+        }
+        return matches;
     }
 
     public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
