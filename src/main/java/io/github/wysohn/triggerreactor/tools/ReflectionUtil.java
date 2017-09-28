@@ -121,6 +121,7 @@ public class ReflectionUtil {
         return null;
     }
 
+    @SuppressWarnings({ "unchecked", "unchecked" })
     public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
         try{
             Class<?>[] parameterTypes = null;
@@ -146,7 +147,9 @@ public class ReflectionUtil {
 
                 if (method.isVarArgs()) {
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
-                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                        //skip enum if argument was String. We will try valueOf() later
+                        if (!(args[i] instanceof String && parameterTypes[i].isEnum())
+                                && !ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
                             matches = false;
                             break;
                         }
@@ -167,7 +170,9 @@ public class ReflectionUtil {
                     args = newArgs;
                 } else {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        if (!ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
+                        //skip enum if argument was String. We will try valueOf() later
+                        if (!(args[i] instanceof String && parameterTypes[i].isEnum())
+                                && !ClassUtils.isAssignable(args[i].getClass(), parameterTypes[i], true)) {
                             matches = false;
                             break;
                         }
@@ -177,6 +182,17 @@ public class ReflectionUtil {
                 if (matches) {
                     try {
                         method.setAccessible(true);
+
+                        for(int i = 0; i < args.length; i++){
+                            if(args[i] instanceof String && parameterTypes[i].isEnum()){
+                                try{
+                                    args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
+                                } catch (IllegalArgumentException e){
+                                    throw new RuntimeException("Enum conversion failed. Value: ["+args[i]+"]", e);
+                                }
+                            }
+                        }
+
                         return method.invoke(obj, args);
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -245,7 +261,7 @@ public class ReflectionUtil {
             field.setAccessible(true);
             try {
                 if(field.getClass().isEnum()){
-                    Enum enumVal = (Enum) field.get(e);
+                    Enum<?> enumVal = (Enum<?>) field.get(e);
                     map.put(field.getName(), enumVal.name());
                 }else{
                     map.put(field.getName(), field.get(e));
@@ -345,7 +361,17 @@ public class ReflectionUtil {
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public static void main(String[] ar){
-       System.out.println(ClassUtils.isAssignable(Integer.class, double.class, true));
+/*    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
+        System.out.println(ClassUtils.isAssignable(Integer.class, double.class, true));
+
+        System.out.println(invokeMethod(ReflectionUtil.class, (Object) null, "testMethod", "SOMETHING"));
     }
+
+    public static String testMethod(TestEnum val){
+        return val.name();
+    }
+
+    enum TestEnum{
+        SOMETHING;
+    }*/
 }
