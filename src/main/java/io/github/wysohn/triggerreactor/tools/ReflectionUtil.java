@@ -181,15 +181,24 @@ public class ReflectionUtil {
                             if(args[i] instanceof String && parameterTypes[i].isEnum()){
                                 try{
                                     args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
-                                } catch (IllegalArgumentException e){
+                                } catch (IllegalArgumentException ex1){
                                     //Some overloaded methods already has String to Enum conversion
                                     //So just lets see if one exists
                                     Class<?>[] types = new Class<?>[args.length];
                                     for(int k = 0; k < args.length; k++)
                                         types[k] = args[k].getClass();
 
-                                    Method alternative = clazz.getMethod(methodName, types);
-                                    return alternative.invoke(obj, args);
+                                    try {
+                                        Method alternative = clazz.getMethod(methodName, types);
+                                        return alternative.invoke(obj, args);
+                                    } catch (NoSuchMethodException ex2) {
+                                        throw new RuntimeException("Tried to convert value [" + args[i] + "] to Enum ["
+                                                + parameterTypes[i]
+                                                + "] or find appropriate method but found nothing. Make sure"
+                                                + " that the value [" + args[i]
+                                                + "] matches exactly with one of the Enums in [" + parameterTypes[i]
+                                                + "] or the method you are looking actually exists.");
+                                    }
                                 }
                             }
                         }
