@@ -182,7 +182,14 @@ public class ReflectionUtil {
                                 try{
                                     args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
                                 } catch (IllegalArgumentException e){
-                                    throw new RuntimeException("Enum conversion failed. Value: ["+args[i]+"]", e);
+                                    //Some overloaded methods already has String to Enum conversion
+                                    //So just lets see if one exists
+                                    Class<?>[] types = new Class<?>[args.length];
+                                    for(int k = 0; k < args.length; k++)
+                                        types[k] = args[k].getClass();
+
+                                    Method alternative = clazz.getMethod(methodName, types);
+                                    return alternative.invoke(obj, args);
                                 }
                             }
                         }
