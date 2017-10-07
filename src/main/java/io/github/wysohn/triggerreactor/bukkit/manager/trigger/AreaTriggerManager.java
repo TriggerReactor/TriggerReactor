@@ -31,6 +31,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.location.Area;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;

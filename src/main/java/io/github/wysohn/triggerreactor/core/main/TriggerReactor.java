@@ -13,9 +13,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.location.Area;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -537,16 +537,16 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        AreaTriggerManager.Area selected = getSelectionManager().getSelection(((IPlayer) sender).getUniqueId());
+                        Area selected = getSelectionManager().getSelection(((IPlayer) sender).getUniqueId());
                         if(selected == null){
                             sender.sendMessage("&7Invalid or incomplete area selection.");
                             return true;
                         }
 
-                        Set<AreaTriggerManager.Area> conflicts = getAreaManager().getConflictingAreas(selected);
+                        Set<Area> conflicts = getAreaManager().getConflictingAreas(selected);
                         if(!conflicts.isEmpty()){
                             sender.sendMessage("&7Found ["+conflicts.size()+"] conflicting areas:");
-                            for(AreaTriggerManager.Area conflict : conflicts){
+                            for(Area conflict : conflicts){
                                 sender.sendMessage("&d  "+conflict);
                             }
                             return true;
