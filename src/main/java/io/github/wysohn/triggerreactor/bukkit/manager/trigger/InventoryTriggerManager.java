@@ -201,10 +201,14 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
             Material type = Material.valueOf((String) section.get("Type", Material.DIRT.name()));
             int amount = section.getInt("Amount", 1);
             short data = (short) section.getInt("Data", 0);
+            ItemMeta IM = (ItemMeta) section.get("Meta");
 
             ItemStack IS = new ItemStack(type, amount, data);
-            ItemMeta IM = IS.getItemMeta();
+            if(IM == null)
+                IM = IS.getItemMeta();
+
             if(IM != null){
+                //leave these for backward compatibility
                 String title = section.getString("Title", null);
                 List<String> lore = section.getStringList("Lore");
 
@@ -212,6 +216,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
                     IM.setDisplayName(title);
                 if(lore != null)
                     IM.setLore(lore);
+
                 IS.setItemMeta(IM);
             }
 
@@ -233,10 +238,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
             section.set("Type", item.getType().name());
             section.set("Amount", item.getAmount());
             section.set("Data", item.getDurability());
-            if(item.hasItemMeta() && item.getItemMeta().hasDisplayName())
-                section.set("Title", item.getItemMeta().getDisplayName());
-            if(item.hasItemMeta() && item.getItemMeta().hasLore())
-                section.set("Lore", item.getItemMeta().getLore());
+            section.set("Meta", item.getItemMeta());
         }
     }
 
