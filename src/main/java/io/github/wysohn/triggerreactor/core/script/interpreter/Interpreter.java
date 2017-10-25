@@ -144,9 +144,9 @@ public class Interpreter {
 
         if ("IF".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
-
             if(stopFlag)
                 return;
+
             Token resultToken = stack.pop();
 
             if(isVariable(resultToken)){
@@ -182,11 +182,16 @@ public class Interpreter {
                 }else if(resultToken.value != null){//always true if not null
                     start(node.getChildren().get(1));
                 }else{
-                    throw new InterpreterException("Unexpected token for IF statement " + resultToken);
+                    throw new InterpreterException("Unexpected token for IF statement! -- " + resultToken);
                 }
             }
         } else if ("WHILE".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
+
+            Token resultToken = stack.pop();
+            if(resultToken.value instanceof Boolean)
+                throw new InterpreterException("Unexpected token for WHILE statement! -- " + resultToken);
+
             while(!stopFlag && (boolean) stack.pop().value){
                 start(node.getChildren().get(1));
                 start(node.getChildren().get(0));
