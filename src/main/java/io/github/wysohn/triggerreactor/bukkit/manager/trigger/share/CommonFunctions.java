@@ -176,7 +176,7 @@ public class CommonFunctions implements SelfReference {
     /**
      * take item from player.
      *     * <p>
-     * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one stone."; ELSE #MESSAGE "You don't have a stone"; ENDIF;
+     * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
      * </p>
      * @param player
      *            target player
@@ -198,7 +198,7 @@ public class CommonFunctions implements SelfReference {
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, 1, 1, 1); #MESSAGE "Removed one granite."; ELSE #MESSAGE "You don't have a granite"; ENDIF;
+     * Example) /trg run IF takeItem(player, 1, 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
      * </p>
      * @param player
      *            target player

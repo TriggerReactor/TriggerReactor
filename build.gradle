@@ -101,7 +101,7 @@ javadoc {
 	classpath = configurations.compile
 	failOnError = false
 	options { 
-       links "http://docs.oracle.com/javase/8/docs/api/" 
+       links "https://docs.oracle.com/javase/8/docs/api/" 
        links "https://hub.spigotmc.org/javadocs/bukkit/"
     } 
 }
