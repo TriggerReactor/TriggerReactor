@@ -701,7 +701,7 @@ public class CommonFunctions implements SelfReference {
         try {
             SkullUtil.setTextureValue(SM, textureValue);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return head;
         }
         head.setItemMeta(SM);
