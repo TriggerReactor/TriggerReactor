@@ -50,6 +50,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.SkullUtil;
 
 public class CommonFunctions implements SelfReference {
     private static final Random rand = new Random();
@@ -63,6 +64,10 @@ public class CommonFunctions implements SelfReference {
     /**
      * get a random integer value between 0 to end
      *
+     *<p>
+     *Example) #MESSAGE "You rolled the dice: "+(random(6) + 1)
+     *</p>
+     *
      * @param end
      *            exclusive
      * @return
@@ -73,7 +78,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * get a random integer value between start to end
-     *
+     *     *<p>
+     *Example) #MESSAGE "You rolled the dice: "+random(1, 7)
+     *</p>
      * @param start
      *            inclusive
      * @param end
@@ -86,6 +93,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Simply try to get plugin object directly.
+     *      *<p>
+     *Example) #MESSAGE "spawn region info: "+plugin("WorldGuard").getRegionManager(player.getWorld()).getRegion("spawn")
+     *</p>
      * @param name name of the plugin.
      * @return Plugin object on success; null if plugin not found or loaded.
      */
@@ -165,7 +175,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * take item from player.
-     *
+     *     * <p>
+     * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one stone."; ELSE #MESSAGE "You don't have a stone"; ENDIF;
+     * </p>
      * @param player
      *            target player
      * @param id
@@ -174,7 +186,7 @@ public class CommonFunctions implements SelfReference {
      *            amount
      * @return true if took it; false if player doesn't have it
      */
-    public boolean takeItem(Player player, Integer id, Integer amount) {
+    public boolean takeItem(Player player, int id, int amount) {
         ItemStack IS = new ItemStack(id, amount);
         if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
@@ -185,7 +197,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * take item from player.
-     *
+     * <p>
+     * Example) /trg run IF takeItem(player, 1, 1, 1); #MESSAGE "Removed one granite."; ELSE #MESSAGE "You don't have a granite"; ENDIF;
+     * </p>
      * @param player
      *            target player
      * @param id
@@ -196,8 +210,8 @@ public class CommonFunctions implements SelfReference {
      *            data of item
      * @return true if took it; false if player doesn't have it
      */
-    public boolean takeItem(Player player, Integer id, Integer amount, short data) {
-        ItemStack IS = new ItemStack(id, amount, data);
+    public boolean takeItem(Player player, int id, int amount, int data) {
+        ItemStack IS = new ItemStack(id, amount, (short) data);
         if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
 
@@ -219,7 +233,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * check if two location are equal not considering their decimal points
-     *
+     * <p>
+     * Example) /trg run IF locationEqual(player.getLocation(), {"otherLocation"}); #MESSAGE "match"; ENDIF;
+     * </p>
      * @param loc1
      * @param loc2
      * @return true if equal; false if not
@@ -231,7 +247,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * matches the str by using regular expression regex
-     *
+     * <p>
+     * Example) /trg run IF matches("PewPew", "[a-zA-Z0-9 ]+"); #MESSAGE "Seems to be English"; ENDIF;
+     * </p>
      * @param str
      * @param regex
      * @return true if str matches with regex; false if not
@@ -242,6 +260,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * parse the string that contains integer into real integer value.
+     * <p>
+     * Example) /trg run #MESSAGE parseInt("300") + 50
+     * </p>
      * @param str the string that contains integer
      * @return the real integer
      */
@@ -251,6 +272,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * parse the string that contains decimal into real decimal value.
+     * <p>
+     * Example) /trg run #MESSAGE parseDouble("15.30") + 2.12
+     * </p>
      * @param str the string that contains decimal
      * @return the real decimal
      */
@@ -260,6 +284,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * try to get a player from name. Mostly online player.
+     * <p>
+     * Example) player("wysohn").performCommand("spawn")
+     * </p>
      * @param name name of player
      * @return the Player object; it can be null if no player is found with the name
      */
@@ -269,6 +296,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * try to get offline player from name.
+     * <p>
+     * Example) /trg run #MESSAGE "UUID is: "+oplayer("wysohn").getUniqueId()
+     * </p>
      * @param name name of player
      * @return the OfflinePlayer object; it never returns null but always return an offline player even if the player
      * doesn't exist.
@@ -279,7 +309,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * get list of online players online
-     *
+     * <p>
+     * Example) /trg run FOR p = getPlayers(); p.performCommand("spawn"); ENDFOR;
+     * </p>
      * @return player iterator
      */
     public Collection<? extends Player> getPlayers() {
@@ -288,7 +320,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * create an empty array
-     *
+     * <p>
+     * Example) /trg run temp = array(5); temp[3] = "hi"; #MESSAGE temp[3];
+     * </p>
      * @param size
      *            size of array
      * @return
@@ -331,7 +365,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Get the name of area where player is currently standing on.
-     *
+     * <p>
+     * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
+     * </p>
      * @param player
      *            player
      * @return name of area; null if player is not on any area.
@@ -348,7 +384,6 @@ public class CommonFunctions implements SelfReference {
     /**
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
-     *
      * @param argument
      *            array to merge
      * @return
@@ -360,7 +395,6 @@ public class CommonFunctions implements SelfReference {
     /**
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
-     *
      * @param argument
      *            array to merge
      * @param indexFrom
@@ -374,7 +408,6 @@ public class CommonFunctions implements SelfReference {
     /**
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
-     *
      * @param argument
      *            array to merge
      * @param indexFrom
@@ -393,6 +426,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Translate & into minecraft color code
+     * <p>
+     * Example) /trg run player.sendMessage(color("&aGREEN, &cRED"))
+     * </p>
      * @param str unprocessed string
      * @return string with minecraft color codes
      */
@@ -402,6 +438,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item(1, 64, 0)
+     * </p>
      * @param type typeId
      * @param amount amount of item
      * @param data data
@@ -413,6 +452,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item(1, 32)
+     * </p>
      * @param type typeId
      * @param amount amount of item
      * @return the ItemStack
@@ -423,6 +465,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Get title of the specified ItemStack. Empty String if not exist.
+     * <p>
+     * Example) /trg run #MESSAGE "item name is: "+getItemTitle(player.getItemInHand())
+     * </p>
      * @param IS
      * @return
      */
@@ -437,6 +482,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Set title of the specified ItemStack
+     * <p>
+     * Example) /trg run myitem = item(1, 1); setItemTitle(myitem, "I'm stone"); #GIVE myitem;
+     * </p>
      * @param IS
      * @param title
      */
@@ -597,6 +645,9 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Get the block which player is looking at
+     * <p>
+     * Example) /trg run #MESSAGE "looking at the block: "+getTargetBlock(player, 30);
+     * </p>
      * @param player
      * @param maxDistance
      * @return block
@@ -607,14 +658,52 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * Create a player head with given name.
-     * @param targetName name of the owner of head
+     *
+     * <p>
+     * Example) /trg run #GIVE headForName("wysohn")
+     * </p>
+     *
+     * @param targetName
+     *            name of the owner of head
      * @return the ItemStack head
      */
-    public ItemStack head(String targetName){
+    public ItemStack headForName(String targetName) {
         ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
         ItemMeta IM = head.getItemMeta();
         SkullMeta SM = (SkullMeta) IM;
         SM.setOwner(targetName);
+        head.setItemMeta(SM);
+        return head;
+    }
+
+    /**
+     * Create a player head with given textureValue(base64 encoded).
+     *
+     * <p>
+     * Example) /trg run #GIVE
+     * headForValue("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlc
+     * y5taW5lY3JhZnQubmV0L3RleHR1cmUvN2RjZDdkZjUyNjQ1YzY4Y2RhZDg1NDhlNjFiM2Y3
+     * NjU5NjQwNzcyMjZiYTg3MmI5ZDJiZDQ1YzQz<b>OWQifX19\\</b>")
+     * </p>
+     * <p>
+     * <b> Notice that there is an extra \ sign as \ is an escape sequence. The final
+     * String will be ...OWQifX19\ instead of ...OWQifX19\\" </b>
+     * </p>
+     *
+     * @param textureValue
+     *            base64 encoded texture value
+     * @return the ItemStack head
+     */
+    public ItemStack headForValue(String textureValue) {
+        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+        ItemMeta IM = head.getItemMeta();
+        SkullMeta SM = (SkullMeta) IM;
+        try {
+            SkullUtil.setTextureValue(SM, textureValue);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return head;
+        }
         head.setItemMeta(SM);
         return head;
     }
