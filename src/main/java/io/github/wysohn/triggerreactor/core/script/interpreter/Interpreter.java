@@ -189,7 +189,7 @@ public class Interpreter {
             start(node.getChildren().get(0));
 
             Token resultToken = stack.pop();
-            if(resultToken.value instanceof Boolean)
+            if(!(resultToken.value instanceof Boolean))
                 throw new InterpreterException("Unexpected token for WHILE statement! -- " + resultToken);
 
             while(!stopFlag && (boolean) stack.pop().value){
