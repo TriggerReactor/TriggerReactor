@@ -72,7 +72,7 @@ public class CommonFunctions implements SelfReference {
      *            exclusive
      * @return
      */
-    public int random(Integer end) {
+    public int random(int end) {
         return rand.nextInt(end);
     }
 
@@ -87,7 +87,7 @@ public class CommonFunctions implements SelfReference {
      *            exclusive
      * @return
      */
-    public int random(Integer start, Integer end) {
+    public int random(int start, int end) {
         return start + rand.nextInt(end - start);
     }
 
@@ -327,7 +327,7 @@ public class CommonFunctions implements SelfReference {
      *            size of array
      * @return
      */
-    public Object[] array(Integer size) {
+    public Object[] array(int size) {
         return new Object[size];
     }
 
@@ -401,7 +401,7 @@ public class CommonFunctions implements SelfReference {
      *            inclusive
      * @return
      */
-    public String mergeArguments(String[] args, Integer indexFrom) {
+    public String mergeArguments(String[] args, int indexFrom) {
         return mergeArguments(args, indexFrom, args.length - 1);
     }
 
@@ -416,7 +416,7 @@ public class CommonFunctions implements SelfReference {
      *            inclusive
      * @return
      */
-    public String mergeArguments(String[] args, Integer indexFrom, Integer indexTo) {
+    public String mergeArguments(String[] args, int indexFrom, int indexTo) {
         StringBuilder builder = new StringBuilder(args[indexFrom]);
         for(int i = indexFrom + 1; i <= indexTo; i++){
             builder.append(" "+args[i]);
