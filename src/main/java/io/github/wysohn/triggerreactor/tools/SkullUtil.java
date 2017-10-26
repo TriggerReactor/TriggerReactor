@@ -11,6 +11,9 @@ import java.util.UUID;
 
 import org.bukkit.inventory.meta.SkullMeta;
 
+import com.google.common.collect.ForwardingMultimap;
+import com.google.common.collect.Multimap;
+
 public class SkullUtil {
 
     /**
@@ -32,7 +35,7 @@ public class SkullUtil {
             Method getPropertiesMethod = profile.getClass().getMethod("getProperties");
             Object properties = getPropertiesMethod.invoke(profile);
 
-            Method putMethod = properties.getClass().getMethod("put", String.class, propertyClazz);
+            Method putMethod = properties.getClass().getMethod("put", Object.class, Object.class);
             putMethod.invoke(properties, "textures",
                     propertyClazz.getConstructor(String.class, String.class).newInstance("textures", textureValue));
 
@@ -110,5 +113,19 @@ public class SkullUtil {
         public static CustomSkullType get(String owner) {
             return Holder.map.get(owner);
         }
+    }
+
+    public static class TestChild{
+
+    }
+
+    public static class Test extends ForwardingMultimap<String, TestChild>{
+
+        @Override
+        protected Multimap<String, TestChild> delegate() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
     }
 }
