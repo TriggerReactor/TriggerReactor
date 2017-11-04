@@ -117,9 +117,7 @@ public class Interpreter {
      * @throws InterpreterException
      */
     public void startWithContext(Object context) throws InterpreterException{
-        this.context = context;
-        for(Node child : root.getChildren())
-            start(child);
+        startWithContextAndInterrupter(context, null);
     }
 
     /**
@@ -132,8 +130,13 @@ public class Interpreter {
         this.context = context;
         this.interrupter = interrupter;
 
-        for(Node child : root.getChildren())
-            start(child);
+        Node child = null;
+        try {
+            for(int i = 0; i < root.getChildren().size(); i++)
+                start(child = root.getChildren().get(i));
+        }catch(InterpreterException e) {
+            throw new InterpreterException("While interpreting "+child, e);
+        }
     }
 
     //Check if stopFlag is on before pop Token from stack.
@@ -214,7 +217,7 @@ public class Interpreter {
             Token idToken = stack.pop();
 
             if(idToken == null)
-                throw new InterpreterException("Local variable for FOR statement not found!");
+                throw new InterpreterException("Iteration variable for FOR statement not found!");
 
             if (node.getChildren().get(1).getToken().type != Type.ITERATOR)
                 throw new InterpreterException("Expected <ITERATOR> but found " + node.getChildren().get(1).getToken());
@@ -455,18 +458,30 @@ public class Interpreter {
 
                     switch ((String) node.getToken().value) {
                     case "<":
+                        if(!left.isNumeric() || !right.isNumeric())
+                            throw new InterpreterException("Only numeric values can be compared!");
+
                         stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
                                 ? right.toInt() : right.toDouble())));
                         break;
                     case ">":
+                        if(!left.isNumeric() || !right.isNumeric())
+                            throw new InterpreterException("Only numeric values can be compared!");
+
                         stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) > (right.isInt()
                                 ? right.toInt() : right.toDouble())));
                         break;
                     case "<=":
+                        if(!left.isNumeric() || !right.isNumeric())
+                            throw new InterpreterException("Only numeric values can be compared!");
+
                         stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) <= (right.isInt()
                                 ? right.toInt() : right.toDouble())));
                         break;
                     case ">=":
+                        if(!left.isNumeric() || !right.isNumeric())
+                            throw new InterpreterException("Only numeric values can be compared!");
+
                         stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) >= (right.isInt()
                                 ? right.toInt() : right.toDouble())));
                         break;

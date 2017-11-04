@@ -19,18 +19,26 @@ package io.github.wysohn.triggerreactor.core.script;
 public class Token {
     public final Type type;
     public final Object value;
+    public final int row;
+    public final int col;
 
-    public Token(Type type, Object value) {
+    public Token(Type type, Object value, int row, int col) {
         this.type = type;
 
         if(value instanceof Float){
             value = (double) ((float) value);
         }
         this.value = value;
+        this.row = row;
+        this.col = col;
     }
 
-    public Token(Type type) {
-        this(type, null);
+/*    public Token(Type type, Object value, Lexer lexer) {
+        this(type, value, lexer.getRow(), lexer.getCol());
+    }
+*/
+    public Token(Type type, Object value) {
+        this(type, value, -1, -1);
     }
 
     public Object getValue() {
@@ -69,6 +77,10 @@ public class Token {
         return (double) value;
     }
 
+    public boolean isNumeric() {
+        return isInt() || isDouble();
+    }
+
     public boolean toBoolean(){
         return (boolean) value;
     }
@@ -79,7 +91,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return "[type: "+type.name()+", value: '"+value+"']";
+        return "[type: "+type.name()+", value: '"+value+"'] at row["+row+"], col["+col+"]";
     }
 
     @Override

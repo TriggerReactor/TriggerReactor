@@ -86,7 +86,7 @@ public class Lexer {
             eos = true;
             return false;
         } else {
-            if(c == '\n'){
+            if(c == '\n' || c == ';'){
                 row++; col = 0;
             }else{
                 col++;
@@ -176,7 +176,7 @@ public class Lexer {
             read();
         }
         if(c != '.'){
-            return new Token(Type.INTEGER, builder.toString());
+            return new Token(Type.INTEGER, builder.toString(), row, col);
         }else{
             builder.append('.');
             read();
@@ -188,7 +188,7 @@ public class Lexer {
             read();
         }
 
-        return new Token(Type.DECIMAL, builder.toString());
+        return new Token(Type.DECIMAL, builder.toString(), row, col);
     }
 
     private Token readString() throws IOException, LexerException{
@@ -213,7 +213,7 @@ public class Lexer {
 
         read();
 
-        return new Token(Type.STRING, builder.toString());
+        return new Token(Type.STRING, builder.toString(), row, col);
     }
 
     private Token readOperator() throws IOException, LexerException{
@@ -223,9 +223,9 @@ public class Lexer {
 
             if(c == '='){
                 read();
-                return new Token(Type.OPERATOR_L, op+"=");
+                return new Token(Type.OPERATOR_L, op+"=", row, col);
             }else{
-                return new Token(Type.OPERATOR_L, op);
+                return new Token(Type.OPERATOR_L, op, row, col);
             }
         } else if (c == '|') {
             String op = String.valueOf(c);
@@ -233,7 +233,7 @@ public class Lexer {
 
             if(c == '|'){
                 read();
-                return new Token(Type.OPERATOR_L, op+"|");
+                return new Token(Type.OPERATOR_L, op+"|", row, col);
             }else{
                 throw new LexerException("Bit operator is not yet implemented.", this);
             }
@@ -243,7 +243,7 @@ public class Lexer {
 
             if(c == '&'){
                 read();
-                return new Token(Type.OPERATOR_L, op+"&");
+                return new Token(Type.OPERATOR_L, op+"&", row, col);
             }else{
                 throw new LexerException("Bit operator is not yet implemented.", this);
             }
@@ -253,16 +253,16 @@ public class Lexer {
 
             if(c == '='){
                 read();
-                return new Token(Type.OPERATOR_L, op+"=");
+                return new Token(Type.OPERATOR_L, op+"=", row, col);
             }else{
-                return new Token(Type.OPERATOR, op);
+                return new Token(Type.OPERATOR, op, row, col);
             }
         }else{
             Token token = null;
             if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
-                token = new Token(Type.OPERATOR_A, String.valueOf(c));
+                token = new Token(Type.OPERATOR_A, String.valueOf(c), row, col);
             } else {
-                token = new Token(Type.OPERATOR, String.valueOf(c));
+                token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
             }
             read();
             return token;
@@ -283,12 +283,12 @@ public class Lexer {
             read();
         }
 
-        return new Token(Type.ID, builder.toString());
+        return new Token(Type.ID, builder.toString(), row, col);
     }
 
     private Token readEndline() throws IOException {
         read();
-        return new Token(Type.ENDL, null);
+        return new Token(Type.ENDL, null, row, col);
     }
 
     private static boolean isIdCharacter(char c){

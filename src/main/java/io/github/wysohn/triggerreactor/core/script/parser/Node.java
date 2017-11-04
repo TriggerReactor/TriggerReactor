@@ -41,13 +41,13 @@ public class Node {
     @Override
     public String toString() {
         String str = token.toString();
-        if(!children.isEmpty()){
+/*        if(!children.isEmpty()){
             str += " {";
             for(int i = 0; i < children.size(); i++){
                 str += "("+children.get(i).token+") ";
             }
             str += " }";
-        }
+        }*/
         return str;
     }
 
