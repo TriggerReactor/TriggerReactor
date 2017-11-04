@@ -186,20 +186,27 @@ public class Interpreter {
                 }
             }
         } else if ("WHILE".equals(node.getToken().value)) {
-            start(node.getChildren().get(0));
-
-            Token resultToken = stack.pop();
-            if(isVariable(resultToken)){
-                resultToken = unwrapVariable(resultToken);
-            }
-
-            if(!(resultToken.value instanceof Boolean))
-                throw new InterpreterException("Unexpected token for WHILE statement! -- " + resultToken);
-
-            while(!stopFlag && (boolean) resultToken.value){
-                start(node.getChildren().get(1));
+            Token resultToken = null;
+            do {
                 start(node.getChildren().get(0));
-            }
+
+                resultToken = stack.pop();
+                if(resultToken == null)
+                    throw new InterpreterException("Could not find conditon for WHILE statement!");
+
+                if (isVariable(resultToken)) {
+                    resultToken = unwrapVariable(resultToken);
+                }
+
+                if (!(resultToken.value instanceof Boolean))
+                    throw new InterpreterException("Unexpected token for WHILE statement! -- " + resultToken);
+
+                if ((boolean) resultToken.value) {
+                    start(node.getChildren().get(1));
+                } else {
+                    break;
+                }
+            } while (!stopFlag);
         } else if("FOR".equals(node.getToken().value)){
             start(node.getChildren().get(0));
 
@@ -246,7 +253,7 @@ public class Interpreter {
             }else if(iterNode.getChildren().size() == 2){
                 Node initNode = iterNode.getChildren().get(0);
                 if(initNode.getToken().type != Type.INTEGER)
-                    throw new InterpreterException("Init value must be an Integer value!");
+                    throw new InterpreterException("Init value must be an Integer value! -- "+initNode);
                 start(initNode);
 
                 if(stopFlag)
@@ -265,7 +272,7 @@ public class Interpreter {
                 }
 
                 if(limitToken.type != Type.INTEGER)
-                    throw new InterpreterException("Limit value must be an Integer value!");
+                    throw new InterpreterException("Limit value must be an Integer value! -- "+limitToken);
 
                 for(int i = initToken.toInt(); !stopFlag && i < limitToken.toInt(); i++){
                     assignValue(idToken, new Token(Type.INTEGER, i));

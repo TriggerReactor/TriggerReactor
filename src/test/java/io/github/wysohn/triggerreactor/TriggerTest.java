@@ -464,6 +464,38 @@ public class TriggerTest {
         Assert.assertTrue((boolean) Array.get(arr, 5));
     }
 
+    @Test
+    public void testWhile() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "number = 0;"
+                + "WHILE number < 3;"
+                + "#MESSAGE number;"
+                + "number = number + 1;"
+                + "ENDWHILE;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                System.out.println(args[0]);
+                return null;
+            }
+
+        });
+
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+
+        Assert.assertEquals(3, interpreter.getVars().get("number"));
+    }
+
     private static class TheTest{
         public InTest in = new InTest();
         public InTest getTest(){
