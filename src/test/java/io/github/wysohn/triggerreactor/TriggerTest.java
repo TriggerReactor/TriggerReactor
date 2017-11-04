@@ -468,9 +468,8 @@ public class TriggerTest {
     public void testWhile() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
-                + "number = 0;"
+                + "number = 1;"
                 + "WHILE number < 3;"
-                + "#MESSAGE number;"
                 + "number = number + 1;"
                 + "ENDWHILE;";
 
@@ -479,15 +478,6 @@ public class TriggerTest {
 
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                System.out.println(args[0]);
-                return null;
-            }
-
-        });
 
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
 
