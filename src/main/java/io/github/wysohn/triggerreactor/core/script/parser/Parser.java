@@ -77,7 +77,7 @@ public class Parser {
                 ifNode.getChildren().add(condition);
 
                 //if body
-                Node trueBody = new Node(new Token(Type.BODY, "<BODY>", token.row, token.col));
+                Node trueBody = new Node(new Token(Type.BODY, "<BODY>"));
 
                 Node codes = null;
                 while((codes = parseStatement()) != null
@@ -91,7 +91,7 @@ public class Parser {
 
                 //else body
                 if("ELSE".equals(codes.getToken().value)){
-                    Node falseBody = new Node(new Token(Type.BODY, "<BODY>", token.row, token.col));
+                    Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
 
                     while((codes = parseStatement()) != null
                             && !"ENDIF".equals(codes.getToken().value)){
@@ -122,7 +122,7 @@ public class Parser {
                     throw new ParserException("Could not find condition for WHILE statement! "+whileNode.getToken());
                 whileNode.getChildren().add(condition);
 
-                Node body = new Node(new Token(Type.BODY, "<BODY>", token.row, token.col));
+                Node body = new Node(new Token(Type.BODY, "<BODY>"));
                 Node codes = null;
                 while((codes = parseStatement()) != null && !"ENDWHILE".equals(codes.getToken().value)){
                     body.getChildren().add(codes);
@@ -151,7 +151,7 @@ public class Parser {
                     throw new ParserException("Expected '=' but found "+token);
                 nextToken();
 
-                Node iteration = new Node(new Token(Type.ITERATOR, "<ITERATOR>", token.row, token.col));
+                Node iteration = new Node(new Token(Type.ITERATOR, "<ITERATOR>"));
                 forNode.getChildren().add(iteration);
                 Node first = parseFactor();
                 if(first == null)
@@ -166,7 +166,7 @@ public class Parser {
                     iteration.getChildren().add(second);
                 }
 
-                Node body = new Node(new Token(Type.BODY, "<BODY>", token.row, token.col));
+                Node body = new Node(new Token(Type.BODY, "<BODY>"));
                 Node codes = null;
                 while((codes = parseStatement()) != null && !"ENDFOR".equals(codes.getToken().value)){
                     body.getChildren().add(codes);
@@ -185,6 +185,9 @@ public class Parser {
             }
             else if(token.type == Type.ID){
                 if(((String) token.value).charAt(0) == '#'){
+                    int row = token.row;
+                    int col = token.col;
+
                     String command = ((String) token.value).substring(1);
                     StringBuilder builder = new StringBuilder(command);
                     nextToken();
@@ -196,7 +199,7 @@ public class Parser {
                         nextToken();
                     }
 
-                    Node commandNode = new Node(new Token(Type.COMMAND, builder.toString(), token.row, token.col));
+                    Node commandNode = new Node(new Token(Type.COMMAND, builder.toString(), row, col));
 
                     List<Node> args = new ArrayList<>();
                     if(token != null && token.type != Type.ENDL){
@@ -242,7 +245,7 @@ public class Parser {
             } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
                 nextToken();
 
-                Node left = new Node(new Token(Type.GID, "<GVAR>", token.row, token.col));
+                Node left = new Node(new Token(Type.GID, "<GVAR>"));
                 Node keyString = parseLogic();
 
                 left.getChildren().add(keyString);
@@ -490,7 +493,7 @@ public class Parser {
         if (token.type == Type.OPERATOR && "{".equals(token.value)) {
             nextToken();
 
-            Node gvarNode = new Node(new Token(Type.GID, "<GVAR>", token.row, token.col));
+            Node gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
             Node keyString = parseLogic();
 
             gvarNode.getChildren().add(keyString);
@@ -570,7 +573,7 @@ public class Parser {
                     nextToken();
 
                     Node index = parseExpression();
-                    Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>", token.row, token.col));
+                    Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>"));
 
                     if (token == null || !"]".equals(token.value))
                         throw new ParserException("Expected ']' but found " + token);
@@ -584,7 +587,7 @@ public class Parser {
                 //id(args)
                 else if(token != null && "(".equals(token.value)){//fuction call
                     nextToken();
-                    Node call = new Node(new Token(Type.CALL, idToken.value, token.row, token.col));
+                    Node call = new Node(new Token(Type.CALL, idToken.value));
 
                     if(token != null && ")".equals(token.value)){
                         deque.addLast(call);
@@ -608,7 +611,7 @@ public class Parser {
                         nextToken();
 
                         Node index = parseExpression();
-                        Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>", token.row, token.col));
+                        Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>"));
 
                         if (token == null || !"]".equals(token.value))
                             throw new ParserException("Expected ']' but found " + token);
