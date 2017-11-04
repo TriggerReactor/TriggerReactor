@@ -628,7 +628,7 @@ public class Parser {
             }while(token != null && ".".equals(token.value));
 
             if(deque.peekFirst().getToken().type != Type.THIS)
-                deque.push(new Node(new Token(Type.THIS, "<This>", token.row, token.col)));
+                deque.push(new Node(new Token(Type.THIS, "<This>", -1, -1)));
 
             return parseId(deque);
         }else{
