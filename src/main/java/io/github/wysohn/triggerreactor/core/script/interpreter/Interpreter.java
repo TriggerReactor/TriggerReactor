@@ -137,7 +137,6 @@ public class Interpreter {
     }
 
     //Check if stopFlag is on before pop Token from stack.
-    @SuppressWarnings("unchecked")
     private void start(Node node) throws InterpreterException{
         if(stopFlag)
             return;
@@ -213,6 +212,9 @@ public class Interpreter {
             if(stopFlag)
                 return;
             Token idToken = stack.pop();
+
+            if(idToken == null)
+                throw new InterpreterException("Local variable for FOR statement not found!");
 
             if (node.getChildren().get(1).getToken().type != Type.ITERATOR)
                 throw new InterpreterException("Expected <ITERATOR> but found " + node.getChildren().get(1).getToken());
