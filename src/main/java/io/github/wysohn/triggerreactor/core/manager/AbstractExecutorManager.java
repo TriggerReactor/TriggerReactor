@@ -32,7 +32,7 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
 public abstract class AbstractExecutorManager extends Manager {
-    protected static final ScriptEngineManager sem = new ScriptEngineManager();
+    protected static final ScriptEngineManager sem = new ScriptEngineManager(null);
 
     public static AbstractExecutorManager instance;
 
@@ -56,7 +56,9 @@ public abstract class AbstractExecutorManager extends Manager {
     }
 
     protected void registerClass(String name, Class<?> clazz) throws ScriptException{
-        sem.put(name, getNashornEngine().eval("Java.type('"+clazz.getName()+"');"));
+        ScriptEngine engine = getNashornEngine();
+        Object value = engine.eval("Java.type('"+clazz.getName()+"');");
+        sem.put(name, value);
     }
 
     /**
