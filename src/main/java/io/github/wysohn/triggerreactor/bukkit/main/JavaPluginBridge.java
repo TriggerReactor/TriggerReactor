@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +22,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -32,9 +37,13 @@ import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
@@ -44,6 +53,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
@@ -88,7 +98,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 
-public class JavaPluginBridge extends TriggerReactor{
+public class JavaPluginBridge extends TriggerReactor implements Plugin{
     private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
 
     private BungeeCordHelper bungeeHelper;
@@ -713,6 +723,86 @@ public class JavaPluginBridge extends TriggerReactor{
         }
 
         return result;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return bukkitPlugin.onTabComplete(sender, command, alias, args);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return super.onCommand(new BukkitCommandSender(sender), command.getName(), args);
+    }
+
+    @Override
+    public PluginDescriptionFile getDescription() {
+        return bukkitPlugin.getDescription();
+    }
+
+    @Override
+    public FileConfiguration getConfig() {
+        return bukkitPlugin.getConfig();
+    }
+
+    @Override
+    public InputStream getResource(String filename) {
+        return bukkitPlugin.getResource(filename);
+    }
+
+    @Override
+    public void saveDefaultConfig() {
+        bukkitPlugin.saveDefaultConfig();
+    }
+
+    @Override
+    public void saveResource(String resourcePath, boolean replace) {
+        bukkitPlugin.saveResource(resourcePath, replace);
+    }
+
+    @Override
+    public PluginLoader getPluginLoader() {
+        return bukkitPlugin.getPluginLoader();
+    }
+
+    @Override
+    public Server getServer() {
+        return bukkitPlugin.getServer();
+    }
+
+    @Override
+    public void onDisable() {
+        bukkitPlugin.onDisable();
+    }
+
+    @Override
+    public void onLoad() {
+        bukkitPlugin.onLoad();
+    }
+
+    @Override
+    public void onEnable() {
+        bukkitPlugin.onEnable();
+    }
+
+    @Override
+    public boolean isNaggable() {
+        return bukkitPlugin.isNaggable();
+    }
+
+    @Override
+    public void setNaggable(boolean canNag) {
+        bukkitPlugin.setNaggable(canNag);
+    }
+
+    @Override
+    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
+        return bukkitPlugin.getDefaultWorldGenerator(worldName, id);
+    }
+
+    @Override
+    public String getName() {
+        return bukkitPlugin.getName();
     }
 
 
