@@ -58,11 +58,11 @@ public class Token {
     }
 
     public boolean isArray() {
-        return value.getClass().isArray();
+        return value != null && value.getClass().isArray();
     }
 
     public boolean isIterable() {
-        return value.getClass().isArray() || value instanceof Iterable;
+        return value != null && (value.getClass().isArray() || value instanceof Iterable);
     }
 
     public boolean isObject(){
