@@ -40,7 +40,11 @@ public class Accessor {
     public Object evaluateTarget() throws NoSuchFieldException, IllegalArgumentException{
         if(targetParent.getClass().isArray()){
             if(target instanceof Integer){
-                return Array.get(targetParent, (Integer) target);
+                try {
+                    return Array.get(targetParent, (Integer) target);
+                }catch(ArrayIndexOutOfBoundsException e){
+                    throw new IllegalArgumentException(target+" is out of bound for array! Size: "+Array.getLength(targetParent));
+                }
             }else if(target instanceof String && ((String) target).equals("length")){
                 return Array.getLength(targetParent);
             }else{
@@ -49,7 +53,6 @@ public class Accessor {
         }else{
             return ReflectionUtil.getField(targetParent, (String) target);
         }
-
     }
 
     public void setTargetValue(Object value) throws NoSuchFieldException, IllegalArgumentException{
