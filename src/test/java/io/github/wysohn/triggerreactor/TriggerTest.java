@@ -486,6 +486,27 @@ public class TriggerTest {
         Assert.assertEquals(3, interpreter.getVars().get("number"));
     }
 
+    @Test
+    public void testEnumParse() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "result = parseEnum(\"io.github.wysohn.triggerreactor.TriggerTest$TestEnum\", value);";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<String, Object>(), new HashMap<String, Object>() {{
+            put("value", "IMTEST");
+        }}, new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+
+        Assert.assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
+    }
+
     private static class TheTest{
         public InTest in = new InTest();
         public InTest getTest(){
@@ -511,4 +532,7 @@ public class TriggerTest {
         }
     }
 
+    public enum TestEnum{
+        IMTEST;
+    }
 }

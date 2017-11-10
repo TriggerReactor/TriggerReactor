@@ -175,7 +175,7 @@ public class CommonFunctions implements SelfReference {
 
     /**
      * take item from player.
-     *     * <p>
+     * <p>
      * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
      * </p>
      * @param player
@@ -280,6 +280,32 @@ public class CommonFunctions implements SelfReference {
      */
     public double parseDouble(String str){
         return Double.parseDouble(str);
+    }
+
+    /**
+     * Get enum value manually. Usually, you can simply pass String value to the
+     * Enum parameter, yet in some cases, you need to manually create enum
+     * value. For example, TriggerReactor cannot detect Generic argument, so you
+     * have to manually create enum value.
+     * <p>
+     * Example) /trg run #MESSAGE "value is "+enumValue("org.bukkit.GameMode",
+     * "CREATIVE") Example) /trg run
+     * player.setGameMode(enumValue("org.bukkit.GameMode", "CREATIVE")) Example)
+     * /trg run player.setGameMode("CREATIVE") //This also works
+     * </p>
+     *
+     * @param enumClassName the full class name of enum.
+     * @param valueName the enum value to parse.
+     * @return the actual enum value.
+     * @throws ClassNotFoundException if the provided class name doesn't exist or not enum class.
+     */
+    @SuppressWarnings("unchecked")
+    public Object parseEnum(String enumClassName, String valueName) throws ClassNotFoundException {
+        Class<?> clazz = Class.forName(enumClassName);
+        if(!clazz.isEnum())
+            throw new ClassNotFoundException("Found the class ["+clazz.getName()+"], but it wasn't Enum");
+
+        return Enum.valueOf((Class<? extends Enum>) clazz, valueName);
     }
 
     /**
