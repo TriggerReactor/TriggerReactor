@@ -288,16 +288,24 @@ public class CommonFunctions implements SelfReference {
      * value. For example, TriggerReactor cannot detect Generic argument, so you
      * have to manually create enum value.
      * <p>
-     * Example) /trg run #MESSAGE "value is "+enumValue("org.bukkit.GameMode",
-     * "CREATIVE") Example) /trg run
-     * player.setGameMode(enumValue("org.bukkit.GameMode", "CREATIVE")) Example)
-     * /trg run player.setGameMode("CREATIVE") //This also works
+     * Example) /trg run #MESSAGE "value is "+parseEnum("org.bukkit.GameMode",
+     * "CREATIVE")
+     * </p>
+     * <p>
+     * Example) /trg run player.setGameMode(parseEnum("org.bukkit.GameMode",
+     * "CREATIVE"))
+     * </p>
+     * <p>
+     * Example) /trg run player.setGameMode("CREATIVE") //This also works
      * </p>
      *
-     * @param enumClassName the full class name of enum.
-     * @param valueName the enum value to parse.
+     * @param enumClassName
+     *            the full class name of enum.
+     * @param valueName
+     *            the enum value to parse.
      * @return the actual enum value.
-     * @throws ClassNotFoundException if the provided class name doesn't exist or not enum class.
+     * @throws ClassNotFoundException
+     *             if the provided class name doesn't exist or not enum class.
      */
     @SuppressWarnings("unchecked")
     public Object parseEnum(String enumClassName, String valueName) throws ClassNotFoundException {
