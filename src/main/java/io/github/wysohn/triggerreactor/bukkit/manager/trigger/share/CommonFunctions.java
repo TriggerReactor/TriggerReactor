@@ -385,17 +385,65 @@ public class CommonFunctions implements SelfReference {
             types[i] = args[i].getClass();
         }
 
-        Constructor con = clazz.getConstructor(types);
-        con.setAccessible(true);
+        Constructor con = null;
+        Constructor[] cons = clazz.getConstructors();
+        outer:for(Constructor check : cons) {
+            Class<?>[] params = check.getParameterTypes();
+            if(params.length == types.length) {
+                for(int i = 0; i < types.length; i++) {
+                    if(!params[i].isAssignableFrom(types[i])) {
+                        break;
+                    }
 
-        try {
-            return con.newInstance(args);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+                    //we found the constructor
+                    con = check;
+                    break outer;
+                }
+            }
         }
 
-        return null;
+        if(con != null) {
+            con.setAccessible(true);
+
+            try {
+                return con.newInstance(args);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }else {
+            StringBuilder builder = new StringBuilder("Could not found counstuctor with matching parameters.");
+            builder.append(" -- ");
+            builder.append(className+"<init>");
+            builder.append("(");
+            for(int i = 0; i < types.length - 1; i++)
+                builder.append(types[i].getSimpleName()+", ");
+            builder.append(types[types.length - 1].getSimpleName());
+            builder.append(")");
+
+            throw new NoSuchMethodException(builder.toString());
+        }
     }
+
+/*    public static void main(String[] ar) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalArgumentException, InvocationTargetException {
+        CommonFunctions com = new CommonFunctions(null);
+        com.newInstance(Test.class.getName(), new Child());
+    }
+
+    public static class Parent{
+
+    }
+
+    public static class Child extends Parent{
+
+    }
+
+    public static class Test{
+        public Test(Parent parent) {
+
+        }
+    }*/
 
     /**
      * Get the name of area where player is currently standing on.
