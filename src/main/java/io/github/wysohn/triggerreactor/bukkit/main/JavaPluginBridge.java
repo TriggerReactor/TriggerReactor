@@ -25,6 +25,7 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
@@ -72,6 +73,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.NamedTriggerManage
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.bukkit.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -655,12 +657,24 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(IPlayer sender) {
-        return new PlayerEvent(sender.get()){
-            @Override
-            public HandlerList getHandlers() {
-                return null;
-            }};
+    protected Object createEmptyPlayerEvent(ICommandSender sender) {
+        Object unwrapped = sender.get();
+
+        if(unwrapped instanceof Player) {
+            return new PlayerEvent((Player) unwrapped){
+                @Override
+                public HandlerList getHandlers() {
+                    return null;
+                }};
+        }else if(unwrapped instanceof ConsoleCommandSender) {
+            return new PlayerEvent(new DelegatedPlayer((ConsoleCommandSender) unwrapped)){
+                @Override
+                public HandlerList getHandlers() {
+                    return null;
+                }};
+        }else{
+            throw new RuntimeException("Cannot create empty PlayerEvent for "+sender);
+        }
     }
 
     @Override

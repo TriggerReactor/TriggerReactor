@@ -177,7 +177,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(IPlayer sender) {
+    protected Object createEmptyPlayerEvent(ICommandSender sender) {
         // TODO Auto-generated method stub
         return null;
     }

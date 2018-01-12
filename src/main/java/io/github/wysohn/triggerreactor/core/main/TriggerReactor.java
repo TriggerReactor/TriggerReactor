@@ -296,7 +296,7 @@ public abstract class TriggerReactor {
                     try {
                         Trigger trigger = getCmdManager().createTempCommandTrigger(script);
 
-                        trigger.activate(createEmptyPlayerEvent((IPlayer) sender), new HashMap<>());
+                        trigger.activate(createEmptyPlayerEvent(sender), new HashMap<>());
 
                     } catch (Exception e) {
                         handleException(sender, e);
@@ -986,7 +986,7 @@ public abstract class TriggerReactor {
 
     protected abstract IPlayer getPlayer(String string);
 
-    protected abstract Object createEmptyPlayerEvent(IPlayer sender);
+    protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
     private void showHelp(ICommandSender sender) {
         sender.sendMessage("&7-----     &6"+getPluginDescription()+"&7    ----");
