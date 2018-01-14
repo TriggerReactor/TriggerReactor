@@ -192,6 +192,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void parseItemsList(ConfigurationSection itemSection, Map<Integer, IItemStack> items, int size) {
         for(int i = 0; i < size; i++){
             ConfigurationSection section = itemSection.getConfigurationSection(String.valueOf(i));
@@ -210,12 +211,12 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
             if(IM != null){
                 //leave these for backward compatibility
                 String title = section.getString("Title", null);
-                List<String> lore = section.getStringList("Lore");
+                Object lore = section.get("Lore", null);
 
                 if(title != null)
                     IM.setDisplayName(title);
-                if(lore != null)
-                    IM.setLore(lore);
+                if(lore != null && lore instanceof List)
+                    IM.setLore((List<String>) lore);
 
                 IS.setItemMeta(IM);
             }
