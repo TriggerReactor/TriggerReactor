@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.script.Token.Type;
 public class Lexer {
     private static final char[] OPERATORS;
     static {
-        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']', ':', '\\', '$', ':'};
+        OPERATORS = new char[] { '+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '(', ')' , '{', '}', ',', '.', '[', ']', ':', '\\', '$'};
         Arrays.sort(OPERATORS);
     }
 
