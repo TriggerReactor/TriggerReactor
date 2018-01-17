@@ -493,7 +493,7 @@ public class Parser {
             Node node = new Node(new Token(Type.PLACEHOLDER, placeholderName, token.row, token.col));
             nextToken();
 
-            while(":".equals(token.value)) {
+            while(token != null && ":".equals(token.value)) {
                 nextToken();
                 node.getChildren().add(parseLogic());
             }
