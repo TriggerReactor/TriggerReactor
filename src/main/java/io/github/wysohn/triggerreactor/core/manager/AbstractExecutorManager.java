@@ -47,7 +47,6 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
      * @throws IOException
      */
     protected void reloadExecutors(File file, FileFilter filter) throws ScriptException, IOException{
-        jsExecutors.clear();
         reloadExecutors(new Stack<String>(), file, filter);
     }
 

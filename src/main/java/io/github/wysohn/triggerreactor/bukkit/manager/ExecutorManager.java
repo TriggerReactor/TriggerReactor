@@ -62,6 +62,7 @@ public class ExecutorManager extends AbstractExecutorManager{
             }
         };
 
+        jsExecutors.clear();
         for(File file : executorFolder.listFiles(filter)){
             try {
                 reloadExecutors(file, filter);

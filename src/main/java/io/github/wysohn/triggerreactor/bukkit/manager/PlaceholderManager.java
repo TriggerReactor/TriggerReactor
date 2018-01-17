@@ -110,6 +110,7 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
             }
         };
 
+        jsPlaceholders.clear();
         for(File file : placeholderFolder.listFiles(filter)){
             try {
                 reloadPlaceholders(file, filter);
