@@ -117,26 +117,26 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             }
 
             Invocable invocable = (Invocable) compiled.getEngine();
-            Callable<Integer> call = new Callable<Integer>(){
+            Callable<Object> call = new Callable<Object>(){
                 @Override
-                public Integer call() throws Exception {
+                public Object call() throws Exception {
                     Object argObj = args;
 
                     if(TriggerReactor.getInstance().isDebugging()){
-                        Integer result = null;
+                        Object result = null;
                         long start = System.currentTimeMillis();
-                        result = (Integer) invocable.invokeFunction(placeholderName, argObj);
+                        result = invocable.invokeFunction(placeholderName, argObj);
                         long end = System.currentTimeMillis();
                         TriggerReactor.getInstance().getLogger().info(placeholderName+" placeholder -- "+(end - start)+"ms");
                         return result;
                     }else{
-                        return (Integer) invocable.invokeFunction(placeholderName, argObj);
+                        return invocable.invokeFunction(placeholderName, argObj);
                     }
                 }
             };
 
             if(TriggerReactor.getInstance().isServerThread()){
-                Integer result = null;
+                Object result = null;
                 try {
                     result = call.call();
                 } catch (Exception e1) {
@@ -145,9 +145,9 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 }
                 return result;
             }else{
-                Future<Integer> future = runSyncTaskForFuture(call);
+                Future<Object> future = runSyncTaskForFuture(call);
 
-                Integer result = null;
+                Object result = null;
                 try {
                     result = future.get(5, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e1) {
