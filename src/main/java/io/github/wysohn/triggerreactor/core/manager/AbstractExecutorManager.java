@@ -23,7 +23,6 @@ import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -31,34 +30,11 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
-public abstract class AbstractExecutorManager extends Manager {
-    protected static final ScriptEngineManager sem = new ScriptEngineManager(null);
-
-    public static AbstractExecutorManager instance;
-
+public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
     protected Map<String, Executor> jsExecutors = new HashMap<>();
 
     public AbstractExecutorManager(TriggerReactor plugin) throws ScriptException {
         super(plugin);
-        instance = this;
-
-        initScriptEngine();
-    }
-
-    /**
-     * Initializes pre-defined functions and variables for Executors.
-     * @throws ScriptException
-     */
-    protected abstract void initScriptEngine() throws ScriptException;
-
-    protected void registerClass(Class<?> clazz) throws ScriptException{
-        registerClass(clazz.getSimpleName(), clazz);
-    }
-
-    protected void registerClass(String name, Class<?> clazz) throws ScriptException{
-        ScriptEngine engine = getNashornEngine();
-        Object value = engine.eval("Java.type('"+clazz.getName()+"');");
-        sem.put(name, value);
     }
 
     /**
@@ -71,6 +47,7 @@ public abstract class AbstractExecutorManager extends Manager {
      * @throws IOException
      */
     protected void reloadExecutors(File file, FileFilter filter) throws ScriptException, IOException{
+        jsExecutors.clear();
         reloadExecutors(new Stack<String>(), file, filter);
     }
 
@@ -99,14 +76,26 @@ public abstract class AbstractExecutorManager extends Manager {
         }
     }
 
+    /* (non-Javadoc)
+     * @see io.github.wysohn.triggerreactor.core.manager.KeyValueManager#get(java.lang.Object)
+     */
+    @Override
     public Executor get(Object key) {
         return jsExecutors.get(key);
     }
 
+    /* (non-Javadoc)
+     * @see io.github.wysohn.triggerreactor.core.manager.KeyValueManager#containsKey(java.lang.Object)
+     */
+    @Override
     public boolean containsKey(Object key) {
         return jsExecutors.containsKey(key);
     }
 
+    /* (non-Javadoc)
+     * @see io.github.wysohn.triggerreactor.core.manager.KeyValueManager#entrySet()
+     */
+    @Override
     public Set<Entry<String, Executor>> entrySet() {
         Set<Entry<String, Executor>> set = new HashSet<>();
         for(Entry<String, Executor> entry : jsExecutors.entrySet()){
@@ -115,22 +104,13 @@ public abstract class AbstractExecutorManager extends Manager {
         return set;
     }
 
-    public Map<String, Executor> getExecutorMap() {
+    /* (non-Javadoc)
+     * @see io.github.wysohn.triggerreactor.core.manager.KeyValueManager#getExecutorMap()
+     */
+    @Override
+    public Map<String, Executor> getBackedMap() {
         return this.jsExecutors;
     }
-
-    protected static ScriptEngine getNashornEngine() {
-        return sem.getEngineByName("nashorn");
-    }
-
-    /**
-     * Extract and put necessary variables needed for the Executors to work properly. For Bukkit API for example,
-     * you will have to extract 'player' variable manually for inventory events as Player instance is not saved in
-     * the field of Inventory evnet classes.
-     * @param variables the local variable map.
-     * @param e the context.
-     */
-    protected abstract void extractCustomVariables(Map<String, Object> variables, Object e);
 
     public static class JSExecutor extends Executor{
         private final String executorName;

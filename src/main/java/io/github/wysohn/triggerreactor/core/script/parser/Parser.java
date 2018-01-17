@@ -199,7 +199,7 @@ public class Parser {
                         nextToken();
                     }
 
-                    Node commandNode = new Node(new Token(Type.COMMAND, builder.toString(), row, col));
+                    Node commandNode = new Node(new Token(Type.EXECUTOR, builder.toString(), row, col));
 
                     List<Node> args = new ArrayList<>();
                     if(token != null && token.type != Type.ENDL){
@@ -480,6 +480,24 @@ public class Parser {
         if("null".equals(token.value)){
             Node node = new Node(new Token(Type.NULLVALUE, null, token.row, token.col));
             nextToken();
+            return node;
+        }
+
+        if("$".equals(token.value)) {
+            nextToken();
+            if(token.type != Type.ID)
+                throw new ParserException("Expected to find name of placeholder after $, but found "+token);
+
+            //probably has to be string at this point.
+            String placeholderName = (String) token.value;
+            Node node = new Node(new Token(Type.PLACEHOLDER, placeholderName, token.row, token.col));
+            nextToken();
+
+            while(":".equals(token.value)) {
+                nextToken();
+                node.getChildren().add(parseLogic());
+            }
+
             return node;
         }
 

@@ -256,6 +256,13 @@ public class ReflectionUtil {
         return invokeMethod(clazz, obj, methodName, args);
     }
 
+    /**
+     * extract all possible field values. Primitive types will be 'copied,' and
+     * reference types can be referenced.
+     *
+     * @param e
+     * @return
+     */
     public static Map<String, Object> extractVariables(Object e){
         Map<String, Object> map = new HashMap<String, Object>();
 

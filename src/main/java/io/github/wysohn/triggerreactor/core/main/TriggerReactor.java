@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
@@ -78,6 +79,8 @@ public abstract class TriggerReactor {
     }
 
     public abstract AbstractExecutorManager getExecutorManager();
+
+    public abstract AbstractPlaceholderManager getPlaceholderManager();
 
     public abstract AbstractVariableManager getVariableManager();
 
@@ -435,7 +438,7 @@ public abstract class TriggerReactor {
                         sendDetails(sender, "/trg i MyInventory create 54");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the holding item. "
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the held item. "
                                 + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
@@ -443,7 +446,7 @@ public abstract class TriggerReactor {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
                     }
                     return true;
-                } else if(args[0].equalsIgnoreCase("misc")){
+                } else if(args[0].equalsIgnoreCase("item")){
                     if(args.length > 2 && args[1].equalsIgnoreCase("title")){
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                         if(IS == null){
@@ -515,11 +518,11 @@ public abstract class TriggerReactor {
                         ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
                     } else{
-                        sendCommandDesc(sender, "/triggerreactor[trg] misc title <item title>", "Change the title of holding item");
-                        sendCommandDesc(sender, "/triggerreactor[trg] misc lore add <string>", "Append lore to the holding item");
-                        sendCommandDesc(sender, "/triggerreactor[trg] misc lore set <index> <string>", "Replace lore at the specified index."
+                        sendCommandDesc(sender, "/triggerreactor[trg] item title <item title>", "Change the title of holding item");
+                        sendCommandDesc(sender, "/triggerreactor[trg] item lore add <line>", "Append lore to the holding item");
+                        sendCommandDesc(sender, "/triggerreactor[trg] item lore set <index> <line>", "Replace lore at the specified index."
                                 + "(Index start from 0)");
-                        sendCommandDesc(sender, "/triggerreactor[trg] misc lore remove <index>", "Append lore to the holding item");
+                        sendCommandDesc(sender, "/triggerreactor[trg] item lore remove <index>", "Delete lore at the specified index.");
                     }
 
                     return true;
@@ -1012,12 +1015,12 @@ public abstract class TriggerReactor {
         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r]", "Create an repeating trigger.");
         sendDetails(sender, "/trg r to see more commands...");
 
-        sendCommandDesc(sender, "/triggerreactor[trg] custom <event> <name> [...]", "Create an area trigger.");
-        sendDetails(sender, "/trg custom onJoin Greet #BROADCAST \"&aPlease welcome &6\"+player.getName()+\"&a!\"");
+        sendCommandDesc(sender, "/triggerreactor[trg] custom <event> <name> [...]", "Create a custom trigger.");
+        sendDetails(sender, "/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
         sendCommandDesc(sender, "/triggerreactor[trg] synccustom[sync] <name>", "Toggle Sync/Async mode of custom trigger <name>");
         sendDetails(sender, "/trg synccustom Greet");
 
-        sendCommandDesc(sender, "/triggerreactor[trg] misc", "Miscellaneous. Type it to see the list.");
+        sendCommandDesc(sender, "/triggerreactor[trg] item", "Item modification. Type it to see the list.");
 
         sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] [...]", "set global variables.");
         sendDetails(sender, "&cWarning - This command will delete the previous data associated with the key if exists.");

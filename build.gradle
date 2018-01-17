@@ -53,9 +53,8 @@ sourceSets {
 		}
 		resources {
 			srcDirs = ['src/main/resources']
-			include 'Executor/*.js'
-			include 'Executor/*/*.js'
-			include '*.yml'
+			include '**/*.js'
+			include '**/*.yml'
 		}
 	}
 	

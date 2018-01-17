@@ -60,6 +60,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.PlaceholderManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.VariableManager;
@@ -83,6 +84,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
@@ -106,6 +108,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     private BungeeCordHelper bungeeHelper;
 
     private AbstractExecutorManager executorManager;
+    private AbstractPlaceholderManager placeholderManager;
     private AbstractVariableManager variableManager;
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
@@ -125,6 +128,11 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     @Override
     public AbstractExecutorManager getExecutorManager() {
         return executorManager;
+    }
+
+    @Override
+    public AbstractPlaceholderManager getPlaceholderManager() {
+        return placeholderManager;
     }
 
     @Override
@@ -205,6 +213,13 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
         try {
             executorManager = new ExecutorManager(this);
+        } catch (ScriptException | IOException e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
+            placeholderManager = new PlaceholderManager(this);
         } catch (ScriptException | IOException e) {
             initFailed(e);
             return;
@@ -818,6 +833,4 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     public String getName() {
         return bukkitPlugin.getName();
     }
-
-
 }

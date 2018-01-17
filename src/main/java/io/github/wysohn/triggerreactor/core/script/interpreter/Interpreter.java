@@ -33,6 +33,7 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 public class Interpreter {
     private Node root;
     private final Map<String, Executor> executorMap = new HashMap<>();
+    private final Map<String, Placeholder> placeholderMap = new HashMap<>();
     private final Map<String, Object> gvars;
     private final Map<String, Object> vars;
     private final SelfReference selfReference;
@@ -61,11 +62,13 @@ public class Interpreter {
         initDefaultExecutors();
     }
 */
-    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars, Map<String, Object> localVars,
+    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<String, Object> gvars, Map<String, Object> localVars,
             SelfReference selfReference) {
         this.root = root;
         for(Entry<String, Executor> entry : executorMap.entrySet())
             this.executorMap.put(entry.getKey(), entry.getValue());
+        for(Entry<String, Placeholder> entry : placeholderMap.entrySet())
+            this.placeholderMap.put(entry.getKey(), entry.getValue());
         this.gvars = gvars;
         this.vars = localVars;
         this.selfReference = selfReference;
@@ -333,7 +336,7 @@ public class Interpreter {
                     || "IF".equals(node.getToken().value)
                     || "WHILE".equals(node.getToken().value)) {
                 return null;
-            } else if (node.getToken().type == Type.COMMAND) {
+            } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
 
                 Object[] args = new Object[node.getChildren().size()];
@@ -355,6 +358,24 @@ public class Interpreter {
 
                     return executorMap.get(command).execute(sync, context, args);
                 }
+            } else if(node.getToken().type == Type.PLACEHOLDER) {
+                String placeholderName = (String) node.getToken().value;
+
+                Object[] args = new Object[node.getChildren().size()];
+                for(int i = args.length - 1; i >= 0; i--) {
+                    Token argument = stack.pop();
+
+                    if(isVariable(argument)) {
+                        argument = unwrapVariable(argument);
+                    }
+
+                    args[i] = argument.value;
+                }
+
+                if (!placeholderMap.containsKey(placeholderName))
+                    throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
+
+                stack.push(new Token(Type.EPS, placeholderMap.get(placeholderName).parse(context, args)));
             } else if (node.getToken().type == Type.OPERATOR_A) {
                 Token right = stack.pop();
                 Token left = stack.pop();

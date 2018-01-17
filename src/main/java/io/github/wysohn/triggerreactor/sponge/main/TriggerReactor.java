@@ -28,6 +28,7 @@ import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
@@ -54,6 +55,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public AbstractExecutorManager getExecutorManager() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AbstractPlaceholderManager getPlaceholderManager() {
         // TODO Auto-generated method stub
         return null;
     }

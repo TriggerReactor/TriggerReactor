@@ -66,9 +66,9 @@ public class ParserTest {
         assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_L, ">=")), queue.poll());
-        assertEquals(new Node(new Token(Type.COMMAND, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
         assertEquals(new Node(new Token(Type.STRING, "text")), queue.poll());
-        assertEquals(new Node(new Token(Type.COMMAND, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
     }
@@ -94,7 +94,7 @@ public class ParserTest {
         assertEquals(new Node(new Token(Type.STRING, "LEVEL_UP")), queue.poll());
         assertEquals(new Node(new Token(Type.DECIMAL, "1.0")), queue.poll());
         assertEquals(new Node(new Token(Type.DECIMAL, "1.0")), queue.poll());
-        assertEquals(new Node(new Token(Type.COMMAND, "SOUND")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "SOUND")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
     }
@@ -126,7 +126,7 @@ public class ParserTest {
         assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
-        assertEquals(new Node(new Token(Type.COMMAND, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
         assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
         assertEquals(new Node(new Token(Type.ID, "FOR")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
@@ -168,9 +168,45 @@ public class ParserTest {
         assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
-        assertEquals(new Node(new Token(Type.COMMAND, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
         assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
         assertEquals(new Node(new Token(Type.ID, "IF")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testPlaceholder() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "x = 10;"
+                + "#MESSAGE $placeholdertest:0:x:5<4:true&&false;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "x")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "10")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "x")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "5")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "<")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "false")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "&&")), queue.poll());
+        assertEquals(new Node(new Token(Type.PLACEHOLDER, "placeholdertest")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
     }

@@ -18,6 +18,7 @@ import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -56,6 +57,7 @@ public abstract class AbstractTriggerManager extends Manager {
 
         protected Node root;
         protected Map<String, Executor> executorMap;
+        protected Map<String, Placeholder> placeholderMap;
         protected Map<String, Object> gvarMap;
 
         private boolean sync = false;
@@ -101,7 +103,8 @@ public abstract class AbstractTriggerManager extends Manager {
                 Parser parser = new Parser(lexer);
 
                 root = parser.parse();
-                executorMap = TriggerReactor.getInstance().getExecutorManager().getExecutorMap();
+                executorMap = TriggerReactor.getInstance().getExecutorManager().getBackedMap();
+                placeholderMap = TriggerReactor.getInstance().getPlaceholderManager().getBackedMap();
                 gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();
             } catch (Exception ex) {
                 throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
@@ -199,7 +202,7 @@ public abstract class AbstractTriggerManager extends Manager {
          * @return
          */
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-            Interpreter interpreter = new Interpreter(root, executorMap, gvarMap, scriptVars, common);
+            Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvarMap, scriptVars, common);
             interpreter.setSync(isSync());
 
             interpreter.getVars().putAll(sharedVars);
