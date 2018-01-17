@@ -138,7 +138,7 @@ public class Token {
 
         GID, ID, PLACEHOLDER, NULLVALUE,
 
-        BODY, COMMAND,
+        BODY, EXECUTOR,
 
         /**Temporary use only**/EPS,
         ;
