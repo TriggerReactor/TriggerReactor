@@ -57,6 +57,10 @@ public class Token {
         return value instanceof Boolean;
     }
 
+    public boolean isString() {
+        return value instanceof String;
+    }
+
     public boolean isArray() {
         return value != null && value.getClass().isArray();
     }
@@ -132,7 +136,7 @@ public class Token {
 
         /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, /**Logical**/OPERATOR_L,
 
-        GID, ID, NULLVALUE,
+        GID, ID, PLACEHOLDER, NULLVALUE,
 
         BODY, COMMAND,
 
