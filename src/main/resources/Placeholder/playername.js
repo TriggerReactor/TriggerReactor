@@ -1,3 +1,6 @@
 function playername(args){
-	return player.getName();
+	if(player == null)
+		return "!!Cannot find player"
+    else
+		return player.getName();
 }
