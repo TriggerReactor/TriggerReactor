@@ -375,7 +375,11 @@ public class Interpreter {
                 if (!placeholderMap.containsKey(placeholderName))
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
-                stack.push(new Token(Type.EPS, placeholderMap.get(placeholderName).parse(context, args)));
+                Object replaced = placeholderMap.get(placeholderName).parse(context, args);
+                if(replaced == null) {
+                    replaced = "$"+placeholderName;
+                }
+                stack.push(new Token(Type.EPS, replaced));
             } else if (node.getToken().type == Type.OPERATOR_A) {
                 Token right = stack.pop();
                 Token left = stack.pop();
