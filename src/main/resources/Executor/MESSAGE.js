@@ -15,15 +15,15 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function MESSAGE(args){
-    var str = "";
-    for(var i = 0; i < args.length ; i++)
-        str += args[i];
-    
-    if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
-    	var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-    	str = PlaceholderAPI.setPlaceholders(player, str);
+    for(var i = 0; i < args.length ; i++){
+    	if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
+    		var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+    		args[i] = PlaceholderAPI.setPlaceholders(player, args[i]);
+    	} else {
+    		args[i] = ChatColor.translateAlternateColorCodes(Char('&'), args[i]);
+    	}
+    	
+    	player.sendMessage(args[i]);
     }
-    
-    player.sendMessage(ChatColor.translateAlternateColorCodes(Char('&'), str));
     return null;
 }
