@@ -47,7 +47,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFuncti
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class CustomTriggerManager extends AbstractCustomTriggerManager implements BukkitTriggerManager{
@@ -172,11 +171,5 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
             Map<String, Object> vars = new HashMap<>();
             trigger.activate(e, vars);
         }
-    }
-
-    @Override
-    protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()));
-        FileUtil.delete(new File(folder, trigger.getTriggerName()+".yml"));
     }
 }

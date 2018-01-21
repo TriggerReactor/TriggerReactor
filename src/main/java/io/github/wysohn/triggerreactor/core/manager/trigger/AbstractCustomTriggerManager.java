@@ -115,9 +115,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             if(!ymlfile.isFile())
                 continue;
 
-            if(!isTriggerFile(ymlfile))
-                continue;
-
             String triggerName = extractName(ymlfile);
 
             String eventName = null;
@@ -175,6 +172,14 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
             File triggerfile = new File(folder, trigger.getTriggerName()+".trg");
             File ymlfile = new File(folder, trigger.getTriggerName()+".yml");
+            try {
+                if(!triggerfile.exists())
+                    triggerfile.createNewFile();
+                if(!ymlfile.exists())
+                    ymlfile.createNewFile();
+            } catch (IOException e2) {
+                e2.printStackTrace();
+            }
 
             try {
                 this.setData(ymlfile, SYNC, trigger.isSync());
