@@ -29,10 +29,10 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public class PlayerLocationManager extends AbstractPlayerLocationManager implements Listener{
 

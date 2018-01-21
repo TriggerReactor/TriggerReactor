@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -41,14 +42,17 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
-public abstract class AbstractTriggerManager extends Manager {
+public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO{
     private static SelfReference common;
 
     private static Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
-    public AbstractTriggerManager(TriggerReactor plugin, SelfReference ref,  Map<String, Class<? extends AbstractAPISupport>> vars) {
+    protected final File folder;
+
+    public AbstractTriggerManager(TriggerReactor plugin, SelfReference ref,  Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
         super(plugin);
 
         if(common == null)
@@ -57,14 +61,58 @@ public abstract class AbstractTriggerManager extends Manager {
         for(Entry<String, Class<? extends AbstractAPISupport>> entry : vars.entrySet()){
             AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
         }
+
+        folder = tirggerFolder;
+
+        if(!folder.exists())
+            folder.mkdirs();
+
+        reload();
+    }
+
+    protected <T> T getData(File file, String key) throws IOException {
+        return getData(file, key, null);
     }
 
     /**
-     * Delete this trigger from file system. It is abstract as we don't know what file structure the
-     * TriggerManager is using.
-     * @param trigger trigger to delete
+     * Default behavior is delete one file that has matching name in the current trigger folder.
+     * Override this method to customize this behavior.
      */
-    protected abstract void deleteInfo(Trigger trigger);
+    protected void deleteInfo(Trigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()));
+    }
+
+    protected static boolean isTriggerFile(File file) {
+        if(!file.isFile())
+            return false;
+
+        String name = file.getName();
+
+        //either ends with .trg or no extension
+        return name.endsWith(".trg") || name.indexOf('.') == -1;
+    }
+
+    /**
+     * extract file name without the extension
+     * @param file
+     * @return the filename. null if the file is not file
+     */
+    protected static String extractName(File file) {
+        if(!file.isFile())
+            return null;
+
+        if(file.getName().indexOf('.') == -1)
+            return file.getName();
+
+        return file.getName().substring(0, file.getName().indexOf('.'));
+    }
+
+    protected static File getTriggerFile(File folder, String triggerName) {
+        File triggerFile = new File(folder, triggerName+".trg");
+        if(!triggerFile.exists())
+            triggerFile = new File(folder, triggerName);
+        return triggerFile;
+    }
 
     public static abstract class Trigger implements Cloneable{
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();

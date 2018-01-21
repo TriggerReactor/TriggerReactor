@@ -16,23 +16,111 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
-public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
+public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager {
     protected static final String TRIGGER = "trigger";
 
     protected final Map<String, RepeatingTrigger> repeatTriggers = new ConcurrentHashMap<>();
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
+
+    @Override
+    public void reload() {
+        FileFilter filter = new FileFilter(){
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".yml");
+            }
+        };
+
+        repeatTriggers.clear();
+        for(Entry<String, Thread> entry : runningThreads.entrySet()){
+            entry.getValue().interrupt();
+        }
+        runningThreads.clear();
+
+        for(File ymlfile : folder.listFiles(filter)){
+            String triggerName = extractName(ymlfile);
+
+            boolean autoStart = false;
+            long interval = 1000L;
+            try {
+                autoStart = this.getData(ymlfile, "AutoStart", false);
+                interval = this.getData(ymlfile, "Interval", 1000L);
+            } catch (IOException e2) {
+                e2.printStackTrace();
+            }
+
+
+            String script = null;
+            try {
+                script = FileUtil.readFromFile(getTriggerFile(folder, triggerName));
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+            RepeatingTrigger trigger = null;
+            try {
+                trigger = new RepeatingTrigger(triggerName, script, interval);
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+            }
+            trigger.setAutoStart(autoStart);
+            trigger.setInterval(interval);
+
+            repeatTriggers.put(triggerName, trigger);
+
+            final RepeatingTrigger triggerCopy = trigger;
+            //start 1 tick later so other managers can be initialized.
+            plugin.runTask(new Runnable(){
+                @Override
+                public void run() {
+                    if(triggerCopy.isAutoStart()){
+                        startTrigger(triggerName);
+                    }
+                }
+            });
+        }
+    }
+
+    @Override
+    public void saveAll() {
+        for(Entry<String, RepeatingTrigger> entry : repeatTriggers.entrySet()){
+            String triggerName = entry.getKey();
+            RepeatingTrigger trigger = entry.getValue();
+
+            File ymlfile = new File(folder, triggerName+".yml");
+            File triggerfile = new File(folder, triggerName+".trg");
+
+            try {
+                this.setData(ymlfile, "AutoStart", trigger.isAutoStart());
+                this.setData(ymlfile, "Interval", trigger.getInterval());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                FileUtil.writeToFile(triggerfile, trigger.getScript());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     /**
      * Get Repeating Trigger with specified name.
@@ -335,8 +423,9 @@ public abstract class AbstractRepeatingTriggerManager extends TriggerManager {
         void onFail(Throwable throwable);
     }
 
-    public AbstractRepeatingTriggerManager(TriggerReactor plugin) {
-        super(plugin);
+    public AbstractRepeatingTriggerManager(TriggerReactor plugin, SelfReference ref,
+            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+        super(plugin, ref, vars, tirggerFolder);
     }
 
 }

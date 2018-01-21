@@ -27,10 +27,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public class AreaSelectionManager extends AbstractAreaSelectionManager implements Listener{
     public AreaSelectionManager(TriggerReactor plugin) {

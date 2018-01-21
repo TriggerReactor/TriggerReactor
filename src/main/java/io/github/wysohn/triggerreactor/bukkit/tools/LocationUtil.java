@@ -21,8 +21,8 @@ import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public class LocationUtil {
     public static SimpleLocation convertToSimpleLocation(Location loc) {

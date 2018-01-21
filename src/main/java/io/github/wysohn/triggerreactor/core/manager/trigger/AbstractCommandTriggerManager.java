@@ -16,18 +16,24 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public abstract class AbstractCommandTriggerManager extends TriggerManager {
-
+public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager {
     protected final Map<String, CommandTrigger> commandTriggerMap = new HashMap<>();
 
-    public static class CommandTrigger extends TriggerManager.Trigger {
+    public static class CommandTrigger extends Trigger {
 
         public CommandTrigger(String name, String script) throws TriggerInitFailedException {
             super(name, script);
@@ -43,6 +49,60 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
                 e.printStackTrace();
             }
             return null;
+        }
+    }
+
+    @Override
+    public void reload() {
+        commandTriggerMap.clear();
+
+        for(File file : folder.listFiles()){
+            if(!isTriggerFile(file))
+                continue;
+
+            String triggerName = extractName(file);
+
+            String script = null;
+            try{
+                script = FileUtil.readFromFile(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            CommandTrigger trigger = null;
+            try {
+                trigger = new CommandTrigger(triggerName, script);
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            commandTriggerMap.put(triggerName, trigger);
+        }
+    }
+
+    @Override
+    public void saveAll(){
+        Set<String> failed = new HashSet<>();
+        for(Entry<String, CommandTrigger> entry : commandTriggerMap.entrySet()){
+            String fileName = entry.getKey();
+            CommandTrigger trigger = entry.getValue();
+
+            String script = trigger.getScript();
+
+            File file = new File(folder, fileName+".trg");
+            try{
+                FileUtil.writeToFile(file, script);
+            }catch(Exception e){
+                e.printStackTrace();
+                plugin.getLogger().severe("Could not save command trigger for "+fileName);
+                failed.add(fileName);
+            }
+        }
+
+        for(String key : failed){
+            commandTriggerMap.remove(key);
         }
     }
 
@@ -97,8 +157,10 @@ public abstract class AbstractCommandTriggerManager extends TriggerManager {
         return new CommandTrigger("temp", script);
     }
 
-    public AbstractCommandTriggerManager(TriggerReactor plugin) {
-        super(plugin);
+    public AbstractCommandTriggerManager(TriggerReactor plugin, SelfReference ref,
+            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+        super(plugin, ref, vars, tirggerFolder);
     }
+
 
 }

@@ -16,6 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -23,154 +26,167 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.Area;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.location.Area;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public abstract class AbstractAreaTriggerManager extends TriggerManager {
+public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager {
+    protected static final String SMALLEST = "Smallest";
+    protected static final String LARGEST = "Largest";
+    protected static final String SYNC = "Sync";
 
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggers = new ConcurrentHashMap<>();
     protected Map<String, AreaTrigger> nameMapper = new HashMap<>();
 
-    public static class AreaTrigger extends Trigger{
-        final Area area;
-
-        private EnterTrigger enterTrigger;
-        private ExitTrigger exitTrigger;
-
-        public AreaTrigger(Area area, String name) {
-            super(name, null);
-            this.area = area;
-        }
-
-        public Area getArea() {
-            return area;
-        }
-
-        //we don't need interpreter for area trigger but enter and exit trigger
-        @Override
-        protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-            return null;
-        }
-
-        private EventType type = null;
-        public void activate(Object e, Map<String, Object> scriptVars, EventType type){
-            this.type = type;
-
-            super.activate(e, scriptVars);
-        }
-
-        //intercept and pass interpretation to appropriate trigger
-        @Override
-        protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-            switch(type){
-            case ENTER:
-                if(getEnterTrigger() != null)
-                    getEnterTrigger().activate(e, scriptVars);
-                break;
-            case EXIT:
-                if(getExitTrigger() != null)
-                    getExitTrigger().activate(e, scriptVars);
-                break;
-            default:
-                throw new RuntimeException("Unknown area event type "+type);
-            }
-        }
-
-        @Override
-        public Trigger clone() {
-            return null;
-        }
-
-        public void setEnterTrigger(String script) throws TriggerInitFailedException{
-            enterTrigger = new EnterTrigger(this, script);
-        }
-
-        public void setExitTrigger(String script) throws TriggerInitFailedException{
-            exitTrigger = new ExitTrigger(this, script);
-        }
-
-        public EnterTrigger getEnterTrigger() {
-            return enterTrigger;
-        }
-
-        public void setEnterTrigger(EnterTrigger enterTrigger) {
-            this.enterTrigger = enterTrigger;
-        }
-
-        public ExitTrigger getExitTrigger() {
-            return exitTrigger;
-        }
-
-        public void setExitTrigger(ExitTrigger exitTrigger) {
-            this.exitTrigger = exitTrigger;
-        }
-
-        public static class EnterTrigger extends Trigger{
-            private final AreaTrigger areaTrigger;
-
-            public EnterTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
-                super(areaTrigger.triggerName, script);
-                this.areaTrigger = areaTrigger;
-
-                init();
-            }
-
+    @Override
+    public void reload() {
+        FileFilter filter = new FileFilter(){
             @Override
-            public boolean isSync() {
-                return areaTrigger.isSync();
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".yml");
+            }
+        };
+
+        areaTriggers.clear();
+
+        for(File ymlfile : folder.listFiles(filter)){
+            String triggerName = extractName(ymlfile);
+
+            SimpleLocation smallest = null;
+            SimpleLocation largest = null;
+            boolean isSync = false;
+            try {
+                smallest = getData(ymlfile, SMALLEST);
+                largest = getData(ymlfile, LARGEST);
+                isSync = getData(ymlfile, SYNC, false);
+            } catch (IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Could not load Area Trigger " + ymlfile);
+                continue;
             }
 
-            @Override
-            public void setSync(boolean sync) {
-                areaTrigger.setSync(sync);
+            if(smallest == null || largest == null){
+                plugin.getLogger().warning("Could not load Area Trigger"+ymlfile);
+                plugin.getLogger().warning("Could not find Smallest: or Largest:");
+                continue;
             }
 
-            @Override
-            public Trigger clone() {
-                try {
-                    return new EnterTrigger(areaTrigger, script);
-                } catch (TriggerInitFailedException e) {
-                    e.printStackTrace();
+            File scriptFolder = new File(folder, triggerName);
+            if(!scriptFolder.exists()){
+                scriptFolder.mkdirs();
+            }
+
+            String enterScript = null;
+            try {
+                File enterFile = getTriggerFile(scriptFolder, "Enter");
+                enterScript = FileUtil.readFromFile(enterFile);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                continue;
+            }
+
+            String exitScript = null;
+            try {
+                File exitFile = getTriggerFile(scriptFolder, "Exit");
+                exitScript = FileUtil.readFromFile(exitFile);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                continue;
+            }
+
+            Area area = new Area(smallest, largest);
+            AreaTrigger trigger = new AreaTrigger(area, triggerName);
+            trigger.setSync(isSync);
+
+            nameMapper.put(triggerName, trigger);
+
+            this.setupArea(trigger);
+
+            try {
+                if(enterScript != null){
+                    trigger.setEnterTrigger(enterScript);
                 }
-                return null;
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+                continue;
             }
 
+            try {
+                if(exitScript != null){
+                    trigger.setExitTrigger(exitScript);
+                }
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+    }
+
+    @Override
+    public void saveAll() {
+        Set<AreaTrigger> saveReady = new HashSet<>();
+
+        for(Entry<SimpleChunkLocation, Map<Area, AreaTrigger>> oentry : areaTriggers.entrySet()){
+            SimpleChunkLocation scloc = oentry.getKey();
+
+            for(Entry<Area, AreaTrigger> entry : oentry.getValue().entrySet()){
+                Area area = entry.getKey();
+                AreaTrigger trigger = entry.getValue();
+
+                saveReady.add(trigger);
+            }
         }
 
-        public static class ExitTrigger extends Trigger{
-            private final AreaTrigger areaTrigger;
+        for(AreaTrigger trigger : saveReady){
+            Area area = trigger.getArea();
 
-            public ExitTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
-                super(areaTrigger.getTriggerName(), script);
-                this.areaTrigger = areaTrigger;
-
-                init();
-            }
-
-            @Override
-            public boolean isSync() {
-                return areaTrigger.isSync();
-            }
-
-            @Override
-            public void setSync(boolean sync) {
-                areaTrigger.setSync(sync);
-            }
-
-            @Override
-            public Trigger clone() {
+            File ymlfile = new File(folder, trigger.getTriggerName()+".yml");
+            if(!ymlfile.exists()){
                 try {
-                    return new ExitTrigger(areaTrigger, script);
-                } catch (TriggerInitFailedException e) {
+                    ymlfile.createNewFile();
+                } catch (IOException e) {
                     e.printStackTrace();
+                    plugin.getLogger().warning("Could not create "+ymlfile);
+                    continue;
                 }
-                return null;
             }
 
+            try {
+                setData(ymlfile, SMALLEST, area.getSmallest());
+                setData(ymlfile, LARGEST, area.getLargest());
+                setData(ymlfile, SYNC, trigger.isSync());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                continue;
+            }
+
+            File triggerFolder = new File(folder, trigger.getTriggerName()+".trg");
+            if(!triggerFolder.exists()){
+                triggerFolder.mkdirs();
+            }
+
+            if(trigger.getEnterTrigger() != null){
+                try {
+                    FileUtil.writeToFile(new File(triggerFolder, "Enter.trg"), trigger.getEnterTrigger().getScript());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().warning("Could not save Area Trigger [Enter] "+trigger.getTriggerName());
+                }
+            }
+
+            if(trigger.getExitTrigger() != null){
+                try {
+                    FileUtil.writeToFile(new File(triggerFolder, "Exit.trg"), trigger.getExitTrigger().getScript());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().warning("Could not save Area Trigger [Exit] "+trigger.getTriggerName());
+                }
+            }
         }
     }
 
@@ -329,8 +345,149 @@ public abstract class AbstractAreaTriggerManager extends TriggerManager {
         ENTER, EXIT;
     }
 
-    public AbstractAreaTriggerManager(TriggerReactor plugin) {
-        super(plugin);
+
+
+    public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref,
+            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+        super(plugin, ref, vars, tirggerFolder);
     }
 
+    public static class AreaTrigger extends Trigger{
+        final Area area;
+
+        private EnterTrigger enterTrigger;
+        private ExitTrigger exitTrigger;
+
+        public AreaTrigger(Area area, String name) {
+            super(name, null);
+            this.area = area;
+        }
+
+        public Area getArea() {
+            return area;
+        }
+
+        //we don't need interpreter for area trigger but enter and exit trigger
+        @Override
+        protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
+            return null;
+        }
+
+        private EventType type = null;
+        public void activate(Object e, Map<String, Object> scriptVars, EventType type){
+            this.type = type;
+
+            super.activate(e, scriptVars);
+        }
+
+        //intercept and pass interpretation to appropriate trigger
+        @Override
+        protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+            switch(type){
+            case ENTER:
+                if(getEnterTrigger() != null)
+                    getEnterTrigger().activate(e, scriptVars);
+                break;
+            case EXIT:
+                if(getExitTrigger() != null)
+                    getExitTrigger().activate(e, scriptVars);
+                break;
+            default:
+                throw new RuntimeException("Unknown area event type "+type);
+            }
+        }
+
+        @Override
+        public Trigger clone() {
+            return null;
+        }
+
+        public void setEnterTrigger(String script) throws TriggerInitFailedException{
+            enterTrigger = new EnterTrigger(this, script);
+        }
+
+        public void setExitTrigger(String script) throws TriggerInitFailedException{
+            exitTrigger = new ExitTrigger(this, script);
+        }
+
+        public EnterTrigger getEnterTrigger() {
+            return enterTrigger;
+        }
+
+        public void setEnterTrigger(EnterTrigger enterTrigger) {
+            this.enterTrigger = enterTrigger;
+        }
+
+        public ExitTrigger getExitTrigger() {
+            return exitTrigger;
+        }
+
+        public void setExitTrigger(ExitTrigger exitTrigger) {
+            this.exitTrigger = exitTrigger;
+        }
+
+        public static class EnterTrigger extends Trigger{
+            private final AreaTrigger areaTrigger;
+
+            public EnterTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
+                super(areaTrigger.triggerName, script);
+                this.areaTrigger = areaTrigger;
+
+                init();
+            }
+
+            @Override
+            public boolean isSync() {
+                return areaTrigger.isSync();
+            }
+
+            @Override
+            public void setSync(boolean sync) {
+                areaTrigger.setSync(sync);
+            }
+
+            @Override
+            public Trigger clone() {
+                try {
+                    return new EnterTrigger(areaTrigger, script);
+                } catch (TriggerInitFailedException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+        }
+
+        public static class ExitTrigger extends Trigger{
+            private final AreaTrigger areaTrigger;
+
+            public ExitTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
+                super(areaTrigger.getTriggerName(), script);
+                this.areaTrigger = areaTrigger;
+
+                init();
+            }
+
+            @Override
+            public boolean isSync() {
+                return areaTrigger.isSync();
+            }
+
+            @Override
+            public void setSync(boolean sync) {
+                areaTrigger.setSync(sync);
+            }
+
+            @Override
+            public Trigger clone() {
+                try {
+                    return new ExitTrigger(areaTrigger, script);
+                } catch (TriggerInitFailedException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+        }
+    }
 }

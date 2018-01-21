@@ -17,13 +17,11 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -43,6 +41,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -50,145 +50,48 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTri
 import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public class InventoryTriggerManager extends AbstractInventoryTriggerManager {
-    final File folder;
-
+public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements BukkitTriggerManager{
     public InventoryTriggerManager(TriggerReactor plugin) {
-        super(plugin);
-
-        folder = new File(plugin.getDataFolder(), "InventoryTrigger");
-        if(!folder.exists())
-            folder.mkdirs();
-
-        reload();
+        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(), new File(plugin.getDataFolder(), "InventoryTrigger"));
     }
 
     @Override
-    public void reload() {
-        FileFilter filter = new FileFilter(){
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".yml");
-            }
-        };
-
-        for(File file : folder.listFiles(filter)){
-            String fileName = file.getName();
-            String triggerName = fileName.substring(0, fileName.indexOf('.'));
-
-            File triggerFile = new File(folder, triggerName);
-            if(!triggerFile.exists()){
-                plugin.getLogger().warning(triggerFile+" does not exists!");
-                plugin.getLogger().warning(triggerFile+" is skipped.");
-                continue;
-            }
-
-            if(triggerFile.isDirectory()){
-                plugin.getLogger().warning(triggerFile+" should be a file not a directory!");
-                plugin.getLogger().warning(triggerFile+" is skipped.");
-                continue;
-            }
-
-            Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
+    public <T> T getData(File file, String key, T def) throws IOException {
+        if(key.equals(ITEMS)) {
+            Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
             try {
-                yaml.load(file);
-            } catch (IOException | InvalidConfigurationException e) {
+                conf.load(file);
+            } catch (InvalidConfigurationException e) {
                 e.printStackTrace();
-                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
-                continue;
-            }
-
-            if(!yaml.contains("Size")){
-                plugin.getLogger().warning("Could not find Size: for inventory trigger "+triggerName);
-                continue;
-            }
-            int size = yaml.getInt("Size");
-            if(size % 9 != 0){
-                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
-                plugin.getLogger().warning("Size: must be multiple of 9!");
-                continue;
-            }
-            if(size > InventoryTrigger.MAXSIZE){
-                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
-                plugin.getLogger().warning("Size: cannot be larger than "+InventoryTrigger.MAXSIZE);
-                continue;
             }
 
             Map<Integer, IItemStack> items = new HashMap<>();
-            ConfigurationSection itemSection = yaml.getConfigurationSection("Items");
-            if(itemSection == null){
-                plugin.getLogger().warning("Could not find Items: for inventory trigger "+triggerName);
-                continue;
-            }
 
-            parseItemsList(itemSection, items, size);
+            parseItemsList(conf, items, 54);
 
-            //boolean isSync = yaml.getBoolean("Sync", false);
-
-            String script = null;
-            try {
-                script = FileUtil.readFromFile(triggerFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
-                continue;
-            }
-
-            InventoryTrigger trigger = null;
-            try {
-                trigger = new InventoryTrigger(size, triggerName, items, script);
-                //trigger.setSync(isSync);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
-                continue;
-            }
-
-            invenTriggers.put(triggerName, trigger);
+            return (T) items;
+        }else {
+            return BukkitTriggerManager.super.getData(file, key, def);
         }
     }
 
     @Override
-    public void saveAll() {
-        for(Entry<String, InventoryTrigger> entry : invenTriggers.entrySet()){
-            String triggerName = entry.getKey();
-            InventoryTrigger trigger = entry.getValue();
-
-            File yamlFile = new File(folder, triggerName+".yml");
-            if(!yamlFile.exists()){
-                try {
-                    yamlFile.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
+    public void setData(File file, String key, Object value) throws IOException {
+        if(key.equals(ITEMS)) {
+            Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
             try {
-                yaml.load(yamlFile);
-            } catch (IOException | InvalidConfigurationException e1) {
-                e1.printStackTrace();
-            }
-
-            yaml.set("Size", trigger.getItems().length);
-
-            if(!yaml.isSet("Items"))
-                yaml.createSection("Items");
-            writeItemList(yaml.getConfigurationSection("Items"), trigger.getItems());
-
-            //yaml.set("Sync", trigger.isSync());
-
-            try {
-                FileUtil.writeToFile(new File(folder, triggerName), trigger.getScript());
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                plugin.getLogger().warning("Could not save "+triggerName);
-            }
-
-            try {
-                yaml.save(yamlFile);
-            } catch (IOException e) {
+                conf.load(file);
+            } catch (InvalidConfigurationException e) {
                 e.printStackTrace();
             }
+
+            IItemStack[] items = (IItemStack[]) value;
+
+            writeItemList(conf, items);
+
+            conf.save(file);
+        }else {
+            BukkitTriggerManager.super.setData(file, key, value);
         }
     }
 

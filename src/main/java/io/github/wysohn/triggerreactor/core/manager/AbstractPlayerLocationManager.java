@@ -20,9 +20,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public abstract class AbstractPlayerLocationManager extends Manager {
     private transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();

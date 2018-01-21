@@ -21,7 +21,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 /**
  * This event fires depends on the player's block location. Unlike the PlayerMoveEvent, it only checks wether a player moved

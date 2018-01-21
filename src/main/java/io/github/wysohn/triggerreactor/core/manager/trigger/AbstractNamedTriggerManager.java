@@ -22,18 +22,56 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public abstract class AbstractNamedTriggerManager extends TriggerManager {
+public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager {
 
     protected final Map<String, Trigger> triggers = new HashMap<>();
 
-    public AbstractNamedTriggerManager(TriggerReactor plugin) {
-        super(plugin);
+    public AbstractNamedTriggerManager(TriggerReactor plugin, SelfReference ref,
+            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+        super(plugin, ref, vars, tirggerFolder);
+    }
+
+    @Override
+    public void reload() {
+        triggers.clear();
+
+        for (File file : folder.listFiles()) {
+            try {
+                load(file);
+            } catch (TriggerInitFailedException | IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+        }
+    }
+
+    @Override
+    public void saveAll() {
+/*        Set<Entry<String, Trigger>> failed = new HashSet<>();
+
+        for(Entry<String, Trigger> entry : triggers.entrySet()){
+            String key = entry.getKey().replaceAll(":", File.separator);
+            Trigger trigger = entry.getValue();
+
+            File file = new File(folder, key);
+            if(!file.getParentFile().exists())
+                file.getParentFile().mkdirs();
+
+            try{
+                FileUtil.writeToFile(file, trigger.getScript());
+            }catch(IOException e){
+                e.printStackTrace();
+                plugin.getLogger().warning("Failed to save file "+key);
+                failed.add(entry);
+            }
+        }*/
     }
 
     /**
@@ -74,12 +112,16 @@ public abstract class AbstractNamedTriggerManager extends TriggerManager {
             }
             stack.pop();
         } else {
+            if(!isTriggerFile(file))
+                return;
+
+            String triggerName = extractName(file);
+
             StringBuilder builder = new StringBuilder();
             for (int i = stack.size() - 1; i >= 0; i--) {
                 builder.append(stack.get(i) + ":");
             }
-            String fileName = file.getName();
-            builder.append(fileName);
+            builder.append(triggerName);
 
             if (triggers.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");

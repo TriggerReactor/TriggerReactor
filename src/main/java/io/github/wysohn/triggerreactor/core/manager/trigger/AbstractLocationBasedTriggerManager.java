@@ -16,6 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,23 +27,105 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTriggerManager {
     protected Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
     private Map<UUID, String> settingLocation = new HashMap<>();
 
     public AbstractLocationBasedTriggerManager(TriggerReactor plugin, SelfReference ref,
-            Map<String, Class<? extends AbstractAPISupport>> vars) {
-        super(plugin, ref, vars);
+            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+        super(plugin, ref, vars, tirggerFolder);
+    }
+
+    @Override
+    public void reload(){
+        locationTriggers.clear();
+
+        for(File file : folder.listFiles()){
+            if(file.isDirectory())
+                continue;
+
+            if(!isTriggerFile(file))
+                continue;
+
+            String triggerName = extractName(file);
+
+            SimpleLocation sloc = null;
+            try{
+                sloc = stringToSloc(triggerName);
+            }catch(Exception e){
+                e.printStackTrace();
+                continue;
+            }
+
+            String script = null;
+            try {
+                script = FileUtil.readFromFile(file);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                continue;
+            }
+
+            T trigger = null;
+            try {
+                trigger = constructTrigger(sloc.toString(), script);
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            if(sloc != null && trigger != null){
+                SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+
+                Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
+                if(!locationTriggers.containsKey(scloc)){
+                    triggerMap = new ConcurrentHashMap<>();
+                    locationTriggers.put(scloc, triggerMap);
+                }
+
+                triggerMap.put(sloc, trigger);
+            }
+        }
+    }
+
+    @Override
+    public void saveAll(){
+        for(Entry<SimpleChunkLocation, Map<SimpleLocation, T>> chunkEntry : locationTriggers.entrySet()){
+            SimpleChunkLocation scloc = chunkEntry.getKey();
+            Map<SimpleLocation, T> slocMap = chunkEntry.getValue();
+
+            Set<SimpleLocation> failed = new HashSet<>();
+
+            for(Entry<SimpleLocation, T> entry : slocMap.entrySet()){
+                SimpleLocation sloc = entry.getKey();
+                T trigger = entry.getValue();
+
+                String fileName = slocToString(sloc);
+                String script = trigger.getScript();
+
+                File file = new File(folder, fileName+".trg");
+                try{
+                    FileUtil.writeToFile(file, script);
+                }catch(Exception e){
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Could not save a trigger at "+sloc);
+                    failed.add(sloc);
+                }
+            }
+
+            for(SimpleLocation sloc : failed){
+                slocMap.remove(sloc);
+            }
+        }
     }
 
     protected String slocToString(SimpleLocation sloc) {
@@ -250,7 +334,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return triggers;
     }
 
-    public static class WalkTrigger extends TriggerManager.Trigger{
+    public static class WalkTrigger extends Trigger{
 
         public WalkTrigger(String name, String script) throws TriggerInitFailedException {
             super(name, script);
@@ -269,7 +353,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
     }
 
-    public static class ClickTrigger extends TriggerManager.Trigger{
+    public static class ClickTrigger extends Trigger{
         private ClickHandler handler;
 
         public ClickTrigger(String name, String script, ClickHandler handler) throws TriggerInitFailedException {

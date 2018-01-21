@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.bukkit.manager.location;
+package io.github.wysohn.triggerreactor.core.manager.location;
 
 public class SimpleChunkLocation {
     String world;

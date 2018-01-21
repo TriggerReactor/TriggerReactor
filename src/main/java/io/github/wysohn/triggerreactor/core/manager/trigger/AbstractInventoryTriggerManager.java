@@ -16,21 +16,30 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.TriggerManager;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public abstract class AbstractInventoryTriggerManager extends TriggerManager {
+public abstract class AbstractInventoryTriggerManager extends AbstractTriggerManager {
+    protected static final String ITEMS = "Items";
+
+    private static final String SIZE = "Size";
+
     private final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
 
     protected final Map<String, InventoryTrigger> invenTriggers = new ConcurrentHashMap<>();
@@ -88,6 +97,113 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
 
         public IItemStack[] getItems() {
             return items;
+        }
+    }
+
+    @Override
+    public void reload() {
+        FileFilter filter = new FileFilter(){
+            @Override
+            public boolean accept(File pathname) {
+                return pathname.getName().endsWith(".yml");
+            }
+        };
+
+        for(File ymlfile : folder.listFiles(filter)){
+            String triggerName = extractName(ymlfile);
+
+            File triggerFile = getTriggerFile(folder, triggerName);
+
+            if(!triggerFile.exists()){
+                plugin.getLogger().warning(triggerFile+" does not exists!");
+                plugin.getLogger().warning(triggerFile+" is skipped.");
+                continue;
+            }
+
+            if(triggerFile.isDirectory()){
+                plugin.getLogger().warning(triggerFile+" should be a file not a directory!");
+                plugin.getLogger().warning(triggerFile+" is skipped.");
+                continue;
+            }
+
+            int size = 0;
+            Map<Integer, IItemStack> items = null;
+            try {
+                size = getData(ymlfile, SIZE, 0);
+                items = this.getData(ymlfile, ITEMS);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+            if(size == 0 || size % 9 != 0){
+                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                plugin.getLogger().warning("Size: does not exists or not multiple of 9!");
+                continue;
+            }
+            if(size > InventoryTrigger.MAXSIZE){
+                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                plugin.getLogger().warning("Size: cannot be larger than "+InventoryTrigger.MAXSIZE);
+                continue;
+            }
+
+            if(items == null){
+                plugin.getLogger().warning("Could not find Items: for inventory trigger "+triggerName);
+                continue;
+            }
+
+            String script = null;
+            try {
+                script = FileUtil.readFromFile(triggerFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                continue;
+            }
+
+            InventoryTrigger trigger = null;
+            try {
+                trigger = new InventoryTrigger(size, triggerName, items, script);
+                //trigger.setSync(isSync);
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
+                continue;
+            }
+
+            invenTriggers.put(triggerName, trigger);
+        }
+    }
+
+    @Override
+    public void saveAll() {
+        for(Entry<String, InventoryTrigger> entry : invenTriggers.entrySet()){
+            String triggerName = entry.getKey();
+            InventoryTrigger trigger = entry.getValue();
+
+            File yamlFile = new File(folder, triggerName+".yml");
+            File triggerFile = new File(folder, triggerName+".trg");
+
+            if(!yamlFile.exists()){
+                try {
+                    yamlFile.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                this.setData(yamlFile, SIZE, trigger.getItems().length);
+                this.setData(yamlFile, ITEMS, trigger.getItems());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                FileUtil.writeToFile(triggerFile, trigger.getScript());
+            } catch (IOException e1) {
+                e1.printStackTrace();
+                plugin.getLogger().warning("Could not save "+triggerName);
+            }
         }
     }
 
@@ -206,8 +322,9 @@ public abstract class AbstractInventoryTriggerManager extends TriggerManager {
         return inventorySharedVars.get(inventory);
     }
 
-    public AbstractInventoryTriggerManager(TriggerReactor plugin) {
-        super(plugin);
+    public AbstractInventoryTriggerManager(TriggerReactor plugin, SelfReference ref,
+            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+        super(plugin, ref, vars, tirggerFolder);
     }
 
 }

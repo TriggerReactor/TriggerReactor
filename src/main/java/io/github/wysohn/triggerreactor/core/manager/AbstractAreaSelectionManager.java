@@ -22,9 +22,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.Area;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.location.Area;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public abstract class AbstractAreaSelectionManager extends Manager {
     protected final Set<UUID> selecting = new HashSet<>();

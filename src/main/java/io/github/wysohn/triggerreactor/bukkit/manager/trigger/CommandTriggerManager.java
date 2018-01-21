@@ -17,87 +17,22 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public class CommandTriggerManager extends AbstractCommandTriggerManager {
-    File folder;
+public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager{
     public CommandTriggerManager(TriggerReactor plugin) {
-        super(plugin);
-
-        File dataFolder = plugin.getDataFolder();
-        if(!dataFolder.exists())
-            dataFolder.mkdirs();
-
-        folder = new File(dataFolder, "CommandTrigger");
-        if(!folder.exists())
-            folder.mkdirs();
-
-        reload();
-    }
-
-    @Override
-    public void reload() {
-        commandTriggerMap.clear();
-
-        for(File file : folder.listFiles()){
-            String fileName = file.getName();
-
-            String script = null;
-            try{
-                script = FileUtil.readFromFile(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
-            }
-
-            CommandTrigger trigger = null;
-            try {
-                trigger = new CommandTrigger(fileName, script);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                continue;
-            }
-
-            commandTriggerMap.put(fileName, trigger);
-        }
-    }
-
-    @Override
-    public void saveAll(){
-        Set<String> failed = new HashSet<>();
-        for(Entry<String, CommandTrigger> entry : commandTriggerMap.entrySet()){
-            String fileName = entry.getKey();
-            CommandTrigger trigger = entry.getValue();
-
-            String script = trigger.getScript();
-
-            File file = new File(folder, fileName);
-            try{
-                FileUtil.writeToFile(file, script);
-            }catch(Exception e){
-                e.printStackTrace();
-                plugin.getLogger().severe("Could not save command trigger for "+fileName);
-                failed.add(fileName);
-            }
-        }
-
-        for(String key : failed){
-            commandTriggerMap.remove(key);
-        }
+        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(),  new File(plugin.getDataFolder(), "CommandTrigger"));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -123,11 +58,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
 
         trigger.activate(e, varMap);
         e.setCancelled(true);
-    }
-
-    @Override
-    protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 
 }

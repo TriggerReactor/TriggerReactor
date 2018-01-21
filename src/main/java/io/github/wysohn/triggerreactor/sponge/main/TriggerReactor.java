@@ -35,7 +35,6 @@ import org.spongepowered.api.plugin.Plugin;
 
 import com.google.inject.Inject;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -49,6 +48,7 @@ import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManage
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;

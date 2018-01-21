@@ -17,62 +17,15 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Set;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-public class NamedTriggerManager extends AbstractNamedTriggerManager {
-    private final File folder;
-
+public class NamedTriggerManager extends AbstractNamedTriggerManager implements BukkitTriggerManager{
     public NamedTriggerManager(TriggerReactor plugin) {
-        super(plugin);
-
-        folder = new File(plugin.getDataFolder(), "NamedTriggers");
-        if(!folder.exists())
-            folder.mkdirs();
-
-        reload();
-    }
-
-    @Override
-    public void reload() {
-        triggers.clear();
-
-        for (File file : folder.listFiles()) {
-            try {
-                load(file);
-            } catch (TriggerInitFailedException | IOException e) {
-                e.printStackTrace();
-                continue;
-            }
-        }
-    }
-
-    @Override
-    public void saveAll() {
-        Set<Entry<String, Trigger>> failed = new HashSet<>();
-
-        for(Entry<String, Trigger> entry : triggers.entrySet()){
-            String key = entry.getKey().replaceAll(":", File.separator);
-            Trigger trigger = entry.getValue();
-
-            File file = new File(folder, key);
-            if(!file.getParentFile().exists())
-                file.getParentFile().mkdirs();
-
-            try{
-                FileUtil.writeToFile(file, trigger.getScript());
-            }catch(IOException e){
-                e.printStackTrace();
-                plugin.getLogger().warning("Failed to save file "+key);
-                failed.add(entry);
-            }
-        }
+        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(), new File(plugin.getDataFolder(), "NamedTriggers"));
     }
 
     @Override

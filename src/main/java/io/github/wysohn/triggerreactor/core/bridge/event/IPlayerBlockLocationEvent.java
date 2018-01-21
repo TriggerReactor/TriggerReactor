@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.bridge.event;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public interface IPlayerBlockLocationEvent extends IPlayerEvent{
 

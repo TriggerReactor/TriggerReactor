@@ -17,12 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -33,7 +29,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -42,39 +37,27 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.bukkit.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
-public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T> implements Listener{
+public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
+        implements BukkitTriggerManager {
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
-    private final File folder;
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
-        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars());
-
-        File dataFolder = plugin.getDataFolder();
-        if(!dataFolder.exists())
-            dataFolder.mkdirs();
-
-        folder = new File(dataFolder, folderName);
-        if(!folder.exists())
-            folder.mkdirs();
-
-        reload();
-
-        check();
+        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(), new File(plugin.getDataFolder(), folderName));
     }
 
     protected boolean oldInteractEvent = false;
@@ -86,85 +69,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             oldInteractEvent = true;
         } catch (Exception e){
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void reload(){
-        locationTriggers.clear();
-
-        for(File file : folder.listFiles()){
-            if(file.isDirectory())
-                continue;
-
-            String fileName = file.getName();
-
-            SimpleLocation sloc = null;
-            try{
-                sloc = stringToSloc(fileName);
-            }catch(Exception e){
-                e.printStackTrace();
-                continue;
-            }
-
-            String script = null;
-            try {
-                script = FileUtil.readFromFile(file);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            T trigger = null;
-            try {
-                trigger = constructTrigger(sloc.toString(), script);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                continue;
-            }
-
-            if(sloc != null && trigger != null){
-                SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-                Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-                if(!locationTriggers.containsKey(scloc)){
-                    triggerMap = new ConcurrentHashMap<>();
-                    locationTriggers.put(scloc, triggerMap);
-                }
-
-                triggerMap.put(sloc, trigger);
-            }
-        }
-    }
-
-    @Override
-    public void saveAll(){
-        for(Entry<SimpleChunkLocation, Map<SimpleLocation, T>> chunkEntry : locationTriggers.entrySet()){
-            SimpleChunkLocation cloc = chunkEntry.getKey();
-            Map<SimpleLocation, T> slocMap = chunkEntry.getValue();
-
-            Set<SimpleLocation> failed = new HashSet<>();
-
-            for(Entry<SimpleLocation, T> entry : slocMap.entrySet()){
-                SimpleLocation sloc = entry.getKey();
-                T trigger = entry.getValue();
-
-                String fileName = slocToString(sloc);
-                String script = trigger.getScript();
-
-                File file = new File(folder, fileName);
-                try{
-                    FileUtil.writeToFile(file, script);
-                }catch(Exception e){
-                    e.printStackTrace();
-                    plugin.getLogger().severe("Could not save a trigger at "+sloc);
-                    failed.add(sloc);
-                }
-            }
-
-            for(SimpleLocation sloc : failed){
-                slocMap.remove(sloc);
-            }
         }
     }
 

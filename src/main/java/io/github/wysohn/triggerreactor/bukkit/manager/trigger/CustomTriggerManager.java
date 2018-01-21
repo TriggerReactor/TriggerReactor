@@ -17,18 +17,15 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
 import org.bukkit.event.EventPriority;
@@ -46,13 +43,14 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.IllegalPluginAccessException;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.misc.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
-public class CustomTriggerManager extends AbstractCustomTriggerManager {
+public class CustomTriggerManager extends AbstractCustomTriggerManager implements BukkitTriggerManager{
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
@@ -71,89 +69,20 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         put("onBlockBreak", BlockBreakEvent.class);
     }};
 
-    final File folder;
-
     public CustomTriggerManager(TriggerReactor plugin) {
-        super(plugin);
+        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(), new File(plugin.getDataFolder(), "CustomTrigger"));
 
         try {
             initEvents();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        folder = new File(plugin.getDataFolder(), "CustomTrigger");
-        if(!folder.exists()){
-            folder.mkdirs();
-        }
-
-        reload();
     }
 
     @Override
     public void reload() {
-        FileFilter filter = new FileFilter(){
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".yml");
-            }
-        };
-
-        triggerMap.clear();
         HandlerList.unregisterAll(listener);
-
-        for(File file : folder.listFiles(filter)){
-            if(!file.isFile())
-                continue;
-
-            Utf8YamlConfiguration yamlFile = new Utf8YamlConfiguration();
-            try {
-                yamlFile.load(file);
-            } catch (IOException | InvalidConfigurationException e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            String eventName = yamlFile.getString("Event", null);
-            if(eventName == null){
-                plugin.getLogger().warning("Could not find Event: for "+file);
-                continue;
-            }
-
-            Class<? extends Event> event = null;
-            try {
-                event = (Class<? extends Event>) getEventFromName(eventName);
-            } catch (ClassNotFoundException e1) {
-                plugin.getLogger().warning("Could not load "+file);
-                plugin.getLogger().warning(e1.getMessage() + " does not exist.");
-                continue;
-            }
-
-            boolean isSync = yamlFile.getBoolean("Sync", false);
-
-            String fileName = file.getName().substring(0, file.getName().indexOf('.'));
-            File codeFile = new File(folder, fileName);
-
-            try {
-                String read = FileUtil.readFromFile(codeFile);
-
-                Set<CustomTrigger> triggers = getTriggerSetForEvent(event);
-
-                try {
-                    CustomTrigger trigger = new CustomTrigger(event, eventName, fileName, read);
-                    trigger.setSync(isSync);
-
-                    triggers.add(trigger);
-                    nameMap.put(fileName, trigger);
-                } catch (TriggerInitFailedException e) {
-                    e.printStackTrace();
-                    continue;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
-            }
-        }
+        super.reload();
     }
 
     private static final String basePackageName = "org.bukkit.event";
@@ -179,6 +108,31 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
     }
 
     @Override
+    public boolean createCustomTrigger(String eventName, String name, String script)
+            throws ClassNotFoundException, TriggerInitFailedException {
+        if (nameMap.containsKey(name))
+            return false;
+
+        Class<?> event = this.getEventFromName(eventName);
+
+        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
+
+        CustomTrigger trigger = new CustomTrigger(event, eventName, name, script);
+
+        triggers.add(trigger);
+        nameMap.put(name, trigger);
+
+        return true;
+    }
+
+    @Override
+    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException {
+        Class<?> clazz = this.getEventFromName(eventName);
+
+        return triggerMap.get(clazz);
+    }
+
+    @Override
     protected void registerEvent(TriggerReactor plugin, Class<?> clazz) {
         try{
             Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
@@ -195,18 +149,6 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         }
     }
 
-    /**
-     * First it tries to return Event in ABBREVIATIONS if such name exists; if
-     * not exists, then it will try to find event by event name; if it fails
-     * too, will look for full class name.
-     *  ex) 1. onJoin -> 2. PlayerJoinEvent -> 3. org.bukkit.event.player.PlayerJoinEvent
-     *
-     * @param name name of event to search
-     * @return the event class
-     * @throws ClassNotFoundException
-     *             throws if search fails or the result event is
-     *             a event that cannot receive events.
-     */
     @Override
     protected Class<?> getEventFromName(String name) throws ClassNotFoundException{
         Class<? extends Event> event;
@@ -221,35 +163,6 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         return event;
     }
 
-    @Override
-    public void saveAll() {
-        for(Entry<String, CustomTrigger> entry : nameMap.entrySet()){
-            CustomTrigger trigger = entry.getValue();
-
-            File file = new File(folder, trigger.getTriggerName());
-
-            Utf8YamlConfiguration yamlFile = new Utf8YamlConfiguration();
-            try {
-                File yfile = new File(folder, trigger.getTriggerName()+".yml");
-                if(yfile.exists())
-                    yamlFile.load(yfile);
-                yamlFile.set("Sync", trigger.isSync());
-                yamlFile.set("Event", trigger.getEventName());
-                yamlFile.save(yfile);
-            } catch (IOException | InvalidConfigurationException e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            try {
-                FileUtil.writeToFile(file, trigger.getScript());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
     protected void handleEvent(Object e){
         Set<CustomTrigger> triggers = triggerMap.get(e.getClass());
         if(triggers == null)
