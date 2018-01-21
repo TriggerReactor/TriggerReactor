@@ -77,7 +77,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
      * Override this method to customize this behavior.
      */
     protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()));
+        FileUtil.delete(new File(folder, trigger.getTriggerName()+".trg"));
     }
 
     protected static boolean isTriggerFile(File file) {

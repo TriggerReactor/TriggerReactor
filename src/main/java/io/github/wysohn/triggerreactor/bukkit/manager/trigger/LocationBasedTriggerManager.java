@@ -47,7 +47,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
@@ -324,12 +323,5 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
         SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
         return getTriggersInChunk(scloc);
-    }
-
-
-
-    @Override
-    protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 }
