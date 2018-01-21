@@ -263,6 +263,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
         namedTriggerManager = new NamedTriggerManager(this);
 
+        for(Manager manager : Manager.getManagers()) {
+            manager.reload();
+        }
+
         bungeeHelper = new BungeeCordHelper();
         bungeeConnectionThread = new Thread(bungeeHelper);
         bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);

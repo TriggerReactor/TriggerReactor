@@ -66,8 +66,6 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         if(!folder.exists())
             folder.mkdirs();
-
-        reload();
     }
 
     protected <T> T getData(File file, String key) throws IOException {

@@ -61,8 +61,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             SimpleLocation largest = null;
             boolean isSync = false;
             try {
-                smallest = getData(ymlfile, SMALLEST);
-                largest = getData(ymlfile, LARGEST);
+                smallest = SimpleLocation.valueOf(getData(ymlfile, SMALLEST));
+                largest = SimpleLocation.valueOf(getData(ymlfile, LARGEST));
                 isSync = getData(ymlfile, SYNC, false);
             } catch (IOException e) {
                 e.printStackTrace();

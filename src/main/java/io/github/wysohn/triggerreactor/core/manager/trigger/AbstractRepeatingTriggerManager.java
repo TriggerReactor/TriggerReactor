@@ -58,10 +58,10 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             String triggerName = extractName(ymlfile);
 
             boolean autoStart = false;
-            long interval = 1000L;
+            int interval = 1000;
             try {
                 autoStart = this.getData(ymlfile, "AutoStart", false);
-                interval = this.getData(ymlfile, "Interval", 1000L);
+                interval = this.getData(ymlfile, "Interval", 1000);
             } catch (IOException e2) {
                 e2.printStackTrace();
             }
