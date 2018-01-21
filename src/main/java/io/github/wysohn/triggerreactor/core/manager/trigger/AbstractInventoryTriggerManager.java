@@ -286,6 +286,12 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         return true;
     }
 
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()+".yml"));
+        super.deleteInfo(trigger);
+    }
+
     /**
      *
      * @param trigger

@@ -211,6 +211,12 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         return true;
     }
 
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()+".yml"));
+        super.deleteInfo(trigger);
+    }
+
     /**
      * Checks whether the specified trigger is running. However, this also can
      * return false even if the trigger with name 'triggerName' does not exists.

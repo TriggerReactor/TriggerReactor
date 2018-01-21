@@ -345,7 +345,10 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         ENTER, EXIT;
     }
 
-
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()));
+    }
 
     public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref,
             Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {

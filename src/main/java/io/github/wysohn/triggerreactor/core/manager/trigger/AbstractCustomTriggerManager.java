@@ -302,6 +302,12 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         return true;
     }
 
+    @Override
+    protected void deleteInfo(Trigger trigger) {
+        FileUtil.delete(new File(folder, trigger.getTriggerName()+".yml"));
+        super.deleteInfo(trigger);
+    }
+
     public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref,
             Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
         super(plugin, ref, vars, tirggerFolder);
