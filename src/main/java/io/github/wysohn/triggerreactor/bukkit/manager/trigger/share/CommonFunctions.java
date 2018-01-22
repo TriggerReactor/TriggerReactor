@@ -35,6 +35,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -220,7 +221,10 @@ public class CommonFunctions implements SelfReference {
     }
 
     public Location location(String world, int x, int y, int z){
-        return new Location(Bukkit.getWorld(world), x, y, z);
+        World w = Bukkit.getWorld(world);
+        if(world == null)
+            throw new RuntimeException("world "+world+" does not exists!");
+        return new Location(w, x, y, z);
     }
 
     public SimpleLocation slocation(String world, int x, int y, int z){
