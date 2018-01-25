@@ -40,10 +40,4 @@ public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager imp
 
         FileUtil.writeToFile(new File(folder, trigger.getTriggerName()), trigger.getScript());
     }
-
-    @Override
-    protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName() + ".yml"));
-        FileUtil.delete(new File(folder, trigger.getTriggerName()));
-    }
 }
