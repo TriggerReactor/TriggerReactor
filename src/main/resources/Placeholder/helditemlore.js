@@ -14,12 +14,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function helditemid(args){
+function helditemlore(args){
 	if(player == null)
 		return null;
 		
 	if(player.getItemInHand() == null)
-		return -1;
+		return "";
 		
-	return player.getItemInHand().getType().getId();
+	if(args.length < 1)
+		return "";
+		
+	if(typeof args[0] !== "number")
+		throw new Error("Invalid parameter! helditemlore accepts 'number' as paramter.");
+		
+	var itemMeta = player.getItemInHand().getItemMeta();
+	if(itemMeta == null)
+		return "";
+	
+	var lores = itemMeta.getLore();
+	if(lores == null)
+		return "";
+		
+	var index = args[0] | 0;
+	if(index < 0 || lores.size() <= index)
+		return "";
+		
+	return lores[index];
 }

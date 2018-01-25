@@ -19,14 +19,14 @@ function helditemdisplayname(args){
 		return null;
 		
 	if(player.getItemInHand() == null)
-		return null;
+		return "";
 		
 	var itemMeta = player.getItemInHand().getItemMeta();
 	if(itemMeta == null)
-		return null;
+		return "";
 		
 	if(itemMeta.getDisplayName() == null)
-		return "No display name";
+		return "";
 		
 	return itemMeta.getDisplayName();
 }

@@ -19,7 +19,7 @@ function helditemname(args){
 		return null;
 		
 	if(player.getItemInHand() == null)
-		return null;
+		return "AIR";
 		
 	return player.getItemInHand().getType().name();
 }
