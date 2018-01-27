@@ -100,7 +100,7 @@ public class EditingPrompt implements Prompt, Listener {
 
 			editor.down(lines);
 		} else{
-			editor.intput(arg1.replaceAll("\\$", " "));
+			editor.intput(arg1.replaceAll("\\^", " "));
 		}
 		return this;
 	}
