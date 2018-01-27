@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Stack;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -33,9 +32,8 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
 
     protected final Map<String, Trigger> triggers = new HashMap<>();
 
-    public AbstractNamedTriggerManager(TriggerReactor plugin, SelfReference ref,
-            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
-        super(plugin, ref, vars, tirggerFolder);
+    public AbstractNamedTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
+        super(plugin, ref, tirggerFolder);
     }
 
     @Override

@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -313,9 +312,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         super.deleteInfo(trigger);
     }
 
-    public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref,
-            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
-        super(plugin, ref, vars, tirggerFolder);
+    public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
+        super(plugin, ref, tirggerFolder);
     }
 
 

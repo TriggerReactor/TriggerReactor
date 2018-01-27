@@ -19,9 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +30,6 @@ import java.util.concurrent.TimeoutException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
@@ -48,19 +45,13 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO{
     private static SelfReference common;
 
-    private static Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
-
     protected final File folder;
 
-    public AbstractTriggerManager(TriggerReactor plugin, SelfReference ref,  Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
+    public AbstractTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin);
 
         if(common == null)
             common = ref;
-
-        for(Entry<String, Class<? extends AbstractAPISupport>> entry : vars.entrySet()){
-            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
-        }
 
         folder = tirggerFolder;
 
@@ -267,7 +258,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvarMap, scriptVars, common);
             interpreter.setSync(isSync());
 
-            interpreter.getVars().putAll(sharedVars);
+            interpreter.getVars().putAll(TriggerReactor.getInstance().getSharedVars());
 
             return interpreter;
         }

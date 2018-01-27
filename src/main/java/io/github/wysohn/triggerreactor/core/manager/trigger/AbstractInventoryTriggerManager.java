@@ -28,7 +28,6 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
@@ -328,9 +327,8 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         return inventorySharedVars.get(inventory);
     }
 
-    public AbstractInventoryTriggerManager(TriggerReactor plugin, SelfReference ref,
-            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
-        super(plugin, ref, vars, tirggerFolder);
+    public AbstractInventoryTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
+        super(plugin, ref, tirggerFolder);
     }
 
 }

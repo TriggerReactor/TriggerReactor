@@ -38,7 +38,6 @@ import org.bukkit.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
@@ -56,7 +55,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public static final Material COPY_TOOL = Material.PAPER;
 
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
-        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(), new File(plugin.getDataFolder(), folderName));
+        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
     }
 
     protected boolean oldInteractEvent = false;

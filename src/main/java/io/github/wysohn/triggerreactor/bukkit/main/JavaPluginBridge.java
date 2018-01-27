@@ -88,6 +88,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerMa
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -119,6 +120,10 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.Proce
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 
 public class JavaPluginBridge extends TriggerReactor implements Plugin{
+    protected JavaPluginBridge() {
+        super(APISupport.getSharedVars());
+    }
+
     private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
 
     private BungeeCordHelper bungeeHelper;

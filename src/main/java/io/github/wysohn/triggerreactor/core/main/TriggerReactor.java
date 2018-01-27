@@ -58,6 +58,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTrigger
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
@@ -90,8 +91,18 @@ public abstract class TriggerReactor {
         return instance;
     }
 
-    protected TriggerReactor(){
+    private final Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
+
+    protected TriggerReactor(Map<String, Class<? extends AbstractAPISupport>> vars){
         instance = this;
+
+        for(Entry<String, Class<? extends AbstractAPISupport>> entry : vars.entrySet()){
+            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
+        }
+    }
+
+    public Map<String, AbstractAPISupport> getSharedVars() {
+        return sharedVars;
     }
 
     public abstract AbstractExecutorManager getExecutorManager();

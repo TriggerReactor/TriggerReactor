@@ -65,6 +65,10 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.Proce
 
 @Plugin(id = "triggerreactor")
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor{
+    protected TriggerReactor() {
+        super(null);//TODO provide shared vars here
+    }
+
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;

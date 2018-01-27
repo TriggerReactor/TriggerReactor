@@ -26,7 +26,6 @@ import org.bukkit.event.EventPriority;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
@@ -34,7 +33,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements BukkitTriggerManager{
     public AreaTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), APISupport.getSharedVars(), new File(plugin.getDataFolder(), "AreaTrigger"));
+        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "AreaTrigger"));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

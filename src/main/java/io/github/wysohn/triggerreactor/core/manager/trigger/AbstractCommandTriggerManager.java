@@ -26,7 +26,6 @@ import java.util.Set;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -157,9 +156,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         return new CommandTrigger("temp", script);
     }
 
-    public AbstractCommandTriggerManager(TriggerReactor plugin, SelfReference ref,
-            Map<String, Class<? extends AbstractAPISupport>> vars, File tirggerFolder) {
-        super(plugin, ref, vars, tirggerFolder);
+    public AbstractCommandTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
+        super(plugin, ref, tirggerFolder);
     }
 
 
