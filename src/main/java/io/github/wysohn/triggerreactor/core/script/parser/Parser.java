@@ -707,10 +707,13 @@ public class Parser {
                 + "ENDIF";*/
         //String text = "#MESSAGE /mw goto ETC";
         //String text = "#MESSAGE args[0]";
-        String text = ""
+/*        String text = ""
                 + "FOR i = 0:10\n"
                 + "    #TEST:MESSAGE \"test i=\"+i..i\n"
-                + "ENDFOR\n";
+                + "ENDFOR\n";*/
+        String text = ""
+                + "IF 1 == 1 || 2 == 3 || 4 == 5;"
+                + "ENDIF;";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

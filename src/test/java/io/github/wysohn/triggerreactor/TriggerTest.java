@@ -466,6 +466,53 @@ public class TriggerTest {
     }
 
     @Test
+    public void testShortCircuit() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "IF player != null && player.health == 0.82;"
+                + "    #TEST1 \"work\";"
+                + "ENDIF;"
+                + "IF player2 == null || player2.health == 0.82;"
+                + "    #TEST2 \"work2\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<String, Executor>() {{
+            put("TEST1", new Executor() {
+
+                @Override
+                protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                    Assert.assertEquals("work", args[0]);
+                    return null;
+                }
+
+            });
+            put("TEST2", new Executor() {
+
+                @Override
+                protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                    Assert.assertEquals("work2", args[0]);
+                    return null;
+                }
+
+            });
+        }};
+
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        interpreter.getVars().put("player", new InTest());
+        interpreter.getVars().put("player2", new InTest());
+
+        interpreter.startWithContext(null);
+
+        interpreter.getVars().remove("player");
+        interpreter.getVars().remove("player2");
+        interpreter.startWithContext(null);
+    }
+
+    @Test
     public void testWhile() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""

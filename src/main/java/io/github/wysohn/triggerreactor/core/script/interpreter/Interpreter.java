@@ -291,8 +291,44 @@ public class Interpreter {
             }
 
         } else {
-            for(Node child : node.getChildren()){
+            for(int i = 0; i < node.getChildren().size(); i++){
+                Node child = node.getChildren().get(i);
                 start(child);
+
+                //experimental
+                if(i == 0) {
+                    if("&&".equals(node.getToken().value)){
+                        Token leftBool = stack.pop();
+                        if(isVariable(leftBool)){
+                            leftBool = unwrapVariable(leftBool);
+                        }
+                        stack.push(leftBool);
+
+                        if(!leftBool.isBoolean())
+                            throw new InterpreterException("Left of && operator should be Boolean but was "+leftBool);
+
+                        boolean result = leftBool.toBoolean();
+
+                        if(!result) { //false anyway
+                            return;
+                        }
+                    }else if("||".equals(node.getToken().value)) {
+                        Token leftBool = stack.pop();
+                        if(isVariable(leftBool)){
+                            leftBool = unwrapVariable(leftBool);
+                        }
+                        stack.push(leftBool);
+
+                        if(!leftBool.isBoolean())
+                            throw new InterpreterException("Left of || operator should be Boolean but was "+leftBool);
+
+                        boolean result = leftBool.toBoolean();
+
+                        if(result) { //true anyway
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -511,10 +547,19 @@ public class Interpreter {
                                 ? right.toInt() : right.toDouble())));
                         break;
                     case "==":
-                        stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
+                        if (right.type == Type.NULLVALUE) {
+                            stack.push(new Token(Type.BOOLEAN, left.value == null));
+                        } else {
+                            stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value)));
+                        }
+
                         break;
                     case "!=":
-                        stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
+                        if (right.type == Type.NULLVALUE) {
+                            stack.push(new Token(Type.BOOLEAN, left.value != null));
+                        } else {
+                            stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value)));
+                        }
                         break;
                     case "&&":
                         stack.push(new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean()));
