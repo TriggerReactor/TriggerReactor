@@ -85,7 +85,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             if(jsExecutors.containsKey(builder.toString())){
                 plugin.getLogger().warning(builder.toString()+" already registered! Duplicating executors?");
             }else{
-                JSExecutor exec = new JSExecutor(fileName, file);
+                JSExecutor exec = new JSExecutor(fileName, IScriptEngineInitializer.getNashornEngine(sem), file);
                 jsExecutors.put(builder.toString(), exec);
             }
         }
@@ -131,11 +131,12 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         private final String executorName;
         private final String sourceCode;
 
-        private ScriptEngine engine = getNashornEngine();
+        private ScriptEngine engine = null;
         private CompiledScript compiled = null;
 
-        public JSExecutor(String executorName, File file) throws ScriptException, IOException {
+        public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this.executorName = executorName;
+            this.engine = engine;
 
             StringBuilder builder = new StringBuilder();
             FileReader reader = new FileReader(file);

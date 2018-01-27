@@ -58,7 +58,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         if(jsPlaceholders.containsKey(fileName)){
             plugin.getLogger().warning(fileName+" already registered! Duplicating placerholders?");
         }else{
-            JSPlaceholder placeholder = new JSPlaceholder(fileName, file);
+            JSPlaceholder placeholder = new JSPlaceholder(fileName, IScriptEngineInitializer.getNashornEngine(sem), file);
             jsPlaceholders.put(fileName, placeholder);
         }
     }
@@ -90,10 +90,10 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         private final String placeholderName;
         private final String sourceCode;
 
-        private ScriptEngine engine = getNashornEngine();
+        private ScriptEngine engine = null;
         private CompiledScript compiled = null;
 
-        public JSPlaceholder(String placeholderName, File file) throws ScriptException, IOException {
+        public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this.placeholderName = placeholderName;
 
             StringBuilder builder = new StringBuilder();

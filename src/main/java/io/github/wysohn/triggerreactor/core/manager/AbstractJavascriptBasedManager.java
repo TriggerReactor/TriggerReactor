@@ -21,27 +21,21 @@ import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 
-public abstract class AbstractJavascriptBasedManager extends Manager {
+public abstract class AbstractJavascriptBasedManager extends Manager implements IScriptEngineInitializer{
 
     protected static final ScriptEngineManager sem = new ScriptEngineManager(null);
     public static AbstractJavascriptBasedManager instance;
 
-    protected static ScriptEngine getNashornEngine() {
-        return sem.getEngineByName("nashorn");
-    }
+    @Override
+    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException{
+        IScriptEngineInitializer.super.initScriptEngine(sem);
 
-    /**
-     * Initializes pre-defined functions and variables for Executors.
-     * @throws ScriptException
-     */
-    protected void initScriptEngine() throws ScriptException{
         sem.put("plugin", this.plugin);
 
         for(Entry<String, AbstractAPISupport> entry : this.plugin.getSharedVars().entrySet()) {
@@ -81,23 +75,6 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 return plugin.getVariableManager().has(t);
             }
         });
-
-        sem.put("Char", new Function<String, Character>(){
-            @Override
-            public Character apply(String t) {
-                return t.charAt(0);
-            }
-        });
-    }
-
-    protected void registerClass(Class<?> clazz) throws ScriptException {
-        registerClass(clazz.getSimpleName(), clazz);
-    }
-
-    protected void registerClass(String name, Class<?> clazz) throws ScriptException {
-        ScriptEngine engine = getNashornEngine();
-        Object value = engine.eval("Java.type('"+clazz.getName()+"');");
-        sem.put(name, value);
     }
 
     /**
@@ -113,7 +90,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
         super(plugin);
 
         instance = this;
-        initScriptEngine();
+        initScriptEngine(sem);
     }
 
 }

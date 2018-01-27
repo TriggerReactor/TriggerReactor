@@ -22,25 +22,21 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Stack;
 
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 
 @SuppressWarnings("serial")
-public class ExecutorManager extends AbstractExecutorManager{
+public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer{
     private File executorFolder;
 
     public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
@@ -81,6 +77,12 @@ public class ExecutorManager extends AbstractExecutorManager{
     }
 
     @Override
+    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
+        super.initScriptEngine(sem);
+        BukkitScriptEngineInitializer.super.initScriptEngine(sem);
+    }
+
+    @Override
     protected void extractCustomVariables(Map<String, Object> variables, Object e) {
         if(e instanceof InventoryInteractEvent){
             if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
@@ -92,17 +94,6 @@ public class ExecutorManager extends AbstractExecutorManager{
             if(((InventoryOpenEvent) e).getPlayer() instanceof Player)
                 variables.put("player", ((InventoryOpenEvent) e).getPlayer());
         }
-    }
-
-    @Override
-    protected void initScriptEngine() throws ScriptException {
-        super.initScriptEngine();
-
-        registerClass(Executor.class);
-        registerClass(Bukkit.class);
-        registerClass(Location.class);
-        registerClass(ChatColor.class);
-        registerClass(BukkitUtil.class);
     }
 
     public static void main(String[] ar){
