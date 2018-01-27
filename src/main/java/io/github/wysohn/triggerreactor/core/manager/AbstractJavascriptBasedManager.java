@@ -17,12 +17,16 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 
 public abstract class AbstractJavascriptBasedManager extends Manager {
 
@@ -37,7 +41,54 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
      * Initializes pre-defined functions and variables for Executors.
      * @throws ScriptException
      */
-    protected abstract void initScriptEngine() throws ScriptException;
+    protected void initScriptEngine() throws ScriptException{
+        sem.put("plugin", this.plugin);
+
+        for(Entry<String, AbstractAPISupport> entry : this.plugin.getSharedVars().entrySet()) {
+            sem.put(entry.getKey(), entry.getValue());
+        }
+
+        sem.put("get", new Function<String, Object>(){
+            @Override
+            public Object apply(String t) {
+                return plugin.getVariableManager().get(t);
+            }
+        });
+
+        sem.put("put", new BiFunction<String, Object, Void>(){
+            @Override
+            public Void apply(String a, Object b) {
+                if(!AbstractVariableManager.isValidName(a))
+                    throw new RuntimeException("["+a+"] cannot be used as key");
+
+                if(a != null && b == null){
+                    plugin.getVariableManager().remove(a);
+                } else{
+                    try {
+                        plugin.getVariableManager().put(a, b);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Executor -- put("+a+","+b+")", e);
+                    }
+                }
+
+                return null;
+            }
+        });
+
+        sem.put("has", new Function<String, Boolean>(){
+            @Override
+            public Boolean apply(String t) {
+                return plugin.getVariableManager().has(t);
+            }
+        });
+
+        sem.put("Char", new Function<String, Character>(){
+            @Override
+            public Character apply(String t) {
+                return t.charAt(0);
+            }
+        });
+    }
 
     protected void registerClass(Class<?> clazz) throws ScriptException {
         registerClass(clazz.getSimpleName(), clazz);

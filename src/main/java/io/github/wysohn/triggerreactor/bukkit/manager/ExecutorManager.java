@@ -21,8 +21,6 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Stack;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import javax.script.ScriptException;
 
@@ -98,54 +96,13 @@ public class ExecutorManager extends AbstractExecutorManager{
 
     @Override
     protected void initScriptEngine() throws ScriptException {
+        super.initScriptEngine();
+
         registerClass(Executor.class);
         registerClass(Bukkit.class);
         registerClass(Location.class);
         registerClass(ChatColor.class);
         registerClass(BukkitUtil.class);
-
-        sem.put("plugin", this.plugin);
-
-        sem.put("get", new Function<String, Object>(){
-            @Override
-            public Object apply(String t) {
-                return plugin.getVariableManager().get(t);
-            }
-        });
-
-        sem.put("put", new BiFunction<String, Object, Void>(){
-            @Override
-            public Void apply(String a, Object b) {
-                if(!VariableManager.isValidName(a))
-                    throw new RuntimeException("["+a+"] cannot be used as key");
-
-                if(a != null && b == null){
-                    plugin.getVariableManager().remove(a);
-                } else{
-                    try {
-                        plugin.getVariableManager().put(a, b);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Executor -- put("+a+","+b+")", e);
-                    }
-                }
-
-                return null;
-            }
-        });
-
-        sem.put("has", new Function<String, Boolean>(){
-            @Override
-            public Boolean apply(String t) {
-                return plugin.getVariableManager().has(t);
-            }
-        });
-
-        sem.put("Char", new Function<String, Character>(){
-            @Override
-            public Character apply(String t) {
-                return t.charAt(0);
-            }
-        });
     }
 
     public static void main(String[] ar){
