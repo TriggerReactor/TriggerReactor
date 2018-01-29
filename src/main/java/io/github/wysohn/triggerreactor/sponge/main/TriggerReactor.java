@@ -60,14 +60,12 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 
 @Plugin(id = "triggerreactor")
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor{
-    protected TriggerReactor() {
-        super(null);//TODO provide shared vars here
-    }
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -368,5 +366,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         }
 
         return result;
+    }
+
+    @Override
+    public Map<String, AbstractAPISupport> getSharedVars() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

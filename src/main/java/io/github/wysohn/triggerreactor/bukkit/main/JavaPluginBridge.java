@@ -115,14 +115,13 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 
 public class JavaPluginBridge extends TriggerReactor implements Plugin{
-    protected JavaPluginBridge() {
-        super(APISupport.getSharedVars());
-    }
+    private Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
     private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
 
@@ -231,6 +230,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
 
         this.bukkitPlugin = plugin;
+
+        for(Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()){
+            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
+        }
 
         try {
             executorManager = new ExecutorManager(this);
@@ -857,5 +860,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     @Override
     public String getName() {
         return bukkitPlugin.getName();
+    }
+
+    @Override
+    public Map<String, AbstractAPISupport> getSharedVars() {
+        return sharedVars;
     }
 }

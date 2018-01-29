@@ -222,6 +222,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
             scriptVars.put("event", e);
             scriptVars.putAll(ReflectionUtil.extractVariablesWithEnumAsString(e));
+            scriptVars.putAll(TriggerReactor.getInstance().getSharedVars());
 
             Interpreter interpreter = initInterpreter(scriptVars);
 
@@ -257,8 +258,6 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvarMap, scriptVars, common);
             interpreter.setSync(isSync());
-
-            interpreter.getVars().putAll(TriggerReactor.getInstance().getSharedVars());
 
             return interpreter;
         }

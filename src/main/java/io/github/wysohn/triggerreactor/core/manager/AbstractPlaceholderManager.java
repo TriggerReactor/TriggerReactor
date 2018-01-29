@@ -95,6 +95,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
         public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this.placeholderName = placeholderName;
+            this.engine = engine;
 
             StringBuilder builder = new StringBuilder();
             FileReader reader = new FileReader(file);
