@@ -405,6 +405,27 @@ public class Parser {
     private Node parseTermAndExpression(Node left) throws IOException, LexerException, ParserException{
         if(token != null && token.type == Type.OPERATOR_A
                 &&("+".equals(token.value) || "-".equals(token.value))){
+            if ("-".equals(token.value) && left != null //for negative sign only
+                    && (!"*".equals(left.getToken().value)
+                            && !"/".equals(left.getToken().value)
+                            && !"%".equals(left.getToken().value)
+                            && !"+".equals(left.getToken().value)
+                            && !"-".equals(left.getToken().value)
+                            && !".".equals(left.getToken().value)
+
+                            && left.getToken().type != Type.PLACEHOLDER
+                            && left.getToken().type != Type.ID
+                            && left.getToken().type != Type.GID
+                            && left.getToken().type != Type.INTEGER
+                            && left.getToken().type != Type.DECIMAL
+
+                            && left.getToken().type != Type.UNARYMINUS
+                            )
+                    ) {
+                //if left node is NOT possible candidate of expression, it can be an unary minus. Just skip to factor
+                return parseFactor();
+            }
+
             Node node = new Node(token);
             nextToken();
 
@@ -553,11 +574,17 @@ public class Parser {
         //unary minus
         if(token.type == Type.OPERATOR_A && "-".equals(token.value)){
             nextToken();
-            if(token.type != Type.INTEGER && token.type != Type.DECIMAL)
-                throw new ParserException("Only Integer or Decimal are allowed for unary minus operation! "+token);
+            if(token.type != Type.INTEGER && token.type != Type.DECIMAL //number
+                    && token.type != Type.ID //variable
+                    && !"{".equals(token.value) //gvar
+                    && !"$".equals(token.value) //placeholder
+                    && !"(".equals(token.value) //factor
+                    )
+                throw new ParserException("Only Number, Variable, or Placeholder are allowed for unary minus operation! "+token);
 
-            Node node = new Node(new Token(token.type, "-"+token.value, token.row, token.col));
-            nextToken();
+            Node node = new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>", token.row, token.col));
+            node.getChildren().add(parseFactor());
+
             return node;
         }
 
@@ -711,9 +738,11 @@ public class Parser {
                 + "FOR i = 0:10\n"
                 + "    #TEST:MESSAGE \"test i=\"+i..i\n"
                 + "ENDFOR\n";*/
-        String text = ""
-                + "IF 1 == 1 || 2 == 3 || 4 == 5;"
-                + "ENDIF;";
+        String text = "x = 4.0;"
+                + "#TEST1 -1;"
+                + "#TEST2 -2.0;"
+                + "#TEST3 -$test3;"
+                + "#TEST4 -x;";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

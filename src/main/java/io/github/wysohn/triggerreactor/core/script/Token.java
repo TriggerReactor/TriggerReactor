@@ -134,7 +134,7 @@ public class Token {
 
         OBJECT, /**Function Call**/CALL, ACCESS, ARRAYACCESS, /**self reference**/THIS, ITERATOR,
 
-        /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, /**Logical**/OPERATOR_L,
+        /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, UNARYMINUS, /**Logical**/OPERATOR_L,
 
         GID, ID, PLACEHOLDER, NULLVALUE,
 

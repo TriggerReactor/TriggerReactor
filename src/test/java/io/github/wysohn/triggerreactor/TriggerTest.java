@@ -608,6 +608,72 @@ public class TriggerTest {
         Assert.assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
     }
 
+    @Test
+    public void testUnaryMinus() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "#TEST1 -1+-5;"
+                + "#TEST2 -2.0--5;"
+                + "#TEST3 -$test3-5;"
+                + "#TEST4 -x-5;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(-6, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST2", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(3.0, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST3", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(-8, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST4", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(-9.0, args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        placeholderMap.put("test3", new Placeholder() {
+
+            @Override
+            public Object parse(Object context, Object... args) throws Exception {
+                return 3;
+            }
+
+        });
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
     private static class TheTest{
         public InTest in = new InTest();
         public InTest getTest(){

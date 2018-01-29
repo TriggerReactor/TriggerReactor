@@ -486,6 +486,18 @@ public class Interpreter {
                 default:
                     throw new InterpreterException("Cannot interpret the unknown operator "+node.getToken().value);
                 }
+            }else if(node.getToken().type == Type.UNARYMINUS) {
+                Token value = stack.pop();
+
+                if(isVariable(value)){
+                    value = unwrapVariable(value);
+                }
+
+                if(!value.isNumeric())
+                    throw new InterpreterException("Cannot do unary minus operation for non-numeric value "+value);
+
+                stack.push(value.isInt() ? new Token(Type.INTEGER, -value.toInt(), value.row, value.col)
+                        : new Token(Type.DECIMAL, -value.toDouble(), value.row, value.col));
             }else if(node.getToken().type == Type.OPERATOR_L){
                 if("!".equals(node.getToken().value)){
                     Token boolval = stack.pop();
