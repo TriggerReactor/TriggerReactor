@@ -34,7 +34,7 @@ function POTION(args){
 	if(typeof args[1] !== "number")
 		throw new Error("Second parameter should be a number.");
 	
-	var level = 0;
+	var level = 1;
 	if(args.length > 2){
 		if(typeof args[2] != "number")
 			throw new Error("Third parameter should be a number");
@@ -44,7 +44,7 @@ function POTION(args){
 	
 
 	var PotionEffect = Java.type('org.bukkit.potion.PotionEffect');
-	var effect = new PotionEffect(type, args[1], level);
+	var effect = new PotionEffect(type, args[1], level - 1);
 
 	player.addPotionEffect(effect);
 
