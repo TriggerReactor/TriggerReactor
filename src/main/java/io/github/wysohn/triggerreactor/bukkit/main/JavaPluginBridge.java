@@ -126,6 +126,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
 
     private BungeeCordHelper bungeeHelper;
+    private Lag tpsHelper;
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
@@ -224,6 +225,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         return bungeeHelper;
     }
 
+    public Lag getTpsHelper() {
+        return tpsHelper;
+    }
+
     private Thread bungeeConnectionThread;
 
     public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor plugin){
@@ -279,6 +284,9 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         bungeeConnectionThread = new Thread(bungeeHelper);
         bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
         bungeeConnectionThread.start();
+
+        tpsHelper = new Lag();
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(bukkitPlugin, tpsHelper, 100L, 1L);
     }
 
     private void initFailed(Exception e) {
@@ -672,6 +680,41 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    //https://bukkit.org/threads/get-server-tps.143410/
+    public class Lag implements Runnable {
+        public int TICK_COUNT = 0;
+        public long[] TICKS = new long[600];
+
+        public double getTPS() {
+            return getTPS(100);
+        }
+
+        public double getTPS(int ticks) {
+            if (TICK_COUNT < ticks) {
+                return 20.0D;
+            }
+            int target = (TICK_COUNT - 1 - ticks) % TICKS.length;
+            long elapsed = System.currentTimeMillis() - TICKS[target];
+
+            return ticks / (elapsed / 1000.0D);
+        }
+
+        public long getElapsed(int tickID) {
+            if (TICK_COUNT - tickID >= TICKS.length) {
+            }
+
+            long time = TICKS[(tickID % TICKS.length)];
+            return System.currentTimeMillis() - time;
+        }
+
+        @Override
+        public void run() {
+            TICKS[(TICK_COUNT % TICKS.length)] = System.currentTimeMillis();
+
+            TICK_COUNT += 1;
         }
     }
 
