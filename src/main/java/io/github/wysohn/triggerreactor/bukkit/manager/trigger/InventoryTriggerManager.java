@@ -57,6 +57,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     @Override
     public <T> T getData(File file, String key, T def) throws IOException {
         if(key.equals(ITEMS)) {
+            int size = BukkitTriggerManager.super.getData(file, SIZE, 0);
             Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
             try {
                 conf.load(file);
@@ -66,7 +67,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
             Map<Integer, IItemStack> items = new HashMap<>();
 
-            parseItemsList(conf, items, 54);
+            if(conf.contains(ITEMS))
+                parseItemsList(conf.getConfigurationSection(ITEMS), items, size);
 
             return (T) items;
         }else {

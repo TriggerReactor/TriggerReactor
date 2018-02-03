@@ -36,8 +36,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public abstract class AbstractInventoryTriggerManager extends AbstractTriggerManager {
     protected static final String ITEMS = "Items";
-
-    private static final String SIZE = "Size";
+    protected static final String SIZE = "Size";
 
     private final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
 
@@ -129,7 +128,6 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
             Map<Integer, IItemStack> items = null;
             try {
                 size = getData(ymlfile, SIZE, 0);
-                items = this.getData(ymlfile, ITEMS);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -143,6 +141,12 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
                 plugin.getLogger().warning("Could not load inventory trigger "+triggerName);
                 plugin.getLogger().warning("Size: cannot be larger than "+InventoryTrigger.MAXSIZE);
                 continue;
+            }
+
+            try {
+                items = this.getData(ymlfile, ITEMS);
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
 
             if(items == null){
