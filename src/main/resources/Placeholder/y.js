@@ -19,5 +19,5 @@ function y(args){
 		return null;
 
 	var loc = player.getLocation();
-	return loc.getY();
+	return loc.getBlockY();
 }
