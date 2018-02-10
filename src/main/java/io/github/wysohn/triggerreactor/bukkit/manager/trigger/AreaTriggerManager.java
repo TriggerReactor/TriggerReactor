@@ -32,6 +32,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerM
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements BukkitTriggerManager{
+
     public AreaTriggerManager(TriggerReactor plugin) {
         super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "AreaTrigger"));
     }

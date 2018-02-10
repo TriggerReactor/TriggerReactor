@@ -82,7 +82,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             String enterScript = null;
             try {
-                File enterFile = getTriggerFile(scriptFolder, "Enter");
+                File enterFile = getTriggerFile(scriptFolder, "Enter.trg");
                 enterScript = FileUtil.readFromFile(enterFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -91,7 +91,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             String exitScript = null;
             try {
-                File exitFile = getTriggerFile(scriptFolder, "Exit");
+                File exitFile = getTriggerFile(scriptFolder, "Exit.trg");
                 exitScript = FileUtil.readFromFile(exitFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -156,15 +156,15 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             }
 
             try {
-                setData(ymlfile, SMALLEST, area.getSmallest());
-                setData(ymlfile, LARGEST, area.getLargest());
+                setData(ymlfile, SMALLEST, area.getSmallest().toString());
+                setData(ymlfile, LARGEST, area.getLargest().toString());
                 setData(ymlfile, SYNC, trigger.isSync());
             } catch (IOException e1) {
                 e1.printStackTrace();
                 continue;
             }
 
-            File triggerFolder = new File(folder, trigger.getTriggerName()+".trg");
+            File triggerFolder = new File(folder, trigger.getTriggerName());
             if(!triggerFolder.exists()){
                 triggerFolder.mkdirs();
             }
