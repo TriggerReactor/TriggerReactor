@@ -751,17 +751,25 @@ public class Interpreter {
                 throw new InterpreterException("Unknown error ", e);
             }
         } else if(id.type == Type.GID){
-            if(isVariable(value)){
-                value = unwrapVariable(value);
-            }
+            if(value.type == Type.NULLVALUE) {
+                gvars.remove(id.value.toString());
+            }else {
+                if(isVariable(value)){
+                    value = unwrapVariable(value);
+                }
 
-            gvars.put(id.value.toString(), value.value);
+                gvars.put(id.value.toString(), value.value);
+            }
         }else if(id.type == Type.ID){
-            if(isVariable(value)){
-                value = unwrapVariable(value);
-            }
+            if(value.type == Type.NULLVALUE) {
+                vars.remove(id.value.toString());
+            }else {
+                if(isVariable(value)){
+                    value = unwrapVariable(value);
+                }
 
-            vars.put(id.value.toString(), value.value);
+                vars.put(id.value.toString(), value.value);
+            }
         }else{
             throw new InterpreterException("Cannot assign value to "+id.value.getClass().getSimpleName());
         }
