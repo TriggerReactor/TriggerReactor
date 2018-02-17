@@ -558,8 +558,8 @@ public class TriggerTest {
     @Test
     public void testPlaceholder() throws Exception{
         Charset charset = Charset.forName("UTF-8");
-        String text = "x = 100;"
-                + "returnvalue = $test:0:x:5<3:true&&false:\"hoho\";"
+        String text = "x = 100.0;"
+                + "returnvalue = $test:0:x:true:\"hoho\";"
                 + "#MESSAGE $playername returnvalue;";
 
         Lexer lexer = new Lexer(text, charset);
@@ -592,10 +592,9 @@ public class TriggerTest {
             @Override
             public Object parse(Object context, Object... args) throws Exception {
                 Assert.assertEquals(0, args[0]);
-                Assert.assertEquals(100, args[1]);
-                Assert.assertEquals(false, args[2]);
-                Assert.assertEquals(false, args[3]);
-                Assert.assertEquals("hoho", args[4]);
+                Assert.assertEquals(100.0, args[1]);
+                Assert.assertEquals(true, args[2]);
+                Assert.assertEquals("hoho", args[3]);
                 return "testwithargs";
             }
 

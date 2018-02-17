@@ -516,7 +516,7 @@ public class Parser {
 
             while(token != null && ":".equals(token.value)) {
                 nextToken();
-                node.getChildren().add(parseLogic());
+                node.getChildren().add(parseFactor());
             }
 
             return node;
@@ -738,11 +738,12 @@ public class Parser {
                 + "FOR i = 0:10\n"
                 + "    #TEST:MESSAGE \"test i=\"+i..i\n"
                 + "ENDFOR\n";*/
-        String text = "x = 4.0;"
+/*        String text = "x = 4.0;"
                 + "#TEST1 -1;"
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
-                + "#TEST4 -x;";
+                + "#TEST4 -x;";*/
+        String text = "#MESSAGE $random:1 == 0";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
