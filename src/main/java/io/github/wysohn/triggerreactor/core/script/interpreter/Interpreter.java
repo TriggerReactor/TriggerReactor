@@ -414,8 +414,17 @@ public class Interpreter {
                 Object replaced = placeholderMap.get(placeholderName).parse(context, args);
                 if(replaced == null) {
                     replaced = "$"+placeholderName;
+                } else if (replaced instanceof Number) {
+                    double d = ((Number) replaced).doubleValue();
+                    if (d % 1 == 0) {
+                        // whole number
+                        stack.push(new Token(Type.INTEGER, (int) d));
+                    } else {
+                        stack.push(new Token(Type.DECIMAL, d));
+                    }
+                } else {
+                    stack.push(new Token(Type.EPS, replaced));
                 }
-                stack.push(new Token(Type.EPS, replaced));
             } else if (node.getToken().type == Type.OPERATOR_A) {
                 Token right = stack.pop();
                 Token left = stack.pop();
