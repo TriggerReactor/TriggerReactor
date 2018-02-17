@@ -414,7 +414,9 @@ public class Interpreter {
                 Object replaced = placeholderMap.get(placeholderName).parse(context, args);
                 if(replaced == null) {
                     replaced = "$"+placeholderName;
-                } else if (replaced instanceof Number) {
+                }
+
+                if (replaced instanceof Number) {
                     double d = ((Number) replaced).doubleValue();
                     if (d % 1 == 0) {
                         // whole number
