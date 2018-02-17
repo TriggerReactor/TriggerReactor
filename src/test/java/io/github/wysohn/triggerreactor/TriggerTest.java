@@ -673,6 +673,168 @@ public class TriggerTest {
         interpreter.startWithContext(null);
     }
 
+    @Test
+    public void testSimpleIf() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "IF x > 0.0;"
+                + "    #TEST \"pass\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIfWithElse() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "IF x < 0.0;"
+                + "    #TEST \"no\";"
+                + "ELSE;"
+                + "    #TEST \"pass\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNestedIf() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "IF x < 0.0;"
+                + "    #TEST \"no\";"
+                + "ELSEIF x > 0.0;"
+                + "    #TEST \"pass\";"
+                + "ELSE;"
+                + "    #TEST \"no\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNestedIf2() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "IF x < 0.0;"
+                + "    #TEST \"no\";"
+                + "ELSEIF x < -5.0;"
+                + "    #TEST \"no\";"
+                + "ELSE;"
+                + "    #TEST \"pass\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNestedIfNoElse() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "IF x < 0.0;"
+                + "    #TEST \"no\";"
+                + "ELSEIF x > 0.0;"
+                + "    #TEST \"pass\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
     private static class TheTest{
         public InTest in = new InTest();
         public InTest getTest(){

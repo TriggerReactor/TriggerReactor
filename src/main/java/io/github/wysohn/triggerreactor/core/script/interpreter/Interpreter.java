@@ -147,8 +147,9 @@ public class Interpreter {
         if(stopFlag)
             return;
 
-        if ("IF".equals(node.getToken().value)) {
-            start(node.getChildren().get(0));
+        //IF children -- [0] : condition , [1] : true body , [2] : false body(may not exist)
+        if ("ELSEIF".equals(node.getToken().value) || "IF".equals(node.getToken().value)) {
+            start(node.getChildren().get(0));//[0] condition
             if(stopFlag)
                 return;
 
@@ -158,17 +159,17 @@ public class Interpreter {
                 resultToken = unwrapVariable(resultToken);
             }
 
-            if(resultToken.type == Type.NULLVALUE){
+            if(resultToken.type == Type.NULLVALUE){ // null check failed
                 if(node.getChildren().size() > 2){
                     start(node.getChildren().get(2));
                 }
-            }else{
+            }else{ // normal IF statement
                 if(resultToken.isBoolean()){
                     boolean result = (boolean) resultToken.value;
                     if (result) {
-                        start(node.getChildren().get(1));
+                        start(node.getChildren().get(1));//[1] true body
                     } else if (node.getChildren().size() > 2) {
-                        start(node.getChildren().get(2));
+                        start(node.getChildren().get(2));//[2] false body
                     }
                 }else if(resultToken.isInt()){
                     int value = resultToken.toInt();
@@ -370,6 +371,7 @@ public class Interpreter {
 
             if (node.getToken().type == Type.BODY
                     || "IF".equals(node.getToken().value)
+                    || "ELSEIF".equals(node.getToken().value)
                     || "WHILE".equals(node.getToken().value)) {
                 return null;
             } else if (node.getToken().type == Type.EXECUTOR) {

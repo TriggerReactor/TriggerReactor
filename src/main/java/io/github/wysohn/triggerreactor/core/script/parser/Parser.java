@@ -67,50 +67,15 @@ public class Parser {
         skipEndLines();
         if(token != null){
             if("IF".equals(token.value)){
-                Node ifNode = new Node(token);
-                nextToken();
-
-                //condition
-                Node condition = parseLogic();
-                if(condition == null)
-                    throw new ParserException("Could not find condition for IF statement! "+ifNode.getToken());
-                ifNode.getChildren().add(condition);
-
-                //if body
-                Node trueBody = new Node(new Token(Type.BODY, "<BODY>"));
-
-                Node codes = null;
-                while((codes = parseStatement()) != null
-                        && !"ENDIF".equals(codes.getToken().value)
-                        && !"ELSE".equals(codes.getToken().value)){
-                    trueBody.getChildren().add(codes);
-                }
-                if(codes == null)
-                    throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-                ifNode.getChildren().add(trueBody);
-
-                //else body
-                if("ELSE".equals(codes.getToken().value)){
-                    Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
-
-                    while((codes = parseStatement()) != null
-                            && !"ENDIF".equals(codes.getToken().value)){
-                        falseBody.getChildren().add(codes);
-                    }
-                    if(codes == null)
-                        throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-                    ifNode.getChildren().add(falseBody);
-                }
-
-                //return
-                return ifNode;
+                return parseIf();
+            } else if("ELSEIF".equals(token.value)) {
+                Node elseNode = new Node(token);
+                return elseNode;
             } else if("ELSE".equals(token.value)) {
                 Node elseNode = new Node(token);
-                nextToken();
                 return elseNode;
             } else if("ENDIF".equals(token.value)){
                 Node endIfNode = new Node(token);
-                nextToken();
                 return endIfNode;
             }
             else if("WHILE".equals(token.value)){
@@ -280,6 +245,60 @@ public class Parser {
             return null;
         }
     }
+
+    private Node parseIf() throws IOException, LexerException, ParserException{
+        Node ifNode = new Node(token);
+        nextToken();
+
+        //condition
+        Node condition = parseLogic();
+        if(condition == null)
+            throw new ParserException("Could not find condition for IF statement! "+ifNode.getToken());
+        ifNode.getChildren().add(condition);
+
+        //if body
+        Node trueBody = new Node(new Token(Type.BODY, "<BODY>"));
+
+        Node codes = null;
+        while((codes = parseStatement()) != null
+                && !"ENDIF".equals(codes.getToken().value)
+                && !"ELSE".equals(codes.getToken().value)
+                && !"ELSEIF".equals(codes.getToken().value)){
+            trueBody.getChildren().add(codes);
+        }
+        ifNode.getChildren().add(trueBody);
+
+        if(codes == null) {
+            if(codes == null || !"ENDIF".equals(codes.getToken().value))
+                throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
+        } if("ELSEIF".equals(codes.getToken().value)) {//elseif body
+            Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
+            falseBody.getChildren().add(parseIf());
+            ifNode.getChildren().add(falseBody);
+        } else if("ELSE".equals(codes.getToken().value)){ //else body
+            Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
+            nextToken();
+
+            while((codes = parseStatement()) != null
+                    && !"ENDIF".equals(codes.getToken().value)){
+                falseBody.getChildren().add(codes);
+            }
+
+            if(codes == null || !"ENDIF".equals(codes.getToken().value))
+                throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
+            nextToken();
+
+            ifNode.getChildren().add(falseBody);
+        } else {
+            if(codes == null || !"ENDIF".equals(codes.getToken().value))
+                throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
+            nextToken();
+        }
+
+        //return
+        return ifNode;
+    }
+
 /*
     private Node parseAssignment() throws IOException, LexerException, ParserException{
         Node id = parseFactor();
@@ -743,7 +762,17 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        String text = "#MESSAGE $random:1 == 0";
+        //String text = "#MESSAGE $random:1 == 0";
+        String text = ""
+                + "IF i == 0;"
+                + "    #MESSAGE 0;"
+                + "ELSEIF i == 1;"
+                + "    #MESSAGE 1;"
+                + "ELSEIF i == 2;"
+                + "    #MESSAGE 2;"
+                + "ELSE;"
+                + "    #MESSAGE 3;"
+                + "ENDIF;";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
