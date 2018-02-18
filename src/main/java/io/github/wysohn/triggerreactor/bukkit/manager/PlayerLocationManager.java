@@ -29,6 +29,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
@@ -95,8 +96,11 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
 
     @Override
     public void reload() {
-        // TODO Auto-generated method stub
-
+        for(Player player : BukkitUtil.getOnlinePlayers()) {
+            Location loc = player.getLocation();
+            SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+            setCurrentBlockLocation(player.getUniqueId(), sloc);
+        }
     }
 
     @Override
