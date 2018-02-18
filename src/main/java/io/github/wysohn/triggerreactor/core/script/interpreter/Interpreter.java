@@ -738,7 +738,7 @@ public class Interpreter {
             }else if(node.getToken().type == Type.EPS){
                 stack.push(new Token(node.getToken().type, node.getToken().value));
             }else if(node.getToken().type == Type.NULLVALUE){
-                stack.push(new Token(node.getToken().type, "null"));
+                stack.push(new Token(node.getToken().type, null));
             }else{
                 throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
