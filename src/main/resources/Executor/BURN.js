@@ -15,7 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function BURN(args){
-	if(args.length == 2){ 
+	if(args.length == 1){
+		var seconds = args[0];
+		
+		entity.setFireTicks(seconds * 20);
+	}else if(args.length == 2){ 
 		var entity = args[0];
 		var seconds = args[1];
 
@@ -24,10 +28,9 @@ function BURN(args){
 		}
 
 		entity.setFireTicks(seconds * 20);
-
 	}else {
 		throw new Error(
-			'Invalid parameters. Need [Entity<entity or string>, Number]');
+			'Invalid parameters. Need [Number] or [Entity<entity or string>, Number]');
 	}
 	return null;
 }
