@@ -31,7 +31,7 @@
 
 		if(Block.getType().name().toLowerCase().contains("sign")){
 			Sign = Block.getState();
-			Sign.setLine(parseInt(lineNumber), replaceColorCodes(lineText));
+			Sign.setLine(parseInt(lineNumber), ChatColor.translateAlternateColorCodes(Char('&'), lineText));
 			Sign.update();
 		}else{
 			throw new Error(
@@ -43,37 +43,4 @@
 			'Invalid parameters. Need [Line<number>, Text<string>, Location<location or number number number>]');
 	}
 	return null;
-}
-
-
-function replaceColorCodes(string){
-
-	string = replaceAll(string, '&0', '\u00A70');
-	string = replaceAll(string, '&1', '\u00A71');
-	string = replaceAll(string, '&2', '\u00A72');
-	string = replaceAll(string, '&3', '\u00A73');
-	string = replaceAll(string, '&4', '\u00A74');
-	string = replaceAll(string, '&5', '\u00A75');
-	string = replaceAll(string, '&6', '\u00A76');
-	string = replaceAll(string, '&7', '\u00A77');
-	string = replaceAll(string, '&8', '\u00A78');
-	string = replaceAll(string, '&9', '\u00A79');
-	string = replaceAll(string, '&a', '\u00A7a');
-	string = replaceAll(string, '&b', '\u00A7b');
-	string = replaceAll(string, '&c', '\u00A7c');
-	string = replaceAll(string, '&d', '\u00A7d');
-	string = replaceAll(string, '&e', '\u00A7e');
-	string = replaceAll(string, '&f', '\u00A7f');
-	string = replaceAll(string, '&k', '\u00A7k');
-	string = replaceAll(string, '&l', '\u00A7l');
-	string = replaceAll(string, '&m', '\u00A7m');
-	string = replaceAll(string, '&n', '\u00A7n');
-	string = replaceAll(string, '&o', '\u00A7o');
-	string = replaceAll(string, '&r', '\u00A7r');
-
-	return string;
-}
-
-function replaceAll(str, find, replace) {
-	return str.replace(new RegExp(find, 'g'), replace);
 }
