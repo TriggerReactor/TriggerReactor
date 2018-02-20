@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function LEVERON(args) {
+ function LEVEROFF(args) {
 	if (args.length == 1 || args.length == 3) {
 		var location;
 
@@ -30,15 +30,10 @@
 			BlockState = Block.getState();
 			Lever = BlockState.getData();
 
-			Lever.setPowered(true);
+			Lever.setPowered(false);
 			BlockState.setData(Lever);
 
-			var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
-			plugin.runTask(new Runnable() {
-				run: function() {
-					BlockState.update(true);
-				}
-			});
+			BlockState.update(true);
 
 		}catch(err){
 			throw new Error(

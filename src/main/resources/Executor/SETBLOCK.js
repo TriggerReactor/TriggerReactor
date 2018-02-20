@@ -37,11 +37,7 @@
 			var Material = Java.type('org.bukkit.Material');
 			var someBlock = Material.valueOf(blockID.toUpperCase());
 			if(someBlock.isBlock()){
-				plugin.runTask(new Runnable() {
-					run: function() {
-						Block.setType(someBlock);
-					}
-				});
+				Block.setType(someBlock);
 			}
 		}
 

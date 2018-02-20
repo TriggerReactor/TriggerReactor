@@ -14,30 +14,35 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function EXPLOSION(args){
-	if(args.length == 2 || args.length == 4){ 
-		var power = args[0];
+ function DOORCLOSE(args) {
+	if (args.length == 1 || args.length == 3) {
 		var location;
 
-		if(args.length == 2){
-			location = args[1];
+		if(args.length == 1){
+			location = args[0];
 		}else{
 			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
+			location = new Location(world, args[0], args[1], args[2]);
 		}
 
-		// 0.0 = no damage. Capped at 20.0.
-		power = clamp(power, 0.0, 20.0);
-		location.getWorld().createExplosion(location, power);
+		try{
+			Block = location.getBlock();
+			BlockState = Block.getState();
+			Openable = BlockState.getData();
+			Openable.setOpen(false);
+			
+			BlockState.setData(Openable);
+			BlockState.update();
+
+		}catch(err){
+			throw new Error(
+				'Invalid door. '+err);
+		}
+        
 
 	}else {
 		throw new Error(
-			'Invalid parameters. Need [Power<number>, Location<location or number number number>]');
+			'Invalid parameters. Need [Location<location or number number number>]');
 	}
 	return null;
-}
-
-
-function clamp(number, min, max) {
-  return Math.max(min, Math.min(number, max));
 }

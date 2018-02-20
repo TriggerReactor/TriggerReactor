@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function DOORTOGGLE(args) {
+ function LEVERON(args) {
 	if (args.length == 1 || args.length == 3) {
 		var location;
 
@@ -28,24 +28,16 @@
 		try{
 			Block = location.getBlock();
 			BlockState = Block.getState();
-			Openable = BlockState.getData();
-			if(Openable.isOpen()){
-				Openable.setOpen(false);
-			}else{
-				Openable.setOpen(true);
-			}
-			BlockState.setData(Openable);
+			Lever = BlockState.getData();
 
-			var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
-			plugin.runTask(new Runnable() {
-				run: function() {
-					BlockState.update();
-				}
-			});
+			Lever.setPowered(true);
+			BlockState.setData(Lever);
+
+			BlockState.update(true);
 
 		}catch(err){
 			throw new Error(
-				'Invalid door. That block is not a valid door!');
+				'Invalid lever. '+err);
 		}
         
 

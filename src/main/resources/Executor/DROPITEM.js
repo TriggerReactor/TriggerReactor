@@ -15,19 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
  function DROPITEM(args) {
-
-	var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
-
 	if (args.length == 2){
 		var item = args[0];
 		var location = args[1];
 
-		plugin.runTask(new Runnable() {
-			run: function() {
-				location.getWorld().dropItem(location, item);
-			}
-		});
-
+		location.getWorld().dropItem(location, item);
 
 	}else if (args.length == 4 || args.length == 6) {
 		var itemID = args[0];
@@ -67,12 +59,7 @@
 			}
 		}
 
-		plugin.runTask(new Runnable() {
-			run: function() {
-				location.getWorld().dropItem(location, ItemStack);
-			}
-		});
-
+		location.getWorld().dropItem(location, ItemStack);
 
 	}else if(args.length == 5 || args.length == 7){ 
 		var itemID = args[0];
@@ -113,12 +100,7 @@
 			}
 		}
 
-		plugin.runTask(new Runnable() {
-			run: function() {
-				location.getWorld().dropItem(location, ItemStack);
-			}
-		});
-
+		location.getWorld().dropItem(location, ItemStack);
 
 	}else {
 		throw new Error(
