@@ -18,7 +18,7 @@ function BURN(args){
 	if(args.length == 1){
 		var seconds = args[0];
 		
-		entity.setFireTicks(seconds * 20);
+		player.setFireTicks(seconds * 20);
 	}else if(args.length == 2){ 
 		var entity = args[0];
 		var seconds = args[1];
