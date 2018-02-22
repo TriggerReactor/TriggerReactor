@@ -56,6 +56,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
         super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
+
+        check();
     }
 
     protected boolean oldInteractEvent = false;
