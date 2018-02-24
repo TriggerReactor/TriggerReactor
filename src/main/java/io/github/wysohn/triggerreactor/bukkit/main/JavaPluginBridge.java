@@ -16,9 +16,18 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +78,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
@@ -119,6 +129,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 
 public class JavaPluginBridge extends TriggerReactor implements Plugin{
     private Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
@@ -127,6 +138,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
     private BungeeCordHelper bungeeHelper;
     private Lag tpsHelper;
+    private MysqlSupport mysqlHelper;
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
@@ -229,6 +241,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         return tpsHelper;
     }
 
+    public MysqlSupport getMysqlHelper() {
+        return mysqlHelper;
+    }
+
     private Thread bungeeConnectionThread;
 
     public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor plugin){
@@ -287,6 +303,41 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
         tpsHelper = new Lag();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(bukkitPlugin, tpsHelper, 100L, 1L);
+
+        FileConfiguration config = plugin.getConfig();
+        if(config.getBoolean("Mysql.Enable", false)) {
+            try {
+                plugin.getLogger().info("Initializing Mysql support...");
+                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
+                        config.getString("Mysql.DbName"),
+                        "data",
+                        config.getString("Mysql.UserName"),
+                        config.getString("Mysql.Password"));
+                plugin.getLogger().info(mysqlHelper.toString());
+                plugin.getLogger().info("Done!");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Failed to initialize Mysql. Check for the error above.");
+            }
+        } else {
+            String path = "Mysql.Enable";
+            if(!config.isSet(path))
+                config.set(path, false);
+            path = "Mysql.Address";
+            if(!config.isSet(path))
+                config.set(path, "127.0.0.1:3306");
+            path = "Mysql.DbName";
+            if(!config.isSet(path))
+                config.set(path, "TriggerReactor");
+            path = "Mysql.UserName";
+            if(!config.isSet(path))
+                config.set(path, "root");
+            path = "Mysql.Password";
+            if(!config.isSet(path))
+                config.set(path, "1234");
+
+            plugin.saveConfig();
+        }
     }
 
     private void initFailed(Exception e) {
@@ -716,6 +767,119 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
             TICK_COUNT += 1;
         }
+    }
+
+    public class MysqlSupport{
+        private final String KEY = "dbkey";
+        private final String VALUE = "dbval";
+
+        private final MysqlConnectionPoolDataSource ds;
+        private final MiniConnectionPoolManager pool;
+
+        private String dbName;
+        private String tablename;
+
+        private String address;
+
+        private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws SQLException {
+            this.dbName = dbName;
+            this.tablename = tablename;
+            this.address = address;
+
+            ds = new MysqlConnectionPoolDataSource();
+            ds.setURL("jdbc:mysql://" + address + "/" + dbName);
+            ds.setUser(userName);
+            ds.setPassword(password);
+            ds.setCharacterEncoding("UTF-8");
+            ds.setUseUnicode(true);
+            ds.setAutoReconnectForPools(true);
+            ds.setAutoReconnect(true);
+            ds.setAutoReconnectForConnectionPools(true);
+
+            ds.setCachePreparedStatements(true);
+            ds.setCachePrepStmts(true);
+
+            pool = new MiniConnectionPoolManager(ds, 2);
+
+            Connection conn = createConnection();
+            initTable(conn);
+            conn.close();
+        }
+
+        private Connection createConnection() {
+            Connection conn = null;
+
+            try {
+                conn = pool.getConnection();
+            } catch (SQLException e) {
+                // e.printStackTrace();
+            } finally {
+                if (conn == null)
+                    conn = pool.getValidConnection();
+            }
+
+            return conn;
+        }
+
+        private final String CREATETABLEQUARY = "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY
+                + " CHAR(128) PRIMARY KEY," + "" + VALUE + " MEDIUMBLOB" + ")";
+
+        private void initTable(Connection conn) throws SQLException {
+            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
+            pstmt.executeUpdate();
+            pstmt.close();
+        }
+
+        public Object get(String key) throws SQLException {
+            Object out = null;
+
+            try (Connection conn = createConnection();
+                    PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?");) {
+                pstmt.setString(1, key);
+                ResultSet rs = pstmt.executeQuery();
+
+                if(!rs.next())
+                    return null;
+                InputStream is = rs.getBinaryStream(VALUE);
+
+                try(ObjectInputStream ois = new ObjectInputStream(is)){
+                    out = ois.readObject();
+                } catch (IOException | ClassNotFoundException e1) {
+                    e1.printStackTrace();
+                    return null;
+                }
+            }
+
+            return out;
+        }
+
+        public void set(String key, Serializable value) throws SQLException {
+            try (Connection conn = createConnection();
+                    PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)");){
+
+
+                try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ObjectOutputStream oos = new ObjectOutputStream(baos);) {
+                    oos.writeObject(value);
+
+                    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+
+                    pstmt.setString(1, key);
+                    pstmt.setBinaryStream(2, bais);
+
+                    pstmt.executeUpdate();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "Mysql Connection("+address+") to [dbName=" + dbName + ", tablename=" + tablename + "]";
+        }
+
+
     }
 
     @Override
