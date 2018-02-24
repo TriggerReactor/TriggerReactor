@@ -25,8 +25,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 
@@ -52,11 +52,8 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
 
     @EventHandler()
     public void onClickTrigger(PlayerInteractEvent e){
-        if(!oldInteractEvent){
-            if(e.getHand() != EquipmentSlot.HAND){
-                return;
-            }
-        }
+        if(!BukkitUtil.isLeftHandClick(e))
+            return;
 
         if(!e.isCancelled() && handleClick(e)){
             e.setCancelled(true);

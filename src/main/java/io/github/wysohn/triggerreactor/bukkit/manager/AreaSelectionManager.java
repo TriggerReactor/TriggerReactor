@@ -25,8 +25,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.EquipmentSlot;
 
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
@@ -52,7 +52,7 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager implement
 
         e.setCancelled(true);
 
-        if(e.getHand() != EquipmentSlot.HAND)
+        if(!BukkitUtil.isLeftHandClick(e))
             return;
 
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getClickedBlock().getLocation());

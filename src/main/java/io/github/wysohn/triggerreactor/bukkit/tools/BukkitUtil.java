@@ -24,11 +24,18 @@ import java.util.Collection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 public class BukkitUtil {
-    private static boolean methodFound = true;
+    private static boolean getOnlinePlayersMethodFound = true;
+    /**
+     * Get list of players. For old version like 1.5.2, the return value of Bukkit.getOnlinePlayers() is array
+     * instead of Collection. For that case, this method automatically create a new Collection of players.
+     * If it's newer version, Bukkit.getOnlinePlayers() simply return Collection of players already.
+     * @return Collection of players.
+     */
     public static Collection<? extends Player> getOnlinePlayers(){
-        if(!methodFound){
+        if(!getOnlinePlayersMethodFound){
             return Bukkit.getOnlinePlayers();
         }else{
             try {
@@ -47,11 +54,51 @@ public class BukkitUtil {
                     return (Collection<? extends Player>) out;
                 }
             } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-                methodFound = false;
+                getOnlinePlayersMethodFound = false;
                 e.printStackTrace();
             }
 
             return Bukkit.getOnlinePlayers();
         }
     }
+
+    private static boolean getHandMethodFound = true;
+    /**
+     * Check if the provided PlayerInteractEvent is caused by main hand. For the old versions, there was no concept of
+     * 'using both hand,' so it will return true always. If it is new version, It will check to see if the left hand
+     * is involved in this interaction event.
+     * @param e PlayerInteractEvent to check
+     * @return true if left hand; false otherwise.
+     */
+    public static boolean isLeftHandClick(PlayerInteractEvent e) {
+        if(!getHandMethodFound) { // if method does not exists, it is old version.
+            return true; //always left hand in old versions
+        } else {
+            try {
+                Method method = e.getClass().getMethod("getHand");
+
+                method.setAccessible(true);
+                Object out = method.invoke(e);
+
+                Class<?> clazz = Class.forName("org.bukkit.inventory.EquipmentSlot");
+                if(!clazz.isEnum()){//This is not likely the case but just for safety
+                    getHandMethodFound = false;
+                    return true;
+                }
+
+                Object enumHand =  Enum.valueOf((Class<? extends Enum>) clazz, "HAND");
+
+                return out.equals(enumHand);
+            } catch (NoSuchMethodException ex) {
+                getHandMethodFound = false;
+                return true;
+            } catch (Exception ex){
+                getHandMethodFound = false;
+                ex.printStackTrace();
+                return true;
+            }
+        }
+    }
+
+
 }

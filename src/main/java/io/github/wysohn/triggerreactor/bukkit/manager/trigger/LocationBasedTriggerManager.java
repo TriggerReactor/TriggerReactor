@@ -33,11 +33,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
@@ -56,26 +56,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
         super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
-
-        check();
-    }
-
-    protected boolean oldInteractEvent = false;
-    private void check() {
-        Class<?> clazz = PlayerInteractEvent.class;
-        try {
-            clazz.getMethod("getHand");
-        } catch (NoSuchMethodException e) {
-            oldInteractEvent = true;
-        } catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(PlayerInteractEvent e){
-        if(!oldInteractEvent && e.getHand() != EquipmentSlot.HAND)
+        if(!BukkitUtil.isLeftHandClick(e))
             return;
 
         Player player = e.getPlayer();
