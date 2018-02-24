@@ -560,7 +560,11 @@ public class TriggerTest {
         Charset charset = Charset.forName("UTF-8");
         String text = "x = 100.0;"
                 + "returnvalue = $test:0:x:true:\"hoho\";"
-                + "#MESSAGE $playername returnvalue;";
+                + "#MESSAGE $playername returnvalue;"
+                + "#TESTSTRING $string;"
+                + "#TESTINTEGER $integer;"
+                + "#TESTDOUBLE $double;"
+                + "#TESTBOOLEAN $boolean;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -573,6 +577,46 @@ public class TriggerTest {
             protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
                 Assert.assertEquals("testplayer", args[0]);
                 Assert.assertEquals("testwithargs", args[1]);
+                return null;
+            }
+
+        });
+
+        executorMap.put("TESTSTRING", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertTrue(args[0] instanceof String);
+                return null;
+            }
+
+        });
+
+        executorMap.put("TESTINTEGER", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertTrue(args[0] instanceof Integer);
+                return null;
+            }
+
+        });
+
+        executorMap.put("TESTDOUBLE", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertTrue(args[0] instanceof Double);
+                return null;
+            }
+
+        });
+
+        executorMap.put("TESTBOOLEAN", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertTrue(args[0] instanceof Boolean);
                 return null;
             }
 
@@ -596,6 +640,42 @@ public class TriggerTest {
                 Assert.assertEquals(true, args[2]);
                 Assert.assertEquals("hoho", args[3]);
                 return "testwithargs";
+            }
+
+        });
+
+        placeholderMap.put("string", new Placeholder() {
+
+            @Override
+            public Object parse(Object context, Object... args) throws Exception {
+                return "testplayer";
+            }
+
+        });
+
+        placeholderMap.put("integer", new Placeholder() {
+
+            @Override
+            public Object parse(Object context, Object... args) throws Exception {
+                return 1;
+            }
+
+        });
+
+        placeholderMap.put("double", new Placeholder() {
+
+            @Override
+            public Object parse(Object context, Object... args) throws Exception {
+                return 1.5;
+            }
+
+        });
+
+        placeholderMap.put("boolean", new Placeholder() {
+
+            @Override
+            public Object parse(Object context, Object... args) throws Exception {
+                return false;
             }
 
         });
