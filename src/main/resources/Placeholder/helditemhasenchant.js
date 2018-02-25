@@ -14,30 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function helditemlore(args){
+function helditemhasenchant(args){
 	if(player == null)
 		return null;
 		
 	if(player.getItemInHand() == null)
-		return "";
+		return false;
 		
 	if(args.length < 1)
-		throw new Error("Invalid parameter! Need [Number]");
+		throw new Error("Invalid parameter! [String]");
 		
-	if(typeof args[0] !== "number")
-		throw new Error("Invalid parameter! helditemlore accepts 'number' as paramter.");
-		
+	if(typeof args[0] !== "string")
+		throw new Error("Invalid parameter! helditemhasenchant accepts 'String' as paramter.");
+	
+	var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
+	var ench = Enchantment.getByName(args[0].toUpperCase());
+	
 	var itemMeta = player.getItemInHand().getItemMeta();
 	if(itemMeta == null)
-		return "";
+		return false;
 	
-	var lores = itemMeta.getLore();
-	if(lores == null)
-		return "";
-		
-	var index = args[0] | 0;
-	if(index < 0 || lores.size() <= index)
-		return "";
-		
-	return lores[index];
+	return itemMeta.hasEnchant(ench);
 }
