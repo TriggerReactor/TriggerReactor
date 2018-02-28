@@ -23,16 +23,30 @@ function helditemhasenchant(args){
 		
 	if(args.length < 1)
 		throw new Error("Invalid parameter! [String]");
-		
-	if(typeof args[0] !== "string")
-		throw new Error("Invalid parameter! helditemhasenchant accepts 'String' as paramter.");
 	
 	var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
-	var ench = Enchantment.getByName(args[0].toUpperCase());
 	
+	if(typeof args[0] !== "string")
+		throw new Error("Invalid parameter! helditemhasenchant accepts 'String' as first paramter.");
+		
+	var ench = Enchantment.getByName(args[0].toUpperCase());
+	var level = 0;
+	
+	if(args.length != 1){
+		if(typeof args[1] !== "number")
+		    throw new Error("Invalid parameter! helditemhasenchant accepts 'Number' as second paramter.");
+		    
+		level = Math.max(0, args[1] - 1);
+	}
+
 	var itemMeta = player.getItemInHand().getItemMeta();
 	if(itemMeta == null)
 		return false;
-	
-	return itemMeta.hasEnchant(ench);
+			
+	var enchantMap = itemMeta.getEnchants();
+	var enchLevel = enchantMap.get(ench);
+	if(enchLevel == null)
+		return false;
+			
+	return enchLevel == level;
 }
