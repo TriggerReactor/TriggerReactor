@@ -80,6 +80,10 @@ public class BukkitUtil {
                 method.setAccessible(true);
                 Object out = method.invoke(e);
 
+                //how is it possible ?_?
+                if(out == null)
+                    return false; // just process it as noo left hand click
+
                 Class<?> clazz = Class.forName("org.bukkit.inventory.EquipmentSlot");
                 if(!clazz.isEnum()){//This is not likely the case but just for safety
                     getHandMethodFound = false;
