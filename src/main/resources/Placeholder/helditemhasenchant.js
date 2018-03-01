@@ -36,17 +36,22 @@ function helditemhasenchant(args){
 		if(typeof args[1] !== "number")
 		    throw new Error("Invalid parameter! helditemhasenchant accepts 'Number' as second paramter.");
 		    
-		level = Math.max(0, args[1] - 1);
+		level = Math.max(0, args[1]);
 	}
 
 	var itemMeta = player.getItemInHand().getItemMeta();
 	if(itemMeta == null)
 		return false;
-			
+	
 	var enchantMap = itemMeta.getEnchants();
-	var enchLevel = enchantMap.get(ench);
-	if(enchLevel == null)
-		return false;
+	
+	if(level == 0){
+		return enchantMap.containsKey(ench);
+	}else{
+		var enchLevel = enchantMap.get(ench);
+		if(enchLevel == null)
+			return false;
 			
-	return enchLevel == level;
+		return enchLevel == level;
+	}
 }
