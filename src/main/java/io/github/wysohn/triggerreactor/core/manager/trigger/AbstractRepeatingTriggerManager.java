@@ -66,16 +66,18 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             }
 
 
+            File triggerFile = null;
             String script = null;
             try {
-                script = FileUtil.readFromFile(getTriggerFile(folder, triggerName));
+                triggerFile = getTriggerFile(folder, triggerName);
+                script = FileUtil.readFromFile(triggerFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
 
             RepeatingTrigger trigger = null;
             try {
-                trigger = new RepeatingTrigger(triggerName, script, interval);
+                trigger = new RepeatingTrigger(triggerName, triggerFile, script, interval);
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
@@ -150,13 +152,13 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @throws ParserException
      *             See {@link Trigger#init()}
      */
-    public boolean createTrigger(String triggerName, String script, long interval)
+    public boolean createTrigger(String triggerName, File file, String script, long interval)
             throws TriggerInitFailedException, IOException {
         if (getTrigger(triggerName) != null) {
             return false;
         }
 
-        RepeatingTrigger trigger = new RepeatingTrigger(triggerName, script, interval);
+        RepeatingTrigger trigger = new RepeatingTrigger(triggerName, file, script, interval);
         repeatTriggers.put(triggerName, trigger);
 
         saveInfo(trigger);
@@ -183,7 +185,8 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      */
     public boolean createTrigger(String triggerName, String script)
             throws TriggerInitFailedException, IOException {
-        return createTrigger(triggerName, script, 1000L);
+        File triggerFile = getTriggerFile(folder, triggerName+".trg");
+        return createTrigger(triggerName, triggerFile, script, 1000L);
     }
 
     /**
@@ -299,15 +302,15 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         private boolean autoStart = false;
         private Map<String, Object> vars;
 
-        public RepeatingTrigger(String name, String script) throws TriggerInitFailedException {
-            super(name, script);
+        public RepeatingTrigger(String name, File file, String script) throws TriggerInitFailedException {
+            super(name, file, script);
 
             init();
         }
 
-        public RepeatingTrigger(String name, String script, long interval)
+        public RepeatingTrigger(String name, File file, String script, long interval)
                 throws TriggerInitFailedException {
-            this(name, script);
+            this(name, file, script);
 
             this.interval = interval;
         }
@@ -350,7 +353,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         @Override
         public Trigger clone() {
             try {
-                return new RepeatingTrigger(this.triggerName, this.getScript(), interval);
+                return new RepeatingTrigger(this.triggerName, file, this.getScript(), interval);
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }

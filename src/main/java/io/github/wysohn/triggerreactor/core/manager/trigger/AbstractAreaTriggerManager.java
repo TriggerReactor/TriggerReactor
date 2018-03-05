@@ -81,8 +81,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             }
 
             String enterScript = null;
+            File enterFile = null;
             try {
-                File enterFile = getTriggerFile(scriptFolder, "Enter.trg");
+                enterFile = getTriggerFile(scriptFolder, "Enter.trg");
                 enterScript = FileUtil.readFromFile(enterFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -90,8 +91,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             }
 
             String exitScript = null;
+            File exitFile = null;
             try {
-                File exitFile = getTriggerFile(scriptFolder, "Exit.trg");
+                exitFile = getTriggerFile(scriptFolder, "Exit.trg");
                 exitScript = FileUtil.readFromFile(exitFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -99,7 +101,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             }
 
             Area area = new Area(smallest, largest);
-            AreaTrigger trigger = new AreaTrigger(area, triggerName);
+            AreaTrigger trigger = new AreaTrigger(area, scriptFolder, triggerName);
             trigger.setSync(isSync);
 
             nameMapper.put(triggerName, trigger);
@@ -249,7 +251,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             return false;
 
         Area area = new Area(smallest, largest);
-        AreaTrigger trigger = new AreaTrigger(area, name);
+        File areaFolder = new File(folder, name);
+        AreaTrigger trigger = new AreaTrigger(area, areaFolder, name);
         nameMapper.put(name, trigger);
 
         setupArea(trigger);
@@ -355,13 +358,15 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
     public static class AreaTrigger extends Trigger{
         final Area area;
+        final File folder;
 
         private EnterTrigger enterTrigger;
         private ExitTrigger exitTrigger;
 
-        public AreaTrigger(Area area, String name) {
-            super(name, null);
+        public AreaTrigger(Area area, File folder, String name) {
+            super(name, null, null);
             this.area = area;
+            this.folder = folder;
         }
 
         public Area getArea() {
@@ -404,11 +409,13 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         }
 
         public void setEnterTrigger(String script) throws TriggerInitFailedException{
-            enterTrigger = new EnterTrigger(this, script);
+            File triggerFile = getTriggerFile(folder, "Enter.trg");
+            enterTrigger = new EnterTrigger(this, triggerFile, script);
         }
 
         public void setExitTrigger(String script) throws TriggerInitFailedException{
-            exitTrigger = new ExitTrigger(this, script);
+            File triggerFile = getTriggerFile(folder, "Exit.trg");
+            exitTrigger = new ExitTrigger(this, triggerFile, script);
         }
 
         public EnterTrigger getEnterTrigger() {
@@ -430,8 +437,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         public static class EnterTrigger extends Trigger{
             private final AreaTrigger areaTrigger;
 
-            public EnterTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
-                super(areaTrigger.triggerName, script);
+            public EnterTrigger(AreaTrigger areaTrigger, File file, String script) throws TriggerInitFailedException {
+                super(areaTrigger.triggerName, file, script);
                 this.areaTrigger = areaTrigger;
 
                 init();
@@ -450,7 +457,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             @Override
             public Trigger clone() {
                 try {
-                    return new EnterTrigger(areaTrigger, script);
+                    return new EnterTrigger(areaTrigger, file, script);
                 } catch (TriggerInitFailedException e) {
                     e.printStackTrace();
                 }
@@ -462,8 +469,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         public static class ExitTrigger extends Trigger{
             private final AreaTrigger areaTrigger;
 
-            public ExitTrigger(AreaTrigger areaTrigger, String script) throws TriggerInitFailedException {
-                super(areaTrigger.getTriggerName(), script);
+            public ExitTrigger(AreaTrigger areaTrigger, File file, String script) throws TriggerInitFailedException {
+                super(areaTrigger.getTriggerName(), file, script);
                 this.areaTrigger = areaTrigger;
 
                 init();
@@ -482,7 +489,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             @Override
             public Trigger clone() {
                 try {
-                    return new ExitTrigger(areaTrigger, script);
+                    return new ExitTrigger(areaTrigger, file, script);
                 } catch (TriggerInitFailedException e) {
                     e.printStackTrace();
                 }

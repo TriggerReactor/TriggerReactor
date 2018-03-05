@@ -48,49 +48,61 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     public void reload(){
         locationTriggers.clear();
 
-        for(File file : folder.listFiles()){
-            if(file.isDirectory())
-                continue;
+        loadTriggers(folder.listFiles());
+    }
 
-            if(!isTriggerFile(file))
-                continue;
+    private void loadTriggers(File[] target) {
+        for(File file : target){
+            if(file.isDirectory()) {
+                loadTriggers(file.listFiles());
+            }else {
+                if(!isTriggerFile(file))
+                    continue;
 
-            String triggerName = extractName(file);
+                String triggerName = extractName(file);
 
-            SimpleLocation sloc = null;
-            try{
-                sloc = stringToSloc(triggerName);
-            }catch(Exception e){
-                e.printStackTrace();
-                continue;
-            }
-
-            String script = null;
-            try {
-                script = FileUtil.readFromFile(file);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            T trigger = null;
-            try {
-                trigger = constructTrigger(sloc.toString(), script);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                continue;
-            }
-
-            if(sloc != null && trigger != null){
-                SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-                Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-                if(!locationTriggers.containsKey(scloc)){
-                    triggerMap = new ConcurrentHashMap<>();
-                    locationTriggers.put(scloc, triggerMap);
+                SimpleLocation sloc = null;
+                try{
+                    sloc = stringToSloc(triggerName);
+                }catch(Exception e){
+                    e.printStackTrace();
+                    continue;
                 }
 
-                triggerMap.put(sloc, trigger);
+                String script = null;
+                try {
+                    script = FileUtil.readFromFile(file);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                    continue;
+                }
+
+                T trigger = null;
+                try {
+                    trigger = constructTrigger(sloc.toString(), script);
+                } catch (TriggerInitFailedException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+
+                if(sloc != null && trigger != null){
+                    SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+
+                    Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
+                    if(!locationTriggers.containsKey(scloc)){
+                        triggerMap = new ConcurrentHashMap<>();
+                        locationTriggers.put(scloc, triggerMap);
+                    }
+
+                    if (triggerMap.containsKey(sloc)) {
+                        Trigger previous = triggerMap.get(sloc);
+                        plugin.getLogger().warning("Found a duplicating "+trigger.getClass().getSimpleName());
+                        plugin.getLogger().warning("Existing: "+previous.file.getAbsolutePath());
+                        plugin.getLogger().warning("Skipped: "+trigger.file.getAbsolutePath());
+                    } else {
+                        triggerMap.put(sloc, trigger);
+                    }
+                }
             }
         }
     }
@@ -334,8 +346,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     public static class WalkTrigger extends Trigger{
 
-        public WalkTrigger(String name, String script) throws TriggerInitFailedException {
-            super(name, script);
+        public WalkTrigger(String name, File file, String script) throws TriggerInitFailedException {
+            super(name, file, script);
 
             init();
         }
@@ -343,7 +355,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         @Override
         public Trigger clone() {
             try {
-                return new WalkTrigger(triggerName, getScript());
+                return new WalkTrigger(triggerName, file, getScript());
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
@@ -354,8 +366,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     public static class ClickTrigger extends Trigger{
         private ClickHandler handler;
 
-        public ClickTrigger(String name, String script, ClickHandler handler) throws TriggerInitFailedException {
-            super(name, script);
+        public ClickTrigger(String name, File file, String script, ClickHandler handler) throws TriggerInitFailedException {
+            super(name, file, script);
             this.handler = handler;
 
             init();
@@ -373,7 +385,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         public Trigger clone(){
             try {
                 //TODO: using same handler will be safe?
-                Trigger trigger = new ClickTrigger(triggerName, script, handler);
+                Trigger trigger = new ClickTrigger(triggerName, file, script, handler);
                 return trigger;
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();

@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +36,8 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
 
     @Override
     protected WalkTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
-        return new WalkTrigger(slocstr, script);
+        File triggerFile = getTriggerFile(folder, slocstr+".trg");
+        return new WalkTrigger(slocstr, triggerFile, script);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

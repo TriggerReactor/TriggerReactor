@@ -43,61 +43,6 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
     protected final Map<String, InventoryTrigger> invenTriggers = new ConcurrentHashMap<>();
     private final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public static class InventoryTrigger extends Trigger{
-        public static final int MAXSIZE = 6*9;
-
-        final IItemStack[] items;
-
-        private InventoryTrigger(String name, String script, IItemStack[] items) throws TriggerInitFailedException {
-            super(name, script);
-            this.items = items;
-
-            init();
-        }
-
-        public InventoryTrigger(int size, String name, Map<Integer, IItemStack> items, String script) throws TriggerInitFailedException{
-            super(name, script);
-            if(size < 9 || size % 9 != 0)
-                throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
-
-            if(size > MAXSIZE)
-                throw new IllegalArgumentException("Inventory Size cannot be larger than "+MAXSIZE);
-
-            this.items = new IItemStack[size];
-
-            for(Map.Entry<Integer, IItemStack> entry : items.entrySet()){
-                this.items[entry.getKey()] = entry.getValue();
-            }
-
-            init();
-        }
-
-        @Override
-        protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-            try {
-                interpreter.startWithContextAndInterrupter(e,
-                        TriggerReactor.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap));
-            } catch (Exception ex) {
-                TriggerReactor.getInstance().handleException(e,
-                        new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
-            }
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new InventoryTrigger(triggerName, script, items);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        public IItemStack[] getItems() {
-            return items;
-        }
-    }
-
     @Override
     public void reload() {
         FileFilter filter = new FileFilter(){
@@ -165,7 +110,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
             InventoryTrigger trigger = null;
             try {
-                trigger = new InventoryTrigger(size, triggerName, items, script);
+                trigger = new InventoryTrigger(size, triggerName, items, triggerFile, script);
                 //trigger.setSync(isSync);
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
@@ -270,7 +215,8 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         if (invenTriggers.containsKey(name))
             return false;
 
-        invenTriggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), script));
+        File triggerFile = getTriggerFile(folder, name+".trg");
+        invenTriggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), triggerFile, script));
 
         return true;
     }
@@ -333,6 +279,61 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
     public AbstractInventoryTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
+    }
+
+    public static class InventoryTrigger extends Trigger{
+        public static final int MAXSIZE = 6*9;
+
+        final IItemStack[] items;
+
+        private InventoryTrigger(String name, String script, File file, IItemStack[] items) throws TriggerInitFailedException {
+            super(name, file, script);
+            this.items = items;
+
+            init();
+        }
+
+        public InventoryTrigger(int size, String name, Map<Integer, IItemStack> items, File file, String script) throws TriggerInitFailedException{
+            super(name, file, script);
+            if(size < 9 || size % 9 != 0)
+                throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
+
+            if(size > MAXSIZE)
+                throw new IllegalArgumentException("Inventory Size cannot be larger than "+MAXSIZE);
+
+            this.items = new IItemStack[size];
+
+            for(Map.Entry<Integer, IItemStack> entry : items.entrySet()){
+                this.items[entry.getKey()] = entry.getValue();
+            }
+
+            init();
+        }
+
+        @Override
+        protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+            try {
+                interpreter.startWithContextAndInterrupter(e,
+                        TriggerReactor.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap));
+            } catch (Exception ex) {
+                TriggerReactor.getInstance().handleException(e,
+                        new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
+            }
+        }
+
+        @Override
+        public Trigger clone() {
+            try {
+                return new InventoryTrigger(triggerName, script, file, items);
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        public IItemStack[] getItems() {
+            return items;
+        }
     }
 
 }

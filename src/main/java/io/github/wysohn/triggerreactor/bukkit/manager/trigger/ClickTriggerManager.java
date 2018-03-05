@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +38,8 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
 
     @Override
     protected ClickTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
-        return new ClickTrigger(slocstr, script, new ClickHandler(){
+        File triggerFile = getTriggerFile(folder, slocstr+".trg");
+        return new ClickTrigger(slocstr, triggerFile, script, new ClickHandler(){
             @Override
             public boolean allow(Object context) {
                 if(context instanceof PlayerInteractEvent){

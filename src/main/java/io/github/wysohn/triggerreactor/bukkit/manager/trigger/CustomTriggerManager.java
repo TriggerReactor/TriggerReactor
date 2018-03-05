@@ -115,7 +115,8 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
         Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
 
-        CustomTrigger trigger = new CustomTrigger(event, eventName, name, script);
+        File triggerFile = getTriggerFile(folder, name+".trg");
+        CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
 
         triggers.add(trigger);
         nameMap.put(name, trigger);

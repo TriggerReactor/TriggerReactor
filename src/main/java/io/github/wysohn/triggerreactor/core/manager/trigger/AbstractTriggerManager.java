@@ -105,6 +105,8 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
     public static abstract class Trigger implements Cloneable{
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
+        protected final File file;
+
         protected String triggerName;
         protected String script;
 
@@ -122,9 +124,10 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as your need
          * @param script
          */
-        public Trigger(String triggerName, String script)  {
+        public Trigger(String triggerName, File file, String script)  {
             super();
 
+            this.file = file;
             this.triggerName = triggerName;
             this.script = script;
         }

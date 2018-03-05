@@ -38,67 +38,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     protected final Map<Class<?>, Set<CustomTrigger>> triggerMap = new ConcurrentHashMap<>();
     protected final Map<String, CustomTrigger> nameMap = new ConcurrentHashMap<>();
 
-    public static class CustomTrigger extends Trigger{
-        final Class<?> event;
-        private final String eventName;
-
-        /**
-         *
-         * @param event
-         * @param name
-         * @param script
-         * @throws IOException {@link Trigger#init()}
-         * @throws LexerException {@link Trigger#init()}
-         * @throws ParserException {@link Trigger#init()}
-         */
-        public CustomTrigger(Class<?> event, String eventName, String name, String script) throws TriggerInitFailedException {
-            super(name, script);
-            this.event = event;
-            this.eventName = eventName;
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CustomTrigger(event, getEventName(), triggerName, this.getScript());
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((triggerName == null) ? 0 : triggerName.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            CustomTrigger other = (CustomTrigger) obj;
-            if (triggerName == null) {
-                if (other.triggerName != null)
-                    return false;
-            } else if (!triggerName.equals(other.triggerName))
-                return false;
-            return true;
-        }
-
-        public String getEventName() {
-            return eventName;
-        }
-    }
-
     @Override
     public void reload() {
         FileFilter filter = new FileFilter(){
@@ -148,7 +87,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 Set<CustomTrigger> triggers = getTriggerSetForEvent(event);
 
                 try {
-                    CustomTrigger trigger = new CustomTrigger(event, eventName, triggerName, read);
+                    CustomTrigger trigger = new CustomTrigger(event, eventName, triggerName, triggerFile, read);
                     trigger.setSync(isSync);
 
                     triggers.add(trigger);
@@ -316,5 +255,64 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         super(plugin, ref, tirggerFolder);
     }
 
+    public static class CustomTrigger extends Trigger{
+        final Class<?> event;
+        private final String eventName;
 
+        /**
+         *
+         * @param event
+         * @param name
+         * @param script
+         * @throws IOException {@link Trigger#init()}
+         * @throws LexerException {@link Trigger#init()}
+         * @throws ParserException {@link Trigger#init()}
+         */
+        public CustomTrigger(Class<?> event, String eventName, String name, File file, String script) throws TriggerInitFailedException {
+            super(name, file, script);
+            this.event = event;
+            this.eventName = eventName;
+
+            init();
+        }
+
+        @Override
+        public Trigger clone() {
+            try {
+                return new CustomTrigger(event, getEventName(), triggerName, file, this.getScript());
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((triggerName == null) ? 0 : triggerName.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            CustomTrigger other = (CustomTrigger) obj;
+            if (triggerName == null) {
+                if (other.triggerName != null)
+                    return false;
+            } else if (!triggerName.equals(other.triggerName))
+                return false;
+            return true;
+        }
+
+        public String getEventName() {
+            return eventName;
+        }
+    }
 }

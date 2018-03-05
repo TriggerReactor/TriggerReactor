@@ -124,7 +124,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
             if (triggers.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
             } else {
-                Trigger trigger = new NamedTrigger(builder.toString(), FileUtil.readFromFile(file));
+                Trigger trigger = new NamedTrigger(builder.toString(), file, FileUtil.readFromFile(file));
                 triggers.put(builder.toString(), trigger);
             }
         }
@@ -132,8 +132,8 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
 
     protected static class NamedTrigger extends Trigger{
 
-        public NamedTrigger(String name, String script) throws TriggerInitFailedException {
-            super(name, script);
+        public NamedTrigger(String name, File file, String script) throws TriggerInitFailedException {
+            super(name, file, script);
 
             init();
         }
@@ -141,7 +141,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
         @Override
         public Trigger clone() {
             try {
-                return new NamedTrigger(triggerName, getScript());
+                return new NamedTrigger(triggerName, file, getScript());
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }

@@ -32,25 +32,6 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager {
     protected final Map<String, CommandTrigger> commandTriggerMap = new HashMap<>();
 
-    public static class CommandTrigger extends Trigger {
-
-        public CommandTrigger(String name, String script) throws TriggerInitFailedException {
-            super(name, script);
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CommandTrigger(triggerName, getScript());
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
     @Override
     public void reload() {
         commandTriggerMap.clear();
@@ -71,7 +52,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             CommandTrigger trigger = null;
             try {
-                trigger = new CommandTrigger(triggerName, script);
+                trigger = new CommandTrigger(triggerName, file, script);
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
                 continue;
@@ -124,9 +105,10 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         if(commandTriggerMap.containsKey(cmd))
             return false;
 
+        File triggerFile = getTriggerFile(folder, cmd+".trg");
         CommandTrigger trigger = null;
         try {
-            trigger = new CommandTrigger(cmd, script);
+            trigger = new CommandTrigger(cmd, triggerFile, script);
         } catch (TriggerInitFailedException e1) {
             plugin.handleException(adding, e1);
             return false;
@@ -153,12 +135,29 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger("temp", script);
+        return new CommandTrigger("temp", null, script);
     }
 
     public AbstractCommandTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
     }
 
+    public static class CommandTrigger extends Trigger {
 
+        public CommandTrigger(String name, File file, String script) throws TriggerInitFailedException {
+            super(name, file, script);
+
+            init();
+        }
+
+        @Override
+        public Trigger clone() {
+            try {
+                return new CommandTrigger(triggerName, file, getScript());
+            } catch (TriggerInitFailedException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
 }
