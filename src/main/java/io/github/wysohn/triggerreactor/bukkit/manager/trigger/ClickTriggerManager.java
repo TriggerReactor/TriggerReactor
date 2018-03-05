@@ -50,24 +50,22 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         });
     }
 
-    @EventHandler()
+    @EventHandler(ignoreCancelled = true)
     public void onClickTrigger(PlayerInteractEvent e){
         if(!BukkitUtil.isLeftHandClick(e))
             return;
 
-        if(!e.isCancelled() && handleClick(e)){
-            e.setCancelled(true);
-        }
+        handleClick(e);
     }
 
-    private boolean handleClick(PlayerInteractEvent e){
+    private void handleClick(PlayerInteractEvent e){
         Player player = e.getPlayer();
         Block clicked = e.getClickedBlock();
 
         Location loc = clicked.getLocation();
         ClickTrigger trigger = getTriggerForLocation(loc);
         if(trigger == null)
-            return false;
+            return;
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", e.getPlayer());
@@ -75,7 +73,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         varMap.put("item", e.getItem());
 
         trigger.activate(e, varMap);
-        return true;
+        return;
     }
 
     @Override

@@ -43,14 +43,14 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         handleWalk(e, e.getTo());
     }
 
-    private boolean handleWalk(PlayerBlockLocationEvent e, SimpleLocation to){
+    private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to){
         Player player = e.getPlayer();
         SimpleLocation bottomLoc = to.clone();
         bottomLoc.add(0, -1, 0);
 
         WalkTrigger trigger = getTriggerForLocation(bottomLoc);
         if(trigger == null)
-            return false;
+            return;
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", player);
@@ -58,7 +58,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         varMap.put("to", e.getTo());
 
         trigger.activate(e, varMap);
-        return true;
+        return;
     }
 
     @Override
