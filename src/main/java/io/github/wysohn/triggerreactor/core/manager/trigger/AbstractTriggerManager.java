@@ -64,11 +64,10 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
     }
 
     /**
-     * Default behavior is delete one file that has matching name in the current trigger folder.
-     * Override this method to customize this behavior.
+     * Default behavior is delete one file associated with the trigger. Override this method to change this behavior.
      */
     protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()+".trg"));
+        FileUtil.delete(trigger.file);
     }
 
     protected static boolean isTriggerFile(File file) {
