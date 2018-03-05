@@ -247,7 +247,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     @Override
     protected void deleteInfo(Trigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()+".yml"));
+        FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName()+".yml"));
         super.deleteInfo(trigger);
     }
 
