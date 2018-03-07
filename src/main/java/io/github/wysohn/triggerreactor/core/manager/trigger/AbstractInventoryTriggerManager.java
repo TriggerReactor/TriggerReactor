@@ -180,13 +180,18 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
        return inventory;
    }
 
-   /**
-    * Create actual inventory.
-    * @param size size of inventory. Must be multiple of 9.
-    * @param name name of the inventory. & will be used as color code.
-    * @return the inventory
-    */
-   protected abstract IInventory createInventory(int size, String name);
+    /**
+     * Create actual inventory.
+     *
+     * @param size
+     *            size of inventory. Must be multiple of 9.
+     * @param name
+     *            name of the inventory. This is the raw name, so the
+     *            implemented method has to translate color code and and
+     *            underscore appropriately.
+     * @return the inventory
+     */
+    protected abstract IInventory createInventory(int size, String name);
 
     /**
      *

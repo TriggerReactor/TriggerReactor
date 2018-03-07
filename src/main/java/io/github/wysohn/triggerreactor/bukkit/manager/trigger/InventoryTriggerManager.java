@@ -269,6 +269,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
     @Override
     protected IInventory createInventory(int size, String name) {
-        return new BukkitInventory(Bukkit.createInventory(null, size, ChatColor.translateAlternateColorCodes('&', name)));
+        name = name.replaceAll("_", " ");
+        name = ChatColor.translateAlternateColorCodes('&', name);
+        return new BukkitInventory(Bukkit.createInventory(null, size, name));
     }
 }
