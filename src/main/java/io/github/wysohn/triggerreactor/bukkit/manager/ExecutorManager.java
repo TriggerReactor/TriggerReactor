@@ -25,7 +25,9 @@ import java.util.Stack;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -93,6 +95,11 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
         } else if(e instanceof InventoryOpenEvent){
             if(((InventoryOpenEvent) e).getPlayer() instanceof Player)
                 variables.put("player", ((InventoryOpenEvent) e).getPlayer());
+        } else if(e instanceof EntityEvent) { //Some EntityEvent use entity field to store Player instance.
+            Entity entity = ((EntityEvent) e).getEntity();
+            if(entity instanceof Player) {
+                variables.put("player", entity);
+            }
         }
     }
 
