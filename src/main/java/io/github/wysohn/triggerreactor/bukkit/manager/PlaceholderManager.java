@@ -19,17 +19,9 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Map;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryInteractEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
@@ -45,25 +37,6 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Bu
         JarUtil.copyFolderFromJar("Placeholder", plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         reload();
-    }
-
-    @Override
-    protected void extractCustomVariables(Map<String, Object> variables, Object e) {
-        if(e instanceof InventoryInteractEvent){
-            if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
-                variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
-        } else if(e instanceof InventoryCloseEvent){
-            if(((InventoryCloseEvent) e).getPlayer() instanceof Player)
-                variables.put("player", ((InventoryCloseEvent) e).getPlayer());
-        } else if(e instanceof InventoryOpenEvent){
-            if(((InventoryOpenEvent) e).getPlayer() instanceof Player)
-                variables.put("player", ((InventoryOpenEvent) e).getPlayer());
-        } else if(e instanceof EntityEvent) { //Some EntityEvent use entity field to store Player instance.
-            Entity entity = ((EntityEvent) e).getEntity();
-            if(entity instanceof Player) {
-                variables.put("player", entity);
-            }
-        }
     }
 
     @Override

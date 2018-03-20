@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -76,15 +75,6 @@ public abstract class AbstractJavascriptBasedManager extends Manager implements 
             }
         });
     }
-
-    /**
-     * Extract and put necessary variables needed for the Executors to work properly. For Bukkit API for example,
-     * you will have to extract 'player' variable manually for inventory events as Player instance is not saved in
-     * the field of Inventory evnet classes.
-     * @param variables the local variable map.
-     * @param e the context.
-     */
-    protected abstract void extractCustomVariables(Map<String, Object> variables, Object e);
 
     public AbstractJavascriptBasedManager(TriggerReactor plugin) throws ScriptException {
         super(plugin);
