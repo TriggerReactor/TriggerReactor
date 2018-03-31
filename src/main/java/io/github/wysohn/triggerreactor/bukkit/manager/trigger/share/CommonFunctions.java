@@ -37,6 +37,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -450,17 +451,26 @@ public class CommonFunctions implements SelfReference {
     }*/
 
     /**
-     * Get the name of area where player is currently standing on.
+     * Get the name of area where entity is currently standing on.
      * <p>
      * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
      * </p>
-     * @param player
-     *            player
+     * @param entity
+     *            any entity(including player)
      * @return name of area; null if player is not on any area.
      */
-    public String currentArea(Player player) {
+    public String currentArea(Entity entity) {
+        return currentAreaAt(entity.getLocation());
+    }
+
+    /**
+     * Get the name of area trigger at the target location.
+     * @param location the location to check
+     * @return name of area; null if there is no area trigger at location
+     */
+    public String currentAreaAt(Location location) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(LocationUtil.convertToSimpleLocation(player.getLocation()));
+        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(LocationUtil.convertToSimpleLocation(location));
         if (trigger == null)
             return null;
 
