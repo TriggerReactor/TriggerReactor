@@ -79,15 +79,15 @@ public class CommonFunctions implements SelfReference {
     }
     
     public float random(float end) {
-        return rand.nextFloat(end);
+        return rand.nextFloat() * (end - 0) + 0;
     }
     
     public double random(double end) {
-        return rand.nextDouble(end);
+        return rand.nextDouble() * (end - 0) + 0;
     }
     
     public long random(long end) {
-        return rand.nextLong(end);
+        return rand.nextLong() * (end - 0) + 0;
     }
 
     /**
@@ -102,19 +102,19 @@ public class CommonFunctions implements SelfReference {
      * @return
      */
     public int random(int start, int end) {
-        return start + rand.nextInt(end - start);
+        return start + rand.nextInt();
     }
     
     public float random(float start, float end) {
-        return start + rand.nextFloat(end - start);
+        return rand.nextFloat() * (end - start) + start;
     }
     
     public double random(double start, double end) {
-        return start + rand.nextDouble(end - start);
+        return rand.nextDouble() * (end - start) + start;
     }
     
     public long random(long start, long end) {
-        return start + rand.nextLong(end - start);
+        return rand.nextLong() * (end - start) + start;
     }
 
     /**
