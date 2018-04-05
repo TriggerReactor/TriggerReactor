@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import java.math.BigDecimal;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -116,6 +117,20 @@ public class CommonFunctions implements SelfReference {
     public long random(long start, long end) {
         return rand.nextLong() * (end - start) + start;
     }
+    
+    /**
+	 * get a string representing the input value rounded to the set decimal place
+	 *     *<p>
+	 *Example) #MESSAGE "1.09 rounded to the nearest tenth is " + round(1.09,1)
+	 *</p>
+	 * @param val the double to be rounded
+	 * @param decimal the decimal place to round to
+	 * @return string representing rounded number
+	 */
+	
+	public String round(double val, int decimal) {
+		return BigDecimal.valueOf(val).setScale(decimal, BigDecimal.ROUND_HALF_UP).toPlainString();
+	}
 
     /**
      * Simply try to get plugin object directly.
