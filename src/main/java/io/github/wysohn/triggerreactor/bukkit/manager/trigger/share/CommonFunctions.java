@@ -102,7 +102,7 @@ public class CommonFunctions implements SelfReference {
      * @return
      */
     public int random(int start, int end) {
-        return start + rand.nextInt();
+        return start + rand.nextInt(end - start);
     }
     
     public float random(float start, float end) {
