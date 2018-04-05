@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import java.math.BigDecimal;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -77,6 +78,18 @@ public class CommonFunctions implements SelfReference {
     public int random(int end) {
         return rand.nextInt(end);
     }
+    
+    public float random(float end) {
+        return rand.nextFloat() * (end - 0) + 0;
+    }
+    
+    public double random(double end) {
+        return rand.nextDouble() * (end - 0) + 0;
+    }
+    
+    public long random(long end) {
+        return rand.nextLong() * (end - 0) + 0;
+    }
 
     /**
      * get a random integer value between start to end
@@ -92,6 +105,32 @@ public class CommonFunctions implements SelfReference {
     public int random(int start, int end) {
         return start + rand.nextInt(end - start);
     }
+    
+    public float random(float start, float end) {
+        return rand.nextFloat() * (end - start) + start;
+    }
+    
+    public double random(double start, double end) {
+        return rand.nextDouble() * (end - start) + start;
+    }
+    
+    public long random(long start, long end) {
+        return rand.nextLong() * (end - start) + start;
+    }
+    
+    /**
+	 * get a string representing the input value rounded to the set decimal place
+	 *     *<p>
+	 *Example) #MESSAGE "1.09 rounded to the nearest tenth is " + round(1.09,1)
+	 *</p>
+	 * @param val the double to be rounded
+	 * @param decimal the decimal place to round to
+	 * @return string representing rounded number
+	 */
+	
+	public String round(double val, int decimal) {
+		return BigDecimal.valueOf(val).setScale(decimal, BigDecimal.ROUND_HALF_UP).toPlainString();
+	}
 
     /**
      * Simply try to get plugin object directly.
