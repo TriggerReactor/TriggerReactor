@@ -77,6 +77,18 @@ public class CommonFunctions implements SelfReference {
     public int random(int end) {
         return rand.nextInt(end);
     }
+    
+    public float random(float end) {
+        return rand.nextFloat(end);
+    }
+    
+    public double random(double end) {
+        return rand.nextDouble(end);
+    }
+    
+    public long random(long end) {
+        return rand.nextLong(end);
+    }
 
     /**
      * get a random integer value between start to end
@@ -91,6 +103,18 @@ public class CommonFunctions implements SelfReference {
      */
     public int random(int start, int end) {
         return start + rand.nextInt(end - start);
+    }
+    
+    public float random(float start, float end) {
+        return start + rand.nextFloat(end - start);
+    }
+    
+    public double random(double start, double end) {
+        return start + rand.nextDouble(end - start);
+    }
+    
+    public long random(long start, long end) {
+        return start + rand.nextLong(end - start);
     }
 
     /**
