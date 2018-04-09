@@ -810,6 +810,15 @@ public class CommonFunctions implements SelfReference {
         head.setItemMeta(SM);
         return head;
     }
+	
+    public ItemStack headForName(String targetName, int amount) {
+        ItemStack head = new ItemStack(Material.SKULL_ITEM, amount, (short) 3);
+        ItemMeta IM = head.getItemMeta();
+        SkullMeta SM = (SkullMeta) IM;
+        SM.setOwner(targetName);
+        head.setItemMeta(SM);
+        return head;
+    }
 
     /**
      * Create a player head with given textureValue(base64 encoded).
