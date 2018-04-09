@@ -803,4 +803,28 @@ public class CommonFunctions implements SelfReference {
         head.setItemMeta(SM);
         return head;
     }
+
+    public byte toByte(Number number) {
+        return number.byteValue();
+    }
+
+    public short toShort(Number number) {
+        return number.shortValue();
+    }
+
+    public int toInt(Number number) {
+        return number.intValue();
+    }
+
+    public long toLong(Number number) {
+        return number.longValue();
+    }
+
+    public float toFloat(Number number) {
+        return number.floatValue();
+    }
+
+    public double toDouble(Number number) {
+        return number.doubleValue();
+    }
 }
