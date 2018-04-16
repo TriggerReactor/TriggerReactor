@@ -106,7 +106,7 @@ public class CommonFunctions implements SelfReference {
      * @return
      */
     public int random(int start, int end) {
-        return start + rand.nextInt(start - end);
+        return start + rand.nextInt(end - start);
     }
     
     public float random(float start, float end) {
@@ -121,19 +121,19 @@ public class CommonFunctions implements SelfReference {
         return rand.nextLong() * (end - start) + start;
     }
 	
-	/**
-	 * get a string representing the input value rounded to the set decimal place
-	 *     *<p>
-	 *Example) #MESSAGE "1.09 rounded to the nearest tenth is " + round(1.09,1)
-	 *</p>
-	 * @param val the double to be rounded
-	 * @param Scale the decimal place to round to
-	 * @return string representing rounded number
-	 */
+    /**
+     * get a string representing the input value rounded to the set decimal place
+     * <p>
+     *Example) #MESSAGE "1.09 rounded to the nearest tenth is " + round(1.09,1)
+     * </p>
+     * @param val the double to be rounded
+     * @param decimal the decimal place to round to
+     * @return string representing rounded number
+     */
 	
-	public String round(double val, int Scale) {
-		return BigDecimal.valueOf(val).setScale(Scale, BigDecimal.ROUND_HALF_UP).toPlainString();
-	}
+    public String round(double val, int decimal) {
+        return BigDecimal.valueOf(val).setScale(decimal, BigDecimal.ROUND_HALF_UP).toPlainString();
+    }
 
     /**
      * Simply try to get plugin object directly.
