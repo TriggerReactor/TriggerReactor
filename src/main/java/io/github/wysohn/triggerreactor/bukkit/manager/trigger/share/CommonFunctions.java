@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import java.math.BigDecimal;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -32,6 +33,7 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -43,6 +45,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
@@ -77,6 +81,18 @@ public class CommonFunctions implements SelfReference {
     public int random(int end) {
         return rand.nextInt(end);
     }
+    
+    public float random(float end) {
+        return rand.nextFloat() * (end - 0) + 0;
+    }
+    
+    public double random(double end) {
+        return rand.nextDouble() * (end - 0) + 0;
+    }
+    
+    public long random(long end) {
+        return rand.nextLong() * (end - 0) + 0;
+    }
 
     /**
      * get a random integer value between start to end
@@ -91,6 +107,32 @@ public class CommonFunctions implements SelfReference {
      */
     public int random(int start, int end) {
         return start + rand.nextInt(end - start);
+    }
+    
+    public float random(float start, float end) {
+        return rand.nextFloat() * (end - start) + start;
+    }
+    
+    public double random(double start, double end) {
+        return rand.nextDouble() * (end - start) + start;
+    }
+    
+    public long random(long start, long end) {
+        return rand.nextLong() * (end - start) + start;
+    }
+	
+    /**
+     * get a string representing the input value rounded to the set decimal place
+     * <p>
+     *Example) #MESSAGE "1.09 rounded to the nearest tenth is " + round(1.09,1)
+     * </p>
+     * @param val the double to be rounded
+     * @param decimal the decimal place to round to
+     * @return string representing rounded number
+     */
+	
+    public String round(double val, int decimal) {
+        return BigDecimal.valueOf(val).setScale(decimal, BigDecimal.ROUND_HALF_UP).toPlainString();
     }
 
     /**
@@ -285,6 +327,32 @@ public class CommonFunctions implements SelfReference {
      */
     public double parseDouble(String str){
         return Double.parseDouble(str);
+    }
+    
+    /**
+     * create a PotionEffect for use in entity.addPotionEffect();
+     * <p>
+     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED", 1000000, 5, false, true, bukkitColor(21,2,24) ))
+     * </p>
+     * @param EffectType the name of the PotionEffectType to use
+     * @param duration how long the potioneffect should last when applied to an enitity
+     * @param amplifier how strong the effect should be
+     * @param ambient if true particle effects will be more transparent
+     * @param particles if false potion particle effects will not be shown
+     * @param color sets the color of the potion particle effects shown
+     * @return returns a PotionEffect object or null if specified PotionEffectType was not found.
+     */
+    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient, boolean particles, Color color){
+        PotionEffectType type = null;
+	type = type.getByName(EffectType);
+		
+	if(type != null){
+	    return new PotionEffect(type, Integer.MAX_VALUE, amplifier, ambient, particles, color);
+	}
+	else{
+	    return null;
+	}
+		
     }
 
     /**
@@ -533,6 +601,24 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * creates and returns a bukkit color object using 
+     * the RGB values given. the max value for the int arguments is 255
+     * exceeding it may cause errors.
+     * <p>
+     * Example) /trg run partColor = bukkitColor(255,255,255)
+     * </p>
+     * @param int red the value of red in RGB
+     * @param int green the value of green in RGB
+     * @param int blue the value of blue in RGB
+     * @return returns a Color object from org.bukkit.Color 
+     */
+    public Color bukkitColor(int red, int green, int blue){
+        Color color = null;
+	color = color.fromRGB(red,green,blue);
+	return color;
+    }
+
+    /**
      * Create a new ItemStack
      * <p>
      * Example) /trg run #GIVE item(1, 64, 0)
@@ -771,6 +857,15 @@ public class CommonFunctions implements SelfReference {
         head.setItemMeta(SM);
         return head;
     }
+	
+	public ItemStack headForName(String targetName, int amount) {
+        ItemStack head = new ItemStack(Material.SKULL_ITEM, amount, (short) 3);
+        ItemMeta IM = head.getItemMeta();
+        SkullMeta SM = (SkullMeta) IM;
+        SM.setOwner(targetName);
+        head.setItemMeta(SM);
+        return head;
+    }
 
     /**
      * Create a player head with given textureValue(base64 encoded).
@@ -802,5 +897,29 @@ public class CommonFunctions implements SelfReference {
         }
         head.setItemMeta(SM);
         return head;
+    }
+	
+    public byte toByte(Number number) {
+        return number.byteValue();
+    }
+
+    public short toShort(Number number) {
+        return number.shortValue();
+    }
+
+    public int toInt(Number number) {
+        return number.intValue();
+    }
+
+    public long toLong(Number number) {
+        return number.longValue();
+    }
+
+    public float toFloat(Number number) {
+        return number.floatValue();
+    }
+
+    public double toDouble(Number number) {
+        return number.doubleValue();
     }
 }

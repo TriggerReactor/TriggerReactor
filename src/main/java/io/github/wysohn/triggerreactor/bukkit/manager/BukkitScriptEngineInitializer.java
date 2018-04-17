@@ -1,5 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 import javax.script.ScriptEngineManager;
@@ -10,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
@@ -36,6 +39,13 @@ public interface BukkitScriptEngineInitializer extends IScriptEngineInitializer 
             Entity entity = ((EntityEvent) e).getEntity();
             if(entity instanceof Player) {
                 variables.put("player", entity);
+            }
+        } else if(e instanceof BlockEvent) {
+            try {
+                Method m = e.getClass().getMethod("getPlayer");
+                variables.put("player", m.invoke(e));
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
+                return;
             }
         }
     }
