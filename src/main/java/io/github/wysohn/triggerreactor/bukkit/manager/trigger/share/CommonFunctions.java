@@ -270,6 +270,13 @@ public class CommonFunctions implements SelfReference {
         return new Location(w, x, y, z);
     }
 
+    public Location location(String world, int x, int y, int z, double yaw, double pitch){
+        World w = Bukkit.getWorld(world);
+        if(world == null)
+            throw new RuntimeException("world "+world+" does not exists!");
+        return new Location(w, x, y, z, toFloat(yaw), toFloat(pitch));
+    }
+
     public SimpleLocation slocation(String world, int x, int y, int z){
         return new SimpleLocation(world, x, y, z);
     }
