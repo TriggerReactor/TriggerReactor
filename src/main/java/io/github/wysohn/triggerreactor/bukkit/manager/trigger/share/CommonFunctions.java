@@ -938,4 +938,17 @@ public class CommonFunctions implements SelfReference {
 	BossBar BarObj = Bukkit.createBossBar(title, colorEnum, styleEnum);
 	return BarObj;
     }
+
+    public double sqrt(int num) {
+		
+        double squareRoot = num / 2;
+	double test = 0;
+		
+	while ((test - squareRoot) != 0){
+	    test = squareRoot;
+	    squareRoot = (test + (num / test)) / 2;
+	}
+		
+	return squareRoot;
+    }
 }
