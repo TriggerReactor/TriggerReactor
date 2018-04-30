@@ -32,6 +32,7 @@ import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
+import org.bukkit.boss.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -928,5 +929,26 @@ public class CommonFunctions implements SelfReference {
 
     public double toDouble(Number number) {
         return number.doubleValue();
+    }
+	
+    public BossBar makeBossBar(String title, String color, String style) {
+        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
+	BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
+	
+	BossBar BarObj = Bukkit.createBossBar(title, colorEnum, styleEnum);
+	return BarObj;
+    }
+
+    public double sqrt(int num) {
+		
+        double squareRoot = num / 2;
+	double test = 0;
+		
+	while ((test - squareRoot) != 0){
+	    test = squareRoot;
+	    squareRoot = (test + (num / test)) / 2;
+	}
+		
+	return squareRoot;
     }
 }
