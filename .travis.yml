@@ -8,4 +8,4 @@ deploy:
      - TriggerReactor.jar
    skip_cleanup: true
    on:
-     branch: master
+     tags: true
