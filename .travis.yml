@@ -12,3 +12,4 @@ deploy:
      branch: 
        - master
        - development
+       
