@@ -97,6 +97,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.CustomTriggerManag
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.SignTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
@@ -124,6 +125,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTri
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractSignTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -151,6 +153,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
     private AbstractCommandTriggerManager cmdManager;
+    private AbstractSignTriggerManager signManager;
     private AbstractInventoryTriggerManager invManager;
     private AbstractAreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
@@ -233,6 +236,11 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         return namedTriggerManager;
     }
 
+    @Override
+    public AbstractSignTriggerManager getSignTriggerManager() {
+        return signManager;
+    }
+
     public BungeeCordHelper getBungeeHelper() {
         return bungeeHelper;
     }
@@ -285,6 +293,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
         cmdManager = new CommandTriggerManager(this);
+        signManager = new SignTriggerManager(this);
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this);
         customManager = new CustomTriggerManager(this);

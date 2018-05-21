@@ -57,6 +57,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager.RepeatingTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractSignTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -126,6 +127,8 @@ public abstract class TriggerReactor {
     public abstract AbstractRepeatingTriggerManager getRepeatManager();
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
+
+    public abstract AbstractSignTriggerManager getSignTriggerManager();
 
     private static final String INTEGER_REGEX = "^[0-9]+$";
     private static final String DOUBLE_REGEX = "^[0-9]+.[0-9]{0,}$";

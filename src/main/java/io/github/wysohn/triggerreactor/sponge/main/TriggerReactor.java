@@ -59,6 +59,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager.WalkTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractSignTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -157,6 +158,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public AbstractNamedTriggerManager getNamedTriggerManager() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AbstractSignTriggerManager getSignTriggerManager() {
         // TODO Auto-generated method stub
         return null;
     }
