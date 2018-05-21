@@ -3,8 +3,7 @@ before_install:
  - chmod +x gradlew
 deploy:
    provider: releases
-   api_key:
-     secure:  463388fb214385df190ec20e2432a07226869ec1 
+   api_key: $githubkey
    file: 
      - TriggerReactor.jar
    skip_cleanup: true
