@@ -4,8 +4,7 @@ before_install:
 deploy:
    provider: releases
    api_key: $githubkey
-   file: 
-     - TriggerReactor.jar
+   file: "TriggerReactor.jar"
    skip_cleanup: true
    on:
      tags: true
