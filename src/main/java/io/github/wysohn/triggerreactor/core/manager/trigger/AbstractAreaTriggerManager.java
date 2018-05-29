@@ -19,12 +19,18 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.bukkit.entity.Entity;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
@@ -41,6 +47,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggers = new ConcurrentHashMap<>();
     protected Map<String, AreaTrigger> nameMapper = new HashMap<>();
+
+    protected final Map<UUID, SimpleLocation> entityLocationMap = new HashMap<>();
+    protected final Map<UUID, WeakReference<Entity>> entityTrackMap = new ConcurrentHashMap<>();
 
     @Override
     public void reload() {
@@ -363,6 +372,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         private EnterTrigger enterTrigger;
         private ExitTrigger exitTrigger;
 
+        private Map<UUID, WeakReference<Entity>> trackedEntities = new ConcurrentHashMap<>();
+
         public AreaTrigger(Area area, File folder, String name) {
             super(name, null, null);
             this.area = area;
@@ -432,6 +443,43 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
         public void setExitTrigger(ExitTrigger exitTrigger) {
             this.exitTrigger = exitTrigger;
+        }
+
+        public void addEntity(Entity entity) {
+            WeakReference<Entity> ref = new WeakReference<>(entity);
+            this.trackedEntities.put(entity.getUniqueId(), ref);
+        }
+
+        public void removeEntity(UUID uuid) {
+            this.trackedEntities.remove(uuid);
+        }
+
+        public Entity getEntity(UUID uuid) {
+            WeakReference<Entity> ref = this.trackedEntities.get(uuid);
+            if(ref == null)
+                return null;
+
+            Entity entity = ref.get();
+            //just remove it as it's got garbage-collected.
+            if(entity == null) {
+                this.trackedEntities.remove(uuid);
+            }
+
+            return entity;
+        }
+
+        public List<Entity> getEntities(){
+            List<Entity> entities = new ArrayList<>();
+
+            for(Entry<UUID, WeakReference<Entity>> entry : this.trackedEntities.entrySet()) {
+                WeakReference<Entity> ref = entry.getValue();
+                Entity entity = ref.get();
+                if(entity != null) {
+                    entities.add(entity);
+                }
+            }
+
+            return entities;
         }
 
         public static class EnterTrigger extends Trigger{

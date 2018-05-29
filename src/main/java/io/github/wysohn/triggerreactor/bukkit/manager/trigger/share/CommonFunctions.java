@@ -16,10 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import java.math.BigDecimal;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,7 +32,6 @@ import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
-import org.bukkit.boss.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -40,6 +39,9 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -82,15 +84,15 @@ public class CommonFunctions implements SelfReference {
     public int random(int end) {
         return rand.nextInt(end);
     }
-    
+
     public float random(float end) {
         return rand.nextFloat() * (end - 0) + 0;
     }
-    
+
     public double random(double end) {
         return rand.nextDouble() * (end - 0) + 0;
     }
-    
+
     public long random(long end) {
         return rand.nextLong() * (end - 0) + 0;
     }
@@ -109,19 +111,19 @@ public class CommonFunctions implements SelfReference {
     public int random(int start, int end) {
         return start + rand.nextInt(end - start);
     }
-    
+
     public float random(float start, float end) {
         return rand.nextFloat() * (end - start) + start;
     }
-    
+
     public double random(double start, double end) {
         return rand.nextDouble() * (end - start) + start;
     }
-    
+
     public long random(long start, long end) {
         return rand.nextLong() * (end - start) + start;
     }
-	
+
     /**
      * get a string representing the input value rounded to the set decimal place
      * <p>
@@ -131,7 +133,7 @@ public class CommonFunctions implements SelfReference {
      * @param decimal the decimal place to round to
      * @return string representing rounded number
      */
-	
+
     public String round(double val, int decimal) {
         return BigDecimal.valueOf(val).setScale(decimal, BigDecimal.ROUND_HALF_UP).toPlainString();
     }
@@ -336,7 +338,7 @@ public class CommonFunctions implements SelfReference {
     public double parseDouble(String str){
         return Double.parseDouble(str);
     }
-    
+
     /**
      * create a PotionEffect for use in entity.addPotionEffect();
      * <p>
@@ -353,14 +355,14 @@ public class CommonFunctions implements SelfReference {
     public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient, boolean particles, Color color){
         PotionEffectType type = null;
 	type = type.getByName(EffectType);
-		
+
 	if(type != null){
 	    return new PotionEffect(type, Integer.MAX_VALUE, amplifier, ambient, particles, color);
 	}
 	else{
 	    return null;
 	}
-		
+
     }
 
     /**
@@ -554,6 +556,20 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * Get list of entities tracked by this AreaTrigger.
+     * @param areaTriggerName name of AreaTrigger to get entities from
+     * @return List of entities. null if the AreaTrigger with specified name doesn't exist.
+     */
+    public List<Entity> getEntitiesInArea(String areaTriggerName){
+        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
+        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(areaTriggerName);
+        if (trigger == null)
+            return null;
+
+        return trigger.getEntities();
+    }
+
+    /**
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
      * @param argument
@@ -609,7 +625,7 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
-     * creates and returns a bukkit color object using 
+     * creates and returns a bukkit color object using
      * the RGB values given. the max value for the int arguments is 255
      * exceeding it may cause errors.
      * <p>
@@ -618,7 +634,7 @@ public class CommonFunctions implements SelfReference {
      * @param int red the value of red in RGB
      * @param int green the value of green in RGB
      * @param int blue the value of blue in RGB
-     * @return returns a Color object from org.bukkit.Color 
+     * @return returns a Color object from org.bukkit.Color
      */
     public Color bukkitColor(int red, int green, int blue){
         Color color = null;
@@ -865,7 +881,7 @@ public class CommonFunctions implements SelfReference {
         head.setItemMeta(SM);
         return head;
     }
-	
+
 	public ItemStack headForName(String targetName, int amount) {
         ItemStack head = new ItemStack(Material.SKULL_ITEM, amount, (short) 3);
         ItemMeta IM = head.getItemMeta();
@@ -906,7 +922,7 @@ public class CommonFunctions implements SelfReference {
         head.setItemMeta(SM);
         return head;
     }
-	
+
     public byte toByte(Number number) {
         return number.byteValue();
     }
@@ -930,25 +946,25 @@ public class CommonFunctions implements SelfReference {
     public double toDouble(Number number) {
         return number.doubleValue();
     }
-	
+
     public BossBar makeBossBar(String title, String color, String style) {
         BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
 	BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
-	
+
 	BossBar BarObj = Bukkit.createBossBar(title, colorEnum, styleEnum);
 	return BarObj;
     }
 
     public double sqrt(int num) {
-		
+
         double squareRoot = num / 2;
 	double test = 0;
-		
+
 	while ((test - squareRoot) != 0){
 	    test = squareRoot;
 	    squareRoot = (test + (num / test)) / 2;
 	}
-		
+
 	return squareRoot;
     }
 }
