@@ -51,6 +51,42 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
     protected final Map<UUID, SimpleLocation> entityLocationMap = new HashMap<>();
     protected final Map<UUID, WeakReference<Entity>> entityTrackMap = new ConcurrentHashMap<>();
 
+    public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
+        super(plugin, ref, tirggerFolder);
+
+        Thread referenceCleaningThread = new Thread() {
+
+            @Override
+            public void run() {
+                //clean up the reference map
+                Set<UUID> deletes = new HashSet<>();
+                for(Entry<UUID, WeakReference<Entity>> entry : entityTrackMap.entrySet()) {
+                    if(entry.getValue().get() == null)
+                        deletes.add(entry.getKey());
+                }
+                for(UUID delete : deletes) {
+                    entityTrackMap.remove(delete);
+                    entityLocationMap.remove(delete);
+                }
+
+                Set<String> keys = nameMapper.keySet();
+                for(String key : keys) {
+                    AreaTrigger area = nameMapper.get(key);
+                    area.getEntities();
+                }
+
+                try {
+                    Thread.sleep(100L);
+                } catch (InterruptedException e) {
+
+                }
+            }
+
+        };
+        referenceCleaningThread.setDaemon(true);
+        referenceCleaningThread.start();
+    }
+
     @Override
     public void reload() {
         FileFilter filter = new FileFilter(){
@@ -361,10 +397,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 
-    public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
-    }
-
     public static class AreaTrigger extends Trigger{
         final Area area;
         final File folder;
@@ -471,12 +503,19 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         public List<Entity> getEntities(){
             List<Entity> entities = new ArrayList<>();
 
+            Set<UUID> remove = new HashSet<>();
             for(Entry<UUID, WeakReference<Entity>> entry : this.trackedEntities.entrySet()) {
                 WeakReference<Entity> ref = entry.getValue();
                 Entity entity = ref.get();
-                if(entity != null) {
+                if (entity != null) {
                     entities.add(entity);
+                } else {
+                    remove.remove(entry.getKey());
                 }
+            }
+
+            for(UUID uuid : remove) {
+                this.trackedEntities.remove(uuid);
             }
 
             return entities;
