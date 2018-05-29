@@ -19,10 +19,8 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -54,17 +52,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
             @Override
             public void run() {
-                //clean up the reference map
-                Set<UUID> deletes = new HashSet<>();
-                for(Entry<UUID, WeakReference<Entity>> entry : entityTrackMap.entrySet()) {
-                    if(entry.getValue().get() == null)
-                        deletes.add(entry.getKey());
-                }
-                for(UUID delete : deletes) {
-                    entityTrackMap.remove(delete);
-                    entityLocationMap.remove(delete);
-                }
-
                 //track entity locations
                 for(World w : Bukkit.getWorlds()) {
                     for(Entity e : w.getEntities()) {
