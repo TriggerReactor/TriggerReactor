@@ -124,7 +124,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         if(to != null){
             to.getValue().addEntity(e.getPlayer());
 
-            varMap.put("entities", from.getValue().getEntities());
+            varMap.put("entities", to.getValue().getEntities());
             to.getValue().activate(e, varMap, EventType.ENTER);
         }
     }
