@@ -94,8 +94,32 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
             }
 
         });
+        entityTrackingThread.setName("AreaTriggerManager -- EntityTrackingThread");
         entityTrackingThread.setDaemon(true);
         entityTrackingThread.start();
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+
+        entityLocationMap.clear();
+
+        //re-register entities
+        for(World w : Bukkit.getWorlds()) {
+            for(Entity e : w.getEntities()) {
+                UUID uuid = e.getUniqueId();
+
+                if(e.isDead() || !e.isValid())
+                    continue;
+
+                SimpleLocation previous = null;
+                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
+
+                entityLocationMap.put(uuid, current);
+                onEntityBlockMoveAsync(e, previous, current);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -142,7 +166,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         }
     }
 
-    protected void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
+    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
         Entry<Area, AreaTrigger> fromArea = getAreaForLocation(from);
         Entry<Area, AreaTrigger> toArea = getAreaForLocation(current);
 
