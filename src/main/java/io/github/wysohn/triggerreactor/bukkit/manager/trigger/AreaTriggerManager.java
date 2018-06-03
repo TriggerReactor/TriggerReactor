@@ -124,6 +124,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
 
                 entityLocationMap.put(uuid, current);
+                entityTrackMap.put(uuid, new WeakReference<Entity>(e));
                 onEntityBlockMoveAsync(e, previous, current);
             }
         }

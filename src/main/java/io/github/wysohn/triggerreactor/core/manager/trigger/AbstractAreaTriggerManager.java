@@ -51,10 +51,12 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
     /**
      * The child class should update this map with its own way. Though, the entity which garbage-corrected will
      * be also deleted from this map automatically.
+     * <b>Adding or removing from this map also has to be reflected in entityTrackMap as well</b>
      */
     protected final Map<UUID, SimpleLocation> entityLocationMap = new ConcurrentHashMap<>();
     /**
      * The actual entity map.
+     * <b>Adding or removing from this map also has to be reflected in entityLocationMap as well</b>
      */
     protected final Map<UUID, WeakReference<Entity>> entityTrackMap = new ConcurrentHashMap<>();
 
