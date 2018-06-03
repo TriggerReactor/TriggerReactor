@@ -33,6 +33,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
@@ -110,8 +111,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     @Override
     public void reload() {
         super.reload();
-
-        entityLocationMap.clear();
 
         //re-register entities
         for(World w : Bukkit.getWorlds()) {
@@ -194,6 +193,11 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         if(toArea != null) {
             toArea.getValue().addEntity(entity);
         }
+    }
+
+    @EventHandler
+    public void onDeath(PlayerDeathEvent e) {
+        onDeath((EntityDeathEvent) e);
     }
 
     @EventHandler
