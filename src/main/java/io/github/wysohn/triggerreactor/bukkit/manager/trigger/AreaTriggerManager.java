@@ -33,6 +33,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
@@ -52,43 +53,50 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
             @Override
             public void run() {
-                //track entity locations
-                for(World w : Bukkit.getWorlds()) {
-                    for(Entity e : w.getEntities()) {
-                        UUID uuid = e.getUniqueId();
+                while(plugin.isEnabled() && !Thread.interrupted()) {
+                    //track entity locations
+                    for(World w : Bukkit.getWorlds()) {
+                        for(Entity e : w.getEntities()) {
+                            UUID uuid = e.getUniqueId();
 
-                        Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
+                            Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
 
-                            @Override
-                            public Boolean call() throws Exception {
-                                return !e.isDead() && e.isValid();
+                                @Override
+                                public Boolean call() throws Exception {
+                                    return !e.isDead() && e.isValid();
+                                }
+
+                            });
+
+                            boolean valid = false;
+                            try {
+                                valid = future.get();
+                            } catch (InterruptedException e1) {
+                            } catch (ExecutionException e1) {
+                                e1.printStackTrace();
                             }
 
-                        });
+                            if(!valid)
+                                continue;
 
-                        boolean valid = false;
-                        try {
-                            valid = future.get();
-                        } catch (InterruptedException e1) {
-                        } catch (ExecutionException e1) {
-                            e1.printStackTrace();
+                            if(!entityLocationMap.containsKey(uuid))
+                                continue;
+
+                            SimpleLocation previous = entityLocationMap.get(uuid);
+                            SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
+
+                            //update location if equal
+                            if(!previous.equals(current)) {
+                                entityLocationMap.put(uuid, current);
+                                onEntityBlockMoveAsync(e, previous, current);
+                            }
+
                         }
+                    }
 
-                        if(!valid)
-                            continue;
-
-                        if(!entityLocationMap.containsKey(uuid))
-                            continue;
-
-                        SimpleLocation previous = entityLocationMap.get(uuid);
-                        SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
-
-                        //update location if equal
-                        if(!previous.equals(current)) {
-                            entityLocationMap.put(uuid, current);
-                            onEntityBlockMoveAsync(e, previous, current);
-                        }
-
+                    try {
+                        Thread.sleep(50L);//same as one tick
+                    } catch (InterruptedException e) {
                     }
                 }
             }
@@ -119,6 +127,15 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 entityLocationMap.put(uuid, current);
                 onEntityBlockMoveAsync(e, previous, current);
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onJoin(PlayerJoinEvent e) {
+        SimpleLocation currentSloc = LocationUtil.convertToSimpleLocation(e.getPlayer().getLocation());
+        Entry<Area, AreaTrigger> current = getAreaForLocation(currentSloc);
+        if(current != null) {
+            current.getValue().addEntity(e.getPlayer());
         }
     }
 
