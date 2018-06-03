@@ -48,7 +48,14 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggers = new ConcurrentHashMap<>();
     protected Map<String, AreaTrigger> nameMapper = new HashMap<>();
 
-    protected final Map<UUID, SimpleLocation> entityLocationMap = new HashMap<>();
+    /**
+     * The child class should update this map with its own way. Though, the entity which garbage-corrected will
+     * be also deleted from this map automatically.
+     */
+    protected final Map<UUID, SimpleLocation> entityLocationMap = new ConcurrentHashMap<>();
+    /**
+     * The actual entity map.
+     */
     protected final Map<UUID, WeakReference<Entity>> entityTrackMap = new ConcurrentHashMap<>();
 
     public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
@@ -58,37 +65,43 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             @Override
             public void run() {
-                //clean up the reference map
-                Set<UUID> deletes = new HashSet<>();
-                for(Entry<UUID, WeakReference<Entity>> entry : entityTrackMap.entrySet()) {
-                    if(entry.getValue().get() == null)
-                        deletes.add(entry.getKey());
-                }
-                for(UUID delete : deletes) {
-                    entityTrackMap.remove(delete);
-                    entityLocationMap.remove(delete);
-                }
+                while(plugin.isEnabled() && !Thread.interrupted()) {
+                    //clean up the reference map
+                    Set<UUID> deletes = new HashSet<>();
+                    for(Entry<UUID, WeakReference<Entity>> entry : entityTrackMap.entrySet()) {
+                        if(entry.getValue().get() == null)
+                            deletes.add(entry.getKey());
+                    }
+                    for(UUID delete : deletes) {
+                        entityTrackMap.remove(delete);
+                        entityLocationMap.remove(delete);
+                    }
 
-                Set<String> keys = nameMapper.keySet();
-                for(String key : keys) {
-                    AreaTrigger area = nameMapper.get(key);
-                    area.getEntities();
-                }
+                    Set<String> keys = nameMapper.keySet();
+                    for(String key : keys) {
+                        AreaTrigger area = nameMapper.get(key);
+                        area.getEntities();
+                    }
 
-                try {
-                    Thread.sleep(100L);
-                } catch (InterruptedException e) {
+                    try {
+                        Thread.sleep(50L);
+                    } catch (InterruptedException e) {
 
+                    }
                 }
             }
 
         };
+        referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
         referenceCleaningThread.setDaemon(true);
         referenceCleaningThread.start();
     }
 
     @Override
     public void reload() {
+        entityLocationMap.clear();
+        entityTrackMap.clear();
+
         FileFilter filter = new FileFilter(){
             @Override
             public boolean accept(File pathname) {
