@@ -17,13 +17,13 @@
 function VELOCITY(args){
 	if(player === null)
 		return null;
-	
+		
 	if(args.length != 3)
 		throw new Error("Invalid parameters! [Number, Number, Number]");
-	
-	args.forEach(function (value, i) {
-		if (typeof value == "string") {args[i] = parseFloat(value);}
-	});
+		
+	for (var i in [0, 1, 2]) {
+		if (typeof args[i] == "string") {args[i] = parseFloat(args[i]);}
+	}
 	
 	var Vector = Java.type('org.bukkit.util.Vector');
 	player.setVelocity(new Vector(args[0].doubleValue(), args[1].doubleValue(), args[2].doubleValue()));
