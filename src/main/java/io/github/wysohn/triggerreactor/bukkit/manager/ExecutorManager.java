@@ -39,12 +39,14 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
 public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer{
+    private static final String JAR_FOLDER_LOCATION = "Executor"+File.separatorChar+"Bukkit";
+
     private File executorFolder;
 
     public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
         super(plugin);
-        this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        JarUtil.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
+        this.executorFolder = new File(plugin.getDataFolder(), JAR_FOLDER_LOCATION);
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         reload();
     }

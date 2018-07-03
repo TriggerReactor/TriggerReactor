@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.sponge.main;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -27,11 +28,22 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.asset.Asset;
+import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandResult;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.args.CommandContext;
+import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.command.spec.CommandExecutor;
+import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GameStartingServerEvent;
+import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.text.Text;
 
 import com.google.inject.Inject;
 
@@ -63,6 +75,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
+import io.github.wysohn.triggerreactor.sponge.bridge.player.SpongePlayer;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 @Plugin(id = "triggerreactor")
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor{
@@ -70,6 +85,75 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;
+
+    private AbstractExecutorManager executorManager;
+    private AbstractPlaceholderManager placeholderManager;
+    private AbstractVariableManager variableManager;
+    private AbstractScriptEditManager scriptEditManager;
+    private AbstractPlayerLocationManager locationManager;
+    private AbstractPermissionManager permissionManager;
+    private AbstractAreaSelectionManager selectionManager;
+
+    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
+    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
+    private AbstractCommandTriggerManager cmdManager;
+    private AbstractInventoryTriggerManager invManager;
+    private AbstractAreaTriggerManager areaManager;
+    private AbstractCustomTriggerManager customManager;
+    private AbstractRepeatingTriggerManager repeatManager;
+
+    @Listener
+    public void onInitialize(GameAboutToStartServerEvent e) {
+        CommandSpec cs = CommandSpec.builder()
+                .permission("triggerreactor.admin")
+                .arguments(GenericArguments.remainingJoinedStrings(Text.of("arguments")))
+                .executor(new CommandExecutor() {
+
+                    @Override
+                    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+
+                        return null;
+                    }
+
+                }).build();
+        Sponge.getCommandManager().register(this, cs, "trg", "trigger");
+    }
+
+    @Listener
+    public void onEnable(GameStartedServerEvent e) {
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
+
+        File file = new File(getDataFolder(), "config.yml");
+        if(!file.exists()){
+            try{
+                Asset asset = Sponge.getAssetManager().getAsset(this, "config.yml").get();
+                String configStr = asset.readString();
+                FileUtil.writeToFile(file, configStr);
+            }catch(IOException ex){
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    @Listener
+    public void onDisable(GameStoppingServerEvent e) {
+
+    }
+
+    public boolean onCommand(CommandSource sender, CommandContext command) {
+        if(sender instanceof Player){
+            return this.onCommand(
+                    new SpongePlayer((Player) sender),
+                    "triggerreactor",
+                    command.<String>getOne("arguments").get().split(" "));
+        }else{
+            return this.onCommand(
+                    new SpongeCommandSender(sender),
+                    "triggerreactor",
+                    command.<String>getOne("arguments").get().split(" "));
+        }
+    }
 
     @Override
     public AbstractExecutorManager getExecutorManager() {
@@ -159,16 +243,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     public AbstractNamedTriggerManager getNamedTriggerManager() {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    @Listener
-    public void onEnable(GameStartingServerEvent e){
-
-    }
-
-    @Listener
-    public void onDisable(GameStoppingServerEvent e){
-
     }
 
     @Override
