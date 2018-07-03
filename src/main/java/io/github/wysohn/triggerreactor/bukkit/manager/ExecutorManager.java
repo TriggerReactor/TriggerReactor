@@ -39,7 +39,7 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
 public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer{
-    private static final String JAR_FOLDER_LOCATION = "Executor"+File.separatorChar+"Bukkit";
+    private static final String JAR_FOLDER_LOCATION = "Executor"+JarUtil.JAR_SEPARATOR+"Bukkit";
 
     private File executorFolder;
 

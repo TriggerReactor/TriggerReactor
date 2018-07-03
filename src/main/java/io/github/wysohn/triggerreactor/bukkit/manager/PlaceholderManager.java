@@ -29,7 +29,7 @@ import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 
 public class PlaceholderManager extends AbstractPlaceholderManager implements BukkitScriptEngineInitializer{
-    private static final String JAR_FOLDER_LOCATION = "Placeholder"+File.separatorChar+"Bukkit";
+    private static final String JAR_FOLDER_LOCATION = "Placeholder"+JarUtil.JAR_SEPARATOR+"Bukkit";
 
     private File placeholderFolder;
 

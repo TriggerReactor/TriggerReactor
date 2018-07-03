@@ -25,6 +25,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class JarUtil {
+    public static final char JAR_SEPARATOR = '/';
     public static void copyFolderFromJar(String folderName, File destFolder, CopyOption option) throws IOException{
         if(!destFolder.exists())
             destFolder.mkdirs();
@@ -39,12 +40,12 @@ public class JarUtil {
 
         ZipEntry entry;
         while ((entry = zis.getNextEntry()) != null) {
-            if(!entry.getName().startsWith(folderName+"/"))
+            if(!entry.getName().startsWith(folderName+JAR_SEPARATOR))
                 continue;
 
             String fileName = entry.getName();
 
-            if (fileName.charAt(fileName.length() - 1) == '/') {
+            if (fileName.charAt(fileName.length() - 1) == JAR_SEPARATOR) {
                 File file = new File(destFolder + File.separator + fileName);
                 if(file.isFile()){
                     file.delete();
