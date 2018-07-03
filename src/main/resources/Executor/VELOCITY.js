@@ -17,17 +17,16 @@
 function VELOCITY(args){
 	if(player === null)
 		return null;
-	
+		
 	if(args.length != 3)
 		throw new Error("Invalid parameters! [Number, Number, Number]");
 		
-	if(typeof args[0] !== "number"
-		|| typeof args[1] !== "number"
-		|| typeof args[2] !== "number")
-		throw new Error("Invalid parameters! [Number, Number, Number]");
+	for (var i in [0, 1, 2]) {
+		if (typeof args[i] == "string") {args[i] = parseFloat(args[i]);}
+	}
 	
 	var Vector = Java.type('org.bukkit.util.Vector');
-	player.setVelocity(new Vector(args[0], args[1], args[2]));
+	player.setVelocity(new Vector(args[0].doubleValue(), args[1].doubleValue(), args[2].doubleValue()));
 
 	return null;
 }
