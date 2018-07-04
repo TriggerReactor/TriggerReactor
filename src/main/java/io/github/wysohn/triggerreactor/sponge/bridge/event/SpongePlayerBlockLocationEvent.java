@@ -19,43 +19,45 @@ package io.github.wysohn.triggerreactor.sponge.bridge.event;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.sponge.bridge.player.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
 
 public class SpongePlayerBlockLocationEvent implements IPlayerBlockLocationEvent {
+    private final PlayerBlockLocationEvent event;
+
+    public SpongePlayerBlockLocationEvent(PlayerBlockLocationEvent event) {
+        super();
+        this.event = event;
+    }
 
     @Override
     public IPlayer getIPlayer() {
-        // TODO Auto-generated method stub
-        return null;
+        return new SpongePlayer(event.getTargetEntity());
     }
 
     @Override
     public <T> T get() {
-        // TODO Auto-generated method stub
-        return null;
+        return (T) event;
     }
 
     @Override
     public SimpleLocation getFrom() {
-        // TODO Auto-generated method stub
-        return null;
+        return event.getFrom();
     }
 
     @Override
     public SimpleLocation getTo() {
-        // TODO Auto-generated method stub
-        return null;
+        return event.getTo();
     }
 
     @Override
     public boolean isCancelled() {
-        // TODO Auto-generated method stub
-        return false;
+        return event.isCancelled();
     }
 
     @Override
     public void setCancelled(boolean b) {
-        // TODO Auto-generated method stub
-
+        event.setCancelled(b);
     }
 
 }

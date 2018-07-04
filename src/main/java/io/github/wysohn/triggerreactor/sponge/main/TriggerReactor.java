@@ -39,6 +39,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
@@ -153,6 +154,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                     "triggerreactor",
                     command.<String>getOne("arguments").get().split(" "));
         }
+    }
+
+    @Listener
+    public void onReload(GameReloadEvent event) {
+        // Do reload stuff
     }
 
     @Override

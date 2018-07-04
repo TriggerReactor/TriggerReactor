@@ -40,7 +40,6 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
 
     public PlayerLocationManager(TriggerReactor plugin) {
         super(plugin);
-        // TODO Auto-generated constructor stub
     }
 
     @EventHandler(priority = EventPriority.LOW)
