@@ -27,6 +27,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
+import javax.script.ScriptException;
+
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.command.CommandException;
@@ -51,8 +53,8 @@ import com.google.inject.Inject;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
@@ -68,8 +70,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTrigge
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager.ClickTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager.WalkTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
@@ -77,7 +77,13 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
-import io.github.wysohn.triggerreactor.sponge.bridge.player.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.manager.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.sponge.manager.ExecutorManager;
+import io.github.wysohn.triggerreactor.sponge.manager.PlaceholderManager;
+import io.github.wysohn.triggerreactor.sponge.manager.PlayerLocationManager;
+import io.github.wysohn.triggerreactor.sponge.manager.ScriptEditManager;
+import io.github.wysohn.triggerreactor.sponge.manager.VariableManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 @Plugin(id = "triggerreactor")
@@ -102,6 +108,22 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractAreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
+
+    public TriggerReactor() {
+        try {
+            this.executorManager = new ExecutorManager(this);
+            this.placeholderManager = new PlaceholderManager(this);
+            this.variableManager = new VariableManager(this);
+            this.scriptEditManager = new ScriptEditManager(this);
+            this.locationManager = new PlayerLocationManager(this);
+
+            this.selectionManager = new AreaSelectionManager(this);
+
+
+        } catch (ScriptException | IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Listener
     public void onInitialize(GameAboutToStartServerEvent e) {
@@ -163,92 +185,72 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public AbstractExecutorManager getExecutorManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return executorManager;
     }
 
     @Override
     public AbstractPlaceholderManager getPlaceholderManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return placeholderManager;
     }
 
     @Override
     public AbstractVariableManager getVariableManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return variableManager;
     }
 
     @Override
     public AbstractScriptEditManager getScriptEditManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return scriptEditManager;
     }
 
     @Override
     public AbstractPlayerLocationManager getLocationManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return locationManager;
     }
 
     @Override
     public AbstractPermissionManager getPermissionManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return permissionManager;
     }
 
     @Override
     public AbstractAreaSelectionManager getSelectionManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return selectionManager;
     }
 
     @Override
-    public AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
-        // TODO Auto-generated method stub
-        return null;
+    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
+        return clickManager;
     }
 
     @Override
-    public AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager() {
-        // TODO Auto-generated method stub
-        return null;
+    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
+        return walkManager;
     }
 
     @Override
     public AbstractCommandTriggerManager getCmdManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return cmdManager;
     }
 
     @Override
     public AbstractInventoryTriggerManager getInvManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return invManager;
     }
 
     @Override
     public AbstractAreaTriggerManager getAreaManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return areaManager;
     }
 
     @Override
     public AbstractCustomTriggerManager getCustomManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return customManager;
     }
 
     @Override
     public AbstractRepeatingTriggerManager getRepeatManager() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        // TODO Auto-generated method stub
-        return null;
+        return repeatManager;
     }
 
     @Override
@@ -450,6 +452,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public Map<String, AbstractAPISupport> getSharedVars() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
         // TODO Auto-generated method stub
         return null;
     }

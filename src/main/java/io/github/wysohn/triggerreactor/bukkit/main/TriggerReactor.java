@@ -27,7 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
-import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 

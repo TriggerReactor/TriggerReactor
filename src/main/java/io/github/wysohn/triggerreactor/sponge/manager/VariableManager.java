@@ -21,6 +21,7 @@ import java.io.IOException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
+import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
@@ -92,37 +93,27 @@ public class VariableManager extends AbstractVariableManager{
         return adapter;
     }
 
-    private ConfigurationNode getNodeByKeyString(String key){
-        String[] pathes = key.split("\\.");
-        Object[] objs = new Object[pathes.length];
-        for(int i = 0; i < objs.length; i++){
-            objs[i] = pathes[i];
-        }
-
-        return varFileConfig.getNode(objs);
-    }
-
     @Override
     public Object get(String key){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         return targetNode.getValue();
     }
 
     @Override
     public void put(String key, Object value){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         targetNode.setValue(value);
     }
 
     @Override
     public boolean has(String key){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         return !targetNode.isVirtual();
     }
 
     @Override
     public void remove(String key){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         ConfigurationNode parent = targetNode.getParent();
         parent.removeChild(targetNode.getKey());
     }
@@ -138,7 +129,7 @@ public class VariableManager extends AbstractVariableManager{
             if(value == null && key instanceof String){
                 String keyStr = (String) key;
                 if(has(keyStr)){
-                    ConfigurationNode targetNode = getNodeByKeyString(keyStr);
+                    ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, keyStr);
                     value = targetNode.getValue();
                 }
             }
@@ -153,7 +144,7 @@ public class VariableManager extends AbstractVariableManager{
             //check global if none found in local
             if(!result && key instanceof String){
                 String keyStr = (String) key;
-                ConfigurationNode targetNode = getNodeByKeyString(keyStr);
+                ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, keyStr);
                 result = !targetNode.isVirtual();
             }
 
@@ -162,7 +153,7 @@ public class VariableManager extends AbstractVariableManager{
 
         @Override
         public Object put(String key, Object value) {
-            ConfigurationNode targetNode = getNodeByKeyString(key);
+            ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
             Object before = targetNode.getValue();
             targetNode.setValue(value);
             return before;

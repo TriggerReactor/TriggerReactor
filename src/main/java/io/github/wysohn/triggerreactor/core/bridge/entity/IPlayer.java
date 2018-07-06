@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.bridge.player;
+package io.github.wysohn.triggerreactor.core.bridge.entity;
 
 import java.util.UUID;
 
@@ -24,7 +24,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 
-public interface IPlayer extends ICommandSender{
+public interface IPlayer extends IEntity, ICommandSender{
 
     UUID getUniqueId();
 

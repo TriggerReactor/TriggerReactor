@@ -82,7 +82,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
-import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ExecutorManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
@@ -104,8 +104,8 @@ import io.github.wysohn.triggerreactor.bukkit.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;

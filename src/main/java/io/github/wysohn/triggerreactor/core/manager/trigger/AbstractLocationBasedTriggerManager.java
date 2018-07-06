@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;

@@ -14,45 +14,35 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.bukkit.bridge.player;
+package io.github.wysohn.triggerreactor.sponge.bridge.entity;
 
-import java.util.UUID;
+import org.spongepowered.api.data.type.HandTypes;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.text.serializer.TextSerializers;
+import org.spongepowered.api.world.World;
 
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
+import com.flowpowered.math.vector.Vector3i;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
-import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeLocation;
 
-public class BukkitPlayer implements IPlayer {
+public class SpongePlayer extends SpongeEntity implements IPlayer {
     private final Player player;
 
-    public BukkitPlayer(Player player) {
-        super();
+    public SpongePlayer(Player player) {
+        super(player);
         this.player = player;
     }
 
     @Override
-    public <T> T get() {
-        return (T) player;
-    }
-
-    @Override
-    public UUID getUniqueId() {
-        return player.getUniqueId();
-    }
-
-    @Override
     public void sendMessage(String message) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
     }
 
     @Override
@@ -61,35 +51,40 @@ public class BukkitPlayer implements IPlayer {
     }
 
     @Override
+    public <T> T get() {
+        return (T) player;
+    }
+
+    @Override
     public IInventory getInventory() {
-        return new BukkitInventory(player.getInventory());
+        return new SpongeInventory(player.getInventory());
     }
 
     @Override
     public void openInventory(IInventory inventory) {
-        Inventory inv = inventory.get();
-        player.openInventory(inv);
+        player.openInventory(inventory.get());
     }
 
     @Override
     public SimpleChunkLocation getChunk() {
-        return LocationUtil.convertToSimpleChunkLocation(player.getLocation().getChunk());
+        World world = player.getLocation().getExtent();
+        Vector3i vector = player.getLocation().getChunkPosition();
+        return new SimpleChunkLocation(world.getName(), vector.getX(), vector.getZ());
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public IItemStack getItemInMainHand() {
-        return new BukkitItemStack(player.getInventory().getItemInHand());
+        return new SpongeItemStack(player.getItemInHand(HandTypes.MAIN_HAND).get());
     }
 
     @Override
     public ILocation getLocation() {
-        return new BukkitLocation(player.getLocation());
+        return new SpongeLocation(player.getLocation());
     }
 
     @Override
     public void setItemInMainHand(IItemStack iS) {
-        player.getInventory().setItemInMainHand(iS.get());
+        player.setItemInHand(HandTypes.MAIN_HAND, iS.get());
     }
 
 }

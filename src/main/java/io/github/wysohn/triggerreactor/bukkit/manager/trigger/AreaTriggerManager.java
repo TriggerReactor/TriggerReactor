@@ -18,7 +18,9 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -36,9 +38,11 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitEntity;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -124,7 +128,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
 
                 entityLocationMap.put(uuid, current);
-                entityTrackMap.put(uuid, new WeakReference<Entity>(e));
+                entityTrackMap.put(uuid, new WeakReference<IEntity>(new BukkitEntity(e)));
                 onEntityBlockMoveAsync(e, previous, current);
             }
         }
@@ -135,7 +139,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         SimpleLocation currentSloc = LocationUtil.convertToSimpleLocation(e.getPlayer().getLocation());
         Entry<Area, AreaTrigger> current = getAreaForLocation(currentSloc);
         if(current != null) {
-            current.getValue().addEntity(e.getPlayer());
+            current.getValue().addEntity(new BukkitEntity(e.getPlayer()));
         }
     }
 
@@ -158,14 +162,20 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         if(from != null){
             from.getValue().removeEntity(e.getPlayer().getUniqueId());
 
-            varMap.put("entities", from.getValue().getEntities());
+            List<Entity> entities = new ArrayList<>();
+            for(IEntity ie : from.getValue().getEntities())
+                entities.add(ie.get());
+            varMap.put("entities", entities);
             from.getValue().activate(e, varMap, EventType.EXIT);
         }
 
         if(to != null){
-            to.getValue().addEntity(e.getPlayer());
+            to.getValue().addEntity(new BukkitEntity(e.getPlayer()));
 
-            varMap.put("entities", to.getValue().getEntities());
+            List<Entity> entities = new ArrayList<>();
+            for(IEntity ie : from.getValue().getEntities())
+                entities.add(ie.get());
+            varMap.put("entities", entities);
             to.getValue().activate(e, varMap, EventType.ENTER);
         }
     }
@@ -174,12 +184,12 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     public void onSpawn(EntitySpawnEvent e) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getLocation());
 
-        entityTrackMap.put(e.getEntity().getUniqueId(), new WeakReference<Entity>(e.getEntity()));
+        entityTrackMap.put(e.getEntity().getUniqueId(), new WeakReference<IEntity>(new BukkitEntity(e.getEntity())));
         entityLocationMap.put(e.getEntity().getUniqueId(), sloc);
 
         Entry<Area, AreaTrigger> entry = getAreaForLocation(sloc);
         if(entry != null) {
-            entry.getValue().addEntity(e.getEntity());
+            entry.getValue().addEntity(new BukkitEntity(e.getEntity()));
         }
     }
 
@@ -192,7 +202,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         }
 
         if(toArea != null) {
-            toArea.getValue().addEntity(entity);
+            toArea.getValue().addEntity(new BukkitEntity(entity));
         }
     }
 

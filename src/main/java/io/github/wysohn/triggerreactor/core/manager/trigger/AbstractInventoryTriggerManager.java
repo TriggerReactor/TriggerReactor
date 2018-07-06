@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;

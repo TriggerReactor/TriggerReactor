@@ -16,10 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.bridge.event;
 
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.sponge.bridge.player.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
 
 public class SpongePlayerBlockLocationEvent implements IPlayerBlockLocationEvent {

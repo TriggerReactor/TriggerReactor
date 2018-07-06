@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.bridge.event;
 
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 
 public interface IPlayerEvent extends IEvent{
     IPlayer getIPlayer();

@@ -14,42 +14,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.sponge.bridge.player;
+package io.github.wysohn.triggerreactor.bukkit.bridge.entity;
 
-import java.util.UUID;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
-import org.spongepowered.api.data.type.HandTypes;
-import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.text.serializer.TextSerializers;
-import org.spongepowered.api.world.World;
-
-import com.flowpowered.math.vector.Vector3i;
-
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
+import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
-import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
-import io.github.wysohn.triggerreactor.sponge.bridge.SpongeLocation;
 
-public class SpongePlayer implements IPlayer {
+public class BukkitPlayer extends BukkitEntity implements IPlayer {
     private final Player player;
 
-    public SpongePlayer(Player player) {
-        super();
+    public BukkitPlayer(Player player) {
+        super(player);
         this.player = player;
-    }
-
-    @Override
-    public void sendMessage(String message) {
-        player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
     }
 
     @Override
@@ -58,40 +44,45 @@ public class SpongePlayer implements IPlayer {
     }
 
     @Override
-    public UUID getUniqueId() {
-        return player.getUniqueId();
+    public void sendMessage(String message) {
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return player.hasPermission(permission);
     }
 
     @Override
     public IInventory getInventory() {
-        return new SpongeInventory(player.getInventory());
+        return new BukkitInventory(player.getInventory());
     }
 
     @Override
     public void openInventory(IInventory inventory) {
-        player.openInventory(inventory.get());
+        Inventory inv = inventory.get();
+        player.openInventory(inv);
     }
 
     @Override
     public SimpleChunkLocation getChunk() {
-        World world = player.getLocation().getExtent();
-        Vector3i vector = player.getLocation().getChunkPosition();
-        return new SimpleChunkLocation(world.getName(), vector.getX(), vector.getZ());
+        return LocationUtil.convertToSimpleChunkLocation(player.getLocation().getChunk());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public IItemStack getItemInMainHand() {
-        return new SpongeItemStack(player.getItemInHand(HandTypes.MAIN_HAND).get());
+        return new BukkitItemStack(player.getInventory().getItemInHand());
     }
 
     @Override
     public ILocation getLocation() {
-        return new SpongeLocation(player.getLocation());
+        return new BukkitLocation(player.getLocation());
     }
 
     @Override
     public void setItemInMainHand(IItemStack iS) {
-        player.setItemInHand(HandTypes.MAIN_HAND, iS.get());
+        player.getInventory().setItemInMainHand(iS.get());
     }
 
 }
