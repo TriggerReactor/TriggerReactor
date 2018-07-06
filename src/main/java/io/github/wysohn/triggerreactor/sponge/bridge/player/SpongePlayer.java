@@ -20,7 +20,6 @@ import java.util.UUID;
 
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.World;
 
@@ -70,7 +69,7 @@ public class SpongePlayer implements IPlayer {
 
     @Override
     public void openInventory(IInventory inventory) {
-        player.openInventory(inventory.get(), Cause.builder().build());
+        player.openInventory(inventory.get());
     }
 
     @Override
