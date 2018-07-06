@@ -16,20 +16,11 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger.share;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.effect.potion.PotionEffect;
@@ -55,7 +46,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerM
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.tools.SkullUtil;
 
 public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions
         implements SelfReference {
@@ -441,186 +431,186 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         IS.offer(Keys.ITEM_LORE, texts);
     }
 
-    /**
-     * Replace a lore at 'index' for the specified ItemStack
-     *
-     * @param IS
-     * @param index
-     * @param lore
-     */
-    public void setLore(ItemStack IS, int index, String lore) {
-        ItemMeta IM = IS.getItemMeta();
-        if (IM == null)
-            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
-        if (IM == null)
-            return;
-        List<String> lores = IM.getLore();
-        if (lores == null)
-            lores = new ArrayList<>();
-        lores.set(index, color(lore));
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-    }
-
-    /**
-     * Remove lore at the 'index' of the specified ItemStack
-     *
-     * @param IS
-     * @param index
-     */
-    public void removeLore(ItemStack IS, int index) {
-        ItemMeta IM = IS.getItemMeta();
-        if (IM == null)
-            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
-        if (IM == null)
-            return;
-        List<String> lores = IM.getLore();
-        if (lores == null)
-            lores = new ArrayList<>();
-        lores.remove(index);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-    }
-
-    /**
-     * Clear all lores from item.
-     *
-     * @param IS
-     */
-    public void clearLore(ItemStack IS) {
-        ItemMeta IM = IS.getItemMeta();
-        if (IM == null)
-            return;
-        IM.setLore(new ArrayList<>());
-        IS.setItemMeta(IM);
-    }
-
-    /**
-     * get size of the lores for the specified ItemStack
-     *
-     * @param IS
-     * @return
-     */
-    public int loreSize(ItemStack IS) {
-        ItemMeta IM = IS.getItemMeta();
-        if (IM == null)
-            return 0;
-        List<String> lores = IM.getLore();
-        if (lores == null)
-            return 0;
-        return lores.size();
-    }
-
-    /**
-     * Translate money into specified country's currency format. You need to
-     * provide exact locale provided in
-     * http://www.oracle.com/technetwork/java/javase/java8locales-2095355.html
-     *
-     * @param money
-     * @param locale1
-     *            language code (Ex. en)
-     * @param locale2
-     *            country code (Ex. US)
-     * @return formatted currecy
-     */
-    public String formatCurrency(double money, String locale1, String locale2) {
-        Locale locale = new Locale(locale1, locale2);
-        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
-        return currencyFormatter.format(money);
-    }
-
-    /**
-     * Translate money into specified country's currency format. US currency
-     * will be used.
-     *
-     * @param money
-     * @return formatted currecy
-     */
-    public String formatCurrency(double money) {
-        return formatCurrency(money, "en", "US");
-    }
-
-    /**
-     * Get the block which player is looking at
-     * <p>
-     * Example) /trg run #MESSAGE "looking at the block:
-     * "+getTargetBlock(player, 30);
-     * </p>
-     *
-     * @param player
-     * @param maxDistance
-     * @return block
-     */
-    public Block getTargetBlock(Player player, int maxDistance) {
-        return player.getTargetBlock((HashSet<Material>) null, maxDistance);
-    }
-
-    /**
-     * Create a player head with given name.
-     *
-     * <p>
-     * Example) /trg run #GIVE headForName("wysohn")
-     * </p>
-     *
-     * @param targetName
-     *            name of the owner of head
-     * @return the ItemStack head
-     */
-    public ItemStack headForName(String targetName) {
-        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-        ItemMeta IM = head.getItemMeta();
-        SkullMeta SM = (SkullMeta) IM;
-        SM.setOwner(targetName);
-        head.setItemMeta(SM);
-        return head;
-    }
-
-    public ItemStack headForName(String targetName, int amount) {
-        ItemStack head = new ItemStack(Material.SKULL_ITEM, amount, (short) 3);
-        ItemMeta IM = head.getItemMeta();
-        SkullMeta SM = (SkullMeta) IM;
-        SM.setOwner(targetName);
-        head.setItemMeta(SM);
-        return head;
-    }
-
-    /**
-     * Create a player head with given textureValue(base64 encoded).
-     *
-     * <p>
-     * Example) /trg run #GIVE
-     * headForValue("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlc
-     * y5taW5lY3JhZnQubmV0L3RleHR1cmUvN2RjZDdkZjUyNjQ1YzY4Y2RhZDg1NDhlNjFiM2Y3
-     * NjU5NjQwNzcyMjZiYTg3MmI5ZDJiZDQ1YzQz<b>OWQifX19\\</b>")
-     * </p>
-     * <p>
-     * <b> Notice that there is an extra \ sign as \ is an escape sequence. The
-     * final String will be ...OWQifX19\ instead of ...OWQifX19\\" </b>
-     * </p>
-     *
-     * @param textureValue
-     *            base64 encoded texture value
-     * @return the ItemStack head
-     */
-    public ItemStack headForValue(String textureValue) {
-        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
-        ItemMeta IM = head.getItemMeta();
-        SkullMeta SM = (SkullMeta) IM;
-        try {
-            SkullUtil.setTextureValue(SM, textureValue);
-        } catch (Exception e) {
-            // e.printStackTrace();
-            return head;
-        }
-        head.setItemMeta(SM);
-        return head;
-    }
-
-    public BossBar makeBossBar(String title, String color, String style) {
-        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
-        BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
-
-        BossBar BarObj = Bukkit.createBossBar(title, colorEnum, styleEnum);
-        return BarObj;
-    }
+//    /**
+//     * Replace a lore at 'index' for the specified ItemStack
+//     *
+//     * @param IS
+//     * @param index
+//     * @param lore
+//     */
+//    public void setLore(ItemStack IS, int index, String lore) {
+//        ItemMeta IM = IS.getItemMeta();
+//        if (IM == null)
+//            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+//        if (IM == null)
+//            return;
+//        List<String> lores = IM.getLore();
+//        if (lores == null)
+//            lores = new ArrayList<>();
+//        lores.set(index, color(lore));
+//        IM.setLore(lores);
+//        IS.setItemMeta(IM);
+//    }
+//
+//    /**
+//     * Remove lore at the 'index' of the specified ItemStack
+//     *
+//     * @param IS
+//     * @param index
+//     */
+//    public void removeLore(ItemStack IS, int index) {
+//        ItemMeta IM = IS.getItemMeta();
+//        if (IM == null)
+//            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+//        if (IM == null)
+//            return;
+//        List<String> lores = IM.getLore();
+//        if (lores == null)
+//            lores = new ArrayList<>();
+//        lores.remove(index);
+//        IM.setLore(lores);
+//        IS.setItemMeta(IM);
+//    }
+//
+//    /**
+//     * Clear all lores from item.
+//     *
+//     * @param IS
+//     */
+//    public void clearLore(ItemStack IS) {
+//        ItemMeta IM = IS.getItemMeta();
+//        if (IM == null)
+//            return;
+//        IM.setLore(new ArrayList<>());
+//        IS.setItemMeta(IM);
+//    }
+//
+//    /**
+//     * get size of the lores for the specified ItemStack
+//     *
+//     * @param IS
+//     * @return
+//     */
+//    public int loreSize(ItemStack IS) {
+//        ItemMeta IM = IS.getItemMeta();
+//        if (IM == null)
+//            return 0;
+//        List<String> lores = IM.getLore();
+//        if (lores == null)
+//            return 0;
+//        return lores.size();
+//    }
+//
+//    /**
+//     * Translate money into specified country's currency format. You need to
+//     * provide exact locale provided in
+//     * http://www.oracle.com/technetwork/java/javase/java8locales-2095355.html
+//     *
+//     * @param money
+//     * @param locale1
+//     *            language code (Ex. en)
+//     * @param locale2
+//     *            country code (Ex. US)
+//     * @return formatted currecy
+//     */
+//    public String formatCurrency(double money, String locale1, String locale2) {
+//        Locale locale = new Locale(locale1, locale2);
+//        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
+//        return currencyFormatter.format(money);
+//    }
+//
+//    /**
+//     * Translate money into specified country's currency format. US currency
+//     * will be used.
+//     *
+//     * @param money
+//     * @return formatted currecy
+//     */
+//    public String formatCurrency(double money) {
+//        return formatCurrency(money, "en", "US");
+//    }
+//
+//    /**
+//     * Get the block which player is looking at
+//     * <p>
+//     * Example) /trg run #MESSAGE "looking at the block:
+//     * "+getTargetBlock(player, 30);
+//     * </p>
+//     *
+//     * @param player
+//     * @param maxDistance
+//     * @return block
+//     */
+//    public Block getTargetBlock(Player player, int maxDistance) {
+//        return player.getTargetBlock((HashSet<Material>) null, maxDistance);
+//    }
+//
+//    /**
+//     * Create a player head with given name.
+//     *
+//     * <p>
+//     * Example) /trg run #GIVE headForName("wysohn")
+//     * </p>
+//     *
+//     * @param targetName
+//     *            name of the owner of head
+//     * @return the ItemStack head
+//     */
+//    public ItemStack headForName(String targetName) {
+//        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+//        ItemMeta IM = head.getItemMeta();
+//        SkullMeta SM = (SkullMeta) IM;
+//        SM.setOwner(targetName);
+//        head.setItemMeta(SM);
+//        return head;
+//    }
+//
+//    public ItemStack headForName(String targetName, int amount) {
+//        ItemStack head = new ItemStack(Material.SKULL_ITEM, amount, (short) 3);
+//        ItemMeta IM = head.getItemMeta();
+//        SkullMeta SM = (SkullMeta) IM;
+//        SM.setOwner(targetName);
+//        head.setItemMeta(SM);
+//        return head;
+//    }
+//
+//    /**
+//     * Create a player head with given textureValue(base64 encoded).
+//     *
+//     * <p>
+//     * Example) /trg run #GIVE
+//     * headForValue("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlc
+//     * y5taW5lY3JhZnQubmV0L3RleHR1cmUvN2RjZDdkZjUyNjQ1YzY4Y2RhZDg1NDhlNjFiM2Y3
+//     * NjU5NjQwNzcyMjZiYTg3MmI5ZDJiZDQ1YzQz<b>OWQifX19\\</b>")
+//     * </p>
+//     * <p>
+//     * <b> Notice that there is an extra \ sign as \ is an escape sequence. The
+//     * final String will be ...OWQifX19\ instead of ...OWQifX19\\" </b>
+//     * </p>
+//     *
+//     * @param textureValue
+//     *            base64 encoded texture value
+//     * @return the ItemStack head
+//     */
+//    public ItemStack headForValue(String textureValue) {
+//        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+//        ItemMeta IM = head.getItemMeta();
+//        SkullMeta SM = (SkullMeta) IM;
+//        try {
+//            SkullUtil.setTextureValue(SM, textureValue);
+//        } catch (Exception e) {
+//            // e.printStackTrace();
+//            return head;
+//        }
+//        head.setItemMeta(SM);
+//        return head;
+//    }
+//
+//    public BossBar makeBossBar(String title, String color, String style) {
+//        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
+//        BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
+//
+//        BossBar BarObj = Bukkit.createBossBar(title, colorEnum, styleEnum);
+//        return BarObj;
+//    }
 }
