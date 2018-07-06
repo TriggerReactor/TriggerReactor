@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor;
+package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,7 +42,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import junit.framework.Assert;
 
-public class TriggerTest {
+public class TestInterpreter {
     @Test
     public void testRandom() throws Exception{
         Charset charset = Charset.forName("UTF-8");

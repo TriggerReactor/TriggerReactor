@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor;
+package io.github.wysohn.triggerreactor.core.script.lexer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -27,7 +27,7 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 
-public class LexerTest {
+public class TestLexer {
 
     @Test
     public void testGetToken() throws Exception {
