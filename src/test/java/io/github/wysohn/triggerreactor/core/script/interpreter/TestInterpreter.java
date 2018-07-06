@@ -34,9 +34,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
@@ -538,7 +535,7 @@ public class TestInterpreter {
     public void testEnumParse() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
-                + "result = parseEnum(\"io.github.wysohn.triggerreactor.TriggerTest$TestEnum\", value);";
+                + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum\", value);";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
