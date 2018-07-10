@@ -28,7 +28,7 @@ public class PlayerBlockLocationEvent extends AbstractEvent implements TargetPla
 
     public PlayerBlockLocationEvent(Player player, SimpleLocation from, SimpleLocation to) {
         EventContext context = EventContext.builder().add(EventContextKeys.PLAYER, player).build();
-        this.cause = Cause.builder().build(context);
+        this.cause = Cause.builder().append(player).build(context);
         this.player = player;
         this.from = from;
         this.to = to;
