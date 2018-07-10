@@ -4,10 +4,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -384,5 +386,34 @@ public class CommonFunctions implements SelfReference {
         }
 
         return squareRoot;
+    }
+
+    /**
+     * Translate money into specified country's currency format. You need to
+     * provide exact locale provided in
+     * http://www.oracle.com/technetwork/java/javase/java8locales-2095355.html
+     *
+     * @param money
+     * @param locale1
+     *            language code (Ex. en)
+     * @param locale2
+     *            country code (Ex. US)
+     * @return formatted currecy
+     */
+    public String formatCurrency(double money, String locale1, String locale2) {
+        Locale locale = new Locale(locale1, locale2);
+        NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
+        return currencyFormatter.format(money);
+    }
+
+    /**
+     * Translate money into specified country's currency format. US currency
+     * will be used.
+     *
+     * @param money
+     * @return formatted currecy
+     */
+    public String formatCurrency(double money) {
+        return formatCurrency(money, "en", "US");
     }
 }
