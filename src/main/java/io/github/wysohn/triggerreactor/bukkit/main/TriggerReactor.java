@@ -87,7 +87,7 @@ public class TriggerReactor extends JavaPlugin {
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
 
     public boolean saveAsynchronously(final Manager manager){
-        if(savings.contains(manager))
+        if(savings.contains(manager.getClass()))
             return false;
 
         new Thread(new Runnable(){
