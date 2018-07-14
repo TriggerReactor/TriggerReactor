@@ -84,6 +84,13 @@ import io.github.wysohn.triggerreactor.sponge.manager.PlaceholderManager;
 import io.github.wysohn.triggerreactor.sponge.manager.PlayerLocationManager;
 import io.github.wysohn.triggerreactor.sponge.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.sponge.manager.VariableManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.ClickTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.CustomTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.RepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 @Plugin(id = "triggerreactor")
@@ -116,9 +123,16 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             this.variableManager = new VariableManager(this);
             this.scriptEditManager = new ScriptEditManager(this);
             this.locationManager = new PlayerLocationManager(this);
-
+            //this.permissionManager = new PermissionManager(this);
             this.selectionManager = new AreaSelectionManager(this);
 
+            this.clickManager = new ClickTriggerManager(this);
+            this.walkManager = new WalkTriggerManager(this);
+            this.cmdManager = new CommandTriggerManager(this);
+            this.invManager = new InventoryTriggerManager(this);
+            this.areaManager = new AreaTriggerManager(this);
+            this.customManager = new CustomTriggerManager(this);
+            this.repeatManager = new RepeatingTriggerManager(this);
 
         } catch (ScriptException | IOException e) {
             e.printStackTrace();
@@ -146,7 +160,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     public void onEnable(GameStartedServerEvent e) {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
-
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){
             try{
@@ -157,11 +170,52 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                 ex.printStackTrace();
             }
         }
+
+        for(Manager manager : Manager.getManagers()) {
+            manager.reload();
+        }
+
+//        FileConfiguration config = plugin.getConfig();
+//        if(config.getBoolean("Mysql.Enable", false)) {
+//            try {
+//                plugin.getLogger().info("Initializing Mysql support...");
+//                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
+//                        config.getString("Mysql.DbName"),
+//                        "data",
+//                        config.getString("Mysql.UserName"),
+//                        config.getString("Mysql.Password"));
+//                plugin.getLogger().info(mysqlHelper.toString());
+//                plugin.getLogger().info("Done!");
+//            } catch (SQLException e) {
+//                e.printStackTrace();
+//                plugin.getLogger().warning("Failed to initialize Mysql. Check for the error above.");
+//            }
+//        } else {
+//            String path = "Mysql.Enable";
+//            if(!config.isSet(path))
+//                config.set(path, false);
+//            path = "Mysql.Address";
+//            if(!config.isSet(path))
+//                config.set(path, "127.0.0.1:3306");
+//            path = "Mysql.DbName";
+//            if(!config.isSet(path))
+//                config.set(path, "TriggerReactor");
+//            path = "Mysql.UserName";
+//            if(!config.isSet(path))
+//                config.set(path, "root");
+//            path = "Mysql.Password";
+//            if(!config.isSet(path))
+//                config.set(path, "1234");
+//
+//            plugin.saveConfig();
+//        }
     }
 
     @Listener
     public void onDisable(GameStoppingServerEvent e) {
-
+        getLogger().info("Finalizing the scheduled script executions...");
+        cachedThreadPool.shutdown();
+        getLogger().info("Shut down complete!");
     }
 
     public boolean onCommand(CommandSource sender, CommandContext command) {
@@ -180,7 +234,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onReload(GameReloadEvent event) {
-        // Do reload stuff
+        for(Manager manager : Manager.getManagers())
+            manager.reload();
+
+        getExecutorManager().reload();
     }
 
     @Override
