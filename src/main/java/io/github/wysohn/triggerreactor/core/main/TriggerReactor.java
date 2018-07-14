@@ -986,6 +986,7 @@ public abstract class TriggerReactor {
                         manager.reload();
 
                     getExecutorManager().reload();
+                    getPlaceholderManager().reload();
 
                     sender.sendMessage("Reload Complete!");
                     return true;
