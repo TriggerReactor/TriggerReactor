@@ -19,6 +19,9 @@ package io.github.wysohn.triggerreactor.sponge.main;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -31,20 +34,29 @@ import javax.script.ScriptException;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.args.GenericArguments;
+import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.CauseStackManager;
+import org.spongepowered.api.event.Event;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
+import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
 
@@ -93,8 +105,10 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.RepeatingTriggerMa
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
-@Plugin(id = "triggerreactor")
+@Plugin(id = TriggerReactor.ID, version = TriggerReactor.VERSION)
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor{
+    protected static final String ID = "triggerreactor";
+    protected static final String VERSION = "2.0.0";
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -238,6 +252,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             manager.reload();
 
         getExecutorManager().reload();
+        getPlaceholderManager().reload();
     }
 
     @Override
@@ -312,68 +327,117 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     protected boolean removeLore(IItemStack iS, int index) {
-        // TODO Auto-generated method stub
+        ItemStack IS = iS.get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).get();
+        if(lores != null) {
+            lores.remove(index);
+            IS.offer(Keys.ITEM_LORE, lores);
+            return true;
+        }
+
         return false;
     }
 
     @Override
     protected boolean setLore(IItemStack iS, int index, String lore) {
-        // TODO Auto-generated method stub
+        ItemStack IS = iS.get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).get();
+        if(lores != null) {
+            if(lores.size() > 0 && index >= 0 && index < lores.size()) {
+                lores.set(index, Text.of(lore));
+                IS.offer(Keys.ITEM_LORE, lores);
+                return true;
+            }
+        }
         return false;
     }
 
     @Override
     protected void addItemLore(IItemStack iS, String lore) {
-        // TODO Auto-generated method stub
-
+        ItemStack IS = iS.get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).get();
+        if(lores == null)
+            lores = new ArrayList<Text>();
+        lores.add(Text.of(lore));
+        IS.offer(Keys.ITEM_LORE, lores);
     }
 
     @Override
     protected void setItemTitle(IItemStack iS, String title) {
-        // TODO Auto-generated method stub
-
+        ItemStack IS = iS.get();
+        IS.offer(Keys.DISPLAY_NAME, Text.of(title));
     }
 
     @Override
     protected IPlayer getPlayer(String string) {
-        // TODO Auto-generated method stub
-        return null;
+        Player player = Sponge.getServer().getPlayer(string).get();
+        if(player == null)
+            return null;
+
+        return new SpongePlayer(player);
     }
 
     @Override
     protected Object createEmptyPlayerEvent(ICommandSender sender) {
-        // TODO Auto-generated method stub
-        return null;
+        Object unwrapped = sender.get();
+
+        if(unwrapped instanceof Player) {
+            return new Event(){
+
+                @Override
+                public Cause getCause() {
+                    Player src = (Player) unwrapped;
+                    EventContext context = EventContext.builder().add(EventContextKeys.PLAYER, src).build();
+                    return Cause.builder().append(unwrapped).build(context);
+                }
+            };
+        }else if(unwrapped instanceof ConsoleSource) {
+            return new Event(){
+
+                @Override
+                public Cause getCause() {
+                    try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+                        frame.pushCause(unwrapped);
+                        return frame.getCurrentCause();
+                    }
+                }
+            };
+        }else{
+            throw new RuntimeException("Cannot create empty PlayerEvent for "+sender);
+        }
     }
 
     @Override
     protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
-        // TODO Auto-generated method stub
-
+        sender.sendMessage(String.format("&b%s &8- &7%s", command, desc));
     }
 
     @Override
     protected void sendDetails(ICommandSender sender, String detail) {
-        // TODO Auto-generated method stub
-
+        sender.sendMessage(String.format("  &7%s", detail));
     }
 
     @Override
     protected String getPluginDescription() {
-        // TODO Auto-generated method stub
-        return null;
+        return ID + " v"+VERSION;
     }
 
     @Override
     protected void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
-        // TODO Auto-generated method stub
+        CommandSource source = sender.get();
+        if(source instanceof Player) {
+            Player player = (Player) source;
 
+            for(Entry<SimpleLocation, Trigger> entry : set) {
+                SimpleLocation sloc = entry.getKey();
+                player.sendBlockChange(sloc.getX(), sloc.getY(), sloc.getZ(), BlockTypes.GLOWSTONE.getDefaultState());
+            }
+        }
     }
 
     @Override
     public void registerEvents(Manager manager) {
-        // TODO Auto-generated method stub
-
+        Sponge.getEventManager().registerListeners(this, manager);
     }
 
     @Override
@@ -383,74 +447,90 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public Logger getLogger() {
-        // TODO Auto-generated method stub
-        return null;
+        return getLogger();
     }
 
     @Override
     public boolean isEnabled() {
-        // TODO Auto-generated method stub
-        return false;
+        return true; //Sponge doesn't disable plugins at runtime
     }
 
     @Override
     public void disablePlugin() {
-        // TODO Auto-generated method stub
-
+      //Sponge doesn't disable plugins at runtime
     }
 
     @Override
     public <T> T getMain() {
-        // TODO Auto-generated method stub
-        return null;
+        return (T) this;
     }
 
     @Override
     public boolean isConfigSet(String key) {
-        // TODO Auto-generated method stub
+        // TODO later
         return false;
     }
 
     @Override
     public void setConfig(String key, Object value) {
-        // TODO Auto-generated method stub
-
+        // TODO later
     }
 
     @Override
     public Object getConfig(String key) {
-        // TODO Auto-generated method stub
+        // TODO later
         return null;
     }
 
     @Override
     public <T> T getConfig(String key, T def) {
-        // TODO Auto-generated method stub
+        // TODO later
         return null;
     }
 
     @Override
     public void saveConfig() {
-        // TODO Auto-generated method stub
-
+        // TODO later
     }
 
     @Override
     public void reloadConfig() {
-        // TODO Auto-generated method stub
-
+        // TODO later
     }
 
     @Override
     public void runTask(Runnable runnable) {
-        // TODO Auto-generated method stub
-
+        Sponge.getScheduler().createTaskBuilder().execute(runnable);
     }
+
+    private final Set<Class<? extends Manager>> savings = new HashSet<>();
 
     @Override
     public void saveAsynchronously(Manager manager) {
-        // TODO Auto-generated method stub
+        if(savings.contains(manager))
+            return;
 
+        new Thread(new Runnable(){
+            @Override
+            public void run() {
+                try{
+                    synchronized(savings){
+                        savings.add(manager.getClass());
+                    }
+
+                    getLogger().info("Saving "+manager.getClass().getSimpleName());
+                    manager.saveAll();
+                    getLogger().info("Saving Done!");
+                }catch(Exception e){
+                    e.printStackTrace();
+                    getLogger().warning("Failed to save "+manager.getClass().getSimpleName());
+                }finally{
+                    synchronized(savings){
+                        savings.remove(manager.getClass());
+                    }
+                }
+            }
+        }){{this.setPriority(MIN_PRIORITY);}}.start();
     }
 
     @Override
