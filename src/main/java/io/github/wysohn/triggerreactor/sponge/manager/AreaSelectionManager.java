@@ -42,7 +42,7 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager{
 
     @Listener
     public void onInteract(InteractBlockEvent.Primary e){
-        Player player = e.getCause().first(Player.class).get();
+        Player player = e.getCause().first(Player.class).orElse(null);
         if(player == null)
             return;
 
@@ -53,7 +53,7 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager{
 
         e.setCancelled(true);
 
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetBlock().getLocation().get());
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetBlock().getLocation().orElse(null));
 
         ClickResult result = null;
         if(e instanceof InteractBlockEvent.Primary.MainHand){

@@ -174,11 +174,11 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         // just always cancel if it's GUI
         e.setCancelled(true);
 
-        Player player = e.getCause().first(Player.class).get();
+        Player player = e.getCause().first(Player.class).orElse(null);
         if(player == null)
             return;
 
-        SlotPos slot = e.getTransactions().get(0).getSlot().getProperty(SlotPos.class, null).get();
+        SlotPos slot = e.getTransactions().get(0).getSlot().getProperty(SlotPos.class, null).orElse(null);
         int rawSlot = slot.getY() * 9 + slot.getX();
 
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory));
@@ -208,7 +208,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         for(int i = 0; i < size; i++){
             IItemStack item = trigger.getItems()[i];
             if(item != null){
-                Slot slot = gridInv.getSlot(SlotIndex.of(i)).get();
+                Slot slot = gridInv.getSlot(SlotIndex.of(i)).orElse(null);
                 slot.set(getColoredItem(item.get()));
             }
         }
@@ -222,11 +222,11 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
    private ItemStack getColoredItem(ItemStack item) {
        item = item.copy();
 
-       Text displayName = item.get(Keys.DISPLAY_NAME).get();
+       Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
        if(displayName != null)
            item.offer(Keys.DISPLAY_NAME, Text.of(TextSerializers.FORMATTING_CODE.replaceCodes(displayName.toPlain(), '&')));
 
-       List<Text> lores = item.get(Keys.ITEM_LORE).get();
+       List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
        if(lores != null){
            for(int i = 0; i < lores.size(); i++) {
                lores.set(i, Text.of(TextSerializers.FORMATTING_CODE.replaceCodes(lores.get(i).toPlain(), '&')));

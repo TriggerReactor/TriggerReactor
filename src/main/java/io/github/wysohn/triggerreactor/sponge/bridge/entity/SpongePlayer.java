@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.sponge.bridge.entity;
 
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.world.World;
 
@@ -74,7 +75,7 @@ public class SpongePlayer extends SpongeEntity implements IPlayer {
 
     @Override
     public IItemStack getItemInMainHand() {
-        return new SpongeItemStack(player.getItemInHand(HandTypes.MAIN_HAND).get());
+        return new SpongeItemStack(player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty()));
     }
 
     @Override

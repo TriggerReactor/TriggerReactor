@@ -53,8 +53,8 @@ sourceSets {
 		}
 		resources {
 			srcDirs = ['src/main/resources']
-			include '**/*.js'
-			include '**/*.yml'
+			include 'assets/triggerreactor/**/*.js'
+			include 'assets/triggerreactor/**/*.yml'
 		}
 	}
 	

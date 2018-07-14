@@ -36,7 +36,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
     @Listener(order = Order.EARLY)
     public void onCommand(SendCommandEvent e){
-        Player player = e.getCause().first(Player.class).get();
+        Player player = e.getCause().first(Player.class).orElse(null);
 
         String cmd = e.getCommand();
         String[] args = e.getArguments().split(" ");

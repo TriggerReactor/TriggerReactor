@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -36,14 +37,11 @@ import javax.script.ScriptException;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.block.BlockTypes;
+import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.args.CommandContext;
-import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.source.ConsoleSource;
-import org.spongepowered.api.command.spec.CommandExecutor;
-import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
@@ -56,7 +54,7 @@ import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
-import org.spongepowered.api.event.game.state.GameConstructionEvent;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
@@ -67,6 +65,8 @@ import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import org.spongepowered.api.world.Location;
+import org.spongepowered.api.world.World;
 
 import com.google.inject.Inject;
 
@@ -145,7 +145,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractNamedTriggerManager namedTriggerManager;
 
     @Listener
-    public void onConstruct(GameConstructionEvent e) {
+    public void onConstruct(GameInitializationEvent e) {
         syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
 
         try {
@@ -174,19 +174,69 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onInitialize(GameAboutToStartServerEvent e) {
-        CommandSpec cs = CommandSpec.builder()
+/*        CommandSpec cs = CommandSpec.builder()
                 .permission("triggerreactor.admin")
                 .arguments(GenericArguments.remainingJoinedStrings(Text.of("arguments")))
                 .executor(new CommandExecutor() {
 
                     @Override
                     public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+                        if (src instanceof Player) {
+                            onCommand(new SpongePlayer((Player) src), "triggerreactor",
+                                    args.<String>getOne("arguments").get().split(" "));
+                        } else {
+                            onCommand(new SpongeCommandSender(src), "triggerreactor",
+                                    args.<String>getOne("arguments").get().split(" "));
+                        }
 
-                        return null;
+                        return CommandResult.success();
                     }
 
                 }).build();
-        Sponge.getCommandManager().register(this, cs, "trg", "trigger");
+        Sponge.getCommandManager().register(this, cs, "trg", "trigger");*/
+
+        Sponge.getCommandManager().register(this, new CommandCallable() {
+
+            @Override
+            public CommandResult process(CommandSource src, String args) throws CommandException {
+                if (src instanceof Player) {
+                    onCommand(new SpongePlayer((Player) src), "triggerreactor",
+                            args.split(" "));
+                } else {
+                    onCommand(new SpongeCommandSender(src), "triggerreactor",
+                            args.split(" "));
+                }
+
+                return CommandResult.success();
+            }
+
+            @Override
+            public List<String> getSuggestions(CommandSource source, String arguments, Location<World> targetPosition)
+                    throws CommandException {
+                return new ArrayList<>();
+            }
+
+            @Override
+            public boolean testPermission(CommandSource source) {
+                return source.hasPermission("triggerreactor.admin");
+            }
+
+            @Override
+            public Optional<Text> getShortDescription(CommandSource source) {
+                return Optional.of(Text.of("TriggerReactor"));
+            }
+
+            @Override
+            public Optional<Text> getHelp(CommandSource source) {
+                return Optional.of(Text.of("/trg for details"));
+            }
+
+            @Override
+            public Text getUsage(CommandSource source) {
+                return Text.of("/trg for details");
+            }
+
+        }, "trg", "trigger");
     }
 
     @Listener
@@ -196,7 +246,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){
             try{
-                Asset asset = Sponge.getAssetManager().getAsset(this, "config.yml").get();
+                Asset asset = Sponge.getAssetManager().getAsset(this, "config.yml").orElseThrow(()->new IOException("Can't load config.yml"));
                 String configStr = asset.readString();
                 FileUtil.writeToFile(file, configStr);
             }catch(IOException ex){
@@ -249,20 +299,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
         getLogger().info("Shut down complete!");
-    }
-
-    public boolean onCommand(CommandSource sender, CommandContext command) {
-        if(sender instanceof Player){
-            return this.onCommand(
-                    new SpongePlayer((Player) sender),
-                    "triggerreactor",
-                    command.<String>getOne("arguments").get().split(" "));
-        }else{
-            return this.onCommand(
-                    new SpongeCommandSender(sender),
-                    "triggerreactor",
-                    command.<String>getOne("arguments").get().split(" "));
-        }
     }
 
     @Listener
@@ -352,7 +388,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     protected boolean removeLore(IItemStack iS, int index) {
         ItemStack IS = iS.get();
-        List<Text> lores = IS.get(Keys.ITEM_LORE).get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
         if(lores != null) {
             lores.remove(index);
             IS.offer(Keys.ITEM_LORE, lores);
@@ -365,7 +401,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     protected boolean setLore(IItemStack iS, int index, String lore) {
         ItemStack IS = iS.get();
-        List<Text> lores = IS.get(Keys.ITEM_LORE).get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
         if(lores != null) {
             if(lores.size() > 0 && index >= 0 && index < lores.size()) {
                 lores.set(index, Text.of(lore));
@@ -379,7 +415,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     protected void addItemLore(IItemStack iS, String lore) {
         ItemStack IS = iS.get();
-        List<Text> lores = IS.get(Keys.ITEM_LORE).get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
         if(lores == null)
             lores = new ArrayList<Text>();
         lores.add(Text.of(lore));
@@ -394,7 +430,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     protected IPlayer getPlayer(String string) {
-        Player player = Sponge.getServer().getPlayer(string).get();
+        Player player = Sponge.getServer().getPlayer(string).orElse(null);
         if(player == null)
             return null;
 
@@ -561,7 +597,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     public void handleException(Object context, Throwable e) {
         e.printStackTrace();
         if(context instanceof Event){
-            Player player = ((Event) context).getCause().first(Player.class).get();
+            Player player = ((Event) context).getCause().first(Player.class).orElse(null);
             runTask(new Runnable(){
                 @Override
                 public void run() {
@@ -740,7 +776,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public UUID extractUUIDFromContext(Object e) {
         if(e instanceof Event) {
-            Player player = ((Event) e).getCause().first(Player.class).get();
+            Player player = ((Event) e).getCause().first(Player.class).orElse(null);
             if(player != null)
                 return player.getUniqueId();
         }

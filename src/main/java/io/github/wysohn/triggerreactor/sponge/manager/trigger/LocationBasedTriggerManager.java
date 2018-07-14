@@ -70,14 +70,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     @Listener(order = Order.LATE)
     @Exclude({InteractBlockEvent.Primary.OffHand.class, InteractBlockEvent.Secondary.OffHand.class})
     public void onClick(InteractBlockEvent e){
-        Player player = e.getCause().first(Player.class).get();
+        Player player = e.getCause().first(Player.class).orElse(null);
 
-        ItemStack IS = player.getItemInHand(HandTypes.MAIN_HAND).get();
+        ItemStack IS = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
         BlockSnapshot clicked = e.getTargetBlock();
         if(clicked == null)
             return;
 
-        Location<World> loc = clicked.getLocation().get();
+        Location<World> loc = clicked.getLocation().orElse(null);
         T trigger = getTriggerForLocation(loc);
 
         if(IS != null
@@ -139,7 +139,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     private void handleLocationSetting(BlockSnapshot clicked, Player p){
         IPlayer player = new SpongePlayer(p);
 
-        Location<World> loc = clicked.getLocation().get();
+        Location<World> loc = clicked.getLocation().orElse(null);
         T trigger = getTriggerForLocation(loc);
         if(trigger != null){
             p.sendMessage(Text.builder("Another trigger is set at there!").color(TextColors.RED).build());
@@ -199,7 +199,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         for (Transaction<BlockSnapshot> transaction : e.getTransactions()) {
             BlockSnapshot snapshot = transaction.getOriginal();
-            Location<World> loc = snapshot.getLocation().get();
+            Location<World> loc = snapshot.getLocation().orElse(null);
 
             BlockState state = snapshot.getState();
             BlockState above = loc.getExtent().getBlock(0, 1, 0);
@@ -240,11 +240,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         for (Transaction<BlockSnapshot> transaction : e.getTransactions()) {
             BlockSnapshot block = transaction.getOriginal();
 
-            T trigger = getTriggerForLocation(block.getLocation().get());
+            T trigger = getTriggerForLocation(block.getLocation().orElse(null));
             if(trigger == null)
                 return;
 
-            Player player = e.getCause().first(Player.class).get();
+            Player player = e.getCause().first(Player.class).orElse(null);
 
             player.sendMessage(Text.builder("Cannot break trigger block.").color(TextColors.GRAY).build());
             player.sendMessage(Text.builder("To remove trigger, hold inspection tool ").color(TextColors.GRAY).build());
@@ -254,7 +254,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     @Listener
     public void onItemSwap(ChangeInventoryEvent.Held e){
-        onItemSwap(new SpongePlayer(e.getCause().first(Player.class).get()));
+        onItemSwap(new SpongePlayer(e.getCause().first(Player.class).orElse(null)));
     }
 
     protected T getTriggerForLocation(Location<World> loc) {
@@ -273,12 +273,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     protected void showTriggerInfo(ICommandSender sender, BlockSnapshot clicked) {
-        Trigger trigger = getTriggerForLocation(LocationUtil.convertToSimpleLocation(clicked.getLocation().get()));
+        Trigger trigger = getTriggerForLocation(LocationUtil.convertToSimpleLocation(clicked.getLocation().orElse(null)));
         if(trigger == null){
             return;
         }
 
-        Location<World> loc = clicked.getLocation().get();
+        Location<World> loc = clicked.getLocation().orElse(null);
         sender.sendMessage("- - - - - - - - - - - - - -");
         sender.sendMessage("Trigger: "+getTriggerTypeName());
         sender.sendMessage("Block Type: " + clicked.getState().getType().getName());

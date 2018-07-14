@@ -60,10 +60,10 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
     }
 
     private void handleClick(InteractBlockEvent e){
-        Player player = e.getCause().first(Player.class).get();
+        Player player = e.getCause().first(Player.class).orElse(null);
         BlockSnapshot clicked = e.getTargetBlock();
 
-        Location<World> loc = clicked.getLocation().get();
+        Location<World> loc = clicked.getLocation().orElse(null);
         ClickTrigger trigger = getTriggerForLocation(loc);
         if(trigger == null)
             return;
