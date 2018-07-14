@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.CauseStackManager;
 import org.spongepowered.api.event.Event;
 import org.spongepowered.api.event.Listener;
@@ -56,9 +58,14 @@ import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
+import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
+import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
+import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.format.TextColors;
 
 import com.google.inject.Inject;
 
@@ -85,10 +92,11 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
+import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.manager.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.sponge.manager.ExecutorManager;
@@ -101,6 +109,7 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.ClickTriggerManage
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -109,6 +118,8 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor{
     protected static final String ID = "triggerreactor";
     protected static final String VERSION = "2.0.0";
+
+    private static SpongeExecutorService syncExecutor = null;
 
     @Inject
     @ConfigDir(sharedRoot = false)
@@ -130,7 +141,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
 
+    private AbstractNamedTriggerManager namedTriggerManager;
+
     public TriggerReactor() {
+        syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
+
         try {
             this.executorManager = new ExecutorManager(this);
             this.placeholderManager = new PlaceholderManager(this);
@@ -147,6 +162,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             this.areaManager = new AreaTriggerManager(this);
             this.customManager = new CustomTriggerManager(this);
             this.repeatManager = new RepeatingTriggerManager(this);
+
+            this.namedTriggerManager = new NamedTriggerManager(this);
 
         } catch (ScriptException | IOException e) {
             e.printStackTrace();
@@ -323,6 +340,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractRepeatingTriggerManager getRepeatManager() {
         return repeatManager;
+    }
+
+    @Override
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
     }
 
     @Override
@@ -507,7 +529,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public void saveAsynchronously(Manager manager) {
-        if(savings.contains(manager))
+        if(savings.contains(manager.getClass()))
             return;
 
         new Thread(new Runnable(){
@@ -534,46 +556,206 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public void handleException(Object e, Throwable ex) {
-        // TODO Auto-generated method stub
+    public void handleException(Object context, Throwable e) {
+        e.printStackTrace();
+        if(context instanceof Event){
+            Player player = ((Event) context).getCause().first(Player.class).get();
+            runTask(new Runnable(){
+                @Override
+                public void run() {
+                    Throwable ex = e;
+                    if(player != null)
+                        player.sendMessage(Text.builder("Could not execute this trigger.").color(TextColors.RED).build());
+                    while(ex != null){
+                        if(player != null) {
+                            player.sendMessage(Text.builder(" >> Caused by:").color(TextColors.RED).build());
+                            player.sendMessage(Text.builder(ex.getMessage()).color(TextColors.RED).build());
+                        }
 
+                        ex = ex.getCause();
+                    }
+                    if(player != null)
+                        player.sendMessage(Text.builder("If you are administrator, see console for details.").color(TextColors.RED).build());
+                }
+            });
+        }
     }
 
     @Override
-    public void handleException(ICommandSender sender, Throwable ex) {
-        // TODO Auto-generated method stub
-
+    public void handleException(ICommandSender sender, Throwable e) {
+        e.printStackTrace();
+        runTask(new Runnable(){
+            @Override
+            public void run() {
+                Throwable ex = e;
+                sender.sendMessage("&cCould not execute this trigger.");
+                while(ex != null){
+                    sender.sendMessage("&c >> Caused by:");
+                    sender.sendMessage("&c"+ex.getMessage());
+                    ex = ex.getCause();
+                }
+                sender.sendMessage("&cIf you are administrator, see console for details.");
+            }
+        });
     }
 
     @Override
     public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        // TODO Auto-generated method stub
-        return null;
+        return new ProcessInterrupter(){
+            @Override
+            public boolean onNodeProcess(Node node) {
+                if(interpreter.isCooldown() && e instanceof Event){
+                    ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+                        UUID uuid = player.getUniqueId();
+                        cooldowns.put(uuid, interpreter.getCooldownEnd());
+                    });
+                }
+                return false;
+            }
+
+            @Override
+            public boolean onCommand(Object context, String command, Object[] args) {
+                if("CALL".equals(command)){
+                    if(args.length < 1)
+                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
+
+                    if(args[0] instanceof String){
+                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        if(trigger == null)
+                            throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
+
+                        if(args.length > 1 && args[1] instanceof Boolean){
+                            trigger.setSync((boolean) args[1]);
+                        } else {
+                            trigger.setSync(true);
+                        }
+
+                        if(trigger.isSync()){
+                            trigger.activate(e, interpreter.getVars());
+                        }else{//use snapshot to avoid concurrent modification
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                        }
+
+                        return true;
+                    } else {
+                        throw new RuntimeException("Parameter type not match; it should be a String."
+                                + " Make sure to put double quotes, if you provided String literal.");
+                    }
+                } else if("CANCELEVENT".equals(command)) {
+                    if(!interpreter.isSync())
+                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+
+                    if(context instanceof Cancellable){
+                        ((Cancellable) context).setCancelled(true);
+                        return true;
+                    } else {
+                        throw new RuntimeException(context+" is not a Cancellable event!");
+                    }
+                }
+
+                return false;
+            }
+
+        };
     }
 
     @Override
     public ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
             Map<IInventory, InventoryTrigger> inventoryMap) {
-        // TODO Auto-generated method stub
-        return null;
+        return new ProcessInterrupter() {
+            @Override
+            public boolean onNodeProcess(Node node) {
+                if (interpreter.isCooldown()) {
+                    if(e instanceof ClickInventoryEvent){
+                        ((ClickInventoryEvent) e).getCause().first(Player.class).ifPresent((player) -> {
+                            UUID uuid = player.getUniqueId();
+                            cooldowns.put(uuid, interpreter.getCooldownEnd());
+                        });
+                    }
+                    return false;
+                }
+
+                //safety feature to stop all trigger immediately if executing on 'open' or 'click'
+                //  is still running after the inventory is closed.
+                if(e instanceof InteractInventoryEvent.Open
+                        || e instanceof InteractInventoryEvent.Close){
+                    Inventory inv = ((InteractInventoryEvent) e).getTargetInventory();
+
+                    //it's not GUI so stop execution
+                    if(!inventoryMap.containsKey(new SpongeInventory(inv)))
+                        return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean onCommand(Object context, String command, Object[] args) {
+                if("CALL".equals(command)){
+                    if(args.length < 1)
+                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
+
+                    if(args[0] instanceof String){
+                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        if(trigger == null)
+                            throw new RuntimeException("No trigger found for Named Trigger "+args[0]);
+
+                        if(args.length > 1 && args[1] instanceof Boolean){
+                            trigger.setSync((boolean) args[1]);
+                        } else {
+                            trigger.setSync(true);
+                        }
+
+                        if(trigger.isSync()){
+                            trigger.activate(e, interpreter.getVars());
+                        }else{//use snapshot to avoid concurrent modification
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                        }
+
+                        return true;
+                    } else {
+                        throw new RuntimeException("Parameter type not match; it should be a String."
+                                + " Make sure to put double quotes, if you provided String literal.");
+                    }
+                } else if("CANCELEVENT".equals(command)) {
+                    if(!interpreter.isSync())
+                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+
+                    if(context instanceof Cancellable){
+                        ((Cancellable) context).setCancelled(true);
+                        return true;
+                    } else {
+                        throw new RuntimeException(context+" is not a Cancellable event!");
+                    }
+                }
+
+                return false;
+            }
+
+        };
     }
 
     @Override
     public UUID extractUUIDFromContext(Object e) {
-        // TODO Auto-generated method stub
+        if(e instanceof Event) {
+            Player player = ((Event) e).getCause().first(Player.class).get();
+            if(player != null)
+                return player.getUniqueId();
+        }
+
         return null;
     }
 
     @Override
     public <T> Future<T> callSyncMethod(Callable<T> call) {
-        // TODO Auto-generated method stub
-        return null;
+        return syncExecutor.submit(call);
     }
 
     @Override
     public void callEvent(IEvent event) {
-        // TODO Auto-generated method stub
+        Event e = event.get();
 
+        Sponge.getEventManager().post(e);
     }
 
     @Override
@@ -585,17 +767,5 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         }
 
         return result;
-    }
-
-    @Override
-    public Map<String, AbstractAPISupport> getSharedVars() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

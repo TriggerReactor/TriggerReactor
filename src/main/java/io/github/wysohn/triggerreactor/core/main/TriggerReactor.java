@@ -91,11 +91,15 @@ public abstract class TriggerReactor {
         return instance;
     }
 
+    protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
+
     protected TriggerReactor(){
         instance = this;
     }
 
-    public abstract Map<String, AbstractAPISupport> getSharedVars();
+    public Map<String, AbstractAPISupport> getSharedVars(){
+        return sharedVars;
+    }
 
     public abstract AbstractExecutorManager getExecutorManager();
 

@@ -132,8 +132,6 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 
 public class JavaPluginBridge extends TriggerReactor implements Plugin{
-    private Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
-
     private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
 
     private BungeeCordHelper bungeeHelper;
@@ -1067,10 +1065,5 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     @Override
     public String getName() {
         return bukkitPlugin.getName();
-    }
-
-    @Override
-    public Map<String, AbstractAPISupport> getSharedVars() {
-        return sharedVars;
     }
 }
