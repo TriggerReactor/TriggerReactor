@@ -56,6 +56,7 @@ import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
+import org.spongepowered.api.event.game.state.GameConstructionEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
@@ -143,7 +144,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     private AbstractNamedTriggerManager namedTriggerManager;
 
-    public TriggerReactor() {
+    @Listener
+    public void onConstruct(GameConstructionEvent e) {
         syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
 
         try {
@@ -165,8 +167,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
             this.namedTriggerManager = new NamedTriggerManager(this);
 
-        } catch (ScriptException | IOException e) {
-            e.printStackTrace();
+        } catch (ScriptException | IOException ex) {
+            ex.printStackTrace();
         }
     }
 
