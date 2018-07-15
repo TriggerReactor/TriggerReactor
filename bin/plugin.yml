@@ -1,0 +1,13 @@
+name: TriggerReactor
+main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
+version: 1.4.5
+author: wysohn
+authors: [soliddanii, MidnightSugar, TheBestNightSky, dltks0306, RubrumExPlaneta]
+softdepend: [Vault, PlaceholderAPI, mcMMO, TheGuild, Factions, CoreProtect, ProtocolLib, WorldGuard]
+commands:
+  triggerreactor:
+    aliases: [trigger, trg]
+    description: trigger reactor
+permissions:
+  triggerreactor.admin:
+    description: Grants access to commands

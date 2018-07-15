@@ -1,0 +1,8 @@
+PermissionManager:
+  Intercept: false #set this to 'true' in order to use PlayerPermissionCheckEvent. 
+Mysql:
+  Enable: false
+  Address: '127.0.0.1:3306' #ip:port
+  DbName: 'TriggerReactor' #Name of database. You should create it yourself
+  UserName: 'root' #Mysql user
+  Password: '1234' #Password for the user
