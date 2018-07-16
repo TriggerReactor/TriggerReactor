@@ -52,6 +52,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
+import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -59,6 +60,7 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.Plugin;
@@ -93,6 +95,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBase
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -113,6 +116,7 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.InventoryTriggerMa
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -126,6 +130,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;
+
+    @Inject
+    private Logger logger;
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
@@ -146,31 +153,60 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractNamedTriggerManager namedTriggerManager;
 
     @Listener
-    public void onConstruct(GameInitializationEvent e) {
+    public void onConstruct(GameInitializationEvent event) {
         syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
 
-        try {
-            this.executorManager = new ExecutorManager(this);
-            this.placeholderManager = new PlaceholderManager(this);
-            this.variableManager = new VariableManager(this);
-            this.scriptEditManager = new ScriptEditManager(this);
-            this.locationManager = new PlayerLocationManager(this);
-            //this.permissionManager = new PermissionManager(this);
-            this.selectionManager = new AreaSelectionManager(this);
-
-            this.clickManager = new ClickTriggerManager(this);
-            this.walkManager = new WalkTriggerManager(this);
-            this.cmdManager = new CommandTriggerManager(this);
-            this.invManager = new InventoryTriggerManager(this);
-            this.areaManager = new AreaTriggerManager(this);
-            this.customManager = new CustomTriggerManager(this);
-            this.repeatManager = new RepeatingTriggerManager(this);
-
-            this.namedTriggerManager = new NamedTriggerManager(this);
-
-        } catch (ScriptException | IOException ex) {
-            ex.printStackTrace();
+        for(Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()){
+            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
         }
+
+        try {
+            executorManager = new ExecutorManager(this);
+        } catch (ScriptException | IOException e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
+            placeholderManager = new PlaceholderManager(this);
+        } catch (ScriptException | IOException e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
+            variableManager = new VariableManager(this);
+        } catch (IOException e) {
+            initFailed(e);
+            return;
+        }
+
+        this.scriptEditManager = new ScriptEditManager(this);
+        this.locationManager = new PlayerLocationManager(this);
+        //this.permissionManager = new PermissionManager(this);
+        this.selectionManager = new AreaSelectionManager(this);
+
+        this.clickManager = new ClickTriggerManager(this);
+        this.walkManager = new WalkTriggerManager(this);
+        this.cmdManager = new CommandTriggerManager(this);
+        this.invManager = new InventoryTriggerManager(this);
+        this.areaManager = new AreaTriggerManager(this);
+        this.customManager = new CustomTriggerManager(this);
+        this.repeatManager = new RepeatingTriggerManager(this);
+
+        this.namedTriggerManager = new NamedTriggerManager(this);
+    }
+
+    private void initFailed(Exception e) {
+        e.printStackTrace();
+        getLogger().severe("Initialization failed!");
+        getLogger().severe(e.getMessage());
+        disablePlugin();
+    }
+
+    @Listener
+    public void test(ClientConnectionEvent.Join e, @First Player player) {
+        getLogger().info(String.valueOf(player));
     }
 
     @Listener
@@ -512,7 +548,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public Logger getLogger() {
-        return getLogger();
+        return logger;
     }
 
     @Override
