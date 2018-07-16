@@ -84,7 +84,7 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
                 instance.extractCustomVariables(variables, e);
                 ///////////////////////////////
 
-                Object player = vars.get("player");
+                Object player = variables.get("player");
                 if(player == null || !(player instanceof Player))
                     return null;
 
