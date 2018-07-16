@@ -87,6 +87,7 @@ import org.spongepowered.api.text.translation.Translation;
 import org.spongepowered.api.util.AABB;
 import org.spongepowered.api.util.RelativePositions;
 import org.spongepowered.api.util.Tristate;
+import org.spongepowered.api.world.DimensionTypes;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.WorldBorder;
@@ -134,6 +135,11 @@ public class DelegatedPlayer implements Player{
 
     @Override
     public World getWorld() {
+        for(World world : Sponge.getServer().getWorlds()) {
+            if(world.getDimension().getType() == DimensionTypes.OVERWORLD)
+                return world;
+        }
+
         return null;
     }
 
