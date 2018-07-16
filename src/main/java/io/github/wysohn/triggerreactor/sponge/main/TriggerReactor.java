@@ -113,6 +113,7 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.InventoryTriggerMa
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 @Plugin(id = TriggerReactor.ID, version = TriggerReactor.VERSION)
@@ -457,7 +458,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                 @Override
                 public Cause getCause() {
                     try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-                        frame.pushCause(unwrapped);
+                        frame.pushCause(new DelegatedPlayer((CommandSource) unwrapped));
                         return frame.getCurrentCause();
                     }
                 }

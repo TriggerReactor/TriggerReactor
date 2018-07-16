@@ -21,8 +21,7 @@ import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class ExecutorManager extends AbstractExecutorManager implements SpongeScriptEngineInitializer {
-    private static final String JAR_FOLDER_LOCATION = "assets"+JarUtil.JAR_SEPARATOR+
-            "triggerreactor"+JarUtil.JAR_SEPARATOR+"Executor"+JarUtil.JAR_SEPARATOR+"Sponge";
+    private static final String JAR_FOLDER_LOCATION = "Executor"+JarUtil.JAR_SEPARATOR+"Sponge";
 
     private File executorFolder;
 

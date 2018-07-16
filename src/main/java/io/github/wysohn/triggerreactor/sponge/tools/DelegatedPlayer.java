@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.advancement.Advancement;
 import org.spongepowered.api.advancement.AdvancementProgress;
 import org.spongepowered.api.advancement.AdvancementTree;
@@ -24,6 +25,7 @@ import org.spongepowered.api.data.DataTransactionResult;
 import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.Property;
 import org.spongepowered.api.data.key.Key;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.data.manipulator.DataManipulator;
 import org.spongepowered.api.data.manipulator.mutable.DisplayNameData;
 import org.spongepowered.api.data.manipulator.mutable.entity.DamageableData;
@@ -49,6 +51,7 @@ import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityArchetype;
 import org.spongepowered.api.entity.EntitySnapshot;
 import org.spongepowered.api.entity.EntityType;
+import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.Transform;
 import org.spongepowered.api.entity.living.player.CooldownTracker;
 import org.spongepowered.api.entity.living.player.Player;
@@ -92,1067 +95,1039 @@ import com.flowpowered.math.vector.Vector3d;
 import com.flowpowered.math.vector.Vector3i;
 
 public class DelegatedPlayer implements Player{
-    private final Player player;
+    private final CommandSource src;
 
-    public DelegatedPlayer(Player player) {
+    public DelegatedPlayer(CommandSource player) {
         super();
-        this.player = player;
+        this.src = player;
     }
 
     @Override
     public Location<World> getLocation() {
-        return player.getLocation();
+        return null;
     }
 
     @Override
     public Translation getTranslation() {
-        return player.getTranslation();
+        return null;
     }
 
     @Override
     public UUID getUniqueId() {
-        return player.getUniqueId();
+        return UUID.fromString("11111111-2222-4333-4444-555555555555");
     }
 
     @Override
     public <T extends Property<?, ?>> Optional<T> getProperty(Class<T> propertyClass) {
-        return player.getProperty(propertyClass);
+        return null;
     }
 
     @Override
     public String getName() {
-        return player.getName();
+        return src.getName();
     }
 
     @Override
     public CarriedInventory<? extends Carrier> getInventory() {
-        return player.getInventory();
+        return null;
     }
 
     @Override
     public World getWorld() {
-        return player.getWorld();
+        return null;
     }
 
     @Override
     public String getIdentifier() {
-        return player.getIdentifier();
+        return src.getIdentifier();
     }
 
     @Override
     public <T extends Projectile> Optional<T> launchProjectile(Class<T> projectileClass) {
-        return player.launchProjectile(projectileClass);
+        return null;
     }
 
     @Override
     public void sendMessage(Text message) {
-        player.sendMessage(message);
+        src.sendMessage(message);
     }
 
     @Override
     public int getContentVersion() {
-        return player.getContentVersion();
+        return -1;
     }
 
     @Override
     public boolean canEquip(EquipmentType type) {
-        return player.canEquip(type);
+        return false;
     }
 
     @Override
     public void sendMessage(ChatType type, Text message) {
-        player.sendMessage(type, message);
+        src.sendMessage(message);
     }
 
     @Override
     public boolean validateRawData(DataView container) {
-        return player.validateRawData(container);
+        return false;
     }
 
     @Override
     public FoodData getFoodData() {
-        return player.getFoodData();
+        return null;
     }
 
     @Override
     public void sendMessage(TextTemplate template) {
-        player.sendMessage(template);
+        src.sendMessage(template);
     }
 
     @Override
     public Locale getLocale() {
-        return player.getLocale();
+        return src.getLocale();
     }
 
     @Override
     public GameProfile getProfile() {
-        return player.getProfile();
+        return null;
     }
 
     @Override
     public <T extends Projectile> Optional<T> launchProjectile(Class<T> projectileClass, Vector3d velocity) {
-        return player.launchProjectile(projectileClass, velocity);
+        return null;
     }
 
     @Override
     public Optional<String> getFriendlyIdentifier() {
-        return player.getFriendlyIdentifier();
+        return src.getFriendlyIdentifier();
     }
 
     @Override
     public Text getTeamRepresentation() {
-        return player.getTeamRepresentation();
+        return null;
     }
 
     @Override
     public Optional<ItemStack> getHelmet() {
-        return player.getHelmet();
+        return null;
     }
 
     @Override
     public boolean canEquip(EquipmentType type, ItemStack equipment) {
-        return player.canEquip(type, equipment);
+        return false;
     }
 
     @Override
     public void sendMessage(ChatType type, TextTemplate template) {
-        player.sendMessage(type, template);
+        src.sendMessage(template);
     }
 
     @Override
     public void spawnParticles(ParticleEffect particleEffect, Vector3d position) {
-        player.spawnParticles(particleEffect, position);
+        return;
     }
 
     @Override
     public MutableBoundedValue<Integer> foodLevel() {
-        return player.foodLevel();
+        return Sponge.getRegistry().getValueFactory().createBoundedValueBuilder(Keys.FOOD_LEVEL).actualValue(-1).build();
     }
 
     @Override
     public Collection<Property<?, ?>> getApplicableProperties() {
-        return player.getApplicableProperties();
+        return null;
     }
 
     @Override
     public boolean isOnline() {
-        return player.isOnline();
+        return true;
     }
 
     @Override
     public <T extends DataManipulator<?, ?>> Optional<T> get(Class<T> containerClass) {
-        return player.get(containerClass);
+        return null;
     }
 
     @Override
     public DataContainer toContainer() {
-        return player.toContainer();
+        return null;
     }
 
     @Override
     public void sendMessage(TextTemplate template, Map<String, TextElement> parameters) {
-        player.sendMessage(template, parameters);
+        src.sendMessage(template, parameters);
     }
 
     @Override
     public void setRawData(DataView container) throws InvalidDataException {
-        player.setRawData(container);
+
     }
 
     @Override
     public void setHelmet(ItemStack helmet) {
-        player.setHelmet(helmet);
+
     }
 
     @Override
     public HealthData getHealthData() {
-        return player.getHealthData();
+        return null;
     }
 
     @Override
     public Optional<Player> getPlayer() {
-        return player.getPlayer();
+        return Optional.of(this);
     }
 
     @Override
     public void spawnParticles(ParticleEffect particleEffect, Vector3d position, int radius) {
-        player.spawnParticles(particleEffect, position, radius);
+
     }
 
     @Override
     public Optional<ItemStack> getEquipped(EquipmentType type) {
-        return player.getEquipped(type);
+        return null;
     }
 
     @Override
     public Set<Context> getActiveContexts() {
-        return player.getActiveContexts();
+        return src.getActiveContexts();
     }
 
     @Override
     public MutableBoundedValue<Double> exhaustion() {
-        return player.exhaustion();
+        return Sponge.getRegistry().getValueFactory().createBoundedValueBuilder(Keys.EXHAUSTION).actualValue(-1.0).build();
     }
 
     @Override
     public MutableBoundedValue<Double> health() {
-        return player.health();
+        return Sponge.getRegistry().getValueFactory().createBoundedValueBuilder(Keys.HEALTH).actualValue(-1.0).build();
     }
 
     @Override
     public StatisticData getStatisticData() {
-        return player.getStatisticData();
+        return null;
     }
 
     @Override
     public void sendMessage(ChatType type, TextTemplate template, Map<String, TextElement> parameters) {
-        player.sendMessage(type, template, parameters);
+        src.sendMessage(template, parameters);
     }
 
     @Override
     public Optional<ItemStack> getChestplate() {
-        return player.getChestplate();
+        return null;
     }
 
     @Override
     public <E> Optional<E> get(Key<? extends BaseValue<E>> key) {
-        return player.get(key);
+        return null;
     }
 
     @Override
     public boolean equip(EquipmentType type, ItemStack equipment) {
-        return player.equip(type, equipment);
+        return false;
     }
 
     @Override
     public void sendMessages(Text... messages) {
-        player.sendMessages(messages);
+        src.sendMessages(messages);
     }
 
     @Override
     public EntityType getType() {
-        return player.getType();
+        return EntityTypes.PLAYER;
     }
 
     @Override
     public void playSound(SoundType sound, Vector3d position, double volume) {
-        player.playSound(sound, position, volume);
+
     }
 
     @Override
     public EntitySnapshot createSnapshot() {
-        return player.createSnapshot();
+        return null;
     }
 
     @Override
     public void setChestplate(ItemStack chestplate) {
-        player.setChestplate(chestplate);
+
     }
 
     @Override
     public MutableBoundedValue<Double> maxHealth() {
-        return player.maxHealth();
+        return Sponge.getRegistry().getValueFactory().createBoundedValueBuilder(Keys.MAX_HEALTH).actualValue(-1.0).build();
     }
 
     @Override
     public MutableBoundedValue<Double> saturation() {
-        return player.saturation();
+        return Sponge.getRegistry().getValueFactory().createBoundedValueBuilder(Keys.SATURATION).actualValue(-1.0).build();
     }
 
     @Override
     public Random getRandom() {
-        return player.getRandom();
+        return new Random();
     }
 
     @Override
     public void sendMessages(Iterable<Text> messages) {
-        player.sendMessages(messages);
+        src.sendMessages(messages);
     }
 
     @Override
     public <E> E require(Key<? extends BaseValue<E>> key) {
-        return player.require(key);
+        return null;
     }
 
     @Override
     public void sendMessages(ChatType type, Text... messages) {
-        player.sendMessages(type, messages);
+        src.sendMessages(messages);
     }
 
     @Override
     public boolean setLocation(Location<World> location) {
-        return player.setLocation(location);
+        return false;
     }
 
     @Override
     public Optional<ItemStack> getLeggings() {
-        return player.getLeggings();
+        return Optional.empty();
     }
 
     @Override
     public void playSound(SoundType sound, SoundCategory category, Vector3d position, double volume) {
-        player.playSound(sound, category, position, volume);
+
     }
 
     @Override
     public DamageableData getDamageableData() {
-        return player.getDamageableData();
+        return null;
     }
 
     @Override
     public MessageChannel getMessageChannel() {
-        return player.getMessageChannel();
+        return src.getMessageChannel();
     }
 
     @Override
     public boolean isViewingInventory() {
-        return player.isViewingInventory();
+        return false;
     }
 
     @Override
     public OptionalValue<EntitySnapshot> lastAttacker() {
-        return player.lastAttacker();
+        return null;
     }
 
     @Override
     public void sendMessages(ChatType type, Iterable<Text> messages) {
-        player.sendMessages(type, messages);
+        src.sendMessages(messages);
     }
 
     @Override
     public void setLeggings(ItemStack leggings) {
-        player.setLeggings(leggings);
+
     }
 
     @Override
     public boolean setLocationSafely(Location<World> location) {
-        return player.setLocationSafely(location);
+        return false;
     }
 
     @Override
     public void setMessageChannel(MessageChannel channel) {
-        player.setMessageChannel(channel);
+        src.setMessageChannel(channel);
     }
 
     @Override
     public Optional<Container> getOpenInventory() {
-        return player.getOpenInventory();
+        return Optional.empty();
     }
 
     @Override
     public void playSound(SoundType sound, Vector3d position, double volume, double pitch) {
-        player.playSound(sound, position, volume, pitch);
+
     }
 
     @Override
     public <E> E getOrNull(Key<? extends BaseValue<E>> key) {
-        return player.getOrNull(key);
+        return null;
     }
 
     @Override
     public OptionalValue<Double> lastDamage() {
-        return player.lastDamage();
+        return null;
     }
 
     @Override
     public Optional<CommandSource> getCommandSource() {
-        return player.getCommandSource();
+        return Optional.of(this);
     }
 
     @Override
     public Optional<ItemStack> getBoots() {
-        return player.getBoots();
+        return Optional.empty();
     }
 
     @Override
     public Optional<Container> openInventory(Inventory inventory) throws IllegalArgumentException {
-        return player.openInventory(inventory);
+        return null;
     }
 
     @Override
     public Vector3d getHeadRotation() {
-        return player.getHeadRotation();
+        return null;
     }
 
     @Override
     public <T extends DataManipulator<?, ?>> T require(Class<T> containerClass) {
-        return player.require(containerClass);
+        return null;
     }
 
     @Override
     public void setBoots(ItemStack boots) {
-        player.setBoots(boots);
+
     }
 
     @Override
     public Vector3d getRotation() {
-        return player.getRotation();
+        return null;
     }
 
     @Override
     public boolean closeInventory() throws IllegalArgumentException {
-        return player.closeInventory();
+        return false;
     }
 
     @Override
     public void playSound(SoundType sound, SoundCategory category, Vector3d position, double volume, double pitch) {
-        player.playSound(sound, category, position, volume, pitch);
+
     }
 
     @Override
     public SubjectCollection getContainingCollection() {
-        return player.getContainingCollection();
+        return src.getContainingCollection();
     }
 
     @Override
     public <E> E getOrElse(Key<? extends BaseValue<E>> key, E defaultValue) {
-        return player.getOrElse(key, defaultValue);
+        return null;
     }
 
     @Override
     public void setRotation(Vector3d rotation) {
-        player.setRotation(rotation);
+
     }
 
     @Override
     public void setHeadRotation(Vector3d rotation) {
-        player.setHeadRotation(rotation);
+
     }
 
     @Override
     public SubjectReference asSubjectReference() {
-        return player.asSubjectReference();
+        return null;
     }
 
     @Override
     public Optional<ItemStack> getItemInHand(HandType handType) {
-        return player.getItemInHand(handType);
+        return Optional.empty();
     }
 
     @Override
     public int getViewDistance() {
-        return player.getViewDistance();
+        return -1;
     }
 
     @Override
     public boolean isSubjectDataPersisted() {
-        return player.isSubjectDataPersisted();
+        return src.isSubjectDataPersisted();
     }
 
     @Override
     public boolean setLocationAndRotation(Location<World> location, Vector3d rotation) {
-        return player.setLocationAndRotation(location, rotation);
+        return false;
     }
 
     @Override
     public <T extends DataManipulator<?, ?>> Optional<T> getOrCreate(Class<T> containerClass) {
-        return player.getOrCreate(containerClass);
+        return null;
     }
 
     @Override
     public ChatVisibility getChatVisibility() {
-        return player.getChatVisibility();
+        return null;
     }
 
     @Override
     public void setItemInHand(HandType hand, ItemStack itemInHand) {
-        player.setItemInHand(hand, itemInHand);
+
     }
 
     @Override
     public void playSound(SoundType sound, Vector3d position, double volume, double pitch, double minVolume) {
-        player.playSound(sound, position, volume, pitch, minVolume);
+
     }
 
     @Override
     public <E, V extends BaseValue<E>> Optional<V> getValue(Key<V> key) {
-        return player.getValue(key);
+        return Optional.empty();
     }
 
     @Override
     public void lookAt(Vector3d targetPos) {
-        player.lookAt(targetPos);
+
     }
 
     @Override
     public boolean isChatColorsEnabled() {
-        return player.isChatColorsEnabled();
+        return false;
     }
 
     @Override
     public Chat simulateChat(Text message, Cause cause) {
-        return player.simulateChat(message, cause);
+        return null;
     }
 
     @Override
     public SubjectData getSubjectData() {
-        return player.getSubjectData();
+        return src.getSubjectData();
     }
 
     @Override
     public boolean supports(Key<?> key) {
-        return player.supports(key);
+        return false;
     }
 
     @Override
     public boolean setLocationAndRotation(Location<World> location, Vector3d rotation,
             EnumSet<RelativePositions> relativePositions) {
-        return player.setLocationAndRotation(location, rotation, relativePositions);
+        return false;
     }
 
     @Override
     public boolean supports(BaseValue<?> baseValue) {
-        return player.supports(baseValue);
+        return false;
     }
 
     @Override
     public SubjectData getTransientSubjectData() {
-        return player.getTransientSubjectData();
+        return src.getTransientSubjectData();
     }
 
     @Override
     public void playSound(SoundType sound, SoundCategory category, Vector3d position, double volume, double pitch,
             double minVolume) {
-        player.playSound(sound, category, position, volume, pitch, minVolume);
     }
 
     @Override
     public DataHolder copy() {
-        return player.copy();
+        return null;
     }
 
     @Override
     public Set<SkinPart> getDisplayedSkinParts() {
-        return player.getDisplayedSkinParts();
+        return null;
     }
 
     @Override
     public boolean hasPermission(Set<Context> contexts, String permission) {
-        return player.hasPermission(contexts, permission);
+        return src.hasPermission(contexts, permission);
     }
 
     @Override
     public Set<Key<?>> getKeys() {
-        return player.getKeys();
+        return null;
     }
 
     @Override
     public PlayerConnection getConnection() {
-        return player.getConnection();
+        return null;
     }
 
     @Override
     public boolean setLocationAndRotationSafely(Location<World> location, Vector3d rotation) {
-        return player.setLocationAndRotationSafely(location, rotation);
+        return false;
     }
 
     @Override
     public void sendResourcePack(ResourcePack pack) {
-        player.sendResourcePack(pack);
     }
 
     @Override
     public Set<ImmutableValue<?>> getValues() {
-        return player.getValues();
+        return null;
     }
 
     @Override
     public void stopSounds() {
-        player.stopSounds();
     }
 
     @Override
     public void stopSounds(SoundType sound) {
-        player.stopSounds(sound);
     }
 
     @Override
     public TabList getTabList() {
-        return player.getTabList();
+        return null;
     }
 
     @Override
     public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
+        return src.hasPermission(permission);
     }
 
     @Override
     public void kick() {
-        player.kick();
     }
 
     @Override
     public void stopSounds(SoundCategory category) {
-        player.stopSounds(category);
     }
 
     @Override
     public void kick(Text reason) {
-        player.kick(reason);
     }
 
     @Override
     public void stopSounds(SoundType sound, SoundCategory category) {
-        player.stopSounds(sound, category);
     }
 
     @Override
     public Scoreboard getScoreboard() {
-        return player.getScoreboard();
+        return null;
     }
 
     @Override
     public void setScoreboard(Scoreboard scoreboard) {
-        player.setScoreboard(scoreboard);
     }
 
     @Override
     public Tristate getPermissionValue(Set<Context> contexts, String permission) {
-        return player.getPermissionValue(contexts, permission);
+        return src.getPermissionValue(contexts, permission);
     }
 
     @Override
     public void playRecord(Vector3i position, RecordType recordType) {
-        player.playRecord(position, recordType);
     }
 
     @Override
     public boolean supports(Class<? extends DataManipulator<?, ?>> holderClass) {
-        return player.supports(holderClass);
+        return false;
     }
 
     @Override
     public boolean setLocationAndRotationSafely(Location<World> location, Vector3d rotation,
             EnumSet<RelativePositions> relativePositions) {
-        return player.setLocationAndRotationSafely(location, rotation, relativePositions);
+        return false;
     }
 
     @Override
     public JoinData getJoinData() {
-        return player.getJoinData();
+        return null;
     }
 
     @Override
     public <E> DataTransactionResult transform(Key<? extends BaseValue<E>> key, Function<E, E> function) {
-        return player.transform(key, function);
+        return null;
     }
 
     @Override
     public void stopRecord(Vector3i position) {
-        player.stopRecord(position);
     }
 
     @Override
     public Value<Instant> firstPlayed() {
-        return player.firstPlayed();
+        return null;
     }
 
     @Override
     public void sendTitle(Title title) {
-        player.sendTitle(title);
     }
 
     @Override
     public void resetTitle() {
-        player.resetTitle();
     }
 
     @Override
     public boolean isChildOf(SubjectReference parent) {
-        return player.isChildOf(parent);
+        return src.isChildOf(parent);
     }
 
     @Override
     public Value<Instant> lastPlayed() {
-        return player.lastPlayed();
+        return null;
     }
 
     @Override
     public void clearTitle() {
-        player.clearTitle();
     }
 
     @Override
     public void sendBookView(BookView bookView) {
-        player.sendBookView(bookView);
     }
 
     @Override
     public boolean hasPlayedBefore() {
-        return player.hasPlayedBefore();
+        return false;
     }
 
     @Override
     public Vector3d getScale() {
-        return player.getScale();
+        return null;
     }
 
     @Override
     public <E> DataTransactionResult offer(Key<? extends BaseValue<E>> key, E value) {
-        return player.offer(key, value);
+        return null;
     }
 
     @Override
     public void sendBlockChange(Vector3i vec, BlockState state) {
-        player.sendBlockChange(vec, state);
     }
 
     @Override
     public boolean isChildOf(Set<Context> contexts, SubjectReference parent) {
-        return player.isChildOf(contexts, parent);
+        return src.isChildOf(contexts, parent);
     }
 
     @Override
     public void setScale(Vector3d scale) {
-        player.setScale(scale);
     }
 
     @Override
     public DisplayNameData getDisplayNameData() {
-        return player.getDisplayNameData();
+        return null;
     }
 
     @Override
     public Transform<World> getTransform() {
-        return player.getTransform();
+        return null;
     }
 
     @Override
     public void sendBlockChange(int x, int y, int z, BlockState state) {
-        player.sendBlockChange(x, y, z, state);
     }
 
     @Override
     public GameModeData getGameModeData() {
-        return player.getGameModeData();
+        return null;
     }
 
     @Override
     public boolean setTransform(Transform<World> transform) {
-        return player.setTransform(transform);
+        return false;
     }
 
     @Override
     public <E> DataTransactionResult tryOffer(Key<? extends BaseValue<E>> key, E value)
             throws IllegalArgumentException {
-        return player.tryOffer(key, value);
+        return null;
     }
 
     @Override
     public Value<GameMode> gameMode() {
-        return player.gameMode();
+        return null;
     }
 
     @Override
     public void resetBlockChange(Vector3i vec) {
-        player.resetBlockChange(vec);
     }
 
     @Override
     public List<SubjectReference> getParents() {
-        return player.getParents();
+        return src.getParents();
     }
 
     @Override
     public boolean setTransformSafely(Transform<World> transform) {
-        return player.setTransformSafely(transform);
+        return false;
     }
 
     @Override
     public boolean isSleepingIgnored() {
-        return player.isSleepingIgnored();
+        return false;
     }
 
     @Override
     public void resetBlockChange(int x, int y, int z) {
-        player.resetBlockChange(x, y, z);
     }
 
     @Override
     public void setSleepingIgnored(boolean sleepingIgnored) {
-        player.setSleepingIgnored(sleepingIgnored);
     }
 
     @Override
     public List<SubjectReference> getParents(Set<Context> contexts) {
-        return player.getParents(contexts);
+        return src.getParents(contexts);
     }
 
     @Override
     public <E> DataTransactionResult offer(BaseValue<E> value) {
-        return player.offer(value);
+        return null;
     }
 
     @Override
     public boolean transferToWorld(World world) {
-        return player.transferToWorld(world);
+        return false;
     }
 
     @Override
     public Optional<String> getOption(Set<Context> contexts, String key) {
-        return player.getOption(contexts, key);
+        return src.getOption(contexts, key);
     }
 
     @Override
     public Inventory getEnderChestInventory() {
-        return player.getEnderChestInventory();
+        return null;
     }
 
     @Override
     public boolean respawnPlayer() {
-        return player.respawnPlayer();
+        return false;
     }
 
     @Override
     public <E> DataTransactionResult tryOffer(BaseValue<E> value) throws IllegalArgumentException {
-        return player.tryOffer(value);
+        return null;
     }
 
     @Override
     public boolean transferToWorld(World world, Vector3d position) {
-        return player.transferToWorld(world, position);
+        return false;
     }
 
     @Override
     public Optional<Entity> getSpectatorTarget() {
-        return player.getSpectatorTarget();
+        return Optional.empty();
     }
 
     @Override
     public Optional<String> getOption(String key) {
-        return player.getOption(key);
+        return src.getOption(key);
     }
 
     @Override
     public void setSpectatorTarget(Entity entity) {
-        player.setSpectatorTarget(entity);
     }
 
     @Override
     public boolean transferToWorld(String worldName, Vector3d position) {
-        return player.transferToWorld(worldName, position);
+        return false;
     }
 
     @Override
     public Optional<WorldBorder> getWorldBorder() {
-        return player.getWorldBorder();
+        return Optional.empty();
     }
 
     @Override
     public DataTransactionResult offer(DataManipulator<?, ?> valueContainer) {
-        return player.offer(valueContainer);
+        return null;
     }
 
     @Override
     public void setWorldBorder(WorldBorder border, Cause cause) {
-        player.setWorldBorder(border, cause);
     }
 
     @Override
     public CooldownTracker getCooldownTracker() {
-        return player.getCooldownTracker();
+        return null;
     }
 
     @Override
     public DataTransactionResult offer(DataManipulator<?, ?> valueContainer, MergeFunction function) {
-        return player.offer(valueContainer, function);
+        return null;
     }
 
     @Override
     public AdvancementProgress getProgress(Advancement advancement) {
-        return player.getProgress(advancement);
+        return null;
     }
 
     @Override
     public boolean transferToWorld(UUID uuid, Vector3d position) {
-        return player.transferToWorld(uuid, position);
+        return false;
     }
 
     @Override
     public Collection<AdvancementTree> getUnlockedAdvancementTrees() {
-        return player.getUnlockedAdvancementTrees();
+        return null;
     }
 
     @Override
     public DataTransactionResult offer(Iterable<DataManipulator<?, ?>> valueContainers) {
-        return player.offer(valueContainers);
+        return null;
     }
 
     @Override
     public Optional<AABB> getBoundingBox() {
-        return player.getBoundingBox();
+        return Optional.empty();
     }
 
     @Override
     public DataTransactionResult offer(Iterable<DataManipulator<?, ?>> valueContainers,
             MergeFunction function) {
-        return player.offer(valueContainers, function);
+        return null;
     }
 
     @Override
     public List<Entity> getPassengers() {
-        return player.getPassengers();
+        return null;
     }
 
     @Override
     public boolean hasPassenger(Entity entity) {
-        return player.hasPassenger(entity);
+        return false;
     }
 
     @Override
     public boolean addPassenger(Entity entity) {
-        return player.addPassenger(entity);
+        return false;
     }
 
     @Override
     public void removePassenger(Entity entity) {
-        player.removePassenger(entity);
     }
 
     @Override
     public DataTransactionResult tryOffer(DataManipulator<?, ?> valueContainer) {
-        return player.tryOffer(valueContainer);
+        return null;
     }
 
     @Override
     public void clearPassengers() {
-        player.clearPassengers();
     }
 
     @Override
     public Optional<Entity> getVehicle() {
-        return player.getVehicle();
+        return Optional.empty();
     }
 
     @Override
     public boolean setVehicle(Entity entity) {
-        return player.setVehicle(entity);
+        return false;
     }
 
     @Override
     public Entity getBaseVehicle() {
-        return player.getBaseVehicle();
+        return null;
     }
 
     @Override
     public DataTransactionResult tryOffer(DataManipulator<?, ?> valueContainer, MergeFunction function)
             throws IllegalArgumentException {
-        return player.tryOffer(valueContainer, function);
+        return null;
     }
 
     @Override
     public Vector3d getVelocity() {
-        return player.getVelocity();
+        return null;
     }
 
     @Override
     public DataTransactionResult setVelocity(Vector3d vector3d) {
-        return player.setVelocity(vector3d);
+        return null;
     }
 
     @Override
     public boolean isOnGround() {
-        return player.isOnGround();
+        return false;
     }
 
     @Override
     public boolean isRemoved() {
-        return player.isRemoved();
+        return false;
     }
 
     @Override
     public DataTransactionResult remove(Class<? extends DataManipulator<?, ?>> containerClass) {
-        return player.remove(containerClass);
+        return null;
     }
 
     @Override
     public boolean isLoaded() {
-        return player.isLoaded();
+        return false;
     }
 
     @Override
     public void remove() {
-        player.remove();
     }
 
     @Override
     public boolean damage(double damage, DamageSource damageSource) {
-        return player.damage(damage, damageSource);
+        return false;
     }
 
     @Override
     public DataTransactionResult remove(BaseValue<?> value) {
-        return player.remove(value);
+        return null;
     }
 
     @Override
     public Collection<Entity> getNearbyEntities(double distance) {
-        return player.getNearbyEntities(distance);
+        return null;
     }
 
     @Override
     public Collection<Entity> getNearbyEntities(Predicate<Entity> predicate) {
-        return player.getNearbyEntities(predicate);
+        return null;
     }
 
     @Override
     public DataTransactionResult remove(Key<?> key) {
-        return player.remove(key);
+        return null;
     }
 
     @Override
     public Optional<UUID> getCreator() {
-        return player.getCreator();
+        return Optional.empty();
     }
 
     @Override
     public DataTransactionResult undo(DataTransactionResult result) {
-        return player.undo(result);
+        return null;
     }
 
     @Override
     public Optional<UUID> getNotifier() {
-        return player.getNotifier();
+        return Optional.empty();
     }
 
     @Override
     public void setCreator(UUID uuid) {
-        player.setCreator(uuid);
     }
 
     @Override
     public void setNotifier(UUID uuid) {
-        player.setNotifier(uuid);
     }
 
     @Override
     public DataTransactionResult copyFrom(DataHolder that) {
-        return player.copyFrom(that);
+        return null;
     }
 
     @Override
     public boolean canSee(Entity entity) {
-        return player.canSee(entity);
+        return false;
     }
 
     @Override
     public DataTransactionResult copyFrom(DataHolder that, MergeFunction function) {
-        return player.copyFrom(that, function);
+        return null;
     }
 
     @Override
     public EntityArchetype createArchetype() {
-        return player.createArchetype();
+        return null;
     }
 
     @Override
     public Value<Boolean> gravity() {
-        return player.gravity();
+        return null;
     }
 
     @Override
     public Collection<DataManipulator<?, ?>> getContainers() {
-        return player.getContainers();
+        return null;
     }
 
 

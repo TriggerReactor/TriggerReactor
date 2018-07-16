@@ -157,7 +157,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             Map<String, Object> vars = ReflectionUtil.extractVariables(e);
             variables.putAll(vars);
 
-            instance.extractCustomVariables(variables, e);
+            runSyncTaskForFuture(()->{instance.extractCustomVariables(variables, e); return null;}).get();
             ///////////////////////////////
 
             ScriptContext scriptContext = engine.getContext();

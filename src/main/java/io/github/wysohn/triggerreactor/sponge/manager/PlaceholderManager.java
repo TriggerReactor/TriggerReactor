@@ -13,8 +13,7 @@ import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 
 public class PlaceholderManager extends AbstractPlaceholderManager implements SpongeScriptEngineInitializer {
-    private static final String JAR_FOLDER_LOCATION = "assets"+JarUtil.JAR_SEPARATOR+
-            "triggerreactor"+JarUtil.JAR_SEPARATOR+"Placeholder"+JarUtil.JAR_SEPARATOR+"Sponge";
+    private static final String JAR_FOLDER_LOCATION = "Placeholder"+JarUtil.JAR_SEPARATOR+"Sponge";
 
     private File placeholderFolder;
 
