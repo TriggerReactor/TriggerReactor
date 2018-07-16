@@ -454,13 +454,17 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             };
         }else if(unwrapped instanceof ConsoleSource) {
             return new Event(){
+                Cause cause = null;
+                {
+                    try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+                        frame.pushCause(new DelegatedPlayer((CommandSource) unwrapped));
+                        cause = frame.getCurrentCause();
+                    }
+                }
 
                 @Override
                 public Cause getCause() {
-                    try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-                        frame.pushCause(new DelegatedPlayer((CommandSource) unwrapped));
-                        return frame.getCurrentCause();
-                    }
+                    return cause;
                 }
             };
         }else{
