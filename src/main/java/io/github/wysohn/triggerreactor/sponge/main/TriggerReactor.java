@@ -577,7 +577,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public void runTask(Runnable runnable) {
-        Sponge.getScheduler().createTaskBuilder().execute(runnable);
+        Sponge.getScheduler().createTaskBuilder().execute(runnable).submit(this);
     }
 
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
