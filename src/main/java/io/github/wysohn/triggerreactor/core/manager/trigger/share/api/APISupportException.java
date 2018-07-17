@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
+package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
 @SuppressWarnings("serial")
 public class APISupportException extends RuntimeException {

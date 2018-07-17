@@ -23,13 +23,14 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 public class VariableManager extends AbstractVariableManager{
     private File varFile;
 
-    private ConfigurationLoader<ConfigurationNode> varFileConfigLoader;
+    private ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader;
     private ConfigurationNode varFileConfig;
 
     private final GlobalVariableAdapter adapter;
@@ -41,7 +42,7 @@ public class VariableManager extends AbstractVariableManager{
         if(!varFile.exists())
             varFile.createNewFile();
 
-        varFileConfigLoader = YAMLConfigurationLoader.builder().setPath(varFile.toPath()).build();
+        varFileConfigLoader = HoconConfigurationLoader.builder().setPath(varFile.toPath()).build();
 
         reload();
 

@@ -1136,5 +1136,25 @@ public class DelegatedPlayer implements Player{
         return null;
     }
 
+//    @Override
+//    public Vector3d getPosition() {
+//        return null;
+//    }
+//
+//    @Override
+//    public Optional<UUID> getWorldUniqueId() {
+//        return Optional.empty();
+//    }
+//
+//    @Override
+//    public boolean setLocation(Vector3d position, UUID world) {
+//        return false;
+//    }
+//
+//    @Override
+//    public Optional<Container> openInventory(Inventory inventory, Text displayName) {
+//        return Optional.empty();
+//    }
+
 
 }

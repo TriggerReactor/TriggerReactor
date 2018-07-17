@@ -36,7 +36,7 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager {
     @Listener
     public void onSpawn(RespawnPlayerEvent e){
         Player player = e.getTargetEntity();
-        Location loc = player.getLocation();
+        Location<World> loc = player.getLocation();
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
         setCurrentBlockLocation(player.getUniqueId(), sloc);
     }

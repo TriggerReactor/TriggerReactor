@@ -52,7 +52,6 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
-import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -60,7 +59,6 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
-import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.plugin.Plugin;
@@ -205,11 +203,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Listener
-    public void test(ClientConnectionEvent.Join e, @First Player player) {
-        getLogger().info(String.valueOf(player));
-    }
-
-    @Listener
     public void onInitialize(GameAboutToStartServerEvent e) {
 /*        CommandSpec cs = CommandSpec.builder()
                 .permission("triggerreactor.admin")
@@ -278,7 +271,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onEnable(GameStartedServerEvent e) {
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        //Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){

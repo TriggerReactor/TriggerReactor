@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
+package io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,13 +23,6 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.faction.FactionsSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -63,13 +56,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
     @SuppressWarnings("serial")
     private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>(){{
-        put("vault", VaultSupport.class);
-        put("mcmmo", McMmoSupport.class);
-        put("placeholder", PlaceHolderSupport.class);
-        put("factions", FactionsSupport.class);
-        put("coreprotect", CoreprotectSupport.class);
-        put("protocollib", ProtocolLibSupport.class);
-        put("worldguard", WorldguardSupport.class);
+
     }};
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
         return sharedVars;

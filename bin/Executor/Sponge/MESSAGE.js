@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2017 wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,13 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function ip(args){
-	if(player == null)
-		return null;
+function MESSAGE(args){
+	var String = Java.type('java.lang.String')
+	var Text = Java.type('org.spongepowered.api.text.Text')
 	
-	var connection = player.getConnection();
-	if(connection == null)
-		return null;
-	
-	return player.getConnection().getAddress().getHostString();
+    for(var i = 0; i < args.length ; i++){
+    	player.sendMessage(TextUtil.colorStringToText(String.valueOf(args[i])));
+    }
+    
+    return null;
 }
