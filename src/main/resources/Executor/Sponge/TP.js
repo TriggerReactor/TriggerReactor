@@ -34,7 +34,7 @@ function TP(args){
         y = args[1];
         z = args[2];
         
-        var target = Bukkit.getPlayer(args[3]);
+        var target = Sponge.getServer().getPlayer(args[3]).orElse(null);
         target.setLocation(new Location(world, x, y, z));
         
         return null;
