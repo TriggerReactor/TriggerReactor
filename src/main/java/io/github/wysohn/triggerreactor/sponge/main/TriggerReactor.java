@@ -126,11 +126,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private static SpongeExecutorService syncExecutor = null;
 
     @Inject
-    @ConfigDir(sharedRoot = false)
-    private Path privateConfigDir;
+    private Logger logger;
 
     @Inject
-    private Logger logger;
+    @ConfigDir(sharedRoot = false)
+    private Path privateConfigDir;
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
@@ -204,27 +204,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onInitialize(GameAboutToStartServerEvent e) {
-/*        CommandSpec cs = CommandSpec.builder()
-                .permission("triggerreactor.admin")
-                .arguments(GenericArguments.remainingJoinedStrings(Text.of("arguments")))
-                .executor(new CommandExecutor() {
-
-                    @Override
-                    public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
-                        if (src instanceof Player) {
-                            onCommand(new SpongePlayer((Player) src), "triggerreactor",
-                                    args.<String>getOne("arguments").get().split(" "));
-                        } else {
-                            onCommand(new SpongeCommandSender(src), "triggerreactor",
-                                    args.<String>getOne("arguments").get().split(" "));
-                        }
-
-                        return CommandResult.success();
-                    }
-
-                }).build();
-        Sponge.getCommandManager().register(this, cs, "trg", "trigger");*/
-
         Sponge.getCommandManager().register(this, new CommandCallable() {
 
             @Override
@@ -271,7 +250,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onEnable(GameStartedServerEvent e) {
-        //Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){
@@ -285,7 +264,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         }
 
         for(Manager manager : Manager.getManagers()) {
-            manager.reload();
+            try {
+                manager.reload();
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
 //        FileConfiguration config = plugin.getConfig();
@@ -839,5 +822,18 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         }
 
         return result;
+    }
+
+    @Override
+    public Map<String, Object> getCustomVarsForTrigger(Object context) {
+        Map<String, Object> map = new HashMap<>();
+        if(context instanceof Event) {
+            ((Event) context).getCause().first(Player.class).ifPresent((player) -> {
+                map.put("player", player);
+            });
+
+
+        }
+        return map;
     }
 }

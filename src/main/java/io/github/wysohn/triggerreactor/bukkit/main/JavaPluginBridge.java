@@ -1066,4 +1066,9 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     public String getName() {
         return bukkitPlugin.getName();
     }
+
+    @Override
+    public Map<String, Object> getCustomVarsForTrigger(Object context) {
+        return null;
+    }
 }

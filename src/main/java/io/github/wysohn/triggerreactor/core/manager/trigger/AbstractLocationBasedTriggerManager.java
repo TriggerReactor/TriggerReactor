@@ -122,7 +122,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                 String fileName = slocToString(sloc);
                 String script = trigger.getScript();
 
-                File file = new File(folder, fileName+".trg");
+                File file = getTriggerFile(folder, fileName, true);
                 try{
                     FileUtil.writeToFile(file, script);
                 }catch(Exception e){

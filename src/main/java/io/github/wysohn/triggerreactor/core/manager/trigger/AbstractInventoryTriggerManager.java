@@ -55,7 +55,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         for(File ymlfile : folder.listFiles(filter)){
             String triggerName = extractName(ymlfile);
 
-            File triggerFile = getTriggerFile(folder, triggerName);
+            File triggerFile = getTriggerFile(folder, triggerName, false);
 
             if(!triggerFile.exists()){
                 plugin.getLogger().warning(triggerFile+" does not exists!");
@@ -129,7 +129,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
             InventoryTrigger trigger = entry.getValue();
 
             File yamlFile = new File(folder, triggerName+".yml");
-            File triggerFile = new File(folder, triggerName+".trg");
+            File triggerFile = getTriggerFile(folder, triggerName, true);
 
             if(!yamlFile.exists()){
                 try {
@@ -220,7 +220,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         if (invenTriggers.containsKey(name))
             return false;
 
-        File triggerFile = getTriggerFile(folder, name+".trg");
+        File triggerFile = getTriggerFile(folder, name, true);
         invenTriggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), triggerFile, script));
 
         return true;

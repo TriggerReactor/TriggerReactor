@@ -1279,4 +1279,11 @@ public abstract class TriggerReactor {
      * @return
      */
     public abstract boolean isServerThread();
+
+    /**
+     * extract useful custom variables manually from 'context'
+     * @param context
+     * @return
+     */
+    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
 }

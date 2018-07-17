@@ -19,10 +19,11 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.spongepowered.api.Sponge;
@@ -71,7 +72,9 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
     @Override
     public void reload() {
-        Sponge.getEventManager().unregisterPluginListeners(plugin);
+        for(EventListener listener : registeredListeners) {
+            Sponge.getEventManager().unregisterListeners(listener);
+        }
         super.reload();
     }
 
@@ -96,43 +99,20 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
     }
 
-    @Override
-    public boolean createCustomTrigger(String eventName, String name, String script)
-            throws ClassNotFoundException, TriggerInitFailedException {
-        if (nameMap.containsKey(name))
-            return false;
-
-        Class<?> event = this.getEventFromName(eventName);
-
-        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
-
-        File triggerFile = getTriggerFile(folder, name+".trg");
-        CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
-
-        triggers.add(trigger);
-        nameMap.put(name, trigger);
-
-        return true;
-    }
-
-    @Override
-    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException {
-        Class<?> clazz = this.getEventFromName(eventName);
-
-        return triggerMap.get(clazz);
-    }
-
+    private Collection<EventListener> registeredListeners = new LinkedList<>();
     @SuppressWarnings("unchecked")
     @Override
-    protected void registerEvent(TriggerReactor plugin, Class<?> clazz) {
-        Sponge.getEventManager().registerListener(plugin, (Class<? extends Event>) clazz, new EventListener() {
+    protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
+        EventListener listener = new EventListener() {
 
             @Override
             public void handle(Event event) throws Exception {
-                handleEvent(event);
+                eventHook.onEvent(event);
             }
 
-        });
+        };
+        registeredListeners.add(listener);
+        Sponge.getEventManager().registerListener(plugin, (Class<? extends Event>) clazz, listener);
     }
 
     @Override
@@ -147,16 +127,5 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
 
         return event;
-    }
-
-    protected void handleEvent(Object e){
-        Set<CustomTrigger> triggers = triggerMap.get(e.getClass());
-        if(triggers == null)
-            return;
-
-        for(CustomTrigger trigger : triggers){
-            Map<String, Object> vars = new HashMap<>();
-            trigger.activate(e, vars);
-        }
     }
 }

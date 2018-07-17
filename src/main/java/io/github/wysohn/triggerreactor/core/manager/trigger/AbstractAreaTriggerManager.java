@@ -142,7 +142,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             String enterScript = null;
             File enterFile = null;
             try {
-                enterFile = getTriggerFile(scriptFolder, "Enter.trg");
+                enterFile = getTriggerFile(scriptFolder, "Enter", false);
                 enterScript = FileUtil.readFromFile(enterFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -152,7 +152,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             String exitScript = null;
             File exitFile = null;
             try {
-                exitFile = getTriggerFile(scriptFolder, "Exit.trg");
+                exitFile = getTriggerFile(scriptFolder, "Exit", false);
                 exitScript = FileUtil.readFromFile(exitFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -169,7 +169,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             try {
                 if(enterScript != null){
-                    trigger.setEnterTrigger(enterScript);
+                    trigger.setEnterTrigger(enterScript, enterFile);
                 }
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
@@ -178,7 +178,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             try {
                 if(exitScript != null){
-                    trigger.setExitTrigger(exitScript);
+                    trigger.setExitTrigger(exitScript, exitFile);
                 }
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
@@ -232,7 +232,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             if(trigger.getEnterTrigger() != null){
                 try {
-                    FileUtil.writeToFile(new File(triggerFolder, "Enter.trg"), trigger.getEnterTrigger().getScript());
+                    FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().warning("Could not save Area Trigger [Enter] "+trigger.getTriggerName());
@@ -241,7 +241,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             if(trigger.getExitTrigger() != null){
                 try {
-                    FileUtil.writeToFile(new File(triggerFolder, "Exit.trg"), trigger.getExitTrigger().getScript());
+                    FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().warning("Could not save Area Trigger [Exit] "+trigger.getTriggerName());
@@ -465,14 +465,22 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             return null;
         }
 
-        public void setEnterTrigger(String script) throws TriggerInitFailedException{
-            File triggerFile = getTriggerFile(folder, "Enter.trg");
+        void setEnterTrigger(String script, File triggerFile) throws TriggerInitFailedException{
             enterTrigger = new EnterTrigger(this, triggerFile, script);
         }
 
-        public void setExitTrigger(String script) throws TriggerInitFailedException{
-            File triggerFile = getTriggerFile(folder, "Exit.trg");
+        public void setEnterTrigger(String script) throws TriggerInitFailedException{
+            File triggerFile = getTriggerFile(folder, "Enter", true);
+            setEnterTrigger(script, triggerFile);
+        }
+
+        void setExitTrigger(String script, File triggerFile) throws TriggerInitFailedException{
             exitTrigger = new ExitTrigger(this, triggerFile, script);
+        }
+
+        public void setExitTrigger(String script) throws TriggerInitFailedException{
+            File triggerFile = getTriggerFile(folder, "Enter", true);
+            setExitTrigger(script, triggerFile);
         }
 
         public EnterTrigger getEnterTrigger() {

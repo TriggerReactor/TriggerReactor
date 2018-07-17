@@ -1,31 +1,10 @@
-import org.yaml.snakeyaml.Yaml
-
-buildscript {
-  	ext.bukkit_version = "1.12-R0.1-SNAPSHOT"
-  	ext.plugin_version = "1.1.3"
-  	
-  	repositories {
-		jcenter()
-	}
-	
-  	dependencies {
-		classpath 'org.yaml:snakeyaml:1.15'
-    }
-}
-
 plugins {
 	id 'java'
-	id 'groovy'
-	id 'eclipse'
     id 'org.spongepowered.plugin' version '0.8.1'
 }
 
 group = 'io.github.wysohn.triggerreactor'
 description = 'Simple script parser with infinite possibility'
-
-configurations {
-	jaxDoclet
-}
 
 repositories {
 	jcenter()
@@ -69,7 +48,7 @@ dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 	
 	//bukkit
-	compile "org.spigotmc:spigot-api:$bukkit_version"
+	compile "org.spigotmc:spigot-api:1.12-R0.1-SNAPSHOT"
 	
 	compile "net.milkbowl.vault:VaultAPI:1.6"
 	//////////////////////////////////////////////////////////
@@ -83,19 +62,6 @@ dependencies {
 	
     testCompile 'junit:junit:4.+'
     testCompile 'org.mockito:mockito-core:2.+'
-}
-
-task fileYaml {
-	doLast{
-		def yaml = new Yaml()
-		def doc = new File("./src/main/resources/plugin.yml")
-		def map = (Map) yaml.load(doc)
-		map["version"] = "$plugin_version"
-		def newYaml = yaml.dump(map)
-		println(newYaml)
-		def newDoc = new File("./src/main/resources/plugin.yml")
-		newDoc.write(newYaml);
-	}
 }
 
 javadoc {

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
@@ -106,38 +105,12 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     @Override
-    public boolean createCustomTrigger(String eventName, String name, String script)
-            throws ClassNotFoundException, TriggerInitFailedException {
-        if (nameMap.containsKey(name))
-            return false;
-
-        Class<?> event = this.getEventFromName(eventName);
-
-        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
-
-        File triggerFile = getTriggerFile(folder, name+".trg");
-        CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
-
-        triggers.add(trigger);
-        nameMap.put(name, trigger);
-
-        return true;
-    }
-
-    @Override
-    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException {
-        Class<?> clazz = this.getEventFromName(eventName);
-
-        return triggerMap.get(clazz);
-    }
-
-    @Override
-    protected void registerEvent(TriggerReactor plugin, Class<?> clazz) {
+    protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
         try{
             Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
                 @Override
                 public void execute(Listener arg0, Event arg1) throws EventException {
-                    handleEvent(arg1);
+                    eventHook.onEvent(arg1);
                 }
             }, plugin.getMain());
         }catch(IllegalPluginAccessException e){
@@ -160,16 +133,5 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
 
         return event;
-    }
-
-    protected void handleEvent(Object e){
-        Set<CustomTrigger> triggers = triggerMap.get(e.getClass());
-        if(triggers == null)
-            return;
-
-        for(CustomTrigger trigger : triggers){
-            Map<String, Object> vars = new HashMap<>();
-            trigger.activate(e, vars);
-        }
     }
 }

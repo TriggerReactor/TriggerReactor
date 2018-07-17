@@ -69,7 +69,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             File triggerFile = null;
             String script = null;
             try {
-                triggerFile = getTriggerFile(folder, triggerName);
+                triggerFile = getTriggerFile(folder, triggerName, false);
                 script = FileUtil.readFromFile(triggerFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -106,7 +106,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             RepeatingTrigger trigger = entry.getValue();
 
             File ymlfile = new File(folder, triggerName+".yml");
-            File triggerfile = new File(folder, triggerName+".trg");
+            File triggerfile = getTriggerFile(folder, triggerName, true);
 
             try {
                 this.setData(ymlfile, "AutoStart", trigger.isAutoStart());
@@ -185,7 +185,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      */
     public boolean createTrigger(String triggerName, String script)
             throws TriggerInitFailedException, IOException {
-        File triggerFile = getTriggerFile(folder, triggerName+".trg");
+        File triggerFile = getTriggerFile(folder, triggerName, true);
         return createTrigger(triggerName, triggerFile, script, 1000L);
     }
 
