@@ -119,8 +119,9 @@ public class FileUtil {
 
         for (File target : folder.listFiles()) {
             if (target.isFile()) {
-                dest.mkdirs();
-                Files.move(target.toPath().normalize(), dest.toPath().normalize(), options);
+                if(!dest.exists())
+                    dest.mkdirs();
+                Files.move(target.toPath().normalize(), new File(dest, target.getName()).toPath().normalize(), options);
             } else {
                 File destFolder = new File(dest, target.getName());
                 moveFolder(target, destFolder);
