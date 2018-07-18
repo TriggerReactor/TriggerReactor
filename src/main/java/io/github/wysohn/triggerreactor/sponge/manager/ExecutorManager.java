@@ -3,6 +3,8 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -27,10 +29,12 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
 
     public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
         super(plugin);
-        this.executorFolder = new File(plugin.getDataFolder(), JAR_FOLDER_LOCATION);
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST, (original) -> {
             return original.substring(0, original.indexOf("!"+JarUtil.JAR_SEPARATOR)).replace("."+JarUtil.JAR_SEPARATOR, "");
         });
+
+        this.executorFolder = new File(plugin.getDataFolder(), "Executor");
+        Files.move(new File(this.executorFolder, "Sponge").toPath(), this.executorFolder.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }
