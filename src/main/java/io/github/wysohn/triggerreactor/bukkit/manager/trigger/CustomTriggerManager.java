@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
@@ -78,12 +79,14 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
     @Override
     public void reload() {
-        HandlerList.unregisterAll(listener);
+        for(Entry<EventHook, Listener> entry : registeredListerners.entrySet()) {
+            HandlerList.unregisterAll(entry.getValue());
+        }
+        registeredListerners.clear();
         super.reload();
     }
 
     private static final String basePackageName = "org.bukkit.event";
-    static final Listener listener = new Listener(){};
     protected void initEvents() throws IOException{
         for(String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)){
             Class<?> test = null;
@@ -104,8 +107,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
     }
 
+    private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
     @Override
     protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
+        Listener listener = new Listener() {};
         try{
             Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
                 @Override
@@ -113,11 +118,21 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
                     eventHook.onEvent(arg1);
                 }
             }, plugin.getMain());
+
+            registeredListerners.put(eventHook, listener);
         }catch(IllegalPluginAccessException e){
             //event with no handler list will throw this exception
             //which means it's a base event
             if(!BASEEVENTS.contains(BASEEVENTS))
                 BASEEVENTS.add((Class<? extends Event>) clazz);
+        }
+    }
+
+    @Override
+    protected void unregisterEvent(TriggerReactor plugin, EventHook eventHook) {
+        Listener listener = registeredListerners.remove(eventHook);
+        if(listener != null) {
+            HandlerList.unregisterAll(listener);
         }
     }
 

@@ -21,6 +21,7 @@ import java.io.IOException;
 import javax.script.ScriptException;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.Prompt;
@@ -33,6 +34,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
+import io.github.wysohn.triggerreactor.tools.ScriptEditor.ScriptEditorUser;
 
 public class EditingPrompt implements Prompt, Listener {
 	private final ScriptEditor editor;
@@ -115,7 +117,8 @@ public class EditingPrompt implements Prompt, Listener {
 		new Thread(new Runnable(){
 			@Override
 			public void run() {
-				editor.printScript(arg0.getForWhom());
+
+				editor.printScript(new BukkitScriptEditorUser(arg0.getForWhom()));
 			}
 		}).start();
 		return "";
@@ -136,5 +139,31 @@ public class EditingPrompt implements Prompt, Listener {
             return;
 
         HandlerList.unregisterAll(this);
+    }
+
+    private static class BukkitScriptEditorUser implements ScriptEditorUser{
+        private final Conversable conv;
+
+        public BukkitScriptEditorUser(Conversable conv) {
+            super();
+            this.conv = conv;
+        }
+
+        @Override
+        public void sendMessage(String rawMessage) {
+            conv.sendRawMessage(ChatColor.translateAlternateColorCodes('&', rawMessage));
+        }
+
+        @Override
+        public int hashCode() {
+            return conv.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return conv.equals(obj);
+        }
+
+
     }
 }

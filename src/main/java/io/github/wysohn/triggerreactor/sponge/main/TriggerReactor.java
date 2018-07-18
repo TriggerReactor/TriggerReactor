@@ -59,8 +59,10 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.game.state.GameStoppingServerEvent;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
+import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.ItemStack;
+import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.text.Text;
@@ -735,9 +737,17 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                 if(e instanceof InteractInventoryEvent.Open
                         || e instanceof InteractInventoryEvent.Close){
                     Inventory inv = ((InteractInventoryEvent) e).getTargetInventory();
+                    if(!(inv instanceof CarriedInventory))
+                        return false;
+
+                    CarriedInventory inventory = (CarriedInventory) inv;
+                    Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+
+                    if(carrier == null)
+                        return false;
 
                     //it's not GUI so stop execution
-                    if(!inventoryMap.containsKey(new SpongeInventory(inv)))
+                    if(!inventoryMap.containsKey(new SpongeInventory(inv, carrier)))
                         return true;
                 }
 

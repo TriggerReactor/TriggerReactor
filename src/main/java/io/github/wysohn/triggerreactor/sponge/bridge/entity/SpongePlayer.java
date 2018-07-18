@@ -58,12 +58,12 @@ public class SpongePlayer extends SpongeEntity implements IPlayer {
 
     @Override
     public IInventory getInventory() {
-        return new SpongeInventory(player.getInventory());
+        return new SpongeInventory(player.getInventory(), player.getInventory().getCarrier().get());
     }
 
     @Override
     public void openInventory(IInventory inventory) {
-        player.openInventory(inventory.get());
+        player.openInventory(inventory.get()).orElse(null);
     }
 
     @Override

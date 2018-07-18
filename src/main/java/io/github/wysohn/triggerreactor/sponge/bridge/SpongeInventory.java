@@ -16,49 +16,38 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.bridge;
 
+import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 
 public class SpongeInventory implements IInventory {
     private final Inventory inventory;
+    private final Carrier carrier;
 
-    public SpongeInventory(Inventory inventory) {
+    public SpongeInventory(Inventory inventory, Carrier carrier) {
         super();
         this.inventory = inventory;
+        this.carrier = carrier;
     }
-
 
     @Override
     public <T> T get() {
         return (T) inventory;
     }
 
-
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((inventory == null) ? 0 : inventory.hashCode());
-        return result;
+        return carrier.hashCode();
     }
 
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
+        if (!(obj instanceof SpongeInventory))
             return false;
-        if (getClass() != obj.getClass())
-            return false;
-        SpongeInventory other = (SpongeInventory) obj;
-        if (inventory == null) {
-            if (other.inventory != null)
-                return false;
-        } else if (!inventory.equals(other.inventory))
-            return false;
-        return true;
+
+        return carrier.equals(((SpongeInventory) obj).carrier);
     }
 
 }

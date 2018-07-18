@@ -18,25 +18,32 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.script.ScriptException;
 
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.command.TabCompleteEvent;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.message.MessageChannelEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.channel.MessageReceiver;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
+import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
+import io.github.wysohn.triggerreactor.tools.ScriptEditor.ScriptEditorUser;
 
 public class ScriptEditManager extends AbstractScriptEditManager{
-	private final Map<ICommandSender, ScriptEditor> editings = new HashMap<>();
+	private final Map<ScriptEditorUser, ScriptEditor> editings = new HashMap<>();
+	private final Set<ScriptEditorUser> viewingUsage = new HashSet<>();
+	private final Set<ScriptEditorUser> exitDoublecheck = new HashSet<>();
 
     public ScriptEditManager(TriggerReactor plugin) {
 	    super(plugin);
@@ -44,19 +51,31 @@ public class ScriptEditManager extends AbstractScriptEditManager{
 
 	@Override
     public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler){
-	    if(editings.containsKey(sender))
+	    SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(sender.get());
+
+	    if(editings.containsKey(editorUser))
 	        return;
 
 	    ScriptEditor editor = new ScriptEditor(title, script, saveHandler);
-	    editings.put(sender, editor);
+	    editings.put(editorUser, editor);
+
+	    editorUser.sendMessage(ScriptEditor.USAGE);
+	    viewingUsage.add(editorUser);
 	}
 
 	@Listener
-	public void onChat(MessageChannelEvent.Chat e, @First MessageReceiver receiver){
-	    if(!editings.containsKey(receiver))
+	public void onChat(MessageChannelEvent.Chat e, @First Player receiver){
+	    SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(receiver);
+
+	    if(!editings.containsKey(editorUser))
 	        return;
 	    e.setCancelled(true);
-	    ScriptEditor editor = editings.get(receiver);
+	    ScriptEditor editor = editings.get(editorUser);
+
+	    if(viewingUsage.remove(editorUser) || exitDoublecheck.remove(editorUser)) {
+	        editor.printScript(editorUser);
+	        return;
+	    }
 
         Text message = e.getRawMessage();
         String arg1 = message.toPlainSingle();
@@ -68,9 +87,18 @@ public class ScriptEditManager extends AbstractScriptEditManager{
                 plugin.handleException(e, ex);
             }
 
-            editings.remove(receiver);
+            editings.remove(editorUser);
+            editorUser.sendMessage("&aSaved!");
         } else if (arg1.equals("exit")) {
-            editings.remove(receiver);
+            if(exitDoublecheck.remove(editorUser)) {
+                editings.remove(editorUser);
+            } else {
+                exitDoublecheck.add(editorUser);
+                editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! "
+                        + "&dType &6exit &done more time to confirm.");
+            }
+            editorUser.sendMessage("&7Done");
+            return;
         } else if (arg1.equals("il")) {
             editor.insertNewLine();
         } else if (arg1.equals("dl")) {
@@ -98,13 +126,31 @@ public class ScriptEditManager extends AbstractScriptEditManager{
 
             editor.down(lines);
         } else {
-            editor.intput(arg1.replaceAll("\\$", " "));
+            editor.intput(arg1.replaceAll("\\^", " "));
         }
+
+        editor.printScript(editorUser);
     }
 
 	@Listener
-	public void onQuit(ClientConnectionEvent.Disconnect e, @First MessageReceiver receiver){
-	    editings.remove(receiver);
+	public void onTab(TabCompleteEvent e, @First Player player) {
+	    SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(player);
+
+        if(!editings.containsKey(editorUser))
+            return;
+        ScriptEditor editor = editings.get(editorUser);
+
+        e.getTabCompletions().clear();
+        e.getTabCompletions().add(editor.getLine());
+	}
+
+	@Listener
+	public void onQuit(ClientConnectionEvent.Disconnect e, @First Player receiver){
+	    SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(receiver);
+
+	    editings.remove(editorUser);
+	    viewingUsage.remove(editorUser);
+	    exitDoublecheck.remove(editorUser);
 	}
 
     @Override
@@ -115,5 +161,35 @@ public class ScriptEditManager extends AbstractScriptEditManager{
     @Override
     public void saveAll(){
 
+    }
+
+    private class SpongeScriptEditorUser implements ScriptEditorUser{
+        private final Player receiver;
+
+        public SpongeScriptEditorUser(Player receiver) {
+            this.receiver = receiver;
+        }
+
+        @Override
+        public void sendMessage(String rawMessage) {
+            receiver.sendMessage(TextUtil.colorStringToText(rawMessage));
+        }
+
+        @Override
+        public int hashCode() {
+            return receiver.getUniqueId().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(obj == null)
+                return false;
+
+            if(!(obj instanceof SpongeScriptEditorUser))
+                return false;
+
+            SpongeScriptEditorUser other = (SpongeScriptEditorUser) obj;
+            return receiver.getUniqueId().equals(other.receiver.getUniqueId());
+        }
     }
 }

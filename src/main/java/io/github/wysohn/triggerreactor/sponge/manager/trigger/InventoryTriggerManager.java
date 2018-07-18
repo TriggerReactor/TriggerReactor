@@ -28,7 +28,9 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
+import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.item.inventory.ItemStackSnapshot;
 import org.spongepowered.api.item.inventory.Slot;
@@ -37,6 +39,7 @@ import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
 import org.spongepowered.api.item.inventory.property.SlotPos;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
+import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.serializer.TextSerializers;
@@ -51,11 +54,13 @@ import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
+import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements SpongeConfigurationFileIO{
     public InventoryTriggerManager(TriggerReactor plugin) {
@@ -66,7 +71,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     public <T> T getData(File file, String key, T def) throws IOException {
         if(key.equals(ITEMS)) {
             int size = getData(file, SIZE, 0);
-            ConfigurationLoader<ConfigurationNode> loader = YAMLConfigurationLoader.builder().setPath(file.toPath()).build();
+            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
             ConfigurationNode conf = loader.load();
 
             Map<Integer, IItemStack> items = new HashMap<>();
@@ -77,23 +82,23 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
             return (T) items;
         }else {
-            return getData(file, key, def);
+            return SpongeConfigurationFileIO.super.getData(file, key, def);
         }
     }
 
     @Override
     public void setData(File file, String key, Object value) throws IOException {
         if(key.equals(ITEMS)) {
-            ConfigurationLoader<ConfigurationNode> loader = YAMLConfigurationLoader.builder().setPath(file.toPath()).build();
+            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
             ConfigurationNode conf = loader.load();
 
             IItemStack[] items = (IItemStack[]) value;
 
-            writeItemList(conf, items);
+            writeItemsList(ConfigurationUtil.getNodeByKeyString(conf, ITEMS), items);
 
             loader.save(conf);
         }else {
-            setData(file, key, value);
+            SpongeConfigurationFileIO.super.setData(file, key, value);
         }
     }
 
@@ -101,7 +106,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     private void parseItemsList(ConfigurationNode itemSection, Map<Integer, IItemStack> items, int size) {
         for(int i = 0; i < size; i++){
             ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-            if(section == null)
+            if(section.isVirtual())
                 continue;
 
             ItemStackSnapshot IS;
@@ -116,7 +121,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         }
     }
 
-    private void writeItemList(ConfigurationNode itemSection, IItemStack[] items) {
+    private void writeItemsList(ConfigurationNode itemSection, IItemStack[] items) {
         for(int i = 0; i < items.length; i++){
             if(items[i] == null)
                 continue;
@@ -124,7 +129,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
             ItemStack item = items[i].get();
 
             ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-            if(section == null) {
+            if(section.isVirtual()) {
                 itemSection.setValue(String.valueOf(i));
                 section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
             }
@@ -150,13 +155,22 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
     @Listener
     public void onOpen(InteractInventoryEvent.Open e){
-        Inventory inventory = e.getTargetInventory();
-
-        if (!this.hasInventoryOpen(new SpongeInventory(inventory)))
+        Inventory inv = e.getTargetInventory();
+        if(!(inv instanceof CarriedInventory))
             return;
-        InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory));
 
-        Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory));
+        CarriedInventory inventory = (CarriedInventory) inv;
+        Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+
+        if(carrier == null)
+            return;
+
+        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier)))
+            return;
+
+        InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
+
+        Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
         varMap.put("player", e.getCause().first(Player.class));
         varMap.put("trigger", "open");
 
@@ -165,11 +179,19 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
     @Listener
     public void onClick(ClickInventoryEvent e) {
-        Inventory inventory = e.getTargetInventory();
-
-        if (!this.hasInventoryOpen(new SpongeInventory(inventory)))
+        Inventory inv = e.getTargetInventory();
+        if(!(inv instanceof CarriedInventory))
             return;
-        InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory));
+
+        CarriedInventory inventory = (CarriedInventory) inv;
+        Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+
+        if(carrier == null)
+            return;
+
+        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier)))
+            return;
+        InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
 
         // just always cancel if it's GUI
         e.setCancelled(true);
@@ -178,10 +200,10 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         if(player == null)
             return;
 
-        SlotPos slot = e.getTransactions().get(0).getSlot().getProperty(SlotPos.class, null).orElse(null);
-        int rawSlot = slot.getY() * 9 + slot.getX();
+        SlotPos slotPos = e.getTransactions().get(0).getSlot().getProperty(SlotPos.class, "slotpos").orElse(null);
+        int rawSlot = slotPos.getY() * 9 + slotPos.getX();
 
-        Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory));
+        Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
         if(trigger.getItems()[rawSlot] == null)
             varMap.put("item", ItemStack.of(ItemTypes.AIR, 1));
         else{
@@ -197,7 +219,17 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
     @Listener
     public void onClose(InteractInventoryEvent.Close e){
-        onInventoryClose(e, new SpongePlayer(e.getCause().first(Player.class).get()), new SpongeInventory(e.getTargetInventory()));
+        Inventory inv = e.getTargetInventory();
+        if(!(inv instanceof CarriedInventory))
+            return;
+
+        CarriedInventory inventory = (CarriedInventory) inv;
+        Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+
+        if(carrier == null)
+            return;
+
+        onInventoryClose(e, new SpongePlayer(e.getCause().first(Player.class).get()), new SpongeInventory(inv, carrier));
     }
 
     @Override
@@ -248,10 +280,37 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     @Override
     protected IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
-        name = TextSerializers.FORMATTING_CODE.replaceCodes(name, '&');
-        Text text = Text.of(name);
-        return new SpongeInventory(Inventory.builder()
-                .property(new InventoryDimension(9, size))
-                .property(new InventoryTitle(text)).build(plugin));
+        Text text = TextUtil.colorStringToText(name);
+        Carrier dummy = new DummyCarrier();
+        Inventory inv = Inventory.builder()
+                .of(InventoryArchetypes.CHEST)
+                .withCarrier(dummy)
+                .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
+                .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(text))
+                .build(plugin);
+        return new SpongeInventory(inv, dummy);
+    }
+
+    private class DummyCarrier implements Carrier{
+        private final Object uniqueObject = new Object();
+
+        @Override
+        public CarriedInventory<? extends Carrier> getInventory() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public int hashCode() {
+            return uniqueObject.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(!(obj instanceof DummyCarrier))
+                return false;
+
+            return uniqueObject.equals(((DummyCarrier)obj).uniqueObject);
+        }
     }
 }

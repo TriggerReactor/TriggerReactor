@@ -19,11 +19,10 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.spongepowered.api.Sponge;
@@ -72,9 +71,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
     @Override
     public void reload() {
-        for(EventListener listener : registeredListeners) {
-            Sponge.getEventManager().unregisterListeners(listener);
+        for(Entry<EventHook, EventListener> entry : registeredListeners.entrySet()) {
+            Sponge.getEventManager().unregisterListeners(entry.getValue());
         }
+        registeredListeners.clear();
         super.reload();
     }
 
@@ -99,7 +99,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
     }
 
-    private Collection<EventListener> registeredListeners = new LinkedList<>();
+    private Map<EventHook, EventListener> registeredListeners = new HashMap<>();
     @SuppressWarnings("unchecked")
     @Override
     protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
@@ -111,8 +111,16 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
             }
 
         };
-        registeredListeners.add(listener);
+        registeredListeners.put(eventHook, listener);
         Sponge.getEventManager().registerListener(plugin, (Class<? extends Event>) clazz, listener);
+    }
+
+    @Override
+    protected void unregisterEvent(TriggerReactor plugin, EventHook eventHook) {
+        EventListener listener = registeredListeners.remove(eventHook);
+        if(listener != null) {
+            Sponge.getEventManager().unregisterListeners(listener);
+        }
     }
 
     @Override

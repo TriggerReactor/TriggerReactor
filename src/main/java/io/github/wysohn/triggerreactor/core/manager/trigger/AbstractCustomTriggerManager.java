@@ -20,10 +20,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -36,7 +34,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
-    private final Map<Class<?>, Set<CustomTrigger>> triggerMap = new ConcurrentHashMap<>();
     private final Map<String, CustomTrigger> nameMap = new ConcurrentHashMap<>();
 
     @Override
@@ -48,7 +45,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             }
         };
 
-        triggerMap.clear();
+        nameMap.clear();
 
         for(File ymlfile : folder.listFiles(filter)){
             if(!ymlfile.isFile())
@@ -85,14 +82,15 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             try {
                 String read = FileUtil.readFromFile(triggerFile);
 
-                Set<CustomTrigger> triggers = getTriggerSetForEvent(event);
+                //Set<CustomTrigger> triggers = getTriggerSetForEvent(event);
 
                 try {
                     CustomTrigger trigger = new CustomTrigger(event, eventName, triggerName, triggerFile, read);
                     trigger.setSync(isSync);
 
-                    triggers.add(trigger);
                     nameMap.put(triggerName, trigger);
+
+                    registerEvent(plugin, event, trigger);
                 } catch (TriggerInitFailedException e) {
                     e.printStackTrace();
                     continue;
@@ -136,22 +134,22 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         }
     }
 
-    /**
-     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
-     *  if couldn't find existing one already, and register it so can handle the event.
-     * @param eventname full name of the event
-     * @return Set of CustomTriggers associated with the event
-     */
-    protected Set<CustomTrigger> getTriggerSetForEvent(String eventname) {
-        Class<?> event;
-        try {
-            event = Class.forName(eventname);
-        } catch (ClassNotFoundException e) {
-            return new HashSet<>();
-        }
-
-        return getTriggerSetForEvent(event);
-    }
+//    /**
+//     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
+//     *  if couldn't find existing one already, and register it so can handle the event.
+//     * @param eventname full name of the event
+//     * @return Set of CustomTriggers associated with the event
+//     */
+//    protected Set<CustomTrigger> getTriggerSetForEvent(String eventname) {
+//        Class<?> event;
+//        try {
+//            event = Class.forName(eventname);
+//        } catch (ClassNotFoundException e) {
+//            return new HashSet<>();
+//        }
+//
+//        return getTriggerSetForEvent(event);
+//    }
 
     /**
      * First it tries to return Event in ABBREVIATIONS if such name exists; if
@@ -167,33 +165,33 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      */
     protected abstract Class<?> getEventFromName(String name) throws ClassNotFoundException;
 
-    /**
-     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
-     *  if couldn't find existing one already, and register it so can handle the event.
-     * @param event
-     * @return Set of CustomTriggers associated with the event
-     */
-    protected Set<CustomTrigger> getTriggerSetForEvent(Class<?> event) {
-        Set<CustomTrigger> triggers = triggerMap.get(event);
-        if(triggers == null){
-            //this will allow TriggerReactor to hook events from other plugins as well.
-            registerEvent(plugin, event, eventHook);
+//    /**
+//     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
+//     *  if couldn't find existing one already, and register it so can handle the event.
+//     * @param event
+//     * @return Set of CustomTriggers associated with the event
+//     */
+//    protected Set<CustomTrigger> getTriggerSetForEvent(Class<?> event) {
+//        Set<CustomTrigger> triggers = triggerMap.get(event);
+//        if(triggers == null){
+//            //this will allow TriggerReactor to hook events from other plugins as well.
+//            registerEvent(plugin, event, eventHook);
+//
+//            triggers = new HashSet<>();
+//            triggerMap.put(event, triggers);
+//        }
+//        return triggers;
+//    }
 
-            triggers = new HashSet<>();
-            triggerMap.put(event, triggers);
-        }
-        return triggers;
-    }
-
     /**
-     * Hook event to handle it manually. The caller must check if the event type
-     * with 'clazz' is already registered or not. Otherwise, same event will be hooked
-     * several times.
+     * Hook event to handle it manually.
      * @param plugin
      * @param clazz
      * @param eventHook
      */
     protected abstract void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook);
+
+    protected abstract void unregisterEvent(TriggerReactor plugin, EventHook eventHook);
 
     /**
      * Create a new CustomTrigger.
@@ -221,13 +219,12 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
         Class<?> event = this.getEventFromName(eventName);
 
-        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
-
         File triggerFile = getTriggerFile(folder, name, true);
         CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
 
-        triggers.add(trigger);
         nameMap.put(name, trigger);
+
+        this.registerEvent(plugin, event, trigger);
 
         return true;
     }
@@ -241,17 +238,17 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         return nameMap.get(name);
     }
 
-    /**
-     * get set of triggers associated with 'className' Event
-     * @param eventName the abbreviation, simple event name, or full event name. See {@link #getEventFromName(String)}
-     * @return set of triggers; null if nothing is registered with the 'className'
-     * @throws ClassNotFoundException See {@link #getEventFromName(String)}
-     */
-    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException {
-        Class<?> clazz = this.getEventFromName(eventName);
-
-        return triggerMap.get(clazz);
-    }
+//    /**
+//     * get set of triggers associated with 'className' Event
+//     * @param eventName the abbreviation, simple event name, or full event name. See {@link #getEventFromName(String)}
+//     * @return set of triggers; null if nothing is registered with the 'className'
+//     * @throws ClassNotFoundException See {@link #getEventFromName(String)}
+//     */
+//    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException {
+//        Class<?> clazz = this.getEventFromName(eventName);
+//
+//        return triggerMap.get(clazz);
+//    }
 
     /**
      * Delete the Custom Trigger with 'name'
@@ -263,10 +260,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             return false;
 
         CustomTrigger trigger = nameMap.remove(name);
-        Set<CustomTrigger> triggers = triggerMap.get(trigger.event);
-        if(triggers != null){
-            triggers.remove(trigger);
-        }
+
+        unregisterEvent(plugin, trigger);
 
         deleteInfo(trigger);
 
@@ -283,7 +278,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         super(plugin, ref, tirggerFolder);
     }
 
-    public static class CustomTrigger extends Trigger{
+    public static class CustomTrigger extends Trigger implements EventHook{
         final Class<?> event;
         private final String eventName;
 
@@ -342,18 +337,13 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         public String getEventName() {
             return eventName;
         }
-    }
 
-    private final EventHook eventHook = (event) -> {
-        Set<CustomTrigger> triggers = triggerMap.get(event.getClass());
-        if(triggers == null)
-            return;
-
-        for(CustomTrigger trigger : triggers){
+        @Override
+        public void onEvent(Object e) {
             Map<String, Object> vars = new HashMap<>();
-            trigger.activate(event, vars);
+            this.activate(e, vars);
         }
-    };
+    }
 
     @FunctionalInterface
     public interface EventHook{
