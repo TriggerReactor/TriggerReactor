@@ -6,9 +6,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Event;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.chat.ChatTypes;
+import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
 
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
@@ -36,5 +40,9 @@ public interface SpongeScriptEngineInitializer extends IScriptEngineInitializer 
         IScriptEngineInitializer.registerClass(sem, Sponge.class);
         IScriptEngineInitializer.registerClass(sem, TextUtil.class);
         IScriptEngineInitializer.registerClass(sem, Location.class);
+        IScriptEngineInitializer.registerClass(sem, Text.class);
+        IScriptEngineInitializer.registerClass(sem, TextColors.class);
+        IScriptEngineInitializer.registerClass(sem, ChatTypes.class);
+        IScriptEngineInitializer.registerClass(sem, Keys.class);
     }
 }
