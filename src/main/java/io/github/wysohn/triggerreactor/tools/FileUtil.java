@@ -25,6 +25,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
 
 public class FileUtil {
     /**
@@ -102,5 +104,29 @@ public class FileUtil {
             }
             file.delete();
         }
+    }
+
+    /**
+     * Move target folder to destination folder.
+     * @param folder
+     * @param dest
+     * @param options
+     * @throws IOException
+     */
+    public static void moveFolder(File folder, File dest, CopyOption... options) throws IOException {
+        if (folder.isFile())
+            return;
+
+        for (File target : folder.listFiles()) {
+            if (target.isFile()) {
+                dest.mkdirs();
+                Files.move(target.toPath().normalize(), dest.toPath().normalize(), options);
+            } else {
+                File destFolder = new File(dest, target.getName());
+                moveFolder(target, destFolder);
+            }
+        }
+
+        folder.delete();
     }
 }

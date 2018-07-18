@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 import javax.script.ScriptEngineManager;
@@ -27,6 +26,7 @@ import javax.script.ScriptException;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 
@@ -40,7 +40,7 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Bu
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         this.placeholderFolder = new File(plugin.getDataFolder(), "Placeholder");
-        Files.move(new File(this.placeholderFolder, "Bukkit").toPath(), this.placeholderFolder.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        FileUtil.moveFolder(new File(this.placeholderFolder, "Bukkit"), this.placeholderFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }

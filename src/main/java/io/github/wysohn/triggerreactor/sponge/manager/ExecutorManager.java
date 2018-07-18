@@ -3,7 +3,6 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +17,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
@@ -34,8 +34,7 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         });
 
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        Files.move(new File(this.executorFolder, "Sponge").toPath().normalize(),
-                this.executorFolder.toPath().normalize(), StandardCopyOption.REPLACE_EXISTING);
+        FileUtil.moveFolder(new File(this.executorFolder, "Sponge"), this.executorFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }
