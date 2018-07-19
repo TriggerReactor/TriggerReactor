@@ -25,6 +25,7 @@ import org.spongepowered.api.data.DataView;
 import org.spongepowered.api.data.persistence.DataBuilder;
 import org.spongepowered.api.data.persistence.DataTranslator;
 import org.spongepowered.api.data.persistence.DataTranslators;
+import org.spongepowered.api.item.inventory.ItemStack;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
@@ -142,8 +143,13 @@ public class VariableManager extends AbstractVariableManager{
         DataSerializable ds = (DataSerializable) value;
         DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
 
-        typeNode.setValue(value.getClass().getName());
-        valueNode.setValue(translator.translate(ds.toContainer()));
+        if(value instanceof ItemStack) {
+            typeNode.setValue(ItemStack.class.getName());
+            valueNode.setValue(translator.translate(ds.toContainer()));
+        }else {
+            typeNode.setValue(value.getClass().getName());
+            valueNode.setValue(translator.translate(ds.toContainer()));
+        }
     }
 
     @Override
