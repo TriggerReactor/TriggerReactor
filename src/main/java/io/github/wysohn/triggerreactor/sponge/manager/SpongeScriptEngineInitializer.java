@@ -6,10 +6,18 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.effect.potion.PotionEffect;
+import org.spongepowered.api.effect.potion.PotionEffectTypes;
 import org.spongepowered.api.entity.Entity;
+import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Event;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.enchantment.Enchantment;
+import org.spongepowered.api.item.enchantment.EnchantmentTypes;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.chat.ChatTypes;
 import org.spongepowered.api.text.format.TextColors;
@@ -40,9 +48,17 @@ public interface SpongeScriptEngineInitializer extends IScriptEngineInitializer 
         IScriptEngineInitializer.registerClass(sem, Sponge.class);
         IScriptEngineInitializer.registerClass(sem, TextUtil.class);
         IScriptEngineInitializer.registerClass(sem, Location.class);
+        IScriptEngineInitializer.registerClass(sem, ItemStack.class);
         IScriptEngineInitializer.registerClass(sem, Text.class);
         IScriptEngineInitializer.registerClass(sem, TextColors.class);
         IScriptEngineInitializer.registerClass(sem, ChatTypes.class);
         IScriptEngineInitializer.registerClass(sem, Keys.class);
+        IScriptEngineInitializer.registerClass(sem, PotionEffect.class);
+        IScriptEngineInitializer.registerClass(sem, PotionEffectTypes.class);
+        IScriptEngineInitializer.registerClass(sem, EntityTypes.class);
+        IScriptEngineInitializer.registerClass(sem, ItemTypes.class);
+        IScriptEngineInitializer.registerClass(sem, Enchantment.class);
+        IScriptEngineInitializer.registerClass(sem, EnchantmentTypes.class);
+        IScriptEngineInitializer.registerClass(sem, BlockTypes.class);
     }
 }

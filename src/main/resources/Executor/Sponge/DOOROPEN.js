@@ -14,23 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function BURN(args){
-	if(args.length == 1){
-		var seconds = args[0] * 20;
-		
-		player.offer(Keys.FIRE_TICKS, seconds.intValue());
-	}else if(args.length == 2){ 
-		var entity = args[0];
-		var seconds = args[1] * 20;
+ function DOOROPEN(args) {
+	if (args.length == 1 || args.length == 3) {
+		var location;
 
-		if(typeof entity == "string"){
-			entity = Sponge.getServer().getPlayer(entity);
+		if(args.length == 1){
+			location = args[0];
+		}else{
+			var world = player.getWorld();          
+			location = new Location(world, args[0], args[1], args[2]);
 		}
-
-		entity.offer(Keys.FIRE_TICKS, seconds.intValue());
+		
+		var current = location.get(Keys.OPEN).orElse(null);
+		if(current == null)
+			throw new Error("Block at "+location+" doesn't have OPEN trait!");
+			
+		location.offer(Keys.OPEN, true);
 	}else {
 		throw new Error(
-			'Invalid parameters. Need [Number] or [Entity<entity or string>, Number]');
+			'Invalid parameters. Need [Location<location or number number number>]');
 	}
 	return null;
 }
