@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function CLEARCHAT(args){
-	if(player == null)
+    if(player == null)
 		return null;
 		
 	for(var i = 0; i < 30; i++)
