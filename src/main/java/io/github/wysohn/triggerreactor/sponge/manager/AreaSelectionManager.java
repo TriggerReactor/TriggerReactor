@@ -21,6 +21,7 @@ import java.util.UUID;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -41,7 +42,8 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager{
     }
 
     @Listener
-    public void onInteract(InteractBlockEvent.Primary e){
+    @Exclude({InteractBlockEvent.Primary.OffHand.class, InteractBlockEvent.Secondary.OffHand.class})
+    public void onInteract(InteractBlockEvent e){
         Player player = e.getCause().first(Player.class).orElse(null);
         if(player == null)
             return;
