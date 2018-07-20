@@ -14,6 +14,8 @@ import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.EntityTypes;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Event;
+import org.spongepowered.api.event.cause.Cause;
+import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.enchantment.Enchantment;
 import org.spongepowered.api.item.enchantment.EnchantmentTypes;
@@ -60,5 +62,7 @@ public interface SpongeScriptEngineInitializer extends IScriptEngineInitializer 
         IScriptEngineInitializer.registerClass(sem, Enchantment.class);
         IScriptEngineInitializer.registerClass(sem, EnchantmentTypes.class);
         IScriptEngineInitializer.registerClass(sem, BlockTypes.class);
+        IScriptEngineInitializer.registerClass(sem, Cause.class);
+        IScriptEngineInitializer.registerClass(sem, EventContext.class);
     }
 }

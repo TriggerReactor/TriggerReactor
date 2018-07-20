@@ -42,7 +42,7 @@
 		if(enchan.toUpperCase() !== 'NONE'){
 			var encharg = enchan.split(',');
 			for each (en in encharg){
-				var ench = ReflectionUTil.getField(EnchantmentTypes.class, null, en.split(':')[0])
+				var ench = ReflectionUtil.getField(EnchantmentTypes.class, null, en.split(':')[0])
 				var level = parseInt(en.split(':')[1]);
 
 				if(!ench)

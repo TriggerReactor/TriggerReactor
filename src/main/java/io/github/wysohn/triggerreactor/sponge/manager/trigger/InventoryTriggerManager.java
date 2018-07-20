@@ -25,6 +25,7 @@ import java.util.Map;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.ItemTypes;
@@ -218,7 +219,10 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     }
 
     @Listener
-    public void onClose(InteractInventoryEvent.Close e){
+    public void onClose(InteractInventoryEvent.Close e, @First Player player){
+        if(player == null)
+            return;
+
         Inventory inv = e.getTargetInventory();
         if(!(inv instanceof CarriedInventory))
             return;
@@ -229,7 +233,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         if(carrier == null)
             return;
 
-        onInventoryClose(e, new SpongePlayer(e.getCause().first(Player.class).get()), new SpongeInventory(inv, carrier));
+        onInventoryClose(e, new SpongePlayer(player), new SpongeInventory(inv, carrier));
     }
 
     @Override
