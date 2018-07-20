@@ -38,12 +38,10 @@ import org.spongepowered.api.item.inventory.Slot;
 import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
-import org.spongepowered.api.item.inventory.property.SlotPos;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.serializer.TextSerializers;
 import org.spongepowered.api.util.TypeTokens;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
@@ -201,8 +199,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         if(player == null)
             return;
 
-        SlotPos slotPos = e.getTransactions().get(0).getSlot().getProperty(SlotPos.class, "slotpos").orElse(null);
-        int rawSlot = slotPos.getY() * 9 + slotPos.getX();
+        SlotIndex slotIndex = e.getTransactions().get(0).getSlot().getInventoryProperty(SlotIndex.class).orElse(null);
+        int rawSlot = slotIndex.getValue();
 
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
         if(trigger.getItems()[rawSlot] == null)
@@ -260,12 +258,12 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
        Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
        if(displayName != null)
-           item.offer(Keys.DISPLAY_NAME, Text.of(TextSerializers.FORMATTING_CODE.replaceCodes(displayName.toPlain(), '&')));
+           item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
 
        List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
        if(lores != null){
            for(int i = 0; i < lores.size(); i++) {
-               lores.set(i, Text.of(TextSerializers.FORMATTING_CODE.replaceCodes(lores.get(i).toPlain(), '&')));
+               lores.set(i, TextUtil.colorStringToText(lores.get(i).toPlain()));
            }
            item.offer(Keys.ITEM_LORE, lores);
        }

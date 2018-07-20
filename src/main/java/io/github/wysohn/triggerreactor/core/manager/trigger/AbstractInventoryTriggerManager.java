@@ -264,6 +264,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         varMap.put("player", player.get());
         varMap.put("trigger", "close");
 
+        trigger.setSync(true);
         trigger.activate(e, varMap);
 
         inventoryMap.remove(inventory);
