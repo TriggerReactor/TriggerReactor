@@ -18,5 +18,5 @@ function maxhealth(args){
 	if(player == null)
 		return null;
 		
-	return player.get(Keys.MAX_HEALTH).orElse(false);
+	return player.get(Keys.MAX_HEALTH).orElse(-1);
 }
