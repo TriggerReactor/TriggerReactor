@@ -28,11 +28,11 @@
 		var amount = args[1];
 		var enchan = args[2];
 		var location;
+		var world = player.getWorld();
 
 		if(args.length == 4){
 			location = args[3];
-		}else{
-			var world = player.getWorld();          
+		}else{   
 			location = new Location(world, args[3], args[4], args[5]);
 		}
 

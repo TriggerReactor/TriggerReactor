@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.item.inventory.ChangeInventoryEvent;
+import org.spongepowered.api.event.world.ExplosionEvent;
 import org.spongepowered.api.item.ItemType;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -78,6 +80,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             return;
 
         Location<World> loc = clicked.getLocation().orElse(null);
+        if(loc == null)
+            return;
+
         T trigger = getTriggerForLocation(loc);
 
         if(IS != null
@@ -140,6 +145,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         IPlayer player = new SpongePlayer(p);
 
         Location<World> loc = clicked.getLocation().orElse(null);
+        if(loc == null)
+            return;
+
         T trigger = getTriggerForLocation(loc);
         if(trigger != null){
             p.sendMessage(Text.builder("Another trigger is set at there!").color(TextColors.RED).build());
@@ -240,7 +248,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         for (Transaction<BlockSnapshot> transaction : e.getTransactions()) {
             BlockSnapshot block = transaction.getOriginal();
 
-            T trigger = getTriggerForLocation(block.getLocation().orElse(null));
+            Location<World> loc = block.getLocation().orElse(null);
+            if(loc == null)
+                return;
+
+            T trigger = getTriggerForLocation(loc);
             if(trigger == null)
                 return;
 
@@ -249,6 +261,17 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             player.sendMessage(Text.builder("Cannot break trigger block.").color(TextColors.GRAY).build());
             player.sendMessage(Text.builder("To remove trigger, hold inspection tool ").color(TextColors.GRAY).build());
             e.setCancelled(true);
+        }
+    }
+
+    @Listener
+    public void onTnTBreaK(ExplosionEvent.Detonate e) {
+        for(Iterator<Location<World>> iter = e.getAffectedLocations().iterator(); iter.hasNext();) {
+            T trigger = getTriggerForLocation(iter.next());
+            if(trigger == null)
+                continue;
+
+            iter.remove();
         }
     }
 

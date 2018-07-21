@@ -17,6 +17,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.sponge.tools.TemporarilyPrivilegedPlayer;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
@@ -116,7 +117,7 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         public Void call() throws Exception {
             // sponge has some convenient stuff here :)
             // this bypass the permission check
-            Sponge.getCommandManager().process(player, cmd);
+            Sponge.getCommandManager().process(new TemporarilyPrivilegedPlayer(player), cmd);
             return null;
         }
 

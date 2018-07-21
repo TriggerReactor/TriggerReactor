@@ -64,6 +64,9 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         BlockSnapshot clicked = e.getTargetBlock();
 
         Location<World> loc = clicked.getLocation().orElse(null);
+        if(loc == null)
+            return;
+
         ClickTrigger trigger = getTriggerForLocation(loc);
         if(trigger == null)
             return;

@@ -21,7 +21,6 @@ import java.util.UUID;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
-import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -42,8 +41,16 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager{
     }
 
     @Listener
-    @Exclude({InteractBlockEvent.Primary.OffHand.class, InteractBlockEvent.Secondary.OffHand.class})
-    public void onInteract(InteractBlockEvent e){
+    public void onInteract(InteractBlockEvent.Primary.MainHand e){
+        onInteract(e, true);
+    }
+
+    @Listener
+    public void onInteract(InteractBlockEvent.Secondary.MainHand e){
+        onInteract(e, false);
+    }
+
+    public void onInteract(InteractBlockEvent e, boolean leftClick){
         Player player = e.getCause().first(Player.class).orElse(null);
         if(player == null)
             return;
@@ -58,9 +65,9 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager{
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetBlock().getLocation().orElse(null));
 
         ClickResult result = null;
-        if(e instanceof InteractBlockEvent.Primary.MainHand){
+        if(leftClick){
             result = onClick(ClickAction.LEFT_CLICK_BLOCK, uuid, sloc);
-        }else if(e instanceof InteractBlockEvent.Primary.OffHand){
+        }else{
             result = onClick(ClickAction.RIGHT_CLICK_BLOCK, uuid, sloc);
         }
 

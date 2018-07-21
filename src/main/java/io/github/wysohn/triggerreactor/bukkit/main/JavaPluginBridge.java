@@ -129,6 +129,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 
 public class JavaPluginBridge extends TriggerReactor implements Plugin{
@@ -729,41 +730,6 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     e.printStackTrace();
                 }
             }
-        }
-    }
-
-    //https://bukkit.org/threads/get-server-tps.143410/
-    public class Lag implements Runnable {
-        public int TICK_COUNT = 0;
-        public long[] TICKS = new long[600];
-
-        public double getTPS() {
-            return getTPS(100);
-        }
-
-        public double getTPS(int ticks) {
-            if (TICK_COUNT < ticks) {
-                return 20.0D;
-            }
-            int target = (TICK_COUNT - 1 - ticks) % TICKS.length;
-            long elapsed = System.currentTimeMillis() - TICKS[target];
-
-            return ticks / (elapsed / 1000.0D);
-        }
-
-        public long getElapsed(int tickID) {
-            if (TICK_COUNT - tickID >= TICKS.length) {
-            }
-
-            long time = TICKS[(tickID % TICKS.length)];
-            return System.currentTimeMillis() - time;
-        }
-
-        @Override
-        public void run() {
-            TICKS[(TICK_COUNT % TICKS.length)] = System.currentTimeMillis();
-
-            TICK_COUNT += 1;
         }
     }
 

@@ -119,6 +119,7 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.WalkTriggerManager
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.Lag;
 
 @Plugin(id = TriggerReactor.ID, version = TriggerReactor.VERSION)
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor{
@@ -133,6 +134,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;
+
+    private Lag tpsHelper;
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
@@ -195,6 +198,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         this.repeatManager = new RepeatingTriggerManager(this);
 
         this.namedTriggerManager = new NamedTriggerManager(this);
+
+        tpsHelper = new Lag();
+        Sponge.getScheduler().createTaskBuilder().execute(tpsHelper).delayTicks(100L).intervalTicks(1L).submit(this);
+
     }
 
     private void initFailed(Exception e) {
@@ -202,6 +209,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         getLogger().severe("Initialization failed!");
         getLogger().severe(e.getMessage());
         disablePlugin();
+    }
+
+    public Lag getTpsHelper() {
+        return tpsHelper;
     }
 
     @Listener

@@ -43,7 +43,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO{
-    private static SelfReference common;
+    protected static SelfReference common;
 
     protected final File folder;
 

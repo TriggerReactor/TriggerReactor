@@ -17,8 +17,11 @@
 package io.github.wysohn.triggerreactor.sponge.manager;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +34,8 @@ import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.message.MessageChannelEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.channel.MessageChannel;
+import org.spongepowered.api.text.channel.MessageReceiver;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -64,72 +69,88 @@ public class ScriptEditManager extends AbstractScriptEditManager{
 	}
 
 	@Listener
-	public void onChat(MessageChannelEvent.Chat e, @First Player receiver){
-	    SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(receiver);
+	public void onChat(MessageChannelEvent.Chat e, @First Player sender){
+	    SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(sender);
 
-	    if(!editings.containsKey(editorUser))
-	        return;
-	    e.setCancelled(true);
-	    ScriptEditor editor = editings.get(editorUser);
+	    if(editings.containsKey(editorUser)){
+	        e.setCancelled(true);
+	        ScriptEditor editor = editings.get(editorUser);
 
-	    if(viewingUsage.remove(editorUser) || exitDoublecheck.remove(editorUser)) {
+	        if(viewingUsage.remove(editorUser)) {
+	            editor.printScript(editorUser);
+	            return;
+	        }
+
+	        Text message = e.getRawMessage();
+	        String arg1 = message.toPlainSingle();
+
+	        if (arg1.equals("save")) {
+	            try {
+	                editor.save();
+	            } catch (IOException | ScriptException ex) {
+	                plugin.handleException(e, ex);
+	            }
+
+	            editings.remove(editorUser);
+	            editorUser.sendMessage("&aSaved!");
+	        } else if (arg1.equals("exit")) {
+	            if(exitDoublecheck.remove(editorUser)) {
+	                editings.remove(editorUser);
+	                editorUser.sendMessage("&7Done");
+	            } else {
+	                exitDoublecheck.add(editorUser);
+	                editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! "
+	                        + "&dType &6exit &done more time to confirm.");
+	            }
+	            return;
+	        } else if (arg1.equals("il")) {
+	            editor.insertNewLine();
+	        } else if (arg1.equals("dl")) {
+	            editor.deleteLine();
+	        } else if (arg1.length() > 0 && arg1.charAt(0) == 'u') {
+	            String[] split = arg1.split(" ");
+
+	            int lines = 1;
+	            try {
+	                lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
+	            } catch (NumberFormatException ex) {
+	                plugin.handleException(e, ex);
+	            }
+
+	            editor.up(lines);
+	        } else if (arg1.length() > 0 && arg1.charAt(0) == 'd') {
+	            String[] split = arg1.split(" ");
+
+	            int lines = 1;
+	            try {
+	                lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
+	            } catch (NumberFormatException ex) {
+	                plugin.handleException(e, ex);
+	            }
+
+	            editor.down(lines);
+	        } else {
+	            if(!exitDoublecheck.remove(editorUser)) {
+	                editor.intput(arg1.replaceAll("\\^", " "));
+	            }
+	        }
+
 	        editor.printScript(editorUser);
-	        return;
+	    } else {
+	        MessageChannel channel = e.getOriginalChannel();
+	        Collection<MessageReceiver> copy = new LinkedList<>();
+
+            for(Iterator<MessageReceiver> iter = channel.getMembers().iterator(); iter.hasNext();) {
+                MessageReceiver receiver = iter.next();
+                if(receiver instanceof Player) {
+                    SpongeScriptEditorUser receivingUser = new SpongeScriptEditorUser((Player) receiver);
+                    if(!editings.containsKey(receivingUser))
+                        copy.add(receiver);
+                }
+            }
+
+            e.setChannel(MessageChannel.fixed(copy));
 	    }
-
-        Text message = e.getRawMessage();
-        String arg1 = message.toPlainSingle();
-
-        if (arg1.equals("save")) {
-            try {
-                editor.save();
-            } catch (IOException | ScriptException ex) {
-                plugin.handleException(e, ex);
-            }
-
-            editings.remove(editorUser);
-            editorUser.sendMessage("&aSaved!");
-        } else if (arg1.equals("exit")) {
-            if(exitDoublecheck.remove(editorUser)) {
-                editings.remove(editorUser);
-            } else {
-                exitDoublecheck.add(editorUser);
-                editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! "
-                        + "&dType &6exit &done more time to confirm.");
-            }
-            editorUser.sendMessage("&7Done");
-            return;
-        } else if (arg1.equals("il")) {
-            editor.insertNewLine();
-        } else if (arg1.equals("dl")) {
-            editor.deleteLine();
-        } else if (arg1.length() > 0 && arg1.charAt(0) == 'u') {
-            String[] split = arg1.split(" ");
-
-            int lines = 1;
-            try {
-                lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
-            } catch (NumberFormatException ex) {
-                plugin.handleException(e, ex);
-            }
-
-            editor.up(lines);
-        } else if (arg1.length() > 0 && arg1.charAt(0) == 'd') {
-            String[] split = arg1.split(" ");
-
-            int lines = 1;
-            try {
-                lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
-            } catch (NumberFormatException ex) {
-                plugin.handleException(e, ex);
-            }
-
-            editor.down(lines);
-        } else {
-            editor.intput(arg1.replaceAll("\\^", " "));
-        }
-
-        editor.printScript(editorUser);
     }
 
 	@Listener
