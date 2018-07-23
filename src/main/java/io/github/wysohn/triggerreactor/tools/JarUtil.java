@@ -44,6 +44,8 @@ public class JarUtil {
             path = trimmer.trim(path);
         String decodedPath = URLDecoder.decode(path, "UTF-8");
         try {
+            if(!decodedPath.startsWith("file"))
+                decodedPath = "file://"+decodedPath;
             fullPath = new File(new URI(decodedPath));
         } catch (URISyntaxException e) {
             e.printStackTrace();

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -76,7 +77,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                             boolean valid = false;
                             try {
                                 valid = future.get();
-                            } catch (InterruptedException e1) {
+                            } catch (InterruptedException | CancellationException e1) {
                             } catch (ExecutionException e1) {
                                 e1.printStackTrace();
                             }

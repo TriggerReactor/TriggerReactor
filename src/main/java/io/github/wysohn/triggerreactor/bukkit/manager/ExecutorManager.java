@@ -92,38 +92,15 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
                 if(player == null || !(player instanceof Player))
                     return null;
 
-                boolean wasOp = false;
-                try {
-                    if (plugin.isServerThread()) {
-                        wasOp = new IsOp((Player) player).call();
-                    } else {
-                        wasOp = plugin.callSyncMethod(new IsOp((Player) player)).get();
-                    }
-
-                    if(!wasOp) {
-                        if (plugin.isServerThread()) {
-                            new SetOp((Player) player, true).call();
-                        } else {
-                            plugin.callSyncMethod(new SetOp((Player) player, true)).get();
-                        }
-                    }
-
-                    if(args.length > 0) {
-                        if (plugin.isServerThread()) {
-                            new DispatchCommand((Player) player, String.valueOf(args[0])).call();
-                        } else {
-                            plugin.callSyncMethod(new DispatchCommand((Player) player, String.valueOf(args[0]))).get();
-                        }
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                } finally {
-                    if(!wasOp) {
-                        if (plugin.isServerThread()) {
-                            new SetOp((Player) player, false).call();
-                        } else {
-                            plugin.callSyncMethod(new SetOp((Player) player, false)).get();
-                        }
+                DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
+                if(plugin.isServerThread()) {
+                    call.call();
+                }else {
+                    try {
+                        plugin.callSyncMethod(call).get();
+                    } catch (Exception ex) {
+                        //to double check
+                        call.deOpIfWasNotOp();
                     }
                 }
 
@@ -156,51 +133,37 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
             System.out.println(i+". "+stack.get(i));
     }
 
-    private class IsOp implements Callable<Boolean>{
-        private final Player player;
-
-        public IsOp(Player player) {
-            super();
-            this.player = player;
-        }
-
-        @Override
-        public Boolean call() throws Exception {
-            return player.isOp();
-        }
-
-    }
-
-    private class DispatchCommand implements Callable<Void>{
+    private class DispatchCommandAsOP implements Callable<Void>{
         private final Player player;
         private final String cmd;
 
-        public DispatchCommand(Player player, String cmd) {
+        private boolean wasOp;
+
+        public DispatchCommandAsOP(Player player, String cmd) {
             super();
             this.player = player;
             this.cmd = cmd;
         }
 
+        private void deOpIfWasNotOp() {
+            if(!wasOp)
+                player.setOp(false);
+        }
+
         @Override
         public Void call() throws Exception {
-            Bukkit.dispatchCommand(player, cmd);
+            wasOp = player.isOp();
+
+            try {
+                player.setOp(true);
+                Bukkit.dispatchCommand(player, cmd);
+            } catch (Exception e) {
+
+            } finally {
+                deOpIfWasNotOp();
+            }
             return null;
         }
 
-    }
-
-    private class SetOp implements Callable<Void>{
-        private final Player player;
-        private final boolean op;
-        public SetOp(Player player, boolean op) {
-            super();
-            this.player = player;
-            this.op = op;
-        }
-        @Override
-        public Void call() throws Exception {
-            player.setOp(op);
-            return null;
-        }
     }
 }

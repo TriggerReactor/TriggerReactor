@@ -848,7 +848,11 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
     @Override
     public <T> Future<T> callSyncMethod(Callable<T> call) {
-        return Bukkit.getScheduler().callSyncMethod(bukkitPlugin, call);
+        try {
+            return Bukkit.getScheduler().callSyncMethod(bukkitPlugin, call);
+        } catch (Exception e) {
+        }
+        return null;
     }
 
     @Override
