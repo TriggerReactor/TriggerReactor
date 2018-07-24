@@ -62,6 +62,8 @@ dependencies {
 	
     testCompile 'junit:junit:4.+'
     testCompile 'org.mockito:mockito-core:2.+'
+    testCompile 'eu.codearte.catch-exception:catch-exception:1.+'
+    testCompile 'org.assertj:assertj-core:1.+'
 }
 
 javadoc {

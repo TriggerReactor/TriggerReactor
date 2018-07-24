@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +38,8 @@ public class Interpreter {
     private final Map<String, Object> gvars;
     private final Map<String, Object> vars;
     private final SelfReference selfReference;
+
+    private final Map<String, Class<?>> importMap = new HashMap<>();
 
     private Stack<Token> stack = new Stack<>();
 
@@ -636,7 +639,7 @@ public class Interpreter {
 
                             if(left.isObject()){
                                 callFunction(right, left, args);
-                            }else{
+                            } else{
                                 Accessor accessor = (Accessor) left.value;
 
                                 Object var;
@@ -739,6 +742,9 @@ public class Interpreter {
                 stack.push(new Token(node.getToken().type, node.getToken().value));
             }else if(node.getToken().type == Type.NULLVALUE){
                 stack.push(new Token(node.getToken().type, null));
+            }else if(node.getToken().type == Type.IMPORT) {
+                Class<?> clazz = Class.forName((String) node.getToken().getValue());
+                importMap.put(clazz.getSimpleName(), clazz);
             }else{
                 throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
@@ -790,12 +796,31 @@ public class Interpreter {
 
     private void callFunction(Token right, Token left, Object[] args) throws InterpreterException {
         Object result;
-        try {
-            result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
-        } catch (NoSuchMethodException e) {
-            throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist or parameter types not match.", e);
-        } catch (Exception e) {
-            throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"!", e);
+
+        if(importMap.containsKey(right.value)) {
+            Class<?> clazz = importMap.get(right.value);
+
+            try {
+                result = ReflectionUtil.constructNew(clazz, args);
+            } catch (NoSuchMethodException | InstantiationException | IllegalArgumentException | IllegalAccessException e) {
+                throw new InterpreterException("Cannot create new instance for "+clazz.getSimpleName(), e);
+            }
+        } else if(left.type == Type.CLAZZ) {
+            Class<?> clazz = (Class<?>) left.value;
+
+            try {
+                result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
+            } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException e) {
+                throw new InterpreterException("Cannot invoke static method "+(clazz.getSimpleName())+"."+right.value+"()!", e);
+            }
+        } else {
+            try {
+                result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+            } catch (NoSuchMethodException e) {
+                throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist or parameter types not match.", e);
+            } catch (Exception e) {
+                throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"!", e);
+            }
         }
 
         if(result != null){
@@ -824,6 +849,11 @@ public class Interpreter {
 
     private Token unwrapVariable(Token varToken) throws InterpreterException {
         if(varToken.type == Type.ID){
+            if(importMap.containsKey(varToken.value)) {
+                Class<?> clazz = importMap.get(varToken.value);
+                return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
+            }
+
             Object var = vars.get(varToken.value);
 
             return parseValue(var);

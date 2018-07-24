@@ -283,12 +283,44 @@ public class Lexer {
             read();
         }
 
-        return new Token(Type.ID, builder.toString(), row, col);
+        String id = builder.toString();
+        if(id.equalsIgnoreCase("IMPORT")) {
+            skipWhiteSpaces();
+
+            if(c == '.') {
+                throw new LexerException("IMPORT found a dangling .(dot)!", this);
+            }
+
+            if(!isClassNameCharacter(c)) {
+                throw new LexerException("IMPORT found an unexpected character ["+c+"]", this);
+            }
+
+            StringBuilder classNameBuilder = new StringBuilder();
+            while(isClassNameCharacter(c)) {
+                classNameBuilder.append(c);
+                read();
+            }
+
+            if(classNameBuilder.charAt(classNameBuilder.length() - 1) == '.')
+                classNameBuilder.deleteCharAt(classNameBuilder.length() - 1);
+
+            if(!eos && c != '\n' && c != ';') {
+                throw new LexerException("IMPORT expected end of line or ; at the end but found ["+c+"]", this);
+            }
+
+            return new Token(Type.IMPORT, classNameBuilder.toString(), row, col);
+        } else {
+            return new Token(Type.ID, builder.toString(), row, col);
+        }
     }
 
     private Token readEndline() throws IOException {
         read();
         return new Token(Type.ENDL, null, row, col);
+    }
+
+    private static boolean isClassNameCharacter(char c) {
+        return Character.isAlphabetic(c) || c == '.' || c == '$';
     }
 
     private static boolean isIdCharacter(char c){
@@ -302,6 +334,8 @@ public class Lexer {
     public static void main(String[] ar) throws IOException, LexerException{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
+                + "IMPORT some.class.Something.\n"
+                + "\n"
                 + "X = 5\n"
                 + "str = \"abc\"\n"
                 + "FOR i = 0 : 10\n"
