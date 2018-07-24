@@ -919,9 +919,12 @@ public class TriggerTest {
     public void testImport() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = "IMPORT io.github.wysohn.triggerreactor.TriggerTest$TheTest;"
+                + "IMPORT io.github.wysohn.triggerreactor.TriggerTest$TestEnum;"
                 + "#TEST TheTest;"
                 + "#TEST2 TheTest.staticTest();"
-                + "#TEST3 TheTest().localTest();";
+                + "#TEST3 TheTest().localTest();"
+                + "#TEST4 TheTest.staticField;"
+                + "#TEST5 TestEnum.IMTEST;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -955,6 +958,24 @@ public class TriggerTest {
             }
 
         });
+        executorMap.put("TEST4", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("staticField", args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST5", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(TestEnum.IMTEST, args[0]);
+                return null;
+            }
+
+        });
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
@@ -964,6 +985,8 @@ public class TriggerTest {
     }
 
     public static class TheTest{
+        public static String staticField = "staticField";
+
         public InTest in = new InTest();
         public TheTest() {
 
