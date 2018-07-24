@@ -18,9 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -162,21 +160,11 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
         if(from != null){
             from.getValue().removeEntity(e.getPlayer().getUniqueId());
-
-            List<Entity> entities = new ArrayList<>();
-            for(IEntity ie : from.getValue().getEntities())
-                entities.add(ie.get());
-            varMap.put("entities", entities);
             from.getValue().activate(e, varMap, EventType.EXIT);
         }
 
         if(to != null){
             to.getValue().addEntity(new BukkitEntity(e.getPlayer()));
-
-            List<Entity> entities = new ArrayList<>();
-            for(IEntity ie : from.getValue().getEntities())
-                entities.add(ie.get());
-            varMap.put("entities", entities);
             to.getValue().activate(e, varMap, EventType.ENTER);
         }
     }
