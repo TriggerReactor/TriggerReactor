@@ -147,25 +147,36 @@ public class ReflectionUtil {
                 }
 
                 if (method.isVarArgs()) {
+                    //check non vararg part
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
                         matches = checkMatch(parameterTypes[i], args[i]);
                         if(!matches)
                             break;
                     }
 
-                    Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
-                            args.length - parameterTypes.length + 1);
-                    for (int k = 0; k < Array.getLength(varargs); k++) {
-                        Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                    //check rest
+                    for(int i = parameterTypes.length - 1; i < args.length; i++) {
+                        Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
+                        matches = checkMatch(arrayType, args[i]);
+                        if(!matches)
+                            break;
                     }
 
-                    Object[] newArgs = new Object[parameterTypes.length];
-                    for(int k = 0; k < newArgs.length - 1; k++){
-                        newArgs[k] = args[k];
-                    }
-                    newArgs[newArgs.length - 1] = varargs;
+                    if(matches) {
+                        Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
+                                args.length - parameterTypes.length + 1);
+                        for (int k = 0; k < Array.getLength(varargs); k++) {
+                            Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                        }
 
-                    args = newArgs;
+                        Object[] newArgs = new Object[parameterTypes.length];
+                        for(int k = 0; k < newArgs.length - 1; k++){
+                            newArgs[k] = args[k];
+                        }
+                        newArgs[newArgs.length - 1] = varargs;
+
+                        args = newArgs;
+                    }
                 } else {
                     for (int i = 0; i < parameterTypes.length; i++) {
                         matches = checkMatch(parameterTypes[i], args[i]);
