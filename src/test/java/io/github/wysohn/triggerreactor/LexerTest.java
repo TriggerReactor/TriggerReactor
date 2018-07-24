@@ -27,6 +27,8 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 
+
+
 public class LexerTest {
 
     @Test
@@ -112,5 +114,16 @@ public class LexerTest {
         assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
         assertEquals(new Token(Type.STRING, "HI \"X\"! \\"), lexer.getToken());
         assertNull(lexer.getToken());
+    }
+
+    @Test
+    public void testImport() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text;
+        Lexer lexer;
+
+        text = "IMPORT some.class.to.import.Something";
+        lexer = new Lexer(text, charset);
+        assertEquals(new Token(Type.IMPORT, "some.class.to.import.Something"), lexer.getToken());
     }
 }

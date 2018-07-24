@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.tools;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -384,6 +385,27 @@ public class ReflectionUtil {
         }
 
         return classes;
+    }
+
+    public static Object constructNew(Class<?> clazz, Object[] args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException {
+        if(args.length < 1) {
+            return clazz.newInstance();
+        }else {
+            Class<?>[] paramTypes = new Class[args.length];
+            for(int i = 0; i < args.length; i++) {
+                paramTypes[i] = args[i].getClass();
+            }
+
+            Constructor<?> con = clazz.getConstructor(paramTypes);
+
+            try {
+                return con.newInstance(args);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
     }
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*

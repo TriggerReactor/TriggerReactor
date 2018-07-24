@@ -127,6 +127,8 @@ public class Token {
     }
 
     public enum Type {
+        IMPORT, CLAZZ,
+
         ROOT, ENDL,
 
         //Literal

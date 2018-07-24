@@ -915,14 +915,71 @@ public class TriggerTest {
         interpreter.startWithContext(null);
     }
 
-    private static class TheTest{
+    @Test
+    public void testImport() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "IMPORT io.github.wysohn.triggerreactor.TriggerTest$TheTest;"
+                + "#TEST TheTest;"
+                + "#TEST2 TheTest.staticTest();"
+                + "#TEST3 TheTest().localTest();";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(TheTest.class, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST2", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("static", args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST3", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("local", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    public static class TheTest{
         public InTest in = new InTest();
+        public TheTest() {
+
+        }
         public InTest getTest(){
             return in;
         }
+        public String localTest() {
+            return "local";
+        }
+        public static String staticTest() {
+            return "static";
+        }
     }
 
-    private static class InTest{
+    public static class InTest{
         public InTest2 in = new InTest2();
         public double health = 0.82;
         public boolean hasPermission(String tt){
@@ -933,7 +990,7 @@ public class TriggerTest {
         }
     }
 
-    private static class InTest2{
+    public static class InTest2{
         public double health = 5.23;
         public double getHealth(){
             return health;
