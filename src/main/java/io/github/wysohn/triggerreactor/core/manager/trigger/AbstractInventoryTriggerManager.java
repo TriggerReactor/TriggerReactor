@@ -170,7 +170,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
        inventoryMap.put(inventory, trigger);
 
        Map<String, Object> varMap = new HashMap<>();
-       varMap.put("inventory", inventory);
+       varMap.put("inventory", inventory.get());
        inventorySharedVars.put(inventory, varMap);
 
        fillInventory(trigger, trigger.getItems().length, inventory);
@@ -266,6 +266,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
         trigger.setSync(true);
         trigger.activate(e, varMap);
+        trigger.setSync(false);
 
         inventoryMap.remove(inventory);
         inventorySharedVars.remove(inventory);
