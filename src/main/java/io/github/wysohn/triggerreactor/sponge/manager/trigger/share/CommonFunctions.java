@@ -307,10 +307,10 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      *
      * @param str
      *            unprocessed string
-     * @return string with minecraft color codes
+     * @return the sponge Text.
      */
-    public String color(String str) {
-        return TextSerializers.LEGACY_FORMATTING_CODE.replaceCodes(str, '&');
+    public Text color(String str) {
+        return TextSerializers.FORMATTING_CODE.deserialize(str);
     }
 
     /**
