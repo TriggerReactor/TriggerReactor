@@ -15,16 +15,21 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function BROADCAST(args) {
-	var str = "";
-	for (var i = 0; i < args.length; i++)
-		str += args[i];
-
-	var text = TextUtil.colorStringToText(str);
-
-	var players = Sponge.getServer().getOnlinePlayers();
-	for (var iter = players.iterator(); iter.hasNext();) {
-		p = iter.next();
-		p.sendMessage(text);
+    var String = Java.type('java.lang.String')
+    var Text = Java.type('org.spongepowered.api.text.Text')
+    
+	for (var i = 0; i < args.length; i++){
+        var t;
+        if(args[i] instanceof Text)
+            t = args[i];
+        else
+            t = TextUtil.colorStringToText(String.valueOf(args[i]));
+            
+        var players = Sponge.getServer().getOnlinePlayers();
+        for (var iter = players.iterator(); iter.hasNext();) {
+            p = iter.next();
+            p.sendMessage(t);
+        }
 	}
 
 	return null;
