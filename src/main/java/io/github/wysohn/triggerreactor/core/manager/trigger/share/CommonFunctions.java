@@ -146,8 +146,9 @@ public class CommonFunctions implements SelfReference {
      * @throws ClassNotFoundException error if the 'className' does not exist.
      * @throws NoSuchMethodException error if the 'methodName' does not exist in the class.
      * @throws IllegalArgumentException error if invalid 'args' are passed to the method.
+     * @throws IllegalAccessException
      */
-    public Object staticMethod(String className, String methodName, Object... args) throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException{
+    public Object staticMethod(String className, String methodName, Object... args) throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException{
         Class<?> clazz = Class.forName(className);
 
         try {

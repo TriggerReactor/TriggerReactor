@@ -810,7 +810,7 @@ public class Interpreter {
 
             try {
                 result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
-            } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException e) {
+            } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
                 throw new InterpreterException("Cannot invoke static method "+(clazz.getSimpleName())+"."+right.value+"()!", e);
             }
         } else {

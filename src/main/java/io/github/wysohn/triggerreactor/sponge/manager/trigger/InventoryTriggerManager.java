@@ -172,6 +172,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
         varMap.put("player", e.getCause().first(Player.class));
         varMap.put("trigger", "open");
+        varMap.put("inventory", inv);
 
         trigger.activate(e, varMap);
     }
@@ -212,6 +213,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         varMap.put("slot", rawSlot);
         varMap.put("click", e.getClass().getSimpleName());
         varMap.put("trigger", "click");
+        varMap.put("inventory", inv);
 
         trigger.activate(e, varMap);
     }

@@ -89,10 +89,10 @@ public class ScriptEditManager extends AbstractScriptEditManager{
 	                editor.save();
 	            } catch (IOException | ScriptException ex) {
 	                plugin.handleException(e, ex);
+	            } finally {
+	                editings.remove(editorUser);
+	                editorUser.sendMessage("&aSaved!");
 	            }
-
-	            editings.remove(editorUser);
-	            editorUser.sendMessage("&aSaved!");
 	        } else if (arg1.equals("exit")) {
 	            if(exitDoublecheck.remove(editorUser)) {
 	                editings.remove(editorUser);

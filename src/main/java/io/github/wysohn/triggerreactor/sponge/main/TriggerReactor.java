@@ -633,17 +633,17 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                 public void run() {
                     Throwable ex = e;
                     if(player != null)
-                        player.sendMessage(Text.builder("Could not execute this trigger.").color(TextColors.RED).build());
+                        player.sendMessage(Text.of(TextColors.RED, "Could not execute this trigger."));
                     while(ex != null){
                         if(player != null) {
-                            player.sendMessage(Text.builder(" >> Caused by:").color(TextColors.RED).build());
-                            player.sendMessage(Text.builder(ex.getMessage()).color(TextColors.RED).build());
+                            player.sendMessage(Text.of(TextColors.RED, " >> Caused by:"));
+                            player.sendMessage(Text.of(TextColors.RED, ex.getMessage() == null ? "" : ex.getMessage()));
                         }
 
                         ex = ex.getCause();
                     }
                     if(player != null)
-                        player.sendMessage(Text.builder("If you are administrator, see console for details.").color(TextColors.RED).build());
+                        player.sendMessage(Text.of(TextColors.RED, "If you are administrator, see console for details."));
                 }
             });
         }

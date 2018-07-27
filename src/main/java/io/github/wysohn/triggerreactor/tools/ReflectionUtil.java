@@ -123,15 +123,17 @@ public class ReflectionUtil {
     }
 
     @SuppressWarnings({ "unchecked", "unchecked" })
-    public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
-        try{
-            Class<?>[] parameterTypes = null;
+    public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args)
+            throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException {
+        try {
+            List<Method> validMethods = new ArrayList<>();
+
             for (Method method : clazz.getMethods()) {
+                Class<?>[] parameterTypes = null;
+
                 if (!method.getName().equals(methodName)) {
                     continue;
                 }
-
-                boolean matches = true;
 
                 parameterTypes = method.getParameterTypes();
                 if (method.isVarArgs()) {
@@ -147,122 +149,151 @@ public class ReflectionUtil {
                 }
 
                 if (method.isVarArgs()) {
-                    //check non vararg part
+                    boolean matches = false;
+                    // check non vararg part
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
                         matches = checkMatch(parameterTypes[i], args[i]);
-                        if(!matches)
+                        if (!matches)
                             break;
                     }
 
-                    //check rest
-                    for(int i = parameterTypes.length - 1; i < args.length; i++) {
+                    // check rest
+                    for (int i = parameterTypes.length - 1; i < args.length; i++) {
                         Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
                         matches = checkMatch(arrayType, args[i]);
-                        if(!matches)
+                        if (!matches)
+                            break;
+                    }
+
+                    if (matches) {
+                        validMethods.add(method);
+                    }
+                } else {
+                    boolean matches = true;
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        matches = checkMatch(parameterTypes[i], args[i]);
+                        if (!matches)
                             break;
                     }
 
                     if(matches) {
-                        Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
-                                args.length - parameterTypes.length + 1);
-                        for (int k = 0; k < Array.getLength(varargs); k++) {
-                            Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
-                        }
-
-                        Object[] newArgs = new Object[parameterTypes.length];
-                        for(int k = 0; k < newArgs.length - 1; k++){
-                            newArgs[k] = args[k];
-                        }
-                        newArgs[newArgs.length - 1] = varargs;
-
-                        args = newArgs;
-                    }
-                } else {
-                    for (int i = 0; i < parameterTypes.length; i++) {
-                        matches = checkMatch(parameterTypes[i], args[i]);
-                        if(!matches)
-                            break;
+                        validMethods.add(method);
                     }
                 }
+            }
 
-                if (matches) {
-                    try {
-                        method.setAccessible(true);
+            if (!validMethods.isEmpty()) {
+                Method method = validMethods.get(0);
+                for(int i = 1; i < validMethods.size(); i++) {
+                    Method targetMethod = validMethods.get(i);
 
-                        for(int i = 0; i < args.length; i++){
-                            if(args[i] instanceof String && parameterTypes[i].isEnum()){
-                                try{
-                                    args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
-                                } catch (IllegalArgumentException ex1){
-                                    //Some overloaded methods already has String to Enum conversion
-                                    //So just lets see if one exists
-                                    Class<?>[] types = new Class<?>[args.length];
-                                    for(int k = 0; k < args.length; k++)
-                                        types[k] = args[k].getClass();
+                    Class<?>[] currentParams = method.getParameterTypes();
+                    Class<?>[] targetParams = targetMethod.getParameterTypes();
 
-                                    try {
-                                        Method alternative = clazz.getMethod(methodName, types);
-                                        return alternative.invoke(obj, args);
-                                    } catch (NoSuchMethodException ex2) {
-                                        throw new RuntimeException("Tried to convert value [" + args[i] + "] to Enum ["
-                                                + parameterTypes[i]
-                                                + "] or find appropriate method but found nothing. Make sure"
-                                                + " that the value [" + args[i]
-                                                + "] matches exactly with one of the Enums in [" + parameterTypes[i]
-                                                + "] or the method you are looking exists.");
-                                    }
-                                }
+                    if(method.isVarArgs() && targetMethod.isVarArgs()) {
+                        for(int j = 0; j < currentParams.length; j++) {
+                            if(currentParams[j].isAssignableFrom(targetParams[j])) {
+                                method = targetMethod;
+                                break;
                             }
                         }
-
-                        return method.invoke(obj, args);
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    }else if(method.isVarArgs()) {
+                        //usually, non-vararg is more specific method. So we use that
+                        method = targetMethod;
+                    }else if(targetMethod.isVarArgs()) {
+                        //do nothing
+                    }else{
+                        for(int j = 0; j < currentParams.length; j++) {
+                            if(currentParams[j].isAssignableFrom(targetParams[j])) {
+                                method = targetMethod;
+                                break;
+                            }
+                        }
                     }
                 }
+
+                method.setAccessible(true);
+
+                for (int i = 0; i < args.length; i++) {
+                    Class<?>[] parameterTypes = method.getParameterTypes();
+
+                    if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
+                        try {
+                            args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
+                        } catch (IllegalArgumentException ex1) {
+                            // Some overloaded methods already has
+                            // String to Enum conversion
+                            // So just lets see if one exists
+                            Class<?>[] types = new Class<?>[args.length];
+                            for (int k = 0; k < args.length; k++)
+                                types[k] = args[k].getClass();
+
+                            try {
+                                Method alternative = clazz.getMethod(methodName, types);
+                                return alternative.invoke(obj, args);
+                            } catch (NoSuchMethodException ex2) {
+                                throw new RuntimeException("Tried to convert value [" + args[i]
+                                        + "] to Enum [" + parameterTypes[i]
+                                        + "] or find appropriate method but found nothing. Make sure"
+                                        + " that the value [" + args[i]
+                                        + "] matches exactly with one of the Enums in [" + parameterTypes[i]
+                                        + "] or the method you are looking exists.");
+                            }
+                        }
+                    }
+                }
+
+                if(method.isVarArgs()) {
+                    Class<?>[] parameterTypes = method.getParameterTypes();
+
+                    Object varargs = Array.newInstance(
+                            parameterTypes[parameterTypes.length - 1].getComponentType(),
+                            args.length - parameterTypes.length + 1);
+                    for (int k = 0; k < Array.getLength(varargs); k++) {
+                        Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                    }
+
+                    Object[] newArgs = new Object[parameterTypes.length];
+                    for (int k = 0; k < newArgs.length - 1; k++) {
+                        newArgs[k] = args[k];
+                    }
+                    newArgs[newArgs.length - 1] = varargs;
+
+                    args = newArgs;
+                }
+
+                return method.invoke(obj, args);
             }
 
             if (args.length > 1) {
-                StringBuilder builder = null;
-                String expected = null;
+                StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
 
-                if(parameterTypes != null && parameterTypes.length > 1){
-                    builder = new StringBuilder(parameterTypes[0].getClass().getName());
-                    for (int i = 1; i < parameterTypes.length; i++)
-                        builder.append("," + parameterTypes[i].getClass().getSimpleName());
-                    expected = methodName+"("+builder.toString()+")";
+                for(Object arg : args) {
+                    builder.append(", "+arg.getClass().getSimpleName());
                 }
 
-                builder = new StringBuilder(args[0].getClass().getName());
-                for (int i = 1; i < args.length; i++)
-                    builder.append("," + args[i].getClass().getSimpleName());
-                String actual = methodName+"("+builder.toString()+")";
-
-                if(expected != null)
-                    throw new NoSuchMethodException("Expected -- "+expected+"    Actual -- "+actual);
-                else
-                    throw new NoSuchMethodException(actual);
-            }else{
-                throw new NoSuchMethodException(methodName+"()");
+                throw new NoSuchMethodException(methodName + "("+builder.toString()+")");
+            } else {
+                throw new NoSuchMethodException(methodName + "()");
             }
-        }catch(NullPointerException e){
+        } catch (NullPointerException e) {
             StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
             for (int i = 1; i < args.length; i++)
                 builder.append("," + String.valueOf(args[i]));
-            throw new NullPointerException("Call "+methodName+"("+builder.toString()+")");
+            throw new NullPointerException("Call " + methodName + "(" + builder.toString() + ")");
         }
     }
 
     private static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
         if (!(arg instanceof String && parameterType.isEnum())
-                && !ClassUtils.isAssignable(arg.getClass(), parameterType, true)) {
+                && !ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true)) {
             return false;
         }
         return true;
     }
 
-    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
+    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException{
         Class<?> clazz = obj.getClass();
 
         return invokeMethod(clazz, obj, methodName, args);
@@ -418,19 +449,24 @@ public class ReflectionUtil {
             return null;
         }
     }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException{
-        System.out.println(ClassUtils.isAssignable(Integer.class, double.class, true));
 
-        System.out.println(invokeMethod(ReflectionUtil.class, (Object) null, "testMethod", "SOMETHING"));
+/*    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException{
+        System.out.println(invokeMethod(Test.class, (Object) null, "someMethod1", 1,2,"hey"));
     }
 
-    public static String testMethod(TestEnum val){
-        return val.name();
-    }
+    public static class Test{
+        public static Object someMethod1(Object... val) {
+            return "Object";
+        }
 
-    enum TestEnum{
-        SOMETHING;
+        public static Object someMethod1(Integer... val) {
+            return "Integer";
+        }
+        public static Object someMethod1(Integer val) {
+            return "test";
+        }
     }*/
+
 }
