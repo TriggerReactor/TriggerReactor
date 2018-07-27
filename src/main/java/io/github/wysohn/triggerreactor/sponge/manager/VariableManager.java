@@ -133,22 +133,27 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public void put(String key, Object value){
-        if(!(value instanceof DataSerializable)) {
-            throw new RuntimeException(value+" is not DataSerializable");
-        }
+        if(value == null) {
+            ConfigurationNode node = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
+            node.getParent().removeChild(node);
+        } else {
+            if(!(value instanceof DataSerializable)) {
+                throw new RuntimeException(value+" is not DataSerializable");
+            }
 
-        ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".type");
-        ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".value");
+            ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".type");
+            ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".value");
 
-        DataSerializable ds = (DataSerializable) value;
-        DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
+            DataSerializable ds = (DataSerializable) value;
+            DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
 
-        if(value instanceof ItemStack) {
-            typeNode.setValue(ItemStack.class.getName());
-            valueNode.setValue(translator.translate(ds.toContainer()));
-        }else {
-            typeNode.setValue(value.getClass().getName());
-            valueNode.setValue(translator.translate(ds.toContainer()));
+            if(value instanceof ItemStack) {
+                typeNode.setValue(ItemStack.class.getName());
+                valueNode.setValue(translator.translate(ds.toContainer()));
+            }else {
+                typeNode.setValue(value.getClass().getName());
+                valueNode.setValue(translator.translate(ds.toContainer()));
+            }
         }
     }
 
