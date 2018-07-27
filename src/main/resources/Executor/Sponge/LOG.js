@@ -16,6 +16,6 @@
  *******************************************************************************/
 function LOG(args){
     for(var i = 0; i < args.length ; i++)
-        print(args[i]);
+        plugin.getLogger().info(args[i]);
     return null;
 }
