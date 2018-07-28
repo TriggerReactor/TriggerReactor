@@ -35,4 +35,21 @@ public abstract class AbstractScriptEditManager extends Manager {
      */
     public abstract void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler);
 
+    public static String parseSpaceToMarker(String str) {
+        if(str == null)
+            return null;
+
+        StringBuilder builder = new StringBuilder();
+        int index = 0;
+        while(str.charAt(index++) == ' ') {
+            builder.append('^');
+        }
+        builder.append(str.substring(index, str.length()));
+
+        return builder.toString();
+    }
+
+//    public static void main(String[] ar) {
+//        System.out.println(parseSpaceToMarker("        #MESSAGE pewpew"));
+//    }
 }

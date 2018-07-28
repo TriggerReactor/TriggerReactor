@@ -162,7 +162,7 @@ public class ScriptEditManager extends AbstractScriptEditManager{
         ScriptEditor editor = editings.get(editorUser);
 
         e.getTabCompletions().clear();
-        e.getTabCompletions().add(editor.getLine());
+        e.getTabCompletions().add(parseSpaceToMarker(editor.getLine()));
 	}
 
 	@Listener

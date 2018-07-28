@@ -33,6 +33,7 @@ import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 
+import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.ScriptEditorUser;
 
@@ -130,7 +131,7 @@ public class EditingPrompt implements Prompt, Listener {
 			return;
 
 		e.getTabCompletions().clear();
-		e.getTabCompletions().add(editor.getLine());
+		e.getTabCompletions().add(AbstractScriptEditManager.parseSpaceToMarker(editor.getLine()));
 	}
 
     @EventHandler
