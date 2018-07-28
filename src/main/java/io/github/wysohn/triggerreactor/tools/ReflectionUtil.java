@@ -268,8 +268,8 @@ public class ReflectionUtil {
             if (args.length > 1) {
                 StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
 
-                for(Object arg : args) {
-                    builder.append(", "+arg.getClass().getSimpleName());
+                for(int i = 1; i < args.length; i++) {
+                    builder.append(", "+args[i].getClass().getSimpleName());
                 }
 
                 throw new NoSuchMethodException(methodName + "("+builder.toString()+")");
