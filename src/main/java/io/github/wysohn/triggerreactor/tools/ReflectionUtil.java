@@ -265,7 +265,7 @@ public class ReflectionUtil {
                 return method.invoke(obj, args);
             }
 
-            if (args.length > 1) {
+            if (args.length > 0) {
                 StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
 
                 for(int i = 1; i < args.length; i++) {
