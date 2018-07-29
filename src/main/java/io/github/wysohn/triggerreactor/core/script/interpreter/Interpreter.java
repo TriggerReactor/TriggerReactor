@@ -195,13 +195,16 @@ public class Interpreter {
                 }
             }
         } else if ("WHILE".equals(node.getToken().value)) {
+            long start = System.currentTimeMillis();
+
             Token resultToken = null;
             do {
                 start(node.getChildren().get(0));
 
-                resultToken = stack.pop();
-                if(resultToken == null)
+                if(stack.isEmpty())
                     throw new InterpreterException("Could not find conditon for WHILE statement!");
+
+                resultToken = stack.pop();
 
                 if (isVariable(resultToken)) {
                     resultToken = unwrapVariable(resultToken);
@@ -214,6 +217,13 @@ public class Interpreter {
                     start(node.getChildren().get(1));
                 } else {
                     break;
+                }
+
+                if(sync) {
+                    long timeTook = System.currentTimeMillis() - start;
+                    if(timeTook > 3000L)
+                        throw new InterpreterException("WHILE loop took more than 3 seconds in Server Thread. This is usually "
+                                + "considered as 'too long' and can crash the server.");
                 }
             } while (!stopFlag);
         } else if("FOR".equals(node.getToken().value)){
