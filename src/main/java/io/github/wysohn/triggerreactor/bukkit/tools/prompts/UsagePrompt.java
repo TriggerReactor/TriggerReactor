@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.tools.prompts;
 
+import org.bukkit.ChatColor;
 import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.Prompt;
 
@@ -40,7 +41,7 @@ public class UsagePrompt implements Prompt{
 
     @Override
     public String getPromptText(ConversationContext arg0) {
-        return ScriptEditor.USAGE;
+        return ChatColor.translateAlternateColorCodes('&', ScriptEditor.USAGE);
     }
 
 }
