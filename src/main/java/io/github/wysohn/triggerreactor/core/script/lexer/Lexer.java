@@ -317,7 +317,7 @@ public class Lexer {
 
     private Token readEndline() throws IOException {
         read();
-        return new Token(Type.ENDL, null, row, col);
+        return new Token(Type.ENDL, (Object) null, row, col);
     }
 
     private static boolean isClassNameCharacter(char c) {

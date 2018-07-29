@@ -174,15 +174,15 @@ public class Interpreter {
                     } else if (node.getChildren().size() > 2) {
                         start(node.getChildren().get(2));//[2] false body
                     }
-                }else if(resultToken.isInt()){
-                    int value = resultToken.toInt();
+                }else if(resultToken.isInteger()){
+                    int value = resultToken.toInteger();
                     if(value != 0){
                         start(node.getChildren().get(1));
                     } else if (node.getChildren().size() > 2) {
                         start(node.getChildren().get(2));
                     }
-                }else if(resultToken.isDouble()){
-                    double value = resultToken.toDouble();
+                }else if(resultToken.isDecimal()){
+                    double value = resultToken.toDecimal();
                     if(value != 0.0){
                         start(node.getChildren().get(1));
                     } else if (node.getChildren().size() > 2) {
@@ -296,7 +296,7 @@ public class Interpreter {
                 if(limitToken.type != Type.INTEGER)
                     throw new InterpreterException("Limit value must be an Integer value! -- "+limitToken);
 
-                for(int i = initToken.toInt(); !stopFlag && i < limitToken.toInt(); i++){
+                for(int i = initToken.toInteger(); !stopFlag && i < limitToken.toInteger(); i++){
                     assignValue(idToken, new Token(Type.INTEGER, i));
                     start(node.getChildren().get(2));
                 }
@@ -309,7 +309,6 @@ public class Interpreter {
                 Node child = node.getChildren().get(i);
                 start(child);
 
-                //experimental
                 if(i == 0) {
                     if("&&".equals(node.getToken().value)){
                         Token leftBool = stack.pop();
@@ -454,63 +453,48 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                switch ((String) node.getToken().value) {
-                case "+":
-                    if(left.type == Type.STRING || right.type == Type.STRING){
-                        stack.push(new Token(Type.STRING, String.valueOf(left.value) + String.valueOf(right.value)));
-                    } else{
-                        if(left.isInt() && right.isInt()){
-                            int leftVal = left.toInt(), rightVal = right.toInt();
-                            stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
-                        }else{
-                            double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                            double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                            stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal + rightVal));
-                        }
+                if (((String) node.getToken().value).equals("+")
+                        && (left.type == Type.STRING || right.type == Type.STRING)) {
+                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + String.valueOf(right.value),
+                            node.getToken().row, node.getToken().col));
+                } else {
+                    if(!left.isNumeric())
+                        throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value ["+left+"]!");
+
+                    if(!right.isNumeric())
+                        throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value ["+right+"]!");
+
+                    boolean integer = true;
+                    if(left.isDecimal() || right.isDecimal()) {
+                        integer = false;
                     }
-                    break;
-                case "-":
-                    if(left.isInt() && right.isInt()){
-                        int leftVal = left.toInt(), rightVal = right.toInt();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal - rightVal));
-                    }else{
-                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal - rightVal));
+
+                    Number result;
+                    switch ((String) node.getToken().value) {
+                    case "+":
+                        result = integer ? left.toInteger() + right.toInteger() : left.toDecimal() + right.toDecimal();
+                        break;
+                    case "-":
+                        result = integer ? left.toInteger() - right.toInteger() : left.toDecimal() - right.toDecimal();
+                        break;
+                    case "*":
+                        result = integer ? left.toInteger() * right.toInteger() : left.toDecimal() * right.toDecimal();
+                        break;
+                    case "/":
+                        result = integer ? left.toInteger() / right.toInteger() : left.toDecimal() / right.toDecimal();
+                        break;
+                    case "%":
+                        result = integer ? left.toInteger() % right.toInteger() : left.toDecimal() % right.toDecimal();
+                        break;
+                    default:
+                        throw new InterpreterException("Cannot interpret the unknown operator "+node.getToken().value);
                     }
-                    break;
-                case "*":
-                    if(left.isInt() && right.isInt()){
-                        int leftVal = left.toInt(), rightVal = right.toInt();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal * rightVal));
-                    }else{
-                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal * rightVal));
+
+                    if(integer) {
+                        stack.push(new Token(Type.INTEGER, result.intValue(), node.getToken().row, node.getToken().col));
+                    }else {
+                        stack.push(new Token(Type.DECIMAL, result.doubleValue(), node.getToken().row, node.getToken().col));
                     }
-                    break;
-                case "/":
-                    if(left.isInt() && right.isInt()){
-                        int leftVal = left.toInt(), rightVal = right.toInt();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal / rightVal));
-                    }else{
-                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal / rightVal));
-                    }
-                    break;
-                case "%":
-                    if(left.isInt() && right.isInt()){
-                        int leftVal = left.toInt(), rightVal = right.toInt();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal % rightVal));
-                    }else{
-                        double leftVal = left.isInt() ? left.toInt() : left.toDouble();
-                        double rightVal = right.isInt() ? right.toInt() : right.toDouble();
-                        stack.push(new Token(left.isInt() && right.isInt() ? Type.INTEGER : Type.DECIMAL, leftVal % rightVal));
-                    }
-                    break;
-                default:
-                    throw new InterpreterException("Cannot interpret the unknown operator "+node.getToken().value);
                 }
             }else if(node.getToken().type == Type.UNARYMINUS) {
                 Token value = stack.pop();
@@ -522,8 +506,8 @@ public class Interpreter {
                 if(!value.isNumeric())
                     throw new InterpreterException("Cannot do unary minus operation for non-numeric value "+value);
 
-                stack.push(value.isInt() ? new Token(Type.INTEGER, -value.toInt(), value.row, value.col)
-                        : new Token(Type.DECIMAL, -value.toDouble(), value.row, value.col));
+                stack.push(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row, value.col)
+                        : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
             }else if(node.getToken().type == Type.OPERATOR_L){
                 if("!".equals(node.getToken().value)){
                     Token boolval = stack.pop();
@@ -536,10 +520,10 @@ public class Interpreter {
                         stack.push(new Token(Type.BOOLEAN, true));
                     } else if (boolval.isBoolean()) {
                         stack.push(new Token(Type.BOOLEAN, !boolval.toBoolean()));
-                    } else if(boolval.isDouble()){
-                        stack.push(new Token(Type.BOOLEAN, boolval.toDouble() == 0.0));
-                    } else if(boolval.isInt()){
-                        stack.push(new Token(Type.BOOLEAN, boolval.toInt() == 0));
+                    } else if(boolval.isDecimal()){
+                        stack.push(new Token(Type.BOOLEAN, boolval.toDecimal() == 0.0));
+                    } else if(boolval.isInteger()){
+                        stack.push(new Token(Type.BOOLEAN, boolval.toInteger() == 0));
                     } else {
                         throw new InterpreterException("Cannot negate non-boolean value " + boolval);
                     }
@@ -560,29 +544,29 @@ public class Interpreter {
                         if(!left.isNumeric() || !right.isNumeric())
                             throw new InterpreterException("Only numeric values can be compared!");
 
-                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) < (right.isInt()
-                                ? right.toInt() : right.toDouble())));
+                        stack.push(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) < (right.isInteger()
+                                ? right.toInteger() : right.toDecimal())));
                         break;
                     case ">":
                         if(!left.isNumeric() || !right.isNumeric())
                             throw new InterpreterException("Only numeric values can be compared!");
 
-                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) > (right.isInt()
-                                ? right.toInt() : right.toDouble())));
+                        stack.push(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) > (right.isInteger()
+                                ? right.toInteger() : right.toDecimal())));
                         break;
                     case "<=":
                         if(!left.isNumeric() || !right.isNumeric())
                             throw new InterpreterException("Only numeric values can be compared!");
 
-                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) <= (right.isInt()
-                                ? right.toInt() : right.toDouble())));
+                        stack.push(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) <= (right.isInteger()
+                                ? right.toInteger() : right.toDecimal())));
                         break;
                     case ">=":
                         if(!left.isNumeric() || !right.isNumeric())
                             throw new InterpreterException("Only numeric values can be compared!");
 
-                        stack.push(new Token(Type.BOOLEAN, (left.isInt() ? left.toInt() : left.toDouble()) >= (right.isInt()
-                                ? right.toInt() : right.toDouble())));
+                        stack.push(new Token(Type.BOOLEAN, (left.isInteger() ? left.toInteger() : left.toDecimal()) >= (right.isInteger()
+                                ? right.toInteger() : right.toDecimal())));
                         break;
                     case "==":
                         if (right.type == Type.NULLVALUE) {
@@ -717,10 +701,10 @@ public class Interpreter {
                 if(!left.isArray())
                     throw new InterpreterException(left+" is not an array!");
 
-                if(!right.isInt())
+                if(!right.isInteger())
                     throw new InterpreterException(right+" is not a valid index for array!");
 
-                stack.push(new Token(Type.ACCESS, new Accessor(left.value, (Integer) right.value)));
+                stack.push(new Token(Type.ACCESS, new Accessor(left.value, right.toInteger())));
             }else if(node.getToken().type == Type.THIS){
                 stack.push(node.getToken());
             }else if(node.getToken().type == Type.ID){

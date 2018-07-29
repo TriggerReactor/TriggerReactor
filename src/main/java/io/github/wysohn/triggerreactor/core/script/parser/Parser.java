@@ -522,7 +522,7 @@ public class Parser {
         }
 
         if("null".equals(token.value)){
-            Node node = new Node(new Token(Type.NULLVALUE, null, token.row, token.col));
+            Node node = new Node(new Token(Type.NULLVALUE, (Object) null, token.row, token.col));
             nextToken();
             return node;
         }
