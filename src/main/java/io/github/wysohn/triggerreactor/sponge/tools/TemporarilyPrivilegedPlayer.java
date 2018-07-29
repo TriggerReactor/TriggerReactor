@@ -1155,4 +1155,24 @@ public class TemporarilyPrivilegedPlayer implements Player{
         return player.getContainers();
     }
 
+    @Override
+    public Vector3d getPosition() {
+        return player.getPosition();
+    }
+
+    @Override
+    public Optional<UUID> getWorldUniqueId() {
+        return player.getWorldUniqueId();
+    }
+
+    @Override
+    public boolean setLocation(Vector3d position, UUID world) {
+        return player.setLocation(position, world);
+    }
+
+    @Override
+    public Optional<Container> openInventory(Inventory inventory, Text displayName) {
+        return player.openInventory(inventory, displayName);
+    }
+
 }
