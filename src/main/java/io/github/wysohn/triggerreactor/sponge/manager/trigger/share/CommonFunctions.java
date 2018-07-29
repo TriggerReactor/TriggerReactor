@@ -80,7 +80,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return Plugin object on success; null if plugin not found or loaded.
      */
     public Object plugin(String name) {
-        PluginContainer container = Sponge.getPluginManager().getPlugin(name).get();
+        PluginContainer container = Sponge.getPluginManager().getPlugin(name).orElse(null);
         if (container == null)
             return null;
 
@@ -88,7 +88,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
     public ItemType itemType(String name) {
-        return Sponge.getGame().getRegistry().getType(ItemType.class, name).get();
+        return Sponge.getGame().getRegistry().getType(ItemType.class, name).orElse(null);
     }
 
     /**
@@ -113,15 +113,15 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
 
         Optional<ItemStack> result = player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
                 .peek(amount);
-        if (result.isPresent() && result.get().getQuantity() < amount)
+        if (result.isPresent() && result.orElse(null).getQuantity() < amount)
             return false;
 
-        return player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS)).poll(amount).get()
+        return player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS)).poll(amount).orElse(null)
                 .getQuantity() == amount;
     }
 
     public Location<World> location(String world, int x, int y, int z) {
-        World w = Sponge.getServer().getWorld(world).get();
+        World w = Sponge.getServer().getWorld(world).orElse(null);
         if (world == null)
             throw new RuntimeException("world " + world + " does not exists!");
         return new Location<World>(w, x, y, z);
@@ -196,7 +196,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      *         name
      */
     public Player player(String name) {
-        return Sponge.getServer().getPlayer(name).get();
+        return Sponge.getServer().getPlayer(name).orElse(null);
     }
 
     /**
@@ -212,7 +212,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public User oplayer(String name) {
         Optional<UserStorageService> userStorage = Sponge.getServiceManager().provide(UserStorageService.class);
-        return userStorage.get().get(name).get();
+        return userStorage.orElse(null).get(name).orElse(null);
     }
 
     /**
@@ -374,7 +374,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         if (!IS.get(Keys.DISPLAY_NAME).isPresent())
             return "";
 
-        return IS.get(Keys.DISPLAY_NAME).get().toPlain();
+        return IS.get(Keys.DISPLAY_NAME).orElse(null).toPlain();
     }
 
     /**
@@ -407,7 +407,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         if(!IS.get(Keys.ITEM_LORE).isPresent())
             return false;
 
-        for(Text txt : IS.get(Keys.ITEM_LORE).get()) {
+        for(Text txt : IS.get(Keys.ITEM_LORE).orElse(null)) {
             if(txt.toPlain().equals(lore))
                 return true;
         }
@@ -426,7 +426,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         if(!IS.get(Keys.ITEM_LORE).isPresent())
             return null;
 
-        List<Text> texts = IS.get(Keys.ITEM_LORE).get();
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
 
         return texts.get(index).toPlain();
     }
@@ -438,7 +438,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param lore
      */
     public void addLore(ItemStack IS, String lore) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).get();
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
         if(texts == null)
             texts = new ArrayList<>();
 
@@ -459,7 +459,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
     public void setLore(ItemStack IS, int index, Text lore) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).get();
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
         if(texts == null)
             texts = new ArrayList<>();
 
@@ -475,7 +475,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param index
      */
     public void removeLore(ItemStack IS, int index) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).get();
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
         if(texts == null)
             texts = new ArrayList<>();
 
@@ -490,7 +490,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param IS
      */
     public void clearLore(ItemStack IS) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).get();
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
         if(texts == null)
             texts = new ArrayList<>();
 
@@ -506,7 +506,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return
      */
     public int loreSize(ItemStack IS) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).get();
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
         if(texts == null)
             texts = new ArrayList<>();
 
@@ -525,7 +525,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return block
      */
     public BlockState getTargetBlock(Player player, int maxDistance) {
-        BlockRayHit<World> brh = BlockRay.from(player).distanceLimit(maxDistance).build().end().get();
+        BlockRayHit<World> brh = BlockRay.from(player).distanceLimit(maxDistance).build().end().orElse(null);
         return brh.getExtent().getBlock(brh.getBlockPosition());
     }
 
@@ -549,7 +549,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         IS.offer(Keys.SKULL_TYPE, SkullTypes.PLAYER);
 
         Optional<UserStorageService> userStorage = Sponge.getServiceManager().provide(UserStorageService.class);
-        Optional<User> user = userStorage.get().get(targetName);
+        Optional<User> user = userStorage.orElse(null).get(targetName);
         user.ifPresent((oplayer) -> {
             GameProfile profile = GameProfile.of(oplayer.getUniqueId(), targetName);
             IS.offer(Keys.REPRESENTED_PLAYER, profile);
