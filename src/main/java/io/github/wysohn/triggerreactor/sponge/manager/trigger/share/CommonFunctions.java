@@ -361,7 +361,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
     /**
-     * Get title of the specified ItemStack. Empty String if not exist.
+     * Get title of the specified ItemStack. Empty Text if not exist.
      * <p>
      * Example) /trg run #MESSAGE "item name is:
      * "+getItemTitle(player.getItemInHand())
@@ -370,11 +370,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param IS
      * @return
      */
-    public String getItemTitle(ItemStack IS) {
-        if (!IS.get(Keys.DISPLAY_NAME).isPresent())
-            return "";
-
-        return IS.get(Keys.DISPLAY_NAME).orElse(null).toPlain();
+    public Text getItemTitle(ItemStack IS) {
+        return IS.get(Keys.DISPLAY_NAME).orElse(Text.EMPTY);
     }
 
     /**
@@ -388,7 +385,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param title
      */
     public void setItemTitle(ItemStack IS, String title) {
-        setItemTitle(IS, TextSerializers.FORMATTING_CODE.deserialize(title));
+        setItemTitle(IS, text(title));
     }
 
     public void setItemTitle(ItemStack IS, Text title) {
@@ -407,7 +404,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         if(!IS.get(Keys.ITEM_LORE).isPresent())
             return false;
 
-        for(Text txt : IS.get(Keys.ITEM_LORE).orElse(null)) {
+        for(Text txt : IS.get(Keys.ITEM_LORE).orElse(new ArrayList<Text>())) {
             if(txt.toPlain().equals(lore))
                 return true;
         }
@@ -422,13 +419,15 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param index
      * @return String of lore; null if not found
      */
-    public String getLore(ItemStack IS, int index) {
+    public Text getLore(ItemStack IS, int index) {
         if(!IS.get(Keys.ITEM_LORE).isPresent())
             return null;
 
         List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
+        if(texts == null)
+            return null;
 
-        return texts.get(index).toPlain();
+        return texts.get(index);
     }
 
     /**
@@ -438,12 +437,12 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param lore
      */
     public void addLore(ItemStack IS, String lore) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if(texts == null)
-            texts = new ArrayList<>();
+        addLore(IS, text(lore));
+    }
 
-        texts.add(Text.of(lore));
-
+    public void addLore(ItemStack IS, Text lore) {
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
+        texts.add(lore);
         IS.offer(Keys.ITEM_LORE, texts);
     }
 
@@ -455,16 +454,12 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param lore
      */
     public void setLore(ItemStack IS, int index, String lore) {
-        setLore(IS, index, TextSerializers.FORMATTING_CODE.deserialize(lore));
+        setLore(IS, index, text(lore));
     }
 
     public void setLore(ItemStack IS, int index, Text lore) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if(texts == null)
-            texts = new ArrayList<>();
-
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
         texts.set(index, lore);
-
         IS.offer(Keys.ITEM_LORE, texts);
     }
 
@@ -475,12 +470,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param index
      */
     public void removeLore(ItemStack IS, int index) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if(texts == null)
-            texts = new ArrayList<>();
-
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
         texts.remove(index);
-
         IS.offer(Keys.ITEM_LORE, texts);
     }
 
@@ -490,12 +481,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param IS
      */
     public void clearLore(ItemStack IS) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if(texts == null)
-            texts = new ArrayList<>();
-
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
         texts.clear();
-
         IS.offer(Keys.ITEM_LORE, texts);
     }
 
@@ -506,10 +493,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return
      */
     public int loreSize(ItemStack IS) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if(texts == null)
-            texts = new ArrayList<>();
-
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
         return texts.size();
     }
 
