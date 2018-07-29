@@ -157,7 +157,14 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             Map<String, Object> vars = ReflectionUtil.extractVariables(e);
             variables.putAll(vars);
 
-            instance.extractCustomVariables(variables, e);
+            if (TriggerReactor.getInstance().isServerThread()) {
+                instance.extractCustomVariables(variables, e);
+            } else {
+                //Sponge Cause stack should be synchronized before query it
+                instance.plugin.callSyncMethod(()->{
+                    instance.extractCustomVariables(variables, e);
+                    return null;}).get();
+            }
             ///////////////////////////////
 
             ScriptContext scriptContext = engine.getContext();
