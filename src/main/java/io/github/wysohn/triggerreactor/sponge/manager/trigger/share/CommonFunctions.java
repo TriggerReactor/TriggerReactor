@@ -29,6 +29,7 @@ import org.spongepowered.api.boss.BossBarColor;
 import org.spongepowered.api.boss.BossBarColors;
 import org.spongepowered.api.boss.ServerBossBar;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.data.type.SkullTypes;
 import org.spongepowered.api.effect.potion.PotionEffect;
 import org.spongepowered.api.effect.potion.PotionEffectType;
 import org.spongepowered.api.effect.potion.PotionEffectTypes;
@@ -537,6 +538,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
 
     public ItemStack headForName(String targetName, int amount) {
         ItemStack IS = ItemStack.of(ItemTypes.SKULL, amount);
+        IS.offer(Keys.SKULL_TYPE, SkullTypes.PLAYER);
 
         Optional<UserStorageService> userStorage = Sponge.getServiceManager().provide(UserStorageService.class);
         Optional<User> user = userStorage.get().get(targetName);
@@ -568,9 +570,11 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public ItemStack headForValue(String textureValue) {
         ItemStack IS = ItemStack.of(ItemTypes.SKULL, 1);
+        IS.offer(Keys.SKULL_TYPE, SkullTypes.PLAYER);
 
         GameProfile profile = GameProfile.of(UUID.randomUUID(), "None");
         profile.addProperty(ProfileProperty.of("textures", textureValue));
+        IS.offer(Keys.REPRESENTED_PLAYER, profile);
 
         return IS;
     }
