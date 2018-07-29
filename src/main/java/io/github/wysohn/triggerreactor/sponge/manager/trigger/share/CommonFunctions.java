@@ -311,7 +311,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return the sponge Text.
      */
     public Text color(String str) {
-        return TextSerializers.FORMATTING_CODE.deserialize(str);
+        return text(str);
     }
 
     /**
@@ -320,7 +320,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return Text
      */
     public Text text(String str) {
-        return Text.of(str);
+        return TextSerializers.FORMATTING_CODE.deserialize(str);
     }
 
     /**
@@ -388,7 +388,11 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param title
      */
     public void setItemTitle(ItemStack IS, String title) {
-        IS.offer(Keys.DISPLAY_NAME, Text.of(title));
+        setItemTitle(IS, TextSerializers.FORMATTING_CODE.deserialize(title));
+    }
+
+    public void setItemTitle(ItemStack IS, Text title) {
+        IS.offer(Keys.DISPLAY_NAME, title);
     }
 
     /**
@@ -451,11 +455,15 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param lore
      */
     public void setLore(ItemStack IS, int index, String lore) {
+        setLore(IS, index, TextSerializers.FORMATTING_CODE.deserialize(lore));
+    }
+
+    public void setLore(ItemStack IS, int index, Text lore) {
         List<Text> texts = IS.get(Keys.ITEM_LORE).get();
         if(texts == null)
             texts = new ArrayList<>();
 
-        texts.set(index, Text.of(lore));
+        texts.set(index, lore);
 
         IS.offer(Keys.ITEM_LORE, texts);
     }
