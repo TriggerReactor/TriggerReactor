@@ -16,21 +16,7 @@
  *******************************************************************************/
 function CMD(args){
 	for(var i = 0; i < args.length; i++){
-		var split = args[i].split(" ");
-	
-		var mapping = Sponge.getCommandManager().get(split[0]).orElse(null);
-		if(mapping == null)
-			continue;
-		
-		if(mapping.getCallable().testPermission(player)){
-			var merged = "";
-			for(var i = 1; i < split.length; i++)
-				merged += split[i] + " ";
-				
-			mapping.getCallable().process(player, merged);
-		} else {
-			player.sendMessage(TextUtil.colorStringToText("&cYou do not have enough permission."));
-		}
+        Sponge.getCommandManager().process(player, args[i]);
 	}
 
 	return null;
