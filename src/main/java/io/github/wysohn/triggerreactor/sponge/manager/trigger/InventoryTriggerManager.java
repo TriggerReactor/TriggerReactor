@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -149,6 +150,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     * @return the opened Inventory's reference; null if no Inventory Trigger found
     */
    public IInventory openGUI(Player player, String name){
+       Sponge.getCauseStackManager().pushCause(player);
        return openGUI(new SpongePlayer(player), name);
    }
 
