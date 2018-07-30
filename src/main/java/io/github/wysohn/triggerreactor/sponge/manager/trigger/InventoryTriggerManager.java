@@ -129,11 +129,6 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
             ItemStack item = items[i].get();
 
             ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-            if(section.isVirtual()) {
-                itemSection.setValue(String.valueOf(i));
-                section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-            }
-
             try {
                 section.setValue(TypeTokens.ITEM_SNAPSHOT_TOKEN, item.createSnapshot());
             } catch (ObjectMappingException e) {
