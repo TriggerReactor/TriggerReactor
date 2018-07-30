@@ -26,6 +26,8 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.block.InteractBlockEvent;
 import org.spongepowered.api.event.filter.type.Exclude;
+import org.spongepowered.api.item.ItemTypes;
+import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -74,7 +76,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", player);
         varMap.put("block", clicked);
-        varMap.put("item", player.getItemInHand(HandTypes.MAIN_HAND));
+        varMap.put("item", player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.of(ItemTypes.AIR, 1)));
 
         trigger.activate(e, varMap);
         return;
