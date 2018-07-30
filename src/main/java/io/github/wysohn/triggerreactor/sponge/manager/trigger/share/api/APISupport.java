@@ -20,17 +20,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.plugin.PluginContainer;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.nucleus.NucleusSupport;
 
 public abstract class APISupport extends AbstractAPISupport {
     private final String targetPluginName;
 
-    protected Plugin target;
+    protected PluginContainer target;
 
     public APISupport(TriggerReactor plugin, String targetPluginName) {
         super(plugin);
@@ -45,18 +46,19 @@ public abstract class APISupport extends AbstractAPISupport {
      * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
      */
     public void init() throws APISupportException{
-        Plugin plugin = Bukkit.getPluginManager().getPlugin(targetPluginName);
-        if(plugin == null || !plugin.isEnabled())
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(targetPluginName).orElse(null);
+        if(plugin == null)
             throw new APISupportException(targetPluginName);
 
         target = plugin;
 
-        this.plugin.getLogger().info("Enabled support for "+targetPluginName+" "+target.getDescription().getFullName());
+        this.plugin.getLogger().info("Enabled support for "+targetPluginName
+                +" "+target.getDescription().orElse("No description")+" "+target.getVersion().orElse("v. ?"));
     }
 
     @SuppressWarnings("serial")
     private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>(){{
-
+        this.put("nucleus", NucleusSupport.class);
     }};
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
         return sharedVars;
