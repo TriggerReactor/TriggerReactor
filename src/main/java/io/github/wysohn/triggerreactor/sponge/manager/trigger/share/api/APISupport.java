@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.Validate;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.plugin.PluginContainer;
 
@@ -27,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.nucleus.NucleusSupport;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 public abstract class APISupport extends AbstractAPISupport {
     private final String targetPluginName;
@@ -35,16 +35,13 @@ public abstract class APISupport extends AbstractAPISupport {
 
     public APISupport(TriggerReactor plugin, String targetPluginName) {
         super(plugin);
-        Validate.notNull(plugin);
-        Validate.notNull(targetPluginName);
+        ValidationUtil.notNull(plugin);
+        ValidationUtil.notNull(targetPluginName);
 
         this.targetPluginName = targetPluginName;
     }
 
-    /**
-     * Initialize this API. It may throw APISupportException if the plugin is not found.
-     * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
-     */
+    @Override
     public void init() throws APISupportException{
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(targetPluginName).orElse(null);
         if(plugin == null)
@@ -58,7 +55,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
     @SuppressWarnings("serial")
     private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>(){{
-        this.put("nucleus", NucleusSupport.class);
+        put("nucleus", NucleusSupport.class);
     }};
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
         return sharedVars;

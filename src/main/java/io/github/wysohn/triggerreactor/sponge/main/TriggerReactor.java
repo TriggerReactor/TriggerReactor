@@ -159,10 +159,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     public void onConstruct(GameInitializationEvent event) {
         syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
 
-        for(Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()){
-            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
-        }
-
         try {
             executorManager = new ExecutorManager(this);
         } catch (ScriptException | IOException e) {
@@ -213,6 +209,13 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     public Lag getTpsHelper() {
         return tpsHelper;
+    }
+
+    @Listener
+    public void onLoadComplete(GameAboutToStartServerEvent e) {
+        for(Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()){
+            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
+        }
     }
 
     @Listener

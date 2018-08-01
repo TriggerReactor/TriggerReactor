@@ -42,8 +42,8 @@ public class NucleusSupport extends APISupport {
     private NucleusWarningService warning;
     private NucleusWarpService warp;
 
-    public NucleusSupport(TriggerReactor plugin, String targetPluginName) {
-        super(plugin, targetPluginName);
+    public NucleusSupport(TriggerReactor plugin) {
+        super(plugin, "nucleus");
     }
 
     @Override
