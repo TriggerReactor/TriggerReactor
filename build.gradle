@@ -4,6 +4,7 @@ plugins {
 }
 
 group = 'io.github.wysohn.triggerreactor'
+version = '2.1.0'
 description = 'Simple script parser with infinite possibility'
 
 repositories {
