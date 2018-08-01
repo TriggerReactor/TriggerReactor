@@ -1,19 +1,14 @@
-package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
-
-import static org.mockito.Mockito.mock;
+package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 public class TestCommonFunctions {
     int trials = 100;
 
     @Test
     public void testRandoms() throws Exception {
-        TriggerReactor mockPlugin = mock(TriggerReactor.class);
-        CommonFunctions fn = new CommonFunctions(mockPlugin);
+        CommonFunctions fn = new CommonFunctions() {};
 
         for(int i = 0; i < trials; i++) {
             double value = fn.random(1.0);

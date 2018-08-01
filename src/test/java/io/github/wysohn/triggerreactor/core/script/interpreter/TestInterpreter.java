@@ -915,8 +915,8 @@ public class TestInterpreter {
     @Test
     public void testImport() throws Exception{
         Charset charset = Charset.forName("UTF-8");
-        String text = "IMPORT io.github.wysohn.triggerreactor.TriggerTest$TheTest;"
-                + "IMPORT io.github.wysohn.triggerreactor.TriggerTest$TestEnum;"
+        String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
+                + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
                 + "#TEST TheTest;"
                 + "#TEST2 TheTest.staticTest();"
                 + "#TEST3 TheTest().localTest();"

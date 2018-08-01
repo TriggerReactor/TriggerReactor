@@ -45,7 +45,7 @@ public class CommonFunctions implements SelfReference {
     }
 
     public long random(long end) {
-        return rand.nextLong() * (end - 0) + 0;
+        return (rand.nextLong() & (Long.MAX_VALUE)) % end;
     }
 
     /**
@@ -72,7 +72,7 @@ public class CommonFunctions implements SelfReference {
     }
 
     public long random(long start, long end) {
-        return rand.nextLong() * (end - start) + start;
+        return (rand.nextLong() & (Long.MAX_VALUE)) % (end - start) + start;
     }
 
     /**
