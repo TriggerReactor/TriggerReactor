@@ -56,13 +56,9 @@ dependencies {
 	compile "net.milkbowl.vault:VaultAPI:1.6"
 	//////////////////////////////////////////////////////////
 	//sponge
-<<<<<<< HEAD
 	compile 'org.spongepowered:spongeapi:7.+'
 	
 	compile 'io.github.nucleuspowered:nucleus-api:1.4+'
-=======
-	compile 'org.spongepowered:spongeapi:7.0.0'
->>>>>>> refs/heads/master
 	
 	//////////////////////////////////////////////////////////
 	
