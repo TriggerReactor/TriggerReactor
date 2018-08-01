@@ -31,6 +31,7 @@ import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Carrier;
+import org.spongepowered.api.item.inventory.Container;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
 import org.spongepowered.api.item.inventory.ItemStack;
@@ -169,7 +170,9 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
         varMap.put("player", e.getCause().first(Player.class).orElse(null));
         varMap.put("trigger", "open");
-        varMap.put("inventory", inv);
+
+        Container grids = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
+        varMap.put("inventory", grids.first());
 
         trigger.activate(e, varMap);
     }
@@ -210,7 +213,9 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         varMap.put("slot", rawSlot);
         varMap.put("click", e.getClass().getSimpleName());
         varMap.put("trigger", "click");
-        varMap.put("inventory", inv);
+
+        Container grids = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
+        varMap.put("inventory", grids.first());
 
         trigger.activate(e, varMap);
     }
