@@ -19,7 +19,10 @@ function MESSAGE(args){
 	var Text = Java.type('org.spongepowered.api.text.Text')
 	
     for(var i = 0; i < args.length ; i++){
-    	player.sendMessage(TextUtil.colorStringToText(String.valueOf(args[i])));
+        if(args[i] instanceof Text)
+            player.sendMessage(args[i]);
+        else
+            player.sendMessage(TextUtil.colorStringToText(String.valueOf(args[i])));
     }
     
     return null;

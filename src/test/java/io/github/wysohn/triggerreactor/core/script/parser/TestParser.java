@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor;
+package io.github.wysohn.triggerreactor.core.script.parser;
 
 import static org.junit.Assert.assertEquals;
 
@@ -33,7 +33,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
-public class ParserTest {
+public class TestParser {
 
     @Test
     public void testParse() throws IOException, LexerException, ParserException {

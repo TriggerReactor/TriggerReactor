@@ -47,7 +47,7 @@ public class TriggerReactor extends JavaPlugin {
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){
             try{
-                String configStr = FileUtil.readFromStream(getResource("config.yml"));
+                String configStr = FileUtil.readFromStream(getResource("assets/triggerreactor/config.yml"));
                 FileUtil.writeToFile(file, configStr);
             }catch(IOException e){
                 e.printStackTrace();
