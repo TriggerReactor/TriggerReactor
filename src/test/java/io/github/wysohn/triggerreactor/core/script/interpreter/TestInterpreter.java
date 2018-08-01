@@ -981,6 +981,67 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
+    @Test
+    public void testComparison() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#TEST 1 < 2, 2 < 1;"
+                + "#TEST2 5 > 4, 4 > 5;"
+                + "#TEST3 1 <= 1, 3 <= 2;"
+                + "#TEST4 1 >= 1, 2 >= 3;"
+                + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";"
+                + "#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor exec = new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals(true, args[0]);
+                Assert.assertEquals(false, args[1]);
+                return null;
+            }
+
+        };
+        executorMap.put("TEST", exec);
+        executorMap.put("TEST2", exec);
+        executorMap.put("TEST3", exec);
+        executorMap.put("TEST4", exec);
+        executorMap.put("TEST5", exec);
+        executorMap.put("TEST6", exec);
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNullComparison() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "IF {\"temp\"} == null;"
+                + "{\"temp\"} = true;"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<String, Object> gvars = new HashMap<String, Object>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+
+        Assert.assertEquals(true, gvars.get("temp"));
+    }
+
     public static class TheTest{
         public static String staticField = "staticField";
 
