@@ -14,25 +14,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.sponge.bridge;
+package io.github.wysohn.triggerreactor.core.bridge.player;
 
-import org.spongepowered.api.item.inventory.Inventory;
+import java.util.UUID;
 
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 
-public class SpongeInventory implements IInventory {
-    private final Inventory inventory;
+public interface IPlayer extends ICommandSender{
 
-    public SpongeInventory(Inventory inventory) {
-        super();
-        this.inventory = inventory;
-    }
+    UUID getUniqueId();
 
+    IInventory getInventory();
 
+    void openInventory(IInventory inventory);
 
-    @Override
-    public <T> T get() {
-        return (T) inventory;
-    }
+    SimpleChunkLocation getChunk();
+
+    /**
+     * Get item in this player's main hand.
+     * @return IItemStack in the main hand; null if holding anything.
+     */
+    IItemStack getItemInMainHand();
+
+    ILocation getLocation();
+
+    void setItemInMainHand(IItemStack iS);
 
 }

@@ -29,8 +29,8 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 
 public class WorldguardSupport extends APISupport {
     private WorldGuardPlugin wg;

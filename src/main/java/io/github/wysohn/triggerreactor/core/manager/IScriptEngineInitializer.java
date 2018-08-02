@@ -7,8 +7,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
-
 public interface IScriptEngineInitializer {
     /**
      * Initializes pre-defined functions and variables for Executors.
@@ -21,8 +19,6 @@ public interface IScriptEngineInitializer {
                 return t.charAt(0);
             }
         });
-
-        registerClass(sem, ReflectionUtil.class);
     }
 
     /**

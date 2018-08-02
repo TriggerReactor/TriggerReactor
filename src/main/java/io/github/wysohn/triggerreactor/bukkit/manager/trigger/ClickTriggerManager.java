@@ -38,7 +38,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
 
     @Override
     protected ClickTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
-        File triggerFile = getTriggerFile(folder, slocstr, true);
+        File triggerFile = getTriggerFile(folder, slocstr+".trg");
         return new ClickTrigger(slocstr, triggerFile, script, new ClickHandler(){
             @Override
             public boolean allow(Object context) {

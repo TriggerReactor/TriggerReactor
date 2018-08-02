@@ -43,7 +43,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO{
-    protected static SelfReference common;
+    private static SelfReference common;
 
     protected final File folder;
 
@@ -95,14 +95,10 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         return file.getName().substring(0, file.getName().indexOf('.'));
     }
 
-    protected static File getTriggerFile(File folder, String triggerName, boolean write) {
+    protected static File getTriggerFile(File folder, String triggerName) {
         File triggerFile = new File(folder, triggerName+".trg");
-
-        //if reading the file, first check if .trg file exists and then try with no extension
-        //we do not care about no extension file when we are writing.
-        if(!write && !triggerFile.exists())
+        if(!triggerFile.exists())
             triggerFile = new File(folder, triggerName);
-
         return triggerFile;
     }
 
@@ -229,10 +225,6 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             scriptVars.put("event", e);
             scriptVars.putAll(ReflectionUtil.extractVariablesWithEnumAsString(e));
             scriptVars.putAll(TriggerReactor.getInstance().getSharedVars());
-
-            Map<String, Object> customVars = TriggerReactor.getInstance().getCustomVarsForTrigger(e);
-            if(customVars != null)
-                scriptVars.putAll(customVars);
 
             Interpreter interpreter = initInterpreter(scriptVars);
 

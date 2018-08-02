@@ -1,18 +1,30 @@
+import org.yaml.snakeyaml.Yaml
+
+buildscript {
+  	ext.bukkit_version = "1.12-R0.1-SNAPSHOT"
+  	ext.plugin_version = "1.1.3"
+  	
+  	repositories {
+		jcenter()
+	}
+	
+  	dependencies {
+		classpath 'org.yaml:snakeyaml:1.15'
+    }
+}
+
 plugins {
 	id 'java'
+	id 'groovy'
+	id 'eclipse'
     id 'org.spongepowered.plugin' version '0.8.1'
 }
 
 group = 'io.github.wysohn.triggerreactor'
 description = 'Simple script parser with infinite possibility'
 
-sponge {
-    plugin {
-        meta {
-            version = '2.1.0'
-            description = 'Simple script parser with infinite possibility'
-        }
-    }
+configurations {
+	jaxDoclet
 }
 
 repositories {
@@ -30,9 +42,6 @@ repositories {
 	maven {
         name = 'sponge'
         url = 'https://repo.spongepowered.org/maven'
-    }
-    maven{
-        url = 'http://repo.drnaylor.co.uk/artifactory/list/minecraft'
     }
 }
 
@@ -60,14 +69,12 @@ dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 	
 	//bukkit
-	compile "org.spigotmc:spigot-api:1.12-R0.1-SNAPSHOT"
+	compile "org.spigotmc:spigot-api:$bukkit_version"
 	
 	compile "net.milkbowl.vault:VaultAPI:1.6"
 	//////////////////////////////////////////////////////////
 	//sponge
-	compile 'org.spongepowered:spongeapi:7.+'
-	
-	compile 'io.github.nucleuspowered:nucleus-api:1.4+'
+	compile 'org.spongepowered:spongeapi:7.0.0'
 	
 	//////////////////////////////////////////////////////////
 	
@@ -76,8 +83,19 @@ dependencies {
 	
     testCompile 'junit:junit:4.+'
     testCompile 'org.mockito:mockito-core:2.+'
-    testCompile 'eu.codearte.catch-exception:catch-exception:1.+'
-    testCompile 'org.assertj:assertj-core:1.+'
+}
+
+task fileYaml {
+	doLast{
+		def yaml = new Yaml()
+		def doc = new File("./src/main/resources/plugin.yml")
+		def map = (Map) yaml.load(doc)
+		map["version"] = "$plugin_version"
+		def newYaml = yaml.dump(map)
+		println(newYaml)
+		def newDoc = new File("./src/main/resources/plugin.yml")
+		newDoc.write(newYaml);
+	}
 }
 
 javadoc {
@@ -87,6 +105,5 @@ javadoc {
 	options { 
        links "https://docs.oracle.com/javase/8/docs/api/" 
        links "https://hub.spigotmc.org/javadocs/bukkit/"
-       links "https://jd.spongepowered.org/7.0.0/"
     } 
 }

@@ -33,8 +33,8 @@ import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.massivecore.util.IdUtil;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 
 public class FactionsSupport extends APISupport {
     /**

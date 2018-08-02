@@ -17,14 +17,13 @@
 package io.github.wysohn.triggerreactor.sponge.bridge;
 
 import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
 
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 
 public class SpongeLocation implements ILocation {
-    private final Location<World> location;
+    private final Location location;
 
-    public SpongeLocation(Location<World> location) {
+    public SpongeLocation(Location location) {
         super();
         this.location = location;
     }

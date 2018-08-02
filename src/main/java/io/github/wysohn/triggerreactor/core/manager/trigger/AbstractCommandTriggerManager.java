@@ -71,7 +71,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             String script = trigger.getScript();
 
-            File file = getTriggerFile(folder, fileName, true);
+            File file = new File(folder, fileName+".trg");
             try{
                 FileUtil.writeToFile(file, script);
             }catch(Exception e){
@@ -105,7 +105,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         if(commandTriggerMap.containsKey(cmd))
             return false;
 
-        File triggerFile = getTriggerFile(folder, cmd, true);
+        File triggerFile = getTriggerFile(folder, cmd+".trg");
         CommandTrigger trigger = null;
         try {
             trigger = new CommandTrigger(cmd, triggerFile, script);

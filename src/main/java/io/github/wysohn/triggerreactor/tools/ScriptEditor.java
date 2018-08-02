@@ -22,6 +22,9 @@ import java.util.List;
 
 import javax.script.ScriptException;
 
+import org.bukkit.ChatColor;
+import org.bukkit.conversations.Conversable;
+
 public class ScriptEditor{
     private static final String separater = System.lineSeparator();
 
@@ -48,7 +51,7 @@ public class ScriptEditor{
 		}
 	}
 
-	public void printScript(ScriptEditorUser conversable){
+	public void printScript(Conversable conversable){
 		clearScreen(conversable);
 		printHeader(conversable);
 		printSource(conversable);
@@ -56,40 +59,44 @@ public class ScriptEditor{
 	}
 
 	private final int separatorSize = 60;
-	private void printSeparator(ScriptEditorUser conversable){
+	private void printSeparator(Conversable conversable){
 		StringBuilder builder = new StringBuilder();
 		for(int i = 0;i < separatorSize; i++){
 			builder.append('-');
 		}
-		conversable.sendMessage("&7"+builder.toString());
+		conversable.sendRawMessage(ChatColor.GRAY+builder.toString());
 	}
 
-	private void clearScreen(ScriptEditorUser conversable){
+	private void clearScreen(Conversable conversable){
 		for(int i = 0; i < 40; i++){
-			conversable.sendMessage("");
+			conversable.sendRawMessage("");
 		}
 	}
 
-	private void printHeader(ScriptEditorUser conversable){
-		conversable.sendMessage("&dsave&8, &dexit &9" + title);
+	private void printHeader(Conversable conversable){
+		conversable.sendRawMessage(ChatColor.LIGHT_PURPLE + "save" + ChatColor.DARK_GRAY + ", " + ChatColor.LIGHT_PURPLE
+				+ "exit " + ChatColor.BLUE + title);
 		printSeparator(conversable);
 	}
 
-	private void printSource(ScriptEditorUser conversable){
+	private void printSource(Conversable conversable){
 		String[] display = new String[16];
 
 		int j = 0;
 		for(int i = currentIndex; i < Math.min(lines.size(), currentIndex + 16); i++){
-			display[j++] = width(String.valueOf(i+1), 3)+". "+lines.get(i) + (currentCursor == i ? "&c<<" : "");
+			display[j++] = width(String.valueOf(i+1), 3)+". "+lines.get(i) + (currentCursor == i ? ChatColor.RED+"<<" : "");
 		}
 
 		for(String dis : display)
-			conversable.sendMessage(dis == null ? "" : dis);
+			conversable.sendRawMessage(dis);
 	}
 
-	private void printFooter(ScriptEditorUser conversable) {
+	private void printFooter(Conversable conversable) {
 		printSeparator(conversable);
-		conversable.sendMessage("&du <lines>&8, &dd <lines>&8, &dil&8, &ddl");
+		conversable.sendRawMessage(ChatColor.LIGHT_PURPLE + "u <lines>" + ChatColor.DARK_GRAY + ", "
+				+ ChatColor.LIGHT_PURPLE + "d <lines>" + ChatColor.DARK_GRAY + ", "
+		        + ChatColor.LIGHT_PURPLE + "il"+ ChatColor.DARK_GRAY + ", "
+				+ ChatColor.LIGHT_PURPLE + "dl");
 	}
 
 	public void save() throws IOException, ScriptException{
@@ -163,18 +170,4 @@ public class ScriptEditor{
 
 	    return builder.toString();
 	}
-
-	public interface ScriptEditorUser{
-	    void sendMessage(String rawMessage);
-	}
-
-	public static final String USAGE = "&dIn edit mode, you cannot receieve any message from the other users. You can type &6save &dor &6exit "
-            + "&dany time to escape from the edit mode. If the code is more than one line, you can go up or down by typing &6u "
-            + "&dor &6d. &dWhen you are doing so, you can provide number of lines to skip. (for example, &6d 10 &dwill move down 10 lines). "
-            + "If you don't provide the number, the default value 1 will be used instead. &6il &dto insert a new line and "
-            + "&6dl &dto delete current line. Look for &c<< &d sign to see where you are currently at. You can also "
-            + "&6type anything and press Tab key &dto copy the code where the cursor is pointing. Because of how minecraft client is made,"
-            + " you need to specify space with &6^ to insert spaces. For example, you might can add four spaces before the code like this: "
-            + "&6^^^^#MESSAGE \"HI\" &dAlso, if you want to copy current line to the command prompt, &6type anything on the prompt "
-            + "and press tab&d.    &aNow enter anything to continue...";
 }

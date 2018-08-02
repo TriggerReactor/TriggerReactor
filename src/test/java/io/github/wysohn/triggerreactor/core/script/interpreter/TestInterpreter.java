@@ -912,155 +912,14 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
-    public void testImport() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
-                + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
-                + "#TEST TheTest;"
-                + "#TEST2 TheTest.staticTest();"
-                + "#TEST3 TheTest().localTest();"
-                + "#TEST4 TheTest.staticField;"
-                + "#TEST5 TestEnum.IMTEST;";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                Assert.assertEquals(TheTest.class, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                Assert.assertEquals("static", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                Assert.assertEquals("local", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                Assert.assertEquals("staticField", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST5", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                Assert.assertEquals(TestEnum.IMTEST, args[0]);
-                return null;
-            }
-
-        });
-
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
-
-        interpreter.startWithContext(null);
-    }
-
-    @Test
-    public void testComparison() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text = "#TEST 1 < 2, 2 < 1;"
-                + "#TEST2 5 > 4, 4 > 5;"
-                + "#TEST3 1 <= 1, 3 <= 2;"
-                + "#TEST4 1 >= 1, 2 >= 3;"
-                + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";"
-                + "#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor exec = new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
-                Assert.assertEquals(true, args[0]);
-                Assert.assertEquals(false, args[1]);
-                return null;
-            }
-
-        };
-        executorMap.put("TEST", exec);
-        executorMap.put("TEST2", exec);
-        executorMap.put("TEST3", exec);
-        executorMap.put("TEST4", exec);
-        executorMap.put("TEST5", exec);
-        executorMap.put("TEST6", exec);
-
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
-
-        interpreter.startWithContext(null);
-    }
-
-    @Test
-    public void testNullComparison() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text = "IF {\"temp\"} == null;"
-                + "{\"temp\"} = true;"
-                + "ENDIF;";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
-
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
-
-        interpreter.startWithContext(null);
-
-        Assert.assertEquals(true, gvars.get("temp"));
-    }
-
-    public static class TheTest{
-        public static String staticField = "staticField";
-
+    private static class TheTest{
         public InTest in = new InTest();
-        public TheTest() {
-
-        }
         public InTest getTest(){
             return in;
         }
-        public String localTest() {
-            return "local";
-        }
-        public static String staticTest() {
-            return "static";
-        }
     }
 
-    public static class InTest{
+    private static class InTest{
         public InTest2 in = new InTest2();
         public double health = 0.82;
         public boolean hasPermission(String tt){
@@ -1071,7 +930,7 @@ public class TestInterpreter {
         }
     }
 
-    public static class InTest2{
+    private static class InTest2{
         public double health = 5.23;
         public double getHealth(){
             return health;

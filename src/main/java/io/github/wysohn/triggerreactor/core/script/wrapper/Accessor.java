@@ -50,8 +50,6 @@ public class Accessor {
             }else{
                 throw new IllegalArgumentException(target.getClass()+" is not a valid type for array operation.");
             }
-        }else if(targetParent instanceof Class) {
-            return ReflectionUtil.getField((Class<?>) targetParent, (Object) null, (String) target);
         }else{
             return ReflectionUtil.getField(targetParent, (String) target);
         }

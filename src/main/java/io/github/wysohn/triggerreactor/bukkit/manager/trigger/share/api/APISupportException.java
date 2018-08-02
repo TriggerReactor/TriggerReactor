@@ -14,25 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.sponge.bridge;
+package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
-import org.spongepowered.api.item.inventory.Inventory;
-
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-
-public class SpongeInventory implements IInventory {
-    private final Inventory inventory;
-
-    public SpongeInventory(Inventory inventory) {
-        super();
-        this.inventory = inventory;
+@SuppressWarnings("serial")
+public class APISupportException extends RuntimeException {
+    public APISupportException(String type) {
+        super("[" + type + "] is not hooked!");
     }
 
-
-
-    @Override
-    public <T> T get() {
-        return (T) inventory;
+    public APISupportException(String type, String child) {
+        super("[" + type + " @ " + child + "] is not hooked!");
     }
-
 }

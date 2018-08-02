@@ -36,7 +36,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
 
     @Override
     protected WalkTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
-        File triggerFile = getTriggerFile(folder, slocstr, true);
+        File triggerFile = getTriggerFile(folder, slocstr+".trg");
         return new WalkTrigger(slocstr, triggerFile, script);
     }
 
