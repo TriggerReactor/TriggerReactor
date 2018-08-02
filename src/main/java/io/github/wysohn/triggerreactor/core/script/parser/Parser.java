@@ -72,15 +72,8 @@ public class Parser {
                 return node;
             }else if("IF".equals(token.value)){
                 return parseIf();
-            } else if("ELSEIF".equals(token.value)) {
-                Node elseNode = new Node(token);
-                return elseNode;
-            } else if("ELSE".equals(token.value)) {
-                Node elseNode = new Node(token);
-                return elseNode;
-            } else if("ENDIF".equals(token.value)){
-                Node endIfNode = new Node(token);
-                return endIfNode;
+            }else if("ENDIF".equals(token.value)){
+                return null;
             }
             else if("WHILE".equals(token.value)){
                 Node whileNode = new Node(token);
@@ -264,37 +257,39 @@ public class Parser {
         Node trueBody = new Node(new Token(Type.BODY, "<BODY>"));
 
         Node codes = null;
-        while((codes = parseStatement()) != null
-                && !"ENDIF".equals(codes.getToken().value)
-                && !"ELSE".equals(codes.getToken().value)
-                && !"ELSEIF".equals(codes.getToken().value)){
+        while(token != null
+                && !"ENDIF".equals(token.value)
+                && !"ELSE".equals(token.value)
+                && !"ELSEIF".equals(token.value)
+                && !"ENDIF".equals(token.value)
+                && (codes = parseStatement()) != null){
             trueBody.getChildren().add(codes);
         }
         ifNode.getChildren().add(trueBody);
 
-        if(codes == null) {
-            if(codes == null || !"ENDIF".equals(codes.getToken().value))
-                throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-        } if("ELSEIF".equals(codes.getToken().value)) {//elseif body
+        if(token == null) {
+            throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
+        } else if("ELSEIF".equals(token.value)) {//elseif body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
             falseBody.getChildren().add(parseIf());
             ifNode.getChildren().add(falseBody);
-        } else if("ELSE".equals(codes.getToken().value)){ //else body
+        } else if("ELSE".equals(token.value)){ //else body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
             nextToken();
 
-            while((codes = parseStatement()) != null
-                    && !"ENDIF".equals(codes.getToken().value)){
+            while(token != null
+                    && !"ENDIF".equals(token.value)
+                    && (codes = parseStatement()) != null){
                 falseBody.getChildren().add(codes);
             }
 
-            if(codes == null || !"ENDIF".equals(codes.getToken().value))
+            if(token == null || !"ENDIF".equals(token.value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
             nextToken();
 
             ifNode.getChildren().add(falseBody);
         } else {
-            if(codes == null || !"ENDIF".equals(codes.getToken().value))
+            if(token == null || !"ENDIF".equals(token.value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
             nextToken();
         }
