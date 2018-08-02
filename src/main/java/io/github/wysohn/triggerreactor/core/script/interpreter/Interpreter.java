@@ -274,13 +274,17 @@ public class Interpreter {
                 }
             }else if(iterNode.getChildren().size() == 2){
                 Node initNode = iterNode.getChildren().get(0);
-                if(initNode.getToken().type != Type.INTEGER)
-                    throw new InterpreterException("Init value must be an Integer value! -- "+initNode);
                 start(initNode);
 
                 if(stopFlag)
                     return;
                 Token initToken = stack.pop();
+                if(isVariable(initToken)) {
+                    initToken = unwrapVariable(initToken);
+                }
+
+                if(initToken.type != Type.INTEGER)
+                    throw new InterpreterException("Init value must be an Integer value! -- "+initToken);
 
                 Node limitNode = iterNode.getChildren().get(1);
                 start(limitNode);
@@ -288,7 +292,6 @@ public class Interpreter {
                 if(stopFlag)
                     return;
                 Token limitToken = stack.pop();
-
                 if(isVariable(limitToken)){
                     limitToken = unwrapVariable(limitToken);
                 }

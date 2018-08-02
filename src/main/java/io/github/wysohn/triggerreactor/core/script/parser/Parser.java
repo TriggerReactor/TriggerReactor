@@ -115,14 +115,14 @@ public class Parser {
 
                 Node iteration = new Node(new Token(Type.ITERATOR, "<ITERATOR>"));
                 forNode.getChildren().add(iteration);
-                Node first = parseFactor();
+                Node first = parseExpression();
                 if(first == null)
                     throw new ParserException("Could not find initial value for FOR statement! "+forNode.getToken());
                 iteration.getChildren().add(first);
 
                 if(":".equals(token.value)){
                     nextToken();
-                    Node second = parseFactor();
+                    Node second = parseExpression();
                     if(second == null)
                         throw new ParserException("Could not find max limit for FOR statement! "+forNode.getToken());
                     iteration.getChildren().add(second);

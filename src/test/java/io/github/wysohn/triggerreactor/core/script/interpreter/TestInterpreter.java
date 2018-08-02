@@ -390,6 +390,80 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testIteration3() throws Exception{
+        CommonFunctions mockFunctions = mock(CommonFunctions.class);
+        Player mockPlayer1 = mock(Player.class);
+        Player mockPlayer2 = mock(Player.class);
+
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "start=0;"
+                + "stop=10;"
+                + "FOR i = start:stop\n"
+                + "    #MESSAGE i\n"
+                + "ENDFOR\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            int index = 0;
+            @Override
+            public Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals(index++, args[0]);
+                return null;
+            }
+        });
+
+        Collection players = new ArrayList<Player>(){{add(mockPlayer1); add(mockPlayer2);}};
+        when(mockFunctions.getPlayers()).thenReturn(players);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), mockFunctions);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIteration4() throws Exception{
+        CommonFunctions mockFunctions = mock(CommonFunctions.class);
+        Player mockPlayer1 = mock(Player.class);
+        Player mockPlayer2 = mock(Player.class);
+
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "start=0;"
+                + "stop=10;"
+                + "FOR i = start*10-0:stop-10*0\n"
+                + "    #MESSAGE i\n"
+                + "ENDFOR\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            int index = 0;
+            @Override
+            public Integer execute(boolean sync, Object context, Object... args) {
+                Assert.assertEquals(index++, args[0]);
+                return null;
+            }
+        });
+
+        Collection players = new ArrayList<Player>(){{add(mockPlayer1); add(mockPlayer2);}};
+        when(mockFunctions.getPlayers()).thenReturn(players);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), mockFunctions);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
     public void currentAreaTest() throws Exception{
         Player mockPlayer = mock(Player.class);
         CommonFunctions mockFunctions = mock(CommonFunctions.class);
