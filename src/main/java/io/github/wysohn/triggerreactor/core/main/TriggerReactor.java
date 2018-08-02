@@ -17,7 +17,9 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,8 +35,8 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
@@ -91,11 +93,15 @@ public abstract class TriggerReactor {
         return instance;
     }
 
+    protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
+
     protected TriggerReactor(){
         instance = this;
     }
 
-    public abstract Map<String, AbstractAPISupport> getSharedVars();
+    public Map<String, AbstractAPISupport> getSharedVars(){
+        return sharedVars;
+    }
 
     public abstract AbstractExecutorManager getExecutorManager();
 
@@ -990,6 +996,17 @@ public abstract class TriggerReactor {
 
                     sender.sendMessage("Reload Complete!");
                     return true;
+                } else if (args[0].equalsIgnoreCase("help")) {
+                    int page = 0;
+                    if(args.length > 1) {
+                        if(!args[1].matches("[0-9]+"))
+                            sender.sendMessage("&c"+args[1]+" is not a valid page number.");
+
+                        page = Integer.parseInt(args[1]);
+                    }
+
+                    showHelp(sender, page);
+                    return true;
                 }
             }
 
@@ -1012,57 +1029,16 @@ public abstract class TriggerReactor {
     protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
     private void showHelp(ICommandSender sender) {
+        showHelp(sender, 0);
+    }
+
+    private void showHelp(ICommandSender sender, int page) {
+        page = Math.max(0, Math.min(helpPages.size() - 1, page));
+
         sender.sendMessage("&7-----     &6"+getPluginDescription()+"&7    ----");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] walk[w] [...]", "create a walk trigger.");
-        sendDetails(sender, "/trg w #MESSAGE \"HEY YOU WALKED!\"");
-        sendDetails(sender, "To create lines of script, simply type &b/trg w &7without extra parameters.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] click[c] [...]", "create a click trigger.");
-        sendDetails(sender, "/trg c #MESSAGE \"HEY YOU CLICKED!\"");
-        sendDetails(sender, "To create lines of script, simply type &b/trg c &7without extra parameters.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] command[cmd] <command name> [...]", "create a command trigger.");
-        sendDetails(sender, "/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
-        sendDetails(sender, "To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name>", "Create an inventory trigger named <inventory name>");
-        sendDetails(sender, "/trg i to see more commands...");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] area[a]", "Create an area trigger.");
-        sendDetails(sender, "/trg a to see more commands...");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r]", "Create an repeating trigger.");
-        sendDetails(sender, "/trg r to see more commands...");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] custom <event> <name> [...]", "Create a custom trigger.");
-        sendDetails(sender, "/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
-        sendCommandDesc(sender, "/triggerreactor[trg] synccustom[sync] <name>", "Toggle Sync/Async mode of custom trigger <name>");
-        sendDetails(sender, "/trg synccustom Greet");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] item", "Item modification. Type it to see the list.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] [...]", "set global variables.");
-        sendDetails(sender, "&cWarning - This command will delete the previous data associated with the key if exists.");
-        sendDetails(sender, "/trg vars Location test &8- &7save current location into global variable 'test'");
-        sendDetails(sender, "/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
-        sendDetails(sender, "/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] variables[vars] <variable name>", "get the value saved in <variable name>. null if nothing.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] run [...]", "Run simple code treating it as Command Trigger.");
-        sendDetails(sender, "/trg run #TP {\"MahPlace\"}");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] delete[del] <type> <name>", "Delete specific trigger/variable/etc.");
-        sendDetails(sender, "/trg del vars test &8- &7delete the variable saved in 'test'");
-        sendDetails(sender, "/trg del cmd test &8- &7delete the command trigger 'test'");
-        sendDetails(sender, "/trg del custom Greet &8- &7delete the command trigger 'test'");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] search", "Show all trigger blocks in this chunk as glowing stones.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] saveall", "Save all scripts, variables, and settings.");
-
-        sendCommandDesc(sender, "/triggerreactor[trg] reload", "Reload all scripts, variables, and settings.");
+        helpPages.get(page).sendHelpPage(sender);
+        sender.sendMessage("");
+        sender.sendMessage("&d"+page+"&8/&4"+(helpPages.size()-1)+" &8- &6/trg help <page> &7to see other pages.");
     }
 
     /**
@@ -1070,7 +1046,9 @@ public abstract class TriggerReactor {
      * @param sender sender to show description
      * @param command the command to explain
      * @param desc description
+     * @deprecated no longer used
      */
+    @Deprecated
     protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
 
     /**
@@ -1078,7 +1056,9 @@ public abstract class TriggerReactor {
      * to add more information or example about the command.
      * @param sender sender to show description
      * @param detail detail to show
+     * @deprecated no longer used
      */
+    @Deprecated
     protected abstract void sendDetails(ICommandSender sender, String detail);
 
     /**
@@ -1276,4 +1256,73 @@ public abstract class TriggerReactor {
      * @return
      */
     public abstract boolean isServerThread();
+
+    /**
+     * extract useful custom variables manually from 'context'
+     * @param context
+     * @return
+     */
+    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
+
+    @SuppressWarnings("serial")
+    private final List<HelpPage> helpPages = new ArrayList<HelpPage>(){{
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
+            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
+            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
+            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+        });
+        add((sender)->{
+            sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
+            sender.sendMessage("  &7/trg i to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
+
+            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
+            sender.sendMessage("  &7/trg a to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
+            sender.sendMessage("  &7/trg r to see more commands...");
+        });
+        add((sender)->{
+            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
+            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
+            sender.sendMessage("&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
+            sender.sendMessage("  &7/trg synccustom Greet");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
+            sender.sendMessage("  &7&cWarning - This command will delete the previous data associated with the key if exists.");
+            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
+            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
+            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
+        });
+        add((sender)->{
+            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+
+            sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
+            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
+            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
+            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
+
+            sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+
+            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
+
+            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
+        });
+    }};
+
+    private interface HelpPage{
+        void sendHelpPage(ICommandSender sender);
+    }
 }

@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -33,18 +34,23 @@ import org.bukkit.entity.Player;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 @SuppressWarnings("serial")
 public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer{
+    private static final String JAR_FOLDER_LOCATION = "Executor"+JarUtil.JAR_SEPARATOR+"Bukkit";
+
     private File executorFolder;
 
     public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
         super(plugin);
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
+
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        JarUtil.copyFolderFromJar("Executor", plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
+        FileUtil.moveFolder(new File(this.executorFolder, "Bukkit"), this.executorFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }
@@ -82,42 +88,19 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
                 instance.extractCustomVariables(variables, e);
                 ///////////////////////////////
 
-                Object player = vars.get("player");
+                Object player = variables.get("player");
                 if(player == null || !(player instanceof Player))
                     return null;
 
-                boolean wasOp = false;
-                try {
-                    if (plugin.isServerThread()) {
-                        wasOp = new IsOp((Player) player).call();
-                    } else {
-                        wasOp = plugin.callSyncMethod(new IsOp((Player) player)).get();
-                    }
-
-                    if(!wasOp) {
-                        if (plugin.isServerThread()) {
-                            new SetOp((Player) player, true).call();
-                        } else {
-                            plugin.callSyncMethod(new SetOp((Player) player, true)).get();
-                        }
-                    }
-
-                    if(args.length > 0) {
-                        if (plugin.isServerThread()) {
-                            new DispatchCommand((Player) player, String.valueOf(args[0])).call();
-                        } else {
-                            plugin.callSyncMethod(new DispatchCommand((Player) player, String.valueOf(args[0]))).get();
-                        }
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                } finally {
-                    if(!wasOp) {
-                        if (plugin.isServerThread()) {
-                            new SetOp((Player) player, false).call();
-                        } else {
-                            plugin.callSyncMethod(new SetOp((Player) player, false)).get();
-                        }
+                DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
+                if(plugin.isServerThread()) {
+                    call.call();
+                }else {
+                    try {
+                        plugin.callSyncMethod(call).get();
+                    } catch (Exception ex) {
+                        //to double check
+                        call.deOpIfWasNotOp();
                     }
                 }
 
@@ -150,51 +133,37 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
             System.out.println(i+". "+stack.get(i));
     }
 
-    private class IsOp implements Callable<Boolean>{
-        private final Player player;
-
-        public IsOp(Player player) {
-            super();
-            this.player = player;
-        }
-
-        @Override
-        public Boolean call() throws Exception {
-            return player.isOp();
-        }
-
-    }
-
-    private class DispatchCommand implements Callable<Void>{
+    private class DispatchCommandAsOP implements Callable<Void>{
         private final Player player;
         private final String cmd;
 
-        public DispatchCommand(Player player, String cmd) {
+        private boolean wasOp;
+
+        public DispatchCommandAsOP(Player player, String cmd) {
             super();
             this.player = player;
             this.cmd = cmd;
         }
 
+        private void deOpIfWasNotOp() {
+            if(!wasOp)
+                player.setOp(false);
+        }
+
         @Override
         public Void call() throws Exception {
-            Bukkit.dispatchCommand(player, cmd);
+            wasOp = player.isOp();
+
+            try {
+                player.setOp(true);
+                Bukkit.dispatchCommand(player, cmd);
+            } catch (Exception e) {
+
+            } finally {
+                deOpIfWasNotOp();
+            }
             return null;
         }
 
-    }
-
-    private class SetOp implements Callable<Void>{
-        private final Player player;
-        private final boolean op;
-        public SetOp(Player player, boolean op) {
-            super();
-            this.player = player;
-            this.op = op;
-        }
-        @Override
-        public Void call() throws Exception {
-            player.setOp(op);
-            return null;
-        }
     }
 }

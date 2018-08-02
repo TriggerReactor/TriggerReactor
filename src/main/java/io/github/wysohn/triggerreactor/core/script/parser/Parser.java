@@ -66,7 +66,11 @@ public class Parser {
     private Node parseStatement() throws ParserException, IOException, LexerException{
         skipEndLines();
         if(token != null){
-            if("IF".equals(token.value)){
+            if(token.type == Type.IMPORT) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("IF".equals(token.value)){
                 return parseIf();
             } else if("ELSEIF".equals(token.value)) {
                 Node elseNode = new Node(token);
@@ -518,7 +522,7 @@ public class Parser {
         }
 
         if("null".equals(token.value)){
-            Node node = new Node(new Token(Type.NULLVALUE, null, token.row, token.col));
+            Node node = new Node(new Token(Type.NULLVALUE, (Object) null, token.row, token.col));
             nextToken();
             return node;
         }
@@ -763,7 +767,7 @@ public class Parser {
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
         //String text = "#MESSAGE $random:1 == 0";
-        String text = ""
+        String text = "IMPORT test.Something;"
                 + "IF i == 0;"
                 + "    #MESSAGE 0;"
                 + "ELSEIF i == 1;"

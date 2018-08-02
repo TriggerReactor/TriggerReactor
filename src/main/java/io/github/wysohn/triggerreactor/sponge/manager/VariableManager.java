@@ -19,16 +19,26 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 import java.io.File;
 import java.io.IOException;
 
+import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataSerializable;
+import org.spongepowered.api.data.DataView;
+import org.spongepowered.api.data.persistence.DataBuilder;
+import org.spongepowered.api.data.persistence.DataTranslator;
+import org.spongepowered.api.data.persistence.DataTranslators;
+import org.spongepowered.api.item.inventory.ItemStack;
+
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
+import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 public class VariableManager extends AbstractVariableManager{
     private File varFile;
 
-    private ConfigurationLoader<ConfigurationNode> varFileConfigLoader;
+    private ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader;
     private ConfigurationNode varFileConfig;
 
     private final GlobalVariableAdapter adapter;
@@ -40,7 +50,7 @@ public class VariableManager extends AbstractVariableManager{
         if(!varFile.exists())
             varFile.createNewFile();
 
-        varFileConfigLoader = YAMLConfigurationLoader.builder().setPath(varFile.toPath()).build();
+        varFileConfigLoader = HoconConfigurationLoader.builder().setPath(varFile.toPath()).build();
 
         reload();
 
@@ -92,37 +102,70 @@ public class VariableManager extends AbstractVariableManager{
         return adapter;
     }
 
-    private ConfigurationNode getNodeByKeyString(String key){
-        String[] pathes = key.split("\\.");
-        Object[] objs = new Object[pathes.length];
-        for(int i = 0; i < objs.length; i++){
-            objs[i] = pathes[i];
-        }
-
-        return varFileConfig.getNode(objs);
-    }
-
     @Override
     public Object get(String key){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
-        return targetNode.getValue();
+        ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".type");
+        ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".value");
+
+        if(typeNode.isVirtual())
+            throw new RuntimeException("Can't find type for "+key);
+
+        if(valueNode.isVirtual())
+            throw new RuntimeException("Can't find value for "+key);
+
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName(typeNode.getString());
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("No such class "+typeNode.getString());
+        }
+        if(!DataSerializable.class.isAssignableFrom(clazz))
+            throw new RuntimeException(typeNode.getString()+" is not DataSerializable");
+
+        DataBuilder builder = Sponge.getDataManager().getBuilder((Class<? extends DataSerializable>) clazz).orElse(null);
+        if(builder == null)
+            throw new RuntimeException(typeNode.getString()+" has no appropriate DataBuilder");
+
+        DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
+        DataView container = translator.translate(valueNode);
+        return builder.build(container).orElse(null);
     }
 
     @Override
     public void put(String key, Object value){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
-        targetNode.setValue(value);
+        if(value == null) {
+            ConfigurationNode node = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
+            node.getParent().removeChild(node);
+        } else {
+            if(!(value instanceof DataSerializable)) {
+                throw new RuntimeException(value+" is not DataSerializable");
+            }
+
+            ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".type");
+            ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".value");
+
+            DataSerializable ds = (DataSerializable) value;
+            DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
+
+            if(value instanceof ItemStack) {
+                typeNode.setValue(ItemStack.class.getName());
+                valueNode.setValue(translator.translate(ds.toContainer()));
+            }else {
+                typeNode.setValue(value.getClass().getName());
+                valueNode.setValue(translator.translate(ds.toContainer()));
+            }
+        }
     }
 
     @Override
     public boolean has(String key){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         return !targetNode.isVirtual();
     }
 
     @Override
     public void remove(String key){
-        ConfigurationNode targetNode = getNodeByKeyString(key);
+        ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         ConfigurationNode parent = targetNode.getParent();
         parent.removeChild(targetNode.getKey());
     }
@@ -134,12 +177,10 @@ public class VariableManager extends AbstractVariableManager{
         public Object get(Object key) {
             Object value = null;
 
-            //try global if none found in local
             if(value == null && key instanceof String){
                 String keyStr = (String) key;
-                if(has(keyStr)){
-                    ConfigurationNode targetNode = getNodeByKeyString(keyStr);
-                    value = targetNode.getValue();
+                if(VariableManager.this.has(keyStr)){
+                    value = VariableManager.this.get(keyStr);
                 }
             }
 
@@ -150,11 +191,8 @@ public class VariableManager extends AbstractVariableManager{
         public boolean containsKey(Object key) {
             boolean result = false;
 
-            //check global if none found in local
             if(!result && key instanceof String){
-                String keyStr = (String) key;
-                ConfigurationNode targetNode = getNodeByKeyString(keyStr);
-                result = !targetNode.isVirtual();
+                result = !VariableManager.this.has((String) key);
             }
 
             return result;
@@ -162,10 +200,8 @@ public class VariableManager extends AbstractVariableManager{
 
         @Override
         public Object put(String key, Object value) {
-            ConfigurationNode targetNode = getNodeByKeyString(key);
-            Object before = targetNode.getValue();
-            targetNode.setValue(value);
-            return before;
+            VariableManager.this.put(key, value);
+            return null;
         }
     }
 }

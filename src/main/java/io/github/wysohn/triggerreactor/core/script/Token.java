@@ -24,10 +24,6 @@ public class Token {
 
     public Token(Type type, Object value, int row, int col) {
         this.type = type;
-
-        if(value instanceof Float){
-            value = (double) ((float) value);
-        }
         this.value = value;
         this.row = row;
         this.col = col;
@@ -45,12 +41,16 @@ public class Token {
         return value;
     }
 
-    public boolean isInt(){
-        return value instanceof Integer;
+    public boolean isInteger(){
+        return value instanceof Integer
+                || value instanceof Long
+                || value instanceof Short
+                || value instanceof Byte;
     }
 
-    public boolean isDouble(){
-        return value instanceof Double;
+    public boolean isDecimal(){
+        return value instanceof Double
+                || value instanceof Float;
     }
 
     public boolean isBoolean(){
@@ -70,19 +70,19 @@ public class Token {
     }
 
     public boolean isObject(){
-        return !isInt() && !isDouble() && !isBoolean() && !isArray();
+        return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
     }
 
-    public int toInt(){
-        return (int) value;
+    public int toInteger(){
+        return ((Number) value).intValue();
     }
 
-    public double toDouble(){
-        return (double) value;
+    public double toDecimal(){
+        return ((Number) value).doubleValue();
     }
 
     public boolean isNumeric() {
-        return isInt() || isDouble();
+        return isInteger() || isDecimal();
     }
 
     public boolean toBoolean(){
@@ -127,6 +127,8 @@ public class Token {
     }
 
     public enum Type {
+        IMPORT, CLAZZ,
+
         ROOT, ENDL,
 
         //Literal

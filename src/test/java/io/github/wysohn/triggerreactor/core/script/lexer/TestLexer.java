@@ -113,4 +113,15 @@ public class TestLexer {
         assertEquals(new Token(Type.STRING, "HI \"X\"! \\"), lexer.getToken());
         assertNull(lexer.getToken());
     }
+
+    @Test
+    public void testImport() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text;
+        Lexer lexer;
+
+        text = "IMPORT some.class.to.import.Something";
+        lexer = new Lexer(text, charset);
+        assertEquals(new Token(Type.IMPORT, "some.class.to.import.Something"), lexer.getToken());
+    }
 }

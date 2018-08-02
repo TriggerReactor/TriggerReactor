@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.bukkit.Bukkit;
@@ -79,12 +79,14 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
     @Override
     public void reload() {
-        HandlerList.unregisterAll(listener);
+        for(Entry<EventHook, Listener> entry : registeredListerners.entrySet()) {
+            HandlerList.unregisterAll(entry.getValue());
+        }
+        registeredListerners.clear();
         super.reload();
     }
 
     private static final String basePackageName = "org.bukkit.event";
-    static final Listener listener = new Listener(){};
     protected void initEvents() throws IOException{
         for(String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)){
             Class<?> test = null;
@@ -105,46 +107,32 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
     }
 
+    private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
     @Override
-    public boolean createCustomTrigger(String eventName, String name, String script)
-            throws ClassNotFoundException, TriggerInitFailedException {
-        if (nameMap.containsKey(name))
-            return false;
-
-        Class<?> event = this.getEventFromName(eventName);
-
-        Set<CustomTrigger> triggers = this.getTriggerSetForEvent(event);
-
-        File triggerFile = getTriggerFile(folder, name+".trg");
-        CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
-
-        triggers.add(trigger);
-        nameMap.put(name, trigger);
-
-        return true;
-    }
-
-    @Override
-    public Set<CustomTrigger> getTriggersForEvent(String eventName) throws ClassNotFoundException {
-        Class<?> clazz = this.getEventFromName(eventName);
-
-        return triggerMap.get(clazz);
-    }
-
-    @Override
-    protected void registerEvent(TriggerReactor plugin, Class<?> clazz) {
+    protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
+        Listener listener = new Listener() {};
         try{
             Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor(){
                 @Override
                 public void execute(Listener arg0, Event arg1) throws EventException {
-                    handleEvent(arg1);
+                    eventHook.onEvent(arg1);
                 }
             }, plugin.getMain());
+
+            registeredListerners.put(eventHook, listener);
         }catch(IllegalPluginAccessException e){
             //event with no handler list will throw this exception
             //which means it's a base event
             if(!BASEEVENTS.contains(BASEEVENTS))
                 BASEEVENTS.add((Class<? extends Event>) clazz);
+        }
+    }
+
+    @Override
+    protected void unregisterEvent(TriggerReactor plugin, EventHook eventHook) {
+        Listener listener = registeredListerners.remove(eventHook);
+        if(listener != null) {
+            HandlerList.unregisterAll(listener);
         }
     }
 
@@ -160,16 +148,5 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         }
 
         return event;
-    }
-
-    protected void handleEvent(Object e){
-        Set<CustomTrigger> triggers = triggerMap.get(e.getClass());
-        if(triggers == null)
-            return;
-
-        for(CustomTrigger trigger : triggers){
-            Map<String, Object> vars = new HashMap<>();
-            trigger.activate(e, vars);
-        }
     }
 }

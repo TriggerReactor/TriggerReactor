@@ -19,8 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 /**
@@ -29,7 +27,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
  * @author wysohn
  *
  */
-public class AbstractAPISupport {
+public abstract class AbstractAPISupport {
 
     protected final TriggerReactor plugin;
 
@@ -37,6 +35,12 @@ public class AbstractAPISupport {
         super();
         this.plugin = plugin;
     }
+
+    /**
+     * Initialize this API. It may throw APISupportException if the plugin is not found.
+     * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
+     */
+    public abstract void init() throws APISupportException;
 
     /**
      * Try to add a new instance of type 'clazz' to 'varName' if the 'varName' doesn't exist already.
@@ -54,9 +58,9 @@ public class AbstractAPISupport {
             }
 
             boolean initSuccess = true;
-            APISupport api = null;
+            AbstractAPISupport api = null;
             try {
-                api = (APISupport) con.newInstance(TriggerReactor.getInstance());
+                api = (AbstractAPISupport) con.newInstance(TriggerReactor.getInstance());
                 api.init();
             } catch(APISupportException e){
                 initSuccess = false;

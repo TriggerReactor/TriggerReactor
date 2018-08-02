@@ -30,8 +30,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.entity.Entity;
-
+import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -58,7 +57,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
      * The actual entity map.
      * <b>Adding or removing from this map also has to be reflected in entityLocationMap as well</b>
      */
-    protected final Map<UUID, WeakReference<Entity>> entityTrackMap = new ConcurrentHashMap<>();
+    protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
     public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
@@ -70,7 +69,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
                 while(plugin.isEnabled() && !Thread.interrupted()) {
                     //clean up the reference map
                     Set<UUID> deletes = new HashSet<>();
-                    for(Entry<UUID, WeakReference<Entity>> entry : entityTrackMap.entrySet()) {
+                    for(Entry<UUID, WeakReference<IEntity>> entry : entityTrackMap.entrySet()) {
                         if(entry.getValue().get() == null)
                             deletes.add(entry.getKey());
                     }
@@ -143,7 +142,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             String enterScript = null;
             File enterFile = null;
             try {
-                enterFile = getTriggerFile(scriptFolder, "Enter.trg");
+                enterFile = getTriggerFile(scriptFolder, "Enter", false);
                 enterScript = FileUtil.readFromFile(enterFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -153,7 +152,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             String exitScript = null;
             File exitFile = null;
             try {
-                exitFile = getTriggerFile(scriptFolder, "Exit.trg");
+                exitFile = getTriggerFile(scriptFolder, "Exit", false);
                 exitScript = FileUtil.readFromFile(exitFile);
             } catch (IOException e1) {
                 e1.printStackTrace();
@@ -170,7 +169,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             try {
                 if(enterScript != null){
-                    trigger.setEnterTrigger(enterScript);
+                    trigger.setEnterTrigger(enterScript, enterFile);
                 }
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
@@ -179,7 +178,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             try {
                 if(exitScript != null){
-                    trigger.setExitTrigger(exitScript);
+                    trigger.setExitTrigger(exitScript, exitFile);
                 }
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
@@ -233,7 +232,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             if(trigger.getEnterTrigger() != null){
                 try {
-                    FileUtil.writeToFile(new File(triggerFolder, "Enter.trg"), trigger.getEnterTrigger().getScript());
+                    FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().warning("Could not save Area Trigger [Enter] "+trigger.getTriggerName());
@@ -242,7 +241,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
             if(trigger.getExitTrigger() != null){
                 try {
-                    FileUtil.writeToFile(new File(triggerFolder, "Exit.trg"), trigger.getExitTrigger().getScript());
+                    FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().warning("Could not save Area Trigger [Exit] "+trigger.getTriggerName());
@@ -419,7 +418,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         private EnterTrigger enterTrigger;
         private ExitTrigger exitTrigger;
 
-        private Map<UUID, WeakReference<Entity>> trackedEntities = new ConcurrentHashMap<>();
+        private Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
 
         public AreaTrigger(Area area, File folder, String name) {
             super(name, null, null);
@@ -466,14 +465,22 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             return null;
         }
 
-        public void setEnterTrigger(String script) throws TriggerInitFailedException{
-            File triggerFile = getTriggerFile(folder, "Enter.trg");
+        void setEnterTrigger(String script, File triggerFile) throws TriggerInitFailedException{
             enterTrigger = new EnterTrigger(this, triggerFile, script);
         }
 
-        public void setExitTrigger(String script) throws TriggerInitFailedException{
-            File triggerFile = getTriggerFile(folder, "Exit.trg");
+        public void setEnterTrigger(String script) throws TriggerInitFailedException{
+            File triggerFile = getTriggerFile(folder, "Enter", true);
+            setEnterTrigger(script, triggerFile);
+        }
+
+        void setExitTrigger(String script, File triggerFile) throws TriggerInitFailedException{
             exitTrigger = new ExitTrigger(this, triggerFile, script);
+        }
+
+        public void setExitTrigger(String script) throws TriggerInitFailedException{
+            File triggerFile = getTriggerFile(folder, "Enter", true);
+            setExitTrigger(script, triggerFile);
         }
 
         public EnterTrigger getEnterTrigger() {
@@ -492,8 +499,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             this.exitTrigger = exitTrigger;
         }
 
-        public void addEntity(Entity entity) {
-            WeakReference<Entity> ref = new WeakReference<>(entity);
+        public void addEntity(IEntity entity) {
+            WeakReference<IEntity> ref = new WeakReference<>(entity);
             this.trackedEntities.put(entity.getUniqueId(), ref);
         }
 
@@ -501,12 +508,12 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             this.trackedEntities.remove(uuid);
         }
 
-        public Entity getEntity(UUID uuid) {
-            WeakReference<Entity> ref = this.trackedEntities.get(uuid);
+        public IEntity getEntity(UUID uuid) {
+            WeakReference<IEntity> ref = this.trackedEntities.get(uuid);
             if(ref == null)
                 return null;
 
-            Entity entity = ref.get();
+            IEntity entity = ref.get();
             //just remove it as it's got garbage-collected.
             if(entity == null) {
                 this.trackedEntities.remove(uuid);
@@ -515,13 +522,13 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             return entity;
         }
 
-        public List<Entity> getEntities(){
-            List<Entity> entities = new ArrayList<>();
+        public List<IEntity> getEntities(){
+            List<IEntity> entities = new ArrayList<>();
 
             Set<UUID> remove = new HashSet<>();
-            for(Entry<UUID, WeakReference<Entity>> entry : this.trackedEntities.entrySet()) {
-                WeakReference<Entity> ref = entry.getValue();
-                Entity entity = ref.get();
+            for(Entry<UUID, WeakReference<IEntity>> entry : this.trackedEntities.entrySet()) {
+                WeakReference<IEntity> ref = entry.getValue();
+                IEntity entity = ref.get();
                 if (entity != null) {
                     entities.add(entity);
                 } else {

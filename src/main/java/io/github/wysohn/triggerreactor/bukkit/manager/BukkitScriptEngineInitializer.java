@@ -24,7 +24,6 @@ import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 
 public interface BukkitScriptEngineInitializer extends IScriptEngineInitializer {
-
     @Override
     default void extractCustomVariables(Map<String, Object> variables, Object e) {
         if(e instanceof InventoryInteractEvent){

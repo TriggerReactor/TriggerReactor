@@ -28,7 +28,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -122,7 +122,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                 String fileName = slocToString(sloc);
                 String script = trigger.getScript();
 
-                File file = new File(folder, fileName+".trg");
+                File file = getTriggerFile(folder, fileName, true);
                 try{
                     FileUtil.writeToFile(file, script);
                 }catch(Exception e){

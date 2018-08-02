@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.player.IPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -55,7 +55,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         for(File ymlfile : folder.listFiles(filter)){
             String triggerName = extractName(ymlfile);
 
-            File triggerFile = getTriggerFile(folder, triggerName);
+            File triggerFile = getTriggerFile(folder, triggerName, false);
 
             if(!triggerFile.exists()){
                 plugin.getLogger().warning(triggerFile+" does not exists!");
@@ -129,7 +129,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
             InventoryTrigger trigger = entry.getValue();
 
             File yamlFile = new File(folder, triggerName+".yml");
-            File triggerFile = new File(folder, triggerName+".trg");
+            File triggerFile = getTriggerFile(folder, triggerName, true);
 
             if(!yamlFile.exists()){
                 try {
@@ -170,7 +170,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
        inventoryMap.put(inventory, trigger);
 
        Map<String, Object> varMap = new HashMap<>();
-       varMap.put("inventory", inventory);
+       varMap.put("inventory", inventory.get());
        inventorySharedVars.put(inventory, varMap);
 
        fillInventory(trigger, trigger.getItems().length, inventory);
@@ -220,7 +220,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         if (invenTriggers.containsKey(name))
             return false;
 
-        File triggerFile = getTriggerFile(folder, name+".trg");
+        File triggerFile = getTriggerFile(folder, name, true);
         invenTriggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), triggerFile, script));
 
         return true;
@@ -264,7 +264,9 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         varMap.put("player", player.get());
         varMap.put("trigger", "close");
 
+        trigger.setSync(true);
         trigger.activate(e, varMap);
+        trigger.setSync(false);
 
         inventoryMap.remove(inventory);
         inventorySharedVars.remove(inventory);

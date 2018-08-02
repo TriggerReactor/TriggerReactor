@@ -34,11 +34,11 @@ public class SpongeItemStack implements IItemStack {
     }
 
     /**
-     * Returns the full name of item as String.
+     * Returns the ItemType
      */
     @Override
     public <T> T getType() {
-        return (T) itemStack.getItem().getType().getId();
+        return (T) itemStack.getItem().getType();
     }
 
     @Override

@@ -32,8 +32,8 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 public class ProtocolLibSupport extends APISupport {

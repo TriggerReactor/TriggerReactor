@@ -27,7 +27,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
-import io.github.wysohn.triggerreactor.bukkit.bridge.player.BukkitPlayer;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -47,7 +47,7 @@ public class TriggerReactor extends JavaPlugin {
         File file = new File(getDataFolder(), "config.yml");
         if(!file.exists()){
             try{
-                String configStr = FileUtil.readFromStream(getResource("config.yml"));
+                String configStr = FileUtil.readFromStream(getResource("assets/triggerreactor/config.yml"));
                 FileUtil.writeToFile(file, configStr);
             }catch(IOException e){
                 e.printStackTrace();
