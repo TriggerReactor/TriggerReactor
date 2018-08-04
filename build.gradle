@@ -16,7 +16,6 @@ sponge {
 }
 
 repositories {
-	jcenter()
 	mavenCentral()
 	maven {
 		url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
@@ -30,9 +29,6 @@ repositories {
 	maven {
         name = 'sponge'
         url = 'https://repo.spongepowered.org/maven'
-    }
-    maven{
-        url = 'http://repo.drnaylor.co.uk/artifactory/list/minecraft'
     }
 }
 
@@ -66,8 +62,6 @@ dependencies {
 	//////////////////////////////////////////////////////////
 	//sponge
 	compile 'org.spongepowered:spongeapi:7.+'
-	
-	compile 'io.github.nucleuspowered:nucleus-api:1.4+'
 	
 	//////////////////////////////////////////////////////////
 	
