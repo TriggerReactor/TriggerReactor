@@ -42,7 +42,7 @@ public class JarUtil {
         String path = JarUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         if(trimmer != null)
             path = trimmer.trim(path);
-        String decodedPath = URLDecoder.decode(path, "UTF-8");
+        String decodedPath = URLDecoder.decode(path, "UTF-8").replace(" ", "%20");
         try {
             if(!decodedPath.startsWith("file"))
                 decodedPath = "file://"+decodedPath;
