@@ -9,7 +9,7 @@ description = 'Simple script parser with infinite possibility'
 sponge {
     plugin {
         meta {
-            version = '2.1.0'
+            version = '2.1.2'
             description = 'Simple script parser with infinite possibility'
         }
     }
