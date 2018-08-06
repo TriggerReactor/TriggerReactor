@@ -24,7 +24,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.faction.FactionsSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
@@ -51,6 +50,7 @@ public abstract class APISupport extends AbstractAPISupport {
      * Initialize this API. It may throw APISupportException if the plugin is not found.
      * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
      */
+    @Override
     public void init() throws APISupportException{
         Plugin plugin = Bukkit.getPluginManager().getPlugin(targetPluginName);
         if(plugin == null || !plugin.isEnabled())
@@ -66,7 +66,6 @@ public abstract class APISupport extends AbstractAPISupport {
         put("vault", VaultSupport.class);
         put("mcmmo", McMmoSupport.class);
         put("placeholder", PlaceHolderSupport.class);
-        put("factions", FactionsSupport.class);
         put("coreprotect", CoreprotectSupport.class);
         put("protocollib", ProtocolLibSupport.class);
         put("worldguard", WorldguardSupport.class);
