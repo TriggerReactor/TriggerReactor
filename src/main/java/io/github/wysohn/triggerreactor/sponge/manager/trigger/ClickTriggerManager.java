@@ -77,6 +77,12 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         varMap.put("player", player);
         varMap.put("block", clicked);
         varMap.put("item", player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.of(ItemTypes.AIR, 1)));
+        if(e instanceof InteractBlockEvent.Primary.MainHand)
+            varMap.put("click", "left");
+        else if(e instanceof InteractBlockEvent.Secondary.MainHand)
+            varMap.put("click", "right");
+        else
+            varMap.put("click", "unknown");
 
         trigger.activate(e, varMap);
         return;

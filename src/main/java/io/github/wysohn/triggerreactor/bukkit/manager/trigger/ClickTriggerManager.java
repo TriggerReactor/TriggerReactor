@@ -73,6 +73,19 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         varMap.put("player", e.getPlayer());
         varMap.put("block", clicked);
         varMap.put("item", e.getItem());
+        switch(e.getAction()) {
+        case LEFT_CLICK_AIR:
+        case LEFT_CLICK_BLOCK:
+            varMap.put("click", "left");
+            break;
+        case RIGHT_CLICK_AIR:
+        case RIGHT_CLICK_BLOCK:
+            varMap.put("click", "right");
+            break;
+        default:
+            varMap.put("click", "unknown");
+        }
+
 
         trigger.activate(e, varMap);
         return;
