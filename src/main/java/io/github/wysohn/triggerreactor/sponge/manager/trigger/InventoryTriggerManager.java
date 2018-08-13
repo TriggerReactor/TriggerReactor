@@ -29,7 +29,6 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.cause.First;
 import org.spongepowered.api.event.item.inventory.ClickInventoryEvent;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
-import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Carrier;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
@@ -40,6 +39,7 @@ import org.spongepowered.api.item.inventory.property.InventoryDimension;
 import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
+import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
@@ -199,16 +199,14 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         if(player == null)
             return;
 
-        SlotIndex slotIndex = e.getTransactions().get(0).getSlot().getInventoryProperty(SlotIndex.class).orElse(null);
+        SlotTransaction slotTransaction = e.getTransactions().get(0);
+        Slot slot = slotTransaction.getSlot();
+        SlotIndex slotIndex = slot.getInventoryProperty(SlotIndex.class).orElse(null);
         int rawSlot = slotIndex.getValue();
 
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
-        if(trigger.getItems()[rawSlot] == null)
-            varMap.put("item", ItemStack.of(ItemTypes.AIR, 1));
-        else{
-            ItemStack item = trigger.getItems()[rawSlot].get();
-            varMap.put("item", item.copy());
-        }
+        ItemStackSnapshot clickedItemOpt = slotTransaction.getOriginal();
+        varMap.put("item", clickedItemOpt.createStack());
         varMap.put("slot", rawSlot);
         varMap.put("click", e.getClass().getSimpleName());
         varMap.put("trigger", "click");

@@ -198,15 +198,12 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         if(e.getRawSlot() < 0)
             return;
 
+        ItemStack clickedItem = e.getCurrentItem();
+        if(clickedItem == null)
+            clickedItem = new ItemStack(Material.AIR);
+
         Map<String, Object> varMap = getSharedVarsForInventory(new BukkitInventory(inventory));
-        if(e.getRawSlot() < trigger.getItems().length){
-            if(trigger.getItems()[e.getRawSlot()] == null)
-                varMap.put("item", new ItemStack(Material.AIR));
-            else{
-                ItemStack item = trigger.getItems()[e.getRawSlot()].get();
-                varMap.put("item", item.clone());
-            }
-        }
+        varMap.put("item", clickedItem.clone());
         varMap.put("slot", e.getRawSlot());
         varMap.put("click", e.getClick().name());
         varMap.put("hotbar", e.getHotbarButton());
