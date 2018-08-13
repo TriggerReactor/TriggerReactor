@@ -29,6 +29,14 @@ public class Token {
         this.col = col;
     }
 
+
+    public Token(Type type, Object value, Token tokenOrigin) {
+        this.type = type;
+        this.value = value;
+        this.row = tokenOrigin.row;
+        this.col = tokenOrigin.col;
+    }
+
 /*    public Token(Type type, Object value, Lexer lexer) {
         this(type, value, lexer.getRow(), lexer.getCol());
     }
