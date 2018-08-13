@@ -318,7 +318,7 @@ public abstract class TriggerReactor {
 
                         return true;
                     }
-                } else if(args.length > 1 && args[0].equalsIgnoreCase("run")){
+                } else if (args.length > 1 && args[0].equalsIgnoreCase("run")) {
                     String script = mergeArguments(args, 1, args.length - 1);
 
                     try {
@@ -331,7 +331,27 @@ public abstract class TriggerReactor {
                     }
 
                     return true;
-                } else if(args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")){
+                } else if (args.length > 2 && args[0].equalsIgnoreCase("sudo")) {
+                    String playerName = args[1];
+                    String script = mergeArguments(args, 2, args.length - 1);
+
+                    IPlayer targetPlayer = getPlayer(playerName);
+                    if(targetPlayer == null) {
+                        sender.sendMessage("&cNo such player named &6"+playerName+"&c!");
+                        return true;
+                    }
+
+                    try {
+                        Trigger trigger = getCmdManager().createTempCommandTrigger(script);
+
+                        trigger.activate(createEmptyPlayerEvent(targetPlayer), new HashMap<>());
+
+                    } catch (Exception e) {
+                        handleException(sender, e);
+                    }
+
+                    return true;
+                } else if (args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")) {
                     if(args.length > 3 && args[2].equalsIgnoreCase("create")){
                         String name = args[1];
                         int size = -1;
@@ -1307,6 +1327,9 @@ public abstract class TriggerReactor {
         });
         add((sender)->{
             sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+
+            sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
             sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
 
             sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
