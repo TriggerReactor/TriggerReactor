@@ -104,8 +104,12 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public Object get(String key){
-        ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".type");
-        ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".value");
+        ConfigurationNode parentNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
+        if(parentNode.isVirtual())
+            return null;
+
+        ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(parentNode, "type");
+        ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(parentNode, "value");
 
         if(typeNode.isVirtual())
             throw new RuntimeException("Can't find type for "+key);
@@ -113,22 +117,31 @@ public class VariableManager extends AbstractVariableManager{
         if(valueNode.isVirtual())
             throw new RuntimeException("Can't find value for "+key);
 
-        Class<?> clazz = null;
-        try {
-            clazz = Class.forName(typeNode.getString());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("No such class "+typeNode.getString());
+        String typeName = typeNode.getString();
+        if(typeName.equals("String")) {
+            return valueNode.getString();
+        }else if(typeName.equals("Integer")) {
+            return valueNode.getInt();
+        }else if(typeName.equals("Decimal")) {
+            return valueNode.getDouble();
+        }else{
+            Class<?> clazz = null;
+            try {
+                clazz = Class.forName(typeName);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("No such class "+typeNode.getString());
+            }
+            if(!DataSerializable.class.isAssignableFrom(clazz))
+                throw new RuntimeException(typeNode.getString()+" is not DataSerializable");
+
+            DataBuilder builder = Sponge.getDataManager().getBuilder((Class<? extends DataSerializable>) clazz).orElse(null);
+            if(builder == null)
+                throw new RuntimeException(typeNode.getString()+" has no appropriate DataBuilder");
+
+            DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
+            DataView container = translator.translate(valueNode);
+            return builder.build(container).orElse(null);
         }
-        if(!DataSerializable.class.isAssignableFrom(clazz))
-            throw new RuntimeException(typeNode.getString()+" is not DataSerializable");
-
-        DataBuilder builder = Sponge.getDataManager().getBuilder((Class<? extends DataSerializable>) clazz).orElse(null);
-        if(builder == null)
-            throw new RuntimeException(typeNode.getString()+" has no appropriate DataBuilder");
-
-        DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
-        DataView container = translator.translate(valueNode);
-        return builder.build(container).orElse(null);
     }
 
     @Override
@@ -137,22 +150,46 @@ public class VariableManager extends AbstractVariableManager{
             ConfigurationNode node = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
             node.getParent().removeChild(node);
         } else {
-            if(!(value instanceof DataSerializable)) {
-                throw new RuntimeException(value+" is not DataSerializable");
-            }
-
             ConfigurationNode typeNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".type");
             ConfigurationNode valueNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key+".value");
 
-            DataSerializable ds = (DataSerializable) value;
-            DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
+            if(value instanceof String) {
+                typeNode.setValue("String");
+                valueNode.setValue(value);
+            }else if(value instanceof Number) {
+                switch(value.getClass().getSimpleName()) {
+                case "AtomicInteger":
+                case "BigInteger":
+                case "Byte":
+                case "Integer":
+                case "Short":
+                case "Long":
+                case "AtomicLong":
+                    typeNode.setValue("Integer");
+                    valueNode.setValue(((Number) value).intValue());
+                    break;
+                case "BigDecimal":
+                case "Double":
+                case "Float":
+                    typeNode.setValue("Decimal");
+                    valueNode.setValue(((Number) value).doubleValue());
+                    break;
+                default:
+                    throw new RuntimeException(value+" is not DataSerializable");
+                }
+            }else if(value instanceof DataSerializable) {
+                DataSerializable ds = (DataSerializable) value;
+                DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
 
-            if(value instanceof ItemStack) {
-                typeNode.setValue(ItemStack.class.getName());
-                valueNode.setValue(translator.translate(ds.toContainer()));
+                if(value instanceof ItemStack) {
+                    typeNode.setValue(ItemStack.class.getName());
+                    valueNode.setValue(translator.translate(ds.toContainer()));
+                }else {
+                    typeNode.setValue(value.getClass().getName());
+                    valueNode.setValue(translator.translate(ds.toContainer()));
+                }
             }else {
-                typeNode.setValue(value.getClass().getName());
-                valueNode.setValue(translator.translate(ds.toContainer()));
+                throw new RuntimeException(value+" is not DataSerializable");
             }
         }
     }
