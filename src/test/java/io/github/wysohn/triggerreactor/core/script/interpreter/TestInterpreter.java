@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -952,6 +953,53 @@ public class TestInterpreter {
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNestedIf3() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "IF x > 999;"
+                + "    result = \"test1\";"
+                + "ELSEIF x > 99;"
+                + "    result = \"test2\";"
+                + "ELSEIF x > 9;"
+                + "    IF x < 11;"
+                + "        result = \"test5\";"
+                + "    ENDIF;"
+                + "ELSEIF x > 4;"
+                + "    result = \"test3\";"
+                + "ELSE;"
+                + "    result = \"test4\";"
+                + "ENDIF;";
+
+        Map<Integer, String> testMap = new HashMap<>();
+        testMap.put(1000, "test1");
+        testMap.put(100, "test2");
+        testMap.put(10, "test5");
+        testMap.put(5, "test3");
+        testMap.put(0, "test4");
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+
+        int x = 0;
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        for(Entry<Integer, String> entry : testMap.entrySet()) {
+            x = entry.getKey();
+
+            Map<String, Placeholder> placeholderMap = new HashMap<>();
+            Map<String, Object> localVars = new HashMap<>();
+            localVars.put("x", x);
+
+            Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), localVars, new CommonFunctions(null));
+
+            interpreter.startWithContext(null);
+
+            Assert.assertEquals(testMap.get(x), localVars.get("result"));
+        }
     }
 
     @Test

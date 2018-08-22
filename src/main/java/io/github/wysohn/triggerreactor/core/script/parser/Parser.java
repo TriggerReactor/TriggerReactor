@@ -72,6 +72,8 @@ public class Parser {
                 return node;
             }else if("IF".equals(token.value)){
                 return parseIf();
+            }else if("ELSEIF".equals(token.value)) {
+                return null;
             }else if("ENDIF".equals(token.value)){
                 return null;
             }
