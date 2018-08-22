@@ -199,13 +199,19 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         if(player == null)
             return;
 
-        SlotTransaction slotTransaction = e.getTransactions().get(0);
-        Slot slot = slotTransaction.getSlot();
-        SlotIndex slotIndex = slot.getInventoryProperty(SlotIndex.class).orElse(null);
-        int rawSlot = slotIndex.getValue();
+        int rawSlot = -1;
+        SlotTransaction slotTransaction = null;
+
+        List<SlotTransaction> transactions = e.getTransactions();
+        if(!transactions.isEmpty()) {
+            slotTransaction = e.getTransactions().get(0);
+            Slot slot = slotTransaction.getSlot();
+            SlotIndex slotIndex = slot.getInventoryProperty(SlotIndex.class).orElse(null);
+            rawSlot = slotIndex.getValue();
+        }
 
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
-        ItemStackSnapshot clickedItemOpt = slotTransaction.getOriginal();
+        ItemStackSnapshot clickedItemOpt = slotTransaction == null ? ItemStackSnapshot.NONE : slotTransaction.getOriginal();
         varMap.put("item", clickedItemOpt.createStack());
         varMap.put("slot", rawSlot);
         varMap.put("click", e.getClass().getSimpleName());
