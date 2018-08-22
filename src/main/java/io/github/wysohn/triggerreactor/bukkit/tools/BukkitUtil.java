@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 
 public class BukkitUtil {
     private static boolean getOnlinePlayersMethodFound = true;
@@ -104,5 +106,11 @@ public class BukkitUtil {
         }
     }
 
-
+    public static ItemStack getPlayerHeadItem() {
+        try {
+            return new ItemStack(Material.valueOf("PLAYER_HEAD"), 1, (short) 3);
+        } catch (IllegalArgumentException ex) {
+            return new ItemStack(Material.valueOf("SKULL_ITEM"), 1, (short) 3);
+        }
+    }
 }

@@ -161,7 +161,7 @@ public class TestInterpreter {
         int ecoValue = 10;
         String text = ""
                 + "IF command == \"iron\"\n"
-                + "    IF takeItem(player, 265, 1)\n"
+                + "    IF takeItem(player, \"IRON_INGOT\", 1)\n"
                 + "        #SOUND \"LEVEL_UP\",1.0,-2.0,player.getLocation()\n"
                 + "        #CMDCON \"econ add \"+player.getName()+\" "+ecoValue+"\"\n"
                 + "        #MESSAGE \"Sold!\"\n"
