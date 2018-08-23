@@ -831,6 +831,8 @@ public class TestInterpreter {
         String text = "x = 4.0;"
                 + "IF x > 0.0;"
                 + "    #TEST \"pass\";"
+                + "ELSE;"
+                + "    #TEST \"failed\";"
                 + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
@@ -856,13 +858,77 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testIfWithElse() throws Exception{
+    public void testSimpleIf2() throws Exception{
         Charset charset = Charset.forName("UTF-8");
-        String text = "x = 4.0;"
-                + "IF x < 0.0;"
-                + "    #TEST \"no\";"
-                + "ELSE;"
+        String text = ""
+                + "IF someunknown != 0.0;"
                 + "    #TEST \"pass\";"
+                + "ELSE;"
+                + "    #TEST \"failed\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testSimpleIf3() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "IF 0.0 != someunknown;"
+                + "    #TEST \"pass\";"
+                + "ELSE;"
+                + "    #TEST \"failed\";"
+                + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Object context, Object... args) throws Exception {
+                Assert.assertEquals("pass", args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testSimpleIf4() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "IF someunknown == someunknown;"
+                + "    #TEST \"pass\";"
+                + "ELSE;"
+                + "    #TEST \"failed\";"
                 + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
