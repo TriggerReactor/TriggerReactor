@@ -566,16 +566,28 @@ public class Interpreter {
                                 ? right.toInteger() : right.toDecimal()), node.getToken()));
                         break;
                     case "==":
-                        if (right.type == Type.NULLVALUE) {
-                            stack.push(new Token(Type.BOOLEAN, left.value == null, node.getToken()));
+                        if (left.type == Type.NULLVALUE || right.type == Type.NULLVALUE) {
+                            if (left.value == null && right.value == null) {
+                                stack.push(new Token(Type.BOOLEAN, true, node.getToken()));
+                            } else if (left.value == null) {
+                                stack.push(new Token(Type.BOOLEAN, right.value == null, node.getToken()));
+                            } else {
+                                stack.push(new Token(Type.BOOLEAN, left.value == null, node.getToken()));
+                            }
                         } else {
                             stack.push(new Token(Type.BOOLEAN, left.value.equals(right.value), node.getToken()));
                         }
 
                         break;
                     case "!=":
-                        if (right.type == Type.NULLVALUE) {
-                            stack.push(new Token(Type.BOOLEAN, left.value != null, node.getToken()));
+                        if (left.type == Type.NULLVALUE || right.type == Type.NULLVALUE) {
+                            if (left.value == null && right.value == null) {
+                                stack.push(new Token(Type.BOOLEAN, false, node.getToken()));
+                            } else if (left.value == null) {
+                                stack.push(new Token(Type.BOOLEAN, right.value != null, node.getToken()));
+                            } else {
+                                stack.push(new Token(Type.BOOLEAN, left.value != null, node.getToken()));
+                            }
                         } else {
                             stack.push(new Token(Type.BOOLEAN, !left.value.equals(right.value), node.getToken()));
                         }
