@@ -40,17 +40,23 @@ public class Parser {
 
     private Token token;
 
-    public Parser(Lexer lexer) throws IOException, LexerException {
+    public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
 
         nextToken();
     }
 
-    private void nextToken() throws IOException, LexerException{
-        token = lexer.getToken();
+    private void nextToken() throws IOException, LexerException, ParserException{
+        try {
+            token = lexer.getToken();
+        }catch(LexerException lex) {
+            ParserException pex = new ParserException("Error occured while processing a token after "+token);
+            pex.initCause(lex);
+            throw pex;
+        }
     }
 
-    private void skipEndLines() throws IOException, LexerException{
+    private void skipEndLines() throws IOException, LexerException, ParserException{
         while(token != null && token.type == Type.ENDL)
             nextToken();
     }
@@ -764,16 +770,14 @@ public class Parser {
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
         //String text = "#MESSAGE $random:1 == 0";
-        String text = "IMPORT test.Something;"
-                + "IF i == 0;"
-                + "    #MESSAGE 0;"
-                + "ELSEIF i == 1;"
-                + "    #MESSAGE 1;"
-                + "ELSEIF i == 2;"
-                + "    #MESSAGE 2;"
-                + "ELSE;"
-                + "    #MESSAGE 3;"
-                + "ENDIF;";
+        String text = "id = 1;"
+                + "amount = 1;"
+                + "data = 0;"
+                + ";"
+                + "is = item(id, amount, data);"
+                + "IF player.getInventory().containsAtLeast​(is, amount)"
+                + "    #TEST \"pass\";"
+                + "ENDIF";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
