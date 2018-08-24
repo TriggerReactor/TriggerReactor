@@ -131,6 +131,11 @@ public class Lexer {
             return readEndline();
         }
 
+        //still something is in the stream, but it's not recognizable
+        if(!eos) {
+            throw new LexerException("Found an unrecognizable character", this);
+        }
+
         return null;
     }
 
@@ -157,7 +162,7 @@ public class Lexer {
                         read();
                         break;
                     }else{
-                        throw new LexerException("Expected '/' but end of stream is reached.", this);
+                        throw new LexerException("Expected '/' but end of stream is reached", this);
                     }
                 }
             }else{
@@ -181,7 +186,7 @@ public class Lexer {
             builder.append('.');
             read();
             if(!Character.isDigit(c))
-                throw new LexerException("Invalid number ["+builder.toString()+"]!", this);
+                throw new LexerException("Invalid number ["+builder.toString()+"]", this);
         }
         while(Character.isDigit(c)){
             builder.append(c);
@@ -201,7 +206,7 @@ public class Lexer {
                 if(c == '\\' || c == '"'){
                     builder.append(c);
                 }else{
-                    throw new LexerException("Expected an escaping character after \\ but found "+c+" instead.", this);
+                    throw new LexerException("Expected an escaping character after \\ but found "+c+" instead", this);
                 }
             } else {
                 builder.append(c);
@@ -235,7 +240,7 @@ public class Lexer {
                 read();
                 return new Token(Type.OPERATOR_L, op+"|", row, col);
             }else{
-                throw new LexerException("Bit operator is not yet implemented.", this);
+                throw new LexerException("Bit operator is not yet implemented", this);
             }
         } else if (c == '&') {
             String op = String.valueOf(c);
@@ -245,7 +250,7 @@ public class Lexer {
                 read();
                 return new Token(Type.OPERATOR_L, op+"&", row, col);
             }else{
-                throw new LexerException("Bit operator is not yet implemented.", this);
+                throw new LexerException("Bit operator is not yet implemented", this);
             }
         } else if (c == '=') {
             String op = String.valueOf(c);
@@ -276,6 +281,8 @@ public class Lexer {
         if(isIdCharacter(c)){
             builder.append(c);
             read();
+        }else {
+            throw new LexerException("Cannot use "+c+" as a first character", this);
         }
 
         while(isIdCharacter(c) || Character.isDigit(c)){
@@ -288,7 +295,7 @@ public class Lexer {
             skipWhiteSpaces();
 
             if(c == '.') {
-                throw new LexerException("IMPORT found a dangling .(dot)!", this);
+                throw new LexerException("IMPORT found a dangling .(dot)", this);
             }
 
             if(!isClassNameCharacter(c)) {
@@ -334,25 +341,14 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException{
         Charset charset = Charset.forName("UTF-8");
-        String text = ""
-                + "IMPORT some.class.Something.\n"
-                + "\n"
-                + "X = 5\n"
-                + "str = \"abc\"\n"
-                + "FOR i = 0 : 10\n"
-                + "    str = str + X\n"
-                + "    IF player.in.health > 2 && player.in.health[3] > 0\n"
-                + "        #MESSAGE 3*4\n"
-                + "    ELSE\n"
-                + "        #MESSAGE str\n"
-                + "    ENDIF\n"
-                + "    #MESSAGE player.in.hasPermission(x, 2+3, 5 > 4)\n"
-                + "    X = X - 1\n"
-                + "    IF X < 0\n"
-                + "        #STOP\n"
-                + "    ENDIF\n"
-                + "    #WAIT 1\n"
-                + "ENDFOR";
+        String text = "id = 1;"
+                + "amount = 1;"
+                + "data = 0;"
+                + ";"
+                + "is = item(id, amount, data);"
+                + "IF player.getInventory().containsAtLeast​(is, amount)"
+                + "    #TEST \"pass\";"
+                + "ENDIF";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n"+text);
 
