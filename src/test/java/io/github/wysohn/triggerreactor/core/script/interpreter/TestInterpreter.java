@@ -42,7 +42,7 @@ import junit.framework.Assert;
 
 public class TestInterpreter {
     @Test
-    public void testRandom() throws Exception{
+    public void testMethod() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "rand = common.random(3);"
@@ -75,6 +75,28 @@ public class TestInterpreter {
         interpreter.getVars().put("common", new CommonFunctions(null));
 
         interpreter.startWithContext(null);
+    }
+    
+    @Test
+    public void testMethodReturnValue() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "{\"temp1\"} = random(0, 10);"
+        		+ "{\"temp2\"} = random(0.0, 10.0);";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<String, Object> gvars = new HashMap<String, Object>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+
+        Assert.assertTrue(gvars.get("temp1") instanceof Integer);
+        Assert.assertTrue(gvars.get("temp2") instanceof Double);
     }
 
     @Test

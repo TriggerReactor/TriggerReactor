@@ -31,11 +31,11 @@ public class TestCommonFunctions {
             value = fn.random(0L, 10L);
             Assert.assertTrue(0L <= value && value < 10L);
 
-            value = fn.random(10);
-            Assert.assertTrue(0 <= value && value < 10);
+            int value2 = fn.random(10);
+            Assert.assertTrue(0 <= value2 && value2 < 10);
 
-            value = fn.random(0, 10);
-            Assert.assertTrue(0 <= value && value < 10);
+            value2 = fn.random(0, 10);
+            Assert.assertTrue(0 <= value2 && value2 < 10);
         }
     }
 }

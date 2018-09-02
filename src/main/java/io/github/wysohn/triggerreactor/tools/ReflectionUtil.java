@@ -150,9 +150,16 @@ public class ReflectionUtil {
 
                 if (method.isVarArgs()) {
                     boolean matches = false;
+                    boolean exactMatches = true;
+                    
                     // check non vararg part
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
+                    	exactMatches = exactMatches && parameterTypes[i] == (args[i] == null ? null : args[i].getClass());
                         matches = checkMatch(parameterTypes[i], args[i]);
+                        
+                    	if(exactMatches)
+                    		continue;
+                    	
                         if (!matches)
                             break;
                     }
@@ -160,18 +167,38 @@ public class ReflectionUtil {
                     // check rest
                     for (int i = parameterTypes.length - 1; i < args.length; i++) {
                         Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
+                        
+                    	exactMatches = exactMatches && arrayType == (args[i] == null ? null : args[i].getClass());
                         matches = checkMatch(arrayType, args[i]);
+                        
+                    	if(exactMatches)
+                    		continue;
+                    		
                         if (!matches)
                             break;
                     }
 
+                    // do not check other methods if exact match exists
+                    if(exactMatches) {
+                    	validMethods.clear();
+                    	validMethods.add(method);
+                    	break;
+                    }
+                    
                     if (matches) {
                         validMethods.add(method);
                     }
                 } else {
                     boolean matches = true;
+                    boolean exactMatches = true;
+                    
                     for (int i = 0; i < parameterTypes.length; i++) {
+                    	exactMatches = exactMatches && parameterTypes[i] == (args[i] == null ? null : args[i].getClass());
                         matches = checkMatch(parameterTypes[i], args[i]);
+                        
+                    	if(exactMatches)
+                    		continue;
+                    	
                         if (!matches)
                             break;
                     }
