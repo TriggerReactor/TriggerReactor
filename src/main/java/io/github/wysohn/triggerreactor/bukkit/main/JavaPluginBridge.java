@@ -1062,7 +1062,9 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 	@Override
 	public Map<String, Object> getCustomVarsForTrigger(Object e) {
 		Map<String, Object> variables = new HashMap<String, Object>();
-		if (e instanceof InventoryInteractEvent) {
+		if (e instanceof PlayerEvent) {
+			variables.put("player", ((PlayerEvent) e).getPlayer());
+		} else if (e instanceof InventoryInteractEvent) {
 			if (((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
 				variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
 		} else if (e instanceof InventoryCloseEvent) {
@@ -1076,17 +1078,19 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 		} else if (e instanceof EntityEvent) { // Some EntityEvent use entity field to store Player instance.
 			Entity entity = ((EntityEvent) e).getEntity();
 			variables.put("entity", entity);
-			
+
 			if (entity instanceof Player) {
 				variables.put("player", entity);
 			}
 		} else if (e instanceof BlockEvent) {
+			variables.put("block", ((BlockEvent) e).getBlock());
+			
 			try {
 				Method m = e.getClass().getMethod("getPlayer");
 				variables.put("player", m.invoke(e));
 			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e1) {
-				return null;
+				return variables;
 			}
 		}
 
