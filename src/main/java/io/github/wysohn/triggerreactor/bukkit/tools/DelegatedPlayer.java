@@ -45,7 +45,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.PistonMoveReaction;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
@@ -1554,76 +1553,6 @@ public class DelegatedPlayer implements Player {
     public String getLocale() {
         // TODO Auto-generated method stub
         return null;
-    }
-    @Override
-    public boolean isSwimming() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    @Override
-    public void setSwimming(boolean swimming) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public boolean isRiptiding() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    @Override
-    public boolean isPersistent() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    @Override
-    public void setPersistent(boolean persistent) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public String getPlayerListHeader() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public String getPlayerListFooter() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    @Override
-    public void setPlayerListHeader(String header) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public void setPlayerListFooter(String footer) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public void setPlayerListHeaderFooter(String header, String footer) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public void sendBlockChange(Location loc, BlockData block) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public void hidePlayer(Plugin plugin, Player player) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public void showPlayer(Plugin plugin, Player player) {
-        // TODO Auto-generated method stub
-
-    }
-    @Override
-    public void updateCommands() {
-        // TODO Auto-generated method stub
-
     }
 
 }

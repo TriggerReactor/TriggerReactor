@@ -90,6 +90,8 @@ import io.github.wysohn.triggerreactor.bukkit.manager.PlaceholderManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.VariableManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.CommandTriggerManager;
@@ -337,6 +339,15 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
             plugin.saveConfig();
         }
+        
+        Bukkit.getScheduler().runTask(plugin, new Runnable() {
+
+			@Override
+			public void run() {
+				Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent());
+			}
+        	
+        });
     }
 
     private void initFailed(Exception e) {
@@ -346,12 +357,16 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         disablePlugin();
     }
 
-    public void onDisable(JavaPlugin plugin){
-        getLogger().info("Finalizing the scheduled script executions...");
-        cachedThreadPool.shutdown();
-        bungeeConnectionThread.interrupt();
-        getLogger().info("Shut down complete!");
-    }
+	public void onDisable(JavaPlugin plugin) {
+		try {
+			Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent());
+		} finally {
+			getLogger().info("Finalizing the scheduled script executions...");
+			cachedThreadPool.shutdown();
+			bungeeConnectionThread.interrupt();
+			getLogger().info("Shut down complete!");
+		}
+	}
 
     @Override
     protected void sendCommandDesc(ICommandSender sender, String command, String desc){

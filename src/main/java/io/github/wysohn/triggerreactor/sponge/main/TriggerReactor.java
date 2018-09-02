@@ -108,6 +108,8 @@ import io.github.wysohn.triggerreactor.sponge.manager.PlaceholderManager;
 import io.github.wysohn.triggerreactor.sponge.manager.PlayerLocationManager;
 import io.github.wysohn.triggerreactor.sponge.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.sponge.manager.VariableManager;
+import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
+import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.CommandTriggerManager;
@@ -321,13 +323,26 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 //
 //            plugin.saveConfig();
 //        }
+        
+        Sponge.getScheduler().createTaskBuilder().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				Sponge.getEventManager().post(new TriggerReactorStartEvent());
+			}
+        	
+        }).submit(this);
     }
 
     @Listener
     public void onDisable(GameStoppingServerEvent e) {
-        getLogger().info("Finalizing the scheduled script executions...");
-        cachedThreadPool.shutdown();
-        getLogger().info("Shut down complete!");
+		try {
+			Sponge.getEventManager().post(new TriggerReactorStopEvent());
+		} finally {
+			getLogger().info("Finalizing the scheduled script executions...");
+			cachedThreadPool.shutdown();
+			getLogger().info("Shut down complete!");
+		}
     }
 
     @Listener
