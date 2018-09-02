@@ -81,7 +81,8 @@ public class TestInterpreter {
     public void testMethodReturnValue() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = "{\"temp1\"} = random(0, 10);"
-        		+ "{\"temp2\"} = random(0.0, 10.0);";
+        		+ "{\"temp2\"} = random(0.0, 10.0);"
+        		+ "{\"temp3\"} = random(0, 10.0);";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -97,6 +98,32 @@ public class TestInterpreter {
 
         Assert.assertTrue(gvars.get("temp1") instanceof Integer);
         Assert.assertTrue(gvars.get("temp2") instanceof Double);
+        Assert.assertTrue(gvars.get("temp3") instanceof Double);
+    }
+    
+    @Test
+    public void testMethodWithEnumParameter() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
+        		+ "{\"temp2\"} = temp.testEnumMethod(\"Something\");"
+        		+ "{\"temp3\"} = random(0, 10.0);";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<String, Object>();
+        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        vars.put("temp", new TheTest());
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+
+        Assert.assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
+        Assert.assertEquals("Something", gvars.get("temp2"));
     }
 
     @Test
@@ -1265,6 +1292,15 @@ public class TestInterpreter {
         public String localTest() {
             return "local";
         }
+
+        public TestEnum testEnumMethod(TestEnum val) {
+        	return val;
+        }
+        
+        public String testEnumMethod(String val) {
+        	return val;
+        }
+        
         public static String staticTest() {
             return "static";
         }

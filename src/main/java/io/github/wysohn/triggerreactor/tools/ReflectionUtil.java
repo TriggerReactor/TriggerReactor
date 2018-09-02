@@ -150,16 +150,10 @@ public class ReflectionUtil {
 
                 if (method.isVarArgs()) {
                     boolean matches = false;
-                    boolean exactMatches = true;
                     
                     // check non vararg part
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
-                    	exactMatches = exactMatches && parameterTypes[i] == (args[i] == null ? null : args[i].getClass());
-                        matches = checkMatch(parameterTypes[i], args[i]);
-                        
-                    	if(exactMatches)
-                    		continue;
-                    	
+                    	matches = checkMatch(parameterTypes[i], args[i]);
                         if (!matches)
                             break;
                     }
@@ -167,22 +161,10 @@ public class ReflectionUtil {
                     // check rest
                     for (int i = parameterTypes.length - 1; i < args.length; i++) {
                         Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
-                        
-                    	exactMatches = exactMatches && arrayType == (args[i] == null ? null : args[i].getClass());
-                        matches = checkMatch(arrayType, args[i]);
-                        
-                    	if(exactMatches)
-                    		continue;
                     		
+                        matches = checkMatch(arrayType, args[i]);
                         if (!matches)
                             break;
-                    }
-
-                    // do not check other methods if exact match exists
-                    if(exactMatches) {
-                    	validMethods.clear();
-                    	validMethods.add(method);
-                    	break;
                     }
                     
                     if (matches) {
@@ -190,19 +172,13 @@ public class ReflectionUtil {
                     }
                 } else {
                     boolean matches = true;
-                    boolean exactMatches = true;
-                    
+
                     for (int i = 0; i < parameterTypes.length; i++) {
-                    	exactMatches = exactMatches && parameterTypes[i] == (args[i] == null ? null : args[i].getClass());
                         matches = checkMatch(parameterTypes[i], args[i]);
-                        
-                    	if(exactMatches)
-                    		continue;
-                    	
                         if (!matches)
                             break;
                     }
-
+                    
                     if(matches) {
                         validMethods.add(method);
                     }
@@ -231,7 +207,10 @@ public class ReflectionUtil {
                         //do nothing
                     }else{
                         for(int j = 0; j < currentParams.length; j++) {
-                            if(currentParams[j].isAssignableFrom(targetParams[j])) {
+                        	if(targetParams[j].isEnum()) { // enum will be handled later
+                        		method = targetMethod;
+                        		break;
+                        	}else if(ClassUtils.isAssignable(targetParams[j], currentParams[j], true)) { //narrow down to find the most specific method
                                 method = targetMethod;
                                 break;
                             }
@@ -318,6 +297,22 @@ public class ReflectionUtil {
             return false;
         }
         return true;
+    }
+    
+    private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {
+    	if(ClassUtils.isPrimitiveWrapper(clazz1))
+    		clazz1 = ClassUtils.wrapperToPrimitive(clazz1);
+    	
+    	if(ClassUtils.isPrimitiveWrapper(clazz2))
+    		clazz2 = ClassUtils.wrapperToPrimitive(clazz2);
+    	
+    	if(clazz1 != null) {
+    		return clazz1.equals(clazz2);
+    	}else if(clazz2 != null) {
+    		return clazz2.equals(clazz1);
+    	}else {
+    		return true;
+    	}
     }
 
     public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException{
