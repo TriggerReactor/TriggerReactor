@@ -43,6 +43,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.IllegalPluginAccessException;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
@@ -65,6 +67,9 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
         put("onBlockPlace", BlockPlaceEvent.class);
         put("onBlockBreak", BlockBreakEvent.class);
+        
+        put("onStart", TriggerReactorStartEvent.class);
+        put("onStop", TriggerReactorStopEvent.class);
     }};
 
     public CustomTriggerManager(TriggerReactor plugin) {

@@ -77,6 +77,19 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
     /**
+     * Deprecated since 1.13
+     * @param player
+     * @param id
+     * @param amount
+     * @return
+     * @deprecated use {@link #takeItem(Player, String, int)} instead
+     */
+    @Deprecated
+    public boolean takeItem(Player player, int id, int amount) {
+        throw new RuntimeException("Cannot use numeric value for id since 1.13. Use appropriate Material value.");
+    }
+
+    /**
      * take item from player.
      * <p>
      * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
@@ -89,13 +102,27 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      *            amount
      * @return true if took it; false if player doesn't have it
      */
-    public boolean takeItem(Player player, int id, int amount) {
-        ItemStack IS = new ItemStack(id, amount);
+    public boolean takeItem(Player player, String id, int amount) {
+        ItemStack IS = new ItemStack(Material.valueOf(id), amount);
         if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
 
         player.getInventory().removeItem(IS);
         return true;
+    }
+
+    /**
+     * Deprecated since 1.13
+     * @param player
+     * @param id
+     * @param amount
+     * @param data
+     * @return
+     * @deprecated use {@link #takeItem(Player, String, int, int)} instead
+     */
+    @Deprecated
+    public boolean takeItem(Player player, int id, int amount, int data) {
+        throw new RuntimeException("Cannot use numeric value for id since 1.13. Use appropriate Material value.");
     }
 
     /**
@@ -113,8 +140,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      *            data of item
      * @return true if took it; false if player doesn't have it
      */
-    public boolean takeItem(Player player, int id, int amount, int data) {
-        ItemStack IS = new ItemStack(id, amount, (short) data);
+    public boolean takeItem(Player player, String id, int amount, int data) {
+        ItemStack IS = new ItemStack(Material.valueOf(id), amount, (short) data);
         if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
 
@@ -164,19 +191,19 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param amplifier how strong the effect should be
      * @param ambient if true particle effects will be more transparent
      * @param particles if false potion particle effects will not be shown
-     * @param color sets the color of the potion particle effects shown
+     * @param color color is no longer available since 1.13
      * @return returns a PotionEffect object or null if specified PotionEffectType was not found.
      */
-    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient, boolean particles, Color color){
+    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
+            boolean particles, Color color) {
         PotionEffectType type = null;
-	type = type.getByName(EffectType);
+        type = PotionEffectType.getByName(EffectType);
 
-	if(type != null){
-	    return new PotionEffect(type, duration, amplifier, ambient, particles, color);
-	}
-	else{
-	    return null;
-	}
+        if (type != null) {
+            return new PotionEffect(type, duration, amplifier, ambient, particles);
+        } else {
+            return null;
+        }
 
     }
 
@@ -311,6 +338,19 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
     /**
+     * Deprecated since 1.13
+     * @param type
+     * @param amount
+     * @param data
+     * @return
+     * @deprecated use {@link #item(String, int, int)} instead
+     */
+    @Deprecated
+    public ItemStack item(int type, int amount, int data){
+        throw new RuntimeException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+    }
+
+    /**
      * Create a new ItemStack
      * <p>
      * Example) /trg run #GIVE item(1, 64, 0)
@@ -320,8 +360,20 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param data data
      * @return the ItemStack
      */
-    public ItemStack item(int type, int amount, int data){
-        return new ItemStack(type, amount, (short) data);
+    public ItemStack item(String type, int amount, int data){
+        return new ItemStack(Material.valueOf(type), amount, (short) data);
+    }
+
+    /**
+     * Deprecated since 1.13
+     * @param type
+     * @param amount
+     * @return
+     * @deprecated use {@link #item(String, int)} instead
+     */
+    @Deprecated
+    public ItemStack item(int type, int amount){
+        throw new RuntimeException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
     }
 
     /**
@@ -333,7 +385,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param amount amount of item
      * @return the ItemStack
      */
-    public ItemStack item(int type, int amount){
+    public ItemStack item(String type, int amount){
         return item(type, amount, 0);
     }
 
@@ -502,6 +554,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param locale2 country code (Ex. US)
      * @return formatted currecy
      */
+    @Override
     public String formatCurrency(double money, String locale1, String locale2){
         Locale locale = new Locale(locale1, locale2);
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
@@ -513,6 +566,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @param money
      * @return formatted currecy
      */
+    @Override
     public String formatCurrency(double money){
         return formatCurrency(money, "en", "US");
     }
@@ -542,7 +596,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return the ItemStack head
      */
     public ItemStack headForName(String targetName) {
-        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+        ItemStack head = BukkitUtil.getPlayerHeadItem();
         ItemMeta IM = head.getItemMeta();
         SkullMeta SM = (SkullMeta) IM;
         SM.setOwner(targetName);
@@ -551,7 +605,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
 	public ItemStack headForName(String targetName, int amount) {
-        ItemStack head = new ItemStack(Material.SKULL_ITEM, amount, (short) 3);
+        ItemStack head = BukkitUtil.getPlayerHeadItem();
+        head.setAmount(amount);
         ItemMeta IM = head.getItemMeta();
         SkullMeta SM = (SkullMeta) IM;
         SM.setOwner(targetName);
@@ -578,7 +633,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return the ItemStack head
      */
     public ItemStack headForValue(String textureValue) {
-        ItemStack head = new ItemStack(Material.SKULL_ITEM, 1, (short) 3);
+        ItemStack head = BukkitUtil.getPlayerHeadItem();
         ItemMeta IM = head.getItemMeta();
         SkullMeta SM = (SkullMeta) IM;
         try {

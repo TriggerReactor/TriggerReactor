@@ -37,6 +37,8 @@ import org.spongepowered.api.event.network.ClientConnectionEvent;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
+import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
@@ -57,6 +59,9 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
         put("onBlockPlace", ChangeBlockEvent.Place.class);
         put("onBlockBreak", ChangeBlockEvent.Break.class);
+        
+        put("onStart", TriggerReactorStartEvent.class);
+        put("onStop", TriggerReactorStopEvent.class);
     }};
 
     public CustomTriggerManager(TriggerReactor plugin) {

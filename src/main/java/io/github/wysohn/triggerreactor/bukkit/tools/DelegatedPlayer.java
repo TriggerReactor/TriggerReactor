@@ -345,7 +345,7 @@ public class DelegatedPlayer implements Player {
         // TODO Auto-generated method stub
         return null;
     }
-    @Override
+
     public Block getTargetBlock(HashSet<Byte> transparent, int maxDistance) {
         // TODO Auto-generated method stub
         return null;
@@ -355,7 +355,7 @@ public class DelegatedPlayer implements Player {
         // TODO Auto-generated method stub
         return null;
     }
-    @Override
+
     public List<Block> getLastTwoTargetBlocks(HashSet<Byte> transparent, int maxDistance) {
         // TODO Auto-generated method stub
         return null;
@@ -1100,7 +1100,7 @@ public class DelegatedPlayer implements Player {
         // TODO Auto-generated method stub
         return false;
     }
-    @Override
+
     public void sendBlockChange(Location loc, int material, byte data) {
         // TODO Auto-generated method stub
 

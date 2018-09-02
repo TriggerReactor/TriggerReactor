@@ -193,7 +193,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         Block block = e.getBlock();
         Block above = block.getRelative(BlockFace.UP);
 
-        if(above.getType() != Material.SIGN && above.getType() != Material.SIGN_POST)
+        if(!above.getType().name().contains("SIGN"))
             return;
 
         BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
