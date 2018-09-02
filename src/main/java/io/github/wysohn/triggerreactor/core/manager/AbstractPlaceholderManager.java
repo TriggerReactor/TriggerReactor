@@ -113,6 +113,8 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         public Object parse(Object context, Map<String, Object> variables, Object... args) throws Exception {
             ScriptContext scriptContext = engine.getContext();
             final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+            bindings.clear();
+            
             for(Map.Entry<String, Object> entry : variables.entrySet()){
                 String key = entry.getKey();
                 Object value = entry.getValue();
