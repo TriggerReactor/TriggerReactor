@@ -16,12 +16,15 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import java.util.Map;
+
 public abstract class Placeholder extends SynchronizableTask{
     /**
      * Replace this placeholder with appropriate value.
      * @param context the context where placeholder was used. It's Event for Bukkit API.
+     * @param vars variables that will be used in the Placeholder. Some may can be overridden.
      * @param args arguments to be used
      * @return replaced value. Should be always primitive type. Can be null if something went wrong
      */
-    public abstract Object parse(Object context, Object... args) throws Exception;
+    public abstract Object parse(Object context, Map<String, Object> vars, Object... args) throws Exception;
 }

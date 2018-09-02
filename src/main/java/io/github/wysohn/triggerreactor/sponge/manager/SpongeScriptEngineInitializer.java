@@ -33,21 +33,6 @@ import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 
 public interface SpongeScriptEngineInitializer extends IScriptEngineInitializer {
-
-    @Override
-    default void extractCustomVariables(Map<String, Object> variables, Object e) {
-        // Thanks for the amazing API!
-        if(e instanceof Event) {
-            ((Event) e).getCause().first(Player.class).ifPresent((player)->{
-                variables.put("player", player);
-            });
-
-            ((Event) e).getCause().first(Entity.class).ifPresent((entity)->{
-                variables.put("entity", entity);
-            });
-        }
-    }
-
     @Override
     default void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
         IScriptEngineInitializer.super.initScriptEngine(sem);

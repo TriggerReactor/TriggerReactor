@@ -25,15 +25,6 @@ public interface IScriptEngineInitializer {
         registerClass(sem, ReflectionUtil.class);
     }
 
-    /**
-     * Extract and put necessary variables needed for the Executors to work properly. For Bukkit API for example,
-     * you will have to extract 'player' variable manually for inventory events as Player instance is not saved in
-     * the field of Inventory evnet classes.
-     * @param variables the local variable map.
-     * @param e the context.
-     */
-    void extractCustomVariables(Map<String, Object> variables, Object e);
-
     static void registerClass(ScriptEngineManager sem, Class<?> clazz) throws ScriptException {
         registerClass(sem, clazz.getSimpleName(), clazz);
     }

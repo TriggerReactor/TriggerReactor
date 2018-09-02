@@ -24,6 +24,8 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,12 +55,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -1037,8 +1044,37 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         return bukkitPlugin.getName();
     }
 
-    @Override
-    public Map<String, Object> getCustomVarsForTrigger(Object context) {
-        return null;
-    }
+	@Override
+	public Map<String, Object> getCustomVarsForTrigger(Object e) {
+		Map<String, Object> variables = new HashMap<String, Object>();
+		if (e instanceof InventoryInteractEvent) {
+			if (((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
+				variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
+		} else if (e instanceof InventoryCloseEvent) {
+			if (((InventoryCloseEvent) e).getPlayer() instanceof Player)
+				variables.put("player", ((InventoryCloseEvent) e).getPlayer());
+		} else if (e instanceof InventoryOpenEvent) {
+			if (((InventoryOpenEvent) e).getPlayer() instanceof Player)
+				variables.put("player", ((InventoryOpenEvent) e).getPlayer());
+		} else if (e instanceof PlayerDeathEvent) {
+			variables.put("player", ((PlayerDeathEvent) e).getEntity());
+		} else if (e instanceof EntityEvent) { // Some EntityEvent use entity field to store Player instance.
+			Entity entity = ((EntityEvent) e).getEntity();
+			variables.put("entity", entity);
+			
+			if (entity instanceof Player) {
+				variables.put("player", entity);
+			}
+		} else if (e instanceof BlockEvent) {
+			try {
+				Method m = e.getClass().getMethod("getPlayer");
+				variables.put("player", m.invoke(e));
+			} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e1) {
+				return null;
+			}
+		}
+
+		return variables;
+	}
 }
