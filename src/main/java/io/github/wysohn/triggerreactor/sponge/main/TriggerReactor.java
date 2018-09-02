@@ -44,6 +44,7 @@ import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.data.key.Keys;
+import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Cancellable;
 import org.spongepowered.api.event.CauseStackManager;
@@ -848,16 +849,19 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         return result;
     }
 
-    @Override
-    public Map<String, Object> getCustomVarsForTrigger(Object context) {
-        Map<String, Object> map = new HashMap<>();
-        if(context instanceof Event) {
-            ((Event) context).getCause().first(Player.class).ifPresent((player) -> {
-                map.put("player", player);
-            });
+	@Override
+	public Map<String, Object> getCustomVarsForTrigger(Object e) {
+		Map<String, Object> variables = new HashMap<>();
+		// Thanks for the amazing API!
+		if (e instanceof Event) {
+			((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+				variables.put("player", player);
+			});
 
-
-        }
-        return map;
-    }
+			((Event) e).getCause().first(Entity.class).ifPresent((entity) -> {
+				variables.put("entity", entity);
+			});
+		}
+		return variables;
+	}
 }

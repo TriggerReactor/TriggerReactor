@@ -227,9 +227,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             }
 
             scriptVars.put("event", e);
-            scriptVars.putAll(ReflectionUtil.extractVariablesWithEnumAsString(e));
             scriptVars.putAll(TriggerReactor.getInstance().getSharedVars());
-
             Map<String, Object> customVars = TriggerReactor.getInstance().getCustomVarsForTrigger(e);
             if(customVars != null)
                 scriptVars.putAll(customVars);

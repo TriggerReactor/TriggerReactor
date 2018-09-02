@@ -64,15 +64,7 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         this.jsExecutors.put("CMDOP", new Executor() {
 
             @Override
-            protected Integer execute(boolean sync, Object e, Object... args) throws Exception {
-                ///////////////////////////////
-                Map<String, Object> variables = new HashMap<>();
-                Map<String, Object> vars = ReflectionUtil.extractVariables(e);
-                variables.putAll(vars);
-
-                instance.extractCustomVariables(variables, e);
-                ///////////////////////////////
-
+            protected Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
                 Object player = variables.get("player");
                 if(player == null || !(player instanceof Player))
                     return null;

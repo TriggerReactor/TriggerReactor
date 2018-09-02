@@ -404,7 +404,7 @@ public class Interpreter {
                     if (!executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
-                    return executorMap.get(command).execute(sync, context, args);
+                    return executorMap.get(command).execute(sync, vars, context, args);
                 }
             } else if(node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -423,7 +423,7 @@ public class Interpreter {
                 if (!placeholderMap.containsKey(placeholderName))
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
-                Object replaced = placeholderMap.get(placeholderName).parse(context, args);
+                Object replaced = placeholderMap.get(placeholderName).parse(context, vars, args);
                 if(replaced == null) {
                     replaced = "$"+placeholderName;
                 }
@@ -906,13 +906,13 @@ public class Interpreter {
 
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
-        public Integer execute(boolean sync, Object context, Object... args) {
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(boolean sync, Object context, Object... args) {
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             if(sync){
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
@@ -933,7 +933,7 @@ public class Interpreter {
     };
     private final Executor EXECUTOR_COOLDOWN = new Executor(){
         @Override
-        public Integer execute(boolean sync, Object context, Object... args) {
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             long mills = Long.parseLong(String.valueOf(args[0])) * 1000L;
             Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
             return null;

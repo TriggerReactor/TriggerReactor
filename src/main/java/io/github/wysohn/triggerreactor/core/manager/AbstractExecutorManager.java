@@ -151,15 +151,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         }
 
         @Override
-        public Integer execute(boolean sync, Object e, Object... args) throws Exception {
-            ///////////////////////////////
-            Map<String, Object> variables = new HashMap<>();
-            Map<String, Object> vars = ReflectionUtil.extractVariables(e);
-            variables.putAll(vars);
-
-            instance.extractCustomVariables(variables, e);
-            ///////////////////////////////
-
+        public Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
             ScriptContext scriptContext = engine.getContext();
             final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
             for(Map.Entry<String, Object> entry : variables.entrySet()){

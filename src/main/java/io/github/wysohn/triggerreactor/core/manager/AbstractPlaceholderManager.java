@@ -110,15 +110,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         }
 
         @Override
-        public Object parse(Object context, Object... args) throws Exception {
-            ///////////////////////////////
-            Map<String, Object> variables = new HashMap<>();
-            Map<String, Object> vars = ReflectionUtil.extractVariables(context);
-            variables.putAll(vars);
-
-            instance.extractCustomVariables(variables, context);
-            ///////////////////////////////
-
+        public Object parse(Object context, Map<String, Object> variables, Object... args) throws Exception {
             ScriptContext scriptContext = engine.getContext();
             final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
             for(Map.Entry<String, Object> entry : variables.entrySet()){

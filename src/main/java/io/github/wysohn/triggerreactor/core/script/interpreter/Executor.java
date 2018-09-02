@@ -16,6 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import java.util.Map;
+
 public abstract class Executor extends SynchronizableTask{
     public static final int STOP = 0;
     public static final int WAIT = 1;
@@ -23,9 +25,10 @@ public abstract class Executor extends SynchronizableTask{
     /**
      *
      * @param context
+     * @param vars
      * @param args
      * @return usually null; return code to intercept execution
      * @throws Exception
      */
-    protected abstract Integer execute(boolean sync, Object context, Object... args) throws Exception;
+    protected abstract Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception;
 }

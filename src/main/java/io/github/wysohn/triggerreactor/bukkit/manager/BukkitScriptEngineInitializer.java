@@ -25,34 +25,6 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 
 public interface BukkitScriptEngineInitializer extends IScriptEngineInitializer {
     @Override
-    default void extractCustomVariables(Map<String, Object> variables, Object e) {
-        if(e instanceof InventoryInteractEvent){
-            if(((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
-                variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
-        } else if(e instanceof InventoryCloseEvent){
-            if(((InventoryCloseEvent) e).getPlayer() instanceof Player)
-                variables.put("player", ((InventoryCloseEvent) e).getPlayer());
-        } else if(e instanceof InventoryOpenEvent){
-            if(((InventoryOpenEvent) e).getPlayer() instanceof Player)
-                variables.put("player", ((InventoryOpenEvent) e).getPlayer());
-        } else if(e instanceof PlayerDeathEvent) {
-            variables.put("player", ((PlayerDeathEvent) e).getEntity());
-        } else if(e instanceof EntityEvent) { //Some EntityEvent use entity field to store Player instance.
-            Entity entity = ((EntityEvent) e).getEntity();
-            if(entity instanceof Player) {
-                variables.put("player", entity);
-            }
-        } else if(e instanceof BlockEvent) {
-            try {
-                Method m = e.getClass().getMethod("getPlayer");
-                variables.put("player", m.invoke(e));
-            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-                return;
-            }
-        }
-    }
-
-    @Override
     default void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
         IScriptEngineInitializer.super.initScriptEngine(sem);
         IScriptEngineInitializer.registerClass(sem, Executor.class);
