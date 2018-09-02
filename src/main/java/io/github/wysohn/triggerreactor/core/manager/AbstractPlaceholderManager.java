@@ -158,15 +158,24 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             }else{
                 Future<Object> future = runSyncTaskForFuture(call);
 
-                Object result = null;
-                try {
-                    result = future.get(5, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e1) {
-                    throw new Exception("$"+placeholderName+" encountered error.", e1);
-                } catch (TimeoutException e1) {
-                    throw new Exception("$"+placeholderName+" was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                if(future == null) {
+                	//probably server is shutting down
+                	if(!TriggerReactor.getInstance().isEnabled()) {
+                		return call.call();
+                	} else {
+                		throw new Exception("$"+placeholderName+" couldn't be finished. The server returned null Future.");
+                	}
+                }else{
+                    Object result = null;
+                    try {
+                        result = future.get(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException | ExecutionException e1) {
+                        throw new Exception("$"+placeholderName+" encountered error.", e1);
+                    } catch (TimeoutException e1) {
+                        throw new Exception("$"+placeholderName+" was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                    }
+                    return result;
                 }
-                return result;
             }
         }
     }

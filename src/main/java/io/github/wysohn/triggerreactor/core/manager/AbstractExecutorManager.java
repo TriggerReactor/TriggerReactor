@@ -198,16 +198,24 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 return result;
             }else{
                 Future<Integer> future = runSyncTaskForFuture(call);
-
-                Integer result = null;
-                try {
-                    result = future.get(5, TimeUnit.SECONDS);
-                } catch (InterruptedException | ExecutionException e1) {
-                    throw new Exception("#"+executorName+" encountered error.", e1);
-                } catch (TimeoutException e1) {
-                    throw new Exception("#"+executorName+" was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                if(future == null) {
+                	//probably server is shutting down
+                	if(!TriggerReactor.getInstance().isEnabled()) {
+                		return call.call();
+                	} else {
+                		throw new Exception("#"+executorName+" couldn't be finished. The server returned null Future.");
+                	}
+                }else{
+                    Integer result = null;
+                    try {
+                        result = future.get(5, TimeUnit.SECONDS);
+                    } catch (InterruptedException | ExecutionException e1) {
+                        throw new Exception("#"+executorName+" encountered error.", e1);
+                    } catch (TimeoutException e1) {
+                        throw new Exception("#"+executorName+" was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                    }
+                    return result;
                 }
-                return result;
             }
         }
     }

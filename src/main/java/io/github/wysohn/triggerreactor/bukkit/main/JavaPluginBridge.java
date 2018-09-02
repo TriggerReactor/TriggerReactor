@@ -59,6 +59,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockEvent;
@@ -70,6 +71,7 @@ import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -355,6 +357,16 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 			}
         	
         });
+        
+        Bukkit.getPluginManager().registerEvents(new Listener() {
+        	@EventHandler
+        	public void onDisable(PluginDisableEvent e) {
+        		if(plugin != e.getPlugin())
+        			return;
+        		
+        		Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent());
+        	}
+        }, plugin);
     }
 
     private void initFailed(Exception e) {
@@ -365,14 +377,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     }
 
 	public void onDisable(JavaPlugin plugin) {
-		try {
-			Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent());
-		} finally {
-			getLogger().info("Finalizing the scheduled script executions...");
-			cachedThreadPool.shutdown();
-			bungeeConnectionThread.interrupt();
-			getLogger().info("Shut down complete!");
-		}
+		getLogger().info("Finalizing the scheduled script executions...");
+		cachedThreadPool.shutdown();
+		bungeeConnectionThread.interrupt();
+		getLogger().info("Shut down complete!");
 	}
 
     @Override
