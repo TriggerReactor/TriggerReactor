@@ -88,7 +88,13 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
             IItemStack[] items = (IItemStack[]) value;
 
-            writeItemList(conf, items);
+            ConfigurationSection itemsSection;
+            if(conf.contains(ITEMS))
+                itemsSection = conf.getConfigurationSection(ITEMS);
+            else
+                itemsSection = conf.createSection(ITEMS);
+
+            writeItemList(itemsSection, items);
 
             conf.save(file);
         }else {
@@ -99,33 +105,38 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     @SuppressWarnings("unchecked")
     private void parseItemsList(ConfigurationSection itemSection, Map<Integer, IItemStack> items, int size) {
         for(int i = 0; i < size; i++){
-            ConfigurationSection section = itemSection.getConfigurationSection(String.valueOf(i));
-            if(section == null)
-                continue;
+            if(itemSection.isConfigurationSection(String.valueOf(i))){ // 1.12.2 or below
+                ConfigurationSection section = itemSection.getConfigurationSection(String.valueOf(i));
 
-            Material type = Material.valueOf((String) section.get("Type", Material.DIRT.name()));
-            int amount = section.getInt("Amount", 1);
-            short data = (short) section.getInt("Data", 0);
-            ItemMeta IM = (ItemMeta) section.get("Meta");
+                Material type = Material.valueOf((String) section.get("Type", Material.DIRT.name()));
+                int amount = section.getInt("Amount", 1);
+                short data = (short) section.getInt("Data", 0);
+                ItemMeta IM = (ItemMeta) section.get("Meta");
 
-            ItemStack IS = new ItemStack(type, amount, data);
-            if(IM == null)
-                IM = IS.getItemMeta();
+                ItemStack IS = new ItemStack(type, amount, data);
+                if(IM == null)
+                    IM = IS.getItemMeta();
 
-            if(IM != null){
-                //leave these for backward compatibility
-                String title = section.getString("Title", null);
-                Object lore = section.get("Lore", null);
+                if(IM != null){
+                    //leave these for backward compatibility
+                    String title = section.getString("Title", null);
+                    Object lore = section.get("Lore", null);
 
-                if(title != null)
-                    IM.setDisplayName(title);
-                if(lore != null && lore instanceof List)
-                    IM.setLore((List<String>) lore);
+                    if(title != null)
+                        IM.setDisplayName(title);
+                    if(lore != null && lore instanceof List)
+                        IM.setLore((List<String>) lore);
 
-                IS.setItemMeta(IM);
+                    IS.setItemMeta(IM);
+                }
+
+                items.put(i, new BukkitItemStack(IS));
+            } else { // just leave it to bukkit
+                ItemStack IS = itemSection.getItemStack(String.valueOf(i));
+                if(IS != null){
+                    items.put(i, new BukkitItemStack(IS));
+                }
             }
-
-            items.put(i, new BukkitItemStack(IS));
         }
     }
 
@@ -136,14 +147,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
             ItemStack item = items[i].get();
 
-            if(!itemSection.isSet(String.valueOf(i)))
-                itemSection.createSection(String.valueOf(i));
-            ConfigurationSection section = itemSection.getConfigurationSection(String.valueOf(i));
-
-            section.set("Type", item.getType().name());
-            section.set("Amount", item.getAmount());
-            section.set("Data", item.getDurability());
-            section.set("Meta", item.getItemMeta());
+            //leave it to bukkit
+            itemSection.set(String.valueOf(i), item);
         }
     }
 
