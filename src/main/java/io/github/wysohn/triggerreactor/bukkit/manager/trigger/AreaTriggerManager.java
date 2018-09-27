@@ -18,10 +18,8 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -55,12 +53,37 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
         Thread entityTrackingThread = new Thread(new Runnable() {
 
+            private Collection<WeakReference<Entity>> getEntitiesSync(World w){
+                Collection<WeakReference<Entity>> entities = new LinkedList<>();
+                try{
+                    Bukkit.getScheduler().callSyncMethod(plugin.getMain(), new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            for(Entity e : w.getEntities())
+                                entities.add(new WeakReference<>(e));
+                            return null;
+                        }
+                    }).get();
+                } catch (InterruptedException | CancellationException e1) {
+                } catch (ExecutionException e1) {
+                    e1.printStackTrace();
+                }
+                return entities;
+            }
+
             @Override
             public void run() {
                 while(plugin.isEnabled() && !Thread.interrupted()) {
                     //track entity locations
                     for(World w : Bukkit.getWorlds()) {
-                        for(Entity e : w.getEntities()) {
+                        Collection<WeakReference<Entity>> entityCollection = getEntitiesSync(w);
+                        for(WeakReference<Entity> wr : entityCollection) {
+                            Entity e = wr.get();
+
+                            //reference disposed so ignore
+                            if(e == null)
+                                continue;
+
                             UUID uuid = e.getUniqueId();
 
                             Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
