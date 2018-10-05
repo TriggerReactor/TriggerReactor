@@ -18,12 +18,16 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
@@ -68,6 +72,44 @@ public class TriggerReactor extends JavaPlugin {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender instanceof Player){
+        	if(args.length >= 1){
+        		if(args[0].equalsIgnoreCase("tooledit")){
+        			if(sender.hasPermission("triggerreactor.admin")){
+        		           Player target = ((Player) sender).getPlayer();
+                       	
+        		            ItemStack Item = new ItemStack(Material.BONE, 1);
+        		            ItemMeta itemMeta = Item.getItemMeta();
+        		            itemMeta.setDisplayName("§a§l트리거 편집 도구");                  
+        		            itemMeta.setLore(Arrays.asList("§a트리거 편집 전용", "§finspection tool"));
+        		  
+        		            Item.setItemMeta(itemMeta);
+        		            target.getInventory().addItem(new ItemStack[]{Item});
+        		          
+        		            ItemStack Item1 = new ItemStack(Material.SHEARS, 1);
+        		            ItemMeta itemMeta1 = Item1.getItemMeta();
+        		            itemMeta1.setDisplayName("§a§l트리거 편집 도구");                  
+        		            itemMeta1.setLore(Arrays.asList("§a트리거 편집 전용", "§fcut tool"));
+        		   
+        		            Item1.setItemMeta(itemMeta1);        		           
+        		            target.getInventory().addItem(new ItemStack[]{Item1});
+        		                      
+                            ItemStack Item11 = new ItemStack(Material.PAPER, 1);
+        		            ItemMeta itemMeta11 = Item11.getItemMeta();
+        		            itemMeta11.setDisplayName("§a§l트리거 편집 도구");                  
+        		            itemMeta11.setLore(Arrays.asList("§a트리거 편집 전용", "§fcopy tool"));
+        		    
+        		            Item11.setItemMeta(itemMeta11);
+        		            target.getInventory().addItem(new ItemStack[]{Item11});
+        		            sender.sendMessage("§a트리거 편집 도구 지급완료!");
+        		        return true;
+        				
+        				
+        			}
+        			sender.sendMessage("§c[Trigger Reactor] 권한이 없습니다.");
+        			return false;
+        		}
+        			
+        	}
             return this.javaPluginBridge.onCommand(
                     new BukkitPlayer((Player) sender),
                     command.getName(),

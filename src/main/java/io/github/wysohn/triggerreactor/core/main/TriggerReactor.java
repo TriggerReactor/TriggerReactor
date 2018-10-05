@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.main;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
+
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
@@ -1016,6 +1023,9 @@ public abstract class TriggerReactor {
 
                     sender.sendMessage("Reload Complete!");
                     return true;
+                    
+                    
+                        
                 } else if (args[0].equalsIgnoreCase("help")) {
                     int page = 0;
                     if(args.length > 1) {
@@ -1342,6 +1352,9 @@ public abstract class TriggerReactor {
             sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
 
             sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
+            sender.sendMessage("&b/triggerreactor[trg] tooledit &8- &7트리거 편집 도구 지급.");
+
+
         });
     }};
 

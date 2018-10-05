@@ -57,7 +57,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
         super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
     }
-
+ 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(PlayerInteractEvent e){
@@ -77,13 +77,25 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 &&!e.isCancelled()
                 && player.hasPermission("triggerreactor.admin")){
 
-            if(IS.getType() == INSPECTION_TOOL){
-                if(trigger != null && e.getAction() == Action.LEFT_CLICK_BLOCK){
+            if(IS.getType() == INSPECTION_TOOL && (IS.hasItemMeta())){
+            	if(trigger != null && e.getAction() == Action.LEFT_CLICK_BLOCK){
+            		
+            		if(!(IS.getItemMeta().getLore().isEmpty())){
+          
+            			if(IS.getItemMeta().getLore().get(0).contains("트리거 편집 전용") && IS.getItemMeta().
+            		getLore().get(1).contains("inspection tool")){
+               
                     removeTriggerForLocation(clicked.getLocation());
 
                     player.sendMessage(ChatColor.GREEN+"A trigger has deleted.");
                     e.setCancelled(true);
+            			}
+            		}
                 }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
+                	if(!(IS.getItemMeta().getLore().isEmpty())){
+                		
+            			if(IS.getItemMeta().getLore().get(0).contains("트리거 편집 전용") && IS.getItemMeta().
+            		getLore().get(1).contains("inspection tool")){               
                     if(e.getPlayer().isSneaking()){
                         handleScriptEdit(player, trigger);
                         e.setCancelled(true);
@@ -91,28 +103,42 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                         this.showTriggerInfo(new BukkitPlayer(player), clicked);
                         e.setCancelled(true);
                     }
-                }
-            }else if(IS.getType() == CUT_TOOL){
-                if(e.getAction() == Action.LEFT_CLICK_BLOCK){
-                    if(pasteTrigger(player, clicked.getLocation())){
-                        player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
-                        e.setCancelled(true);
                     }
+            			}
+                }
+            }else if(IS.getType() == CUT_TOOL && (IS.hasItemMeta()) ){
+               
+             	if(!(IS.getItemMeta().getLore().isEmpty())){            	
+            	
+             		if(IS.getItemMeta().getLore().get(0).contains("트리거 편집 전용")  && IS.getItemMeta().
+             				getLore().get(1).contains("Cut tool")  ){
+            
+                 
+                    } if(e.getAction() == Action.LEFT_CLICK_BLOCK){
+                    	   if(pasteTrigger(player, clicked.getLocation())){
+                               player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
+                               this.showTriggerInfo(new BukkitPlayer(player), clicked);
+                               e.setCancelled(true);
+            	}
                 }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
                     if(cutTrigger(player, clicked.getLocation())){
                         player.sendMessage(ChatColor.GREEN+"Cut Complete!");
                         player.sendMessage(ChatColor.GREEN+"Now you can paste it by left click on any block!");
                         e.setCancelled(true);
                     }
+            	}
                 }
-            }else if(IS.getType() == COPY_TOOL){
-                if(e.getAction() == Action.LEFT_CLICK_BLOCK){
+            }else if(IS.getType() == COPY_TOOL && (IS.hasItemMeta()) ){         
+             
+            	if(player.getItemInHand().getItemMeta().getLore().get(0).equalsIgnoreCase("§a트리거 편집 전용")  &&
+            				IS.getItemMeta().getLore().get(1).equalsIgnoreCase("§fcopy tool")){
+            	if(e.getAction() == Action.LEFT_CLICK_BLOCK){
                     if(pasteTrigger(player, clicked.getLocation())){
                         player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
                         this.showTriggerInfo(new BukkitPlayer(player), clicked);
                         e.setCancelled(true);
                     }
+           
                 }else if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
                     if(trigger != null && copyTrigger(player, clicked.getLocation())){
                         player.sendMessage(ChatColor.GREEN+"Copy Complete!");
@@ -120,7 +146,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                         e.setCancelled(true);
                     }
                 }
+            		}
             }
+    
         }
 
         if(!e.isCancelled() && isLocationSetting(new BukkitPlayer(player))){
