@@ -82,8 +82,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             		
             		if(!(IS.getItemMeta().getLore().isEmpty())){
           
-            			if(IS.getItemMeta().getLore().get(0).contains("트리거 편집 전용") && IS.getItemMeta().
-            		getLore().get(1).contains("inspection tool")){
+            			if(IS.getItemMeta().getLore().get(0).equalsIgnoreCase("§c§r§a트리거 편집 전용") && IS.getItemMeta().
+            		getLore().get(1).contains("§c§r§finspection tool")){
                
                     removeTriggerForLocation(clicked.getLocation());
 
@@ -94,8 +94,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
                 	if(!(IS.getItemMeta().getLore().isEmpty())){
                 		
-            			if(IS.getItemMeta().getLore().get(0).contains("트리거 편집 전용") && IS.getItemMeta().
-            		getLore().get(1).contains("inspection tool")){               
+            			if(IS.getItemMeta().getLore().get(0).equalsIgnoreCase("§c§r§a트리거 편집 전용") && IS.getItemMeta().
+            		getLore().get(1).equalsIgnoreCase("§c§r§finspection tool")){               
                     if(e.getPlayer().isSneaking()){
                         handleScriptEdit(player, trigger);
                         e.setCancelled(true);
@@ -110,8 +110,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                
              	if(!(IS.getItemMeta().getLore().isEmpty())){            	
             	
-             		if(IS.getItemMeta().getLore().get(0).contains("트리거 편집 전용")  && IS.getItemMeta().
-             				getLore().get(1).contains("Cut tool")  ){
+             		if(IS.getItemMeta().getLore().get(0).equalsIgnoreCase("§c§r§a트리거 편집 전용")  && IS.getItemMeta().
+             				getLore().get(1).equalsIgnoreCase("§c§r§fCut tool")  ){
             
                  
                     } if(e.getAction() == Action.LEFT_CLICK_BLOCK){
@@ -130,8 +130,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 }
             }else if(IS.getType() == COPY_TOOL && (IS.hasItemMeta()) ){         
              
-            	if(player.getItemInHand().getItemMeta().getLore().get(0).equalsIgnoreCase("§a트리거 편집 전용")  &&
-            				IS.getItemMeta().getLore().get(1).equalsIgnoreCase("§fcopy tool")){
+            	if(player.getItemInHand().getItemMeta().getLore().get(0).equalsIgnoreCase("§c§r§a트리거 편집 전용")  &&
+            				IS.getItemMeta().getLore().get(1).equalsIgnoreCase("§c§r§fcopy tool")){
             	if(e.getAction() == Action.LEFT_CLICK_BLOCK){
                     if(pasteTrigger(player, clicked.getLocation())){
                         player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
