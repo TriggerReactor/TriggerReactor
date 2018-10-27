@@ -80,7 +80,7 @@ public class TriggerReactor extends JavaPlugin {
         		            ItemStack Item = new ItemStack(Material.BONE, 1);
         		            ItemMeta itemMeta = Item.getItemMeta();
         		            itemMeta.setDisplayName("§a§l트리거 편집 도구");                  
-        		            itemMeta.setLore(Arrays.asList("§a트리거 편집 전용", "§finspection tool"));
+        		            itemMeta.setLore(Arrays.asList("§c§r§a트리거 편집 전용", "§c§r§finspection tool"));
         		  
         		            Item.setItemMeta(itemMeta);
         		            target.getInventory().addItem(new ItemStack[]{Item});
@@ -88,7 +88,7 @@ public class TriggerReactor extends JavaPlugin {
         		            ItemStack Item1 = new ItemStack(Material.SHEARS, 1);
         		            ItemMeta itemMeta1 = Item1.getItemMeta();
         		            itemMeta1.setDisplayName("§a§l트리거 편집 도구");                  
-        		            itemMeta1.setLore(Arrays.asList("§a트리거 편집 전용", "§fcut tool"));
+        		            itemMeta1.setLore(Arrays.asList("§c§r§a트리거 편집 전용", "§c§r§fcut tool"));
         		   
         		            Item1.setItemMeta(itemMeta1);        		           
         		            target.getInventory().addItem(new ItemStack[]{Item1});
@@ -96,7 +96,7 @@ public class TriggerReactor extends JavaPlugin {
                             ItemStack Item11 = new ItemStack(Material.PAPER, 1);
         		            ItemMeta itemMeta11 = Item11.getItemMeta();
         		            itemMeta11.setDisplayName("§a§l트리거 편집 도구");                  
-        		            itemMeta11.setLore(Arrays.asList("§a트리거 편집 전용", "§fcopy tool"));
+        		            itemMeta11.setLore(Arrays.asList("§c§r§a트리거 편집 전용", "§c§r§fcopy tool"));
         		    
         		            Item11.setItemMeta(itemMeta11);
         		            target.getInventory().addItem(new ItemStack[]{Item11});
