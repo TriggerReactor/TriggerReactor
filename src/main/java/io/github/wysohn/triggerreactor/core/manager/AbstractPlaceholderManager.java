@@ -32,17 +32,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.script.Bindings;
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import javax.script.*;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import jdk.nashorn.api.scripting.JSObject;
 
 public abstract class AbstractPlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder>  {
     protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
@@ -111,23 +106,23 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
         @Override
         public Object parse(Object context, Map<String, Object> variables, Object... args) throws Exception {
-            ScriptContext scriptContext = engine.getContext();
-            final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
-            bindings.clear();
-            
+            final Bindings bindings = engine.createBindings();
+
             for(Map.Entry<String, Object> entry : variables.entrySet()){
                 String key = entry.getKey();
                 Object value = entry.getValue();
                 bindings.put(key, value);
             }
 
+            ScriptContext scriptContext = new SimpleScriptContext();
             try {
+                scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
                 compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
             }
 
-            Invocable invocable = (Invocable) compiled.getEngine();
+            JSObject jsObject = (JSObject) scriptContext.getAttribute(placeholderName);
             Callable<Object> call = new Callable<Object>(){
                 @Override
                 public Object call() throws Exception {
@@ -136,12 +131,12 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                     if(TriggerReactor.getInstance().isDebugging()){
                         Object result = null;
                         long start = System.currentTimeMillis();
-                        result = invocable.invokeFunction(placeholderName, argObj);
+                        result = jsObject.call(null, argObj);
                         long end = System.currentTimeMillis();
                         TriggerReactor.getInstance().getLogger().info(placeholderName+" placeholder -- "+(end - start)+"ms");
                         return result;
                     }else{
-                        return invocable.invokeFunction(placeholderName, argObj);
+                        return jsObject.call(null, argObj);
                     }
                 }
             };

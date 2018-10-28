@@ -168,17 +168,21 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 @Override
                 public Integer call() throws Exception {
                     Object argObj = args;
+                    Object result = null;
 
                     if(TriggerReactor.getInstance().isDebugging()){
-                        Integer result = null;
                         long start = System.currentTimeMillis();
-                        result = (Integer) jsObject.call(null, argObj);
+                        result = jsObject.call(null, argObj);
                         long end = System.currentTimeMillis();
                         TriggerReactor.getInstance().getLogger().info(executorName+" execution -- "+(end - start)+"ms");
-                        return result;
                     }else{
-                        return (Integer) jsObject.call(null, argObj);
+                        result = jsObject.call(null, argObj);
                     }
+
+                    if(result instanceof Integer)
+                        return (Integer) result;
+
+                    return null;
                 }
             };
 
