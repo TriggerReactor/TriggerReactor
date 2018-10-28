@@ -1279,6 +1279,32 @@ public class TestInterpreter {
         Assert.assertEquals(true, gvars.get("temp"));
     }
 
+    @Test
+    public void testLineBreak() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#TEST \"abcd\\nABCD\"";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals("abcd\nABCD", args[0]);
+                return null;
+            }
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<String, Object> gvars = new HashMap<String, Object>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
     public static class TheTest{
         public static String staticField = "staticField";
 

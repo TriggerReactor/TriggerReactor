@@ -205,6 +205,8 @@ public class Lexer {
 
                 if(c == '\\' || c == '"'){
                     builder.append(c);
+                }else if(c == 'n') {
+                    builder.append('\n');
                 }else{
                     throw new LexerException("Expected an escaping character after \\ but found "+c+" instead", this);
                 }
