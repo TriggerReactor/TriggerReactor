@@ -643,50 +643,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public void handleException(Object context, Throwable e) {
-        e.printStackTrace();
-        if(context instanceof Event){
-            Player player = ((Event) context).getCause().first(Player.class).orElse(null);
-            runTask(new Runnable(){
-                @Override
-                public void run() {
-                    Throwable ex = e;
-                    if(player != null)
-                        player.sendMessage(Text.of(TextColors.RED, "Could not execute this trigger."));
-                    while(ex != null){
-                        if(player != null) {
-                            player.sendMessage(Text.of(TextColors.RED, " >> Caused by:"));
-                            player.sendMessage(Text.of(TextColors.RED, ex.getMessage() == null ? "" : ex.getMessage()));
-                        }
-
-                        ex = ex.getCause();
-                    }
-                    if(player != null)
-                        player.sendMessage(Text.of(TextColors.RED, "If you are administrator, see console for details."));
-                }
-            });
-        }
-    }
-
-    @Override
-    public void handleException(ICommandSender sender, Throwable e) {
-        e.printStackTrace();
-        runTask(new Runnable(){
-            @Override
-            public void run() {
-                Throwable ex = e;
-                sender.sendMessage("&cCould not execute this trigger.");
-                while(ex != null){
-                    sender.sendMessage("&c >> Caused by:");
-                    sender.sendMessage("&c"+ex.getMessage());
-                    ex = ex.getCause();
-                }
-                sender.sendMessage("&cIf you are administrator, see console for details.");
-            }
-        });
-    }
-
-    @Override
     public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
         return new ProcessInterrupter(){
             @Override
@@ -831,11 +787,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public UUID extractUUIDFromContext(Object e) {
+    public IPlayer extractPlayerFromContext(Object e) {
         if(e instanceof Event) {
             Player player = ((Event) e).getCause().first(Player.class).orElse(null);
             if(player != null)
-                return player.getUniqueId();
+                return new SpongePlayer(player);
         }
 
         return null;

@@ -1210,16 +1210,44 @@ public abstract class TriggerReactor {
      * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
      * related to this Exception and show useful information to the game.
      * @param e the context
-     * @param ex the exception that was thrown
+     * @param throwable the exception that was thrown
      */
-    public abstract void handleException(Object e, Throwable ex);
+    final public void handleException(Object e, Throwable throwable){
+        if(isDebugging()){
+            throwable.printStackTrace();
+        }
+
+        sendExceptionMessage(extractPlayerFromContext(e), throwable);
+    }
 
     /**
      * Handle the exception caused by Executors or Triggers.
-     * @param e the context
-     * @param ex the exception that was thrown
+     * @param sender the sender who will receive the message
+     * @param throwable the exception that was thrown
      */
-    public abstract void handleException(ICommandSender sender, Throwable ex);
+    final public void handleException(ICommandSender sender, Throwable throwable){
+        if(isDebugging()){
+            throwable.printStackTrace();
+        }
+
+        sendExceptionMessage(sender, throwable);
+    }
+
+    private void sendExceptionMessage(ICommandSender sender, Throwable e){
+        runTask(new Runnable(){
+            @Override
+            public void run() {
+                Throwable ex = e;
+                sender.sendMessage("&cCould not execute this trigger.");
+                while(ex != null){
+                    sender.sendMessage("&c >> Caused by:");
+                    sender.sendMessage("&c"+ex.getMessage());
+                    ex = ex.getCause();
+                }
+                sender.sendMessage("&cIf you are administrator, see console for details.");
+            }
+        });
+    }
 
     /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
@@ -1252,11 +1280,11 @@ public abstract class TriggerReactor {
             Map<IInventory, InventoryTrigger> inventoryMap);
 
     /**
-     * Try to extract UUID from the context 'e'. This is the UUID that will be used to check the cooldown for Triggers.
-     * @param e the context
-     * @return the UUID extracted. Can be null if the context doesn't have any UUID.
+     * try to extract player from context 'e'.
+     * @param e Event for Bukkit API
+     * @return
      */
-    public abstract UUID extractUUIDFromContext(Object e);
+    public abstract IPlayer extractPlayerFromContext(Object e);
 
     /**
      * Run Callable on the server thread.

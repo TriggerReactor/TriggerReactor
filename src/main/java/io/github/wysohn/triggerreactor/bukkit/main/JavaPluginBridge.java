@@ -478,45 +478,6 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     }
 
     @Override
-    public void handleException(Object context, Throwable e) {
-        e.printStackTrace();
-        if(context instanceof PlayerEvent){
-            Player player = ((PlayerEvent) context).getPlayer();
-            runTask(new Runnable(){
-                @Override
-                public void run() {
-                    Throwable ex = e;
-                    player.sendMessage(ChatColor.RED+"Could not execute this trigger.");
-                    while(ex != null){
-                        player.sendMessage(ChatColor.RED+" >> Caused by:");
-                        player.sendMessage(ChatColor.RED+ex.getMessage());
-                        ex = ex.getCause();
-                    }
-                    player.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
-                }
-            });
-        }
-    }
-
-    @Override
-    public void handleException(ICommandSender sender, Throwable e) {
-        e.printStackTrace();
-        runTask(new Runnable(){
-            @Override
-            public void run() {
-                Throwable ex = e;
-                sender.sendMessage(ChatColor.RED+"Could not execute this trigger.");
-                while(ex != null){
-                    sender.sendMessage(ChatColor.RED+" >> Caused by:");
-                    sender.sendMessage(ChatColor.RED+ex.getMessage());
-                    ex = ex.getCause();
-                }
-                sender.sendMessage(ChatColor.RED+"If you are administrator, see console for details.");
-            }
-        });
-    }
-
-    @Override
     public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
         return new ProcessInterrupter(){
             @Override
@@ -654,12 +615,14 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     }
 
     @Override
-    public UUID extractUUIDFromContext(Object e) {
+    public IPlayer extractPlayerFromContext(Object e) {
         if(e instanceof PlayerEvent){
             Player player = ((PlayerEvent) e).getPlayer();
-            return player.getUniqueId();
+            return new BukkitPlayer(player);
         }else if(e instanceof InventoryInteractEvent){
-            return ((InventoryInteractEvent) e).getWhoClicked().getUniqueId();
+            HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
+            if(he instanceof Player)
+                return new BukkitPlayer((Player) he);
         }
 
         return null;

@@ -21,17 +21,14 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -43,6 +40,8 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO{
+    private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
+
     protected static SelfReference common;
 
     protected final File folder;
@@ -244,17 +243,20 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
          */
         protected boolean checkCooldown(Object e) {
-            UUID uuid = TriggerReactor.getInstance().extractUUIDFromContext(e);
+            IPlayer iPlayer = TriggerReactor.getInstance().extractPlayerFromContext(e);
 
-            if(uuid != null){
-                Long end = cooldowns.get(uuid);
-                if(end != null && System.currentTimeMillis() < end){
-                    return true;
+            if(iPlayer != null){
+                UUID uuid = iPlayer.getUniqueId();
+
+                if(uuid != null){
+                    Long end = cooldowns.get(uuid);
+                    if(end != null && System.currentTimeMillis() < end){
+                        return true;
+                    }
+
+                    return false;
                 }
-
-                return false;
             }
-
             return false;
         }
 
@@ -286,15 +288,15 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          *            only need to read data from Event and never interact with it.
          */
         protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-            if(sync){
-                Callable<Void> call = new Callable<Void>(){
-                    @Override
-                    public Void call() throws Exception {
-                        start(e, scriptVars, interpreter, sync);
-                        return null;
-                    }
-                };
+            Callable<Void> call = new Callable<Void>(){
+                @Override
+                public Void call() throws Exception{
+                    start(e, scriptVars, interpreter, sync);
+                    return null;
+                }
+            };
 
+            if(sync){
                 if (TriggerReactor.getInstance().isServerThread()) {
                     try {
                         call.call();
@@ -316,12 +318,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                     }
                 }
             }else{
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        start(e, scriptVars, interpreter, sync);
-                    }
-                }).start();
+                asyncPool.submit(call);
             }
         }
 
@@ -335,9 +332,9 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
             try{
                 interpreter.startWithContextAndInterrupter(e, TriggerReactor.getInstance().createInterrupter(e, interpreter, cooldowns));
-            }catch(Exception ex){
+            }catch(InterpreterException ex){
                 TriggerReactor.getInstance().handleException(e,
-                        new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
+                        new Exception("Could not finish interpretation for [" + getTriggerName() + "]!", ex));
             }
         }
 
