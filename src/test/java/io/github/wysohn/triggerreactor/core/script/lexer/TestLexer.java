@@ -124,4 +124,15 @@ public class TestLexer {
         lexer = new Lexer(text, charset);
         assertEquals(new Token(Type.IMPORT, "some.class.to.import.Something"), lexer.getToken());
     }
+
+    @Test
+    public void testImporWithNum() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text;
+        Lexer lexer;
+
+        text = "IMPORT some.class.with2num.import2.So2met2hing2";
+        lexer = new Lexer(text, charset);
+        assertEquals(new Token(Type.IMPORT, "some.class.with2num.import2.So2met2hing2"), lexer.getToken());
+    }
 }

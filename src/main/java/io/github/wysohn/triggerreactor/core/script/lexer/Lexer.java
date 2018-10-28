@@ -328,7 +328,7 @@ public class Lexer {
     }
 
     private static boolean isClassNameCharacter(char c) {
-        return Character.isAlphabetic(c) || c == '.' || c == '$';
+        return Character.isDigit(c) || Character.isAlphabetic(c) || c == '.' || c == '$';
     }
 
     private static boolean isIdCharacter(char c){
