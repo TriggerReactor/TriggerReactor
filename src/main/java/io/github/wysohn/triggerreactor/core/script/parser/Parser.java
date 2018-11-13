@@ -645,7 +645,7 @@ public class Parser {
                     nextToken();
 
                     Node index = parseExpression();
-                    Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>"));
+                    Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>", idToken));
 
                     if (token == null || !"]".equals(token.value))
                         throw new ParserException("Expected ']' but found " + token);
@@ -659,7 +659,7 @@ public class Parser {
                 //id(args)
                 else if(token != null && "(".equals(token.value)){//fuction call
                     nextToken();
-                    Node call = new Node(new Token(Type.CALL, idToken.value));
+                    Node call = new Node(new Token(Type.CALL, idToken.value, idToken));
 
                     if(token != null && ")".equals(token.value)){
                         deque.addLast(call);
@@ -683,7 +683,7 @@ public class Parser {
                         nextToken();
 
                         Node index = parseExpression();
-                        Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>"));
+                        Node arrAccess = new Node(new Token(Type.ARRAYACCESS, "<Array Access>", idToken));
 
                         if (token == null || !"]".equals(token.value))
                             throw new ParserException("Expected ']' but found " + token);
@@ -702,8 +702,9 @@ public class Parser {
                 }
             }while(token != null && ".".equals(token.value));
 
-            if(deque.peekFirst().getToken().type != Type.THIS)
-                deque.push(new Node(new Token(Type.THIS, "<This>", -1, -1)));
+            if(deque.peekFirst().getToken().type != Type.THIS) {
+                deque.push(new Node(new Token(Type.THIS, "<This>", deque.peekFirst().getToken())));
+            }
 
             return parseId(deque);
         }else{
@@ -716,9 +717,11 @@ public class Parser {
         stack.push(deque.pop());
 
         while(!deque.isEmpty()){
-            Node node = new Node(new Token(Type.OPERATOR, "."));
-            node.getChildren().add(stack.pop());
-            node.getChildren().add(deque.pop());
+            Node left = stack.pop();
+            Node right = deque.pop();
+            Node node = new Node(new Token(Type.OPERATOR, ".", left.getToken()));
+            node.getChildren().add(left);
+            node.getChildren().add(right);
 
             stack.push(node);
         }

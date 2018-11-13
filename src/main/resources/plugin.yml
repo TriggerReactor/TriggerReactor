@@ -1,8 +1,8 @@
 name: TriggerReactor
 main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
-version: 2.1.4
+version: 2.1.6
 author: wysohn
-authors: [soliddanii, MidnightSugar, TheBestNightSky, dltks0306, RubrumExPlaneta]
+authors: [soliddanii, MidnightSugar, TheBestNightSky, dltks0306, RubrumExPlaneta, Alex4386, RedLime, mrandriyg]
 softdepend: [Vault, PlaceholderAPI, mcMMO, TheGuild, CoreProtect, ProtocolLib, WorldGuard]
 commands:
   triggerreactor:

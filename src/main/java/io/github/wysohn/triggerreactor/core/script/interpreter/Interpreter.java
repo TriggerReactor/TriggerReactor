@@ -18,14 +18,18 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -129,7 +133,7 @@ public class Interpreter {
     /**
      * Start interpretation.
      * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
-     * @param interupter gives the caller to interrupt the execution
+     * @param interrupter gives the caller to interrupt the execution
      * @throws InterpreterException
      */
     public void startWithContextAndInterrupter(Object context, ProcessInterrupter interrupter) throws InterpreterException{
@@ -638,7 +642,7 @@ public class Interpreter {
                             }
 
                             if(left.getType() == Type.NULLVALUE){
-                                throw new InterpreterException("Could not access "+temp+" because it doesn't exist!");
+                                throw new InterpreterException("Cannot access "+right+"! "+temp.value+" is null.");
                             }
 
                             if(left.isObject()){
@@ -673,7 +677,7 @@ public class Interpreter {
                             }
 
                             if(left.getType() == Type.NULLVALUE){
-                                throw new InterpreterException("Could not access "+temp+" because it doesn't exist!");
+                                throw new InterpreterException("Cannot access "+right+"! "+temp.value+" is null.");
                             }
 
                             if(left.isObject() || left.isArray()){
@@ -807,7 +811,7 @@ public class Interpreter {
             try {
                 result = ReflectionUtil.constructNew(clazz, args);
             } catch (NoSuchMethodException | InstantiationException | IllegalArgumentException | IllegalAccessException e) {
-                throw new InterpreterException("Cannot create new instance for "+clazz.getSimpleName(), e);
+                throw new InterpreterException("Cannot create new instance with "+right+" of "+clazz.getSimpleName(), e);
             }
         } else if(left.type == Type.CLAZZ) {
             Class<?> clazz = (Class<?>) left.value;
@@ -815,15 +819,15 @@ public class Interpreter {
             try {
                 result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
             } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-                throw new InterpreterException("Cannot invoke static method "+(clazz.getSimpleName())+"."+right.value+"()!", e);
+                throw new InterpreterException("Cannot invoke static method "+right+" of "+clazz.getSimpleName()+"!", e);
             }
         } else {
             try {
                 result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
             } catch (NoSuchMethodException e) {
-                throw new InterpreterException("Function "+left.value+"."+right.value+" does not exist or parameter types not match.", e);
+                throw new InterpreterException("Function "+right+" does not exist or parameter types not match.");
             } catch (Exception e) {
-                throw new InterpreterException("Error executing fuction "+left.value+"."+right.value+"!", e);
+                throw new InterpreterException("Error executing fuction "+right+"!", e);
             }
         }
 
@@ -834,7 +838,7 @@ public class Interpreter {
                 stack.push(new Token(Type.OBJECT, result, right));
             }
         } else {
-            stack.push(new Token(Type.NULLVALUE, result, right));
+            stack.push(new Token(Type.NULLVALUE, null, right));
         }
     }
 
@@ -950,10 +954,36 @@ public class Interpreter {
 
         /**
         *
-        * @param commandNode
+        * @param context
         * @param args
         * @boolean true if consumed it; false to let interpreter continue working on it.
         */
         boolean onCommand(Object context, String command, Object[] args);
+    }
+
+    public static void main(String[] ar) throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = null;" +
+                "y = null;" +
+                "x.y.hoho();";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                return null;
+            }
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<String, Object> gvars = new HashMap<String, Object>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
     }
 }
