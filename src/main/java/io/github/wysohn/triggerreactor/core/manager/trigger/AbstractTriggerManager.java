@@ -182,18 +182,11 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             if(script == null)
                 throw new RuntimeException("script cannot be null.");
 
-            String temp = this.script;
-
-            boolean failed = false;
             this.script = script;
             try{
                 init();
             } catch (TriggerInitFailedException e) {
-                failed = true;
                 throw e;
-            } finally {
-                if(failed)
-                    this.script = temp;
             }
         }
 
