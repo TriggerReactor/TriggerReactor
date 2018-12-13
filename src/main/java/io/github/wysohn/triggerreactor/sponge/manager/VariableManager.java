@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 import java.io.File;
 import java.io.IOException;
 
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.DataView;
@@ -55,28 +56,6 @@ public class VariableManager extends AbstractVariableManager{
         reload();
 
         adapter = new VariableAdapter();
-
-        new VariableAutoSaveThread().start();
-    }
-
-    private class VariableAutoSaveThread extends Thread{
-        VariableAutoSaveThread(){
-            setPriority(MIN_PRIORITY);
-            this.setName("TriggerReactor Variable Saving Thread");
-        }
-
-        @Override
-        public void run(){
-            while(!Thread.interrupted() && plugin.isEnabled()){
-                saveAll();
-
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     @Override
@@ -88,13 +67,26 @@ public class VariableManager extends AbstractVariableManager{
         }
     }
 
+    private boolean saving = false;
     @Override
-    public synchronized void saveAll(){
-        try {
-            varFileConfigLoader.save(varFileConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void saveAll(){
+        if(saving)
+            return;
+
+        saving = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    varFileConfigLoader.save(varFileConfig);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Something went wrong while saving global variable!");
+                } finally {
+                    saving = false;
+                }
+            }
+        }).start();
     }
 
     @Override
