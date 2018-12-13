@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 
 import javax.script.ScriptException;
 
+import com.avaje.ebean.EbeanServer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
