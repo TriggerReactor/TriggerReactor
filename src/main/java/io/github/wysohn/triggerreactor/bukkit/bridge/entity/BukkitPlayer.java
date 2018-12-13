@@ -82,7 +82,7 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
 
     @Override
     public void setItemInMainHand(IItemStack iS) {
-        player.getInventory().setItemInMainHand(iS.get());
+        player.getInventory().setItemInHand(iS.get());
     }
 
 }

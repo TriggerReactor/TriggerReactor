@@ -772,15 +772,7 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        //String text = "#MESSAGE $random:1 == 0";
-        String text = "id = 1;"
-                + "amount = 1;"
-                + "data = 0;"
-                + ";"
-                + "is = item(id, amount, data);"
-                + "IF player.getInventory().containsAtLeast​(is, amount)"
-                + "    #TEST \"pass\";"
-                + "ENDIF";
+        String text = "#MESSAGE $random:1 == 0";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

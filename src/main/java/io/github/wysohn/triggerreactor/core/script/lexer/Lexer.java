@@ -345,14 +345,7 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException{
         Charset charset = Charset.forName("UTF-8");
-        String text = "id = 1;"
-                + "amount = 1;"
-                + "data = 0;"
-                + ";"
-                + "is = item(id, amount, data);"
-                + "IF player.getInventory().containsAtLeast​(is, amount)"
-                + "    #TEST \"pass\";"
-                + "ENDIF";
+        String text = "";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n"+text);
 

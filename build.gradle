@@ -56,7 +56,7 @@ dependencies {
 	compile fileTree(dir: "libs", includes: ['*.jar'])
 	
 	//bukkit
-	compile "org.spigotmc:spigot-api:1.12-R0.1-SNAPSHOT"
+	compile 'org.spigotmc:spigot-api:1.13.2-R0.1-SNAPSHOT'
 	
 	compile "net.milkbowl.vault:VaultAPI:1.6"
 	//////////////////////////////////////////////////////////
