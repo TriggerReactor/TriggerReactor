@@ -329,7 +329,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
 			@Override
 			public void run() {
-				Sponge.getEventManager().post(new TriggerReactorStartEvent());
+				Sponge.getEventManager().post(new TriggerReactorStartEvent(TriggerReactor.this));
 			}
         	
         }).submit(this);
