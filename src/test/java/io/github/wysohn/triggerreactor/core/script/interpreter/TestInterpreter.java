@@ -1326,6 +1326,39 @@ public class TestInterpreter {
          interpreter.startWithContext(null);
     }
 
+    @Test
+    public void testGlobalVariableDeletion() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "key = \"temp\";" +
+                "{key} = 1;" +
+                "#TEST1 {key};" +
+                "{key} = null;" +
+                "#TEST2 {key};";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(1, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertNull(args[0]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+        interpreter.startWithContext(null);
+
+        Assert.assertNull(gvars.get("temp"));
+    }
 
     public static class TheTest{
         public static String staticField = "staticField";
