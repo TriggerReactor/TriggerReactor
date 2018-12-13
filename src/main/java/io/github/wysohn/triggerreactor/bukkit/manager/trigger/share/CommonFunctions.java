@@ -149,14 +149,14 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         return true;
     }
 
-    public Location location(String world, int x, int y, int z){
+    public Location location(String world, double x, double y, double z){
         World w = Bukkit.getWorld(world);
         if(world == null)
             throw new RuntimeException("world "+world+" does not exists!");
         return new Location(w, x, y, z);
     }
 
-    public Location location(String world, int x, int y, int z, double yaw, double pitch){
+    public Location location(String world, double x, double y, double z, double yaw, double pitch){
         World w = Bukkit.getWorld(world);
         if(world == null)
             throw new RuntimeException("world "+world+" does not exists!");
