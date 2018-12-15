@@ -39,7 +39,6 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 public class VariableManager extends AbstractVariableManager{
     private File varFile;
     private FileConfiguration varFileConfig;
-    private final GlobalVariableAdapter adapter;
 
     public VariableManager(TriggerReactor plugin) throws IOException, InvalidConfigurationException {
         super(plugin);
@@ -51,8 +50,6 @@ public class VariableManager extends AbstractVariableManager{
         checkConfigurationSerialization();
 
         reload();
-
-        adapter = new VariableAdapter();
     }
 
     @Override
@@ -88,11 +85,6 @@ public class VariableManager extends AbstractVariableManager{
     }
 
     @Override
-    public GlobalVariableAdapter getGlobalVariableAdapter(){
-        return adapter;
-    }
-
-    @Override
     public Object get(String key){
         return varFileConfig.get(key);
     }
@@ -120,48 +112,6 @@ public class VariableManager extends AbstractVariableManager{
     @Override
     public void remove(String key){
         varFileConfig.set(key, null);
-    }
-
-    @SuppressWarnings("serial")
-    public class VariableAdapter extends GlobalVariableAdapter{
-        VariableAdapter() {
-            super();
-        }
-
-        @Override
-        public Object get(Object key) {
-            Object value = null;
-
-            //try global if none found in local
-            if(value == null && key instanceof String){
-                String keyStr = (String) key;
-                if(varFileConfig.contains(keyStr)){
-                    value = varFileConfig.get(keyStr);
-                }
-            }
-
-            return value;
-        }
-
-        @Override
-        public boolean containsKey(Object key) {
-            boolean result = false;
-
-            //check global if none found in local
-            if(!result && key instanceof String){
-                String keyStr = (String) key;
-                result = varFileConfig.contains(keyStr);
-            }
-
-            return result;
-        }
-
-        @Override
-        public Object put(String key, Object value) {
-            Object before = varFileConfig.get(key);
-            varFileConfig.set(key, value);
-            return before;
-        }
     }
 
     private static void checkConfigurationSerialization() {

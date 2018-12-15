@@ -146,7 +146,7 @@ public class Token {
 
         /**Parenthesis, Blocks**/OPERATOR, /**Arithmetic**/OPERATOR_A, UNARYMINUS, /**Logical**/OPERATOR_L,
 
-        GID, ID, PLACEHOLDER, NULLVALUE,
+        GID, GID_TEMP, ID, PLACEHOLDER, NULLVALUE,
 
         BODY, EXECUTOR,
 

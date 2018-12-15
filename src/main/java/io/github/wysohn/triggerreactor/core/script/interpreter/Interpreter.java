@@ -39,7 +39,7 @@ public class Interpreter {
     private Node root;
     private final Map<String, Executor> executorMap = new HashMap<>();
     private final Map<String, Placeholder> placeholderMap = new HashMap<>();
-    private final Map<String, Object> gvars;
+    private final Map<Object, Object> gvars;
     private final Map<String, Object> vars;
     private final SelfReference selfReference;
 
@@ -69,7 +69,7 @@ public class Interpreter {
         initDefaultExecutors();
     }
 */
-    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<String, Object> gvars, Map<String, Object> localVars,
+    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<Object, Object> gvars, Map<String, Object> localVars,
             SelfReference selfReference) {
         this.root = root;
         for(Entry<String, Executor> entry : executorMap.entrySet())
@@ -723,7 +723,7 @@ public class Interpreter {
                 stack.push(node.getToken());
             }else if(node.getToken().type == Type.ID){
                 stack.push(node.getToken());
-            }else if(node.getToken().type == Type.GID){
+            }else if(node.getToken().type == Type.GID || node.getToken().type == Type.GID_TEMP){
                 Token keyToken = stack.pop();
 
                 if(isVariable(keyToken)){
@@ -734,7 +734,7 @@ public class Interpreter {
                     throw new InterpreterException(keyToken+" is not a valid global variable id.");
                 }
 
-                stack.push(new Token(Type.GID, keyToken.value, node.getToken()));
+                stack.push(new Token(node.getToken().type, keyToken.value, node.getToken()));
             }else if(node.getToken().type == Type.CALL){
                 stack.push(node.getToken());
                 callArgsSize = node.getChildren().size();
@@ -777,15 +777,15 @@ public class Interpreter {
             } catch (Exception e) {
                 throw new InterpreterException("Unknown error ", e);
             }
-        } else if(id.type == Type.GID){
+        } else if(id.type == Type.GID || id.type == Type.GID_TEMP){
             if(value.type == Type.NULLVALUE) {
-                gvars.remove(id.value.toString());
+                gvars.remove(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()));
             }else {
                 if(isVariable(value)){
                     value = unwrapVariable(value);
                 }
 
-                gvars.put(id.value.toString(), value.value);
+                gvars.put(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()), value.value);
             }
         }else if(id.type == Type.ID){
             if(value.type == Type.NULLVALUE) {
@@ -852,6 +852,7 @@ public class Interpreter {
     private boolean isVariable(Token token) {
         return token.type == Type.ID
                 || token.type == Type.GID
+                || token.type == Type.GID_TEMP
                 || token.type == Type.ACCESS;
     }
 
@@ -866,7 +867,9 @@ public class Interpreter {
 
             return parseValue(var, varToken);
         }else if(varToken.type == Type.GID){
-            return convertValue(gvars, varToken);
+            return parseValue(gvars.get(varToken.value), varToken);
+        }else if(varToken.type == Type.GID_TEMP){
+            return parseValue(gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)), varToken);
         }else if(varToken.type == Type.ACCESS){
             Accessor accessor = (Accessor) varToken.value;
             Object var;
@@ -900,12 +903,6 @@ public class Interpreter {
         } else {
             return new Token(Type.OBJECT, var, origin);
         }
-    }
-
-    private Token convertValue(Map<String, Object> varMap, Token idToken) throws InterpreterException {
-        Object value = varMap.get(idToken.value);
-
-        return parseValue(value, idToken);
     }
 
     private final Executor EXECUTOR_STOP = new Executor() {
@@ -980,7 +977,7 @@ public class Interpreter {
         });
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
 

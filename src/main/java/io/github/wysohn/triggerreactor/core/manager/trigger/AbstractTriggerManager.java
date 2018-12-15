@@ -115,7 +115,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         protected Node root;
         protected Map<String, Executor> executorMap;
         protected Map<String, Placeholder> placeholderMap;
-        protected Map<String, Object> gvarMap;
+        protected Map<Object, Object> gvarMap;
 
         private boolean sync = false;
 

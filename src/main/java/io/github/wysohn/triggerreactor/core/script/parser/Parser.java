@@ -213,9 +213,16 @@ public class Parser {
                     return assign;
                 }
             } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
+                Token temp = token;
                 nextToken();
 
-                Node left = new Node(new Token(Type.GID, "<GVAR>"));
+                Node left;
+                if(token.type == Type.OPERATOR && "?".equals(token.value)){
+                    nextToken();
+                    left = new Node(new Token(Type.GID_TEMP, "<GVAR_TEMP>", temp));
+                }else{
+                    left = new Node(new Token(Type.GID, "<GVAR>", temp));
+                }
                 Node keyString = parseLogic();
 
                 left.getChildren().add(keyString);
@@ -224,6 +231,7 @@ public class Parser {
                     throw new ParserException("Expected '}' but found " + token);
                 }
                 nextToken();
+                ///////////////////////////////////////////////////////////////
 
                 if(!"=".equals(token.value))
                     throw new ParserException("Expected '=' after id ["+left.getToken().value+"] but found "+token);
@@ -559,7 +567,13 @@ public class Parser {
         if (token.type == Type.OPERATOR && "{".equals(token.value)) {
             nextToken();
 
-            Node gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
+            Node gvarNode = null;
+            if(token.type == Type.OPERATOR && "?".equals(token.value)){
+                nextToken();
+                gvarNode = new Node(new Token(Type.GID_TEMP, "<GVAR_TEMP>"));
+            }else{
+                gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
+            }
             Node keyString = parseLogic();
 
             gvarNode.getChildren().add(keyString);
