@@ -918,7 +918,13 @@ public class Interpreter {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
 
-            double secs = args[0] instanceof Double ? (double) args[0] : (int) args[0];
+            if(args.length < 1)
+                throw new RuntimeException("Missing arguments [Decimal].");
+
+            if(!(args[0] instanceof Double))
+                throw new RuntimeException(args[0]+" is not a decimal!");
+
+            double secs = (Double) args[0];
             long later = (long) (secs * 1000);
             Executor.runTaskLater(new Runnable(){
                 @Override
