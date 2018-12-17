@@ -15,24 +15,25 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function ACTIONBAR(args) {
-	if(args.length == 1){
-		var ComponentBuilder = Java.type('net.md_5.bungee.api.chat.ComponentBuilder');
-		var component = new ComponentBuilder(args[0]).create();
-		var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
-		var type = ChatMessageType.ACTION_BAR;
-		
-		player.spigot().sendMessage(type,component);
-		return null;
-	}
-	
-	if(args.length == 2){
-		var p = args[0];
-		var ComponentBuilder = Java.type('net.md_5.bungee.api.chat.ComponentBuilder');
-		var component = new ComponentBuilder(args[1]).create();
-		var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
-		var type = ChatMessageType.ACTION_BAR;
-		
-		p.spigot().sendMessage(type,component);
-		return null;
-	}
+	var ComponentBuilder = Java.type('net.md_5.bungee.api.chat.ComponentBuilder');
+
+	var functions = [
+		() => { return null },
+		() => {
+			var component = new ComponentBuilder(args[0]).create();
+
+			player.spigot().sendMessage(type,component);
+			return null;
+		},
+		() => {
+			var component = new ComponentBuilder(args[0]).create();
+
+			p.spigot().sendMessage(type,component);
+			return null;
+		}
+	];
+	return functions[args.length]();
+
+	var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
+	var type = ChatMessageType.ACTION_BAR;
 }

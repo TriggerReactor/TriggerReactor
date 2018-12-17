@@ -15,9 +15,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function CLOSEGUI(args){
-	if(player == null)
-		return null;
-		
-	player.closeInventory();
+	if (!player === null) {
+		player.closeInventory();
+	};
+
 	return null;
 }

@@ -15,25 +15,14 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function BROADCAST(args) {
-	var str = "";
-	for (var i = 0; i < args.length; i++)
-		str += args[i];
-
-	str = ChatColor.translateAlternateColorCodes(Char('&'), str);
-
+	var string = ChatColor.translateAlternateColorCodes(Char('&'), args.join(''));
 	var PlaceholderAPI;
-	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-		PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-	}
 
-	var players = BukkitUtil.getOnlinePlayers();
-	for (var iter = players.iterator(); iter.hasNext();) {
+	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+
+	for (var iter = BukkitUtil.getOnlinePlayers().iterator(); iter.hasNext()) {
 		p = iter.next();
-		if (PlaceholderAPI) {
-			p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
-		} else {
-			p.sendMessage(str);
-		}
+		(PlaceholderAPI) ? p.sendMessage(PlaceholderAPI.setPlaceholders(p, string)) : p.sendMessage(string);
 	}
 
 	return null;
