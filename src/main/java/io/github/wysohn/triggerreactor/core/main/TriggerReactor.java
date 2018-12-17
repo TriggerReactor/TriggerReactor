@@ -163,7 +163,7 @@ public abstract class TriggerReactor {
                     }else{
                         StringBuilder builder = new StringBuilder();
                         for(int i = 1; i < args.length; i++)
-                            builder.append(args[i] + " ");
+                            builder.append(args[i]).append(" ");
                         if(getClickManager().startLocationSet((IPlayer) sender, builder.toString())){
                             sender.sendMessage("&7Now click the block to set click trigger.");
                         }else{
@@ -186,7 +186,7 @@ public abstract class TriggerReactor {
                     }else{
                         StringBuilder builder = new StringBuilder();
                         for (int i = 1; i < args.length; i++)
-                            builder.append(args[i] + " ");
+                            builder.append(args[i]).append(" ");
                         if (getWalkManager().startLocationSet((IPlayer) sender, builder.toString())) {
                             sender.sendMessage("&7Now click the block to set walk trigger.");
                         } else {
@@ -195,7 +195,14 @@ public abstract class TriggerReactor {
                     }
                     return true;
                 } else if(args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))){
-                    if(getCmdManager().hasCommandTrigger(args[1])){
+                    if(getCmdManager().hasCommandTrigger(args[1]) && args[2].equals("sync")){
+                        Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        trigger.setSync(!trigger.isSync());
+
+                        sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
+                        saveAsynchronously(getCmdManager());
+                    }else if(getCmdManager().hasCommandTrigger(args[1])){
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
@@ -1326,6 +1333,7 @@ public abstract class TriggerReactor {
             sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
             sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
             sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
         });
         add((sender)->{
             sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");

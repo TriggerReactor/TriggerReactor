@@ -42,6 +42,18 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             String triggerName = extractName(file);
 
+            File triggerConfigFile = new File(folder, triggerName+".yml");
+
+            Boolean sync = Boolean.FALSE;
+            if(triggerConfigFile.isFile() && triggerConfigFile.exists()){
+                try {
+                    sync = getData(triggerConfigFile, "sync", Boolean.FALSE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+            }
+
             String script = null;
             try{
                 script = FileUtil.readFromFile(file);
@@ -58,6 +70,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 continue;
             }
 
+            trigger.setSync(sync);
             commandTriggerMap.put(triggerName, trigger);
         }
     }
@@ -66,18 +79,30 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     public void saveAll(){
         Set<String> failed = new HashSet<>();
         for(Entry<String, CommandTrigger> entry : commandTriggerMap.entrySet()){
-            String fileName = entry.getKey();
+            String triggerName = entry.getKey();
             CommandTrigger trigger = entry.getValue();
 
             String script = trigger.getScript();
 
-            File file = getTriggerFile(folder, fileName, true);
+            File file = getTriggerFile(folder, triggerName, true);
             try{
                 FileUtil.writeToFile(file, script);
             }catch(Exception e){
                 e.printStackTrace();
-                plugin.getLogger().severe("Could not save command trigger for "+fileName);
-                failed.add(fileName);
+                plugin.getLogger().severe("Could not save command trigger for "+triggerName);
+                failed.add(triggerName);
+            }
+
+            File triggerConfigFile = new File(folder, triggerName+".yml");
+            if(!triggerConfigFile.exists()){
+                try {
+                    triggerConfigFile.createNewFile();
+                    setData(triggerConfigFile, "sync", trigger.isSync());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Could not save command trigger for "+triggerName);
+                    failed.add(triggerName);
+                }
             }
         }
 
