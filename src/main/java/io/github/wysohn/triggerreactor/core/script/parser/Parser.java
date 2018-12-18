@@ -201,7 +201,7 @@ public class Parser {
 
                     Node right = parseLogic();
                     if(right == null)
-                        throw new ParserException("Expected some logic but found nothing. Is the code complete?");
+                        throw new ParserException("Expected an assignable value on the right of "+token+", but found nothing.");
 
                     assign.getChildren().add(left);
                     assign.getChildren().add(right);
@@ -277,7 +277,6 @@ public class Parser {
                 && !"ENDIF".equals(token.value)
                 && !"ELSE".equals(token.value)
                 && !"ELSEIF".equals(token.value)
-                && !"ENDIF".equals(token.value)
                 && (codes = parseStatement()) != null){
             trueBody.getChildren().add(codes);
         }
@@ -529,6 +528,9 @@ public class Parser {
     }
 
     private Node parseFactor() throws IOException, LexerException, ParserException {
+        if(token == null)
+            return null;
+
         if("true".equals(token.value) || "false".equals(token.value)){
             Node node = new Node(new Token(Type.BOOLEAN, token.value, token.row, token.col));
             nextToken();
@@ -563,9 +565,6 @@ public class Parser {
         if(idNode != null){
             return idNode;
         }
-
-        if(token == null)
-            return null;
 
         if (token.type == Type.OPERATOR && "{".equals(token.value)) {
             nextToken();
