@@ -53,6 +53,8 @@ public class Interpreter {
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
+    private boolean breakFlag = false;
+    private boolean continueFlag = false;
     private long cooldownEnd = -1;
 
     private int callArgsSize = 0;
@@ -87,6 +89,8 @@ public class Interpreter {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
         executorMap.put("COOLDOWN", EXECUTOR_COOLDOWN);
+        executorMap.put("BREAK", EXECUTOR_BREAK);
+        executorMap.put("CONTINUE", EXECUTOR_CONTINUE);
     }
 
     public boolean isStopFlag() {
@@ -201,7 +205,7 @@ public class Interpreter {
                 start(node.getChildren().get(0));
 
                 if(stack.isEmpty())
-                    throw new InterpreterException("Could not find conditon for WHILE statement!");
+                    throw new InterpreterException("Could not find condition for WHILE statement!");
 
                 resultToken = stack.pop();
 
@@ -214,6 +218,12 @@ public class Interpreter {
 
                 if ((boolean) resultToken.value) {
                     start(node.getChildren().get(1));
+                    if(breakFlag){
+                        breakFlag = false;
+                        break;
+                    }
+
+                    continueFlag = false;
                 } else {
                     break;
                 }
@@ -261,6 +271,12 @@ public class Interpreter {
 
                         assignValue(idToken, parseValue(obj, valueToken));
                         start(node.getChildren().get(2));
+                        if(breakFlag){
+                            breakFlag = false;
+                            break;
+                        }
+
+                        continueFlag = false;
                     }
                 } else {
                     for (Object obj : (Iterable<?>) valueToken.value) {
@@ -269,6 +285,12 @@ public class Interpreter {
 
                         assignValue(idToken, parseValue(obj, valueToken));
                         start(node.getChildren().get(2));
+                        if(breakFlag){
+                            breakFlag = false;
+                            break;
+                        }
+
+                        continueFlag = false;
                     }
                 }
             }else if(iterNode.getChildren().size() == 2){
@@ -301,6 +323,12 @@ public class Interpreter {
                 for(int i = initToken.toInteger(); !stopFlag && i < limitToken.toInteger(); i++){
                     assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()));
                     start(node.getChildren().get(2));
+                    if(breakFlag){
+                        breakFlag = false;
+                        break;
+                    }
+
+                    continueFlag = false;
                 }
             }else{
                 throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
@@ -308,6 +336,10 @@ public class Interpreter {
 
         } else {
             for(int i = 0; i < node.getChildren().size(); i++){
+                //ignore rest of body if continue flag is set
+                if(continueFlag)
+                    continue;
+
                 Node child = node.getChildren().get(i);
                 start(child);
 
@@ -348,25 +380,31 @@ public class Interpreter {
         }
 
         Integer result = interpret(node);
-        if(result != null){
-            switch(result){
-            case Executor.STOP:
-                stopFlag = true;
-                return;
-            case Executor.WAIT:
-                waitFlag = true;
-                synchronized(this){
-                    while(waitFlag){
-                        try {
-                            this.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+        if (result != null) {
+            switch (result) {
+                case Executor.STOP:
+                    stopFlag = true;
+                    return;
+                case Executor.WAIT:
+                    waitFlag = true;
+                    synchronized (this) {
+                        while (waitFlag) {
+                            try {
+                                this.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
-                }
-                break;
-            default:
-                throw new InterpreterException(result +" is not a valid return code!");
+                    break;
+                case Executor.BREAK:
+                    breakFlag = true;
+                    return;
+                case Executor.CONTINUE:
+                    continueFlag = true;
+                    return;
+                default:
+                    throw new InterpreterException(result + " is not a valid return code!");
             }
         }
     }
@@ -388,6 +426,23 @@ public class Interpreter {
                     || "ELSEIF".equals(node.getToken().value)
                     || "WHILE".equals(node.getToken().value)) {
                 return null;
+            } else if("IS".equals(node.getToken().value)){
+                Token right = stack.pop();
+                Token left = stack.pop();
+
+                if(isVariable(right)){
+                    right = unwrapVariable(right);
+                }
+
+                if(!(right.value instanceof Class))
+                    throw new RuntimeException(right+" is not a Class!");
+
+                if(isVariable(left)){
+                    left = unwrapVariable(left);
+                }
+
+                Class clazz = (Class) right.value;
+                stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
 
@@ -909,6 +964,18 @@ public class Interpreter {
         @Override
         public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
+        }
+    };
+    private final Executor EXECUTOR_BREAK = new Executor() {
+        @Override
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+            return BREAK;
+        }
+    };
+    private final Executor EXECUTOR_CONTINUE = new Executor() {
+        @Override
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+            return CONTINUE;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {

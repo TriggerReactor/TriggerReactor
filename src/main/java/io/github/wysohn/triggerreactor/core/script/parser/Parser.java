@@ -398,10 +398,13 @@ public class Parser {
     private Node parseComparison() throws IOException, LexerException, ParserException{
         Node expression = parseExpression();
 
-        if(token != null && token.type == Type.OPERATOR_L
-                && ("<".equals(token.value) || "<=".equals(token.value)
+        if (token != null
+                && (
+               ( token.type == Type.OPERATOR_L && ("<".equals(token.value) || "<=".equals(token.value)
                         || ">".equals(token.value) || ">=".equals(token.value)
-                        || "==".equals(token.value)  || "!=".equals(token.value) )){
+                        || "==".equals(token.value) || "!=".equals(token.value))
+                ) || "IS".equals(token.value))
+        ) {
             Node node = new Node(token);
             nextToken();
 

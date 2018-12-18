@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.collect.Lists;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import org.bukkit.Location;
@@ -1430,6 +1431,174 @@ public class TestInterpreter {
         HashMap<Object, Object> gvars = new HashMap<>();
          Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
          interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testISStatement() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "IMPORT "+TheTest.class.getName()+";" +
+                "IMPORT "+InTest.class.getName()+";" +
+                "" +
+                "#TEST test IS TheTest, test IS InTest;" +
+                "#TEST test2 IS InTest, test2 IS TheTest;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertTrue((boolean) args[0]);
+                Assert.assertFalse((boolean) args[1]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("test", new TheTest());
+        vars.put("test2", new InTest());
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testBreak() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 0;" +
+                "WHILE x < 5;" +
+                "x = x + 1;" +
+                "IF x > 1;" +
+                "#BREAK;" +
+                "ENDIF;" +
+                "ENDWHILE;" +
+                "#TEST x;" +
+                "" +
+                "FOR x = 0:10;" +
+                "IF x == 2;" +
+                "#BREAK;" +
+                "ENDIF;" +
+                "ENDFOR;" +
+                "#TEST2 x";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testContinue() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 0;" +
+                "i = 0;" +
+                "WHILE i < 5;" +
+                "i = i + 1;" +
+                "IF x > 1;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "x = x + 1;" +
+                "ENDWHILE;" +
+                "#TEST x, i;" +
+                "" +
+                "x = 0;" +
+                "FOR i = 0:6;" +
+                "IF x > 1;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "x = x + 1;" +
+                "ENDFOR;" +
+                "#TEST2 x, i;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                Assert.assertEquals(5, args[1]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                Assert.assertEquals(5, args[1]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testContinueIterator() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "sum = 0;" +
+                "FOR val = arr;" +
+                "IF val == 1 || val == 5;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "sum = sum + val;" +
+                "ENDFOR;" +
+                "#TEST sum;" +
+                "" +
+                "sum = 0;" +
+                "FOR val = iter;" +
+                "IF val == 1 || val == 5;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "sum = sum + val;" +
+                "ENDFOR;" +
+                "#TEST2 sum;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(9, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(9, args[0]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("arr", new int[]{1,2,3,4,5});
+        vars.put("iter", Lists.newArrayList(1,2,3,4,5));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
     }
 
     public static class TheTest{

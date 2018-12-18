@@ -21,6 +21,8 @@ import java.util.Map;
 public abstract class Executor extends SynchronizableTask{
     public static final int STOP = 0;
     public static final int WAIT = 1;
+    public static final int BREAK = 2;
+    public static final int CONTINUE = 3;
 
     /**
      *
