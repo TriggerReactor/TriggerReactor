@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 
 import javax.script.ScriptException;
 
+import com.avaje.ebean.EbeanServer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -167,6 +168,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     private AbstractRepeatingTriggerManager repeatManager;
 
     private AbstractNamedTriggerManager namedTriggerManager;
+
+    public EbeanServer getDatabase() {
+        return null;
+    }
 
     @Override
     public AbstractExecutorManager getExecutorManager() {

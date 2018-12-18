@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
+import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -648,9 +650,16 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
 
     public BossBar makeBossBar(String title, String color, String style) {
         BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
-	BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
+	    BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
 
-	BossBar BarObj = Bukkit.createBossBar(title, colorEnum, styleEnum);
-	return BarObj;
+        BossBar BarObj = null;
+        try {
+            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title, colorEnum, styleEnum);
+        } catch (NoSuchMethodException e) {
+            return null;
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        return BarObj;
     }
 }
