@@ -338,7 +338,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Listener
     public void onDisable(GameStoppingServerEvent e) {
 		try {
-			Sponge.getEventManager().post(new TriggerReactorStopEvent());
+			Sponge.getEventManager().post(new TriggerReactorStopEvent(TriggerReactor.this));
 		} finally {
 			getLogger().info("Finalizing the scheduled script executions...");
 			cachedThreadPool.shutdown();
