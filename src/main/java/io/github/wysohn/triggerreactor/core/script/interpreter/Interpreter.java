@@ -988,10 +988,10 @@ public class Interpreter {
             if(args.length < 1)
                 throw new RuntimeException("Missing arguments [Decimal].");
 
-            if(!(args[0] instanceof Double))
-                throw new RuntimeException(args[0]+" is not a decimal!");
+            if(!(args[0] instanceof Number))
+                throw new RuntimeException(args[0]+" is not a number!");
 
-            double secs = (Double) args[0];
+            double secs = ((Number) args[0]).doubleValue();
             long later = (long) (secs * 1000);
             Executor.runTaskLater(new Runnable(){
                 @Override
