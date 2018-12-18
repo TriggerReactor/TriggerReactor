@@ -340,6 +340,9 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
         @Override
         public void onEvent(Object e) {
+            if(e.getClass() != event)
+                return;
+
             Map<String, Object> vars = new HashMap<>();
             this.activate(e, vars);
         }
