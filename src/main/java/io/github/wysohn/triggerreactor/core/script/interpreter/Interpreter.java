@@ -223,6 +223,7 @@ public class Interpreter {
                         break;
                     }
 
+                    breakFlag = false;
                     continueFlag = false;
                 } else {
                     break;
@@ -276,6 +277,7 @@ public class Interpreter {
                             break;
                         }
 
+                        breakFlag = false;
                         continueFlag = false;
                     }
                 } else {
@@ -290,6 +292,7 @@ public class Interpreter {
                             break;
                         }
 
+                        breakFlag = false;
                         continueFlag = false;
                     }
                 }
@@ -328,6 +331,7 @@ public class Interpreter {
                         break;
                     }
 
+                    breakFlag = false;
                     continueFlag = false;
                 }
             }else{
