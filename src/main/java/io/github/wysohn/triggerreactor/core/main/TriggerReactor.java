@@ -1237,6 +1237,9 @@ public abstract class TriggerReactor {
             throwable.printStackTrace();
         }
 
+        if(sender == null)
+            sender = getConsoleSender();
+
         sendExceptionMessage(sender, throwable);
     }
 
@@ -1255,6 +1258,12 @@ public abstract class TriggerReactor {
             }
         });
     }
+
+    /**
+     * get sender instance of the console
+     * @return
+     */
+    public abstract ICommandSender getConsoleSender();
 
     /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this

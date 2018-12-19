@@ -835,4 +835,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 		}
 		return variables;
 	}
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return new SpongeCommandSender(Sponge.getServer().getConsole());
+    }
 }

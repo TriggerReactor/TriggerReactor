@@ -1072,4 +1072,9 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
 		return variables;
 	}
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return new BukkitCommandSender(Bukkit.getConsoleSender());
+    }
 }
