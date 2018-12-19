@@ -59,7 +59,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         varMap.put("player", player);
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
-        varMap.put("block", LocationUtil.convertToBukkitLocation(e.getTo()).getBlock());
+        varMap.put("block", LocationUtil.convertToBukkitLocation(bottomLoc).getBlock());
 
         trigger.activate(e, varMap);
     }
