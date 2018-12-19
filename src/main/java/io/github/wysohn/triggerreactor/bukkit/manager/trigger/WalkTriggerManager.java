@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -58,9 +59,9 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         varMap.put("player", player);
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
+        varMap.put("block", LocationUtil.convertToBukkitLocation(e.getTo()).getBlock());
 
         trigger.activate(e, varMap);
-        return;
     }
 
     @Override
