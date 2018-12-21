@@ -48,16 +48,10 @@ import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager.AreaTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager.CustomTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -74,7 +68,7 @@ import io.github.wysohn.triggerreactor.tools.TimeUtil;
  */
 public abstract class TriggerReactor {
     /**
-     * Cached Pool for thread execution. It is used by {@link io.github.wysohn.triggerreactor.core.script.interpreter.Executor#runSyncTask(Runnable)}
+     * Cached Pool for thread execution.
      */
     public static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory(){
         @Override
@@ -1045,7 +1039,25 @@ public abstract class TriggerReactor {
                     showGlowStones(sender, getWalkManager().getTriggersInChunk(scloc));
                     sender.sendMessage("&7Now trigger blocks will be shown as &6"+"glowstone");
                     return true;
-                } else if(args[0].equalsIgnoreCase("saveall")){
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    sender.sendMessage("- - - - - Result - - - - ");
+                    for(Manager manager : Manager.getManagers()){
+                        if(!(manager instanceof AbstractTriggerManager))
+                            continue;
+
+                        for(String val : ((AbstractTriggerManager) manager).getTriggerList((name)->{
+                            for(int i = 1; i < args.length; i++){
+                                if(!name.contains(args[i]))
+                                    return false;
+                            }
+                            return true;
+                        })){
+                            sender.sendMessage("&d"+val);
+                        }
+                    }
+                    sender.sendMessage(" ");
+                    return true;
+                }else if(args[0].equalsIgnoreCase("saveall")){
                     for(Manager manager : Manager.getManagers())
                         manager.saveAll();
                     sender.sendMessage("Save complete!");
@@ -1422,6 +1434,9 @@ public abstract class TriggerReactor {
             sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
 
             sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+
+            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
+            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
 
             sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
 

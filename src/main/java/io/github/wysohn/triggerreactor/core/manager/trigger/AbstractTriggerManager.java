@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -67,6 +68,13 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
      */
     protected void deleteInfo(Trigger trigger) {
         FileUtil.delete(trigger.file);
+    }
+
+    public abstract List<String> getTriggerList(TriggerFilter filter);
+
+    @FunctionalInterface
+    public interface TriggerFilter{
+        boolean accept(String name);
     }
 
     protected static boolean isTriggerFile(File file) {
@@ -333,6 +341,11 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         @Override
         public abstract Trigger clone();
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName()+": "+getTriggerName();
+        }
     }
 
     @SuppressWarnings("serial")
