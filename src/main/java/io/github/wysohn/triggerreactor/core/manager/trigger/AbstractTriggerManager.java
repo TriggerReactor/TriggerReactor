@@ -19,9 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -70,7 +68,19 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         FileUtil.delete(trigger.file);
     }
 
-    public abstract List<String> getTriggerList(TriggerFilter filter);
+    protected abstract Collection<? extends Trigger> getAllTriggers();
+
+    public List<String> getTriggerList(TriggerFilter filter) {
+        List<String> strs = new ArrayList<>();
+        for(Trigger trigger : Collections.unmodifiableCollection(getAllTriggers())){
+            String str = trigger.toString();
+            if(filter != null && filter.accept(str))
+                strs.add(str);
+            else if(filter == null)
+                strs.add(str);
+        }
+        return strs;
+    }
 
     @FunctionalInterface
     public interface TriggerFilter{
@@ -344,7 +354,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         @Override
         public String toString() {
-            return getClass().getSimpleName()+": "+getTriggerName();
+            return "["+getClass().getSimpleName()+"="+getTriggerName()+" sync="+sync+"]";
         }
     }
 

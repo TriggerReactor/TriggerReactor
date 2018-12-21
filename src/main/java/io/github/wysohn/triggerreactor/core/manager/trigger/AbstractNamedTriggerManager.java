@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -70,6 +71,11 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
                 failed.add(entry);
             }
         }*/
+    }
+
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        return triggers.values();
     }
 
     /**

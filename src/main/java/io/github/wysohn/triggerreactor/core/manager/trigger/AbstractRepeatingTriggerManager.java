@@ -361,6 +361,15 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             return null;
         }
 
+        @Override
+        public String toString() {
+            return super.toString()+"{" +
+                    "interval=" + interval +
+                    ", autoStart=" + autoStart +
+                    ", paused=" + paused +
+                    '}';
+        }
+
         //////////////////////////////////////////////////////////////////////////////////////
         private boolean paused;
 

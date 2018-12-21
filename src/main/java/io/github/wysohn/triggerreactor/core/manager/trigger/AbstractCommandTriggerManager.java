@@ -18,11 +18,8 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -120,6 +117,11 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         for(String key : failed){
             commandTriggerMap.remove(key);
         }
+    }
+
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        return commandTriggerMap.values();
     }
 
     public boolean hasCommandTrigger(String cmd) {
@@ -240,6 +242,14 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString()+"{" +
+                    "permissions=" + Arrays.toString(permissions) +
+                    ", aliases=" + Arrays.toString(aliases) +
+                    '}';
         }
     }
 }

@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -274,6 +275,11 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         super.deleteInfo(trigger);
     }
 
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        return nameMap.values();
+    }
+
     public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
     }
@@ -307,6 +313,13 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString()+"{" +
+                    "event=" + event +
+                    '}';
         }
 
         @Override

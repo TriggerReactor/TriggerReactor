@@ -20,14 +20,8 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
@@ -298,7 +292,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
     /**
      * This method does not check if world of smallest and largest are same.
-     * Also <b>check confliction with {@link #getConflictingAreas(SimpleLocation, SimpleLocation)} before</b> using this method.
+     * Also <b>check confliction with {@link #getConflictingAreas(Area)} before</b> using this method.
      * @param name
      * @param smallest
      * @param largest
@@ -370,7 +364,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
     /**
      * Try to get Area Trigger at given location
-     * @param location
+     * @param sloc
      * @return Area if found; null if nothing
      */
     public AreaTrigger getArea(SimpleLocation sloc) {
@@ -383,7 +377,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
     /**
      * Try to remove Area Trigger at given location.
-     * @param location
+     * @param sloc
      * @return false if no area found at location; true if deleted
      */
     public boolean deleteArea( SimpleLocation sloc) {
@@ -409,6 +403,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
     @Override
     protected void deleteInfo(Trigger trigger) {
         FileUtil.delete(new File(folder, trigger.getTriggerName()));
+    }
+
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        return nameMapper.values();
     }
 
     public static class AreaTrigger extends Trigger{
@@ -463,6 +462,13 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         @Override
         public Trigger clone() {
             return null;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString()+"{" +
+                    "area=" + area +
+                    '}';
         }
 
         void setEnterTrigger(String script, File triggerFile) throws TriggerInitFailedException{

@@ -18,13 +18,9 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.*;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -136,6 +132,12 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                 slocMap.remove(sloc);
             }
         }
+    }
+
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        // Think about this later
+        return Collections.emptySet();
     }
 
     protected String slocToString(SimpleLocation sloc) {
