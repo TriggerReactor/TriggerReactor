@@ -206,7 +206,7 @@ public abstract class TriggerReactor {
                         }else{
                             String[] permissions = new String[args.length - 3];
                             for(int i = 3; i < args.length; i++){
-                                permissions[i] = args[i];
+                                permissions[i - 3] = args[i];
                             }
                             trigger.setPermissions(permissions);
                         }
@@ -225,7 +225,7 @@ public abstract class TriggerReactor {
                         }else{
                             String[] aliases = new String[args.length - 3];
                             for(int i = 3; i < args.length; i++){
-                                aliases[i] = args[i];
+                                aliases[i - 3] = args[i];
                             }
                             trigger.setAliases(aliases);
                             getCmdManager().registerAliases(trigger);
