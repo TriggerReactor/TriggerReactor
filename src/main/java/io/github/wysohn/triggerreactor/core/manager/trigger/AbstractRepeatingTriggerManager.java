@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -217,6 +218,11 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
     protected void deleteInfo(Trigger trigger) {
         FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName()+".yml"));
         super.deleteInfo(trigger);
+    }
+
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        return repeatTriggers.values();
     }
 
     /**
