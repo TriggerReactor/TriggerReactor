@@ -100,17 +100,15 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             }
 
             File triggerConfigFile = new File(folder, triggerName+".yml");
-            if(!triggerConfigFile.exists()){
-                try {
-                    triggerConfigFile.createNewFile();
-                    setData(triggerConfigFile, "sync", trigger.isSync());
-                    setData(triggerConfigFile, "permissions", trigger.permissions);
-                    setData(triggerConfigFile, "aliases", trigger.aliases);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    plugin.getLogger().severe("Could not save command trigger for "+triggerName);
-                    failed.add(triggerName);
-                }
+            try {
+                triggerConfigFile.createNewFile();
+                setData(triggerConfigFile, "sync", trigger.isSync());
+                setData(triggerConfigFile, "permissions", trigger.permissions);
+                setData(triggerConfigFile, "aliases", trigger.aliases);
+            } catch (IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().severe("Could not save command trigger for "+triggerName);
+                failed.add(triggerName);
             }
         }
 
