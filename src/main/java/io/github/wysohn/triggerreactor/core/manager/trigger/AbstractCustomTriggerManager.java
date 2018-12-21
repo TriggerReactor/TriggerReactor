@@ -318,7 +318,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         @Override
         public String toString() {
             return super.toString()+"{" +
-                    "event=" + event +
+                    "event=" + (event == null ? null : event.getName()) +
                     '}';
         }
 
