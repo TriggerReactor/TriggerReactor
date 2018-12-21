@@ -51,6 +51,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             trigger = aliasesMap.get(cmd);
         if(trigger == null)
             return;
+        e.setCancelled(true);
 
         for (String permission : trigger.getPermissions()) {
             if (!player.hasPermission(permission)) {
@@ -70,7 +71,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         varMap.put("argslength", args.length);
 
         trigger.activate(e, varMap);
-        e.setCancelled(true);
     }
 
 }
