@@ -27,8 +27,8 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager {
-    protected final Map<String, CommandTrigger> commandTriggerMap = new HashMap<>();
-    protected final Map<String, CommandTrigger> aliasesMap = new HashMap<>();
+    protected final Map<String, CommandTrigger> commandTriggerMap = new CommandMap();
+    protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
     @Override
     public void reload() {
@@ -259,6 +259,37 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     "permissions=" + Arrays.toString(permissions) +
                     ", aliases=" + Arrays.toString(aliases) +
                     '}';
+        }
+    }
+
+    private static class CommandMap extends HashMap<String, CommandTrigger>{
+        @Override
+        public CommandTrigger get(Object o) {
+            if(o instanceof String)
+                return super.get(((String) o).toLowerCase());
+            else
+                return super.get(o);
+        }
+
+        @Override
+        public CommandTrigger put(String s, CommandTrigger commandTrigger) {
+            return super.put(s.toLowerCase(), commandTrigger);
+        }
+
+        @Override
+        public boolean containsKey(Object o) {
+            if(o instanceof String)
+                return super.containsKey(((String) o).toLowerCase());
+            else
+                return super.containsKey(o);
+        }
+
+        @Override
+        public CommandTrigger remove(Object o) {
+            if(o instanceof String)
+                return super.remove(((String) o).toLowerCase());
+            else
+                return super.remove(o);
         }
     }
 }
