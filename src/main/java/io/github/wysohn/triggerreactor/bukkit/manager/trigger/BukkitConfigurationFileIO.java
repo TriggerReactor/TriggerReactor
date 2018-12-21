@@ -19,7 +19,7 @@ public interface BukkitConfigurationFileIO extends ConfigurationFileIO {
             return def;
         }
 
-        return (T) conf.get(key);
+        return (T) conf.get(key, def);
     }
 
     @Override
