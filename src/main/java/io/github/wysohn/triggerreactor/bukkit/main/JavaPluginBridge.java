@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import javax.script.ScriptException;
 
 import com.avaje.ebean.EbeanServer;
+import org.bstats.bukkit.MetricsLite;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -372,6 +373,8 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         		Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent());
         	}
         }, plugin);
+
+        MetricsLite metrics = new MetricsLite(this);
     }
 
     private void initFailed(Exception e) {

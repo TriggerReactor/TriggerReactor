@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 
 import javax.script.ScriptException;
 
+import org.bstats.sponge.MetricsLite2;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.block.BlockTypes;
@@ -67,7 +68,6 @@ import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -137,6 +137,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;
+
+    @Inject
+    private MetricsLite2 metrics;
 
     private Lag tpsHelper;
 
