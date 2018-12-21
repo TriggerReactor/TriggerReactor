@@ -45,9 +45,11 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             File triggerConfigFile = new File(folder, triggerName+".yml");
 
             Boolean sync = Boolean.FALSE;
+            String[] permissions = null;
             if(triggerConfigFile.isFile() && triggerConfigFile.exists()){
                 try {
                     sync = getData(triggerConfigFile, "sync", Boolean.FALSE);
+                    permissions = getData(triggerConfigFile, "permissions", new String[0]);
                 } catch (IOException e) {
                     e.printStackTrace();
                     continue;
@@ -71,6 +73,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             }
 
             trigger.setSync(sync);
+            trigger.setPermissions(permissions);
+
             commandTriggerMap.put(triggerName, trigger);
         }
     }
@@ -98,6 +102,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     triggerConfigFile.createNewFile();
                     setData(triggerConfigFile, "sync", trigger.isSync());
+                    setData(triggerConfigFile, "permissions", trigger.permissions);
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().severe("Could not save command trigger for "+triggerName);
@@ -168,11 +173,23 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     public static class CommandTrigger extends Trigger {
-
+        private String[] permissions = new String[0];
         public CommandTrigger(String name, File file, String script) throws TriggerInitFailedException {
             super(name, file, script);
 
             init();
+        }
+
+        public String[] getPermissions() {
+            return permissions;
+        }
+
+        public void setPermissions(String[] permissions) {
+            if(permissions == null){
+                this.permissions = new String[0];
+            }else{
+                this.permissions = permissions;
+            }
         }
 
         @Override

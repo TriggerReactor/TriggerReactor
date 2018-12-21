@@ -195,14 +195,28 @@ public abstract class TriggerReactor {
                     }
                     return true;
                 } else if(args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))){
-                    if(getCmdManager().hasCommandTrigger(args[1]) && args[2].equals("sync")){
+                    if(args.length == 3 && getCmdManager().hasCommandTrigger(args[1]) && args[2].equals("sync")){
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         trigger.setSync(!trigger.isSync());
 
                         sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
                         saveAsynchronously(getCmdManager());
-                    }else if(getCmdManager().hasCommandTrigger(args[1])){
+                    } else if(args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
+                            && (args[2].equals("p") || args[2].equals("permission"))){
+                        AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        //if no permission is given, delete all permission required
+                        if(args.length == 3){
+                            trigger.setPermissions(null);
+                        }else{
+                            String[] permissions = new String[args.length - 3];
+                            for(int i = 3; i < args.length; i++){
+                                permissions[i] = args[i];
+                            }
+                            trigger.setPermissions(permissions);
+                        }
+                    } else if(getCmdManager().hasCommandTrigger(args[1])){
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
@@ -1343,6 +1357,8 @@ public abstract class TriggerReactor {
             sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
             sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
             sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
+            sender.sendMessage("  &7To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
+            sender.sendMessage("    &7Not providing any permission will remove all required permissions.");
         });
         add((sender)->{
             sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
