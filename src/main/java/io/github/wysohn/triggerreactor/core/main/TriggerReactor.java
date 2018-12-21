@@ -1074,8 +1074,10 @@ public abstract class TriggerReactor {
                 } else if (args[0].equalsIgnoreCase("help")) {
                     int page = 0;
                     if(args.length > 1) {
-                        if(!args[1].matches("[0-9]+"))
-                            sender.sendMessage("&c"+args[1]+" is not a valid page number.");
+                        if(!args[1].matches("[0-9]+")) {
+                            sender.sendMessage("&c" + args[1] + " is not a valid page number.");
+                            return true;
+                        }
 
                         page = Integer.parseInt(args[1]);
                     }
