@@ -120,6 +120,15 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     @Override
+    protected void deleteInfo(Trigger trigger) {
+        if(trigger instanceof CommandTrigger)
+            removeAliases((CommandTrigger) trigger);
+
+        FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName()+".yml"));
+        super.deleteInfo(trigger);
+    }
+
+    @Override
     protected Collection<? extends Trigger> getAllTriggers() {
         return commandTriggerMap.values();
     }
