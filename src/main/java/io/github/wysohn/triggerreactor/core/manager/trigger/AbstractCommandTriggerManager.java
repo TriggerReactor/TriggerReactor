@@ -31,6 +31,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager {
     protected final Map<String, CommandTrigger> commandTriggerMap = new HashMap<>();
+    protected final Map<String, CommandTrigger> aliasesMap = new HashMap<>();
 
     @Override
     public void reload() {
@@ -46,10 +47,12 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             Boolean sync = Boolean.FALSE;
             String[] permissions = null;
+            String[] aliases = null;
             if(triggerConfigFile.isFile() && triggerConfigFile.exists()){
                 try {
                     sync = getData(triggerConfigFile, "sync", Boolean.FALSE);
                     permissions = getData(triggerConfigFile, "permissions", new String[0]);
+                    aliases = getData(triggerConfigFile, "aliases", new String[0]);
                 } catch (IOException e) {
                     e.printStackTrace();
                     continue;
@@ -74,8 +77,10 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             trigger.setSync(sync);
             trigger.setPermissions(permissions);
+            trigger.setAliases(aliases);
 
             commandTriggerMap.put(triggerName, trigger);
+            registerAliases(trigger);
         }
     }
 
@@ -103,6 +108,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     triggerConfigFile.createNewFile();
                     setData(triggerConfigFile, "sync", trigger.isSync());
                     setData(triggerConfigFile, "permissions", trigger.permissions);
+                    setData(triggerConfigFile, "aliases", trigger.aliases);
                 } catch (IOException e) {
                     e.printStackTrace();
                     plugin.getLogger().severe("Could not save command trigger for "+triggerName);
@@ -168,12 +174,34 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         return new CommandTrigger("temp", null, script);
     }
 
+    public void removeAliases(CommandTrigger trigger){
+        for(String alias : trigger.getAliases()){
+            aliasesMap.remove(alias);
+        }
+    }
+
+    public void registerAliases(CommandTrigger trigger){
+        for(String alias : trigger.getAliases()){
+            CommandTrigger prev = aliasesMap.get(alias);
+            if(prev != null){
+                plugin.getLogger().warning("CommandTrigger " + trigger.getTriggerName() + "'s alias "
+                        + alias + " couldn't be registered.");
+                plugin.getLogger().warning(alias+" is already used by "+prev.getTriggerName()+".");
+                continue;
+            }
+
+            aliasesMap.put(alias, trigger);
+        }
+    }
+
     public AbstractCommandTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
     }
 
     public static class CommandTrigger extends Trigger {
         private String[] permissions = new String[0];
+        private String[] aliases = new String[0];
+
         public CommandTrigger(String name, File file, String script) throws TriggerInitFailedException {
             super(name, file, script);
 
@@ -189,6 +217,18 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 this.permissions = new String[0];
             }else{
                 this.permissions = permissions;
+            }
+        }
+
+        public String[] getAliases() {
+            return aliases;
+        }
+
+        public void setAliases(String[] aliases) {
+            if(aliases == null){
+                this.aliases = new String[0];
+            }else{
+                this.aliases = aliases;
             }
         }
 

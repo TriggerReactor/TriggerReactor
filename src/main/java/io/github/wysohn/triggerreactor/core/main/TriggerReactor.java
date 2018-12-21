@@ -216,6 +216,28 @@ public abstract class TriggerReactor {
                             }
                             trigger.setPermissions(permissions);
                         }
+                        sender.sendMessage("&7Permission(s) is(are) set.");
+                        saveAsynchronously(getCmdManager());
+                    } else if(args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
+                            && (args[2].equals("a") || args[2].equals("aliases"))){
+                        AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        //first, clean up all aliases
+                        getCmdManager().removeAliases(trigger);
+
+                        //if no aliases is given, delete all aliases
+                        if(args.length == 3){
+                            trigger.setAliases(null);
+                        }else{
+                            String[] aliases = new String[args.length - 3];
+                            for(int i = 3; i < args.length; i++){
+                                aliases[i] = args[i];
+                            }
+                            trigger.setAliases(aliases);
+                            getCmdManager().registerAliases(trigger);
+                        }
+                        sender.sendMessage("&7Aliases(s) is(are) set.");
+                        saveAsynchronously(getCmdManager());
                     } else if(getCmdManager().hasCommandTrigger(args[1])){
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
@@ -1357,8 +1379,9 @@ public abstract class TriggerReactor {
             sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
             sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
             sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
-            sender.sendMessage("  &7To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
-            sender.sendMessage("    &7Not providing any permission will remove all required permissions.");
+            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
+            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
+            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
         });
         add((sender)->{
             sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
@@ -1391,7 +1414,7 @@ public abstract class TriggerReactor {
             sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
 
             sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
 
             sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
             sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");

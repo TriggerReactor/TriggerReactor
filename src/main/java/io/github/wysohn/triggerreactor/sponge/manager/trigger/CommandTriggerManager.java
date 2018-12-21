@@ -43,6 +43,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
         CommandTrigger trigger = commandTriggerMap.get(cmd);
         if(trigger == null)
+            trigger = aliasesMap.get(cmd);
+        if(trigger == null)
             return;
 
         Map<String, Object> varMap = new HashMap<>();
