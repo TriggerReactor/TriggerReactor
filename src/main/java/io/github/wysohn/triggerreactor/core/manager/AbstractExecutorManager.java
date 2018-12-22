@@ -37,7 +37,6 @@ import javax.script.*;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import jdk.nashorn.api.scripting.JSObject;
 
 @SuppressWarnings("serial")
