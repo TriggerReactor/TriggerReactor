@@ -138,6 +138,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;
 
+    static{
+        System.setProperty("bstats.relocatecheck", "false");
+    }
     @Inject
     private MetricsLite2 metrics;
 
