@@ -1,6 +1,24 @@
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.DumperOptions;
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'org.yaml:snakeyaml:1.8'
+	}
+}
+
+
 plugins {
 	id 'java'
     id 'org.spongepowered.plugin' version '0.8.1'
+	id 'groovy'
+}
+
+ext{
+	version = '2.1.7'
 }
 
 group = 'io.github.wysohn.triggerreactor'
@@ -9,10 +27,29 @@ description = 'Simple script parser with infinite possibility'
 sponge {
     plugin {
         meta {
-            version = '2.1.6'
+            version = project.ext.version
             description = 'Simple script parser with infinite possibility'
         }
     }
+}
+
+task setupPluginYml{
+	DumperOptions options = new DumperOptions();
+	options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+	options.setPrettyFlow(true);
+
+	File file = new File("$projectDir/src/main/resources/plugin.yml");
+
+	InputStream input = new FileInputStream(file);
+	Yaml yaml = new Yaml(options);
+	Map<String, Object> map = yaml.load(input);
+	input.close();
+	
+	map.put("version", project.ext.version);
+
+	FileWriter writer = new FileWriter(file);
+	yaml.dump(map, writer)
+	writer.close();
 }
 
 repositories {
