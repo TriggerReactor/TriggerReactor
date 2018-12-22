@@ -374,6 +374,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         	}
         }, plugin);
 
+        System.setProperty("bstats.relocatecheck", "false");
         MetricsLite metrics = new MetricsLite(this);
     }
 
