@@ -43,13 +43,13 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             File triggerConfigFile = new File(folder, triggerName+".yml");
 
             Boolean sync = Boolean.FALSE;
-            List<String> permissions = null;
-            List<String> aliases = null;
+            List<String> permissions = new ArrayList<>();
+            List<String> aliases = new ArrayList<>();
             if(triggerConfigFile.isFile() && triggerConfigFile.exists()){
                 try {
                     sync = getData(triggerConfigFile, "sync", Boolean.FALSE);
-                    permissions = getData(triggerConfigFile, "permissions", new ArrayList<String>());
-                    aliases = getData(triggerConfigFile, "aliases", new ArrayList<String>());
+                    permissions = getData(triggerConfigFile, "permissions", new ArrayList<>());
+                    aliases = getData(triggerConfigFile, "aliases", new ArrayList<>());
                 } catch (IOException e) {
                     e.printStackTrace();
                     continue;
