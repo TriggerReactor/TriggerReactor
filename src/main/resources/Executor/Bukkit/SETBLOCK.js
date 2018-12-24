@@ -16,7 +16,7 @@
  *******************************************************************************/
 function SETBLOCK(args) {
     var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
-    if (block != null && (args.length == 1 || args.length == 2)) {
+    if (typeof block !== 'undefined' && (args.length == 1 || args.length == 2)) {
         var blockID = args[0];
         var blockData = args.length  == 2 ? args[1] : 0;
 
