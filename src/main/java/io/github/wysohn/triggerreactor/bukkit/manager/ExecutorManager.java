@@ -28,6 +28,7 @@ import java.util.concurrent.Callable;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.CommandTriggerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -38,6 +39,7 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 @SuppressWarnings("serial")
 public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer{
@@ -148,7 +150,16 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
 
             try {
                 player.setOp(true);
-                Bukkit.dispatchCommand(player, cmd);
+
+                if(plugin.getCmdManager() instanceof CommandTriggerManager){
+                    CommandTriggerManager manager = (CommandTriggerManager) plugin.getCmdManager();
+                    PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(player, cmd);
+                    manager.onCommand(event);
+                    if(!event.isCancelled())
+                        Bukkit.dispatchCommand(player, cmd);
+                }else{
+                    Bukkit.dispatchCommand(player, cmd);
+                }
             } catch (Exception e) {
 
             } finally {
