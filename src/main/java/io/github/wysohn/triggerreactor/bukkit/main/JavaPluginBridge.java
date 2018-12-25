@@ -53,7 +53,6 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -881,8 +880,8 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                 public HandlerList getHandlers() {
                     return null;
                 }};
-        }else if(unwrapped instanceof ConsoleCommandSender) {
-            return new PlayerEvent(new DelegatedPlayer((ConsoleCommandSender) unwrapped)){
+        }else if(unwrapped instanceof CommandSender) {
+            return new PlayerEvent(new DelegatedPlayer((CommandSender) unwrapped)){
                 @Override
                 public HandlerList getHandlers() {
                     return null;

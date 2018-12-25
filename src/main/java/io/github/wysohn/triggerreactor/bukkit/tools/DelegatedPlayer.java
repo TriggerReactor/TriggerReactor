@@ -27,8 +27,8 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.PistonMoveReaction;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.CommandSender;
+import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.entity.*;
@@ -45,13 +45,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.util.BoundingBox;
-import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 public class DelegatedPlayer implements Player {
-    private final ConsoleCommandSender sender;
-    public DelegatedPlayer(ConsoleCommandSender sender) {
+    private final CommandSender sender;
+    public DelegatedPlayer(CommandSender sender) {
         this.sender = sender;
     }
     public void sendMessage(String message) {
@@ -61,7 +59,10 @@ public class DelegatedPlayer implements Player {
         return sender.isOp();
     }
     public boolean isConversing() {
-        return sender.isConversing();
+        if(sender instanceof Conversable)
+            return ((Conversable) sender).isConversing();
+        else
+            return false;
     }
     public boolean isPermissionSet(String name) {
         return sender.isPermissionSet(name);
@@ -73,7 +74,8 @@ public class DelegatedPlayer implements Player {
         sender.setOp(value);
     }
     public void acceptConversationInput(String input) {
-        sender.acceptConversationInput(input);
+        if(sender instanceof Conversable)
+            ((Conversable) sender).acceptConversationInput(input);
     }
     public Server getServer() {
         return sender.getServer();
@@ -85,22 +87,28 @@ public class DelegatedPlayer implements Player {
         return sender.getName();
     }
     public boolean beginConversation(Conversation conversation) {
-        return sender.beginConversation(conversation);
+        if(sender instanceof Conversable)
+            return ((Conversable) sender).beginConversation(conversation);
+        else
+            return false;
     }
     public boolean hasPermission(String name) {
         return sender.hasPermission(name);
     }
     public void abandonConversation(Conversation conversation) {
-        sender.abandonConversation(conversation);
+        if(sender instanceof Conversable)
+            ((Conversable) sender).abandonConversation(conversation);
     }
     public boolean hasPermission(Permission perm) {
         return sender.hasPermission(perm);
     }
     public void abandonConversation(Conversation conversation, ConversationAbandonedEvent details) {
-        sender.abandonConversation(conversation, details);
+        if(sender instanceof Conversable)
+            ((Conversable) sender).abandonConversation(conversation, details);
     }
     public void sendRawMessage(String message) {
-        sender.sendRawMessage(message);
+        if(sender instanceof Conversable)
+            ((Conversable) sender).sendRawMessage(message);
     }
     public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
         return sender.addAttachment(plugin, name, value);
@@ -838,9 +846,9 @@ public class DelegatedPlayer implements Player {
 
     }
 
-    public void sendBlockChange(Location loc, BlockData block) {
-
-    }
+//    public void sendBlockChange(Location loc, BlockData block) {
+//
+//    }
 
     public void hidePlayer(Plugin plugin, Player player) {
 
@@ -986,17 +994,17 @@ public class DelegatedPlayer implements Player {
         return null;
     }
 
-    public Block getTargetBlockExact(int maxDistance, FluidCollisionMode fluidCollisionMode) {
-        return null;
-    }
+//    public Block getTargetBlockExact(int maxDistance, FluidCollisionMode fluidCollisionMode) {
+//        return null;
+//    }
 
-    public RayTraceResult rayTraceBlocks(double maxDistance) {
-        return null;
-    }
-
-    public RayTraceResult rayTraceBlocks(double maxDistance, FluidCollisionMode fluidCollisionMode) {
-        return null;
-    }
+//    public RayTraceResult rayTraceBlocks(double maxDistance) {
+//        return null;
+//    }
+//
+//    public RayTraceResult rayTraceBlocks(double maxDistance, FluidCollisionMode fluidCollisionMode) {
+//        return null;
+//    }
 
     public PotionEffect getPotionEffect(PotionEffectType type) {
         return null;
@@ -1050,9 +1058,9 @@ public class DelegatedPlayer implements Player {
         return 0;
     }
 
-    public BoundingBox getBoundingBox() {
-        return null;
-    }
+//    public BoundingBox getBoundingBox() {
+//        return null;
+//    }
 
     public boolean isPersistent() {
         return false;
