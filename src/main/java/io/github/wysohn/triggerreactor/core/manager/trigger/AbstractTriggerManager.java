@@ -19,8 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -69,6 +68,25 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         FileUtil.delete(trigger.file);
     }
 
+    protected abstract Collection<? extends Trigger> getAllTriggers();
+
+    public List<String> getTriggerList(TriggerFilter filter) {
+        List<String> strs = new ArrayList<>();
+        for(Trigger trigger : Collections.unmodifiableCollection(getAllTriggers())){
+            String str = trigger.toString();
+            if(filter != null && filter.accept(str))
+                strs.add(str);
+            else if(filter == null)
+                strs.add(str);
+        }
+        return strs;
+    }
+
+    @FunctionalInterface
+    public interface TriggerFilter{
+        boolean accept(String name);
+    }
+
     protected static boolean isTriggerFile(File file) {
         if(!file.isFile())
             return false;
@@ -115,7 +133,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         protected Node root;
         protected Map<String, Executor> executorMap;
         protected Map<String, Placeholder> placeholderMap;
-        protected Map<String, Object> gvarMap;
+        protected Map<Object, Object> gvarMap;
 
         private boolean sync = false;
 
@@ -182,18 +200,11 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             if(script == null)
                 throw new RuntimeException("script cannot be null.");
 
-            String temp = this.script;
-
-            boolean failed = false;
             this.script = script;
             try{
                 init();
             } catch (TriggerInitFailedException e) {
-                failed = true;
                 throw e;
-            } finally {
-                if(failed)
-                    this.script = temp;
             }
         }
 
@@ -340,6 +351,11 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         @Override
         public abstract Trigger clone();
+
+        @Override
+        public String toString() {
+            return "["+getClass().getSimpleName()+"="+getTriggerName()+" sync="+sync+"]";
+        }
     }
 
     @SuppressWarnings("serial")

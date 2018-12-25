@@ -23,6 +23,7 @@ softdepend:
 commands:
   triggerreactor:
     aliases:
+    - trigger
     - trg
     description: trigger reactor
 permissions:

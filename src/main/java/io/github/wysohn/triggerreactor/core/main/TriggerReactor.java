@@ -48,16 +48,10 @@ import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager.AreaTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager.CustomTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -74,7 +68,7 @@ import io.github.wysohn.triggerreactor.tools.TimeUtil;
  */
 public abstract class TriggerReactor {
     /**
-     * Cached Pool for thread execution. It is used by {@link io.github.wysohn.triggerreactor.core.script.interpreter.Executor#runSyncTask(Runnable)}
+     * Cached Pool for thread execution.
      */
     public static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory(){
         @Override
@@ -163,7 +157,7 @@ public abstract class TriggerReactor {
                     }else{
                         StringBuilder builder = new StringBuilder();
                         for(int i = 1; i < args.length; i++)
-                            builder.append(args[i] + " ");
+                            builder.append(args[i]).append(" ");
                         if(getClickManager().startLocationSet((IPlayer) sender, builder.toString())){
                             sender.sendMessage("&7Now click the block to set click trigger.");
                         }else{
@@ -186,7 +180,7 @@ public abstract class TriggerReactor {
                     }else{
                         StringBuilder builder = new StringBuilder();
                         for (int i = 1; i < args.length; i++)
-                            builder.append(args[i] + " ");
+                            builder.append(args[i]).append(" ");
                         if (getWalkManager().startLocationSet((IPlayer) sender, builder.toString())) {
                             sender.sendMessage("&7Now click the block to set walk trigger.");
                         } else {
@@ -195,7 +189,50 @@ public abstract class TriggerReactor {
                     }
                     return true;
                 } else if(args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))){
-                    if(getCmdManager().hasCommandTrigger(args[1])){
+                    if(args.length == 3 && getCmdManager().hasCommandTrigger(args[1]) && args[2].equals("sync")){
+                        Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        trigger.setSync(!trigger.isSync());
+
+                        sender.sendMessage("&7Sync mode: "+(trigger.isSync() ? "&a" : "&c")+trigger.isSync());
+                        saveAsynchronously(getCmdManager());
+                    } else if(args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
+                            && (args[2].equals("p") || args[2].equals("permission"))){
+                        AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        //if no permission is given, delete all permission required
+                        if(args.length == 3){
+                            trigger.setPermissions(null);
+                        }else{
+                            String[] permissions = new String[args.length - 3];
+                            for(int i = 3; i < args.length; i++){
+                                permissions[i - 3] = args[i];
+                            }
+                            trigger.setPermissions(permissions);
+                        }
+                        sender.sendMessage("&7Permission(s) is(are) set.");
+                        saveAsynchronously(getCmdManager());
+                    } else if(args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
+                            && (args[2].equals("a") || args[2].equals("aliases"))){
+                        AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+
+                        //first, clean up all aliases
+                        getCmdManager().removeAliases(trigger);
+
+                        //if no aliases is given, delete all aliases
+                        if(args.length == 3){
+                            trigger.setAliases(null);
+                        }else{
+                            String[] aliases = new String[args.length - 3];
+                            for(int i = 3; i < args.length; i++){
+                                aliases[i - 3] = args[i];
+                            }
+                            trigger.setAliases(aliases);
+                            getCmdManager().registerAliases(trigger);
+                        }
+                        sender.sendMessage("&7Aliases(s) is(are) set.");
+                        saveAsynchronously(getCmdManager());
+                    } else if(getCmdManager().hasCommandTrigger(args[1])){
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler(){
@@ -1002,7 +1039,25 @@ public abstract class TriggerReactor {
                     showGlowStones(sender, getWalkManager().getTriggersInChunk(scloc));
                     sender.sendMessage("&7Now trigger blocks will be shown as &6"+"glowstone");
                     return true;
-                } else if(args[0].equalsIgnoreCase("saveall")){
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    sender.sendMessage("- - - - - Result - - - - ");
+                    for(Manager manager : Manager.getManagers()){
+                        if(!(manager instanceof AbstractTriggerManager))
+                            continue;
+
+                        for(String val : ((AbstractTriggerManager) manager).getTriggerList((name)->{
+                            for(int i = 1; i < args.length; i++){
+                                if(!name.contains(args[i]))
+                                    return false;
+                            }
+                            return true;
+                        })){
+                            sender.sendMessage("&d"+val);
+                        }
+                    }
+                    sender.sendMessage(" ");
+                    return true;
+                }else if(args[0].equalsIgnoreCase("saveall")){
                     for(Manager manager : Manager.getManagers())
                         manager.saveAll();
                     sender.sendMessage("Save complete!");
@@ -1019,8 +1074,10 @@ public abstract class TriggerReactor {
                 } else if (args[0].equalsIgnoreCase("help")) {
                     int page = 0;
                     if(args.length > 1) {
-                        if(!args[1].matches("[0-9]+"))
-                            sender.sendMessage("&c"+args[1]+" is not a valid page number.");
+                        if(!args[1].matches("[0-9]+")) {
+                            sender.sendMessage("&c" + args[1] + " is not a valid page number.");
+                            return true;
+                        }
 
                         page = Integer.parseInt(args[1]);
                     }
@@ -1230,6 +1287,9 @@ public abstract class TriggerReactor {
             throwable.printStackTrace();
         }
 
+        if(sender == null)
+            sender = getConsoleSender();
+
         sendExceptionMessage(sender, throwable);
     }
 
@@ -1248,6 +1308,12 @@ public abstract class TriggerReactor {
             }
         });
     }
+
+    /**
+     * get sender instance of the console
+     * @return
+     */
+    public abstract ICommandSender getConsoleSender();
 
     /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
@@ -1326,6 +1392,10 @@ public abstract class TriggerReactor {
             sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
             sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
             sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
+            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
+            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
+            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
         });
         add((sender)->{
             sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
@@ -1358,7 +1428,7 @@ public abstract class TriggerReactor {
             sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
 
             sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
 
             sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
             sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
@@ -1366,6 +1436,9 @@ public abstract class TriggerReactor {
             sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
 
             sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+
+            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
+            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
 
             sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
 

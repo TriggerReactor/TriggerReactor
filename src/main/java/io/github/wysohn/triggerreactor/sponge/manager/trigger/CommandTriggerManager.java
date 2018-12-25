@@ -43,7 +43,10 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
         CommandTrigger trigger = commandTriggerMap.get(cmd);
         if(trigger == null)
+            trigger = aliasesMap.get(cmd);
+        if(trigger == null)
             return;
+        e.setCancelled(true);
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", player);
@@ -52,7 +55,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         varMap.put("argslength", args.length);
 
         trigger.activate(e, varMap);
-        e.setCancelled(true);
     }
 
 }

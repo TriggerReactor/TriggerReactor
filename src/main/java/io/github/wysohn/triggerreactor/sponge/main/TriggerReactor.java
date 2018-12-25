@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 
 import javax.script.ScriptException;
 
+import org.bstats.sponge.MetricsLite2;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.block.BlockTypes;
@@ -67,7 +68,6 @@ import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.scheduler.SpongeExecutorService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
@@ -137,6 +137,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Inject
     @ConfigDir(sharedRoot = false)
     private Path privateConfigDir;
+
+    static{
+        System.setProperty("bstats.relocatecheck", "false");
+    }
+    @Inject
+    private MetricsLite2 metrics;
 
     private Lag tpsHelper;
 
@@ -329,7 +335,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
 			@Override
 			public void run() {
-				Sponge.getEventManager().post(new TriggerReactorStartEvent());
+				Sponge.getEventManager().post(new TriggerReactorStartEvent(TriggerReactor.this));
 			}
         	
         }).submit(this);
@@ -338,7 +344,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Listener
     public void onDisable(GameStoppingServerEvent e) {
 		try {
-			Sponge.getEventManager().post(new TriggerReactorStopEvent());
+			Sponge.getEventManager().post(new TriggerReactorStopEvent(TriggerReactor.this));
 		} finally {
 			getLogger().info("Finalizing the scheduled script executions...");
 			cachedThreadPool.shutdown();
@@ -835,4 +841,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 		}
 		return variables;
 	}
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return new SpongeCommandSender(Sponge.getServer().getConsole());
+    }
 }

@@ -15,6 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function TP(args){
+    if(args[0] == null || args[1] == null || args[2] == null) {
+        print("Teleport Cancelled. Invalid arguments");
+        
+        return Executor.STOP;
+    }
     if(args.length == 3){
         var world;
         var x, y, z;
@@ -43,7 +48,20 @@ function TP(args){
         player.teleport(loc);
         
         return null;
-    }else{
+    }else if (args.length == 5) {
+		var world;
+        var x, y, z, yaw, pitch;
+        world = player.getWorld();
+        x = args[0];
+        y = args[1];
+        z = args[2];
+		yaw = args[3];
+		pitch = args[4];
+        
+        player.teleport(new Location(world, x, y, z, yaw, pitch));
+        
+        return null;
+	}else{
         print("Teleport Cancelled. Invalid arguments");
         
         return Executor.STOP;

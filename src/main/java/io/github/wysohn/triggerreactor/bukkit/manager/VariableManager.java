@@ -39,7 +39,6 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 public class VariableManager extends AbstractVariableManager{
     private File varFile;
     private FileConfiguration varFileConfig;
-    private final GlobalVariableAdapter adapter;
 
     public VariableManager(TriggerReactor plugin) throws IOException, InvalidConfigurationException {
         super(plugin);
@@ -51,34 +50,6 @@ public class VariableManager extends AbstractVariableManager{
         checkConfigurationSerialization();
 
         reload();
-
-        adapter = new VariableAdapter();
-
-        new VariableAutoSaveThread().start();
-    }
-
-    private class VariableAutoSaveThread extends Thread{
-        VariableAutoSaveThread(){
-            setPriority(MIN_PRIORITY);
-            this.setName("TriggerReactor Variable Saving Thread");
-        }
-
-        @Override
-        public void run(){
-            while(!Thread.interrupted() && plugin.isEnabled()){
-                try {
-                    saveAll();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    try {
-                        Thread.sleep(1000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -91,18 +62,26 @@ public class VariableManager extends AbstractVariableManager{
         }
     }
 
+    private boolean saving = false;
     @Override
     public void saveAll(){
-        try {
-            FileUtil.writeToFile(varFile, varFileConfig.saveToString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+        if(saving)
+            return;
 
-    @Override
-    public GlobalVariableAdapter getGlobalVariableAdapter(){
-        return adapter;
+        saving = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    FileUtil.writeToFile(varFile, varFileConfig.saveToString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Something went wrong while saving global variable!");
+                } finally {
+                    saving = false;
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -112,19 +91,17 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public void put(String key, Object value) throws Exception{
-        if (!(value instanceof String) && !(value instanceof Number) && !(value instanceof Boolean)
+        //hard code it for now
+        if(value instanceof Location){
+            varFileConfig.set(key, new SerializableLocation((Location) value));
+        }else if (!(value instanceof String) && !(value instanceof Number) && !(value instanceof Boolean)
                 && !(value instanceof ConfigurationSerializable)){
-
-            //hard code it for now
-            if(value instanceof Location){
-                varFileConfig.set(key, new SerializableLocation((Location) value));
-                return;
-            }
-
             throw new Exception("[" + value.getClass().getSimpleName() + "] is not a valid type to be saved.");
+        }else{
+            varFileConfig.set(key, value);
         }
 
-        varFileConfig.set(key, value);
+        saveAll();
     }
 
     @Override
@@ -135,48 +112,6 @@ public class VariableManager extends AbstractVariableManager{
     @Override
     public void remove(String key){
         varFileConfig.set(key, null);
-    }
-
-    @SuppressWarnings("serial")
-    public class VariableAdapter extends GlobalVariableAdapter{
-        VariableAdapter() {
-            super();
-        }
-
-        @Override
-        public Object get(Object key) {
-            Object value = null;
-
-            //try global if none found in local
-            if(value == null && key instanceof String){
-                String keyStr = (String) key;
-                if(varFileConfig.contains(keyStr)){
-                    value = varFileConfig.get(keyStr);
-                }
-            }
-
-            return value;
-        }
-
-        @Override
-        public boolean containsKey(Object key) {
-            boolean result = false;
-
-            //check global if none found in local
-            if(!result && key instanceof String){
-                String keyStr = (String) key;
-                result = varFileConfig.contains(keyStr);
-            }
-
-            return result;
-        }
-
-        @Override
-        public Object put(String key, Object value) {
-            Object before = varFileConfig.get(key);
-            varFileConfig.set(key, value);
-            return before;
-        }
     }
 
     private static void checkConfigurationSerialization() {

@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.collect.Lists;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -70,7 +73,7 @@ public class TestInterpreter {
             }};
         executorMap.put("MESSAGE", mockExecutor);
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.getVars().put("common", new CommonFunctions(null));
 
@@ -90,7 +93,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
 
@@ -114,8 +117,8 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> vars = new HashMap<String, Object>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<String, Object> vars = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
         vars.put("temp", new TheTest());
 
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
@@ -160,7 +163,7 @@ public class TestInterpreter {
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(),new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(),new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -197,7 +200,7 @@ public class TestInterpreter {
             }
         });
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
@@ -256,7 +259,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         Player mockPlayer = mock(Player.class);
         PlayerInventory mockInven = mock(PlayerInventory.class);
@@ -299,7 +302,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), new CommonFunctions(null));
 
         interpreter.getVars().put("text", "someplayername");
@@ -307,6 +310,110 @@ public class TestInterpreter {
 
         Assert.assertTrue(map.containsKey("someplayername.something"));
         Assert.assertEquals(12.54, map.get("someplayername.something"));
+    }
+
+    @Test
+    public void testTempGlobalVariable() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+                + "{?text+\".something\"} = 12.54;"
+                + "#MESSAGE {?text+\".something\"};" +
+                "{?text+\".something\"} = null;" +
+                "#MESSAGE2 {?text+\".something\"};";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("MESSAGE", new Executor(){
+            @Override
+            public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+                Assert.assertEquals(12.54, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("MESSAGE2", new Executor(){
+            @Override
+            public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+                Assert.assertNull(args[0]);
+                return null;
+            }
+        });
+        Map<Object, Object> map = new HashMap<>();
+        TriggerReactor triggerReactor = Mockito.mock(TriggerReactor.class);
+        AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
+            @Override
+            public void remove(String key) {
+                Assert.fail("remove() of actual gvar was called");
+            }
+
+            @Override
+            public boolean has(String key) {
+                Assert.fail("has() of actual gvar was called");
+                return false;
+            }
+
+            @Override
+            public void put(String key, Object value) throws Exception {
+                Assert.fail("put() of actual gvar was called");
+            }
+
+            @Override
+            public Object get(String key) {
+                Assert.fail("get() of actual gvar was called");
+                return null;
+            }
+
+            @Override
+            public void reload() {
+
+            }
+
+            @Override
+            public void saveAll() {
+
+            }
+        };
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), avm.getGlobalVariableAdapter(),
+                new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.getVars().put("text", "someplayername");
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testGlobalVariableDeletion() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "key = \"temp\";" +
+                "{key} = 1;" +
+                "#TEST1 {key};" +
+                "{key} = null;" +
+                "#TEST2 {key};";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(1, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertNull(args[0]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+        interpreter.startWithContext(null);
+
+        Assert.assertNull(gvars.get("temp"));
     }
 
     @Test
@@ -329,7 +436,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), new CommonFunctions(null));
 
         String[] args = new String[]{"item1", "item2"};
@@ -359,7 +466,7 @@ public class TestInterpreter {
             }
         });
         CommonFunctions mockFunctions = mock(CommonFunctions.class);
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
@@ -398,7 +505,7 @@ public class TestInterpreter {
         Collection players = new ArrayList<Player>(){{add(mockPlayer[0]); add(mockPlayer[1]);}};
         when(mockFunctions.getPlayers()).thenReturn(players);
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), mockFunctions);
 
         interpreter.startWithContext(null);
@@ -433,7 +540,7 @@ public class TestInterpreter {
         Collection players = new ArrayList<Player>(){{add(mockPlayer1); add(mockPlayer2);}};
         when(mockFunctions.getPlayers()).thenReturn(players);
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), mockFunctions);
 
         interpreter.startWithContext(null);
@@ -470,7 +577,7 @@ public class TestInterpreter {
         Collection players = new ArrayList<Player>(){{add(mockPlayer1); add(mockPlayer2);}};
         when(mockFunctions.getPlayers()).thenReturn(players);
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), mockFunctions);
 
         interpreter.startWithContext(null);
@@ -507,7 +614,7 @@ public class TestInterpreter {
         Collection players = new ArrayList<Player>(){{add(mockPlayer1); add(mockPlayer2);}};
         when(mockFunctions.getPlayers()).thenReturn(players);
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), map, new HashMap<>(), mockFunctions);
 
         interpreter.startWithContext(null);
@@ -546,7 +653,7 @@ public class TestInterpreter {
             }
         });
 
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter;
 
         when(mockFunctions.currentArea(Mockito.any(Player.class))).thenReturn("tutorialArea");
@@ -573,7 +680,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
 
@@ -622,7 +729,7 @@ public class TestInterpreter {
             });
         }};
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
         interpreter.getVars().put("player", new InTest());
         interpreter.getVars().put("player2", new InTest());
 
@@ -648,7 +755,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
 
@@ -667,7 +774,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<String, Object>(), new HashMap<String, Object>() {{
+        Interpreter interpreter = new Interpreter(root, executorMap, new HashMap<>(), new HashMap<>(), new HashMap<String, Object>() {{
             put("value", "IMTEST");
         }}, new CommonFunctions(null));
 
@@ -801,7 +908,7 @@ public class TestInterpreter {
 
         });
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
 
@@ -869,7 +976,7 @@ public class TestInterpreter {
 
         });
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -901,7 +1008,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -933,7 +1040,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -965,7 +1072,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -997,7 +1104,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -1031,7 +1138,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -1065,7 +1172,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -1109,7 +1216,7 @@ public class TestInterpreter {
             Map<String, Object> localVars = new HashMap<>();
             localVars.put("x", x);
 
-            Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), localVars, new CommonFunctions(null));
+            Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), localVars, new CommonFunctions(null));
 
             interpreter.startWithContext(null);
 
@@ -1144,7 +1251,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -1213,7 +1320,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -1252,7 +1359,7 @@ public class TestInterpreter {
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<String, Object>(), new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
 
         interpreter.startWithContext(null);
     }
@@ -1270,7 +1377,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
 
@@ -1298,7 +1405,7 @@ public class TestInterpreter {
         });
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
 
@@ -1321,11 +1428,178 @@ public class TestInterpreter {
             }
         });
          Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<Object, Object> gvars = new HashMap<>();
          Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
          interpreter.startWithContext(null);
     }
 
+    @Test
+    public void testISStatement() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "IMPORT "+TheTest.class.getName()+";" +
+                "IMPORT "+InTest.class.getName()+";" +
+                "" +
+                "#TEST test IS TheTest, test IS InTest;" +
+                "#TEST test2 IS InTest, test2 IS TheTest;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertTrue((boolean) args[0]);
+                Assert.assertFalse((boolean) args[1]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("test", new TheTest());
+        vars.put("test2", new InTest());
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testBreak() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 0;" +
+                "WHILE x < 5;" +
+                "x = x + 1;" +
+                "IF x > 1;" +
+                "#BREAK;" +
+                "ENDIF;" +
+                "ENDWHILE;" +
+                "#TEST x;" +
+                "" +
+                "FOR x = 0:10;" +
+                "IF x == 2;" +
+                "#BREAK;" +
+                "ENDIF;" +
+                "ENDFOR;" +
+                "#TEST2 x";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testContinue() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 0;" +
+                "i = 0;" +
+                "WHILE i < 5;" +
+                "i = i + 1;" +
+                "IF x > 1;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "x = x + 1;" +
+                "ENDWHILE;" +
+                "#TEST x, i;" +
+                "" +
+                "x = 0;" +
+                "FOR i = 0:6;" +
+                "IF x > 1;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "x = x + 1;" +
+                "ENDFOR;" +
+                "#TEST2 x, i;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                Assert.assertEquals(5, args[1]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(2, args[0]);
+                Assert.assertEquals(5, args[1]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testContinueIterator() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "sum = 0;" +
+                "FOR val = arr;" +
+                "IF val == 1 || val == 5;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "sum = sum + val;" +
+                "ENDFOR;" +
+                "#TEST sum;" +
+                "" +
+                "sum = 0;" +
+                "FOR val = iter;" +
+                "IF val == 1 || val == 5;" +
+                "#CONTINUE;" +
+                "ENDIF;" +
+                "sum = sum + val;" +
+                "ENDFOR;" +
+                "#TEST2 sum;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(9, args[0]);
+                return null;
+            }
+        });
+        executorMap.put("TEST2", new Executor() {
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(9, args[0]);
+                return null;
+            }
+        });
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        HashMap<Object, Object> gvars = new HashMap<>();
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("arr", new int[]{1,2,3,4,5});
+        vars.put("iter", Lists.newArrayList(1,2,3,4,5));
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, vars, new CommonFunctions(null));
+        interpreter.startWithContext(null);
+    }
 
     public static class TheTest{
         public static String staticField = "staticField";

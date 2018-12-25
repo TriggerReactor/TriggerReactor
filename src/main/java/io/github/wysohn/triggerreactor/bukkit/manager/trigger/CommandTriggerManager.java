@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -47,16 +48,29 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
         CommandTrigger trigger = commandTriggerMap.get(cmd);
         if(trigger == null)
+            trigger = aliasesMap.get(cmd);
+        if(trigger == null)
             return;
+        e.setCancelled(true);
+
+        for (String permission : trigger.getPermissions()) {
+            if (!player.hasPermission(permission)) {
+                player.sendMessage(ChatColor.RED + "[TR] You don't have permission!");
+                if (plugin.isDebugging()) {
+                    plugin.getLogger().info("Player " + player.getName() + " executed command " + cmd
+                            + " but didn't have permission " + permission + "");
+                }
+                return;
+            }
+        }
 
         Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", e.getPlayer());
+        varMap.put("player", player);
         varMap.put("command", cmd);
         varMap.put("args", args);
         varMap.put("argslength", args.length);
 
         trigger.activate(e, varMap);
-        e.setCancelled(true);
     }
 
 }

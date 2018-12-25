@@ -201,7 +201,7 @@ public class Parser {
 
                     Node right = parseLogic();
                     if(right == null)
-                        throw new ParserException("Expected some logic but found nothing. Is the code complete?");
+                        throw new ParserException("Expected an assignable value on the right of "+token+", but found nothing.");
 
                     assign.getChildren().add(left);
                     assign.getChildren().add(right);
@@ -213,9 +213,16 @@ public class Parser {
                     return assign;
                 }
             } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
+                Token temp = token;
                 nextToken();
 
-                Node left = new Node(new Token(Type.GID, "<GVAR>"));
+                Node left;
+                if(token.type == Type.OPERATOR && "?".equals(token.value)){
+                    nextToken();
+                    left = new Node(new Token(Type.GID_TEMP, "<GVAR_TEMP>", temp));
+                }else{
+                    left = new Node(new Token(Type.GID, "<GVAR>", temp));
+                }
                 Node keyString = parseLogic();
 
                 left.getChildren().add(keyString);
@@ -224,6 +231,7 @@ public class Parser {
                     throw new ParserException("Expected '}' but found " + token);
                 }
                 nextToken();
+                ///////////////////////////////////////////////////////////////
 
                 if(!"=".equals(token.value))
                     throw new ParserException("Expected '=' after id ["+left.getToken().value+"] but found "+token);
@@ -269,7 +277,6 @@ public class Parser {
                 && !"ENDIF".equals(token.value)
                 && !"ELSE".equals(token.value)
                 && !"ELSEIF".equals(token.value)
-                && !"ENDIF".equals(token.value)
                 && (codes = parseStatement()) != null){
             trueBody.getChildren().add(codes);
         }
@@ -390,10 +397,13 @@ public class Parser {
     private Node parseComparison() throws IOException, LexerException, ParserException{
         Node expression = parseExpression();
 
-        if(token != null && token.type == Type.OPERATOR_L
-                && ("<".equals(token.value) || "<=".equals(token.value)
+        if (token != null
+                && (
+               ( token.type == Type.OPERATOR_L && ("<".equals(token.value) || "<=".equals(token.value)
                         || ">".equals(token.value) || ">=".equals(token.value)
-                        || "==".equals(token.value)  || "!=".equals(token.value) )){
+                        || "==".equals(token.value) || "!=".equals(token.value))
+                ) || "IS".equals(token.value))
+        ) {
             Node node = new Node(token);
             nextToken();
 
@@ -518,6 +528,9 @@ public class Parser {
     }
 
     private Node parseFactor() throws IOException, LexerException, ParserException {
+        if(token == null)
+            return null;
+
         if("true".equals(token.value) || "false".equals(token.value)){
             Node node = new Node(new Token(Type.BOOLEAN, token.value, token.row, token.col));
             nextToken();
@@ -553,13 +566,16 @@ public class Parser {
             return idNode;
         }
 
-        if(token == null)
-            return null;
-
         if (token.type == Type.OPERATOR && "{".equals(token.value)) {
             nextToken();
 
-            Node gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
+            Node gvarNode = null;
+            if(token.type == Type.OPERATOR && "?".equals(token.value)){
+                nextToken();
+                gvarNode = new Node(new Token(Type.GID_TEMP, "<GVAR_TEMP>"));
+            }else{
+                gvarNode = new Node(new Token(Type.GID, "<GVAR>"));
+            }
             Node keyString = parseLogic();
 
             gvarNode.getChildren().add(keyString);
@@ -772,15 +788,7 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        //String text = "#MESSAGE $random:1 == 0";
-        String text = "id = 1;"
-                + "amount = 1;"
-                + "data = 0;"
-                + ";"
-                + "is = item(id, amount, data);"
-                + "IF player.getInventory().containsAtLeast​(is, amount)"
-                + "    #TEST \"pass\";"
-                + "ENDIF";
+        String text = "#MESSAGE $random:1 == 0";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

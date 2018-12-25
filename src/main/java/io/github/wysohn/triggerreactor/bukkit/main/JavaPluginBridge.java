@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 
 import javax.script.ScriptException;
 
+import org.bstats.bukkit.MetricsLite;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -52,7 +53,6 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -367,6 +367,9 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         		Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent());
         	}
         }, plugin);
+
+        System.setProperty("bstats.relocatecheck", "false");
+        MetricsLite metrics = new MetricsLite(this);
     }
 
     private void initFailed(Exception e) {
@@ -877,8 +880,8 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                 public HandlerList getHandlers() {
                     return null;
                 }};
-        }else if(unwrapped instanceof ConsoleCommandSender) {
-            return new PlayerEvent(new DelegatedPlayer((ConsoleCommandSender) unwrapped)){
+        }else if(unwrapped instanceof CommandSender) {
+            return new PlayerEvent(new DelegatedPlayer((CommandSender) unwrapped)){
                 @Override
                 public HandlerList getHandlers() {
                     return null;
@@ -1067,4 +1070,9 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
 		return variables;
 	}
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return new BukkitCommandSender(Bukkit.getConsoleSender());
+    }
 }

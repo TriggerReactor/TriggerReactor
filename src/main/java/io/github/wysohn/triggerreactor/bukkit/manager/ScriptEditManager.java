@@ -30,28 +30,28 @@ import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public class ScriptEditManager extends AbstractScriptEditManager implements ConversationAbandonedListener{
-	public ScriptEditManager(TriggerReactor plugin) {
-	    super(plugin);
-	}
+    public ScriptEditManager(TriggerReactor plugin) {
+        super(plugin);
+    }
 
-	@Override
+    @Override
     public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler){
-		ConversationFactory factory = new ConversationFactory(plugin.getMain());
+        ConversationFactory factory = new ConversationFactory(plugin.getMain());
 
-		EditingPrompt prompt = new EditingPrompt(plugin.getMain(), sender.get(), new ScriptEditor(title, script, saveHandler));
-		Conversation conv = factory.thatExcludesNonPlayersWithMessage("Sorry, this is in-game only feature!")
-				.withFirstPrompt(new UsagePrompt(prompt))
-				.addConversationAbandonedListener(this)
-				.buildConversation(sender.get());
-		conv.getContext().setSessionData("edit", prompt);
+        EditingPrompt prompt = new EditingPrompt(plugin.getMain(), sender.get(), new ScriptEditor(title, script, saveHandler));
+        Conversation conv = factory.thatExcludesNonPlayersWithMessage("Sorry, this is in-game only feature!")
+                .withFirstPrompt(new UsagePrompt(prompt))
+                .addConversationAbandonedListener(this)
+                .buildConversation(sender.get());
+        conv.getContext().setSessionData("edit", prompt);
 
-		conv.begin();
-	}
+        conv.begin();
+    }
 
-	@Override
-	public void conversationAbandoned(ConversationAbandonedEvent arg0) {
+    @Override
+    public void conversationAbandoned(ConversationAbandonedEvent arg0) {
 
-	}
+    }
 
     @Override
     public void reload() {

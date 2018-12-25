@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 import java.io.File;
 import java.io.IOException;
 
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.DataView;
@@ -41,8 +42,6 @@ public class VariableManager extends AbstractVariableManager{
     private ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader;
     private ConfigurationNode varFileConfig;
 
-    private final GlobalVariableAdapter adapter;
-
     public VariableManager(TriggerReactor plugin) throws IOException {
         super(plugin);
 
@@ -53,30 +52,6 @@ public class VariableManager extends AbstractVariableManager{
         varFileConfigLoader = HoconConfigurationLoader.builder().setPath(varFile.toPath()).build();
 
         reload();
-
-        adapter = new VariableAdapter();
-
-        new VariableAutoSaveThread().start();
-    }
-
-    private class VariableAutoSaveThread extends Thread{
-        VariableAutoSaveThread(){
-            setPriority(MIN_PRIORITY);
-            this.setName("TriggerReactor Variable Saving Thread");
-        }
-
-        @Override
-        public void run(){
-            while(!Thread.interrupted() && plugin.isEnabled()){
-                saveAll();
-
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 
     @Override
@@ -88,18 +63,26 @@ public class VariableManager extends AbstractVariableManager{
         }
     }
 
+    private boolean saving = false;
     @Override
-    public synchronized void saveAll(){
-        try {
-            varFileConfigLoader.save(varFileConfig);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    public void saveAll(){
+        if(saving)
+            return;
 
-    @Override
-    public GlobalVariableAdapter getGlobalVariableAdapter(){
-        return adapter;
+        saving = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    varFileConfigLoader.save(varFileConfig);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Something went wrong while saving global variable!");
+                } finally {
+                    saving = false;
+                }
+            }
+        }).start();
     }
 
     @Override
@@ -205,40 +188,5 @@ public class VariableManager extends AbstractVariableManager{
         ConfigurationNode targetNode = ConfigurationUtil.getNodeByKeyString(varFileConfig, key);
         ConfigurationNode parent = targetNode.getParent();
         parent.removeChild(targetNode.getKey());
-    }
-
-    @SuppressWarnings("serial")
-    public class VariableAdapter extends GlobalVariableAdapter{
-
-        @Override
-        public Object get(Object key) {
-            Object value = null;
-
-            if(value == null && key instanceof String){
-                String keyStr = (String) key;
-                if(VariableManager.this.has(keyStr)){
-                    value = VariableManager.this.get(keyStr);
-                }
-            }
-
-            return value;
-        }
-
-        @Override
-        public boolean containsKey(Object key) {
-            boolean result = false;
-
-            if(!result && key instanceof String){
-                result = !VariableManager.this.has((String) key);
-            }
-
-            return result;
-        }
-
-        @Override
-        public Object put(String key, Object value) {
-            VariableManager.this.put(key, value);
-            return null;
-        }
     }
 }

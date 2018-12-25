@@ -14,23 +14,31 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.script.interpreter;
+ function ROTATEBLOCK(args) {
+	var Direction = Java.type('org.spongepowered.api.util.Direction');
+	var Keys = Java.type('org.spongepowered.api.data.key.Keys');
+	 
+	if(block != null && args.length == 1){
+		var dir = Direction.valueOf(args[0]);
 
-import java.util.Map;
+		//block is Location in sponge
+		block.set(Keys.DIRECTION, dir);
+	} else if(args.length == 2 || args.length == 4){
+		var face = Direction.valueOf(args[0]);
+		var location;
+		
+		if(args.length == 4){
+			location = new Location(player.getWorld(), args[1], args[2], args[3]);
+		}else{
+			location = args[1];
+		}
+		
+		var dir = Direction.valueOf(args[0]);
 
-public abstract class Executor extends SynchronizableTask{
-    public static final int STOP = 0;
-    public static final int WAIT = 1;
-    public static final int BREAK = 2;
-    public static final int CONTINUE = 3;
-
-    /**
-     *
-     * @param context
-     * @param vars
-     * @param args
-     * @return usually null; return code to intercept execution
-     * @throws Exception
-     */
-    protected abstract Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception;
+		location.set(Keys.DIRECTION, dir);
+	} else {
+		throw new Error(
+			'Invalid parameters. Need [Direction<string>] or [Direction<string>, Location<location or number number number>]');
+	}
+	return null;
 }

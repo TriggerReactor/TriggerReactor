@@ -17,9 +17,11 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 public abstract class AbstractVariableManager extends Manager{
     public AbstractVariableManager(TriggerReactor plugin) {
@@ -60,7 +62,64 @@ public abstract class AbstractVariableManager extends Manager{
      * override get() put() has() remove() methods in order to work properly.
      * @return
      */
-    public abstract HashMap<String, Object> getGlobalVariableAdapter();
+    public HashMap<Object, Object> getGlobalVariableAdapter(){
+        return adapter;
+    }
+
+    private final GlobalVariableAdapter adapter = new GlobalVariableAdapter() {
+        private ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
+        @Override
+        public Object get(Object key) {
+            if(key instanceof String){
+                return AbstractVariableManager.this.get((String) key);
+            }else if(key instanceof TemporaryGlobalVariableKey){
+                return temp_map.get(key);
+            }else{
+                return null;
+            }
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            if(key instanceof String){
+                return AbstractVariableManager.this.has((String) key);
+            }else if(key instanceof TemporaryGlobalVariableKey){
+                return temp_map.contains(key);
+            }else{
+                return false;
+            }
+        }
+
+        @Override
+        public Object put(Object key, Object value){
+            if(key instanceof String){
+                try{
+                    AbstractVariableManager.this.put((String) key, value);
+                }catch(Exception ex){
+                    throw new RuntimeException(ex);
+                }
+            }else if(key instanceof TemporaryGlobalVariableKey){
+                temp_map.put((TemporaryGlobalVariableKey) key, value);
+            }
+
+            return null;
+        }
+
+        @Override
+        public Object remove(Object key) {
+            if(key instanceof String){
+                try{
+                    AbstractVariableManager.this.remove((String) key);
+                }catch(Exception ex){
+                    throw new RuntimeException(ex);
+                }
+            }else if(key instanceof TemporaryGlobalVariableKey){
+                temp_map.remove(key);
+            }
+
+            return null;
+        }
+    };
 
     private static final Pattern pattern = Pattern.compile(
             "# Match a valid Windows filename (unspecified file system).          \n" +
@@ -90,7 +149,7 @@ public abstract class AbstractVariableManager extends Manager{
     }
 
     @SuppressWarnings("serial")
-    public static abstract class GlobalVariableAdapter extends HashMap<String, Object>{
+    public static abstract class GlobalVariableAdapter extends HashMap<Object, Object>{
         protected GlobalVariableAdapter(){
 
         }
@@ -101,6 +160,6 @@ public abstract class AbstractVariableManager extends Manager{
         public abstract boolean containsKey(Object key);
 
         @Override
-        public abstract Object put(String key, Object value);
+        public abstract Object put(Object key, Object value);
     }
 }

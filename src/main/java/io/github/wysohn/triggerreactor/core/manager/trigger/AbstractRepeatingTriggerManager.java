@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -219,6 +220,11 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         super.deleteInfo(trigger);
     }
 
+    @Override
+    protected Collection<? extends Trigger> getAllTriggers() {
+        return repeatTriggers.values();
+    }
+
     /**
      * Checks whether the specified trigger is running. However, this also can
      * return false even if the trigger with name 'triggerName' does not exists.
@@ -359,6 +365,15 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             }
 
             return null;
+        }
+
+        @Override
+        public String toString() {
+            return super.toString()+"{" +
+                    "interval=" + interval +
+                    ", autoStart=" + autoStart +
+                    ", paused=" + paused +
+                    '}';
         }
 
         //////////////////////////////////////////////////////////////////////////////////////

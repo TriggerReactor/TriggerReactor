@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -58,9 +59,9 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         varMap.put("player", player);
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
+        varMap.put("block", LocationUtil.convertToBukkitLocation(bottomLoc));
 
         trigger.activate(e, varMap);
-        return;
     }
 
     @Override

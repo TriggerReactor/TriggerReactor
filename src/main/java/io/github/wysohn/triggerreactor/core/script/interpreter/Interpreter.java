@@ -39,7 +39,7 @@ public class Interpreter {
     private Node root;
     private final Map<String, Executor> executorMap = new HashMap<>();
     private final Map<String, Placeholder> placeholderMap = new HashMap<>();
-    private final Map<String, Object> gvars;
+    private final Map<Object, Object> gvars;
     private final Map<String, Object> vars;
     private final SelfReference selfReference;
 
@@ -53,6 +53,8 @@ public class Interpreter {
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
+    private boolean breakFlag = false;
+    private boolean continueFlag = false;
     private long cooldownEnd = -1;
 
     private int callArgsSize = 0;
@@ -69,7 +71,7 @@ public class Interpreter {
         initDefaultExecutors();
     }
 */
-    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<String, Object> gvars, Map<String, Object> localVars,
+    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<Object, Object> gvars, Map<String, Object> localVars,
             SelfReference selfReference) {
         this.root = root;
         for(Entry<String, Executor> entry : executorMap.entrySet())
@@ -87,6 +89,8 @@ public class Interpreter {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
         executorMap.put("COOLDOWN", EXECUTOR_COOLDOWN);
+        executorMap.put("BREAK", EXECUTOR_BREAK);
+        executorMap.put("CONTINUE", EXECUTOR_CONTINUE);
     }
 
     public boolean isStopFlag() {
@@ -201,7 +205,7 @@ public class Interpreter {
                 start(node.getChildren().get(0));
 
                 if(stack.isEmpty())
-                    throw new InterpreterException("Could not find conditon for WHILE statement!");
+                    throw new InterpreterException("Could not find condition for WHILE statement!");
 
                 resultToken = stack.pop();
 
@@ -214,6 +218,13 @@ public class Interpreter {
 
                 if ((boolean) resultToken.value) {
                     start(node.getChildren().get(1));
+                    if(breakFlag){
+                        breakFlag = false;
+                        break;
+                    }
+
+                    breakFlag = false;
+                    continueFlag = false;
                 } else {
                     break;
                 }
@@ -261,6 +272,13 @@ public class Interpreter {
 
                         assignValue(idToken, parseValue(obj, valueToken));
                         start(node.getChildren().get(2));
+                        if(breakFlag){
+                            breakFlag = false;
+                            break;
+                        }
+
+                        breakFlag = false;
+                        continueFlag = false;
                     }
                 } else {
                     for (Object obj : (Iterable<?>) valueToken.value) {
@@ -269,6 +287,13 @@ public class Interpreter {
 
                         assignValue(idToken, parseValue(obj, valueToken));
                         start(node.getChildren().get(2));
+                        if(breakFlag){
+                            breakFlag = false;
+                            break;
+                        }
+
+                        breakFlag = false;
+                        continueFlag = false;
                     }
                 }
             }else if(iterNode.getChildren().size() == 2){
@@ -301,6 +326,13 @@ public class Interpreter {
                 for(int i = initToken.toInteger(); !stopFlag && i < limitToken.toInteger(); i++){
                     assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()));
                     start(node.getChildren().get(2));
+                    if(breakFlag){
+                        breakFlag = false;
+                        break;
+                    }
+
+                    breakFlag = false;
+                    continueFlag = false;
                 }
             }else{
                 throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
@@ -308,6 +340,10 @@ public class Interpreter {
 
         } else {
             for(int i = 0; i < node.getChildren().size(); i++){
+                //ignore rest of body if continue flag is set
+                if(continueFlag)
+                    continue;
+
                 Node child = node.getChildren().get(i);
                 start(child);
 
@@ -348,25 +384,31 @@ public class Interpreter {
         }
 
         Integer result = interpret(node);
-        if(result != null){
-            switch(result){
-            case Executor.STOP:
-                stopFlag = true;
-                return;
-            case Executor.WAIT:
-                waitFlag = true;
-                synchronized(this){
-                    while(waitFlag){
-                        try {
-                            this.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+        if (result != null) {
+            switch (result) {
+                case Executor.STOP:
+                    stopFlag = true;
+                    return;
+                case Executor.WAIT:
+                    waitFlag = true;
+                    synchronized (this) {
+                        while (waitFlag) {
+                            try {
+                                this.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
-                }
-                break;
-            default:
-                throw new InterpreterException(result +" is not a valid return code!");
+                    break;
+                case Executor.BREAK:
+                    breakFlag = true;
+                    return;
+                case Executor.CONTINUE:
+                    continueFlag = true;
+                    return;
+                default:
+                    throw new InterpreterException(result + " is not a valid return code!");
             }
         }
     }
@@ -388,6 +430,23 @@ public class Interpreter {
                     || "ELSEIF".equals(node.getToken().value)
                     || "WHILE".equals(node.getToken().value)) {
                 return null;
+            } else if("IS".equals(node.getToken().value)){
+                Token right = stack.pop();
+                Token left = stack.pop();
+
+                if(isVariable(right)){
+                    right = unwrapVariable(right);
+                }
+
+                if(!(right.value instanceof Class))
+                    throw new RuntimeException(right+" is not a Class!");
+
+                if(isVariable(left)){
+                    left = unwrapVariable(left);
+                }
+
+                Class clazz = (Class) right.value;
+                stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
 
@@ -723,7 +782,7 @@ public class Interpreter {
                 stack.push(node.getToken());
             }else if(node.getToken().type == Type.ID){
                 stack.push(node.getToken());
-            }else if(node.getToken().type == Type.GID){
+            }else if(node.getToken().type == Type.GID || node.getToken().type == Type.GID_TEMP){
                 Token keyToken = stack.pop();
 
                 if(isVariable(keyToken)){
@@ -734,7 +793,7 @@ public class Interpreter {
                     throw new InterpreterException(keyToken+" is not a valid global variable id.");
                 }
 
-                stack.push(new Token(Type.GID, keyToken.value, node.getToken()));
+                stack.push(new Token(node.getToken().type, keyToken.value, node.getToken()));
             }else if(node.getToken().type == Type.CALL){
                 stack.push(node.getToken());
                 callArgsSize = node.getChildren().size();
@@ -777,15 +836,15 @@ public class Interpreter {
             } catch (Exception e) {
                 throw new InterpreterException("Unknown error ", e);
             }
-        } else if(id.type == Type.GID){
+        } else if(id.type == Type.GID || id.type == Type.GID_TEMP){
             if(value.type == Type.NULLVALUE) {
-                gvars.remove(id.value.toString());
+                gvars.remove(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()));
             }else {
                 if(isVariable(value)){
                     value = unwrapVariable(value);
                 }
 
-                gvars.put(id.value.toString(), value.value);
+                gvars.put(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()), value.value);
             }
         }else if(id.type == Type.ID){
             if(value.type == Type.NULLVALUE) {
@@ -852,6 +911,7 @@ public class Interpreter {
     private boolean isVariable(Token token) {
         return token.type == Type.ID
                 || token.type == Type.GID
+                || token.type == Type.GID_TEMP
                 || token.type == Type.ACCESS;
     }
 
@@ -866,7 +926,9 @@ public class Interpreter {
 
             return parseValue(var, varToken);
         }else if(varToken.type == Type.GID){
-            return convertValue(gvars, varToken);
+            return parseValue(gvars.get(varToken.value), varToken);
+        }else if(varToken.type == Type.GID_TEMP){
+            return parseValue(gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)), varToken);
         }else if(varToken.type == Type.ACCESS){
             Accessor accessor = (Accessor) varToken.value;
             Object var;
@@ -902,16 +964,22 @@ public class Interpreter {
         }
     }
 
-    private Token convertValue(Map<String, Object> varMap, Token idToken) throws InterpreterException {
-        Object value = varMap.get(idToken.value);
-
-        return parseValue(value, idToken);
-    }
-
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
         public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
+        }
+    };
+    private final Executor EXECUTOR_BREAK = new Executor() {
+        @Override
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+            return BREAK;
+        }
+    };
+    private final Executor EXECUTOR_CONTINUE = new Executor() {
+        @Override
+        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+            return CONTINUE;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
@@ -921,7 +989,13 @@ public class Interpreter {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
 
-            double secs = args[0] instanceof Double ? (double) args[0] : (int) args[0];
+            if(args.length < 1)
+                throw new RuntimeException("Missing arguments [Decimal].");
+
+            if(!(args[0] instanceof Number))
+                throw new RuntimeException(args[0]+" is not a number!");
+
+            double secs = ((Number) args[0]).doubleValue();
             long later = (long) (secs * 1000);
             Executor.runTaskLater(new Runnable(){
                 @Override
@@ -980,7 +1054,7 @@ public class Interpreter {
         });
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> gvars = new HashMap<String, Object>();
+        HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
 

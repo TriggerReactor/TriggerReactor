@@ -16,7 +16,10 @@ public interface SpongeConfigurationFileIO extends ConfigurationFileIO {
         ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
         ConfigurationNode conf = loader.load();
 
-        return (T) ConfigurationUtil.getNodeByKeyString(conf, key).getValue();
+        T result = (T) ConfigurationUtil.getNodeByKeyString(conf, key).getValue();
+        if(result == null)
+            result = def;
+        return result;
     }
 
     @Override
