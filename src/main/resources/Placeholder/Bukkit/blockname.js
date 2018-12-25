@@ -20,5 +20,4 @@ function blockname(args){
 		block = world.getBlockAt(x,y,z).getType().name().toLowerCase();
 		return block;
 	}
-	
 }

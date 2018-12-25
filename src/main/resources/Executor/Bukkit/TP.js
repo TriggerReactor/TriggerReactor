@@ -65,5 +65,5 @@ function TP(args){
         print("Teleport Cancelled. Invalid arguments");
         
         return Executor.STOP;
-    }
+  }
 }
