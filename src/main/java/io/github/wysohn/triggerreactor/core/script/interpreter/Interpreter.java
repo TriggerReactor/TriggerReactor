@@ -93,6 +93,10 @@ public class Interpreter {
         executorMap.put("CONTINUE", EXECUTOR_CONTINUE);
     }
 
+    private void initDefaultPlaceholders(){
+        placeholderMap.put("cooldown", PLACEHOLDER_COOLDOWN);
+    }
+
     public boolean isStopFlag() {
         return stopFlag;
     }
@@ -1015,6 +1019,13 @@ public class Interpreter {
             long mills = Long.parseLong(String.valueOf(args[0])) * 1000L;
             Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
             return null;
+        }
+    };
+
+    private final Placeholder PLACEHOLDER_COOLDOWN = new Placeholder() {
+        @Override
+        public Object parse(Object context, Map<String, Object> vars, Object... args) throws Exception {
+            return Math.max(0, Interpreter.this.cooldownEnd - System.currentTimeMillis());
         }
     };
 
