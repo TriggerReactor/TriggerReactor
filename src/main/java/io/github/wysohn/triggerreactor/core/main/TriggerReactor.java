@@ -617,6 +617,8 @@ public abstract class TriggerReactor {
                         sender.sendMessage("&7Area selection mode enabled: &6"+result);
                     } else if (args.length == 3 && args[2].equals("create")){
                         String name = args[1];
+
+                        // validate the name
                         if(!NAME_PATTERN.matcher(name).matches()){
                             sender.sendMessage("&cThe name "+name+" has not allowed character!");
                             sender.sendMessage("&7Use only character, number, and underscore(_).");
