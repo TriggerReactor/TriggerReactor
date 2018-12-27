@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
@@ -134,37 +135,37 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Sp
     @Listener(order = Order.POST)
     public void onJoin(ClientConnectionEvent.Join e) {
         SimpleLocation currentSloc = LocationUtil.convertToSimpleLocation(e.getTargetEntity().getLocation());
-        Entry<Area, AreaTrigger> current = getAreaForLocation(currentSloc);
-        if(current != null) {
-            current.getValue().addEntity(new SpongeEntity(e.getTargetEntity()));
-        }
+        getAreaForLocation(currentSloc).stream()
+            .map(Map.Entry::getValue)
+            .forEach((trigger)->trigger.addEntity(new SpongeEntity(e.getTargetEntity())));
     }
 
     @Listener(order = Order.POST)
     public void onLocationChange(PlayerBlockLocationEvent e){
-        Entry<Area, AreaTrigger> from = getAreaForLocation(e.getFrom());
-        Entry<Area, AreaTrigger> to = getAreaForLocation(e.getTo());
-
-        if(from == null && to == null)
-            return;
-
-        if(from != null && to != null && from.getKey().equals(to.getKey()))
-            return;
+        List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(e.getFrom());
+        List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(e.getTo());
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", e.getTargetEntity());
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 
-        if(from != null){
-            from.getValue().removeEntity(e.getTargetEntity().getUniqueId());
-            from.getValue().activate(e, varMap, EventType.EXIT);
-        }
+        from.stream()
+                .filter((entry)->!entry.getKey().isInThisArea(e.getTo()))//only for area leaving
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->{
+                    trigger.removeEntity(e.getTargetEntity().getUniqueId());
+                    trigger.activate(e, varMap, EventType.EXIT);
+                });
 
-        if(to != null){
-            to.getValue().addEntity(new SpongeEntity(e.getTargetEntity()));
-            to.getValue().activate(e, varMap, EventType.ENTER);
-        }
+
+        to.stream()
+                .filter((entry)->!entry.getKey().isInThisArea(e.getFrom()))//only for entering area
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->{
+                    trigger.addEntity(new SpongeEntity(e.getTargetEntity()));
+                    trigger.activate(e, varMap, EventType.ENTER);
+                });
     }
 
     @Listener
@@ -174,23 +175,18 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Sp
         entityTrackMap.put(e.getTargetEntity().getUniqueId(), new WeakReference<IEntity>(new SpongeEntity(e.getTargetEntity())));
         entityLocationMap.put(e.getTargetEntity().getUniqueId(), sloc);
 
-        Entry<Area, AreaTrigger> entry = getAreaForLocation(sloc);
-        if(entry != null) {
-            entry.getValue().addEntity(new SpongeEntity(e.getTargetEntity()));
-        }
+        getAreaForLocation(sloc).stream()
+            .map(Map.Entry::getValue)
+            .forEach((trigger)->trigger.addEntity(new SpongeEntity(e.getTargetEntity())));
     }
 
     protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
-        Entry<Area, AreaTrigger> fromArea = getAreaForLocation(from);
-        Entry<Area, AreaTrigger> toArea = getAreaForLocation(current);
-
-        if(fromArea != null) {
-            fromArea.getValue().removeEntity(entity.getUniqueId());
-        }
-
-        if(toArea != null) {
-            toArea.getValue().addEntity(new SpongeEntity(entity));
-        }
+        getAreaForLocation(from).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->trigger.addEntity(new SpongeEntity(entity)));
     }
 
     @Listener
@@ -200,10 +196,9 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Sp
         entityTrackMap.remove(e.getTargetEntity().getUniqueId());
         entityLocationMap.remove(e.getTargetEntity().getUniqueId());
 
-        Entry<Area, AreaTrigger> area = getAreaForLocation(sloc);
-        if(area != null) {
-            area.getValue().removeEntity(e.getTargetEntity().getUniqueId());
-        }
+        getAreaForLocation(sloc).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->trigger.removeEntity(e.getTargetEntity().getUniqueId()));
     }
 
     @Override

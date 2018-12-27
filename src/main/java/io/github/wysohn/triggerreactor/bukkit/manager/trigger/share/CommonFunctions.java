@@ -18,12 +18,9 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -279,16 +276,30 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
 
     /**
      * Get the name of area trigger at the target location.
+     * Since 2.1.8, as Area Triggers can overlap each other, there can be multiple result.
+     * This method is left as is, but it will return only the first area found.
+     * To get the full list of Area Triggers, use {@link #currentAreasAt(Location)}
      * @param location the location to check
      * @return name of area; null if there is no area trigger at location
+     * @deprecated this only return one AreaTrigger's name, yet there could be more
      */
     public String currentAreaAt(Location location) {
-        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(LocationUtil.convertToSimpleLocation(location));
-        if (trigger == null)
-            return null;
+        String[] areaNames = currentAreasAt(location);
+        return areaNames.length > 0 ? areaNames[0] : null;
+    }
 
-        return trigger.getTriggerName();
+    /**
+     * Get the name of area triggers containing the given location.
+     * @param location the location to check
+     * @return array of AreaTrigger names. The array can be empty but never null.
+     */
+    public String[] currentAreasAt(Location location){
+        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
+        String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
+                .map(Map.Entry::getValue)
+                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .toArray(String[]::new);
+        return names;
     }
 
     /**
@@ -328,9 +339,9 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * <p>
      * Example) /trg run partColor = bukkitColor(255,255,255)
      * </p>
-     * @param int red the value of red in RGB
-     * @param int green the value of green in RGB
-     * @param int blue the value of blue in RGB
+     * @param red red the value of red in RGB
+     * @param green green the value of green in RGB
+     * @param blue blue the value of blue in RGB
      * @return returns a Color object from org.bukkit.Color
      */
     public Color bukkitColor(int red, int green, int blue){

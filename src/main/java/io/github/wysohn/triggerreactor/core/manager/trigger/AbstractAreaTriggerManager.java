@@ -23,6 +23,8 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -244,7 +246,12 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         }
     }
 
-    protected Map.Entry<Area, AreaTrigger> getAreaForLocation(SimpleLocation sloc) {
+    /**
+     * Get list of all Area Triggers containing this sloc.
+     * @param sloc
+     * @return list of Entries containing the given sloc. It may be empty but never null.
+     */
+    protected List<Map.Entry<Area, AreaTrigger>> getAreaForLocation(SimpleLocation sloc) {
         if(sloc == null)
             return null;
 
@@ -252,21 +259,21 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         if(!areaTriggers.containsKey(scloc))
             return null;
 
-        for(Entry<Area, AreaTrigger> entry : areaTriggers.get(scloc).entrySet()){
-            if(entry.getKey().isInThisArea(sloc))
-                return entry;
-        }
+        List<Map.Entry<Area, AreaTrigger>> list = areaTriggers.get(scloc).entrySet().stream()
+                .filter(entry -> entry.getKey().isInThisArea(sloc))
+                .collect(Collectors.toList());
 
-        return null;
+        return list;
     }
 
     /**
      * get all the area that is conflicting with given area. This does not include the area itself.
      * It's quite a CPU intensive work; use it wisely
      * @param area
+     * @param filter decide what it means by 'conflict' between the given area and other areas
      * @return never be null; can be empty if no conflicts are found
      */
-    public Set<Area> getConflictingAreas(Area area) {
+    public Set<Area> getConflictingAreas(Area area, Predicate<Area> filter) {
         Set<Area> conflicts = new HashSet<>();
 
         Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
@@ -278,12 +285,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             for(Entry<Area, AreaTrigger> mapentry : map.entrySet()){
                 Area areaOther = mapentry.getKey();
 
-                if(area.equals(areaOther))
-                    continue;
-
-                if(Area.isConflicting(area, areaOther)){
+                if(filter.test(areaOther))
                     conflicts.add(areaOther);
-                }
             }
         }
 
@@ -292,18 +295,19 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
 
     /**
      * This method does not check if world of smallest and largest are same.
-     * Also <b>check confliction with {@link #getConflictingAreas(Area)} before</b> using this method.
+     * Also <b>check confliction with {@link #getConflictingAreas(Area, Predicate)} before</b> using this method.
      * @param name
      * @param smallest
      * @param largest
-     * @return true on success; false if name already exist.
+     * @return true on success; false if exact same area already exist.
      */
     public boolean createArea(String name, SimpleLocation smallest, SimpleLocation largest) {
-        Entry<Area, AreaTrigger> entry = getAreaForLocation(smallest);
-        if(entry != null)
+        Area area = new Area(smallest, largest);
+
+        // exact same area found
+        if(!getConflictingAreas(area, area::equals).isEmpty())
             return false;
 
-        Area area = new Area(smallest, largest);
         File areaFolder = new File(folder, name);
         AreaTrigger trigger = new AreaTrigger(area, areaFolder, name);
         nameMapper.put(name, trigger);
@@ -363,25 +367,23 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
     }
 
     /**
-     * Try to get Area Trigger at given location
+     * Try to get Area Triggers at given location
      * @param sloc
-     * @return Area if found; null if nothing
+     * @return list of areas that contains the sloc. It may be empty but never null.
      */
-    public AreaTrigger getArea(SimpleLocation sloc) {
-        Entry<Area, AreaTrigger> areaEntry = getAreaForLocation(sloc);
-        if(areaEntry == null)
-            return null;
-
-        return areaEntry.getValue();
+    public List<Map.Entry<Area, AreaTrigger>> getAreas(SimpleLocation sloc) {
+        return getAreaForLocation(sloc);
     }
 
     /**
      * Try to remove Area Trigger at given location.
      * @param sloc
      * @return false if no area found at location; true if deleted
+     * @deprecated this is not valid anymore as there can be more than one Area Trigger.
      */
+    @Deprecated
     public boolean deleteArea( SimpleLocation sloc) {
-        Entry<Area, AreaTrigger> areaEntry = getAreaForLocation(sloc);
+        /*Entry<Area, AreaTrigger> areaEntry = getAreaForLocation(sloc);
         if(areaEntry == null)
             return false;
 
@@ -392,8 +394,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             map.remove(areaEntry.getKey());
         }
 
-        deleteInfo(nameMapper.remove(trigger.getTriggerName()));
-        return true;
+        deleteInfo(nameMapper.remove(trigger.getTriggerName()));*/
+        return false;
     }
 
     public enum EventType{

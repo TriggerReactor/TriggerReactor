@@ -25,6 +25,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -159,37 +160,37 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     @EventHandler(priority = EventPriority.MONITOR)
     public void onJoin(PlayerJoinEvent e) {
         SimpleLocation currentSloc = LocationUtil.convertToSimpleLocation(e.getPlayer().getLocation());
-        Entry<Area, AreaTrigger> current = getAreaForLocation(currentSloc);
-        if(current != null) {
-            current.getValue().addEntity(new BukkitEntity(e.getPlayer()));
-        }
+        getAreaForLocation(currentSloc).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->trigger.addEntity(new BukkitEntity(e.getPlayer())));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onLocationChange(PlayerBlockLocationEvent e){
-        Entry<Area, AreaTrigger> from = getAreaForLocation(e.getFrom());
-        Entry<Area, AreaTrigger> to = getAreaForLocation(e.getTo());
-
-        if(from == null && to == null)
-            return;
-
-        if(from != null && to != null && from.getKey().equals(to.getKey()))
-            return;
+        List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(e.getFrom());
+        List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(e.getTo());
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", e.getPlayer());
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 
-        if(from != null){
-            from.getValue().removeEntity(e.getPlayer().getUniqueId());
-            from.getValue().activate(e, varMap, EventType.EXIT);
-        }
+        from.stream()
+                .filter((entry)->!entry.getKey().isInThisArea(e.getTo()))//only for area leaving
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->{
+                    trigger.removeEntity(e.getPlayer().getUniqueId());
+                    trigger.activate(e, varMap, EventType.EXIT);
+                });
 
-        if(to != null){
-            to.getValue().addEntity(new BukkitEntity(e.getPlayer()));
-            to.getValue().activate(e, varMap, EventType.ENTER);
-        }
+
+        to.stream()
+                .filter((entry)->!entry.getKey().isInThisArea(e.getFrom()))//only for entering area
+                .map(Map.Entry::getValue)
+                .forEach((trigger)->{
+                    trigger.addEntity(new BukkitEntity(e.getPlayer()));
+                    trigger.activate(e, varMap, EventType.ENTER);
+                });
     }
 
     @EventHandler
@@ -199,23 +200,18 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         entityTrackMap.put(e.getEntity().getUniqueId(), new WeakReference<IEntity>(new BukkitEntity(e.getEntity())));
         entityLocationMap.put(e.getEntity().getUniqueId(), sloc);
 
-        Entry<Area, AreaTrigger> entry = getAreaForLocation(sloc);
-        if(entry != null) {
-            entry.getValue().addEntity(new BukkitEntity(e.getEntity()));
-        }
+        getAreaForLocation(sloc).stream()
+            .map(Map.Entry::getValue)
+            .forEach((trigger)->trigger.addEntity(new BukkitEntity(e.getEntity())));
     }
 
     protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
-        Entry<Area, AreaTrigger> fromArea = getAreaForLocation(from);
-        Entry<Area, AreaTrigger> toArea = getAreaForLocation(current);
-
-        if(fromArea != null) {
-            fromArea.getValue().removeEntity(entity.getUniqueId());
-        }
-
-        if(toArea != null) {
-            toArea.getValue().addEntity(new BukkitEntity(entity));
-        }
+        getAreaForLocation(from).stream()
+            .map(Map.Entry::getValue)
+            .forEach((trigger)->trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+            .map(Map.Entry::getValue)
+            .forEach((trigger)->trigger.addEntity(new BukkitEntity(entity)));
     }
 
     @EventHandler
@@ -230,10 +226,9 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         entityTrackMap.remove(e.getEntity().getUniqueId());
         entityLocationMap.remove(e.getEntity().getUniqueId());
 
-        Entry<Area, AreaTrigger> area = getAreaForLocation(sloc);
-        if(area != null) {
-            area.getValue().removeEntity(e.getEntity().getUniqueId());
-        }
+        getAreaForLocation(sloc).stream()
+            .map(Map.Entry::getValue)
+            .forEach((trigger)->trigger.removeEntity(e.getEntity().getUniqueId()));
     }
 
     @Override

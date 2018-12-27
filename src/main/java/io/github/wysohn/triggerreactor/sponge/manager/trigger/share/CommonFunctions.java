@@ -16,12 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger.share;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
+import io.github.wysohn.triggerreactor.core.manager.location.Area;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.boss.BossBar;
@@ -265,18 +263,30 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
 
     /**
      * Get the name of area trigger at the target location.
-     *
-     * @param location
-     *            the location to check
+     * Since 2.1.8, as Area Triggers can overlap each other, there can be multiple result.
+     * This method is left as is, but it will return only the first area found.
+     * To get the full list of Area Triggers, use {@link #currentAreasAt(Location)}
+     * @param location the location to check
      * @return name of area; null if there is no area trigger at location
+     * @deprecated this only return one AreaTrigger's name, yet there could be more
      */
-    public String currentAreaAt(Location<World> location) {
-        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(LocationUtil.convertToSimpleLocation(location));
-        if (trigger == null)
-            return null;
+    public String currentAreaAt(Location location) {
+        String[] areaNames = currentAreasAt(location);
+        return areaNames.length > 0 ? areaNames[0] : null;
+    }
 
-        return trigger.getTriggerName();
+    /**
+     * Get the name of area triggers containing the given location.
+     * @param location the location to check
+     * @return array of AreaTrigger names. The array can be empty but never null.
+     */
+    public String[] currentAreasAt(Location location){
+        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
+        String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
+                .map(Map.Entry::getValue)
+                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .toArray(String[]::new);
+        return names;
     }
 
     /**
@@ -330,11 +340,11 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * Example) /trg run partColor = bukkitColor(255,255,255)
      * </p>
      *
-     * @param int
+     * @param red
      *            red the value of red in RGB
-     * @param int
+     * @param green
      *            green the value of green in RGB
-     * @param int
+     * @param blue
      *            blue the value of blue in RGB
      * @return returns a Color object from org.bukkit.Color
      */
