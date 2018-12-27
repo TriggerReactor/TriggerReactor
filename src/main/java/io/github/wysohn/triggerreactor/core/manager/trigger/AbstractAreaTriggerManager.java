@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
@@ -253,11 +254,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
      */
     protected List<Map.Entry<Area, AreaTrigger>> getAreaForLocation(SimpleLocation sloc) {
         if(sloc == null)
-            return null;
+            return Lists.newArrayList();
 
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
         if(!areaTriggers.containsKey(scloc))
-            return null;
+            return Lists.newArrayList();
 
         List<Map.Entry<Area, AreaTrigger>> list = areaTriggers.get(scloc).entrySet().stream()
                 .filter(entry -> entry.getKey().isInThisArea(sloc))
