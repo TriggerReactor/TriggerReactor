@@ -30,6 +30,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
@@ -127,9 +129,9 @@ public abstract class TriggerReactor {
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
 
-    private static final String INTEGER_REGEX = "^[0-9]+$";
-    private static final String DOUBLE_REGEX = "^[0-9]+.[0-9]{0,}$";
-
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
     public boolean onCommand(ICommandSender sender, String command, String[] args){
         if(command.equalsIgnoreCase("triggerreactor")){
@@ -320,13 +322,13 @@ public abstract class TriggerReactor {
                                 return true;
                             }
 
-                            if(value.matches(INTEGER_REGEX)){
+                            if(INTEGER_PATTERN.matcher(value).matches()){
                                 try {
                                     getVariableManager().put(name, Integer.parseInt(value));
                                 } catch (Exception e) {
                                     this.handleException(sender, e);
                                 }
-                            }else if(value.matches(DOUBLE_REGEX)){
+                            }else if(DECIMAL_PATTERN.matcher(value).matches()){
                                 try {
                                     getVariableManager().put(name, Double.parseDouble(value));
                                 } catch (Exception e) {
@@ -615,6 +617,11 @@ public abstract class TriggerReactor {
                         sender.sendMessage("&7Area selection mode enabled: &6"+result);
                     } else if (args.length == 3 && args[2].equals("create")){
                         String name = args[1];
+                        if(!NAME_PATTERN.matcher(name).matches()){
+                            sender.sendMessage("&cThe name "+name+" has not allowed character!");
+                            sender.sendMessage("&7Use only character, number, and underscore(_).");
+                            return true;
+                        }
 
                         AreaTrigger trigger = getAreaManager().getArea(name);
                         if(trigger != null){
@@ -628,7 +635,7 @@ public abstract class TriggerReactor {
                             return true;
                         }
 
-                        Set<Area> conflicts = getAreaManager().getConflictingAreas(selected);
+                        Set<Area> conflicts = getAreaManager().getConflictingAreas(selected, selected::equals);
                         if(!conflicts.isEmpty()){
                             sender.sendMessage("&7Found ["+conflicts.size()+"] conflicting areas:");
                             for(Area conflict : conflicts){
