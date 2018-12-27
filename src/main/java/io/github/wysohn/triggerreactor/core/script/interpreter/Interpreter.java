@@ -1017,7 +1017,10 @@ public class Interpreter {
     private final Executor EXECUTOR_COOLDOWN = new Executor(){
         @Override
         public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
-            long mills = Long.parseLong(String.valueOf(args[0])) * 1000L;
+            if(!(args[0] instanceof Number))
+                throw new RuntimeException(args[0]+" is not a number!");
+
+            long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
             Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
             return null;
         }
