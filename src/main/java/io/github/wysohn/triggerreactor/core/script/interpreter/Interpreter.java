@@ -83,6 +83,7 @@ public class Interpreter {
         this.selfReference = selfReference;
 
         initDefaultExecutors();
+        initDefaultPlaceholders();
     }
 
     private void initDefaultExecutors() {
