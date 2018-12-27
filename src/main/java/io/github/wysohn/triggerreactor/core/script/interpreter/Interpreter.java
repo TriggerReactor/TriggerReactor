@@ -1025,7 +1025,7 @@ public class Interpreter {
     private final Placeholder PLACEHOLDER_COOLDOWN = new Placeholder() {
         @Override
         public Object parse(Object context, Map<String, Object> vars, Object... args) throws Exception {
-            return Math.max(0, Interpreter.this.cooldownEnd - System.currentTimeMillis());
+            return Math.max(0L, Interpreter.this.cooldownEnd - System.currentTimeMillis()) / 1000.0;
         }
     };
 
