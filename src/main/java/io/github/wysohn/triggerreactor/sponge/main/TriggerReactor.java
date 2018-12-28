@@ -713,17 +713,20 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
             @Override
             public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-                if("cooldown".equals(placeholder) && e instanceof Event){
-                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
-                    if(optPlayer.isPresent()){
-                        Player player = optPlayer.get();
-                        return cooldowns.getOrDefault(player.getUniqueId(), 0L);
-                    }else{
-                        return 0L;
-                    }
-                }else{
-                    return null;
-                }
+//                if("cooldown".equals(placeholder) && e instanceof Event){
+//                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
+//                    if(optPlayer.isPresent()){
+//                        Player player = optPlayer.get();
+//                        long secondsLeft = Math.max(0L,
+//                                cooldowns.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis());
+//                        return secondsLeft / 1000;
+//                    }else{
+//                        return 0L;
+//                    }
+//                }else{
+//                    return null;
+//                }
+                return null;
             }
         };
     }
@@ -813,17 +816,20 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
             @Override
             public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-                if("cooldown".equals(placeholder) && e instanceof Event){
-                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
-                    if(optPlayer.isPresent()){
-                        Player player = optPlayer.get();
-                        return cooldowns.getOrDefault(player.getUniqueId(), 0L);
-                    }else{
-                        return 0L;
-                    }
-                }else{
-                    return null;
-                }
+//                if("cooldown".equals(placeholder) && e instanceof Event){
+//                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
+//                    if(optPlayer.isPresent()){
+//                        Player player = optPlayer.get();
+//                        long secondsLeft = Math.max(0L,
+//                                cooldowns.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis());
+//                        return secondsLeft / 1000;
+//                    }else{
+//                        return 0L;
+//                    }
+//                }else{
+//                    return null;
+//                }
+                return null;
             }
         };
     }

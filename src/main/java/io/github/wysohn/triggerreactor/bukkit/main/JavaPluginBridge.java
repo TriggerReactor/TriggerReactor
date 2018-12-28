@@ -544,15 +544,16 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
             @Override
             public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-                if("cooldown".equals(placeholder)){
-                    if(e instanceof PlayerEvent){
-                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
-                    }else{
-                        return 0;
-                    }
-                }else{
-                    return null;
-                }
+//                if("cooldown".equals(placeholder)){
+//                    if(e instanceof PlayerEvent){
+//                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
+//                    }else{
+//                        return 0;
+//                    }
+//                }else{
+//                    return null;
+//                }
+                return null;
             }
         };
     }
@@ -633,15 +634,16 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 
             @Override
             public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-                if("cooldown".equals(placeholder)){
-                    if(e instanceof PlayerEvent){
-                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
-                    }else{
-                        return 0L;
-                    }
-                }else{
-                    return null;
-                }
+//                if("cooldown".equals(placeholder)){
+//                    if(e instanceof PlayerEvent){
+//                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
+//                    }else{
+//                        return 0L;
+//                    }
+//                }else{
+//                    return null;
+//                }
+                return null;
             }
 
         };
