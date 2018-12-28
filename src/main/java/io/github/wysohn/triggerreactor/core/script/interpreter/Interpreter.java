@@ -483,7 +483,7 @@ public class Interpreter {
                     replaced = interrupter.onPlaceholder(context, placeholderName, args);
                 }
 
-                if (!placeholderMap.containsKey(placeholderName))
+                if (replaced == null && !placeholderMap.containsKey(placeholderName))
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
                 if(replaced == null){
