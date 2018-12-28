@@ -485,11 +485,6 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         return new ProcessInterrupter(){
             @Override
             public boolean onNodeProcess(Node node) {
-                if(interpreter.isCooldown() && e instanceof PlayerEvent){
-                    Player player = ((PlayerEvent) e).getPlayer();
-                    UUID uuid = player.getUniqueId();
-                    cooldowns.put(uuid, interpreter.getCooldownEnd());
-                }
                 return false;
             }
 
@@ -531,11 +526,34 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     } else {
                         throw new RuntimeException(context+" is not a Cancellable event!");
                     }
+                } else if("COOLDOWN".equals(command)){
+                    if(!(args[0] instanceof Number))
+                        throw new RuntimeException(args[0]+" is not a number!");
+
+                    if(interpreter.isCooldown() && e instanceof PlayerEvent){
+                        long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
+                        Player player = ((PlayerEvent) e).getPlayer();
+                        UUID uuid = player.getUniqueId();
+                        cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                    }
+                    return true;
                 }
 
                 return false;
             }
 
+            @Override
+            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
+                if("cooldown".equals(placeholder)){
+                    if(e instanceof PlayerEvent){
+                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
+                    }else{
+                        return 0;
+                    }
+                }else{
+                    return null;
+                }
+            }
         };
     }
 
@@ -609,9 +627,33 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     } else {
                         throw new RuntimeException(context+" is not a Cancellable event!");
                     }
+                } else if("COOLDOWN".equals(command)){
+                    if(!(args[0] instanceof Number))
+                        throw new RuntimeException(args[0]+" is not a number!");
+
+                    if(interpreter.isCooldown() && e instanceof PlayerEvent){
+                        long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
+                        Player player = ((PlayerEvent) e).getPlayer();
+                        UUID uuid = player.getUniqueId();
+                        cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                    }
+                    return true;
                 }
 
                 return false;
+            }
+
+            @Override
+            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
+                if("cooldown".equals(placeholder)){
+                    if(e instanceof PlayerEvent){
+                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
+                    }else{
+                        return 0L;
+                    }
+                }else{
+                    return null;
+                }
             }
 
         };

@@ -653,12 +653,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         return new ProcessInterrupter(){
             @Override
             public boolean onNodeProcess(Node node) {
-                if(interpreter.isCooldown() && e instanceof Event){
-                    ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
-                        UUID uuid = player.getUniqueId();
-                        cooldowns.put(uuid, interpreter.getCooldownEnd());
-                    });
-                }
                 return false;
             }
 
@@ -700,11 +694,37 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                     } else {
                         throw new RuntimeException(context+" is not a Cancellable event!");
                     }
+                } else if("COOLDOWN".equals(command)){
+                    if(!(args[0] instanceof Number))
+                        throw new RuntimeException(args[0]+" is not a number!");
+
+                    long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
+                    if(interpreter.isCooldown() && e instanceof Event){
+                        ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+                            UUID uuid = player.getUniqueId();
+                            cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                        });
+                    }
+                    return true;
                 }
 
                 return false;
             }
 
+            @Override
+            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
+                if("cooldown".equals(placeholder) && e instanceof Event){
+                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
+                    if(optPlayer.isPresent()){
+                        Player player = optPlayer.get();
+                        return cooldowns.getOrDefault(player.getUniqueId(), 0L);
+                    }else{
+                        return 0L;
+                    }
+                }else{
+                    return null;
+                }
+            }
         };
     }
 
@@ -714,16 +734,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         return new ProcessInterrupter() {
             @Override
             public boolean onNodeProcess(Node node) {
-                if (interpreter.isCooldown()) {
-                    if(e instanceof ClickInventoryEvent){
-                        ((ClickInventoryEvent) e).getCause().first(Player.class).ifPresent((player) -> {
-                            UUID uuid = player.getUniqueId();
-                            cooldowns.put(uuid, interpreter.getCooldownEnd());
-                        });
-                    }
-                    return false;
-                }
-
                 //safety feature to stop all trigger immediately if executing on 'open' or 'click'
                 //  is still running after the inventory is closed.
                 if(e instanceof InteractInventoryEvent.Open
@@ -784,11 +794,37 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                     } else {
                         throw new RuntimeException(context+" is not a Cancellable event!");
                     }
+                }else if("COOLDOWN".equals(command)){
+                    if(!(args[0] instanceof Number))
+                        throw new RuntimeException(args[0]+" is not a number!");
+
+                    long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
+                    if(interpreter.isCooldown() && e instanceof Event){
+                        ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+                            UUID uuid = player.getUniqueId();
+                            cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                        });
+                    }
+                    return true;
                 }
 
                 return false;
             }
 
+            @Override
+            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
+                if("cooldown".equals(placeholder) && e instanceof Event){
+                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
+                    if(optPlayer.isPresent()){
+                        Player player = optPlayer.get();
+                        return cooldowns.getOrDefault(player.getUniqueId(), 0L);
+                    }else{
+                        return 0L;
+                    }
+                }else{
+                    return null;
+                }
+            }
         };
     }
 

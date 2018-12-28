@@ -55,7 +55,6 @@ public class Interpreter {
     private boolean waitFlag = false;
     private boolean breakFlag = false;
     private boolean continueFlag = false;
-    private long cooldownEnd = -1;
 
     private int callArgsSize = 0;
 /*    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
@@ -89,13 +88,12 @@ public class Interpreter {
     private void initDefaultExecutors() {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
-        executorMap.put("COOLDOWN", EXECUTOR_COOLDOWN);
         executorMap.put("BREAK", EXECUTOR_BREAK);
         executorMap.put("CONTINUE", EXECUTOR_CONTINUE);
     }
 
     private void initDefaultPlaceholders(){
-        placeholderMap.put("cooldown", PLACEHOLDER_COOLDOWN);
+
     }
 
     public boolean isStopFlag() {
@@ -104,14 +102,6 @@ public class Interpreter {
 
     public boolean isWaitFlag() {
         return waitFlag;
-    }
-
-    public boolean isCooldown() {
-        return cooldownEnd != -1;
-    }
-
-    public long getCooldownEnd() {
-        return cooldownEnd;
     }
 
     public boolean isSync() {
@@ -488,10 +478,18 @@ public class Interpreter {
                     args[i] = argument.value;
                 }
 
+                Object replaced = null;
+                if (interrupter != null) {
+                    replaced = interrupter.onPlaceholder(context, placeholderName, args);
+                }
+
                 if (!placeholderMap.containsKey(placeholderName))
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
-                Object replaced = placeholderMap.get(placeholderName).parse(context, vars, args);
+                if(replaced == null){
+                    replaced = placeholderMap.get(placeholderName).parse(context, vars, args);
+                }
+
                 if(replaced == null) {
                     replaced = "$"+placeholderName;
                 }
@@ -1014,24 +1012,6 @@ public class Interpreter {
             return WAIT;
         }
     };
-    private final Executor EXECUTOR_COOLDOWN = new Executor(){
-        @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
-            if(!(args[0] instanceof Number))
-                throw new RuntimeException(args[0]+" is not a number!");
-
-            long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
-            Interpreter.this.cooldownEnd = System.currentTimeMillis() + mills;
-            return null;
-        }
-    };
-
-    private final Placeholder PLACEHOLDER_COOLDOWN = new Placeholder() {
-        @Override
-        public Object parse(Object context, Map<String, Object> vars, Object... args) throws Exception {
-            return Math.max(0L, Interpreter.this.cooldownEnd - System.currentTimeMillis()) / 1000.0;
-        }
-    };
 
     public interface ProcessInterrupter{
         /**
@@ -1048,6 +1028,14 @@ public class Interpreter {
         * @boolean true if consumed it; false to let interpreter continue working on it.
         */
         boolean onCommand(Object context, String command, Object[] args);
+
+        /**
+         * To process placeholders that need information of Triggers
+         * @param context
+         * @param placeholder
+         * @param args
+         */
+        Object onPlaceholder(Object context, String placeholder, Object[] args);
     }
 
     public static void main(String[] ar) throws Exception{
