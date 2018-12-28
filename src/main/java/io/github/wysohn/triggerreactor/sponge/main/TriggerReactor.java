@@ -699,7 +699,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException(args[0]+" is not a number!");
 
                     long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
-                    if(interpreter.isCooldown() && e instanceof Event){
+                    if(e instanceof Event){
                         ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
                             UUID uuid = player.getUniqueId();
                             cooldowns.put(uuid, System.currentTimeMillis() + mills);
@@ -799,7 +799,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException(args[0]+" is not a number!");
 
                     long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
-                    if(interpreter.isCooldown() && e instanceof Event){
+                    if(e instanceof Event){
                         ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
                             UUID uuid = player.getUniqueId();
                             cooldowns.put(uuid, System.currentTimeMillis() + mills);

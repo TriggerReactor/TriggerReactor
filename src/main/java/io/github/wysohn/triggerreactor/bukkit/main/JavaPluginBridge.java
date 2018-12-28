@@ -530,7 +530,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     if(!(args[0] instanceof Number))
                         throw new RuntimeException(args[0]+" is not a number!");
 
-                    if(interpreter.isCooldown() && e instanceof PlayerEvent){
+                    if(e instanceof PlayerEvent){
                         long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
                         Player player = ((PlayerEvent) e).getPlayer();
                         UUID uuid = player.getUniqueId();
@@ -563,18 +563,6 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
         return new ProcessInterrupter() {
             @Override
             public boolean onNodeProcess(Node node) {
-                if (interpreter.isCooldown()) {
-                    if(e instanceof InventoryInteractEvent){
-                        HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
-                        if(he instanceof Player){
-                            Player player = (Player) he;
-                            UUID uuid = player.getUniqueId();
-                            cooldowns.put(uuid, interpreter.getCooldownEnd());
-                        }
-                    }
-                    return false;
-                }
-
                 //safety feature to stop all trigger immediately if executing on 'open' or 'click'
                 //  is still running after the inventory is closed.
                 if(e instanceof InventoryOpenEvent
@@ -631,7 +619,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     if(!(args[0] instanceof Number))
                         throw new RuntimeException(args[0]+" is not a number!");
 
-                    if(interpreter.isCooldown() && e instanceof PlayerEvent){
+                    if(e instanceof PlayerEvent){
                         long mills = (long)(((Number) args[0]).doubleValue() * 1000L);
                         Player player = ((PlayerEvent) e).getPlayer();
                         UUID uuid = player.getUniqueId();
