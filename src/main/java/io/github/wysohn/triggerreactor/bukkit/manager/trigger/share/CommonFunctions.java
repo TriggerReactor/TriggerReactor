@@ -656,6 +656,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         return head;
     }
 
+    //Eventually, this has to be created either as Executor or Placeholder
 //    public BossBar makeBossBar(String title, String color, String style) {
 //        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
 //	    BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
