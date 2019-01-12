@@ -113,9 +113,6 @@ public class DelegatedPlayer implements Player {
     public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
         return sender.addAttachment(plugin, name, value);
     }
-    public Spigot spigot() {
-        return null;
-    }
     public PermissionAttachment addAttachment(Plugin plugin) {
         return sender.addAttachment(plugin);
     }
@@ -822,27 +819,11 @@ public class DelegatedPlayer implements Player {
 
     }
 
-    public void playSound(Location location, Sound sound, SoundCategory category, float volume, float pitch) {
-
-    }
-
-    public void playSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
-
-    }
-
     public void stopSound(Sound sound) {
 
     }
 
     public void stopSound(String sound) {
-
-    }
-
-    public void stopSound(Sound sound, SoundCategory category) {
-
-    }
-
-    public void stopSound(String sound, SoundCategory category) {
 
     }
 
@@ -914,10 +895,6 @@ public class DelegatedPlayer implements Player {
 
     }
 
-    public AdvancementProgress getAdvancementProgress(Advancement advancement) {
-        return null;
-    }
-
     public int getClientViewDistance() {
         return 0;
     }
@@ -938,10 +915,6 @@ public class DelegatedPlayer implements Player {
         return null;
     }
 
-    public InventoryView openMerchant(Merchant merchant, boolean force) {
-        return null;
-    }
-
     public boolean hasCooldown(Material material) {
         return false;
     }
@@ -956,22 +929,6 @@ public class DelegatedPlayer implements Player {
 
     public boolean isHandRaised() {
         return false;
-    }
-
-    public boolean discoverRecipe(NamespacedKey recipe) {
-        return false;
-    }
-
-    public int discoverRecipes(Collection<NamespacedKey> recipes) {
-        return 0;
-    }
-
-    public boolean undiscoverRecipe(NamespacedKey recipe) {
-        return false;
-    }
-
-    public int undiscoverRecipes(Collection<NamespacedKey> recipes) {
-        return 0;
     }
 
     public Entity getShoulderEntityLeft() {
@@ -1141,4 +1098,49 @@ public class DelegatedPlayer implements Player {
     public BlockFace getFacing() {
         return null;
     }
+	public int _INVALID_getLastDamage() {
+		return 0;
+	}
+	public void _INVALID_setLastDamage(int arg0) {
+		
+	}
+	public void _INVALID_damage(int arg0) {
+		
+	}
+	public void _INVALID_damage(int arg0, Entity arg1) {
+		
+	}
+	public int _INVALID_getHealth() {
+		return 0;
+	}
+	public int _INVALID_getMaxHealth() {
+		return 0;
+	}
+	public void _INVALID_setHealth(int arg0) {
+		
+	}
+	public void _INVALID_setMaxHealth(int arg0) {
+		
+	}
+	public Spigot spigot() {
+		return null;
+	}
+	public InventoryView openMerchant(Merchant merchant, boolean force) {
+		return null;
+	}
+	public void playSound(Location location, Sound sound, SoundCategory category, float volume, float pitch) {
+		
+	}
+	public void playSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
+		
+	}
+	public void stopSound(Sound sound, SoundCategory category) {
+		
+	}
+	public void stopSound(String sound, SoundCategory category) {
+		
+	}
+	public AdvancementProgress getAdvancementProgress(Advancement advancement) {
+		return null;
+	}
 }
