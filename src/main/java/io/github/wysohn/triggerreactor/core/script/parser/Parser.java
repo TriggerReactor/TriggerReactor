@@ -300,7 +300,8 @@ public class Parser {
 
             if(token == null || !"ENDIF".equals(token.value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-            nextToken();
+            nextToken(); // consume ENDIF
+            nextToken(); // consume ENDLINE
 
             ifNode.getChildren().add(falseBody);
         } else {
@@ -788,7 +789,17 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        String text = "#MESSAGE $random:1 == 0";
+        String text = "x = 4.0;"
+                + "" +
+                "IF x > 0.0;" +
+                "    IF x == 4.0;" +
+                "        #TEST 1;" +
+                "    ELSE;" +
+                "        #TEST 2;" +
+                "    ENDIF;" +
+                "ELSE;" +
+                "    #TEST 3;" +
+                "ENDIF;";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

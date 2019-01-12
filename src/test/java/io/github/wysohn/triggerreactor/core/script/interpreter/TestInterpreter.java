@@ -1225,6 +1225,84 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testNestedIf4() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "" +
+                "IF x > 0.0;" +
+                "    IF x == 4.0;" +
+                "        #TEST 1;" +
+                "    ELSE;" +
+                "        #TEST 2;" +
+                "    ENDIF;" +
+                "ELSE;" +
+                "    #TEST 3;" +
+                "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(1, args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testNestedIf5() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text = "x = 4.0;"
+                + "" +
+                "IF x > 0.0;" +
+                "    IF x == 4.0;" +
+                "        IF x == 3.0;" +
+                "        ELSEIF x == 4.0;" +
+                "            #TEST 1;" +
+                "        ELSE;" +
+                "        ENDIF;" +
+                "    ELSE;" +
+                "        #TEST 2;" +
+                "    ENDIF;" +
+                "ELSE;" +
+                "    #TEST 3;" +
+                "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+            @Override
+            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                Assert.assertEquals(1, args[0]);
+                return null;
+            }
+
+        });
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, new HashMap<>(), new HashMap<>(), new CommonFunctions(null));
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
     public void testNestedIfNoElse() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = "x = 4.0;"
