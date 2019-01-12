@@ -59,6 +59,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -111,7 +112,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.RepeatingTriggerMa
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
-import io.github.wysohn.triggerreactor.bukkit.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -913,11 +913,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
                     return null;
                 }};
         }else if(unwrapped instanceof CommandSender) {
-            return new PlayerEvent(new DelegatedPlayer((CommandSender) unwrapped)){
-                @Override
-                public HandlerList getHandlers() {
-                    return null;
-                }};
+        	return new CommandSenderEvent((CommandSender) unwrapped);
         }else{
             throw new RuntimeException("Cannot create empty PlayerEvent for "+sender);
         }
@@ -1068,7 +1064,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
 	@Override
 	public Map<String, Object> getCustomVarsForTrigger(Object e) {
 		Map<String, Object> variables = new HashMap<String, Object>();
-		if (e instanceof PlayerEvent) {
+		//this should be fine as script loosely check the variable type
+		if(e instanceof CommandSenderEvent) {
+			variables.put("player", ((CommandSenderEvent) e).sender);
+		}else if (e instanceof PlayerEvent) {
 			variables.put("player", ((PlayerEvent) e).getPlayer());
 		} else if (e instanceof InventoryInteractEvent) {
 			if (((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
@@ -1106,5 +1105,20 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin{
     @Override
     public ICommandSender getConsoleSender() {
         return new BukkitCommandSender(Bukkit.getConsoleSender());
+    }
+    
+    private class CommandSenderEvent extends Event{
+    	private final CommandSender sender;
+
+		public CommandSenderEvent(CommandSender sender) {
+			super();
+			this.sender = sender;
+		}
+
+		@Override
+		public HandlerList getHandlers() {
+			return null;
+		}
+    	
     }
 }

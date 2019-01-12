@@ -1283,7 +1283,11 @@ public abstract class TriggerReactor {
             throwable.printStackTrace();
         }
 
-        sendExceptionMessage(extractPlayerFromContext(e), throwable);
+        ICommandSender sender = extractPlayerFromContext(e);
+        if(sender == null)
+            sender = getConsoleSender();
+
+        sendExceptionMessage(sender, throwable);
     }
 
     /**

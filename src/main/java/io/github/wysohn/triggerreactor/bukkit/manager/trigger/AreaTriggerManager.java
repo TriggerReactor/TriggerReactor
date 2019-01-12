@@ -19,13 +19,11 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;

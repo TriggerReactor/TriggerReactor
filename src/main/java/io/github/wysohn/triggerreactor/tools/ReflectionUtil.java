@@ -122,7 +122,7 @@ public class ReflectionUtil {
         return null;
     }
 
-    @SuppressWarnings({ "unchecked", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args)
             throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException {
         try {

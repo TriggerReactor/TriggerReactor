@@ -872,7 +872,7 @@ public class Interpreter {
 
             try {
                 result = ReflectionUtil.constructNew(clazz, args);
-            } catch (NoSuchMethodException | InstantiationException | IllegalArgumentException | IllegalAccessException e) {
+            } catch (Exception e) {
                 throw new InterpreterException("Cannot create new instance with "+right+" of "+clazz.getSimpleName(), e);
             }
         } else if(left.type == Type.CLAZZ) {
@@ -880,7 +880,7 @@ public class Interpreter {
 
             try {
                 result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
-            } catch (NoSuchMethodException | IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+            } catch (Exception e) {
                 throw new InterpreterException("Cannot invoke static method "+right+" of "+clazz.getSimpleName()+"!", e);
             }
         } else {

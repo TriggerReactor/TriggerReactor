@@ -30,9 +30,6 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -659,18 +656,18 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         return head;
     }
 
-    public BossBar makeBossBar(String title, String color, String style) {
-        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
-	    BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
-
-        BossBar BarObj = null;
-        try {
-            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title, colorEnum, styleEnum);
-        } catch (NoSuchMethodException e) {
-            return null;
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-        return BarObj;
-    }
+//    public BossBar makeBossBar(String title, String color, String style) {
+//        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
+//	    BarStyle styleEnum = BarStyle.valueOf(style.toUpperCase());
+//
+//        BossBar BarObj = null;
+//        try {
+//            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title, colorEnum, styleEnum);
+//        } catch (NoSuchMethodException e) {
+//            return null;
+//        } catch (InvocationTargetException | IllegalAccessException e) {
+//            throw new RuntimeException(e);
+//        }
+//        return BarObj;
+//    }
 }

@@ -302,7 +302,12 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             Callable<Void> call = new Callable<Void>(){
                 @Override
                 public Void call() throws Exception{
-                    start(e, scriptVars, interpreter, sync);
+                    try {
+						start(e, scriptVars, interpreter, sync);
+					} catch (Exception ex) {
+                        TriggerReactor.getInstance().handleException(e, new Exception(
+                                "Trigger [" + getTriggerName() + "] produced an error!", ex));
+					}
                     return null;
                 }
             };
@@ -312,16 +317,14 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                     try {
                         call.call();
                     } catch (Exception e1) {
-                        TriggerReactor.getInstance().handleException(e, new Exception(
-                                "Error occurred while processing Trigger [" + getTriggerName() + "]!", e1));
+
                     }
                 } else {
                     Future<Void> future = TriggerReactor.getInstance().callSyncMethod(call);
                     try {
                         future.get(3, TimeUnit.SECONDS);
                     } catch (InterruptedException | ExecutionException e1) {
-                        TriggerReactor.getInstance().handleException(e, new Exception(
-                                "Error occurred while processing Trigger [" + getTriggerName() + "]!", e1));
+
                     } catch (TimeoutException e1) {
                         TriggerReactor.getInstance().handleException(e, new RuntimeException(
                                 "Took too long to process Trigger [" + getTriggerName() + "]! Is the server lagging?",
