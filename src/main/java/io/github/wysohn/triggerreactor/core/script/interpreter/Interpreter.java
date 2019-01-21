@@ -42,8 +42,8 @@ public class Interpreter {
     
     private TaskSupervisor task;
     
-    private Map<String, Executor> executorMap = new ConcurrentHashMap<>();
-    private Map<String, Placeholder> placeholderMap = new ConcurrentHashMap<>();
+    private Map<String, Executor> executorMap = new HashMap<>();
+    private Map<String, Placeholder> placeholderMap = new HashMap<>();
     private Map<Object, Object> gvars = new ConcurrentHashMap<>();
     private Map<String, Object> vars = new ConcurrentHashMap<>();
     private SelfReference selfReference = new SelfReference() {};
