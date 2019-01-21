@@ -77,13 +77,22 @@ public class Parser {
                 nextToken();
                 return node;
             }else if("IF".equals(token.value)){
-                return parseIf();
+            	Token ifToken = token;
+            	nextToken();
+                return parseIf(ifToken);
             }else if("ELSEIF".equals(token.value)) {
-                return null;
-            }else if("ENDIF".equals(token.value)){
-                return null;
-            }
-            else if("WHILE".equals(token.value)){
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("ELSE".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("ENDIF".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("WHILE".equals(token.value)){
                 Node whileNode = new Node(token);
                 nextToken();
 
@@ -151,12 +160,35 @@ public class Parser {
             else if("ENDFOR".equals(token.value)){
                 Node endForNode = new Node(token);
                 nextToken();
-                return endForNode;
-            }
-            else if(token.type == Type.ID){
-                if(((String) token.value).charAt(0) == '#'){
-                    int row = token.row;
-                    int col = token.col;
+				return endForNode;
+			} else if ("SYNC".equals(token.value)) {
+				Node node = new Node(new Token(Type.SYNC, "<SYNC>", token));
+				nextToken();
+				
+				while(token != null && !"ENDSYNC".equals(token.value)) {
+					node.getChildren().add(parseStatement());
+				}
+				
+				if(token == null || !"ENDSYNC".equals(token.value))
+					throw new ParserException("Could not find ENDSYNC. Did you forget to put one?");
+				
+				return node;
+			} else if ("ASYNC".equals(token.value)) {
+				Node node = new Node(new Token(Type.ASYNC, "<ASYNC>", token));
+				nextToken();
+				
+				while(token != null && !"ENDASYNC".equals(token.value)) {
+					node.getChildren().add(parseStatement());
+				}
+				
+				if(token == null || !"ENDASYNC".equals(token.value))
+					throw new ParserException("Could not find ENDASYNC. Did you forget to put one?");
+				
+				return node;
+			} else if (token.type == Type.ID) {
+				if (((String) token.value).charAt(0) == '#') {
+					int row = token.row;
+					int col = token.col;
 
                     String command = ((String) token.value).substring(1);
                     StringBuilder builder = new StringBuilder(command);
@@ -259,9 +291,8 @@ public class Parser {
         }
     }
 
-    private Node parseIf() throws IOException, LexerException, ParserException{
-        Node ifNode = new Node(token);
-        nextToken();
+    private Node parseIf(Token ifToken) throws IOException, LexerException, ParserException{
+        Node ifNode = new Node(ifToken);
 
         //condition
         Node condition = parseLogic();
@@ -274,38 +305,37 @@ public class Parser {
 
         Node codes = null;
         while(token != null
-                && !"ENDIF".equals(token.value)
-                && !"ELSE".equals(token.value)
-                && !"ELSEIF".equals(token.value)
-                && (codes = parseStatement()) != null){
+                && (codes = parseStatement()) != null
+                && !"ENDIF".equals(codes.getToken().value)
+                && !"ELSE".equals(codes.getToken().value)
+                && !"ELSEIF".equals(codes.getToken().value)){
             trueBody.getChildren().add(codes);
         }
         ifNode.getChildren().add(trueBody);
 
-        if(token == null) {
+        if(codes == null) {
             throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-        } else if("ELSEIF".equals(token.value)) {//elseif body
+        } else if("ELSEIF".equals(codes.getToken().value)) {//elseif body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
-            falseBody.getChildren().add(parseIf());
+            falseBody.getChildren().add(parseIf(codes.getToken()));
             ifNode.getChildren().add(falseBody);
-        } else if("ELSE".equals(token.value)){ //else body
+        } else if("ELSE".equals(codes.getToken().value)){ //else body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
             nextToken();
 
-            while(token != null
-                    && !"ENDIF".equals(token.value)
-                    && (codes = parseStatement()) != null){
-                falseBody.getChildren().add(codes);
-            }
+			while (token != null 
+					&& (codes = parseStatement()) != null 
+					&& !"ENDIF".equals(codes.getToken().value)) {
+				falseBody.getChildren().add(codes);
+			}
 
-            if(token == null || !"ENDIF".equals(token.value))
+            if(token == null || !"ENDIF".equals(codes.getToken().value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-            nextToken(); // consume ENDIF
             nextToken(); // consume ENDLINE
 
             ifNode.getChildren().add(falseBody);
         } else {
-            if(token == null || !"ENDIF".equals(token.value))
+            if(token == null || !"ENDIF".equals(codes.getToken().value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
             nextToken();
         }
@@ -792,11 +822,13 @@ public class Parser {
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
-                "    IF x == 4.0;" +
-                "        #TEST 1;" +
-                "    ELSE;" +
-                "        #TEST 2;" +
-                "    ENDIF;" +
+                "    ASYNC;" +
+                "    	IF x == 4.0;" +
+                "        	#TEST 1;" +
+                "    	ELSE;" +
+                "        	#TEST 2;" +
+                "    	ENDIF;" +
+                "    ENDASYNC;" +
                 "ELSE;" +
                 "    #TEST 3;" +
                 "ENDIF;";

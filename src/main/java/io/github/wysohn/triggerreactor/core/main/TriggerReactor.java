@@ -25,10 +25,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,6 +62,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
@@ -68,11 +72,11 @@ import io.github.wysohn.triggerreactor.tools.TimeUtil;
  * @author wysohn
  *
  */
-public abstract class TriggerReactor {
+public abstract class TriggerReactor implements TaskSupervisor{
     /**
      * Cached Pool for thread execution.
      */
-    public static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory(){
+    protected static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory(){
         @Override
         public Thread newThread(Runnable r) {
             return new Thread(){{this.setPriority(MIN_PRIORITY);}};
@@ -1372,10 +1376,68 @@ public abstract class TriggerReactor {
      */
     public abstract <T> Future<T> callSyncMethod(Callable<T> call);
 
-    /**
-     * Call event so that it can be heard by listeners
-     * @param event
-     */
+	@Override
+	public <T> Future<T> submitSync(Callable<T> call) {
+		if (this.isServerThread()) {
+			return new Future<T>() {
+				private boolean done = false;
+
+				@Override
+				public boolean cancel(boolean arg0) {
+					return false;
+				}
+
+				@Override
+				public T get() throws InterruptedException, ExecutionException {
+					T out = null;
+					try {
+						out = call.call();
+						done = true;
+					} catch (Exception e) {
+						throw new ExecutionException(e);
+					}
+					return out;
+				}
+
+				@Override
+				public T get(long arg0, TimeUnit arg1)
+						throws InterruptedException, ExecutionException, TimeoutException {
+					T out = null;
+					try {
+						out = call.call();
+						done = true;
+					} catch (Exception e) {
+						throw new ExecutionException(e);
+					}
+					return out;
+				}
+
+				@Override
+				public boolean isCancelled() {
+					return false;
+				}
+
+				@Override
+				public boolean isDone() {
+					return done;
+				}
+
+			};
+		} else {
+			return callSyncMethod(call);
+		}
+	}
+
+	@Override
+	public <T> Future<T> submitAsync(Callable<T> call) {
+		return cachedThreadPool.submit(call);
+	}
+
+	/**
+	 * Call event so that it can be heard by listeners
+	 * 
+	 * @param event
+	 */
     public abstract void callEvent(IEvent event);
 
     /**

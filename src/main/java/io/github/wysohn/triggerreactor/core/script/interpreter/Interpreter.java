@@ -17,14 +17,15 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -37,12 +38,14 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {
     private final Node root;
-    private final Map<String, Class<?>> importMap = new HashMap<>();
+    private final Map<String, Class<?>> importMap = new ConcurrentHashMap<>();
     
-    private Map<String, Executor> executorMap = new HashMap<>();
-    private Map<String, Placeholder> placeholderMap = new HashMap<>();
-    private Map<Object, Object> gvars = new HashMap<>();
-    private Map<String, Object> vars = new HashMap<>();
+    private TaskSupervisor task;
+    
+    private Map<String, Executor> executorMap = new ConcurrentHashMap<>();
+    private Map<String, Placeholder> placeholderMap = new ConcurrentHashMap<>();
+    private Map<Object, Object> gvars = new ConcurrentHashMap<>();
+    private Map<String, Object> vars = new ConcurrentHashMap<>();
     private SelfReference selfReference = new SelfReference() {};
 
     private Stack<Token> stack = new Stack<>();
@@ -77,7 +80,11 @@ public class Interpreter {
         initDefaultPlaceholders();
     }
 
-    public Map<String, Executor> getExecutorMap() {
+    public void setTaskSupervisor(TaskSupervisor taskSupervisor) {
+		this.task = taskSupervisor;
+	}
+
+	public Map<String, Executor> getExecutorMap() {
 		return executorMap;
 	}
 
@@ -363,7 +370,41 @@ public class Interpreter {
                 throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
             }
 
-        } else {
+		} else if (node.getToken().getType() == Type.SYNC) {
+			try {
+				task.submitSync(new Callable<Void>() {
+
+					@Override
+					public Void call() throws Exception {
+						for(Node node : node.getChildren()) {
+							//ignore whatever returns as it's impossible
+							//to handle it from the caller
+							start(node);
+						}
+						return null;
+					}
+
+				}).get();
+				return;
+			} catch (InterruptedException | ExecutionException ex) {
+				throw new InterpreterException("Synchronous task error.", ex);
+			}
+		} else if (node.getToken().getType() == Type.ASYNC) {
+			task.submitAsync(new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					for(Node node : node.getChildren()) {
+						//ignore whatever returns as it's impossible
+						//to handle it from the caller
+						start(node);
+					}
+					return null;
+				}
+
+			});
+			return;
+		} else {
             for(int i = 0; i < node.getChildren().size(); i++){
                 //ignore rest of body if continue flag is set
                 if(continueFlag)

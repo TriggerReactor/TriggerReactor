@@ -278,6 +278,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          */
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root);
+            interpreter.setTaskSupervisor(TriggerReactor.getInstance());
             interpreter.setExecutorMap(executorMap);
             interpreter.setPlaceholderMap(placeholderMap);
             interpreter.setGvars(gvarMap);

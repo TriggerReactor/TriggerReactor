@@ -16,16 +16,22 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.google.common.collect.Lists;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -1709,6 +1715,81 @@ public class TestInterpreter {
         
         interpreter.startWithContext(null);
     }
+    
+    @Test
+    public void testSyncAsync() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "SYNC;"
+        		+ "#TEST1;"
+        		+ "ENDSYNC;"
+        		+ "ASYNC;"
+        		+ "#TEST2;"
+        		+ "ENDASYNC;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test1");
+				return null;
+			}
+        	
+        });
+        executorMap.put("TEST2", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test2");
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(new TaskSupervisor() {
+
+			/* (non-Javadoc)
+			 * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
+			 */
+			@Override
+			public <T> Future<T> submitSync(Callable<T> call) {
+				try {
+					call.call();
+					set.add("sync");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return new EmptyFuture<T>();
+			}
+
+			@Override
+			public <T> Future<T> submitAsync(Callable<T> call) {
+				try {
+					call.call();
+					set.add("async");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return new EmptyFuture<T>();
+			}
+        	
+        });
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test1"));
+        Assert.assertTrue(set.contains("test2"));
+        Assert.assertTrue(set.contains("sync"));
+        Assert.assertTrue(set.contains("async"));
+    }
 
     public static class TheTest{
         public static String staticField = "staticField";
@@ -1757,5 +1838,39 @@ public class TestInterpreter {
 
     public enum TestEnum{
         IMTEST;
+    }
+    
+    public static class EmptyFuture<T> implements Future<T>{
+
+		@Override
+		public boolean cancel(boolean mayInterruptIfRunning) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public T get() throws InterruptedException, ExecutionException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public boolean isCancelled() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public boolean isDone() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+    	
     }
 }
