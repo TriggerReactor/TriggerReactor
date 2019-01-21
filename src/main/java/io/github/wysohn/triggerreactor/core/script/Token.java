@@ -105,6 +105,10 @@ public class Token {
     public String toString() {
         return "[type: "+type.name()+", value: '"+value+"'] at row["+row+"], col["+col+"]";
     }
+    
+    public String toStringRowColOnly() {
+    	return "at row["+row+"], col["+col+"]";
+    }
 
     @Override
     public int hashCode() {

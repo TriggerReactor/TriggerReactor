@@ -36,14 +36,14 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {
-    private Node root;
-    private final Map<String, Executor> executorMap = new HashMap<>();
-    private final Map<String, Placeholder> placeholderMap = new HashMap<>();
-    private final Map<Object, Object> gvars;
-    private final Map<String, Object> vars;
-    private final SelfReference selfReference;
-
+    private final Node root;
     private final Map<String, Class<?>> importMap = new HashMap<>();
+    
+    private Map<String, Executor> executorMap = new HashMap<>();
+    private Map<String, Placeholder> placeholderMap = new HashMap<>();
+    private Map<Object, Object> gvars = new HashMap<>();
+    private Map<String, Object> vars = new HashMap<>();
+    private SelfReference selfReference = new SelfReference() {};
 
     private Stack<Token> stack = new Stack<>();
 
@@ -70,22 +70,52 @@ public class Interpreter {
         initDefaultExecutors();
     }
 */
-    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<Object, Object> gvars, Map<String, Object> localVars,
-            SelfReference selfReference) {
+    public Interpreter(Node root) {
         this.root = root;
-        for(Entry<String, Executor> entry : executorMap.entrySet())
-            this.executorMap.put(entry.getKey(), entry.getValue());
-        for(Entry<String, Placeholder> entry : placeholderMap.entrySet())
-            this.placeholderMap.put(entry.getKey(), entry.getValue());
-        this.gvars = gvars;
-        this.vars = localVars;
-        this.selfReference = selfReference;
 
         initDefaultExecutors();
         initDefaultPlaceholders();
     }
 
-    private void initDefaultExecutors() {
+    public Map<String, Executor> getExecutorMap() {
+		return executorMap;
+	}
+
+	public void setExecutorMap(Map<String, Executor> executorMap) {
+        for(Entry<String, Executor> entry : executorMap.entrySet())
+            this.executorMap.put(entry.getKey(), entry.getValue());
+	}
+
+	public Map<String, Placeholder> getPlaceholderMap() {
+		return placeholderMap;
+	}
+
+	public void setPlaceholderMap(Map<String, Placeholder> placeholderMap) {
+        for(Entry<String, Placeholder> entry : placeholderMap.entrySet())
+            this.placeholderMap.put(entry.getKey(), entry.getValue());
+	}
+
+	public Map<Object, Object> getGvars() {
+		return gvars;
+	}
+
+	public void setGvars(Map<Object, Object> gvars) {
+		this.gvars = gvars;
+	}
+
+	public SelfReference getSelfReference() {
+		return selfReference;
+	}
+
+	public void setSelfReference(SelfReference selfReference) {
+		this.selfReference = selfReference;
+	}
+
+	public void setVars(Map<String, Object> vars) {
+		this.vars = vars;
+	}
+
+	private void initDefaultExecutors() {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
         executorMap.put("BREAK", EXECUTOR_BREAK);
@@ -819,7 +849,7 @@ public class Interpreter {
                 throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
         }catch(Exception e){
-            throw new InterpreterException("Error occured while processing Node "+node, e);
+            throw new InterpreterException("Error "+node.getToken().toStringRowColOnly(), e);
         }
 
         return null;
@@ -1059,7 +1089,9 @@ public class Interpreter {
         Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.placeholderMap = placeholderMap;
+        interpreter.gvars = gvars;
 
         interpreter.startWithContext(null);
     }
