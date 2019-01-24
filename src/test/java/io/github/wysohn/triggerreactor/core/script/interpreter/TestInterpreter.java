@@ -1027,33 +1027,47 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
         Charset charset = Charset.forName("UTF-8");
         String text = "x = 4.0;"
                 + "IF x > 0.0;"
-                + "    #TEST \"pass\";"
+                + "    #TEST1 \"pass\";"
                 + "ELSE;"
-                + "    #TEST \"failed\";"
+                + "    #TEST2 \"failed\";"
                 + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-
-            @Override
-            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                Assert.assertEquals("pass", args[0]);
-                return null;
-            }
-
-        });
+		Map<String, Executor> executorMap = new HashMap<>();
+		executorMap.put("TEST1", new Executor() {
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				Assert.assertEquals("pass", args[0]);
+				set.add("true");
+				return null;
+			}
+		});
+		executorMap.put("TEST2", new Executor() {
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				Assert.assertEquals("fail", args[0]);
+				set.add("false");
+				return null;
+			}
+		});
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
 
         interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("true"));
+        Assert.assertFalse(set.contains("false"));
     }
 
     @Test
@@ -1343,11 +1357,19 @@ public class TestInterpreter {
     public void testNestedIfNoElse() throws Exception{
         Charset charset = Charset.forName("UTF-8");
         String text = "x = 4.0;"
-                + "IF x < 0.0;"
-                + "    #TEST \"no\";"
-                + "ELSEIF x > 0.0;"
-                + "    #TEST \"pass\";"
-                + "ENDIF;";
+                + "" +
+                "IF x > 0.0;" +
+                "    IF x == 4.0;" +
+                "        IF x == 3.0;"  +
+                "        ELSEIF x == 2.0;" +
+                "            #TEST 1;" +
+                "        ELSEIF x == 4.0;" +
+                "            #TEST 2;" +
+                "        ENDIF;" +
+                "    ENDIF;" +
+                "ELSE;" +
+                "    #TEST 3;" +
+                "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1358,7 +1380,7 @@ public class TestInterpreter {
 
             @Override
             protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                Assert.assertEquals("pass", args[0]);
+                Assert.assertEquals(2, args[0]);
                 return null;
             }
 

@@ -329,15 +329,15 @@ public class Parser {
 				falseBody.getChildren().add(codes);
 			}
 
-            if(token == null || !"ENDIF".equals(codes.getToken().value))
+            if(!"ENDIF".equals(codes.getToken().value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
             nextToken(); // consume ENDLINE
 
             ifNode.getChildren().add(falseBody);
         } else {
-            if(token == null || !"ENDIF".equals(codes.getToken().value))
+            if(!"ENDIF".equals(codes.getToken().value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-            nextToken();
+            nextToken(); //consume ENDLINE
         }
 
         //return
@@ -819,19 +819,21 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        String text = "x = 4.0;"
-                + "" +
-                "IF x > 0.0;" +
-                "    ASYNC;" +
-                "    	IF x == 4.0;" +
-                "        	#TEST 1;" +
-                "    	ELSE;" +
-                "        	#TEST 2;" +
-                "    	ENDIF;" +
-                "    ENDASYNC;" +
-                "ELSE;" +
-                "    #TEST 3;" +
-                "ENDIF;";
+        String text = ""
+        		+ "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" + 
+        		"    IF args[0] == \"초기화\"\n" + 
+        		"        IF {$playername+\".kit\"} != true\n" + 
+        		"            #MESSAGE \"&f[ &c! &f] &c이미 지급횟수가 초기화 된 상태입니다!\"\n" + 
+        		"            #STOP\n" + 
+        		"        ELSEIF {$playername+\".kit\"}\n" + 
+        		"            {$playername+\".kit\"} = null\n" + 
+        		"            #MESSAGE \"&f[ &c! &f] :: 기본킷 지급횟수가 초기화되었습니다.\"\n" + 
+        		"        ELSEIF $haspermission: \"lenz.perms\" == false\n" + 
+        		"            #MESSAGE \"&f[ &c! &f] :: &c당신의 이 명령어에 대한 권한이 없습니다.\"\n" + 
+        		"            #STOP\n" + 
+        		"        ENDIF\n" + 
+        		"    ENDIF\n" + 
+        		"ENDIF";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);
