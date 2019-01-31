@@ -92,7 +92,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one
+     * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one
      * stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
      * </p>
      *
@@ -105,29 +105,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return true if took it; false if player doesn't have it
      */
     public boolean takeItem(Player player, String id, int amount) {
-    	ItemStack IS = ItemStack.of(itemType(id), amount);
-    	return takeItem(player, IS, amount);
-    }
-    
-    /**
-     * take item from player.
-     * <p>
-     * Example) /trg run IF takeItem(player, someitem, 1); #MESSAGE "Removed one
-     * stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
-     * </p>
-     *
-     * @param player
-     *            target player
-     * @param item
-     *            the exact ItemStack
-     * @param amount
-     *            amount
-     * @return true if took it; false if player doesn't have it
-     */
-    public boolean takeItem(Player player, ItemStack IS, int amount) {
-    	if(IS == null)
-    		throw new RuntimeException("Item cannot be null!");
-    	
+        ItemStack IS = ItemStack.of(itemType(id), amount);
         if (!player.getInventory().contains(IS))
             return false;
 

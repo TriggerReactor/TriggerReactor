@@ -100,7 +100,11 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public boolean takeItem(Player player, String id, int amount) {
         ItemStack IS = new ItemStack(Material.valueOf(id), amount);
-        return takeItem(player, IS, amount);
+        if (!player.getInventory().containsAtLeast(IS, amount))
+            return false;
+
+        player.getInventory().removeItem(IS);
+        return true;
     }
 
     /**
@@ -141,29 +145,6 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         return true;
     }
 
-    /**
-     * take item from player.
-     * <p>
-     * Example) /trg run IF takeItem(player, 1, 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
-     * </p>
-     * @param player
-     *            target player
-     * @param IS
-     * 		      exact item type
-     * @param amount
-     *            amount
-     * @param data
-     *            data of item
-     * @return true if took it; false if player doesn't have it
-     */
-    public boolean takeItem(Player player, ItemStack IS, int amount) {
-        if (!player.getInventory().containsAtLeast(IS, amount))
-            return false;
-
-        player.getInventory().removeItem(IS);
-        return true;
-    }
-    
     public Location location(String world, double x, double y, double z){
         World w = Bukkit.getWorld(world);
         if(world == null)
