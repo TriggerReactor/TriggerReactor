@@ -53,7 +53,14 @@ public class CopyYamlConfiguration extends YamlConfiguration {
         yamlRepresenter.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 
         String header = buildHeader();
-        String dump = yaml.dump(getValues(false));
+        Map<String, Object> values = getValues(false);
+		String dump;
+		if (values.isEmpty()) {
+			dump = BLANK_CONFIG;
+		} else {
+			dump = yaml.dump(getValues(false));
+		}
+      
 
         if (dump.equals(BLANK_CONFIG)) {
             dump = "";
