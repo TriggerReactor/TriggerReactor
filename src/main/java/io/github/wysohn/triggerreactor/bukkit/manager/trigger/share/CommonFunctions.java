@@ -16,12 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import java.lang.reflect.InvocationTargetException;
 import java.text.NumberFormat;
 import java.util.*;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -88,8 +86,9 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
+     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
      * </p>
+     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      * @param player
      *            target player
      * @param id
@@ -124,8 +123,9 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, 1, 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
+     * Example) /trg run IF takeItem(player, "STONE", 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
      * </p>
+     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      * @param player
      *            target player
      * @param id
@@ -141,6 +141,33 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         if (!player.getInventory().containsAtLeast(IS, amount))
             return false;
 
+        player.getInventory().removeItem(IS);
+        return true;
+    }
+    
+    /**
+     * take ItemStack from player. This check for every single metadata (title, lores, enchantment, etc.),
+     * so only the exactly matching items will be removed 
+     * <p>
+     * Example) /trg run IF takeItem(player, {"some.item"}, 1);
+     * </p>
+     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
+
+     * @param player
+     *            target player
+     * @param id
+     *            item id
+     * @param amount
+     *            amount
+     * @param data
+     *            data of item
+     * @return true if took it; false if player doesn't have it
+     */
+    public boolean takeItem(Player player, ItemStack IS, int amount) {
+        if (!player.getInventory().containsAtLeast(IS, amount))
+            return false;
+        IS.setAmount(amount);
+        
         player.getInventory().removeItem(IS);
         return true;
     }

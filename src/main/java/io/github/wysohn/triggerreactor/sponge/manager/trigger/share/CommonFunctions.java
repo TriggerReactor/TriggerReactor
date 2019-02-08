@@ -92,7 +92,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, 1, 1); #MESSAGE "Removed one
+     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one
      * stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
      * </p>
      *
@@ -109,6 +109,34 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         if (!player.getInventory().contains(IS))
             return false;
 
+        Optional<ItemStack> result = player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
+                .peek(amount);
+        if (result.isPresent() && result.orElse(null).getQuantity() < amount)
+            return false;
+
+        return player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS)).poll(amount).orElse(null)
+                .getQuantity() == amount;
+    }
+    
+    /**
+     * take ItemStack from player. This check for every single metadata (title, lores, enchantment, etc.),
+     * so only the exactly matching items will be removed 
+     * <p>
+     * Example) /trg run IF takeItem(player, {"some.item"}, 1);
+     * </p>
+     *
+     * @param player
+     *            target player
+     * @param id
+     *            item name. Sponge does not support numerical item id.
+     * @param amount
+     *            amount
+     * @return true if took it; false if player doesn't have it
+     */
+    public boolean takeItem(Player player, ItemStack IS, int amount) {
+        if (!player.getInventory().contains(IS))
+            return false;
+        
         Optional<ItemStack> result = player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
                 .peek(amount);
         if (result.isPresent() && result.orElse(null).getQuantity() < amount)
