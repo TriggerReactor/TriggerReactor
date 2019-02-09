@@ -25,6 +25,7 @@ import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
@@ -34,6 +35,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.sponge.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {
@@ -390,19 +392,27 @@ public class Interpreter {
 				throw new InterpreterException("Synchronous task error.", ex);
 			}
 		} else if (node.getToken().getType() == Type.ASYNC) {
-			task.submitAsync(new Callable<Void>() {
+			new Thread(()-> {
+				Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
+				rootCopy.getChildren().addAll(node.getChildren());
 
-				@Override
-				public Void call() throws Exception {
-					for(Node node : node.getChildren()) {
-						//ignore whatever returns as it's impossible
-						//to handle it from the caller
-						start(node);
-					}
-					return null;
+				Interpreter copy = new Interpreter(rootCopy);
+				// ignore whatever returns as it's impossible
+				// to handle it from the caller
+				copy.setExecutorMap(executorMap);
+				copy.setPlaceholderMap(placeholderMap);
+				copy.setGvars(gvars);
+				copy.setVars(vars);
+				copy.setSelfReference(selfReference);
+				copy.setTaskSupervisor(task);
+				copy.setSync(false);
+				
+				try {
+					copy.startWithContextAndInterrupter(context, interrupter);
+				} catch (InterpreterException e) {
+					TriggerReactor.getInstance().handleException(context, e);
 				}
-
-			});
+			}).start();
 			return;
 		} else {
             for(int i = 0; i < node.getChildren().size(); i++){

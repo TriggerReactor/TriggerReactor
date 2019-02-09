@@ -109,7 +109,7 @@ public class Parser {
                 if(codes == null)
                     throw new ParserException("Could not find ENDWHILE statement! "+whileNode.getToken());
                 whileNode.getChildren().add(body);
-
+                
                 return whileNode;
             }
             else if("ENDWHILE".equals(token.value)){
@@ -158,33 +158,43 @@ public class Parser {
                 return forNode;
             }
             else if("ENDFOR".equals(token.value)){
-                Node endForNode = new Node(token);
-                nextToken();
+				Node endForNode = new Node(token);
+				nextToken();
 				return endForNode;
 			} else if ("SYNC".equals(token.value)) {
 				Node node = new Node(new Token(Type.SYNC, "<SYNC>", token));
 				nextToken();
-				
-				while(token != null && !"ENDSYNC".equals(token.value)) {
-					node.getChildren().add(parseStatement());
+
+				Node codes = null;
+				while ((codes = parseStatement()) != null && !"ENDSYNC".equals(codes.getToken().value)) {
+					node.getChildren().add(codes);
 				}
-				
-				if(token == null || !"ENDSYNC".equals(token.value))
+
+				if (codes == null)
 					throw new ParserException("Could not find ENDSYNC. Did you forget to put one?");
-				
+
 				return node;
+			} else if ("ENDSYNC".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
 			} else if ("ASYNC".equals(token.value)) {
 				Node node = new Node(new Token(Type.ASYNC, "<ASYNC>", token));
 				nextToken();
-				
-				while(token != null && !"ENDASYNC".equals(token.value)) {
-					node.getChildren().add(parseStatement());
+
+				Node codes = null;
+				while ((codes = parseStatement()) != null && !"ENDASYNC".equals(codes.getToken().value)) {
+					node.getChildren().add(codes);
 				}
-				
-				if(token == null || !"ENDASYNC".equals(token.value))
+
+				if (codes == null)
 					throw new ParserException("Could not find ENDASYNC. Did you forget to put one?");
-				
+
 				return node;
+			} else if ("ENDASYNC".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
 			} else if (token.type == Type.ID) {
 				if (((String) token.value).charAt(0) == '#') {
 					int row = token.row;

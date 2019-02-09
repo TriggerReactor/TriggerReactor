@@ -1812,6 +1812,85 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("sync"));
         Assert.assertTrue(set.contains("async"));
     }
+    
+    @Test
+    public void testSyncAsync2() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "SYNC;"
+        		+ "FOR i = 0:1;"
+        		+ "#TEST1;"
+        		+ "ENDFOR;"
+        		+ "ENDSYNC;"
+        		+ "ASYNC;"
+        		+ "FOR j = 0:1;"
+        		+ "#TEST2;"
+        		+ "ENDFOR;"
+        		+ "ENDASYNC;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test1");
+				return null;
+			}
+        	
+        });
+        executorMap.put("TEST2", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test2");
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(new TaskSupervisor() {
+
+			/* (non-Javadoc)
+			 * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
+			 */
+			@Override
+			public <T> Future<T> submitSync(Callable<T> call) {
+				try {
+					call.call();
+					set.add("sync");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return new EmptyFuture<T>();
+			}
+
+			@Override
+			public <T> Future<T> submitAsync(Callable<T> call) {
+				try {
+					call.call();
+					set.add("async");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return new EmptyFuture<T>();
+			}
+        	
+        });
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test1"));
+        Assert.assertTrue(set.contains("test2"));
+        Assert.assertTrue(set.contains("sync"));
+        Assert.assertTrue(set.contains("async"));
+    }
 
     public static class TheTest{
         public static String staticField = "staticField";
