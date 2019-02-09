@@ -1429,8 +1429,8 @@ public abstract class TriggerReactor implements TaskSupervisor{
 	}
 
 	@Override
-	public <T> Future<T> submitAsync(Callable<T> call) {
-		return cachedThreadPool.submit(call);
+	public void submitAsync(Runnable run) {
+		new Thread(run).start();
 	}
 
 	/**

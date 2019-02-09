@@ -18,7 +18,6 @@ public interface TaskSupervisor {
 	 * of the caller thread (either server or separate thread), it will
 	 * always spawn a new thread that will run concurrently.
 	 * @param call the task to be done on separate thread
-	 * @return future instance
 	 */
-	<T> Future<T> submitAsync(Callable<T> call);
+	void submitAsync(Runnable run);
 }

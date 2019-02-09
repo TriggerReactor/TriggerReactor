@@ -1793,14 +1793,13 @@ public class TestInterpreter {
 			}
 
 			@Override
-			public <T> Future<T> submitAsync(Callable<T> call) {
+			public void submitAsync(Runnable run) {
 				try {
-					call.call();
+					run.run();
 					set.add("async");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				return new EmptyFuture<T>();
 			}
         	
         });
@@ -1870,16 +1869,15 @@ public class TestInterpreter {
 				}
 				return new EmptyFuture<T>();
 			}
-
+			
 			@Override
-			public <T> Future<T> submitAsync(Callable<T> call) {
+			public void submitAsync(Runnable run) {
 				try {
-					call.call();
+					run.run();
 					set.add("async");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-				return new EmptyFuture<T>();
 			}
         	
         });

@@ -392,7 +392,7 @@ public class Interpreter {
 				throw new InterpreterException("Synchronous task error.", ex);
 			}
 		} else if (node.getToken().getType() == Type.ASYNC) {
-			new Thread(()-> {
+			task.submitAsync(()-> {
 				Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
 				rootCopy.getChildren().addAll(node.getChildren());
 
@@ -412,7 +412,7 @@ public class Interpreter {
 				} catch (InterpreterException e) {
 					TriggerReactor.getInstance().handleException(context, e);
 				}
-			}).start();
+			});
 			return;
 		} else {
             for(int i = 0; i < node.getChildren().size(); i++){
