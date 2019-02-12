@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1889,6 +1890,166 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("sync"));
         Assert.assertTrue(set.contains("async"));
     }
+    
+    @Test
+    public void testConstructorNoArg() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "IMPORT "+ConstTest.class.getName()+";"
+        		+ "obj = ConstTest();"
+        		+ "#TEST obj;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test");
+				
+				Object obj = args[0];
+				Assert.assertEquals(ConstTest.class, obj.getClass());
+				
+				ConstTest test = (ConstTest) obj;
+				Assert.assertEquals(0, test.val1);
+				Assert.assertEquals(0.0, test.val2, 0.000001);
+				Assert.assertEquals("", test.val3);
+				
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test"));
+    }
+    
+    @Test
+    public void testConstructorOneArg() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "IMPORT "+ConstTest.class.getName()+";"
+        		+ "obj = ConstTest(1);"
+        		+ "#TEST obj;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test");
+				
+				Object obj = args[0];
+				Assert.assertEquals(ConstTest.class, obj.getClass());
+				
+				ConstTest test = (ConstTest) obj;
+				Assert.assertEquals(1, test.val1);
+				Assert.assertEquals(0.0, test.val2, 0.000001);
+				Assert.assertEquals("", test.val3);
+				
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test"));
+    }
+    
+    @Test
+    public void testConstructorThreeArg() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "IMPORT "+ConstTest.class.getName()+";"
+        		+ "obj = ConstTest(2, 5.0, \"hoho\");"
+        		+ "#TEST obj;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test");
+				
+				Object obj = args[0];
+				Assert.assertEquals(ConstTest.class, obj.getClass());
+				
+				ConstTest test = (ConstTest) obj;
+				Assert.assertEquals(2, test.val1);
+				Assert.assertEquals(5.0, test.val2, 0.000001);
+				Assert.assertEquals("hoho", test.val3);
+				
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test"));
+    }
+    
+    @Test
+    public void testConstructorVarArg() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "IMPORT "+ConstTest.class.getName()+";"
+        		+ "obj = ConstTest(1, 2, 3, 4, 5);"
+        		+ "#TEST obj;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test");
+				
+				Object obj = args[0];
+				Assert.assertEquals(ConstTest.class, obj.getClass());
+				
+				ConstTest test = (ConstTest) obj;
+				Assert.assertEquals(1, test.val1);
+				Assert.assertEquals(2.0, test.val2, 0.000001);
+				Assert.assertEquals("[1, 2, 3, 4, 5]", test.val3);
+				
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test"));
+    }
 
     public static class TheTest{
         public static String staticField = "staticField";
@@ -1916,7 +2077,7 @@ public class TestInterpreter {
             return "static";
         }
     }
-
+    
     public static class InTest{
         public InTest2 in = new InTest2();
         public double health = 0.82;
@@ -1937,6 +2098,40 @@ public class TestInterpreter {
 
     public enum TestEnum{
         IMTEST;
+    }
+    
+    public static class ConstTest{
+    	private int val1 = 0;
+    	private double val2 = 0.0;
+    	private String val3 = "";
+		public ConstTest(int val1, double val2, String val3) {
+			super();
+			this.val1 = val1;
+			this.val2 = val2;
+			this.val3 = val3;
+		}
+		public ConstTest(Object val1, Object val2, Object val3) {
+			super();
+		}
+		public ConstTest(int val1) {
+			super();
+			this.val1 = val1;
+		}
+		public ConstTest(Object val1) {
+			super();
+		}
+		public ConstTest() {
+			super();
+		}
+		public ConstTest(int... vararg) {
+			val1 = vararg[0];
+			val2 = vararg[1];
+			val3 = Arrays.toString(vararg);
+		}
+		
+		public ConstTest(Object... vararg) {
+
+		}
     }
     
     public static class EmptyFuture<T> implements Future<T>{
