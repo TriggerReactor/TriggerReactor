@@ -33,6 +33,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     @Override
     public void reload() {
         commandTriggerMap.clear();
+        aliasesMap.clear();
 
         for(File file : folder.listFiles()){
             if(!isTriggerFile(file))
