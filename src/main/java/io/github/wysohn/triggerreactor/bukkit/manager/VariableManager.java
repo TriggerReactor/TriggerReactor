@@ -40,6 +40,8 @@ public class VariableManager extends AbstractVariableManager{
     private File varFile;
     private FileConfiguration varFileConfig;
 
+    private Boolean saving = false;
+    
     public VariableManager(TriggerReactor plugin) throws IOException, InvalidConfigurationException {
         super(plugin);
 
@@ -54,15 +56,19 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public void reload(){
-        varFileConfig = new Utf8YamlConfiguration();
-        try {
-            varFileConfig.load(varFile);
-        } catch (IOException | InvalidConfigurationException e) {
-            e.printStackTrace();
-        }
+    	plugin.getLogger().info("Waiting for previous saving tasks...");
+       	synchronized(saving) {
+           	plugin.getLogger().info("Done! now reloading global variables...");
+            varFileConfig = new Utf8YamlConfiguration();
+            try {
+                varFileConfig.load(varFile);
+             	plugin.getLogger().info("Global variables were loaded from "+varFile.getName());
+            } catch (IOException | InvalidConfigurationException e) {
+                e.printStackTrace();
+            }
+       	}
     }
 
-    private boolean saving = false;
     @Override
     public void saveAll(){
         if(saving)
@@ -72,14 +78,16 @@ public class VariableManager extends AbstractVariableManager{
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    FileUtil.writeToFile(varFile, varFileConfig.saveToString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    plugin.getLogger().severe("Something went wrong while saving global variable!");
-                } finally {
-                    saving = false;
-                }
+            	synchronized(saving) {
+                    try {
+                        FileUtil.writeToFile(varFile, varFileConfig.saveToString());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        plugin.getLogger().severe("Something went wrong while saving global variable!");
+                    } finally {
+                        saving = false;
+                    }
+            	}
             }
         }).start();
     }

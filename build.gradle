@@ -58,9 +58,9 @@ repositories {
     maven {
         url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
     }
-    maven {
-        url "http://nexus.hc.to/content/repositories/pub_releases/"
-    }
+    //maven {
+    //    url "http://nexus.hc.to/content/repositories/pub_releases/"
+    //}
     maven {
         url "https://oss.sonatype.org/content/repositories/snapshots"
     }
@@ -100,7 +100,7 @@ dependencies {
     //bukkit
     compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
 
-    compile "net.milkbowl.vault:VaultAPI:1.6"
+    //compile "net.milkbowl.vault:VaultAPI:1.6"
     compile "org.bstats:bstats-bukkit-lite:1.4"
     //////////////////////////////////////////////////////////
     //sponge
