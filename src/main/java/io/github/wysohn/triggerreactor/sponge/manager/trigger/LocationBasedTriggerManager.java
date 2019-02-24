@@ -73,6 +73,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     @Exclude({InteractBlockEvent.Primary.OffHand.class, InteractBlockEvent.Secondary.OffHand.class})
     public void onClick(InteractBlockEvent e){
         Player player = e.getCause().first(Player.class).orElse(null);
+        //maybe something other than a player can interact with a block?
+        if(player == null)
+        	return;
 
         ItemStack IS = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
         BlockSnapshot clicked = e.getTargetBlock();
