@@ -913,6 +913,10 @@ public class Interpreter {
                 if(value.type == Type.NULLVALUE){
                     accessor.setTargetValue(null);
                 }else{
+                    if(isVariable(value)){
+                        value = unwrapVariable(value);
+                    }
+                    
                     accessor.setTargetValue(value.value);
                 }
             } catch (NoSuchFieldException e) {

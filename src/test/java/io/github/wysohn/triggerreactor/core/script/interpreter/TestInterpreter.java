@@ -48,6 +48,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFuncti
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import junit.framework.Assert;
 
 public class TestInterpreter {
@@ -2045,6 +2046,47 @@ public class TestInterpreter {
         });
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
+        
+        interpreter.startWithContext(null);
+        
+        Assert.assertTrue(set.contains("test"));
+    }
+    
+    @Test
+    public void testArrayAndClass() throws Exception{
+    	Set<String> set = new HashSet<>();
+    	
+        Charset charset = Charset.forName("UTF-8");
+        String text = ""
+        		+ "IMPORT "+TestEnum.class.getName()+";"
+        		+ "enumVal = TestEnum.IMTEST;"
+        		+ "arr = array(1);"
+        		+ "arr[0] = enumVal;"
+        		+ "#TEST arr[0];";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST", new Executor() {
+
+			@Override
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args)
+					throws Exception {
+				set.add("test");
+				
+				Assert.assertEquals(TestEnum.IMTEST, args[0]);
+				
+				return null;
+			}
+        	
+        });
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setSelfReference(new SelfReference() {
+        	public Object array(int size) {
+        		return new Object[size];
+        	}
+        });
         
         interpreter.startWithContext(null);
         
