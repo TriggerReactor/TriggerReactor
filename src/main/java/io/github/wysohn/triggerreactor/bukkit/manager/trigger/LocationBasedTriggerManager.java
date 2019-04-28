@@ -17,8 +17,11 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -185,6 +188,53 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 });
     }
 
+    private Collection<Block> getSurroundingBlocks(Block block, Predicate<Block> pred){
+    	Collection<Block> blocks = new ArrayList<>();
+    	Predicate<Block> notNull = b -> b != null;
+    	
+    	Block relative = null;
+    	
+    	relative = block.getRelative(BlockFace.NORTH);
+		if (notNull.and(pred).test(relative)) {
+			blocks.add(relative);
+		}
+		
+    	relative = block.getRelative(BlockFace.SOUTH);
+		if (notNull.and(pred).test(relative)) {
+			blocks.add(relative);
+		}
+		
+    	relative = block.getRelative(BlockFace.EAST);
+		if (notNull.and(pred).test(relative)) {
+			blocks.add(relative);
+		}
+		
+    	relative = block.getRelative(BlockFace.WEST);
+		if (notNull.and(pred).test(relative)) {
+			blocks.add(relative);
+		}
+		
+		return blocks;
+    }
+    
+    @EventHandler(priority = EventPriority.LOW)
+    public void onWallSignBreak(BlockBreakEvent e){
+        if(e.isCancelled())
+            return;
+
+		Block block = e.getBlock();
+		for (Block surronding : getSurroundingBlocks(block, (b) -> b.getType() == Material.WALL_SIGN)) {
+			BlockBreakEvent bbe = new BlockBreakEvent(surronding, e.getPlayer());
+			onBreak(bbe);
+
+			// at least one sign is not breakable, so cancel the event and stop iteration
+			if (bbe.isCancelled()) {
+				e.setCancelled(true);
+				break;
+			}
+		}
+    }
+    
     @EventHandler(priority = EventPriority.LOW)
     public void onSignBreak(BlockBreakEvent e){
         if(e.isCancelled())
@@ -192,8 +242,10 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         Block block = e.getBlock();
         Block above = block.getRelative(BlockFace.UP);
-
-        if(!above.getType().name().contains("SIGN"))
+        
+		// check if this break event of the block
+		// will cause the destruction of sign above it
+		if (above.getType() != Material.SIGN_POST)
             return;
 
         BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
