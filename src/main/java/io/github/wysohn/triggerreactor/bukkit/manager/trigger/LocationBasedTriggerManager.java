@@ -52,315 +52,313 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
-        implements BukkitTriggerManager {
+	implements BukkitTriggerManager {
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
+	super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
     }
 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onClick(PlayerInteractEvent e){
-        if(!BukkitUtil.isLeftHandClick(e))
-            return;
+    public void onClick(PlayerInteractEvent e) {
+	if (!BukkitUtil.isLeftHandClick(e))
+	    return;
 
-        Player player = e.getPlayer();
+	Player player = e.getPlayer();
 
-        ItemStack IS = player.getInventory().getItemInHand();
-        Block clicked = e.getClickedBlock();
-        if(clicked == null)
-            return;
+	ItemStack IS = player.getInventory().getItemInHand();
+	Block clicked = e.getClickedBlock();
+	if (clicked == null)
+	    return;
 
-        T trigger = getTriggerForLocation(clicked.getLocation());
+	T trigger = getTriggerForLocation(clicked.getLocation());
 
-        if(IS != null
-                &&!e.isCancelled()
-                && player.hasPermission("triggerreactor.admin")){
+	if (IS != null && !e.isCancelled() && player.hasPermission("triggerreactor.admin")) {
 
-            if(IS.getType() == INSPECTION_TOOL){
-                if(trigger != null && e.getAction() == Action.LEFT_CLICK_BLOCK){
-                    removeTriggerForLocation(clicked.getLocation());
+	    if (IS.getType() == INSPECTION_TOOL) {
+		if (trigger != null && e.getAction() == Action.LEFT_CLICK_BLOCK) {
+		    removeTriggerForLocation(clicked.getLocation());
 
-                    player.sendMessage(ChatColor.GREEN+"A trigger has deleted.");
-                    e.setCancelled(true);
-                }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
-                    if(e.getPlayer().isSneaking()){
-                        handleScriptEdit(player, trigger);
-                        e.setCancelled(true);
-                    }else{
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
-                        e.setCancelled(true);
-                    }
-                }
-            }else if(IS.getType() == CUT_TOOL){
-                if(e.getAction() == Action.LEFT_CLICK_BLOCK){
-                    if(pasteTrigger(player, clicked.getLocation())){
-                        player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
-                        e.setCancelled(true);
-                    }
-                }else if(trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK){
-                    if(cutTrigger(player, clicked.getLocation())){
-                        player.sendMessage(ChatColor.GREEN+"Cut Complete!");
-                        player.sendMessage(ChatColor.GREEN+"Now you can paste it by left click on any block!");
-                        e.setCancelled(true);
-                    }
-                }
-            }else if(IS.getType() == COPY_TOOL){
-                if(e.getAction() == Action.LEFT_CLICK_BLOCK){
-                    if(pasteTrigger(player, clicked.getLocation())){
-                        player.sendMessage(ChatColor.GREEN+"Successfully pasted the trigger!");
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
-                        e.setCancelled(true);
-                    }
-                }else if(e.getAction() == Action.RIGHT_CLICK_BLOCK){
-                    if(trigger != null && copyTrigger(player, clicked.getLocation())){
-                        player.sendMessage(ChatColor.GREEN+"Copy Complete!");
-                        player.sendMessage(ChatColor.GREEN+"Now you can paste it by left click on any block!");
-                        e.setCancelled(true);
-                    }
-                }
-            }
-        }
+		    player.sendMessage(ChatColor.GREEN + "A trigger has deleted.");
+		    e.setCancelled(true);
+		} else if (trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+		    if (e.getPlayer().isSneaking()) {
+			handleScriptEdit(player, trigger);
+			e.setCancelled(true);
+		    } else {
+			this.showTriggerInfo(new BukkitPlayer(player), clicked);
+			e.setCancelled(true);
+		    }
+		}
+	    } else if (IS.getType() == CUT_TOOL) {
+		if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
+		    if (pasteTrigger(player, clicked.getLocation())) {
+			player.sendMessage(ChatColor.GREEN + "Successfully pasted the trigger!");
+			this.showTriggerInfo(new BukkitPlayer(player), clicked);
+			e.setCancelled(true);
+		    }
+		} else if (trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+		    if (cutTrigger(player, clicked.getLocation())) {
+			player.sendMessage(ChatColor.GREEN + "Cut Complete!");
+			player.sendMessage(ChatColor.GREEN + "Now you can paste it by left click on any block!");
+			e.setCancelled(true);
+		    }
+		}
+	    } else if (IS.getType() == COPY_TOOL) {
+		if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
+		    if (pasteTrigger(player, clicked.getLocation())) {
+			player.sendMessage(ChatColor.GREEN + "Successfully pasted the trigger!");
+			this.showTriggerInfo(new BukkitPlayer(player), clicked);
+			e.setCancelled(true);
+		    }
+		} else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+		    if (trigger != null && copyTrigger(player, clicked.getLocation())) {
+			player.sendMessage(ChatColor.GREEN + "Copy Complete!");
+			player.sendMessage(ChatColor.GREEN + "Now you can paste it by left click on any block!");
+			e.setCancelled(true);
+		    }
+		}
+	    }
+	}
 
-        if(!e.isCancelled() && isLocationSetting(new BukkitPlayer(player))){
-            handleLocationSetting(clicked, player);
-            e.setCancelled(true);
-        }
+	if (!e.isCancelled() && isLocationSetting(new BukkitPlayer(player))) {
+	    handleLocationSetting(clicked, player);
+	    e.setCancelled(true);
+	}
     }
 
-    private void handleLocationSetting(Block clicked, Player p){
-        IPlayer player = new BukkitPlayer(p);
+    private void handleLocationSetting(Block clicked, Player p) {
+	IPlayer player = new BukkitPlayer(p);
 
-        Location loc = clicked.getLocation();
-        T trigger = getTriggerForLocation(loc);
-        if(trigger != null){
-            player.sendMessage(ChatColor.RED+"Another trigger is set at there!");
-            showTriggerInfo(player, clicked);
-            return;
-        }
+	Location loc = clicked.getLocation();
+	T trigger = getTriggerForLocation(loc);
+	if (trigger != null) {
+	    player.sendMessage(ChatColor.RED + "Another trigger is set at there!");
+	    showTriggerInfo(player, clicked);
+	    return;
+	}
 
-        String script = getSettingLocationScript(player);
-        if(script == null){
-            player.sendMessage(ChatColor.RED+"Could not find script... but how?");
-            return;
-        }
+	String script = getSettingLocationScript(player);
+	if (script == null) {
+	    player.sendMessage(ChatColor.RED + "Could not find script... but how?");
+	    return;
+	}
 
-        try {
-            trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
-        } catch (TriggerInitFailedException e1) {
-            player.sendMessage(ChatColor.RED+"Encounterd an error!");
-            player.sendMessage(ChatColor.RED+e1.getMessage());
-            player.sendMessage(ChatColor.RED+"If you are an administrator, check console to see details.");
-            e1.printStackTrace();
+	try {
+	    trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
+	} catch (TriggerInitFailedException e1) {
+	    player.sendMessage(ChatColor.RED + "Encounterd an error!");
+	    player.sendMessage(ChatColor.RED + e1.getMessage());
+	    player.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
+	    e1.printStackTrace();
 
-            stopLocationSet(player);
-            return;
-        }
+	    stopLocationSet(player);
+	    return;
+	}
 
-        setTriggerForLocation(loc, trigger);
+	setTriggerForLocation(loc, trigger);
 
-        showTriggerInfo(player, clicked);
+	showTriggerInfo(player, clicked);
 
-        stopLocationSet(player);
+	stopLocationSet(player);
 
-        plugin.saveAsynchronously(this);
+	plugin.saveAsynchronously(this);
     }
 
     private void handleScriptEdit(Player player, T trigger) {
 
-        plugin.getScriptEditManager().startEdit(new BukkitPlayer(player), trigger.getTriggerName(), trigger.getScript(),
-                new SaveHandler() {
-                    @Override
-                    public void onSave(String script) {
-                        try {
-                            trigger.setScript(script);
-                        } catch (TriggerInitFailedException e) {
-                            plugin.handleException(new BukkitPlayer(player), e);
-                        }
-
-                        plugin.saveAsynchronously(LocationBasedTriggerManager.this);
-                    }
-
-                });
-    }
-
-    private Collection<Block> getSurroundingBlocks(Block block, Predicate<Block> pred){
-    	Collection<Block> blocks = new ArrayList<>();
-    	Predicate<Block> notNull = b -> b != null;
-    	
-    	Block relative = null;
-    	
-    	relative = block.getRelative(BlockFace.NORTH);
-		if (notNull.and(pred).test(relative)) {
-			blocks.add(relative);
-		}
-		
-    	relative = block.getRelative(BlockFace.SOUTH);
-		if (notNull.and(pred).test(relative)) {
-			blocks.add(relative);
-		}
-		
-    	relative = block.getRelative(BlockFace.EAST);
-		if (notNull.and(pred).test(relative)) {
-			blocks.add(relative);
-		}
-		
-    	relative = block.getRelative(BlockFace.WEST);
-		if (notNull.and(pred).test(relative)) {
-			blocks.add(relative);
-		}
-		
-		return blocks;
-    }
-    
-    @EventHandler(priority = EventPriority.LOW)
-    public void onWallSignBreak(BlockBreakEvent e){
-        if(e.isCancelled())
-            return;
-
-		Block block = e.getBlock();
-		for (Block surronding : getSurroundingBlocks(block, (b) -> b.getType() == Material.WALL_SIGN)) {
-			BlockBreakEvent bbe = new BlockBreakEvent(surronding, e.getPlayer());
-			onBreak(bbe);
-
-			// at least one sign is not breakable, so cancel the event and stop iteration
-			if (bbe.isCancelled()) {
-				e.setCancelled(true);
-				break;
+	plugin.getScriptEditManager().startEdit(new BukkitPlayer(player), trigger.getTriggerName(), trigger.getScript(),
+		new SaveHandler() {
+		    @Override
+		    public void onSave(String script) {
+			try {
+			    trigger.setScript(script);
+			} catch (TriggerInitFailedException e) {
+			    plugin.handleException(new BukkitPlayer(player), e);
 			}
-		}
+
+			plugin.saveAsynchronously(LocationBasedTriggerManager.this);
+		    }
+
+		});
     }
-    
+
+    private Collection<Block> getSurroundingBlocks(Block block, Predicate<Block> pred) {
+	Collection<Block> blocks = new ArrayList<>();
+	Predicate<Block> notNull = b -> b != null;
+
+	Block relative = null;
+
+	relative = block.getRelative(BlockFace.NORTH);
+	if (notNull.and(pred).test(relative)) {
+	    blocks.add(relative);
+	}
+
+	relative = block.getRelative(BlockFace.SOUTH);
+	if (notNull.and(pred).test(relative)) {
+	    blocks.add(relative);
+	}
+
+	relative = block.getRelative(BlockFace.EAST);
+	if (notNull.and(pred).test(relative)) {
+	    blocks.add(relative);
+	}
+
+	relative = block.getRelative(BlockFace.WEST);
+	if (notNull.and(pred).test(relative)) {
+	    blocks.add(relative);
+	}
+
+	return blocks;
+    }
+
     @EventHandler(priority = EventPriority.LOW)
-    public void onSignBreak(BlockBreakEvent e){
-        if(e.isCancelled())
-            return;
+    public void onWallSignBreak(BlockBreakEvent e) {
+	if (e.isCancelled())
+	    return;
 
-        Block block = e.getBlock();
-        Block above = block.getRelative(BlockFace.UP);
-        
-		// check if this break event of the block
-		// will cause the destruction of sign above it
-		if (above.getType() != Material.SIGN_POST)
-            return;
+	Block block = e.getBlock();
+	for (Block surronding : getSurroundingBlocks(block, (b) -> b.getType() == Material.WALL_SIGN)) {
+	    BlockBreakEvent bbe = new BlockBreakEvent(surronding, e.getPlayer());
+	    onBreak(bbe);
 
-        BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
-        onBreak(bbe);
-        e.setCancelled(bbe.isCancelled());
+	    // at least one sign is not breakable, so cancel the event and stop iteration
+	    if (bbe.isCancelled()) {
+		e.setCancelled(true);
+		break;
+	    }
+	}
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onSignBreak(BlockBreakEvent e) {
+	if (e.isCancelled())
+	    return;
+
+	Block block = e.getBlock();
+	Block above = block.getRelative(BlockFace.UP);
+
+	// check if this break event of the block
+	// will cause the destruction of sign above it
+	if (above.getType() != Material.SIGN_POST)
+	    return;
+
+	BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
+	onBreak(bbe);
+	e.setCancelled(bbe.isCancelled());
     }
 
     @EventHandler
-    public void onBreak(BlockBreakEvent e){
-        Block block = e.getBlock();
+    public void onBreak(BlockBreakEvent e) {
+	Block block = e.getBlock();
 
-        T trigger = getTriggerForLocation(block.getLocation());
-        if(trigger == null)
-            return;
+	T trigger = getTriggerForLocation(block.getLocation());
+	if (trigger == null)
+	    return;
 
-        Player player = e.getPlayer();
+	Player player = e.getPlayer();
 
-        player.sendMessage(ChatColor.GRAY+"Cannot break trigger block.");
-        player.sendMessage(ChatColor.GRAY+"To remove trigger, hold inspection tool "+INSPECTION_TOOL.name());
-        e.setCancelled(true);
+	player.sendMessage(ChatColor.GRAY + "Cannot break trigger block.");
+	player.sendMessage(ChatColor.GRAY + "To remove trigger, hold inspection tool " + INSPECTION_TOOL.name());
+	e.setCancelled(true);
     }
 
     @EventHandler
-    public void onItemSwap(PlayerItemHeldEvent e){
-        onItemSwap(new BukkitPlayer(e.getPlayer()));
+    public void onItemSwap(PlayerItemHeldEvent e) {
+	onItemSwap(new BukkitPlayer(e.getPlayer()));
     }
 
     protected T getTriggerForLocation(Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return getTriggerForLocation(sloc);
+	SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+	return getTriggerForLocation(sloc);
     }
 
     protected void setTriggerForLocation(Location loc, T trigger) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        setTriggerForLocation(sloc, trigger);
+	SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+	setTriggerForLocation(sloc, trigger);
     }
 
     protected T removeTriggerForLocation(Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return removeTriggerForLocation(sloc);
+	SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+	return removeTriggerForLocation(sloc);
     }
 
     protected void showTriggerInfo(ICommandSender sender, Block clicked) {
-        Trigger trigger = getTriggerForLocation(LocationUtil.convertToSimpleLocation(clicked.getLocation()));
-        if(trigger == null){
-            return;
-        }
+	Trigger trigger = getTriggerForLocation(LocationUtil.convertToSimpleLocation(clicked.getLocation()));
+	if (trigger == null) {
+	    return;
+	}
 
-        sender.sendMessage("- - - - - - - - - - - - - -");
-        sender.sendMessage("Trigger: "+getTriggerTypeName());
-        sender.sendMessage("Block Type: " + clicked.getType().name());
-        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
-                + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
-        sender.sendMessage("");
-        sender.sendMessage("Script:");
-        sender.sendMessage(trigger.getScript());
-        sender.sendMessage("- - - - - - - - - - - - - -");
+	sender.sendMessage("- - - - - - - - - - - - - -");
+	sender.sendMessage("Trigger: " + getTriggerTypeName());
+	sender.sendMessage("Block Type: " + clicked.getType().name());
+	sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
+		+ clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
+	sender.sendMessage("");
+	sender.sendMessage("Script:");
+	sender.sendMessage(trigger.getScript());
+	sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     @Override
     protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc) {
-        Trigger trigger = getTriggerForLocation(sloc);
-        if(trigger == null){
-            return;
-        }
+	Trigger trigger = getTriggerForLocation(sloc);
+	if (trigger == null) {
+	    return;
+	}
 
-        Location loc = LocationUtil.convertToBukkitLocation(sloc);
-        Block clicked = loc.getBlock();
+	Location loc = LocationUtil.convertToBukkitLocation(sloc);
+	Block clicked = loc.getBlock();
 
-        sender.sendMessage("- - - - - - - - - - - - - -");
-        sender.sendMessage("Trigger: "+getTriggerTypeName());
-        sender.sendMessage("Block Type: " + clicked.getType().name());
-        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
-                + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
-        sender.sendMessage("");
-        sender.sendMessage("Script:");
-        sender.sendMessage(trigger.getScript());
-        sender.sendMessage("- - - - - - - - - - - - - -");
+	sender.sendMessage("- - - - - - - - - - - - - -");
+	sender.sendMessage("Trigger: " + getTriggerTypeName());
+	sender.sendMessage("Block Type: " + clicked.getType().name());
+	sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
+		+ clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
+	sender.sendMessage("");
+	sender.sendMessage("Script:");
+	sender.sendMessage(trigger.getScript());
+	sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     /**
-    *
-    * @param player
-    * @param loc
-    * @return true if cut ready; false if no trigger found at the location
-    */
+     *
+     * @param player
+     * @param loc
+     * @return true if cut ready; false if no trigger found at the location
+     */
     protected boolean cutTrigger(Player player, Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return cutTrigger(new BukkitPlayer(player), sloc);
+	SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+	return cutTrigger(new BukkitPlayer(player), sloc);
     }
 
     /**
-    *
-    * @param player
-    * @param loc
-    * @return true if copy ready; false if no trigger found at the location
-    */
+     *
+     * @param player
+     * @param loc
+     * @return true if copy ready; false if no trigger found at the location
+     */
     protected boolean copyTrigger(Player player, Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return copyTrigger(new BukkitPlayer(player), sloc);
+	SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+	return copyTrigger(new BukkitPlayer(player), sloc);
     }
 
     /**
-    *
-    * @param player
-    * @param loc
-    * @return true if pasted; false if nothing in the clipboard
-    */
+     *
+     * @param player
+     * @param loc
+     * @return true if pasted; false if nothing in the clipboard
+     */
     protected boolean pasteTrigger(Player player, Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return pasteTrigger(new BukkitPlayer(player), sloc);
+	SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+	return pasteTrigger(new BukkitPlayer(player), sloc);
     }
 
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
-        SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
-        return getTriggersInChunk(scloc);
+	SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
+	return getTriggersInChunk(scloc);
     }
 }
