@@ -1,11 +1,11 @@
 function SETFLYMODE(args)
-{
-  var arg = args[0]
-  
+{ 
   if (args.length > 1)
   {
     throw new Error("Executor SETFLYMODE should only have 1 argument.")
   }
+  
+  var arg = args[0]
   
   if (!(typeof arg == "boolean"))
   {
