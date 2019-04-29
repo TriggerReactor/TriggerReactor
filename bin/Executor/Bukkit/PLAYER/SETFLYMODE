@@ -1,0 +1,17 @@
+function SETFLYMODE(args)
+{
+  arg = args[0]
+  
+  if (args.length > 1)
+  {
+    throw new Error("Executor SETFLYMODE should only have 1 argument.")
+  }
+  
+  if (!(typeof arg == "boolean"))
+  {
+    throw new Error("Invalid argument for executor SETFLYMODE: " + arg)
+  }
+  
+  player.setAllowFlight(arg);
+  player.setFlying(arg);
+}
