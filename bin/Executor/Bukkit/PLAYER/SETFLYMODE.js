@@ -1,6 +1,6 @@
 function SETFLYMODE(args)
 {
-  arg = args[0]
+  var arg = args[0]
   
   if (args.length > 1)
   {
