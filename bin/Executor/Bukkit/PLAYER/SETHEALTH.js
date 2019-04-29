@@ -12,5 +12,10 @@ function SETHEALTH(args)
     throw new Error("Invalid argument for SETHEALTH: " + arg)
   }
   
+  if (arg < 0)
+  {
+    throw new Error("Argument for Exector SETHEALTH should not be negative")
+  }
+  
   player.setHealth(arg)
 }
