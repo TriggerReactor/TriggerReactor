@@ -1,8 +1,8 @@
 function SETHEALTH(args)
 {
-  if (args.length > 1)
+  if (args.length != 1)
   {
-    throw new Error("Executor SETHEALTH should only have 1 argument")
+    throw new Error("Incorrect Number of arguments for executor SETHEALTH")
   }
   
   var arg = args[0]
