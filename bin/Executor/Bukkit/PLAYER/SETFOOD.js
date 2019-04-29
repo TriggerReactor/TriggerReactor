@@ -12,5 +12,10 @@ function SETFOOD(args)
     throw new Error("Invalid argument for SETFOOD: " + arg)
   }
   
+  if (arg < 0)
+  {
+    throw new Error("Argument for Executor SETFOOD should not be negative")
+  }
+  
   player.setFoodLevel(arg)
 }
