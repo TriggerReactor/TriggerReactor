@@ -1,8 +1,8 @@
 function SETFLYMODE(args)
 { 
-  if (args.length > 1)
+  if (args.length != 1)
   {
-    throw new Error("Executor SETFLYMODE should only have 1 argument.")
+    throw new Error("Incorrect number of arguments for executor SETFLYMODE")
   }
   
   var arg = args[0]
