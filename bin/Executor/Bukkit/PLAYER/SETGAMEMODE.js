@@ -20,6 +20,6 @@ function SETGAMEMODE(args)
   }
     catch(ex)
   {
-	  	throw new Error("Unknown GAEMMODE value "+value)
+	  throw new Error("Unknown GAEMMODE value "+value)
   }
 }
