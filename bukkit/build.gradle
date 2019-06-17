@@ -1,0 +1,40 @@
+allprojects {
+    repositories {
+        maven {
+            url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+        }
+        //maven {
+        //    url "http://nexus.hc.to/content/repositories/pub_releases/"
+        //}
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
+    }
+
+    dependencies {
+        compile project(":core")
+
+        compile "org.bstats:bstats-bukkit-lite:1.4"
+    }
+
+    jar {
+        from {
+            String[] include = [
+                    "bstats-bukkit-lite-1.4.jar",
+                    "core.jar",
+                    "bukkit.jar"
+            ]
+
+            configurations.compile
+                    .findAll { include.contains(it.name) }
+                    .collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
+}
+
+subprojects {
+    dependencies {
+        compile fileTree(dir: "libs", includes: ['*.jar'])
+        compile project(":bukkit")
+    }
+}
