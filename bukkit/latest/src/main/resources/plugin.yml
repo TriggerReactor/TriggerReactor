@@ -1,0 +1,35 @@
+name: TriggerReactor
+main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
+version: 2.1.8
+author: wysohn
+authors:
+- soliddanii
+- MidnightSugar
+- TheBestNightSky
+- dltks0306
+- RubrumExPlaneta
+- Alex4386
+- RedLime
+- mrandriyg
+- professer_snape
+softdepend:
+- Vault
+- PlaceholderAPI
+- mcMMO
+- CoreProtect
+- ProtocolLib
+- WorldGuard
+commands:
+  triggerreactor:
+    aliases:
+    - trg
+    description: Simple script parser with infinite possibility
+permissions:
+  triggerreactor.admin:
+    description: Grant admin permission
+command:
+  triggerreactor:
+    aliases:
+    - trg
+    description: Simple script parser with infinite possibility
+api-version: 1.13
