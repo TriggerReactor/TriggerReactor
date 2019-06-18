@@ -1,9 +1,7 @@
 language: java
-before_install:
- - chmod +x gradlew
 script: 
- - ./gradlew check
- - ./gradlew build
+ - gradle check
+ - gradle build
 deploy:
    - provider: releases
      api_key: $githubkey
