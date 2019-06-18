@@ -122,7 +122,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
     private boolean debugging = false;
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
-        if (command.equalsIgnoreCase("io/github/wysohn/triggerreactor")) {
+        if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
 
