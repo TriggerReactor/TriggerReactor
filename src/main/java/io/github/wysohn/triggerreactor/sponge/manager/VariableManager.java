@@ -42,6 +42,8 @@ public class VariableManager extends AbstractVariableManager{
     private ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader;
     private ConfigurationNode varFileConfig;
 
+    private Boolean saving = false;
+    
     public VariableManager(TriggerReactor plugin) throws IOException {
         super(plugin);
 
@@ -56,14 +58,18 @@ public class VariableManager extends AbstractVariableManager{
 
     @Override
     public void reload(){
-        try {
-            varFileConfig = varFileConfigLoader.load();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    	plugin.getLogger().info("Waiting for previous saving tasks...");
+    	synchronized(saving) {
+            try {
+            	plugin.getLogger().info("Done! now reloading global variables...");
+                varFileConfig = varFileConfigLoader.load();
+            	plugin.getLogger().info("Global variables were loaded from "+varFile.getName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+    	}
     }
-
-    private boolean saving = false;
+ 
     @Override
     public void saveAll(){
         if(saving)
@@ -73,13 +79,15 @@ public class VariableManager extends AbstractVariableManager{
         new Thread(new Runnable() {
             @Override
             public void run() {
-                try {
-                    varFileConfigLoader.save(varFileConfig);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    plugin.getLogger().severe("Something went wrong while saving global variable!");
-                } finally {
-                    saving = false;
+                synchronized(saving) {
+                    try {
+                        varFileConfigLoader.save(varFileConfig);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        plugin.getLogger().severe("Something went wrong while saving global variable!");
+                    } finally {
+                        saving = false;
+                    }
                 }
             }
         }).start();

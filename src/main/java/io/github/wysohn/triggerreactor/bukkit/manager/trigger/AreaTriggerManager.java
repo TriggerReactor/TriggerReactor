@@ -85,6 +85,9 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
                             UUID uuid = e.getUniqueId();
 
+                            if(!plugin.isEnabled())
+                            	break;
+                            
                             Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
 
                                 @Override
@@ -96,7 +99,8 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
                             boolean valid = false;
                             try {
-                                valid = future.get();
+                            	if(future != null)
+                            		valid = future.get();
                             } catch (InterruptedException | CancellationException e1) {
                             } catch (ExecutionException e1) {
                                 e1.printStackTrace();

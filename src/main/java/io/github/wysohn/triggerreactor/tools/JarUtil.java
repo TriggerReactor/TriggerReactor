@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -42,11 +43,11 @@ public class JarUtil {
         String path = JarUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         if(trimmer != null)
             path = trimmer.trim(path);
-        String decodedPath = URLDecoder.decode(path, "UTF-8").replace(" ", "%20");
         try {
-            if(!decodedPath.startsWith("file"))
-                decodedPath = "file://"+decodedPath;
-            fullPath = new File(new URI(decodedPath));
+            if(!path.startsWith("file"))
+        	path = "file://"+path;
+            
+            fullPath = new File(new URI(path));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -97,5 +98,10 @@ public class JarUtil {
     @FunctionalInterface
     public interface PathTrimmer{
         String trim(String original);
+    }
+    
+    public static void main(String[] ar) throws IOException {
+	copyFolderFromJar("SomeFolder", new File(""), CopyOption.REPLACE_IF_EXIST);
+	
     }
 }

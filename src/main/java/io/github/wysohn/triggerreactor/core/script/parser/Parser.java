@@ -77,13 +77,22 @@ public class Parser {
                 nextToken();
                 return node;
             }else if("IF".equals(token.value)){
-                return parseIf();
+            	Token ifToken = token;
+            	nextToken();
+                return parseIf(ifToken);
             }else if("ELSEIF".equals(token.value)) {
-                return null;
-            }else if("ENDIF".equals(token.value)){
-                return null;
-            }
-            else if("WHILE".equals(token.value)){
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("ELSE".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("ENDIF".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }else if("WHILE".equals(token.value)){
                 Node whileNode = new Node(token);
                 nextToken();
 
@@ -100,7 +109,7 @@ public class Parser {
                 if(codes == null)
                     throw new ParserException("Could not find ENDWHILE statement! "+whileNode.getToken());
                 whileNode.getChildren().add(body);
-
+                
                 return whileNode;
             }
             else if("ENDWHILE".equals(token.value)){
@@ -149,14 +158,47 @@ public class Parser {
                 return forNode;
             }
             else if("ENDFOR".equals(token.value)){
-                Node endForNode = new Node(token);
+				Node endForNode = new Node(token);
+				nextToken();
+				return endForNode;
+			} else if ("SYNC".equals(token.value)) {
+				Node node = new Node(new Token(Type.SYNC, "<SYNC>", token));
+				nextToken();
+
+				Node codes = null;
+				while ((codes = parseStatement()) != null && !"ENDSYNC".equals(codes.getToken().value)) {
+					node.getChildren().add(codes);
+				}
+
+				if (codes == null)
+					throw new ParserException("Could not find ENDSYNC. Did you forget to put one?");
+
+				return node;
+			} else if ("ENDSYNC".equals(token.value)) {
+                Node node = new Node(token);
                 nextToken();
-                return endForNode;
-            }
-            else if(token.type == Type.ID){
-                if(((String) token.value).charAt(0) == '#'){
-                    int row = token.row;
-                    int col = token.col;
+                return node;
+			} else if ("ASYNC".equals(token.value)) {
+				Node node = new Node(new Token(Type.ASYNC, "<ASYNC>", token));
+				nextToken();
+
+				Node codes = null;
+				while ((codes = parseStatement()) != null && !"ENDASYNC".equals(codes.getToken().value)) {
+					node.getChildren().add(codes);
+				}
+
+				if (codes == null)
+					throw new ParserException("Could not find ENDASYNC. Did you forget to put one?");
+
+				return node;
+			} else if ("ENDASYNC".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+			} else if (token.type == Type.ID) {
+				if (((String) token.value).charAt(0) == '#') {
+					int row = token.row;
+					int col = token.col;
 
                     String command = ((String) token.value).substring(1);
                     StringBuilder builder = new StringBuilder(command);
@@ -259,9 +301,8 @@ public class Parser {
         }
     }
 
-    private Node parseIf() throws IOException, LexerException, ParserException{
-        Node ifNode = new Node(token);
-        nextToken();
+    private Node parseIf(Token ifToken) throws IOException, LexerException, ParserException{
+        Node ifNode = new Node(ifToken);
 
         //condition
         Node condition = parseLogic();
@@ -274,40 +315,39 @@ public class Parser {
 
         Node codes = null;
         while(token != null
-                && !"ENDIF".equals(token.value)
-                && !"ELSE".equals(token.value)
-                && !"ELSEIF".equals(token.value)
-                && (codes = parseStatement()) != null){
+                && (codes = parseStatement()) != null
+                && !"ENDIF".equals(codes.getToken().value)
+                && !"ELSE".equals(codes.getToken().value)
+                && !"ELSEIF".equals(codes.getToken().value)){
             trueBody.getChildren().add(codes);
         }
         ifNode.getChildren().add(trueBody);
 
-        if(token == null) {
+        if(codes == null) {
             throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-        } else if("ELSEIF".equals(token.value)) {//elseif body
+        } else if("ELSEIF".equals(codes.getToken().value)) {//elseif body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
-            falseBody.getChildren().add(parseIf());
+            falseBody.getChildren().add(parseIf(codes.getToken()));
             ifNode.getChildren().add(falseBody);
-        } else if("ELSE".equals(token.value)){ //else body
+        } else if("ELSE".equals(codes.getToken().value)){ //else body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
             nextToken();
 
-            while(token != null
-                    && !"ENDIF".equals(token.value)
-                    && (codes = parseStatement()) != null){
-                falseBody.getChildren().add(codes);
-            }
+			while (token != null 
+					&& (codes = parseStatement()) != null 
+					&& !"ENDIF".equals(codes.getToken().value)) {
+				falseBody.getChildren().add(codes);
+			}
 
-            if(token == null || !"ENDIF".equals(token.value))
+            if(!"ENDIF".equals(codes.getToken().value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-            nextToken(); // consume ENDIF
             nextToken(); // consume ENDLINE
 
             ifNode.getChildren().add(falseBody);
         } else {
-            if(token == null || !"ENDIF".equals(token.value))
+            if(!"ENDIF".equals(codes.getToken().value))
                 throw new ParserException("Could not find ENDIF statement! "+ifNode.getToken());
-            nextToken();
+            nextToken(); //consume ENDLINE
         }
 
         //return
@@ -789,17 +829,21 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        String text = "x = 4.0;"
-                + "" +
-                "IF x > 0.0;" +
-                "    IF x == 4.0;" +
-                "        #TEST 1;" +
-                "    ELSE;" +
-                "        #TEST 2;" +
-                "    ENDIF;" +
-                "ELSE;" +
-                "    #TEST 3;" +
-                "ENDIF;";
+        String text = ""
+        		+ "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" + 
+        		"    IF args[0] == \"초기화\"\n" + 
+        		"        IF {$playername+\".kit\"} != true\n" + 
+        		"            #MESSAGE \"&f[ &c! &f] &c이미 지급횟수가 초기화 된 상태입니다!\"\n" + 
+        		"            #STOP\n" + 
+        		"        ELSEIF {$playername+\".kit\"}\n" + 
+        		"            {$playername+\".kit\"} = null\n" + 
+        		"            #MESSAGE \"&f[ &c! &f] :: 기본킷 지급횟수가 초기화되었습니다.\"\n" + 
+        		"        ELSEIF $haspermission: \"lenz.perms\" == false\n" + 
+        		"            #MESSAGE \"&f[ &c! &f] :: &c당신의 이 명령어에 대한 권한이 없습니다.\"\n" + 
+        		"            #STOP\n" + 
+        		"        ENDIF\n" + 
+        		"    ENDIF\n" + 
+        		"ENDIF";
         System.out.println("original: \n"+text);
 
         Lexer lexer = new Lexer(text, charset);

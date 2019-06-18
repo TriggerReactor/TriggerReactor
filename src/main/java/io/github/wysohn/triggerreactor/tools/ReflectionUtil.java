@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -190,12 +191,12 @@ public class ReflectionUtil {
                 for(int i = 1; i < validMethods.size(); i++) {
                     Method targetMethod = validMethods.get(i);
 
-                    Class<?>[] currentParams = method.getParameterTypes();
-                    Class<?>[] targetParams = targetMethod.getParameterTypes();
+                    Class<?>[] params = method.getParameterTypes();
+                    Class<?>[] otherParams = targetMethod.getParameterTypes();
 
                     if(method.isVarArgs() && targetMethod.isVarArgs()) {
-                        for(int j = 0; j < currentParams.length; j++) {
-                            if(currentParams[j].isAssignableFrom(targetParams[j])) {
+                        for(int j = 0; j < params.length; j++) {
+                            if(params[j].isAssignableFrom(otherParams[j])) {
                                 method = targetMethod;
                                 break;
                             }
@@ -206,11 +207,11 @@ public class ReflectionUtil {
                     }else if(targetMethod.isVarArgs()) {
                         //do nothing
                     }else{
-                        for(int j = 0; j < currentParams.length; j++) {
-                        	if(targetParams[j].isEnum()) { // enum will be handled later
+                        for(int j = 0; j < params.length; j++) {
+                        	if(otherParams[j].isEnum()) { // enum will be handled later
                         		method = targetMethod;
                         		break;
-                        	}else if(ClassUtils.isAssignable(targetParams[j], currentParams[j], true)) { //narrow down to find the most specific method
+                        	}else if(ClassUtils.isAssignable(otherParams[j], params[j], true)) { //narrow down to find the most specific method
                                 method = targetMethod;
                                 break;
                             }
@@ -457,19 +458,107 @@ public class ReflectionUtil {
         }else {
             Class<?>[] paramTypes = new Class[args.length];
             for(int i = 0; i < args.length; i++) {
-                paramTypes[i] = args[i].getClass();
+            	paramTypes[i] = args[i] == null ? null : args[i].getClass();
+            }
+            
+            List<Constructor<?>> possibleTarget = new ArrayList<>();
+			out:for (Constructor<?> con : clazz.getConstructors()) {
+				if (con.isVarArgs()) {
+					for(int i = 0; i < paramTypes.length; i++) {
+						Class<?> paramType = getParamType(con, i);
+						
+						if(!checkMatch(paramType, args[i]))
+							continue out;
+					}
+					
+					possibleTarget.add(con);
+				} else {
+					if(con.getParameterCount() != paramTypes.length)
+						continue;
+					
+					for(int i = 0; i < paramTypes.length; i++) {
+						Class<?> paramType = paramTypes[i];
+						
+						if(!checkMatch(paramType, args[i]))
+							continue out;
+					}
+					
+					possibleTarget.add(con);
+				}
             }
 
-            Constructor<?> con = clazz.getConstructor(paramTypes);
+			if(possibleTarget.isEmpty())
+				return null;
+			
+			Constructor<?> target = possibleTarget.get(0);
+			if(possibleTarget.size() > 1) {
+				for(Constructor<?> con : possibleTarget.subList(1, possibleTarget.size())) {
+					if (con.isVarArgs()) {
+						for(int i = 0; i < paramTypes.length; i++) {
+							Class<?> paramsOther = getParamType(con, i);
+							Class<?> params = getParamType(target, i);
 
+							if(ClassUtils.isAssignable(paramsOther, params, true)) {
+								target = con;
+							}
+						}
+					} else {
+						if(con.getParameterCount() != paramTypes.length)
+							continue;
+						
+						for(int i = 0; i < paramTypes.length; i++) {
+							Class<?> paramsOther = getParamType(con, i);
+							Class<?> params = getParamType(target, i);
+
+							if(ClassUtils.isAssignable(paramsOther, params, true)) {
+								target = con;
+							}
+						}
+						break;
+					}
+				}
+			}
+			
+            if(target.isVarArgs()) {
+                Class<?>[] parameterTypes = target.getParameterTypes();
+
+                Object varargs = Array.newInstance(
+                        parameterTypes[parameterTypes.length - 1].getComponentType(),
+                        args.length - parameterTypes.length + 1);
+                for (int k = 0; k < Array.getLength(varargs); k++) {
+                    Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                }
+
+                Object[] newArgs = new Object[parameterTypes.length];
+                for (int k = 0; k < newArgs.length - 1; k++) {
+                    newArgs[k] = args[k];
+                }
+                newArgs[newArgs.length - 1] = varargs;
+
+                args = newArgs;
+            }
+			
             try {
-                return con.newInstance(args);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-
+				return target.newInstance(args);
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
+			}
+            
             return null;
         }
+    }
+    
+    private static Class<?> getParamType(Executable exec, int index){
+    	Class<?>[] paramTypes =  exec.getParameterTypes();
+    	
+    	if (exec.isVarArgs()) {
+			int varArgIndex = paramTypes.length - 1;
+			Class<?> varArgType = paramTypes[varArgIndex].getComponentType();
+			
+			return index < varArgIndex ? paramTypes[index] : varArgType;
+		} else {
+			return paramTypes[index];
+		}
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -21,7 +21,7 @@ public class Token {
     public final Object value;
     public final int row;
     public final int col;
-
+    
     public Token(Type type, Object value, int row, int col) {
         this.type = type;
         this.value = value;
@@ -105,6 +105,10 @@ public class Token {
     public String toString() {
         return "[type: "+type.name()+", value: '"+value+"'] at row["+row+"], col["+col+"]";
     }
+    
+    public String toStringRowColOnly() {
+    	return "at row["+row+"], col["+col+"]";
+    }
 
     @Override
     public int hashCode() {
@@ -150,7 +154,9 @@ public class Token {
 
         BODY, EXECUTOR,
 
-        /**Temporary use only**/EPS,
+        SYNC, ASYNC,
+        
+        /**Temporary use only**/EPS, 
         ;
 
         private final boolean literal;

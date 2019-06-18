@@ -17,14 +17,16 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -33,17 +35,20 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.sponge.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 public class Interpreter {
-    private Node root;
-    private final Map<String, Executor> executorMap = new HashMap<>();
-    private final Map<String, Placeholder> placeholderMap = new HashMap<>();
-    private final Map<Object, Object> gvars;
-    private final Map<String, Object> vars;
-    private final SelfReference selfReference;
-
-    private final Map<String, Class<?>> importMap = new HashMap<>();
+    private final Node root;
+    private final Map<String, Class<?>> importMap = new ConcurrentHashMap<>();
+    
+    private TaskSupervisor task;
+    
+    private Map<String, Executor> executorMap = new HashMap<>();
+    private Map<String, Placeholder> placeholderMap = new HashMap<>();
+    private Map<Object, Object> gvars = new ConcurrentHashMap<>();
+    private Map<String, Object> vars = new ConcurrentHashMap<>();
+    private SelfReference selfReference = new SelfReference() {};
 
     private Stack<Token> stack = new Stack<>();
 
@@ -70,22 +75,56 @@ public class Interpreter {
         initDefaultExecutors();
     }
 */
-    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Placeholder> placeholderMap, Map<Object, Object> gvars, Map<String, Object> localVars,
-            SelfReference selfReference) {
+    public Interpreter(Node root) {
         this.root = root;
-        for(Entry<String, Executor> entry : executorMap.entrySet())
-            this.executorMap.put(entry.getKey(), entry.getValue());
-        for(Entry<String, Placeholder> entry : placeholderMap.entrySet())
-            this.placeholderMap.put(entry.getKey(), entry.getValue());
-        this.gvars = gvars;
-        this.vars = localVars;
-        this.selfReference = selfReference;
 
         initDefaultExecutors();
         initDefaultPlaceholders();
     }
 
-    private void initDefaultExecutors() {
+    public void setTaskSupervisor(TaskSupervisor taskSupervisor) {
+		this.task = taskSupervisor;
+	}
+
+	public Map<String, Executor> getExecutorMap() {
+		return executorMap;
+	}
+
+	public void setExecutorMap(Map<String, Executor> executorMap) {
+        for(Entry<String, Executor> entry : executorMap.entrySet())
+            this.executorMap.put(entry.getKey(), entry.getValue());
+	}
+
+	public Map<String, Placeholder> getPlaceholderMap() {
+		return placeholderMap;
+	}
+
+	public void setPlaceholderMap(Map<String, Placeholder> placeholderMap) {
+        for(Entry<String, Placeholder> entry : placeholderMap.entrySet())
+            this.placeholderMap.put(entry.getKey(), entry.getValue());
+	}
+
+	public Map<Object, Object> getGvars() {
+		return gvars;
+	}
+
+	public void setGvars(Map<Object, Object> gvars) {
+		this.gvars = gvars;
+	}
+
+	public SelfReference getSelfReference() {
+		return selfReference;
+	}
+
+	public void setSelfReference(SelfReference selfReference) {
+		this.selfReference = selfReference;
+	}
+
+	public void setVars(Map<String, Object> vars) {
+		this.vars = vars;
+	}
+
+	private void initDefaultExecutors() {
         executorMap.put("STOP", EXECUTOR_STOP);
         executorMap.put("WAIT", EXECUTOR_WAIT);
         executorMap.put("BREAK", EXECUTOR_BREAK);
@@ -333,7 +372,49 @@ public class Interpreter {
                 throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
             }
 
-        } else {
+		} else if (node.getToken().getType() == Type.SYNC) {
+			try {
+				task.submitSync(new Callable<Void>() {
+
+					@Override
+					public Void call() throws Exception {
+						for(Node node : node.getChildren()) {
+							//ignore whatever returns as it's impossible
+							//to handle it from the caller
+							start(node);
+						}
+						return null;
+					}
+
+				}).get();
+				return;
+			} catch (InterruptedException | ExecutionException ex) {
+				throw new InterpreterException("Synchronous task error.", ex);
+			}
+		} else if (node.getToken().getType() == Type.ASYNC) {
+			task.submitAsync(()-> {
+				Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
+				rootCopy.getChildren().addAll(node.getChildren());
+
+				Interpreter copy = new Interpreter(rootCopy);
+				// ignore whatever returns as it's impossible
+				// to handle it from the caller
+				copy.setExecutorMap(executorMap);
+				copy.setPlaceholderMap(placeholderMap);
+				copy.setGvars(gvars);
+				copy.setVars(vars);
+				copy.setSelfReference(selfReference);
+				copy.setTaskSupervisor(task);
+				copy.setSync(false);
+				
+				try {
+					copy.startWithContextAndInterrupter(context, interrupter);
+				} catch (InterpreterException e) {
+					TriggerReactor.getInstance().handleException(context, e);
+				}
+			});
+			return;
+		} else {
             for(int i = 0; i < node.getChildren().size(); i++){
                 //ignore rest of body if continue flag is set
                 if(continueFlag)
@@ -819,7 +900,7 @@ public class Interpreter {
                 throw new InterpreterException("Cannot interpret the unknown node "+node.getToken().type.name());
             }
         }catch(Exception e){
-            throw new InterpreterException("Error occured while processing Node "+node, e);
+            throw new InterpreterException("Error "+node.getToken().toStringRowColOnly(), e);
         }
 
         return null;
@@ -832,6 +913,10 @@ public class Interpreter {
                 if(value.type == Type.NULLVALUE){
                     accessor.setTargetValue(null);
                 }else{
+                    if(isVariable(value)){
+                        value = unwrapVariable(value);
+                    }
+                    
                     accessor.setTargetValue(value.value);
                 }
             } catch (NoSuchFieldException e) {
@@ -1059,7 +1144,9 @@ public class Interpreter {
         Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root, executorMap, placeholderMap, gvars, new HashMap<>(), new CommonFunctions(null));
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.placeholderMap = placeholderMap;
+        interpreter.gvars = gvars;
 
         interpreter.startWithContext(null);
     }
