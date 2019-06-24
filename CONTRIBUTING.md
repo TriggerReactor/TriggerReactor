@@ -34,4 +34,4 @@ TriggerReactor source code. Once you are done, make a pull request.
 * Please update Wiki as necessary. 
 
 ## FINALLY
-Even if you think your contribution is small compared to others, it's still a contribution. So please don't hesitate to put your name on the plugin.yml. You are **highly encouraged** by me to do so. I usually put them myself too, but you are always welcome to be part of it if you have done anything to contribute to make TR even better.
+Even if you think your contribution is small compared to others, it's still a contribution, so please don't hesitate to add your name to plugin.yml. You are **highly encouraged** by me to do so. I usually add them myself too, but you are always welcome to be part of it if you have done anything to contribute to make TR even better.
