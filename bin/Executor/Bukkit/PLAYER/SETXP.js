@@ -1,8 +1,8 @@
 function SETXP(args)
 {
-  if (args.length > 1)
+  if (args.length !== 1)
   {
-    throw new Error("Executor SETXP should only have 1 argument")
+    throw new Error("Incorrect number of arguments for executor SETXP")
   }
   
   var arg = args[0]
