@@ -12,9 +12,9 @@ function SETFLYSPEED(args)
     throw new Error("Invalid argument for SETFLYSPEED: " + arg)
   }
   
-  if (arg < 0)
+  if (arg < -1 || arg > 1)
   {
-    throw new Error("Argument for Executor SETFLYSPEED should not be negative")
+    throw new Error("Argument for Executor SETFLYSPEED is outside of range -1..1")
   }
   
   player.setFlySpeed(arg)
