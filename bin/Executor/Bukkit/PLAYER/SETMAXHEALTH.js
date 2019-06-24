@@ -17,5 +17,10 @@ function SETMAXHEALTH(args)
     throw new Error("Argument for Executor SETMAXHEALTH should not be negative")
   }
   
+  if (arg > 2048)
+  {
+    throw new Error("Maximum health cannot be greater than 2048")
+  }
+  
   player.setMaxHealth(arg)
 }
