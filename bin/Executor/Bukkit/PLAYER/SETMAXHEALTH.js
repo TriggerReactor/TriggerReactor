@@ -12,9 +12,9 @@ function SETMAXHEALTH(args)
     throw new Error("Invalid argument for SETMAXHEALTH: " + arg)
   }
   
-  if (arg < 0)
+  if (arg <= 0)
   {
-    throw new Error("Argument for Executor SETMAXHEALTH should not be negative")
+    throw new Error("Argument for Executor SETMAXHEALTH should not be negative or zero")
   }
   
   if (arg > 2048)
