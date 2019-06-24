@@ -15,11 +15,11 @@ function SETGAMEMODE(args)
   try
   {
 	  var GameMode = Java.type('org.bukkit.GameMode')
-	  var mode = GameMode.valueOf(value.toUpperCase())
+	  var mode = GameMode.valueOf(arg.toUpperCase())
 	  player.setGameMode(mode)
   }
     catch(ex)
   {
-	  throw new Error("Unknown GAEMMODE value "+value)
+	  throw new Error("Unknown GAEMMODE value "+arg)
   }
 }
