@@ -17,5 +17,10 @@ function SETHEALTH(args)
     throw new Error("Argument for Exector SETHEALTH should not be negative")
   }
   
+  if (arg > player.getMaxHealth())
+  {
+    throw new Error("Argument for Executor SETHEALTH is greater than the max health")
+  }
+  
   player.setHealth(arg)
 }
