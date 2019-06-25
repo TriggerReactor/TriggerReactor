@@ -36,7 +36,8 @@ subprojects {
                 'Alex4386',
                 'RedLime',
                 'mrandriyg',
-                'professer_snape'
+                'professer_snape',
+                'gerzytet'
         ]
     }
 
@@ -83,7 +84,11 @@ subprojects {
         testCompile 'org.assertj:assertj-core:1.+'
     }
 
-    task printName {
-        doLast { task -> println "- Project: $task.project.name" }
+    task copyJars(type: Copy) {
+        from project.file('build/libs')
+        include '*.jar'
+        into rootProject.file('build/libs')
     }
+
+    build.finalizedBy(copyJars)
 }

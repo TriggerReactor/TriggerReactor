@@ -4,7 +4,7 @@ jdk:
 before_install:
   - chmod +x gradlew
 script:
-  - ./gradlew check
+  - ./gradlew clean check
   - ./gradlew build
 deploy:
   - provider: releases
