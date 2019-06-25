@@ -10,12 +10,11 @@ Wiki even better, please don't wait for my permission. The Wiki section is open 
 
 * Please use appropriate language (no slang, etc)
     * But of course, I don't care about what you put in the example. For example, `#MESSAGE "hue hue"`
-* Use the information only based on fact.
+* Only use information that is based on facts.
 
 ## Executor/Placeholder (Javascript)
 If you have created plugin yourself, and you think you want to contribute, Executors and Placeholders are good place. They are written
-in Javascript, yet it doesn't necessarily you have to know all the aspects of Javascript. I myself even don't know well about programming
-in Javascript, but you really can find that almost all part of Javascript are similar to Java.
+in Javascript.
 
 To contribute, fork TriggerReactor and add/modify/remove Executors and Placeholders under 
 [src/main/resources](https://github.com/wysohn/TriggerReactor/tree/master/src/main/resources). Once you are done, make pull request,
@@ -25,14 +24,14 @@ then I will add it to the main branch.
 the appropriate folder, and use /trg reload command to load it without restarting the server.
 * If tests are done, you must explain about your work to people.
     * If you created a new Executor/Placeholder, update the Wiki, so people will be able to know how to use what you've made
-    * If you modified Executor/Placeholder, make sure to update the Wiki as necessary.
+    * If you modified an Executor/Placeholder, make sure to update the Wiki as necessary.
 
 ## Core code
-If you know Java very well and are experienced plugin developer (and knowing data structure or algorithms is plus), you may contribute to fix bugs, add new features, etc. to the actual
-TriggerReactor source code. Once you are done, make pull request.
+If you know Java very well and are experienced plugin developer (and knowing data structure or algorithms is plus), you may contribute bug fixes, add new features, etc. to the actual
+TriggerReactor source code. Once you are done, make a pull request.
 
 * Please test your code yourself.
 * Please update Wiki as necessary. 
 
 ## FINALLY
-Even if you think your contribution is small compared to others, it's still a contribution. So please don't hesitate to put your name on the plugin.yml. You are **highly encouraged** by me to do so. I usually put them myself too, but you are always welcome to be part of it if you have done anything to contribute to make TR even better.
+Even if you think your contribution is small compared to others, it's still a contribution, so please don't hesitate to add your name to plugin.yml. You are **highly encouraged** by me to do so. I usually add them myself too, but you are always welcome to be part of it if you have done anything to contribute to make TR even better.
