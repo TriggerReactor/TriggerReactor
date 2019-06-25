@@ -37,4 +37,6 @@ subprojects {
         compile fileTree(dir: "libs", includes: ['*.jar'])
         compile project(":bukkit")
     }
+
+    jar.baseName = "${rootProject.name}-bukkit-${project.name}-${project.ext.version}.jar"
 }

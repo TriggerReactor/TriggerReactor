@@ -38,4 +38,6 @@ jar {
                 .findAll { include.contains(it.name) }
                 .collect { it.isDirectory() ? it : zipTree(it) }
     }
+
+    baseName = "${rootProject.name}-${project.name}-${project.ext.version}.jar"
 }
