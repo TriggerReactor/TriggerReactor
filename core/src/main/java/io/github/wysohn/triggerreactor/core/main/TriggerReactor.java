@@ -452,14 +452,15 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (index > trigger.getItems().length - 1) {
-                            sender.sendMessage("&c" + "" + index + " is out of bound. (Size: " + trigger.getItems().length + ")");
+                        if (index > trigger.getItems().length - 1 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + trigger.getItems().length + ")");
                             return true;
                         }
 
                         trigger.getItems()[index] = IS;
-
                         saveAsynchronously(getInvManager());
+
+                        sender.sendMessage("Successfully cleared item in slot " + index);
                     } else if (args.length > 2 && args[2].equalsIgnoreCase("open")) {
                         String name = args[1];
                         IPlayer forWhom = null;
@@ -504,6 +505,74 @@ public abstract class TriggerReactor implements TaskSupervisor {
                                 saveAsynchronously(getInvManager());
                             }
                         });
+                    } else if (args.length == 4 && args[2].equals("row")) {
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        IS = IS == null ? null : IS.clone();
+
+                        String name = args[1];
+
+                        int row = -1;
+                        try {
+                            row = Integer.parseInt(args[3]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("&c" + "" + row + " is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        int rows = trigger.getItems().length / 9;
+
+                        if (row > rows - 1 || row < 0) {
+                            sender.sendMessage("&c" + "" + row + " is out of bounds. (Size: " + rows + " rows)");
+                            return true;
+                        }
+
+                        for (int i = row * 9; i < row * 9 + 9; i++) {
+                            trigger.getItems()[i] = IS;
+                        }
+
+                        saveAsynchronously(getInvManager());
+
+                        sender.sendMessage("Successfully cleared row " + row);
+                    } else if (args.length == 4 && args[2].equals("column")) {
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        IS = IS == null ? null : IS.clone();
+
+                        String name = args[1];
+
+                        int column = -1;
+                        try {
+                            column = Integer.parseInt(args[3]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("&c" + "" + column + " is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        int rows = trigger.getItems().length / 9;
+
+                        if (column > 8 || column < 0) {
+                            sender.sendMessage("&c" + "" + column + " is out of bounds. (Size: 9 columns)");
+                            return true;
+                        }
+
+                        for (int i = 0; i < rows; i++) {
+                            trigger.getItems()[i * 9 + column] = IS;
+                        }
+
+                        saveAsynchronously(getInvManager());
+
+                        sender.sendMessage("Successfully cleared column " + column);
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
