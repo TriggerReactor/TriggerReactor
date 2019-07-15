@@ -31,7 +31,6 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         });
 
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        FileUtil.moveFolder(new File(this.executorFolder, "Sponge"), this.executorFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }
