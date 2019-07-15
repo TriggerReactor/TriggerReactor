@@ -14,8 +14,8 @@ Wiki even better, please don't wait for my permission. The Wiki section is open 
 
 ## Executor/Placeholder (Javascript)
 If you have created plugin yourself, and you think you want to contribute, Executors and Placeholders are good place. They are written
-in Javascript, yet it doesn't necessarily you have to know all the aspects of Javascript. I myself even don't know well about programming
-in Javascript, but you really can find that almost all part of Javascript are similar to Java.
+in Javascript, yet it doesn't require for you to know all the aspects of Javascript. I myself even don't know well about programming
+in Javascript, but you really can find that almost all parts of Javascript are similar to Java.
 
 To contribute, fork TriggerReactor and add/modify/remove Executors and Placeholders under 
 [src/main/resources](https://github.com/wysohn/TriggerReactor/tree/master/src/main/resources). Once you are done, make pull request,
@@ -33,6 +33,14 @@ TriggerReactor source code. Once you are done, make pull request.
 
 * Please test your code yourself.
 * Please update Wiki as necessary. 
+
+## Pull Request
+When you submit the code, first of all, thank you for your participation. But please do it to the `development` branch so that we can test the code before put it into the release version.
+
+## Indentation
+Please indent where it is necessary. Even for yourself, it helps.
+
+For less confusion for the community, only **use 4 spaces for indentation**. 
 
 ## FINALLY
 Even if you think your contribution is small compared to others, it's still a contribution. So please don't hesitate to put your name on the plugin.yml. You are **highly encouraged** by me to do so. I usually put them myself too, but you are always welcome to be part of it if you have done anything to contribute to make TR even better.
