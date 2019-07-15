@@ -20,7 +20,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.CommandTriggerMana
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import org.bukkit.Bukkit;
@@ -32,7 +31,6 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.Callable;
