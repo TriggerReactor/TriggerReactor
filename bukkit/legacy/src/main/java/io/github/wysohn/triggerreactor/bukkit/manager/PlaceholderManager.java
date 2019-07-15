@@ -39,7 +39,6 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Bu
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         this.placeholderFolder = new File(plugin.getDataFolder(), "Placeholder");
-        FileUtil.moveFolder(new File(this.placeholderFolder, "Bukkit"), this.placeholderFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }

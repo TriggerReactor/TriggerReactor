@@ -48,7 +48,6 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-        FileUtil.moveFolder(new File(this.executorFolder, "Bukkit"), this.executorFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }
