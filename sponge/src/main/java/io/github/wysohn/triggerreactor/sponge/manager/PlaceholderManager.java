@@ -25,7 +25,6 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Sp
         });
 
         this.placeholderFolder = new File(plugin.getDataFolder(), "Placeholder");
-        FileUtil.moveFolder(new File(this.placeholderFolder, "Sponge"), this.placeholderFolder, StandardCopyOption.REPLACE_EXISTING);
 
         reload();
     }
