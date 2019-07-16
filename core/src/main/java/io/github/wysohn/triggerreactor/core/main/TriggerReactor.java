@@ -453,7 +453,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         if (index > trigger.getItems().length - 1 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + trigger.getItems().length + ")");
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length - 1) + ")");
                             return true;
                         }
 
@@ -528,7 +528,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                         int rows = trigger.getItems().length / 9;
                         if (index > rows - 1 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + rows + ")");
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + (rows - 1) + ")");
                             return true;
                         }
 
@@ -562,7 +562,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                         int rows = trigger.getItems().length / 9;
                         if (index > 8 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: 9)");
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: 9)");
                             return true;
                         }
 
@@ -580,11 +580,14 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         sendDetails(sender, "/trg i MyInventory create 54");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the held item. "
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "sets item of inventory to the held item. "
                                 + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> column <index>", "same as the item subcommand, but applied to an entire column."
+                                + "Clears the slot if you are holding nothing.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> row <index>", "same as the item subcommand, but applied to an entire row.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Preview the inventory");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Send <player name> a preview of the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
                     }
                     return true;
