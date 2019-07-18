@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 import java.lang.reflect.Array;
@@ -43,8 +44,8 @@ public class Interpreter {
 
     private TaskSupervisor task;
 
-    private Map<String, Executor> executorMap = new HashMap<>();
-    private Map<String, Placeholder> placeholderMap = new HashMap<>();
+    private Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
+    private Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     private Map<Object, Object> gvars = new ConcurrentHashMap<>();
     private Map<String, Object> vars = new ConcurrentHashMap<>();
     private SelfReference selfReference = new SelfReference() {
@@ -1137,7 +1138,7 @@ public class Interpreter {
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
+        Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
             protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
@@ -1145,7 +1146,7 @@ public class Interpreter {
             }
         });
 
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
+        Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
