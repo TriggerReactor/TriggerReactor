@@ -525,7 +525,7 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                Class clazz = (Class) right.value;
+                Class<?> clazz = (Class<?>) right.value;
                 stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
