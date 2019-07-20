@@ -19,6 +19,8 @@ allprojects {
         compile project(":core")
 
         compile "org.bstats:bstats-bukkit-lite:1.4"
+
+        testCompile project(':core').sourceSets.test.output
     }
 
     jar {
@@ -40,6 +42,8 @@ subprojects {
     dependencies {
         compile fileTree(dir: "libs", includes: ['*.jar'])
         compile project(":bukkit")
+        
+        testCompile project(':bukkit').sourceSets.test.output
     }
 
     jar.baseName = "${rootProject.name}-bukkit-${project.name}-${project.ext.version}.jar"
