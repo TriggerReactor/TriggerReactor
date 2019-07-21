@@ -19,7 +19,7 @@ allprojects {
         compile project(":core")
 
         compile "org.bstats:bstats-bukkit-lite:1.4"
-
+        
         testCompile project(':core').sourceSets.test.output
     }
 

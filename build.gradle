@@ -77,11 +77,13 @@ subprojects {
 
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
         compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
-        
-        testCompile 'junit:junit:4.+'
-        testCompile 'org.mockito:mockito-core:2.+'
-        testCompile 'eu.codearte.catch-exception:catch-exception:1.+'
-        testCompile 'org.assertj:assertj-core:1.+'
+
+        testCompile 'junit:junit:4.11'
+        testCompile 'org.mockito:mockito-core:2.8.+'
+        testCompile 'org.powermock:powermock-core:2.+'
+        testCompile 'org.powermock:powermock-module-junit4:2.+'
+        testCompile 'org.powermock:powermock-api-mockito2:2.+'
+        testCompile 'org.javassist:javassist:3.20.0-GA'
     }
 
     task copyJars(type: Copy) {
