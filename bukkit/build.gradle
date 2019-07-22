@@ -48,3 +48,8 @@ subprojects {
 
     jar.baseName = "${rootProject.name}-bukkit-${project.name}-${project.ext.version}.jar"
 }
+
+test {
+    // not for tests
+    exclude 'js/Abstract*.class'
+}

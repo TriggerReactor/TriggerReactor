@@ -1,14 +1,11 @@
-package executor;
+package js;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -19,21 +16,18 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TriggerReactor.class, Bukkit.class})
-public class AbstractTestExecutors {
-    protected static final Path basePath = Paths.get("src", "main", "resources", "Executor");
+public class AbstractTestJavaScripts {
+    protected static final Path resourcePath = Paths.get("src", "main", "resources");
 
-    private ScriptEngineManager sem;
-    private ScriptEngine engine;
+    protected ScriptEngineManager sem;
+    protected ScriptEngine engine;
 
     @Before
     public void init() throws Exception{
@@ -77,21 +71,5 @@ public class AbstractTestExecutors {
             throws ScriptException {
         engine.put("Temp", clazz);
         engine.eval("var "+clazz.getSimpleName()+" = Temp.static;");
-    }
-
-    @Test
-    public void testMessage() throws Exception{
-        String name = "MESSAGE";
-        File file = Paths.get(basePath.toString(), name+".js").toFile();
-        AbstractExecutorManager.JSExecutor exec =
-                new AbstractExecutorManager.JSExecutor(name, engine, file);
-
-        Player mockPlayer = Mockito.mock(Player.class);
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", mockPlayer);
-
-        exec.execute(true, varMap, null, "&cTest Message");
-        Mockito.verify(mockPlayer)
-                .sendMessage(ChatColor.translateAlternateColorCodes('&', "&cTest Message"));
     }
 }
