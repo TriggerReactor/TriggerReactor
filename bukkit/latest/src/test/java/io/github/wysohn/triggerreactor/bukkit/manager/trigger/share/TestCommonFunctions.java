@@ -11,6 +11,19 @@ import org.mockito.Mockito;
 
 import java.util.Arrays;
 
+/**
+ * Test environment for bukkit-latest.
+ * The test should be written in parent class, AbstractTestCommonFunctions,
+ * as the test methods will be inherited to the child class, which is this class,
+ * so that the same test can be performed on different platforms.
+ *
+ * However, if some test has to be implemented differently for the each platform,
+ * write the individual test in this class so that the test can be individually
+ * performed.
+ *
+ * For example, the takeItem() method still can use numeric value instead of Material enum
+ * in legacy bukkit to instantiate an ItemStack, yet it's completely deleted in the latest bukkit.
+ */
 public class TestCommonFunctions extends AbstractTestCommonFunctions {
     public TestCommonFunctions(CommonFunctions fn) {
         super(fn);

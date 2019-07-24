@@ -9,6 +9,14 @@ import org.mockito.Mockito;
 
 import java.util.HashMap;
 
+/**
+ * Test driving class for both legacy and latest bukkit.
+ * Since the structure of legacy and latest bukkit yet shares a lot of similarities,
+ * we don't have to write each test case for each different platforms.
+ *
+ * If, however, there are some tests that has to be platform specific,
+ * write them in the child class instead.
+ */
 public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<AbstractCommonFunctions> {
     public AbstractTestCommonFunctions(AbstractCommonFunctions fn) {
         super(fn);

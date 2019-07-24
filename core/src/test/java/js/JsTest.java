@@ -4,21 +4,19 @@ import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
 
 import javax.script.ScriptEngine;
-import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class JsTest {
-    protected static final Path resourcePath = Paths.get("src", "main", "resources");
-
     protected final String name;
-    protected final File file;
+    protected final InputStream file;
     protected Map<String, Object> varMap = new HashMap<>();
     protected Object[] args;
 
-    private JsTest(String name, File file){
+    private JsTest(String name, InputStream file){
         this.name = name;
         this.file = file;
     }
@@ -26,7 +24,7 @@ public abstract class JsTest {
     public abstract Object test(ScriptEngine engine) throws Exception;
 
     public static class ExecutorTest extends JsTest{
-        public ExecutorTest(String name, File file) {
+        public ExecutorTest(String name, InputStream file) {
             super(name, file);
         }
 
@@ -40,7 +38,7 @@ public abstract class JsTest {
     }
 
     public static class PlaceholderTest extends JsTest{
-        public PlaceholderTest(String name, File file) {
+        public PlaceholderTest(String name, InputStream file) {
             super(name, file);
         }
 
@@ -73,17 +71,19 @@ public abstract class JsTest {
             return test.test(engine);
         }
 
-        public static JsTester<ExecutorTest> executorTestOf(String name){
-            Path basePath = Paths.get(resourcePath.toString(), "Executor");
-            File file = Paths.get(basePath.toString(), name+".js").toFile();
-            ExecutorTest test = new ExecutorTest(name, file);
+        public static JsTester<ExecutorTest> executorTestOf(String... name){
+            Path path = Paths.get("Executor", name);
+            InputStream file = Thread.currentThread()
+                    .getContextClassLoader().getResourceAsStream(path.toString()+".js");
+            ExecutorTest test = new ExecutorTest(name[name.length - 1], file);
             return new JsTester<>(test);
         }
 
-        public static JsTester<PlaceholderTest> placeholderTestOf(String name){
-            Path basePath = Paths.get(resourcePath.toString(), "Placeholder");
-            File file = Paths.get(basePath.toString(), name+".js").toFile();
-            PlaceholderTest test = new PlaceholderTest(name, file);
+        public static JsTester<PlaceholderTest> placeholderTestOf(String... name){
+            Path path = Paths.get("Placeholder", name);
+            InputStream file = Thread.currentThread()
+                    .getContextClassLoader().getResourceAsStream(path.toString()+".js");
+            PlaceholderTest test = new PlaceholderTest(name[name.length - 1], file);
             return new JsTester<>(test);
         }
     }

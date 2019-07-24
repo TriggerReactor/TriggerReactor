@@ -16,16 +16,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.function.Function;
 
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TriggerReactor.class, Bukkit.class})
 public class AbstractTestJavaScripts {
-    protected static final Path resourcePath = Paths.get("src", "main", "resources");
-
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
 

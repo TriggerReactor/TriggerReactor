@@ -7,6 +7,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+/**
+ * Test driving class for testing Placeholders
+ */
 public class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testPlayername() throws Exception{
