@@ -23,7 +23,7 @@ function KILL(args){
 		throw new Error("the current player doesn't have a health bar: " + player)
 	}
 		
-	player.setHealth(0);
+	player.damage(player.getMaxHealth() + 1.0);
 
 	return null;
 }
