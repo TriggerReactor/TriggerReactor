@@ -25,6 +25,8 @@ dependencies {
 
     compile 'org.spongepowered:spongeapi:7.+'
     compile "org.bstats:bstats-sponge-lite:1.4"
+
+    testCompile project(':core').sourceSets.test.output
 }
 
 jar {
