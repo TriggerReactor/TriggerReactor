@@ -10,7 +10,7 @@ import org.mockito.Mockito;
 /**
  * Test driving class for testing Placeholders
  */
-public class AbstractTestPlaceholder extends AbstractTestJavaScripts {
+public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testPlayername() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);

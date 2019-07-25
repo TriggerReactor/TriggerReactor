@@ -11,4 +11,7 @@ package js.placeholder;
  * performed.
  */
 public class TestPlaceholders extends AbstractTestPlaceholder {
+    public void before() throws Exception{
+        
+    }
 }

@@ -21,7 +21,7 @@ import java.util.function.Function;
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TriggerReactor.class, Bukkit.class})
-public class AbstractTestJavaScripts {
+public abstract class AbstractTestJavaScripts {
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
 
@@ -57,13 +57,17 @@ public class AbstractTestJavaScripts {
                 }
         );
 
+        before();
+
         PowerMockito.mockStatic(TriggerReactor.class);
         Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
     }
+    
+    protected abstract void before() throws Exception;
 
-    private void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)
+    protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)
             throws ScriptException {
         engine.put("Temp", clazz);
         engine.eval("var "+clazz.getSimpleName()+" = Temp.static;");
