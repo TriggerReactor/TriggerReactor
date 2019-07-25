@@ -12,10 +12,6 @@ function EXPLOSION(args){
 	if(args.length > 4){
 		if(typeof args[4] !== "number")
 			throw new Error("fifth parameter should be a number.");
-		else if (args[4] < 0)
-		{
-			throw new Error("power should not be negative")
-		}
 		else
 			power = args[4];
 	}
@@ -33,5 +29,5 @@ function EXPLOSION(args){
 		throw new Error("Unknown world named "+args[0]);
 	
 	var Location = Java.type('org.bukkit.Location');
-	world.createExplosion(new Location(world, args[1], args[2], args[3]), power, fire);
+	world.createExplosion(new Location(world, args[1], args[2], args[3]), power);
 }

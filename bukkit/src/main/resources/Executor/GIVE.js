@@ -20,11 +20,6 @@ function GIVE(args){
 			throw new Error("Player has no empty slot.");
 		}
 		
-		if (!(args[0] instanceof Java.type("org.bukkit.inventory.ItemStack")))
-		{
-			throw new Error("Invalid ItemStack: " + args[0])
-		}
-		
 		player.getInventory().addItem(args[0]);
 	}else{
 		throw new Error("Invalid parameters. Need [ItemStack]")
