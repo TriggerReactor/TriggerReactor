@@ -4,14 +4,19 @@ import js.AbstractTestJavaScripts;
 import js.JsTest;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.Bukkit;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+
+import java.util.Collection;
+import java.util.ArrayList;
 
 /**
  * Test driving class for testing Executors.
  *
  */
-public class AbstractTestExecutors extends AbstractTestJavaScripts {
+public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetFlyMode() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);
@@ -92,7 +97,25 @@ public class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testBroadcast() throws Exception{
-        //TODO
+        Collection<Player> players = new ArrayList<>();
+        for(int i = 0; i < 5; i++){
+            players.add(Mockito.mock(Player.class));
+        }
+        
+        String message = "&cHey all";
+        String colored = ChatColor.translateAlternateColorCodes('&', message);
+        
+        PowerMockito.doReturn(players)
+            .when(Bukkit.class, "getOnlinePlayers");
+        
+        JsTest.JsTester.executorTestOf("BROADCAST")
+            .withArgs(message)
+            .test(engine);
+        
+        for(Player mockPlayer : players){ 
+            Mockito.verify(mockPlayer)
+                .sendMessage(Mockito.argThat((String s) -> colored.equals(s)));
+        }
     }
     
     @Test
