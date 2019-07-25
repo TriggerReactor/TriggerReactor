@@ -21,10 +21,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -80,11 +77,15 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         private CompiledScript compiled = null;
 
         public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
+            this(placeholderName, engine, new FileInputStream(file));
+        }
+
+        public JSPlaceholder(String placeholderName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
             this.placeholderName = placeholderName;
             this.engine = engine;
 
             StringBuilder builder = new StringBuilder();
-            FileReader reader = new FileReader(file);
+            InputStreamReader reader = new InputStreamReader(file);
             int read = -1;
             while ((read = reader.read()) != -1)
                 builder.append((char) read);
