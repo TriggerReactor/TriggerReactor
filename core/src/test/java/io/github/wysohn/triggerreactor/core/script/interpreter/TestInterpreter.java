@@ -23,7 +23,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -556,7 +556,8 @@ public class TestInterpreter {
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<String, Executor>() {{
+        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
+		{
             put("TEST1", new Executor() {
 
                 @Override
