@@ -4,7 +4,7 @@ import java.io.IOException;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager.JSPlaceholder;;
+import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager.JSPlaceholder;
 
 public class PlaceholderTest extends JsTest{
 	private final JSPlaceholder placeholder;

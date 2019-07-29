@@ -1,12 +1,14 @@
 package js.executor;
 
 import js.AbstractTestJavaScripts;
+import js.ErrorProneRunnable;
 import js.JsTest;
 import js.ExecutorTest;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -18,7 +20,19 @@ import java.util.ArrayList;
  * Test driving class for testing Executors.
  *
  */
+
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
+	public static void assertError(ErrorProneRunnable run)
+	{
+		try {
+			run.run();
+		}
+		catch (Exception e) {
+			return;
+		}
+		Assert.fail("did not throw any exception");
+	}
+	
     @Test
     public void testPlayer_SetFlyMode() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);
@@ -32,6 +46,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         	Mockito.verify(mockPlayer).setAllowFlight(Mockito.eq(b));
         	Mockito.verify(mockPlayer).setFlying(Mockito.eq(b));
         }
+        
+        assertError(() -> test.withArgs(true, true).test());
+        assertError(() -> test.withArgs("merp").test());
     }
     
     @Test

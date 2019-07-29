@@ -21,7 +21,7 @@ public abstract class JsTest {
      * @param otherDirectories list of directories to go through to reach the file, such as PLAYER for PLAYER/SETFLYMODE
      * @throws FileNotFoundException 
      */
-    public JsTest(ScriptEngine engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
+    protected JsTest(ScriptEngine engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
     	StringBuilder builder = new StringBuilder();
     	
     	
