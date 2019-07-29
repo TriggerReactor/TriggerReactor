@@ -42,7 +42,8 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
                 && IS1.getDurability() == IS2.getDurability();
     }
 
-    @Test
+    @SuppressWarnings("deprecation")
+	@Test
     public void testTakeItem(){
         ItemStack IS = new ItemStack(Material.STONE,64);
         ItemStack IS2 = new ItemStack(Material.STONE, 64, (short) 1);
