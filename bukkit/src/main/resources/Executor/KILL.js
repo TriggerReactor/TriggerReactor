@@ -17,8 +17,13 @@
 function KILL(args){
 	if(player === null)
 		return null;
+	
+	if (!(player instanceof Java.type("org.bukkit.entity.Damageable")))
+	{
+		throw new Error("the current player doesn't have a health bar: " + player)
+	}
 		
-	player.damage(player.getMaxHealth() + 1.0);
+	player.setHealth(0);
 
 	return null;
 }
