@@ -15,15 +15,15 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function BURN(args){
-	if(args.length == 1){
+	if(args.length === 1){
 		var seconds = args[0];
 		
 		player.setFireTicks(seconds * 20);
-	}else if(args.length == 2){ 
+	}else if(args.length === 2){ 
 		var entity = args[0];
 		var seconds = args[1];
 
-		if(typeof entity == "string"){
+		if(typeof entity === "string"){
 			entity = Bukkit.getPlayer(entity);
 		}
 
