@@ -2,6 +2,8 @@ package js.executor;
 
 import js.AbstractTestJavaScripts;
 import js.JsTest;
+import js.ExecutorTest;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
@@ -20,34 +22,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetFlyMode() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);
+        
+        JsTest test = new ExecutorTest(engine, "SETFLYMODE", "PLAYER")
+                .addVariable("player", mockPlayer);
 
-        Mockito.reset(mockPlayer);
-        JsTest.JsTester.executorTestOf("PLAYER", "SETFLYMODE")
-                .addVariable("player", mockPlayer)
-                .withArgs(true)
-                .test(engine);
-        Mockito.verify(mockPlayer).setAllowFlight(Mockito.eq(true));
-
-        Mockito.reset(mockPlayer);
-        JsTest.JsTester.executorTestOf("PLAYER", "SETFLYMODE")
-                .addVariable("player", mockPlayer)
-                .withArgs(true)
-                .test(engine);
-        Mockito.verify(mockPlayer).setFlying(Mockito.eq(true));
-
-        Mockito.reset(mockPlayer);
-        JsTest.JsTester.executorTestOf("PLAYER", "SETFLYMODE")
-                .addVariable("player", mockPlayer)
-                .withArgs(false)
-                .test(engine);
-        Mockito.verify(mockPlayer).setAllowFlight(Mockito.eq(false));
-
-        Mockito.reset(mockPlayer);
-        JsTest.JsTester.executorTestOf("PLAYER", "SETFLYMODE")
-                .addVariable("player", mockPlayer)
-                .withArgs(false)
-                .test(engine);
-        Mockito.verify(mockPlayer).setFlying(Mockito.eq(false));
+        for (boolean b : new boolean[] {true, false})
+        {
+        	test.withArgs(b).test();
+        	Mockito.verify(mockPlayer).setAllowFlight(Mockito.eq(b));
+        	Mockito.verify(mockPlayer).setFlying(Mockito.eq(b));
+        }
     }
     
     @Test
@@ -108,9 +92,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         PowerMockito.doReturn(players)
             .when(Bukkit.class, "getOnlinePlayers");
         
-        JsTest.JsTester.executorTestOf("BROADCAST")
+        new ExecutorTest(engine, "BROADCAST")
             .withArgs(message)
-            .test(engine);
+            .test();
         
         for(Player mockPlayer : players){ 
             Mockito.verify(mockPlayer)
@@ -237,10 +221,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testMessage() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);
 
-        JsTest.JsTester.executorTestOf("MESSAGE")
+        new ExecutorTest(engine, "MESSAGE")
                 .addVariable("player", mockPlayer)
                 .withArgs("&cTest Message")
-                .test(engine);
+                .test();
 
         String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
         Mockito.verify(mockPlayer).sendMessage(Mockito.argThat((String str) -> expected.equals(str)));
