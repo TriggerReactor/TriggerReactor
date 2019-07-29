@@ -11,10 +11,14 @@
 hs_err_pid*
 /.gradle/
 bukkit/*/build/
+bukkit/build
 core/build
+build
+*/.gitignore
 bin/
 /bin/*
 /.classpath
 /.project
 .idea
 *.iml
+*/.settings
