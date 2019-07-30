@@ -6,6 +6,7 @@ import js.JsTest;
 import js.ExecutorTest;
 
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
 import org.junit.Assert;
@@ -14,6 +15,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 import java.util.ArrayList;
 
 /**
@@ -30,7 +32,24 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 		catch (Exception e) {
 			return;
 		}
-		Assert.fail("did not throw any exception");
+		Assert.fail("runnable did not throw any exception");
+	}
+	
+	public static void assertError(ErrorProneRunnable run, String expectedMessage)
+	{
+		assertError(run, message -> message.equals("Error: " + expectedMessage));
+	}
+	
+	public static void assertError(ErrorProneRunnable run, Predicate<String> messageTest)
+	{
+		try {
+			run.run();
+		}
+		catch (Exception e) {
+			if (messageTest.test(e.getCause().getMessage())) return;
+			Assert.fail("Exeption message predicate failed to match message: \"" + e.getCause().getMessage() + "\"");
+		}
+		Assert.fail("runnable did not throw any exception");
 	}
 	
     @Test
@@ -121,12 +140,41 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testBurn() throws Exception{
-        //TODO
+    	//happy cases
+    	
+    	Player mockPlayer = Mockito.mock(Player.class);
+    	Entity mockEntity = Mockito.mock(Entity.class);
+    	JsTest test = new ExecutorTest(engine, "BURN").addVariable("player", mockPlayer);
+    	
+    	test.withArgs(3).test();
+    	Mockito.verify(mockPlayer).setFireTicks(60);
+    	
+    	test.withArgs(0.101).test();
+    	Mockito.verify(mockPlayer).setFireTicks(2);
+    	
+    	test.withArgs(mockEntity, 1).test();
+    	Mockito.verify(mockEntity).setFireTicks(20);
+    	
+    	PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(mockPlayer);
+    	test.withArgs("merp", 5).test();
+    	Mockito.verify(mockPlayer).setFireTicks(100);
+    	
+    	//sad cases
+    	PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(null);
+    	assertError(() -> test.withArgs(-1).test(),                 "The number of seconds to burn should be positive");
+    	assertError(() -> test.withArgs().test(),                   "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
+    	assertError(() -> test.withArgs(1, 1, 1).test(),            "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
+    	assertError(() -> test.withArgs(true).test(),               "Invalid number for seconds to burn: true");
+    	assertError(() -> test.withArgs(null, 4).test(),            "player to burn should not be null");
+    	assertError(() -> test.withArgs("merp", 3).test(),          "player to burn does not exist");
+    	assertError(() -> test.withArgs(3, 3).test(),               "invalid entity to burn: 3");
+    	assertError(() -> test.withArgs(mockEntity, "merp").test(), "The number of seconds to burn should be a number");
+    	assertError(() -> test.withArgs(mockEntity, -1).test(),     "The number of seconds to burn should be positive");
     }
     
     @Test
     public void testClearChat() throws Exception{
-        //TODO
+        
     }
     
     @Test
