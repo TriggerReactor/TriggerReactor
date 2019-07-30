@@ -24,7 +24,9 @@ import java.util.ArrayList;
  */
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
-	public static void assertError(ErrorProneRunnable run)
+	//assert that a runnable threw an error
+	@SuppressWarnings("unused")
+	private static void assertError(ErrorProneRunnable run)
 	{
 		try {
 			run.run();
@@ -35,12 +37,22 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 		Assert.fail("runnable did not throw any exception");
 	}
 	
-	public static void assertError(ErrorProneRunnable run, String expectedMessage)
+	//assert that a runnable threw an error message with the content Error: + expectedMessage
+	private static void assertError(ErrorProneRunnable run, String expectedMessage)
 	{
-		assertError(run, message -> message.equals("Error: " + expectedMessage));
+		try {
+			assertError(run, message -> message.equals("Error: " + expectedMessage));
+		} catch (AssertionError e) {
+			if (e.getMessage().equals("runnable did not throw any exception")) {
+				throw e;
+			} else {
+				Assert.fail(e.getMessage() + ", expected: \"" + expectedMessage + "\"");
+			}
+		}
 	}
 	
-	public static void assertError(ErrorProneRunnable run, Predicate<String> messageTest)
+	//assert that a runnable threw an error message that matches the predicate
+	private static void assertError(ErrorProneRunnable run, Predicate<String> messageTest)
 	{
 		try {
 			run.run();
@@ -66,8 +78,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         	Mockito.verify(mockPlayer).setFlying(Mockito.eq(b));
         }
         
-        assertError(() -> test.withArgs(true, true).test());
-        assertError(() -> test.withArgs("merp").test());
+        assertError(() -> test.withArgs(true, true).test(), "Incorrect number of arguments for executor SETFLYMODE");
+        assertError(() -> test.withArgs("merp").test(), "Invalid argument for executor SETFLYMODE: merp");
     }
     
     @Test
