@@ -407,12 +407,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testWeather() throws Exception{
     	JsTest test = new ExecutorTest(engine, "WEATHER");
         World mockWorld = Mockito.mock(World.class);
-        PowerMockito.when("getWorld", "merp").thenReturn(mockWorld);
+        PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(mockWorld);
         
         test.withArgs("merp", true).test();
         Mockito.verify(mockWorld).setStorm(true);
         
-        PowerMockito.when("getWorld", "merp").thenReturn(null);
+        PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(null);
         assertError(() -> test.withArgs("merp", true, true).test(), "Invalid parameters! [String, Boolean]");
         assertError(() -> test.withArgs("merp", 1).test(), "Invalid parameters! [String, Boolean]");
         assertError(() -> test.withArgs(mockWorld, false).test(), "Invalid parameters! [String, Boolean]");
