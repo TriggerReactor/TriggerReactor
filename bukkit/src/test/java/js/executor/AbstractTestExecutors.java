@@ -6,6 +6,7 @@ import js.JsTest;
 import js.ExecutorTest;
 
 import org.bukkit.ChatColor;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.Bukkit;
@@ -404,7 +405,18 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testWeather() throws Exception{
-        //TODO
+    	JsTest test = new ExecutorTest(engine, "WEATHER");
+        World mockWorld = Mockito.mock(World.class);
+        PowerMockito.when("getWorld", "merp").thenReturn(mockWorld);
+        
+        test.withArgs("merp", true).test();
+        Mockito.verify(mockWorld).setStorm(true);
+        
+        PowerMockito.when("getWorld", "merp").thenReturn(null);
+        assertError(() -> test.withArgs("merp", true, true).test(), "Invalid parameters! [String, Boolean]");
+        assertError(() -> test.withArgs("merp", 1).test(), "Invalid parameters! [String, Boolean]");
+        assertError(() -> test.withArgs(mockWorld, false).test(), "Invalid parameters! [String, Boolean]");
+        assertError(() -> test.withArgs("merp", true).test(), "Unknown world named merp");
     }
 
 }
