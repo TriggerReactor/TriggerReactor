@@ -207,12 +207,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testCmd() throws Exception{
-        //TODO
+        //TODO: wysohn
     }
     
     @Test
     public void testCmdCon() throws Exception{
-        //TODO
+        //TODO: wysohn
     }
     
     @Test
