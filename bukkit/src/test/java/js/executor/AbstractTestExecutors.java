@@ -1,23 +1,19 @@
 package js.executor;
 
 import js.AbstractTestJavaScripts;
-import js.ErrorProneRunnable;
-import js.JsTest;
 import js.ExecutorTest;
-
+import js.JsTest;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.Bukkit;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
-import java.util.Collection;
-import java.util.function.Predicate;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Test driving class for testing Executors.
@@ -25,46 +21,6 @@ import java.util.ArrayList;
  */
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
-	//assert that a runnable threw an error
-	@SuppressWarnings("unused")
-	private static void assertError(ErrorProneRunnable run)
-	{
-		try {
-			run.run();
-		}
-		catch (Exception e) {
-			return;
-		}
-		Assert.fail("runnable did not throw any exception");
-	}
-	
-	//assert that a runnable threw an error message with the content Error: + expectedMessage
-	private static void assertError(ErrorProneRunnable run, String expectedMessage)
-	{
-		try {
-			assertError(run, message -> message.equals("Error: " + expectedMessage));
-		} catch (AssertionError e) {
-			if (e.getMessage().equals("runnable did not throw any exception")) {
-				throw e;
-			} else {
-				Assert.fail(e.getMessage() + ", expected: \"" + expectedMessage + "\"");
-			}
-		}
-	}
-	
-	//assert that a runnable threw an error message that matches the predicate
-	private static void assertError(ErrorProneRunnable run, Predicate<String> messageTest)
-	{
-		try {
-			run.run();
-		}
-		catch (Exception e) {
-			if (messageTest.test(e.getCause().getMessage())) return;
-			Assert.fail("Exeption message predicate failed to match message: \"" + e.getCause().getMessage() + "\"");
-		}
-		Assert.fail("runnable did not throw any exception");
-	}
-	
     @Test
     public void testPlayer_SetFlyMode() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);
