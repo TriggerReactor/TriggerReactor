@@ -41,23 +41,24 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
-        put("onJoin", PlayerJoinEvent.class);
-        put("onQuit", PlayerQuitEvent.class);
-        put("onPlayerDeath", PlayerDeathEvent.class);
-        put("onInteract", PlayerInteractEvent.class);
-        put("onInteractEntity", PlayerInteractEntityEvent.class);
-        put("onChat", AsyncPlayerChatEvent.class);
+	private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>();
+    static {
+    	ABBREVIATIONS.put("onJoin", PlayerJoinEvent.class);
+    	ABBREVIATIONS.put("onQuit", PlayerQuitEvent.class);
+    	ABBREVIATIONS.put("onPlayerDeath", PlayerDeathEvent.class);
+    	ABBREVIATIONS.put("onInteract", PlayerInteractEvent.class);
+    	ABBREVIATIONS.put("onInteractEntity", PlayerInteractEntityEvent.class);
+    	ABBREVIATIONS.put("onChat", AsyncPlayerChatEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
-        put("onEntityDeath", EntityDeathEvent.class);
+    	ABBREVIATIONS.put("onEntityDeath", EntityDeathEvent.class);
 
-        put("onBlockPlace", BlockPlaceEvent.class);
-        put("onBlockBreak", BlockBreakEvent.class);
+    	ABBREVIATIONS.put("onBlockPlace", BlockPlaceEvent.class);
+        ABBREVIATIONS.put("onBlockBreak", BlockBreakEvent.class);
 
-        put("onStart", TriggerReactorStartEvent.class);
-        put("onStop", TriggerReactorStopEvent.class);
-    }};
+        ABBREVIATIONS.put("onStart", TriggerReactorStartEvent.class);
+        ABBREVIATIONS.put("onStop", TriggerReactorStopEvent.class);
+    }
 
     public CustomTriggerManager(TriggerReactor plugin) {
         super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CustomTrigger"));

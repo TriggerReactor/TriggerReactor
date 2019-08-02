@@ -33,8 +33,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 
-import static org.mockito.Mockito.mock;
-
 public class TestInterpreter {
     @Test
     public void testMethod() throws Exception {
@@ -412,8 +410,6 @@ public class TestInterpreter {
 
     @Test
     public void testIteration2() throws Exception {
-        CommonFunctions mockFunctions = mock(CommonFunctions.class);
-
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "FOR i = 0:10\n"
@@ -444,8 +440,6 @@ public class TestInterpreter {
 
     @Test
     public void testIteration3() throws Exception {
-        CommonFunctions mockFunctions = mock(CommonFunctions.class);
-
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "start=0;"
@@ -477,8 +471,6 @@ public class TestInterpreter {
 
     @Test
     public void testIteration4() throws Exception {
-        CommonFunctions mockFunctions = mock(CommonFunctions.class);
-
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "start=0;"
@@ -556,7 +548,8 @@ public class TestInterpreter {
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
+        @SuppressWarnings("serial")
+		Map<String, Executor> executorMap = new HashMap<String, Executor>() {
 		{
             put("TEST1", new Executor() {
 
@@ -1895,7 +1888,8 @@ public class TestInterpreter {
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setSelfReference(new SelfReference() {
-            public Object array(int size) {
+            @SuppressWarnings("unused")
+			public Object array(int size) {
                 return new Object[size];
             }
         });
