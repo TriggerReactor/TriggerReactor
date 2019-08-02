@@ -2,7 +2,6 @@ package js.placeholder;
 
 import js.AbstractTestJavaScripts;
 import js.PlaceholderTest;
-
 import org.bukkit.entity.Player;
 import org.junit.Assert;
 import org.junit.Test;

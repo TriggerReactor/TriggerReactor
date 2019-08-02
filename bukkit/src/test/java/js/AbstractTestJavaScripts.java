@@ -78,7 +78,7 @@ public abstract class AbstractTestJavaScripts {
                     return null;
                 });
     }
-    
+
     protected abstract void before() throws Exception;
 
     protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)

@@ -1,7 +1,6 @@
 package js;
 
 import javax.script.ScriptEngine;
-
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;

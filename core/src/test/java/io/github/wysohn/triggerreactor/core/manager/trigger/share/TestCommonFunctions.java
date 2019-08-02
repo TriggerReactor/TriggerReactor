@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -23,6 +24,11 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
 
     public TestCommonFunctions(FN fn){
         this.fn = fn;
+    }
+
+    @Before
+    public void init(){
+
     }
 
     @Test

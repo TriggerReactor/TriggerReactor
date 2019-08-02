@@ -1,7 +1,5 @@
-package io.github.wysohn.triggerreactor.bukkit.manager.share;
+package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.AbstractTestCommonFunctions;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -42,6 +40,13 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
                 && IS1.getDurability() == IS2.getDurability();
     }
 
+    @Override
+    protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
+        return IS1.getType() == IS2.getType()
+                && IS1.getDurability() == IS2.getDurability()
+                && IS1.getAmount() == IS2.getAmount();
+    }
+
     @SuppressWarnings("deprecation")
 	@Test
     public void testTakeItem(){
@@ -64,5 +69,17 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
         fn.takeItem(mockPlayer, 1, 6, 1);
         Assert.assertEquals(56, IS2.getAmount());
+    }
+
+    @Test
+    public void testItem(){
+        ItemStack IS = new ItemStack(Material.STONE,64);
+        ItemStack IS2 = new ItemStack(Material.STONE, 63, (short) 1);
+
+        Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item("STONE", 63, 1)));
+
+        Assert.assertTrue(isEqual(IS, fn.item(1, 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item(1, 63, 1)));
     }
 }

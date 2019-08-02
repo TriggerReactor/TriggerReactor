@@ -1,11 +1,25 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunctions;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.PluginManager;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
 import java.util.HashMap;
 
@@ -17,9 +31,33 @@ import java.util.HashMap;
  * If, however, there are some tests that has to be platform specific,
  * write them in the child class instead.
  */
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(Parameterized.class)
+@PrepareForTest({TriggerReactor.class, Bukkit.class})
 public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<AbstractCommonFunctions> {
+    protected TriggerReactor mockMain;
+    protected PluginManager mockPluginManager;
+    protected World mockWorld;
+
     public AbstractTestCommonFunctions(AbstractCommonFunctions fn) {
         super(fn);
+    }
+
+    @Before
+    public void init(){
+        mockMain = Mockito.mock(TriggerReactor.class);
+        mockPluginManager = Mockito.mock(PluginManager.class);
+        mockWorld = Mockito.mock(World.class);
+
+        PowerMockito.mockStatic(TriggerReactor.class);
+        Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
+
+        PowerMockito.mockStatic(Bukkit.class);
+        Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
+        Mockito.when(Bukkit.getWorld(Mockito.anyString())).then(
+                invocation -> {
+                    return mockWorld;
+                });
     }
 
     protected class FakeInventory {
@@ -53,6 +91,8 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     protected abstract boolean isSimilar(ItemStack IS1, ItemStack IS2);
+
+    protected abstract boolean isEqual(ItemStack IS1, ItemStack IS2);
 
     protected PlayerInventory preparePlayerInventory(Player mockPlayer, FakeInventory inv){
         PlayerInventory mockInventory = Mockito.mock(PlayerInventory.class);
@@ -122,5 +162,17 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
                 });
 
         return mockInventory;
+    }
+
+    @Test
+    public void testLocation(){
+        Location loc1 = new Location(mockWorld, 1, 2, 3);
+        Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
+
+        Mockito.when(mockWorld.getName()).thenReturn("test");
+        Assert.assertEquals(loc1, fn.location("test", 1, 2, 3));
+
+        Mockito.when(mockWorld.getName()).thenReturn("test2");
+        Assert.assertEquals(loc2, fn.location("test2", 4, 5, 6, 0.5, 0.6));
     }
 }

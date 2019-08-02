@@ -1,10 +1,10 @@
 package js;
 
-import java.io.IOException;
+import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
+import java.io.IOException;
 
 public class ExecutorTest extends JsTest{
 	private final JSExecutor executor;

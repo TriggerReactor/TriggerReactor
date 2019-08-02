@@ -163,12 +163,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testCmd() throws Exception{
-        //TODO: wysohn
+        // #CMD internally creates Event which cannot be tested
     }
     
     @Test
     public void testCmdCon() throws Exception{
-        //TODO: wysohn
+        // #CMDCON retrieve ConsoleCommandSender by static method
     }
     
     @Test

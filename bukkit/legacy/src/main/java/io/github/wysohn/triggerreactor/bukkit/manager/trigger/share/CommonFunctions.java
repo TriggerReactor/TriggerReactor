@@ -122,23 +122,24 @@ public class CommonFunctions extends AbstractCommonFunctions
     }
 
     /**
-     * Deprecated since 1.13
+     * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item(1, 64, 0)
+     * </p>
      *
-     * @param type
-     * @param amount
-     * @param data
-     * @return
-     * @deprecated use {@link #item(String, int, int)} instead
+     * @param type   typeId
+     * @param amount amount of item
+     * @param data   data
+     * @return the ItemStack
      */
-    @Deprecated
     public ItemStack item(int type, int amount, int data) {
-        throw new RuntimeException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+        return new ItemStack(type, amount, (short) data);
     }
 
     /**
      * Create a new ItemStack
      * <p>
-     * Example) /trg run #GIVE item(1, 64, 0)
+     * Example) /trg run #GIVE item("STONE", 64, 0)
      * </p>
      *
      * @param type   typeId
@@ -151,22 +152,23 @@ public class CommonFunctions extends AbstractCommonFunctions
     }
 
     /**
-     * Deprecated since 1.13
+     * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item(1, 32)
+     * </p>
      *
-     * @param type
-     * @param amount
-     * @return
-     * @deprecated use {@link #item(String, int)} instead
+     * @param type   typeId
+     * @param amount amount of item
+     * @return the ItemStack
      */
-    @Deprecated
     public ItemStack item(int type, int amount) {
-        throw new RuntimeException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+        return new ItemStack(type, amount);
     }
 
     /**
      * Create a new ItemStack
      * <p>
-     * Example) /trg run #GIVE item(1, 32)
+     * Example) /trg run #GIVE item("STONE", 32)
      * </p>
      *
      * @param type   typeId
