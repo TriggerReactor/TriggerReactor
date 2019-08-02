@@ -3,21 +3,17 @@ package js.executor;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.ExecutorTest;
-import js.JsTest;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.Bukkit;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
 import java.util.ArrayList;
-import java.util.Collection;
-import io.github.wysohn.triggerreactor.tools.ErrorProneRunnable;
 
 /**
  * Test driving class for testing Executors.

@@ -1,13 +1,11 @@
 package js;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.tools.ErrorProneRunnable;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -20,7 +18,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)

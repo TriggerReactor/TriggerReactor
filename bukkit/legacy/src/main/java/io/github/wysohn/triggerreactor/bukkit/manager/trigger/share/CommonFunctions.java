@@ -45,6 +45,7 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param id
      * @param amount
      * @return
+     * @deprecated use {@link #takeItem(Player, String, int)} instead
      */
     @Deprecated
     public boolean takeItem(Player player, int id, int amount) {
@@ -84,7 +85,9 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param amount amount
      * @param data   data of item
      * @return true if took it; false if player doesn't have it
+     * @deprecated use {@link #takeItem(Player, String, int, int)} instead
      */
+    @Deprecated
     public boolean takeItem(Player player, int id, int amount, int data) {
         ItemStack IS = new ItemStack(id, amount, (short) data);
         return takeItem(player, IS, amount);
@@ -131,7 +134,9 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param amount amount of item
      * @param data   data
      * @return the ItemStack
+     * @deprecated use {@link #item(String, int, int)} instead
      */
+    @Deprecated
     public ItemStack item(int type, int amount, int data) {
         return new ItemStack(type, amount, (short) data);
     }
@@ -161,7 +166,8 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param amount amount of item
      * @return the ItemStack
      */
-    public ItemStack item(int type, int amount) {
+    @Deprecated
+	public ItemStack item(int type, int amount) {
         return new ItemStack(type, amount);
     }
 
