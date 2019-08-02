@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,8 +64,19 @@ public abstract class AbstractTestJavaScripts {
 
         PowerMockito.mockStatic(TriggerReactor.class);
         Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
+
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
+        Mockito.when(Bukkit.dispatchCommand(Mockito.any(CommandSender.class, Mockito.anyString())))
+                .then(invocation -> {
+                    CommandSender sender = invocation.getArgument(0);
+                    String command = invocation.getArgument(1);
+
+                    // send the command as message for test purpose
+                    sender.sendMessage(command);
+
+                    return null;
+                });
     }
     
     protected abstract void before() throws Exception;
