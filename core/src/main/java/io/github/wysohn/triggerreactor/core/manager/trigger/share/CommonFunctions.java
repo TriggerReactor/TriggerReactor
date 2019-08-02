@@ -187,6 +187,10 @@ public class CommonFunctions implements SelfReference {
     }
 
     public SimpleLocation slocation(String world, int x, int y, int z) {
+    	if (world == null)
+    	{
+    		throw new IllegalArgumentException("world cannot be null");
+    	}
         return new SimpleLocation(world, x, y, z);
     }
 

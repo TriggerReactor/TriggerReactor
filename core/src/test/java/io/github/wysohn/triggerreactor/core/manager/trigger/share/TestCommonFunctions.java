@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+
 import java.util.Arrays;
 
 /**
@@ -14,6 +16,7 @@ import java.util.Arrays;
  */
 @RunWith(Parameterized.class)
 public class TestCommonFunctions<FN extends CommonFunctions> {
+	
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
         return Arrays.asList(new Object[][] { {null} });
@@ -60,5 +63,10 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
             value2 = fn.random(0, 10);
             Assert.assertTrue(0 <= value2 && value2 < 10);
         }
+    }
+    
+    @Test
+    public void testSLocation() throws Exception {
+    	Assert.assertEquals(fn.slocation("merp", 1, 2, 3), new SimpleLocation("merp", 1, 2, 3));
     }
 }

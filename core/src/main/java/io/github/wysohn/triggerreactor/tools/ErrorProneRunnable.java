@@ -1,4 +1,4 @@
-package js;
+package io.github.wysohn.triggerreactor.tools;
 
 @FunctionalInterface
 public interface ErrorProneRunnable {
