@@ -25,7 +25,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testPlayer_SetFlyMode() throws Exception{
         Player mockPlayer = Mockito.mock(Player.class);
         
-        JsTest test = new ExecutorTest(engine, "SETFLYMODE", "PLAYER")
+        JsTest test = new ExecutorTest(engine, "SETFLYMODE")
                 .addVariable("player", mockPlayer);
 
         for (boolean b : new boolean[] {true, false})
