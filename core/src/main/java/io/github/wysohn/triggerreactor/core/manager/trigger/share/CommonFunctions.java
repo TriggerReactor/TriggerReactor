@@ -297,16 +297,16 @@ public class CommonFunctions implements SelfReference {
         return new Object[size];
     }
 
-    public List list() {
-        return new ArrayList();
+    public List<Object> list() {
+        return new ArrayList<Object>();
     }
 
-    public Map map() {
-        return new HashMap();
+    public Map<Object, Object> map() {
+        return new HashMap<Object, Object>();
     }
 
-    public Set set() {
-        return new HashSet();
+    public Set<Object> set() {
+        return new HashSet<Object>();
     }
 
     /**
