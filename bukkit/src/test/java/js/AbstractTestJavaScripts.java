@@ -67,7 +67,7 @@ public abstract class AbstractTestJavaScripts {
 
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
-        Mockito.when(Bukkit.dispatchCommand(Mockito.any(CommandSender.class, Mockito.anyString())))
+        Mockito.when(Bukkit.dispatchCommand(Mockito.any(CommandSender.class), Mockito.anyString()))
                 .then(invocation -> {
                     CommandSender sender = invocation.getArgument(0);
                     String command = invocation.getArgument(1);
