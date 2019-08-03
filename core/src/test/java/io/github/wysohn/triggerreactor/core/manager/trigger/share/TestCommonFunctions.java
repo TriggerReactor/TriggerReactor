@@ -8,6 +8,7 @@ import org.junit.runners.Parameterized;
 
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(Parameterized.class)
 public class TestCommonFunctions<FN extends CommonFunctions> {
+	private static String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
 	
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
@@ -89,7 +91,6 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
     {
     	ExampleClass.reset();
     	
-    	String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
     	assertEquals(42, fn.staticGetFieldValue(example, "foo"));
     	assertEquals(false, fn.staticGetFieldValue(example, "bar"));
     	
@@ -103,4 +104,19 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
     	assertEquals("TriggerReactor", fn.staticMethod(example, "add", "Trigger", "Reactor"));
     	
     }
+    
+    @Test
+    public void testConstructor() throws Exception {
+    	//TODO: wysohn.  These tests fail if you uncomment them, pinpointing the problem in the constructor reflection.
+    	//uncomment when you've found a fix
+    	/*
+    	ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
+    	assertEquals(0, e.marker);
+    	
+    	e = (ExampleClass) fn.newInstance(example, new Double(1.1));
+    	assertEquals(2, e.marker);
+    	*/
+    }
+    
+    
 }
