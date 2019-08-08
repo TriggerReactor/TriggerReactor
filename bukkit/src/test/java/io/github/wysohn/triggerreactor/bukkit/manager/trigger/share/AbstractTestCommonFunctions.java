@@ -1,3 +1,4 @@
+
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -5,6 +6,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunc
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -174,5 +176,32 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
         Mockito.when(mockWorld.getName()).thenReturn("test2");
         Assert.assertEquals(loc2, fn.location("test2", 4, 5, 6, 0.5, 0.6));
+    }
+    
+    @Test
+    public void testBlock(){
+        Block mockBlock = Mockito.mock(Block.class);
+        Mockito.when(mockWorld.getBlockAt(Mockito.any(Location.class)))
+            .thenReturn(mockBlock);
+            
+        Assert.assertEquals(mockBlock, fn.block("test", 1, 2, 3));
+    }
+    
+    @Test
+    public void testLocationEqual(){
+        Location loc1 = new Location(mockWorld, 1, 2, 3);
+        Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
+        Location loc3 = new Location(mockWorld, 1, 2, 3, 0.7F, 0.8F);
+        Location loc4 = new Location(mockWorld, 4, 5, 6, 0.1F, 0.2F);
+        
+        Assert.assertFalse(fn.locationEqual(loc1, loc2));
+        Assert.assertTrue(fn.locationEqual(loc1, loc3));
+        Assert.assertFalse(fn.locationEqual(loc2, loc4));
+        Assert.assertTrue(fn.locationEqual(loc1, loc3));
+    }
+    
+    @Test
+    public void test(){
+        
     }
 }
