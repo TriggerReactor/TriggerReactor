@@ -196,8 +196,8 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         
         Assert.assertFalse(fn.locationEqual(loc1, loc2));
         Assert.assertTrue(fn.locationEqual(loc1, loc3));
-        Assert.assertFalse(fn.locationEqual(loc2, loc4));
-        Assert.assertTrue(fn.locationEqual(loc1, loc3));
+        Assert.assertFalse(fn.locationEqual(loc2, loc3));
+        Assert.assertTrue(fn.locationEqual(loc2, loc4));
     }
     
     @Test
