@@ -1,20 +1,17 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
-import org.junit.Assert;
-import org.junit.Before;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This test class require static method data().
@@ -34,11 +31,6 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
 
     public TestCommonFunctions(FN fn){
         this.fn = fn;
-    }
-
-    @Before
-    public void init(){
-
     }
 
     @Test

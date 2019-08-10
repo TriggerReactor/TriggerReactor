@@ -20,11 +20,14 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.Collection;
 
@@ -122,6 +125,19 @@ public class CommonFunctions extends AbstractCommonFunctions
      */
     public Collection<? extends Player> getPlayers() {
         return BukkitUtil.getOnlinePlayers();
+    }
+
+    @Override
+    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
+                                         boolean particles, Color color) {
+        PotionEffectType type = null;
+        type = PotionEffectType.getByName(EffectType);
+
+        if (type != null) {
+            return new PotionEffect(type, duration, amplifier, ambient, particles, color);
+        } else {
+            return null;
+        }
     }
 
     /**

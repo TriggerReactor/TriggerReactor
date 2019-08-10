@@ -64,6 +64,16 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         fn.takeItem(mockPlayer, 1, 5, 1);
     }
 
+    @Override
+    public void testGetPlayers() {
+        Assert.assertTrue(fn.getPlayers().contains(mockPlayer));
+    }
+
+    @Override
+    public void testMakePotionEffect() {
+        //TODO: not testable?
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void testItem(){
         ItemStack IS = new ItemStack(Material.STONE,64);
@@ -74,5 +84,15 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
         Assert.assertTrue(isEqual(IS, fn.item(0, 64)));
         Assert.assertTrue(isEqual(IS2, fn.item(0, 63, 1)));
+    }
+
+    @Override
+    public void testHeadForName() {
+        //TODO: not testable?
+    }
+
+    @Override
+    public void testHeadForValue() {
+        //TODO: not testable?
     }
 }

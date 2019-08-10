@@ -3,19 +3,20 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunctions;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -23,7 +24,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Test driving class for both legacy and latest bukkit.
@@ -39,27 +43,42 @@ import java.util.HashMap;
 public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<AbstractCommonFunctions> {
     protected TriggerReactor mockMain;
     protected PluginManager mockPluginManager;
+    protected ItemFactory mockItemFactory;
     protected World mockWorld;
+    protected Player mockPlayer;
+    protected ItemMeta mockItemMeta;
 
     public AbstractTestCommonFunctions(AbstractCommonFunctions fn) {
         super(fn);
     }
 
     @Before
-    public void init(){
+    public void init() throws Exception{
         mockMain = Mockito.mock(TriggerReactor.class);
+        mockItemFactory = Mockito.mock(ItemFactory.class);
         mockPluginManager = Mockito.mock(PluginManager.class);
         mockWorld = Mockito.mock(World.class);
+        mockPlayer = Mockito.mock(Player.class);
+        mockItemMeta = Mockito.mock(ItemMeta.class);
 
         PowerMockito.mockStatic(TriggerReactor.class);
         Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
 
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
+        Mockito.when(Bukkit.getItemFactory()).thenReturn(mockItemFactory);
+
+        Mockito.when(mockItemFactory.getItemMeta(Mockito.any(Material.class))).thenReturn(mockItemMeta);
         Mockito.when(Bukkit.getWorld(Mockito.anyString())).then(
                 invocation -> {
                     return mockWorld;
                 });
+        Collection<? extends Player> players = new ArrayList<Player>(){{
+            add(mockPlayer);
+        }};
+        PowerMockito.doReturn(players).when(Bukkit.class, "getOnlinePlayers");
+        Mockito.when(Bukkit.getPlayer(Mockito.anyString())).thenReturn(mockPlayer);
+        Mockito.when(Bukkit.getOfflinePlayer(Mockito.anyString())).thenReturn(mockPlayer);
     }
 
     protected class FakeInventory {
@@ -201,7 +220,200 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
     
     @Test
-    public void test(){
-        
+    public abstract void testMakePotionEffect();
+
+    @Test
+    public void testPlayer(){
+        Assert.assertEquals(mockPlayer, fn.player("wysohn"));
     }
+
+    @Test
+    public void testOPlayer(){
+        Assert.assertEquals(mockPlayer, fn.oplayer("wysohn"));
+    }
+
+    @Test
+    public abstract void testGetPlayers();
+
+    @Test
+    public void testCurrentArea(){
+        //TODO: testable?
+    }
+
+    @Test
+    public void testCurrentAreaAt(){
+        //TODO: testable?
+    }
+
+    @Test
+    public void testCurrentAreas(){
+        //TODO: testable?
+    }
+
+    @Test
+    public void testCurrentAreasAt(){
+        //TODO: testable?
+    }
+
+    @Test
+    public void testGetEntitiesInArea(){
+        //TODO: testable?
+    }
+
+    @Test
+    public void testColor(){
+        Assert.assertEquals(ChatColor.RED+"My message",
+                fn.color("&cMy message"));
+    }
+
+    @Test
+    public void testBukkitColor(){
+        Color expect = Color.fromRGB(3, 6, 8);
+        Color result = fn.bukkitColor(3, 6, 8);
+        Assert.assertEquals(expect.asBGR(), result.asBGR());
+    }
+
+    @Test
+    public abstract void testItem();
+
+    private String title;
+    @Test
+    public void testGetItemTitle(){
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> "abc").when(mockItemMeta).getDisplayName();
+
+        Assert.assertEquals("abc", fn.getItemTitle(IS));
+    }
+
+    @Test
+    public void testSetItemTitle(){
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> {
+            title = invocation.getArgument(0);
+            return null;
+        }).when(mockItemMeta).setDisplayName(Mockito.anyString());
+
+        fn.setItemTitle(IS, "xyz");
+        Assert.assertEquals("xyz", title);
+    }
+
+    @Test
+    public void testHasLore(){
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        Assert.assertTrue(fn.hasLore(IS, "abab"));
+        Assert.assertFalse(fn.hasLore(IS, "hoho"));
+    }
+
+    @Test
+    public void testGetLore(){
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        Assert.assertEquals("abab", fn.getLore(IS, 0));
+        Assert.assertEquals("cdcd", fn.getLore(IS, 1));
+        Assert.assertNull(fn.getLore(IS, 2));
+        Assert.assertNull(fn.getLore(IS, -1));
+    }
+
+    @Test
+    public void testAddLore(){
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        fn.addLore(IS, "efef");
+        Assert.assertEquals(3, lores.size());
+        Assert.assertEquals("efef", lores.get(lores.size() - 1));
+    }
+
+    @Test
+    public void testSetLore(){
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        fn.setLore(IS, 0, "pqpq");
+        Assert.assertEquals("pqpq", lores.get(0));
+        fn.setLore(IS, 5, "ffee");
+        Assert.assertEquals(6, lores.size());
+        Assert.assertEquals("ffee", lores.get(5));
+    }
+
+    @Test
+    public void testRemoveLore(){
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+        lores.add("efef");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        fn.removeLore(IS, 2);
+        Assert.assertEquals(2, lores.size());
+        Assert.assertFalse(lores.contains("efef"));
+
+        fn.removeLore(IS, 0);
+        Assert.assertEquals(1, lores.size());
+        Assert.assertFalse(lores.contains("abab"));
+        Assert.assertEquals("cdcd", lores.get(0));
+    }
+
+    @Test
+    public void testClearLore(){
+        ItemStack IS = new ItemStack(Material.STONE);
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+
+        fn.clearLore(IS);
+        Mockito.verify(mockItemMeta).setLore(captor.capture());
+        Assert.assertEquals(0, captor.getValue().size());
+    }
+
+    @Test
+    public void testLoreSize(){
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+        lores.add("efef");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        Assert.assertEquals(3, fn.loreSize(IS));
+    }
+
+    @Test
+    public void testFormatCurrency(){
+        Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44));
+        Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44, "en", "US"));
+        Assert.assertEquals("£3,234,463.44", fn.formatCurrency(3234463.44, "en", "GB"));
+    }
+
+    @Test
+    public void testGetTargetBlock(){
+        fn.getTargetBlock(mockPlayer, 30);
+        Mockito.verify(mockPlayer).getTargetBlock(null, 30);
+    }
+
+    @Test
+    public abstract void testHeadForName();
+
+    @Test
+    public abstract void testHeadForValue();
 }
