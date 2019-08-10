@@ -281,7 +281,7 @@ public class ReflectionUtil {
         }
     }
 
-    private static boolean checkMatch(Class<?> parameterType, Object arg) {
+    public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
         if (!(arg instanceof String && parameterType.isEnum())
                 && !ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true)) {

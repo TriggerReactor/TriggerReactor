@@ -1,14 +1,15 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -99,15 +100,28 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
     
     @Test
     public void testConstructor() throws Exception {
-    	//TODO: wysohn.  These tests fail if you uncomment them, pinpointing the problem in the constructor reflection.
-    	//uncomment when you've found a fix
-    	/*
+        //thx for the test cases
     	ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
     	assertEquals(0, e.marker);
-    	
+
     	e = (ExampleClass) fn.newInstance(example, new Double(1.1));
     	assertEquals(2, e.marker);
-    	*/
+
+    	File file = null;
+    	try{
+            file = (File) fn.newInstance("java.io.File", "test.txt");
+            FileWriter writer = (FileWriter) fn.newInstance("java.io.FileWriter", file);
+            writer.write("Something");
+            writer.close();
+
+            FileReader reader = (FileReader) fn.newInstance("java.io.FileReader", file);
+            Scanner sc = new Scanner(reader);
+            Assert.assertEquals("Something", sc.nextLine());
+            sc.close();
+        }finally {
+            if(file != null)
+                file.delete();
+        }
     }
     
     

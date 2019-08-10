@@ -3,7 +3,9 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import org.apache.commons.lang3.ClassUtils;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -195,52 +197,157 @@ public class CommonFunctions implements SelfReference {
     }
 
     public Object newInstance(String className, Object... args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalArgumentException, InvocationTargetException {
-        Class<?> clazz = Class.forName(className);
+        try {
+            Class<?> clazz = Class.forName(className);
 
-        Class<?>[] types = new Class[args.length];
-        for (int i = 0; i < types.length; i++) {
-            types[i] = args[i].getClass();
-        }
+            List<Constructor> validConstructors = new ArrayList<>();
 
-        Constructor con = null;
-        Constructor[] cons = clazz.getConstructors();
-        outer:
-        for (Constructor check : cons) {
-            Class<?>[] params = check.getParameterTypes();
-            if (params.length == types.length) {
-                for (int i = 0; i < types.length; i++) {
-                    if (!params[i].isAssignableFrom(types[i])) {
-                        break;
+            for (Constructor constructor : clazz.getConstructors()) {
+                Class<?>[] parameterTypes = null;
+
+                parameterTypes = constructor.getParameterTypes();
+                if (constructor.isVarArgs()) {
+                    if (constructor.isVarArgs() && (parameterTypes.length - args.length >= 2)) {
+                        parameterTypes = null;
+                        continue;
+                    }
+                } else {
+                    if (parameterTypes.length != args.length) {
+                        parameterTypes = null;
+                        continue;
+                    }
+                }
+
+                if (constructor.isVarArgs()) {
+                    boolean matches = false;
+
+                    // check non vararg part
+                    for (int i = 0; i < parameterTypes.length - 1; i++) {
+                        matches = ReflectionUtil.checkMatch(parameterTypes[i], args[i]);
+                        if (!matches)
+                            break;
                     }
 
-                    //we found the constructor
-                    con = check;
-                    break outer;
+                    // check rest
+                    for (int i = parameterTypes.length - 1; i < args.length; i++) {
+                        Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
+
+                        matches =  ReflectionUtil.checkMatch(arrayType, args[i]);
+                        if (!matches)
+                            break;
+                    }
+
+                    if (matches) {
+                        validConstructors.add(constructor);
+                    }
+                } else {
+                    boolean matches = true;
+
+                    for (int i = 0; i < parameterTypes.length; i++) {
+                        matches =  ReflectionUtil.checkMatch(parameterTypes[i], args[i]);
+                        if (!matches)
+                            break;
+                    }
+
+                    if (matches) {
+                        validConstructors.add(constructor);
+                    }
                 }
             }
-        }
 
-        if (con != null) {
-            con.setAccessible(true);
+            if (!validConstructors.isEmpty()) {
+                Constructor constructor = validConstructors.get(0);
+                for (int i = 1; i < validConstructors.size(); i++) {
+                    Constructor targetConstructor = validConstructors.get(i);
 
-            try {
-                return con.newInstance(args);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                    Class<?>[] params = constructor.getParameterTypes();
+                    Class<?>[] otherParams = targetConstructor.getParameterTypes();
+
+                    if (constructor.isVarArgs() && targetConstructor.isVarArgs()) {
+                        for (int j = 0; j < params.length; j++) {
+                            if (params[j].isAssignableFrom(otherParams[j])) {
+                                constructor = targetConstructor;
+                                break;
+                            }
+                        }
+                    } else if (constructor.isVarArgs()) {
+                        //usually, non-vararg is more specific method. So we use that
+                        constructor = targetConstructor;
+                    } else if (targetConstructor.isVarArgs()) {
+                        //do nothing
+                    } else {
+                        for (int j = 0; j < params.length; j++) {
+                            if (otherParams[j].isEnum()) { // enum will be handled later
+                                constructor = targetConstructor;
+                                break;
+                            } else if (ClassUtils.isAssignable(otherParams[j], params[j], true)) { //narrow down to find the most specific method
+                                constructor = targetConstructor;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                constructor.setAccessible(true);
+
+                for (int i = 0; i < args.length; i++) {
+                    Class<?>[] parameterTypes = constructor.getParameterTypes();
+
+                    if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
+                        try {
+                            args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
+                        } catch (IllegalArgumentException ex1) {
+                            throw new RuntimeException("Tried to convert value [" + args[i]
+                                    + "] to Enum [" + parameterTypes[i]
+                                    + "] or find appropriate method but found nothing. Make sure"
+                                    + " that the value [" + args[i]
+                                    + "] matches exactly with one of the Enums in [" + parameterTypes[i]
+                                    + "] or the method you are looking exists.");
+                        }
+                    }
+                }
+
+                if (constructor.isVarArgs()) {
+                    Class<?>[] parameterTypes = constructor.getParameterTypes();
+
+                    Object varargs = Array.newInstance(
+                            parameterTypes[parameterTypes.length - 1].getComponentType(),
+                            args.length - parameterTypes.length + 1);
+                    for (int k = 0; k < Array.getLength(varargs); k++) {
+                        Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+                    }
+
+                    Object[] newArgs = new Object[parameterTypes.length];
+                    for (int k = 0; k < newArgs.length - 1; k++) {
+                        newArgs[k] = args[k];
+                    }
+                    newArgs[newArgs.length - 1] = varargs;
+
+                    args = newArgs;
+                }
+
+                return constructor.newInstance(args);
             }
 
-            return null;
-        } else {
-            StringBuilder builder = new StringBuilder("Could not found counstuctor with matching parameters.");
-            builder.append(" -- ");
-            builder.append(className + "<init>");
-            builder.append("(");
-            for (int i = 0; i < types.length - 1; i++)
-                builder.append(types[i].getSimpleName() + ", ");
-            builder.append(types[types.length - 1].getSimpleName());
-            builder.append(")");
+            if (args.length > 0) {
+                StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
 
-            throw new NoSuchMethodException(builder.toString());
+                for (int i = 1; i < args.length; i++) {
+                    builder.append(", " + args[i].getClass().getSimpleName());
+                }
+
+                throw new IllegalArgumentException(className+"(" + builder.toString() + "). " +
+                        "Make sure the arguments match.");
+            } else {
+                throw new IllegalArgumentException(className + "(). Make sure the arguments match.");
+            }
+        } catch (NullPointerException e) {
+            StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
+            for (int i = 1; i < args.length; i++)
+                builder.append("," + String.valueOf(args[i]));
+            throw new NullPointerException("Attempted to instantiate " + className + "(" + builder.toString() + ")");
+        } catch (IllegalAccessException e){
+            throw new RuntimeException("Unexpected exception. Please contact the plugin author!", e);
         }
     }
 
@@ -313,7 +420,7 @@ public class CommonFunctions implements SelfReference {
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
      *
-     * @param argument array to merge
+     * @param args array to merge
      * @return
      */
     public String mergeArguments(String[] args) {
@@ -324,7 +431,7 @@ public class CommonFunctions implements SelfReference {
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
      *
-     * @param argument  array to merge
+     * @param args  array to merge
      * @param indexFrom inclusive
      * @return
      */
@@ -336,7 +443,7 @@ public class CommonFunctions implements SelfReference {
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
      *
-     * @param argument  array to merge
+     * @param args  array to merge
      * @param indexFrom inclusive
      * @param indexTo   inclusive
      * @return
