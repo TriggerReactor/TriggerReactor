@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.junit.Assert;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -9,7 +10,12 @@ import org.junit.runners.Parameterized;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
