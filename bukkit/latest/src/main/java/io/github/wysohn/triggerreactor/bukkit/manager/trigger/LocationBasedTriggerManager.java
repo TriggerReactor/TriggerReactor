@@ -237,12 +237,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     public boolean isSignPost(Material mat) {
-        return mat == Material.ACACIA_SIGN
-                || mat == Material.BIRCH_SIGN
-                || mat == Material.DARK_OAK_SIGN
-                || mat == Material.JUNGLE_SIGN
-                || mat == Material.OAK_SIGN
-                || mat == Material.SPRUCE_SIGN;
+        return mat.name().endsWith("SIGN");
     }
 
     @EventHandler(priority = EventPriority.LOW)
