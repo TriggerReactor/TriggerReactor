@@ -41,5 +41,5 @@ jar {
                 .collect { it.isDirectory() ? it : zipTree(it) }
     }
 
-    baseName = "${rootProject.name}-${project.name}-${project.ext.version}.jar"
+    baseName = "${rootProject.name}-${project.name}-${project.ext.version}"
 }

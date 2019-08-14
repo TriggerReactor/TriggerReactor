@@ -52,7 +52,7 @@ subprojects {
     }
     processTestResources.dependsOn copyTestResources
 
-    jar.baseName = "${rootProject.name}-bukkit-${project.name}-${project.ext.version}.jar"
+    jar.baseName = "${rootProject.name}-bukkit-${project.name}-${project.ext.version}"
 }
 
 test {
