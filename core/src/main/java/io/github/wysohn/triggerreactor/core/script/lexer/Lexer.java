@@ -32,7 +32,7 @@ public class Lexer {
     }
 
     private InputStream stream;
-    private PushbackReader reader;
+    private BufferedReader br;
 
     private boolean eos = false;
     private char c = 0;
@@ -57,7 +57,7 @@ public class Lexer {
 
     private void initInputStream() throws IOException {
         InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
-        reader = new PushbackReader(new BufferedReader(isr), 256);
+        br = new BufferedReader(isr);
         read();//position to first element
     }
 
@@ -74,7 +74,9 @@ public class Lexer {
      * @throws IOException
      */
     private boolean read() throws IOException {
-        int read = reader.read();
+        br.mark(0);
+
+        int read = br.read();
         if (read == -1) {
             c = 0;
             eos = true;
@@ -93,7 +95,7 @@ public class Lexer {
 
     private void unread() throws IOException {
         col--;
-        reader.unread(c);
+        br.reset();
     }
 
     /**
@@ -196,91 +198,27 @@ public class Lexer {
         while (read() && c != '"') {
             if (c == '\\') {
                 read();
-                readEscapeChar(builder);
-            } else {
-                if(c == '$'){
-                    StringBuilder placeholder_builder = new StringBuilder();
-                    placeholder_builder.append("+$");
 
-                    read();
-                    if(c == '{'){
-                        while(read() && c != '}'){
-                            if (c == '\\') {
-                                read();
-                                readEscapeChar(placeholder_builder);
-                            } else {
-                                placeholder_builder.append(c);
-                            }
-                        }
-
-                        if(eos)
-                            throw new LexerException("End of stream is reached before finding } for placeholder $" +
-                                    placeholder_builder.substring(2), this);
-                        read();
-                        if(eos)
-                            throw new LexerException("End of stream is reached before finding '\"'", this);
-
-                        if(c != '"') {
-                            placeholder_builder.append("+\""); // prepare for concatenation
-                            unread(); // push back the last character
-                        }
-                    }else{
-                        while(c != '"' && c != ' '){
-                            if (c == '\\') {
-                                read();
-                                readEscapeChar(placeholder_builder);
-                            } else {
-                                placeholder_builder.append(c);
-                            }
-
-                            if(!read())
-                                break;
-                        }
-
-                        // white space is still part of string so push it back
-                        if(c == ' ')
-                            unread();
-
-                        if(eos)
-                            throw new LexerException("End of stream is reached before finding end of placeholder $" +
-                                    placeholder_builder.substring(2), this);
-
-                        if(c != '"')
-                            placeholder_builder.append("+\""); // prepare for concatenation
-                        else
-                            read(); // consume dangling " sign
-                    }
-
-                    //push placeholder back into stream
-                    reader.unread(placeholder_builder.toString().toCharArray());
-                    read();
-
-                    return new Token(Type.STRING, builder.toString(), row, col);
-                } else {
+                if (c == '\\' || c == '"') {
                     builder.append(c);
+                } else if (c == 'n') {
+                    builder.append('\n');
+                } else if (c == 'r') {
+                    builder.append('\r');
+                } else {
+                    throw new LexerException("Expected an escaping character after \\ but found " + c + " instead", this);
                 }
+            } else {
+                builder.append(c);
             }
         }
 
         if (eos)
             throw new LexerException("End of stream is reached before finding '\"'", this);
+
         read();
 
         return new Token(Type.STRING, builder.toString(), row, col);
-    }
-
-    private void readEscapeChar(StringBuilder builder) throws LexerException {
-        if (c == '\\' || c == '"') {
-            builder.append(c);
-        } else if (c == 'n') {
-            builder.append('\n');
-        } else if (c == 'r') {
-            builder.append('\r');
-        } else if (c == '$') {
-            builder.append('$');
-        } else {
-            throw new LexerException("Expected an escaping character after \\ but found " + c + " instead", this);
-        }
     }
 
     private Token readOperator() throws IOException, LexerException {

@@ -20,21 +20,12 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class TestLexer {
-
-    private static void testToken(Lexer lexer, Type id, String s) throws IOException, LexerException {
-        assertEquals(new Token(id, s), lexer.getToken());
-    }
-
-    private static void testEnd(Lexer lexer) throws IOException, LexerException {
-        assertNull(lexer.getToken());
-    }
 
     @Test
     public void testGetToken() throws Exception {
@@ -44,39 +35,39 @@ public class TestLexer {
 
         Lexer lexer = new Lexer(text, charset);
 
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.OPERATOR, "(");
-        testToken(lexer, Type.INTEGER, "1");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "(");
-        testToken(lexer, Type.INTEGER, "4");
-        testToken(lexer, Type.OPERATOR_A, "/");
-        testToken(lexer, Type.DECIMAL, "2.0");
-        testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.OPERATOR_A, "/");
-        testToken(lexer, Type.INTEGER, "3");
-        testToken(lexer, Type.OPERATOR_A, "*");
-        testToken(lexer, Type.INTEGER, "4");
-        testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.OPERATOR, "(");
-        testToken(lexer, Type.INTEGER, "2");
-        testToken(lexer, Type.OPERATOR_A, "/");
-        testToken(lexer, Type.OPERATOR, "(");
-        testToken(lexer, Type.INTEGER, "3");
-        testToken(lexer, Type.OPERATOR_A, "*");
-        testToken(lexer, Type.OPERATOR_A, "-");
-        testToken(lexer, Type.INTEGER, "4");
-        testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.OPERATOR_L, ">=");
-        testToken(lexer, Type.INTEGER, "0");
-        testToken(lexer, Type.OPERATOR, ")");
-        testToken(lexer, Type.ENDL, null);
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.STRING, "text");
-        testToken(lexer, Type.STRING, "test");
-        testToken(lexer, Type.ENDL, null);
-        testEnd(lexer);
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, "("), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "1"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "+"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, "("), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "4"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "/"), lexer.getToken());
+        assertEquals(new Token(Type.DECIMAL, "2.0"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, ")"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "/"), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "3"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "*"), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "4"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "-"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, "("), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "2"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "/"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, "("), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "3"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "*"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_A, "-"), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "4"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, ")"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, ")"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_L, ">="), lexer.getToken());
+        assertEquals(new Token(Type.INTEGER, "0"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR, ")"), lexer.getToken());
+        assertEquals(new Token(Type.ENDL, null), lexer.getToken());
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "text"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "test"), lexer.getToken());
+        assertEquals(new Token(Type.ENDL, null), lexer.getToken());
+        assertNull(lexer.getToken());
     }
 
     @Test
@@ -86,11 +77,11 @@ public class TestLexer {
 
         Lexer lexer = new Lexer(text, charset);
 
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.OPERATOR_L, "!");
-        testToken(lexer, Type.ID, "true");
-        testToken(lexer, Type.ENDL, null);
-        testEnd(lexer);
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_L, "!"), lexer.getToken());
+        assertEquals(new Token(Type.ID, "true"), lexer.getToken());
+        assertEquals(new Token(Type.ENDL, null), lexer.getToken());
+        assertNull(lexer.getToken());
     }
 
     @Test
@@ -100,13 +91,13 @@ public class TestLexer {
 
         Lexer lexer = new Lexer(text, charset);
 
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.OPERATOR_L, "!");
-        testToken(lexer, Type.ID, "true");
-        testToken(lexer, Type.ENDL, null);
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.STRING, "next");
-        testEnd(lexer);
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.OPERATOR_L, "!"), lexer.getToken());
+        assertEquals(new Token(Type.ID, "true"), lexer.getToken());
+        assertEquals(new Token(Type.ENDL, null), lexer.getToken());
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "next"), lexer.getToken());
+        assertNull(lexer.getToken());
     }
 
     @Test
@@ -116,9 +107,9 @@ public class TestLexer {
 
         Lexer lexer = new Lexer(text, charset);
 
-        testToken(lexer, Type.ID, "#MESSAGE");
-        testToken(lexer, Type.STRING, "HI \"X\"! \\");
-        testEnd(lexer);
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "HI \"X\"! \\"), lexer.getToken());
+        assertNull(lexer.getToken());
     }
 
     @Test
@@ -129,8 +120,7 @@ public class TestLexer {
 
         text = "IMPORT some.class.to.import.Something";
         lexer = new Lexer(text, charset);
-        testToken(lexer, Type.IMPORT, "some.class.to.import.Something");
-        testEnd(lexer);
+        assertEquals(new Token(Type.IMPORT, "some.class.to.import.Something"), lexer.getToken());
     }
 
     @Test
@@ -141,170 +131,6 @@ public class TestLexer {
 
         text = "IMPORT some.class.with2num.import2.So2met2hing2";
         lexer = new Lexer(text, charset);
-        testToken(lexer, Type.IMPORT, "some.class.with2num.import2.So2met2hing2");
-        testEnd(lexer);
-    }
-
-    @Test
-    public void testComment() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text;
-        Lexer lexer;
-
-        text = "/5";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.OPERATOR_A, "/");
-        testToken(lexer, Type.INTEGER, "5");
-        testEnd(lexer);
-
-        text = "1//hey";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.INTEGER, "1");
-        testEnd(lexer);
-
-        text = "2/*hey*/+3";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.INTEGER, "2");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.INTEGER, "3");
-        testEnd(lexer);
-    }
-
-    @Test
-    public void testNumber() throws Exception{
-
-    }
-
-    @Test
-    public void testString() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text;
-        Lexer lexer;
-
-        text = "\"hey $playername !\"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.STRING, " !");
-        testEnd(lexer);
-
-        text = "\"my name is $playername\"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "my name is ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testEnd(lexer);
-
-        text = "\"hey ${playername}!\"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.STRING, "!");
-        testEnd(lexer);
-
-        text = "\"hey ${playername}\"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testEnd(lexer);
-
-        text = "\"my name is $playername:5:\\\"2\\\":3 \"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "my name is ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testToken(lexer, Type.OPERATOR, ":");
-        testToken(lexer, Type.INTEGER, "5");
-        testToken(lexer, Type.OPERATOR, ":");
-        testToken(lexer, Type.STRING, "2");
-        testToken(lexer, Type.OPERATOR, ":");
-        testToken(lexer, Type.INTEGER, "3");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.STRING, " ");
-        testEnd(lexer);
-
-        text = "\"hey ${playername:7:8:\\\"9\\\"}\"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testToken(lexer, Type.OPERATOR, ":");
-        testToken(lexer, Type.INTEGER, "7");
-        testToken(lexer, Type.OPERATOR, ":");
-        testToken(lexer, Type.INTEGER, "8");
-        testToken(lexer, Type.OPERATOR, ":");
-        testToken(lexer, Type.STRING, "9");
-        testEnd(lexer);
-    }
-
-    @Test(expected = LexerException.class)
-    public void testStringException() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text;
-        Lexer lexer;
-
-        text = "\"hey ${playername}";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testEnd(lexer);
-    }
-
-    @Test(expected = LexerException.class)
-    public void testStringException2() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text;
-        Lexer lexer;
-
-        text = "\"hey ${playername\"";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testEnd(lexer);
-    }
-
-    @Test(expected = LexerException.class)
-    public void testStringException3() throws Exception{
-        Charset charset = Charset.forName("UTF-8");
-        String text;
-        Lexer lexer;
-
-        text = "\"hey $playername";
-        lexer = new Lexer(text, charset);
-        testToken(lexer, Type.STRING, "hey ");
-        testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.OPERATOR, "$");
-        testToken(lexer, Type.ID, "playername");
-        testEnd(lexer);
-    }
-
-    @Test
-    public void testOperator() throws Exception{
-
-    }
-
-    @Test
-    public void testId() throws Exception{
-
-    }
-
-    @Test
-    public void testEndline() throws Exception{
-
+        assertEquals(new Token(Type.IMPORT, "some.class.with2num.import2.So2met2hing2"), lexer.getToken());
     }
 }

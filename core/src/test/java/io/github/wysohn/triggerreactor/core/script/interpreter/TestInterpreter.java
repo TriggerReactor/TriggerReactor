@@ -610,7 +610,7 @@ public class TestInterpreter {
     public void testEnumParse() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text = ""
-                + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter\\$TestEnum\","
+                + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum\","
                 + " \"IMTEST\");";
 
         Lexer lexer = new Lexer(text, charset);
