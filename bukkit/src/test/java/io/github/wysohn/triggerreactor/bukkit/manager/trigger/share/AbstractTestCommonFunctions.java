@@ -402,7 +402,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     public void testFormatCurrency(){
         Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44));
         Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44, "en", "US"));
-        Assert.assertEquals("£3,234,463.44", fn.formatCurrency(3234463.44, "en", "GB"));
+        Assert.assertEquals("\u00a33,234,463.44", fn.formatCurrency(3234463.44, "en", "GB"));
     }
 
     @Test
