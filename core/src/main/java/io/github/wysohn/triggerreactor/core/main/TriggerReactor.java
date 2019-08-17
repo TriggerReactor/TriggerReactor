@@ -129,9 +129,19 @@ public abstract class TriggerReactor implements TaskSupervisor {
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
                     debugging = !debugging;
-
-                    getLogger().info("Debugging is set to " + debugging);
+                    String color;
+                    if (debugging)
+                    {
+                    	color = "a";
+                    } else {
+                    	color = "c";
+                    }
+                    sender.sendMessage("Debugging is set to &" + color + debugging);
+                    
+                    getLogger().info("Debugging is set to &e" + debugging);
                     return true;
+                } else if (args[0].equalsIgnoreCase("version")) {
+                	sender.sendMessage("Current version: 2.2.0");
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
                         getScriptEditManager().startEdit(sender, "Click Trigger", "", new SaveHandler() {
@@ -1488,6 +1498,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
             sender.sendMessage("  &7/trg a to see more commands...");
 
             sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
+            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
             sender.sendMessage("  &7/trg r to see more commands...");
         });
         add((sender) -> {
