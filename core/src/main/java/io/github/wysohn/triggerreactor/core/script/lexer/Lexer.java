@@ -197,17 +197,7 @@ public class Lexer {
 
         while (read() && c != '"') {
             if (c == '\\') {
-                read();
-
-                if (c == '\\' || c == '"') {
-                    builder.append(c);
-                } else if (c == 'n') {
-                    builder.append('\n');
-                } else if (c == 'r') {
-                    builder.append('\r');
-                } else {
-                    throw new LexerException("Expected an escaping character after \\ but found " + c + " instead", this);
-                }
+                readEscapeChar(builder);
             } else {
                 builder.append(c);
             }
@@ -219,6 +209,20 @@ public class Lexer {
         read();
 
         return new Token(Type.STRING, builder.toString(), row, col);
+    }
+
+    private void readEscapeChar(StringBuilder builder) throws LexerException {
+        if (c == '\\' || c == '"') {
+            builder.append(c);
+        } else if (c == 'n') {
+            builder.append('\n');
+        } else if (c == 'r') {
+            builder.append('\r');
+        } else if (c == '$') {
+            builder.append('$');
+        } else {
+            throw new LexerException("Expected an escaping character after \\ but found " + c + " instead", this);
+        }
     }
 
     private Token readOperator() throws IOException, LexerException {
