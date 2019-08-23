@@ -197,6 +197,7 @@ public class Lexer {
 
         while (read() && c != '"') {
             if (c == '\\') {
+                read();
                 readEscapeChar(builder);
             } else {
                 builder.append(c);

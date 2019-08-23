@@ -113,6 +113,18 @@ public class TestLexer {
     }
 
     @Test
+    public void testEscapeCharacter2() throws Exception {
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#MESSAGE \"The cost is \\$100\"";
+
+        Lexer lexer = new Lexer(text, charset);
+
+        assertEquals(new Token(Type.ID, "#MESSAGE"), lexer.getToken());
+        assertEquals(new Token(Type.STRING, "The cost is $100"), lexer.getToken());
+        assertNull(lexer.getToken());
+    }
+
+    @Test
     public void testImport() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text;
