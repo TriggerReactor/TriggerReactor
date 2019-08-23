@@ -121,10 +121,32 @@ public abstract class TriggerReactor implements TaskSupervisor {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
 
+    private boolean deprecationMessageShown = false;
+
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
+
+            if(!deprecationMessageShown){
+                deprecationMessageShown = true;
+
+                // show 1 tick later
+                submitAsync(()->{
+                    try{
+                        Thread.sleep(50L);
+                    }catch (InterruptedException ex){
+                        //ignore
+                    }
+
+                    deprecationPages.forEach((paragraph)->{
+                        paragraph.sendParagraph(getConsoleSender());
+                        if(sender.getClass() != getConsoleSender().getClass()){
+                            paragraph.sendParagraph(sender);
+                        }
+                    });
+                });
+            }
 
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
@@ -1120,7 +1142,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
         page = Math.max(0, Math.min(helpPages.size() - 1, page));
 
         sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        helpPages.get(page).sendHelpPage(sender);
+        helpPages.get(page).sendParagraph(sender);
         sender.sendMessage("");
         sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size() - 1) + " &8- &6/trg help <page> &7to see other pages.");
     }
@@ -1470,7 +1492,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
     public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
 
     @SuppressWarnings("serial")
-    private final List<HelpPage> helpPages = new ArrayList<HelpPage>() {{
+    private final List<Paragraph> helpPages = new ArrayList<Paragraph>() {{
         add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
             sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
@@ -1538,7 +1560,22 @@ public abstract class TriggerReactor implements TaskSupervisor {
         });
     }};
 
-    private interface HelpPage {
-        void sendHelpPage(ICommandSender sender);
+    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{
+        add((sender -> {
+            sender.sendMessage("&d===============================================================");
+            sender.sendMessage("&6NOTICE: &cSyntax Change Planned!");
+            sender.sendMessage("");
+            sender.sendMessage("For version 3.0.0 and above, the Placholder now can be placed inside the 'string.'" +
+                    " For example, &6\"My name is $playername\" &fis equivalent to &6\"My name is \"+$playername&f." +
+                    " Therefore, you are hereby warned that the &6dollar sign($) &f used in the string will cause" +
+                    " the problem in future version. &cPlease fix it accordingly &fto avoid this problem." +
+                    " If you must use dollar sign, use escape sequence to do so;" +
+                    " for example, you can do so by &6\"The cost was 5\\$\"");
+            sender.sendMessage("&d===============================================================");
+        }));
+    }};
+
+    private interface Paragraph {
+        void sendParagraph(ICommandSender sender);
     }
 }
