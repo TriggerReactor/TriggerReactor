@@ -17,9 +17,23 @@
 function CLEARCHAT(args){
 	if(player == null)
 		return null;
+	
+	if(args.length < 1){	
+		for(var i = 0; i < 30; i++)
+			player.sendMessage("");
 		
-	for(var i = 0; i < 30; i++)
-		player.sendMessage("");
-
-    return null;
+		return null;
+	}
+	if(args.length == 1){
+	    var plType = Java.type("org.bukkit.entity.Player")
+	    if(args[0] instanceof plType){
+            pl = args[0];
+            for(var i = 0; i < 30; i++)
+                pl.sendMessage("");
+        
+            return null;
+        }else {
+            throw new Error("Found unexpected parameter - player: "+ChatColor.YELLOW+ "" + (args[0] instanceof plType))
+        }
+    }
 }
