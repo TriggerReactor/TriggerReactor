@@ -32,8 +32,11 @@ function CLEARCHAT(args){
                 pl.sendMessage("");
         
             return null;
-        }else {
-            throw new Error("Found unexpected parameter - player: "+ChatColor.YELLOW+ "" + (args[0] instanceof plType))
+        	}else {
+            	throw new Error("Found unexpected parameter - player: " + args[0])
         }
+	if(args.length > 1)
+		throw new Error("There's too many arguments. CLEARCHAT Executor accepts up to one argument.")
+	}
     }
 }
