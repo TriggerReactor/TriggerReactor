@@ -377,7 +377,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 	@Test
 	public void testKickExecutor() throws Exception{
 		
-		Player vp = mock(Player.class);
+		Player vp = Mockito.mock(Player.class);
 		String msg = ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server.");
 		
 		//case1
