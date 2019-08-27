@@ -377,8 +377,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 	@Test
 	public void testKickExecutor() throws Exception{
 		
-		Player vp = mock(Player.class)
-		String msg = ChatColor.translateAlternateColorCodes(Char('&'), "&cKicked")
+		Player vp = mock(Player.class);
+		String msg = ChatColor.translateAlternateColorCodes(Char('&'), "&cKicked");
 		
 		//case1
 		JsTest test = new ExecutorTest(engine, "KICK").addVariable("pl", vp);
@@ -394,14 +394,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 		Mockito.verify(vp).kickPlayer(anyString());
 		
 		//case4
-		test.withArgs(vp, eq(msg)).test()
+		test.withArgs(vp, eq(msg)).test();
 		Mockito.verify(vp).kickPlayer(eq(msg));
 		
 		//Unexpected Exception Cases
-		assertError(() -> test.withArgs(1).test(), "Invalid parameter type. [Integer]")
-		assertError(() -> test.withArgs(vp, true).test(), "Invalid parameter type. [Player, Boolean]") 
-		assertError(() -> test.withArgs(vp, 232).test(), "Invalid parameter type. [Player, Integer]")
-		assertError(() -> test.withArgs(1 , 2 , 3).test(), "Too much parameters.")
+		assertError(() -> test.withArgs(1).test(), "Invalid parameter type. [Integer]");
+		assertError(() -> test.withArgs(vp, true).test(), "Invalid parameter type. [Player, Boolean]");
+		assertError(() -> test.withArgs(vp, 232).test(), "Invalid parameter type. [Player, Integer]");
+		assertError(() -> test.withArgs(1 , 2 , 3).test(), "Too much parameters.");
 	}
 
 }
