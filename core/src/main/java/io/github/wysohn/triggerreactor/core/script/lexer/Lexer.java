@@ -16,12 +16,16 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.lexer;
 
+import io.github.wysohn.triggerreactor.core.script.StringInterpolationWarning;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.Warning;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -36,6 +40,10 @@ public class Lexer {
 
     private boolean eos = false;
     private char c = 0;
+    private boolean showWarnings = false;
+    
+    //null if showWarnings is false
+    private List<Warning> warnings = null;
 
     private int row = 1;
     private int col = 1;
@@ -67,6 +75,10 @@ public class Lexer {
 
     public int getCol() {
         return col;
+    }
+    
+    public List<Warning> getWarnings() {
+    	return warnings;
     }
 
     /**
@@ -194,11 +206,16 @@ public class Lexer {
 
     private Token readString() throws IOException, LexerException {
         StringBuilder builder = new StringBuilder();
-
+        boolean warn = false;
+        
         while (read() && c != '"') {
             if (c == '\\') {
                 read();
                 readEscapeChar(builder);
+            } else if (c == '$') {
+            	if (showWarnings)
+            		warn = true;
+            	builder.append(c);
             } else {
                 builder.append(c);
             }
@@ -208,6 +225,8 @@ public class Lexer {
             throw new LexerException("End of stream is reached before finding '\"'", this);
 
         read();
+        if (warn)
+        	warnings.add(new StringInterpolationWarning(row, builder.toString()));
 
         return new Token(Type.STRING, builder.toString(), row, col);
     }
@@ -342,6 +361,13 @@ public class Lexer {
 
     private static boolean isOperator(char c) {
         return Arrays.binarySearch(OPERATORS, c) >= 0;
+    }
+    
+    public void setWarnings(boolean w) {
+    	showWarnings = w;
+    	
+    	if (w && warnings == null)
+    		warnings = new ArrayList<Warning>();
     }
 
     public static void main(String[] ar) throws IOException, LexerException {

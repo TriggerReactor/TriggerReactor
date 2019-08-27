@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.script.Warning;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
@@ -36,6 +37,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO {
     private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
@@ -122,6 +125,23 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         return triggerFile;
     }
+    
+    protected static void reportWarnings(List<Warning> warnings, Trigger trigger) {
+    	if (warnings == null || warnings.isEmpty()) {
+    		return;
+    	}
+    	
+    	Level L = Level.WARNING;
+    	Logger log = TriggerReactor.getInstance().getLogger();
+    	log.log(L, "===== " + warnings.size() + " warnings were found while processing trigger " + 
+    	           trigger.getTriggerName() + " =====");
+    	for (Warning w : warnings) {
+    	    for (String line : w.getMessage()) {
+    	    	log.log(L, line);
+    	    }
+    	}
+    	log.log(Level.WARNING, "");
+    }
 
     public static abstract class Trigger implements Cloneable {
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
@@ -179,7 +199,10 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                 Lexer lexer = new Lexer(script, charset);
                 Parser parser = new Parser(lexer);
 
-                root = parser.parse();
+                root = parser.parse(true);
+                List<Warning> warnings = parser.getWarnings();
+                
+                reportWarnings(warnings, this);
                 executorMap = TriggerReactor.getInstance().getExecutorManager().getBackedMap();
                 placeholderMap = TriggerReactor.getInstance().getPlaceholderManager().getBackedMap();
                 gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();

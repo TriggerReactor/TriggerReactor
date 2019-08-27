@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.script.parser;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.Warning;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 
@@ -31,6 +32,9 @@ import java.util.*;
 
 public class Parser {
     final Lexer lexer;
+    
+    private boolean showWarnings;
+    private List<Warning> warnings;
 
     private Token token;
 
@@ -55,12 +59,22 @@ public class Parser {
             nextToken();
     }
 
-    public Node parse() throws IOException, LexerException, ParserException {
+    public Node parse(boolean showWarnings) throws IOException, LexerException, ParserException {
+    	this.showWarnings = showWarnings;
+    	lexer.setWarnings(showWarnings);
+    	
         Node root = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
         Node statement = null;
         while ((statement = parseStatement()) != null)
             root.getChildren().add(statement);
+        
+        this.warnings = lexer.getWarnings();
+        
         return root;
+    }
+    
+    public Node parse() throws IOException, LexerException, ParserException {
+    	return parse(false);
     }
 
     private Node parseStatement() throws ParserException, IOException, LexerException {
@@ -774,6 +788,10 @@ public class Parser {
         }
 
         return stack.pop();
+    }
+    
+    public List<Warning> getWarnings() {
+    	return warnings;
     }
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException {
