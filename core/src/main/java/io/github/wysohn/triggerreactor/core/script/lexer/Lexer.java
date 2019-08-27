@@ -16,10 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.lexer;
 
-import io.github.wysohn.triggerreactor.core.script.StringInterpolationWarning;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.Warning;
+import io.github.wysohn.triggerreactor.core.script.warnings.StringInterpolationWarning;
+import io.github.wysohn.triggerreactor.core.script.warnings.Warning;
 
 import java.io.*;
 import java.nio.charset.Charset;

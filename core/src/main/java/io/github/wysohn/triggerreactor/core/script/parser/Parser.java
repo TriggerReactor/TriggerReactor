@@ -18,9 +18,9 @@ package io.github.wysohn.triggerreactor.core.script.parser;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.Warning;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.warnings.Warning;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
