@@ -387,7 +387,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
 		//case2
 		test.withArgs(msg).test();
-		Mokito.verify(vp).kickPlayer(msg);
+		Mockito.verify(vp).kickPlayer(msg);
 		
 		//case3
 		test.withArgs(vp).test();
