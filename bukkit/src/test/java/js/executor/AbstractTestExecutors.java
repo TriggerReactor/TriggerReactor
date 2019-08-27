@@ -378,24 +378,24 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 	public void testKickExecutor() throws Exception{
 		
 		Player vp = mock(Player.class);
-		String msg = ChatColor.translateAlternateColorCodes(Char('&'), "&cKicked");
+		String msg = ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server.");
 		
 		//case1
 		JsTest test = new ExecutorTest(engine, "KICK").addVariable("pl", vp);
 		test.withArgs().test();
-		Mockito.verify(vp).kickPlayer(anyString());
+		Mockito.verify(vp).kickPlayer(msg);
 
 		//case2
-		test.withArgs(eq(msg)).test();
-		Mokito.verify(vp).kickPlayer(eq(msg));
+		test.withArgs(msg).test();
+		Mokito.verify(vp).kickPlayer(msg);
 		
 		//case3
 		test.withArgs(vp).test();
-		Mockito.verify(vp).kickPlayer(anyString());
+		Mockito.verify(vp).kickPlayer(msg);
 		
 		//case4
-		test.withArgs(vp, eq(msg)).test();
-		Mockito.verify(vp).kickPlayer(eq(msg));
+		test.withArgs(vp, msg).test();
+		Mockito.verify(vp).kickPlayer(msg);
 		
 		//Unexpected Exception Cases
 		assertError(() -> test.withArgs(1).test(), "Invalid parameter type. [Integer]");
