@@ -10,6 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.Mockito.times;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
@@ -143,7 +144,21 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testClearChat() throws Exception{
-        
+        Player vp = Mockito.mock(Player.class);
+        Player vp2 = Mockito.mock(Player.class);
+        Player nullP = null;
+        JsTest test = new ExecutorTest(engine, "CLEARCHAT").addVariable("player", vp);
+
+        //case1
+        test.withArgs().test();
+        Mockito.verify(vp, times(30)).sendMessage("");
+
+        //case2
+        test.withArgs(vp2).test();
+        Mockito.verify(vp2, times(30)).sendMessage("");
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs(nullP).test(), "Found unexpected parameter - player: " + nullP);        
     }
     
     @Test
