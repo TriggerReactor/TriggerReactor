@@ -28,13 +28,13 @@ import java.util.concurrent.*;
 
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
     protected Map<String, Executor> jsExecutors = new HashMap<>();
-    public static final String[] deprecatedExecutorNames = {
+    public static final String[] DEPRECATED_EXECUTORS = {
     		"MODIFYPLAYER"
     };
     
     //test if an executor name is deprecated
     public static boolean isDeprecated(String name) {
-    	for (String n : deprecatedExecutorNames)
+    	for (String n : DEPRECATED_EXECUTORS)
     	{
     		if (name.equals(n))
     			return true;
