@@ -16,20 +16,21 @@
  *******************************************************************************/
  function KICK(args) {
     var plType = Java.type("org.bukkit.entity.Player")
-    if(args.length < 1){
-        if(player == null)
+    if(args.length == 0){
+        if(player == null){
             throw new Error("Too few arguments! You should enter at least on argument if you use KICK executor from console.")
-        
-        player.kickPlayer(ChatColor.RED+"[TR] You've been kicked from the server.")
-        return null;
-    }else if(args.length == 1){
+        }else {
+            player.kickPlayer(ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server."));
+            return null;
+        }
+    }else if(args.length == 1) {
         undefinedArgument = args[0]
         if(undefinedArgument == null)
             throw new Error("Unexpected Error: parameter does not match - player: null")
-            
+
         if(args[0] instanceof plType) {
             definedToPlayer = undefinedArgument;
-            definedToPlayer.kickPlayer(ChatColor.RED+"[TR] You've been kicked from the server.")
+            definedToPlayer.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."));
             return null;
         } else if(typeof undefinedArgument == "string"){
             msg = undefinedArgument;
@@ -50,7 +51,7 @@
     }else if(args.length > 2){
        throw new Error("Too many arguments! KICK Executor accepts up to two arguments.")
     }
-       
+
 }
         
         
