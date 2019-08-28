@@ -43,7 +43,6 @@ public class Lexer {
     private char c = 0;
     private boolean showWarnings = false;
     
-    //null if showWarnings is false
     private List<Warning> warnings = new ArrayList<Warning>();
 
     private int row = 1;
