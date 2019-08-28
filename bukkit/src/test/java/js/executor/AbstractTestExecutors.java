@@ -374,34 +374,38 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertError(() -> test.withArgs(mockWorld, false).test(), "Invalid parameters! [String, Boolean]");
         assertError(() -> test.withArgs("merp", true).test(), "Unknown world named merp");
     }
-	@Test
-	public void testKickExecutor() throws Exception{
-		
-		Player vp = Mockito.mock(Player.class);
-		String msg = ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server.");
-		
-		//case1
-		JsTest test = new ExecutorTest(engine, "KICK").addVariable("pl", vp);
-		test.withArgs().test();
-		Mockito.verify(vp).kickPlayer(msg);
+    @Test
+    public void testKick() throws Exception{
 
-		//case2
-		test.withArgs(msg).test();
-		Mockito.verify(vp).kickPlayer(msg);
-		
-		//case3
-		test.withArgs(vp).test();
-		Mockito.verify(vp).kickPlayer(msg);
-		
-		//case4
-		test.withArgs(vp, msg).test();
-		Mockito.verify(vp).kickPlayer(msg);
-		
-		//Unexpected Exception Cases
-		assertError(() -> test.withArgs(1).test(), "Invalid parameter type. [Integer]");
-		assertError(() -> test.withArgs(vp, true).test(), "Invalid parameter type. [Player, Boolean]");
-		assertError(() -> test.withArgs(vp, 232).test(), "Invalid parameter type. [Player, Integer]");
-		assertError(() -> test.withArgs(1 , 2 , 3).test(), "Too much parameters.");
-	}
+        Player vp = Mockito.mock(Player.class);
+        Player vp2 = Mockito.mock(Player.class);
+        String msg = ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server.");
+        String msg2 = ChatColor.translateAlternateColorCodes('&', "&cKICKED");
+
+        //case1
+        JsTest test = new ExecutorTest(engine, "KICK").addVariable("player", vp);
+        test.withArgs().test();
+        Mockito.verify(vp).kickPlayer(msg);
+
+        //case2
+        test.withArgs(msg2).test();
+        Mockito.verify(vp).kickPlayer(msg2);
+
+        //case3
+        test.withArgs(vp2).test();
+        Mockito.verify(vp2).kickPlayer(msg);
+
+        //case4
+        test.withArgs(vp2, msg2).test();
+        Mockito.verify(vp2).kickPlayer(msg2);
+
+        //Unexpected Exception Cases
+        assertError(() -> test.withArgs(1).test(), "Found unexpected type of argument: " + 1);
+        assertError(() -> test.withArgs(vp, 232).test(), "Found unexpected type of argument(s) - player: "+vp+" | msg: " + 232);
+        assertError(() -> test.withArgs(1 , 2 , 3).test(), "Too many arguments! KICK Executor accepts up to two arguments.");
+        test.addVariable("player", null);
+        assertError(() -> test.withArgs().test(), "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
+        assertError(() -> test.withArgs(null, "msg").test(), "Found unexpected type of argument(s) - player: null | msg: msg");
+    }
 
 }
