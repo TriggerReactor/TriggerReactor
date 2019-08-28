@@ -136,7 +136,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
     	log.log(L, "===== " + warnings.size() + " warnings were found while processing trigger " + 
     	           trigger.getTriggerName() + " =====");
     	for (Warning w : warnings) {
-    	    for (String line : w.getMessage()) {
+    	    for (String line : w.getMessageLines()) {
     	    	log.log(L, line);
     	    }
     	}
