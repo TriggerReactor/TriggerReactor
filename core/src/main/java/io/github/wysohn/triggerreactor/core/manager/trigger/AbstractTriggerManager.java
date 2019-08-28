@@ -133,7 +133,15 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
     	
     	Level L = Level.WARNING;
     	Logger log = TriggerReactor.getInstance().getLogger();
-    	log.log(L, "===== " + warnings.size() + " warnings were found while processing trigger " + 
+    	int numWarnings = warnings.size();
+    	String ww;
+    	if (numWarnings > 1) {
+    		ww = "warnings were";
+    	} else {
+    		ww = "warning was";
+    	}
+    	
+    	log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " + 
     	           trigger.getTriggerName() + " =====");
     	for (Warning w : warnings) {
     	    for (String line : w.getMessageLines()) {
