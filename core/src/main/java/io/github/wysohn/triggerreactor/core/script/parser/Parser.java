@@ -36,7 +36,7 @@ public class Parser {
     final Lexer lexer;
     
     private boolean showWarnings;
-    private List<Warning> warnings = null;
+    private List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
 
@@ -63,8 +63,6 @@ public class Parser {
 
     public Node parse(boolean showWarnings) throws IOException, LexerException, ParserException {
     	this.showWarnings = showWarnings;
-    	if (showWarnings)
-    		this.warnings = new ArrayList<Warning>();
     	lexer.setWarnings(showWarnings);
     	
         Node root = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));

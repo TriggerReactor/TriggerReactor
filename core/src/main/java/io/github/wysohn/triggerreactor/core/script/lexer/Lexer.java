@@ -44,7 +44,7 @@ public class Lexer {
     private boolean showWarnings = false;
     
     //null if showWarnings is false
-    private List<Warning> warnings = null;
+    private List<Warning> warnings = new ArrayList<Warning>();
 
     private int row = 1;
     private int col = 1;
@@ -371,9 +371,6 @@ public class Lexer {
     
     public void setWarnings(boolean w) {
     	showWarnings = w;
-    	
-    	if (w && warnings == null)
-    		warnings = new ArrayList<Warning>();
     }
 
     public static void main(String[] ar) throws IOException, LexerException {
