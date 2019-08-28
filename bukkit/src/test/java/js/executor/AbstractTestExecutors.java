@@ -10,7 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.mockito.Mockito.times;
+import static org.mockito.Mockito.times;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
