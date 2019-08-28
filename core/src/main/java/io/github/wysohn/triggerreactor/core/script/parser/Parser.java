@@ -16,10 +16,12 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.parser;
 
+import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.warnings.ExecutorDeprecationWarning;
 import io.github.wysohn.triggerreactor.core.script.warnings.Warning;
 
 import javax.swing.*;
@@ -34,7 +36,7 @@ public class Parser {
     final Lexer lexer;
     
     private boolean showWarnings;
-    private List<Warning> warnings;
+    private List<Warning> warnings = null;
 
     private Token token;
 
@@ -61,6 +63,8 @@ public class Parser {
 
     public Node parse(boolean showWarnings) throws IOException, LexerException, ParserException {
     	this.showWarnings = showWarnings;
+    	if (showWarnings)
+    		this.warnings = new ArrayList<Warning>();
     	lexer.setWarnings(showWarnings);
     	
         Node root = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
@@ -68,7 +72,10 @@ public class Parser {
         while ((statement = parseStatement()) != null)
             root.getChildren().add(statement);
         
-        this.warnings = lexer.getWarnings();
+        List<Warning> lexWarnings = lexer.getWarnings();
+        if (lexWarnings != null) {
+        	this.warnings.addAll(lexWarnings);
+        }
         
         return root;
     }
@@ -217,6 +224,12 @@ public class Parser {
                     }
 
                     Node commandNode = new Node(new Token(Type.EXECUTOR, builder.toString(), row, col));
+                    
+                    if (showWarnings) {
+                    	if (AbstractExecutorManager.isDeprecated(builder.toString())) {
+                    		this.warnings.add(new ExecutorDeprecationWarning(row, builder.toString(), lexer.getScriptLines()[row - 1]));
+                    	}
+                    }
 
                     List<Node> args = new ArrayList<>();
                     if (token != null && token.type != Type.ENDL) {

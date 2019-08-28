@@ -37,6 +37,7 @@ public class Lexer {
 
     private InputStream stream;
     private BufferedReader br;
+    private final String[] scriptLines;
 
     private boolean eos = false;
     private char c = 0;
@@ -48,18 +49,15 @@ public class Lexer {
     private int row = 1;
     private int col = 1;
 
-    public Lexer(InputStream stream) throws IOException {
-        this.stream = stream;
-        initInputStream();
-    }
-
     public Lexer(String str, Charset charset) throws IOException {
         this.stream = new ByteArrayInputStream(str.getBytes(charset));
+        this.scriptLines = str.split("\n");
         initInputStream();
     }
 
     public Lexer(String str, String charset) throws IOException {
         this.stream = new ByteArrayInputStream(str.getBytes(charset));
+        this.scriptLines = str.split("\n");
         initInputStream();
     }
 
@@ -80,8 +78,16 @@ public class Lexer {
     public List<Warning> getWarnings() {
     	return warnings;
     }
+    
+    public boolean getShowWarnings() {
+    	return showWarnings;
+    }
 
-    /**
+    public String[] getScriptLines() {
+		return scriptLines;
+	}
+
+	/**
      * @return false if end of stream is reached.
      * @throws IOException
      */

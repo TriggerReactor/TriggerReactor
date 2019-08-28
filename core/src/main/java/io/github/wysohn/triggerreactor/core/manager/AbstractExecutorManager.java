@@ -26,9 +26,21 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 
-@SuppressWarnings("serial")
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
     protected Map<String, Executor> jsExecutors = new HashMap<>();
+    public static final String[] deprecatedExecutorNames = {
+    		"MODIFYPLAYER"
+    };
+    
+    //test if an executor name is deprecated
+    public static boolean isDeprecated(String name) {
+    	for (String n : deprecatedExecutorNames)
+    	{
+    		if (name.equals(n))
+    			return true;
+    	}
+    	return false;
+    }
 
     public AbstractExecutorManager(TriggerReactor plugin) throws ScriptException {
         super(plugin);
