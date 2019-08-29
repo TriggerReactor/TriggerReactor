@@ -16,33 +16,33 @@
  *******************************************************************************/
  function KICK(args) {
     var plType = Java.type("org.bukkit.entity.Player")
-    if(args.length == 0){
-        if(player == null){
+    if(args.length === 0){
+        if(player === null){
             throw new Error("Too few arguments! You should enter at least on argument if you use KICK executor from console.")
         }else {
             player.kickPlayer(ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server."));
             return null;
         }
-    }else if(args.length == 1) {
+    }else if(args.length === 1) {
         undefinedArgument = args[0]
-        if(undefinedArgument == null)
+        if(undefinedArgument === null)
             throw new Error("Unexpected Error: parameter does not match - player: null")
 
         if(args[0] instanceof plType) {
             definedToPlayer = undefinedArgument;
             definedToPlayer.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."));
             return null;
-        } else if(typeof undefinedArgument == "string"){
+        } else if(typeof undefinedArgument === "string"){
             msg = undefinedArgument;
             player.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), msg));
             return null;
         }else {
             throw new Error("Found unexpected type of argument: "+ undefinedArgument);
         }
-    }else if(args.length == 2) {
+    }else if(args.length === 2) {
         pl = args[0]
         str = args[1]
-        if(!(pl instanceof plType) || !(typeof str == "string")){
+        if(!(pl instanceof plType) || !(typeof str === "string")){
             throw new Error("Found unexpected type of argument(s) - player: "+pl+" | msg: "+ str)
         }else {
             pl.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), str))
