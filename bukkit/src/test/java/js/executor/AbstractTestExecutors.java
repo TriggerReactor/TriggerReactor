@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.OfflinePlayer;
 import org.junit.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.times;
