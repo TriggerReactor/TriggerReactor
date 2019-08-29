@@ -160,6 +160,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         //Unexpected Cases
         assertError(() -> test.withArgs(nullP).test(), "Found unexpected parameter - player: null");
+        assertError(() -> test.withArgs(1, 2).test(), "Too many parameters found! CLEARCHAT accept up to one parameter.");
     }
     
     @Test
