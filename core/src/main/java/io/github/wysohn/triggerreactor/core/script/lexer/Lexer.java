@@ -18,8 +18,8 @@ package io.github.wysohn.triggerreactor.core.script.lexer;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.warnings.StringInterpolationWarning;
-import io.github.wysohn.triggerreactor.core.script.warnings.Warning;
+import io.github.wysohn.triggerreactor.core.script.warning.StringInterpolationWarning;
+import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 
 import java.io.*;
 import java.nio.charset.Charset;

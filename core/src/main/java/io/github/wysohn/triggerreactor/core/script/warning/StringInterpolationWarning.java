@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.script.warnings;
+package io.github.wysohn.triggerreactor.core.script.warning;
 
 public class StringInterpolationWarning extends Warning {
 

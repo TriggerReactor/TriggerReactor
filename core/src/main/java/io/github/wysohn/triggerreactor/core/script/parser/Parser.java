@@ -21,8 +21,8 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.warnings.ExecutorDeprecationWarning;
-import io.github.wysohn.triggerreactor.core.script.warnings.Warning;
+import io.github.wysohn.triggerreactor.core.script.warning.ExecutorDeprecationWarning;
+import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;

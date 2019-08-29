@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.script.warnings;
+package io.github.wysohn.triggerreactor.core.script.warning;
 
 public class ExecutorDeprecationWarning extends Warning {
 	private int row;
