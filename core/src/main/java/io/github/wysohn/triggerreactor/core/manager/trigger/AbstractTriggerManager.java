@@ -147,6 +147,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
     	    for (String line : w.getMessageLines()) {
     	    	log.log(L, line);
     	    }
+    	    log.log(Level.WARNING, "");
     	}
     	log.log(Level.WARNING, "");
     }
