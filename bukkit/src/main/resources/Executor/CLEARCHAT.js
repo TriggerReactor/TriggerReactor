@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function CLEARCHAT(args){
-    if(player == null){
+    if(player === null){
         return null;
     }
     if(args.length === 0){	
@@ -23,10 +23,10 @@ function CLEARCHAT(args){
             player.sendMessage("");
         }
         return null;
-    }else if(args.length == 1){
+    }else if(args.length === 1){
         var plType = Java.type("org.bukkit.entity.Player")
         if(args[0] instanceof plType){
-        pl = args[0];
+        var pl = args[0];
         }else {
             throw new Error("Found unexpected parameter - player: null")
         }
