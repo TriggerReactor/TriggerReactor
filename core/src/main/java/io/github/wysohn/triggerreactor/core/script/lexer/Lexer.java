@@ -231,7 +231,7 @@ public class Lexer {
 
         read();
         if (warn)
-        	warnings.add(new StringInterpolationWarning(row, builder.toString()));
+        	warnings.add(new StringInterpolationWarning(row, scriptLines[row - 1]));
 
         return new Token(Type.STRING, builder.toString(), row, col);
     }
