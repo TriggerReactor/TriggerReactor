@@ -24,24 +24,24 @@
             return null;
         }
     }else if(args.length === 1) {
-        undefinedArgument = args[0]
+        var undefinedArgument = args[0]
         if(undefinedArgument === null)
             throw new Error("Unexpected Error: parameter does not match - player: null")
 
         if(args[0] instanceof plType) {
-            definedToPlayer = undefinedArgument;
+            var definedToPlayer = undefinedArgument;
             definedToPlayer.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."));
             return null;
         } else if(typeof undefinedArgument === "string"){
-            msg = undefinedArgument;
+            var msg = undefinedArgument;
             player.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), msg));
             return null;
         }else {
             throw new Error("Found unexpected type of argument: "+ undefinedArgument);
         }
     }else if(args.length === 2) {
-        pl = args[0]
-        str = args[1]
+        var pl = args[0]
+        var str = args[1]
         if(!(pl instanceof plType) || !(typeof str === "string")){
             throw new Error("Found unexpected type of argument(s) - player: "+pl+" | msg: "+ str)
         }else {
