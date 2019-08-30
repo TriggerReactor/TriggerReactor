@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterExcept
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.DeprecationSupervisor;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
@@ -206,7 +207,8 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                 Charset charset = Charset.forName("UTF-8");
 
                 Lexer lexer = new Lexer(script, charset);
-                Parser parser = new Parser(lexer);
+                Parser parser = new Parser(lexer)
+                        .withDeprecationSupervisors(Manager.getManagers().toArray(new DeprecationSupervisor[0]));
 
                 root = parser.parse(true);
                 List<Warning> warnings = parser.getWarnings();

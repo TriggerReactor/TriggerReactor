@@ -16,13 +16,13 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.parser;
 
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.warning.ExecutorDeprecationWarning;
+import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -34,7 +34,9 @@ import java.util.*;
 
 public class Parser {
     final Lexer lexer;
-    
+
+    private List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
+
     private boolean showWarnings;
     private List<Warning> warnings = new ArrayList<Warning>();
 
@@ -44,6 +46,12 @@ public class Parser {
         this.lexer = lexer;
 
         nextToken();
+    }
+
+    public Parser withDeprecationSupervisors(DeprecationSupervisor... managers){
+        ValidationUtil.allNotNull(managers);
+        Collections.addAll(deprecationSupervisors, managers);
+        return this;
     }
 
     private void nextToken() throws IOException, LexerException, ParserException {
@@ -222,11 +230,15 @@ public class Parser {
                     }
 
                     Node commandNode = new Node(new Token(Type.EXECUTOR, builder.toString(), row, col));
-                    
+
                     if (showWarnings) {
-                    	if (AbstractExecutorManager.isDeprecated(builder.toString())) {
-                    		this.warnings.add(new ExecutorDeprecationWarning(row, builder.toString(), lexer.getScriptLines()[row - 1]));
-                    	}
+                        Type type = Type.EXECUTOR;
+                        String value = builder.toString();
+
+                        if (deprecationSupervisors.stream()
+                                .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
+                            this.warnings.add(new DeprecationWarning(type, row, value, lexer.getScriptLines()[row - 1]));
+                        }
                     }
 
                     List<Node> args = new ArrayList<>();
