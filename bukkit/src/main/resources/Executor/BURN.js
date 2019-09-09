@@ -16,50 +16,43 @@
  *******************************************************************************/
 function BURN(args){
 	if(args.length === 1){
-		if (typeof args[0] !== "number")
-		{
+		if (typeof args[0] !== "number") {
 			throw new Error("Invalid number for seconds to burn: " + args[0])
 		}
 		
-		if (args[0] < 0)
-		{
+		if (args[0] < 0) {
 			throw new Error("The number of seconds to burn should be positive")
 		}
 		
 		player.setFireTicks(Math.round(args[0] * 20));
-	}else if(args.length === 2){ 
+	} else if(args.length === 2) { 
 		var entity = args[0];
 
-		if (entity === null)
-		{
+		if (entity === null) {
 			throw new Error("player to burn should not be null")
 		}
 		
 		if(typeof entity === "string"){
 			entity = Bukkit.getPlayer(entity);
 			
-			if (entity === null)
-			{
+			if (entity === null) {
 				throw new Error("player to burn does not exist")
 			}
 		}
-		else if (!(entity instanceof Java.type("org.bukkit.entity.Entity")))
-		{
+		else if (!(entity instanceof Java.type("org.bukkit.entity.Entity"))) {
 			throw new Error("invalid entity to burn: " + entity)
 		}
 		
-		if (typeof args[1] !== "number")
-		{
+		if (typeof args[1] !== "number") {
 			throw new Error("The number of seconds to burn should be a number")
 		}
 		
-		if (args[1] < 0)
-		{
+		if (args[1] < 0) {
 			throw new Error("The number of seconds to burn should be positive")
 		}
 
 		entity.setFireTicks(Math.round(args[1] * 20));
-	}else {
+	} else {
 		throw new Error(
 			'Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]');
 	}

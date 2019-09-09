@@ -18,10 +18,14 @@ package io.github.wysohn.triggerreactor.core.script.lexer;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.warning.StringInterpolationWarning;
+import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -33,25 +37,26 @@ public class Lexer {
 
     private InputStream stream;
     private PushbackReader reader;
+    private final String[] scriptLines;
 
     private boolean eos = false;
     private char c = 0;
+    private boolean showWarnings = false;
+
+    private List<Warning> warnings = new ArrayList<Warning>();
 
     private int row = 1;
     private int col = 1;
 
-    public Lexer(InputStream stream) throws IOException {
-        this.stream = stream;
-        initInputStream();
-    }
-
     public Lexer(String str, Charset charset) throws IOException {
         this.stream = new ByteArrayInputStream(str.getBytes(charset));
+        this.scriptLines = str.split("\n");
         initInputStream();
     }
 
     public Lexer(String str, String charset) throws IOException {
         this.stream = new ByteArrayInputStream(str.getBytes(charset));
+        this.scriptLines = str.split("\n");
         initInputStream();
     }
 
@@ -69,7 +74,19 @@ public class Lexer {
         return col;
     }
 
-    /**
+    public List<Warning> getWarnings() {
+    	return warnings;
+    }
+
+    public boolean getShowWarnings() {
+    	return showWarnings;
+    }
+
+    public String[] getScriptLines() {
+		return scriptLines;
+	}
+
+	/**
      * @return false if end of stream is reached.
      * @throws IOException
      */
@@ -192,6 +209,7 @@ public class Lexer {
 
     private Token readString() throws IOException, LexerException {
         StringBuilder builder = new StringBuilder();
+        boolean warn = false;
 
         while (read() && c != '"') {
             if (c == '\\') {
@@ -265,6 +283,8 @@ public class Lexer {
         if (eos)
             throw new LexerException("End of stream is reached before finding '\"'", this);
         read();
+        if (warn)
+        	warnings.add(new StringInterpolationWarning(row, scriptLines[row - 1]));
 
         return new Token(Type.STRING, builder.toString(), row, col);
     }
@@ -399,6 +419,10 @@ public class Lexer {
 
     private static boolean isOperator(char c) {
         return Arrays.binarySearch(OPERATORS, c) >= 0;
+    }
+
+    public void setWarnings(boolean w) {
+    	showWarnings = w;
     }
 
     public static void main(String[] ar) throws IOException, LexerException {

@@ -25,9 +25,11 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterExcept
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.parser.DeprecationSupervisor;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -36,6 +38,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO {
     private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
@@ -122,6 +126,32 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         return triggerFile;
     }
+    
+    protected static void reportWarnings(List<Warning> warnings, Trigger trigger) {
+    	if (warnings == null || warnings.isEmpty()) {
+    		return;
+    	}
+    	
+    	Level L = Level.WARNING;
+    	Logger log = TriggerReactor.getInstance().getLogger();
+    	int numWarnings = warnings.size();
+    	String ww;
+    	if (numWarnings > 1) {
+    		ww = "warnings were";
+    	} else {
+    		ww = "warning was";
+    	}
+    	
+    	log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " + 
+    	           trigger.getTriggerName() + " =====");
+    	for (Warning w : warnings) {
+    	    for (String line : w.getMessageLines()) {
+    	    	log.log(L, line);
+    	    }
+    	    log.log(Level.WARNING, "");
+    	}
+    	log.log(Level.WARNING, "");
+    }
 
     public static abstract class Trigger implements Cloneable {
         protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
@@ -177,9 +207,13 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                 Charset charset = Charset.forName("UTF-8");
 
                 Lexer lexer = new Lexer(script, charset);
-                Parser parser = new Parser(lexer);
+                Parser parser = new Parser(lexer)
+                        .withDeprecationSupervisors(Manager.getManagers().toArray(new DeprecationSupervisor[0]));
 
-                root = parser.parse();
+                root = parser.parse(true);
+                List<Warning> warnings = parser.getWarnings();
+                
+                reportWarnings(warnings, this);
                 executorMap = TriggerReactor.getInstance().getExecutorManager().getBackedMap();
                 placeholderMap = TriggerReactor.getInstance().getPlaceholderManager().getBackedMap();
                 gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();

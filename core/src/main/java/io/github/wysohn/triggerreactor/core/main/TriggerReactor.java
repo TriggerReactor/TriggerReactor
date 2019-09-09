@@ -121,32 +121,32 @@ public abstract class TriggerReactor implements TaskSupervisor {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
 
-    private boolean deprecationMessageShown = false;
+    //private boolean deprecationMessageShown = false;
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
 
-            if(!deprecationMessageShown){
-                deprecationMessageShown = true;
-
-                // show 1 tick later
-                submitAsync(()->{
-                    try{
-                        Thread.sleep(50L);
-                    }catch (InterruptedException ex){
-                        //ignore
-                    }
-
-                    deprecationPages.forEach((paragraph)->{
-                        paragraph.sendParagraph(getConsoleSender());
-                        if(sender.getClass() != getConsoleSender().getClass()){
-                            paragraph.sendParagraph(sender);
-                        }
-                    });
-                });
-            }
+//            if(!deprecationMessageShown){
+//                deprecationMessageShown = true;
+//
+//                // show 1 tick later
+//                submitAsync(()->{
+//                    try{
+//                        Thread.sleep(50L);
+//                    }catch (InterruptedException ex){
+//                        //ignore
+//                    }
+//
+//                    deprecationPages.forEach((paragraph)->{
+//                        paragraph.sendParagraph(getConsoleSender());
+//                        if(sender.getClass() != getConsoleSender().getClass()){
+//                            paragraph.sendParagraph(sender);
+//                        }
+//                    });
+//                });
+//            }
 
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
@@ -1560,20 +1560,20 @@ public abstract class TriggerReactor implements TaskSupervisor {
         });
     }};
 
-    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{
-        add((sender -> {
-            sender.sendMessage("&d===============================================================");
-            sender.sendMessage("&6NOTICE: &cSyntax Change Planned!");
-            sender.sendMessage("");
-            sender.sendMessage("For version 3.0.0 and above, the Placholder now can be placed inside the 'string.'" +
-                    " For example, &6\"My name is $playername\" &fis equivalent to &6\"My name is \"+$playername&f." +
-                    " Therefore, you are hereby warned that the &6dollar sign($) &f used in the string will cause" +
-                    " the problem in future version. &cPlease fix it accordingly &fto avoid this problem." +
-                    " If you must use dollar sign, use escape sequence to do so;" +
-                    " for example, you can do so by &6\"The cost was 5\\$\"");
-            sender.sendMessage("&d===============================================================");
-        }));
-    }};
+//    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{
+//        add((sender -> {
+//            sender.sendMessage("&d===============================================================");
+//            sender.sendMessage("&6NOTICE: &cSyntax Change Planned!");
+//            sender.sendMessage("");
+//            sender.sendMessage("For version 3.0.0 and above, the Placholder now can be placed inside the 'string.'" +
+//                    " For example, &6\"My name is $playername\" &fis equivalent to &6\"My name is \"+$playername&f." +
+//                    " Therefore, you are hereby warned that the &6dollar sign($) &f used in the string will cause" +
+//                    " the problem in future version. &cPlease fix it accordingly &fto avoid this problem." +
+//                    " If you must use dollar sign, use escape sequence to do so;" +
+//                    " for example, you can do so by &6\"The cost was 5\\$\"");
+//            sender.sendMessage("&d===============================================================");
+//        }));
+//    }};
 
     private interface Paragraph {
         void sendParagraph(ICommandSender sender);

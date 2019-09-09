@@ -18,5 +18,5 @@ function ip(args){
 	if(player == null)
 		return null;
 		
-	return player.getAddress().getHostString();
+	return player.getAddress().getAddress().toString();
 }

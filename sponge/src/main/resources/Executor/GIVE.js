@@ -15,7 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function GIVE(args){
-	if(args.length == 1){
+	if(args.length === 1){
+		if (!(args[0] instanceof Java.type('org.spongepowered.api.item.inventory.ItemStack')))
+		{
+			throw new Error("Invalid item: " + args[0])
+		}
 		var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes');
 		var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory');
 		var main = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class))

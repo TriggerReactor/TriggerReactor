@@ -21,4 +21,11 @@ public class ValidationUtil {
         if (obj == null)
             throw new RuntimeException("Value cannot be null.");
     }
+
+    public static <T> void allNotNull(T... objs){
+        for(T obj : objs){
+            if(obj == null)
+                throw new RuntimeException("At least one of the element in array is null.");
+        }
+    }
 }

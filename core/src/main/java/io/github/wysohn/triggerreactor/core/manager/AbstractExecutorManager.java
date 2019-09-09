@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import jdk.nashorn.api.scripting.JSObject;
 
@@ -26,9 +27,16 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 
-@SuppressWarnings("serial")
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
     protected Map<String, Executor> jsExecutors = new HashMap<>();
+
+    //test if an executor name is deprecated
+    public boolean isDeprecated(Token.Type type, String value) {
+        if(type != Token.Type.EXECUTOR)
+            return false;
+
+        return DEPRECATED_EXECUTORS.contains(value);
+    }
 
     public AbstractExecutorManager(TriggerReactor plugin) throws ScriptException {
         super(plugin);
@@ -210,4 +218,8 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         }
     }
 
+    private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
+    static{
+        DEPRECATED_EXECUTORS.add("MODIFYPLAYER");
+    }
 }
