@@ -270,13 +270,15 @@ public class TestParser {
 
     @Test
     public void testParseWithDeprecation() throws IOException, LexerException, ParserException {
+        Parser.addDeprecationSupervisor((type, value) ->
+            type == Type.EXECUTOR && "MODIFYPLAYER".equals(value));
+        
         Charset charset = Charset.forName("UTF-8");
         String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n"
                 + "#MODIFYPLAYER \"text\"\n";
 
         Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer)
-                .withDeprecationSupervisors(((type, value) -> type == Type.EXECUTOR && "MODIFYPLAYER".equals(value)));
+        Parser parser = new Parser(lexer);
 
         Node root = parser.parse(true);
         Queue<Node> queue = new LinkedList<Node>();
