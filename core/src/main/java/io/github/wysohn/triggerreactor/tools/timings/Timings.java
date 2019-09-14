@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +19,9 @@ import java.util.function.Supplier;
  * and 'timing' would be the child of 'my' and 'name' would be child of 'timing.'
  */
 public class Timings {
-    private static final Timing root = new Timing(null);
+    public static final Timing LIMBO = new LimboTiming();
+
+    private static final Timing root = new Timing(null, "<ROOT>");
     static{
         root.displayName = "Root";
     }
@@ -40,6 +43,10 @@ public class Timings {
      * @return the Timing
      */
     public static Timing getTiming(String name){
+        return getTiming(root, name);
+    }
+
+    private static Timing getTiming(Timing root, String name){
         if(name == null)
             return root;
 
@@ -55,7 +62,7 @@ public class Timings {
         if(path.isEmpty()){
             return root;
         } else {
-            return getTiming(root.getOrCreate(root, path.pop()), path);
+            return getTiming(root.getOrCreate(path.pop()), path);
         }
     }
 
@@ -70,8 +77,13 @@ public class Timings {
         }
     }
 
+    public static void printAll(OutputStream stream) throws IOException {
+        print(root, stream);
+    }
+
     public static class Timing implements AutoCloseable {
         private final Timing parent;
+        private String fullName;
         private final int level;
         private final Map<String, Timing> children = new ConcurrentHashMap<>();
         private final Supplier<Long> currentTimeFn;
@@ -81,16 +93,17 @@ public class Timings {
         private long executionTime;
         private long count;
 
-        private Timing(Timing parent) {
-            this(parent, System::currentTimeMillis);
+        private Timing(Timing parent, String fullName) {
+            this(parent, fullName, System::currentTimeMillis);
         }
 
         /**
          * Maybe if we need some other measurement unit?
          * @param currentTimeFn the function to get current timestamp
          */
-        private Timing(Timing parent, Supplier<Long> currentTimeFn) {
+        private Timing(Timing parent, String fullName, Supplier<Long> currentTimeFn) {
             this.parent = parent;
+            this.fullName = fullName;
             this.level = parent == null ? 0 : parent.level + 1;
             this.currentTimeFn = currentTimeFn;
         }
@@ -115,18 +128,35 @@ public class Timings {
          * @param name the name of the direct child name.
          * @return Timing instance
          */
-        private Timing getOrCreate(Timing parent, String name){
+        private Timing getOrCreate(String name){
             if(name.contains("."))
                 throw new RuntimeException("Cannot use .(dot) for the direct child's name!");
 
             if(children.containsKey(name)){
                 return children.get(name);
             } else {
-                Timing t = new Timing(parent);
+                Timing t;
+                if (parent == null) {
+                    t = new Timing(this, StringUtils.dottedPath(root.fullName, name));
+                } else {
+                    t = new Timing(this, StringUtils.dottedPath(parent.fullName, name));
+                }
                 t.displayName = name;
                 children.put(name, t);
                 return t;
             }
+        }
+
+        /**
+         * Get Timing starting from 'this' Timing as root.
+         *
+         * For example, if 'this' Timing is "Some.Thing," any Timing
+         * made by this method will always start with "Some.Thing".
+         * @param name the fully qualified name to extend from 'this' Timing.
+         * @return the child timing. 'this' Timing if name is null.
+         */
+        public Timing getTiming(String name){
+            return Timings.getTiming(this, name);
         }
 
         private long begin;
@@ -173,7 +203,7 @@ public class Timings {
             if(count == 0)
                 return -1;
 
-            return (double)executionTime / count;
+            return Math.min(999999.99, (double)executionTime / count);
         }
 
         private void add(long executionTime){
@@ -199,10 +229,10 @@ public class Timings {
 
         @Override
         public String toString() {
-            String str = StringUtils.spaces(level * SPACES) + displayName;
+            String str = StringUtils.spaces(level * SPACES) + " > " +displayName;
             if(!isLeafNode())
                 str += "["+children.size()+"]";
-            str += " -- (avg: "+avg()+"ms, count: "+count+")";
+            str += " -- (total: "+executionTime+"ms, count: "+count+", avg: "+df.format(avg())+"ms)";
             if(mainThread)
                 str += "  !!MainThread";
             return str;
@@ -211,5 +241,47 @@ public class Timings {
 
     }
 
-    private static final int SPACES = 4;
+    public static class LimboTiming extends Timing{
+        public LimboTiming() {
+            super(null, null);
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "Limbo";
+        }
+
+        @Override
+        public void setDisplayName(String displayName) {
+
+        }
+
+        @Override
+        public Timing getTiming(String name) {
+            return this;
+        }
+
+        @Override
+        public Timing begin(boolean mainThread) {
+            return this;
+        }
+
+        @Override
+        public Timing begin() {
+            return this;
+        }
+
+        @Override
+        public double avg() {
+            return -1;
+        }
+
+        @Override
+        public void close() {
+
+        }
+    }
+
+    private static final int SPACES = 2;
+    private static final DecimalFormat df = new DecimalFormat("#.##");
 }

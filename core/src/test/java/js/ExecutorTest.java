@@ -1,6 +1,7 @@
 package js;
 
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -16,7 +17,7 @@ public class ExecutorTest extends JsTest{
 
 	@Override
     public Object test() throws Exception {
-        executor.execute(true, varMap, null, args);
+        executor.execute(Timings.LIMBO, true, varMap, null, args);
         return null;
     }
 }

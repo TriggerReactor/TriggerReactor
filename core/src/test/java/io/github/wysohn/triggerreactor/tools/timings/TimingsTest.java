@@ -53,7 +53,8 @@ public class TimingsTest {
             Thread.sleep(1000L);
         }
 
-        Timings.Timing timingExMessage2 = Timings.getTiming("CommandTrigger.myCmd2.Executors.#MESSAGE");
+        Timings.Timing parent = Timings.getTiming("CommandTrigger");
+        Timings.Timing timingExMessage2 = parent.getTiming("myCmd2.Executors.#MESSAGE");
 
         try(Timings.Timing t = timingExMessage2.begin()){
             Thread.sleep(1L);

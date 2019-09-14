@@ -38,8 +38,13 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.Proce
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
+import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -1086,6 +1091,51 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     }
                     sender.sendMessage(" ");
                     return true;
+                } else if (args[0].equalsIgnoreCase("timings")) {
+                    if(args.length == 2 && args[1].equalsIgnoreCase("toggle")){
+                        Timings.on = !Timings.on;
+
+                        if(Timings.on){
+                            sender.sendMessage("&aEnabled");
+                        }else {
+                            sender.sendMessage("&cDisabled");
+                        }
+                    }else if(args.length == 2 && args[1].equalsIgnoreCase("reset")){
+                        Timings.reset();
+
+                        sender.sendMessage("&aReset Complete.");
+                    }else if(args.length > 1 && args[1].equalsIgnoreCase("print")) {
+                        OutputStream os;
+
+                        if (args.length > 2) {
+                            String fileName = args[2];
+                            File folder = new File(getDataFolder(), "timings");
+                            if (!folder.exists())
+                                folder.mkdirs();
+                            File file = new File(folder, fileName+".timings");
+                            if (file.exists())
+                                file.delete();
+                            try {
+                                file.createNewFile();
+                                os = new FileOutputStream(file);
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                                sender.sendMessage("&cCould not create log file. Check console for details.");
+                                return true;
+                            }
+                        } else {
+                            os = new SenderOutputStream(sender);
+                        }
+
+                        try{
+                            Timings.printAll(os);
+                        }catch(IOException ex){
+                            ex.printStackTrace();
+                        }
+                    } else {
+                        return false;
+                    }
+                    return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
                     for (Manager manager : Manager.getManagers())
                         manager.saveAll();
@@ -1558,6 +1608,12 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
             sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
         });
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+        }));
     }};
 
 //    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{

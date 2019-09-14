@@ -24,6 +24,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -476,6 +477,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         }
 
         @Override
+        protected String getTimingId() {
+            return StringUtils.dottedPath(super.getTimingId(), area.toString());
+        }
+
+        @Override
         public String toString() {
             return super.toString() + "{" +
                     "area=" + area +
@@ -571,6 +577,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             }
 
             @Override
+            protected String getTimingId() {
+                return StringUtils.dottedPath(areaTrigger.getTimingId(), "Enter");
+            }
+
+            @Override
             public boolean isSync() {
                 return areaTrigger.isSync();
             }
@@ -600,6 +611,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
                 this.areaTrigger = areaTrigger;
 
                 init();
+            }
+
+            @Override
+            protected String getTimingId() {
+                return StringUtils.dottedPath(areaTrigger.getTimingId(), "Exit");
             }
 
             @Override

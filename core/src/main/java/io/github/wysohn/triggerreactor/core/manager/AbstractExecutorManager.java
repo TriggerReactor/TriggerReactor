@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.parser.DeprecationSupervisor;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
@@ -152,7 +153,11 @@ public abstract class AbstractExecutorManager
         }
 
         @Override
-        public Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
+                               Object... args) throws Exception {
+            Timings.Timing time = timing.getTiming("Executors").getTiming(executorName);
+            time.setDisplayName("#"+executorName);
+
             final Bindings bindings = engine.createBindings();
 
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -176,12 +181,7 @@ public abstract class AbstractExecutorManager
                     Object argObj = args;
                     Object result = null;
 
-                    if (TriggerReactor.getInstance().isDebugging()) {
-                        long start = System.currentTimeMillis();
-                        result = jsObject.call(null, argObj);
-                        long end = System.currentTimeMillis();
-                        TriggerReactor.getInstance().getLogger().info(executorName + " execution -- " + (end - start) + "ms");
-                    } else {
+                    try(Timings.Timing t = time.begin(true)){
                         result = jsObject.call(null, argObj);
                     }
 
@@ -194,6 +194,7 @@ public abstract class AbstractExecutorManager
 
             if (TriggerReactor.getInstance().isServerThread()) {
                 Integer result = null;
+
                 try {
                     result = call.call();
                 } catch (Exception e1) {
