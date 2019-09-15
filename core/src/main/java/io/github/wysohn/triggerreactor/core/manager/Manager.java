@@ -17,8 +17,6 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.script.Token;
-import io.github.wysohn.triggerreactor.core.script.parser.DeprecationSupervisor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +27,7 @@ import java.util.List;
  *
  * @author wysohn
  */
-public abstract class Manager implements DeprecationSupervisor {
+public abstract class Manager {
     private static final List<Manager> managers = new ArrayList<Manager>();
 
     public static List<Manager> getManagers() {
@@ -55,10 +53,4 @@ public abstract class Manager implements DeprecationSupervisor {
      * Save all triggers
      */
     public abstract void saveAll();
-
-    @Override
-    public boolean isDeprecated(Token.Type type, String value) {
-        //Always false if child class has not override it
-        return false;
-    }
 }

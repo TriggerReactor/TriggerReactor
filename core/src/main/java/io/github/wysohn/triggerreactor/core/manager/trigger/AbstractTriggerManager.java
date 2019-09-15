@@ -207,8 +207,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                 Charset charset = Charset.forName("UTF-8");
 
                 Lexer lexer = new Lexer(script, charset);
-                Parser parser = new Parser(lexer)
-                        .withDeprecationSupervisors(Manager.getManagers().toArray(new DeprecationSupervisor[0]));
+                Parser parser = new Parser(lexer);
 
                 root = parser.parse(true);
                 List<Warning> warnings = parser.getWarnings();

@@ -33,9 +33,12 @@ import java.util.List;
 import java.util.*;
 
 public class Parser {
+    private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
+    public static void addDeprecationSupervisor(DeprecationSupervisor ds){
+        deprecationSupervisors.add(ds);
+    }
+    
     final Lexer lexer;
-
-    private List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
 
     private boolean showWarnings;
     private List<Warning> warnings = new ArrayList<Warning>();
@@ -46,12 +49,6 @@ public class Parser {
         this.lexer = lexer;
 
         nextToken();
-    }
-
-    public Parser withDeprecationSupervisors(DeprecationSupervisor... managers){
-        ValidationUtil.allNotNull(managers);
-        Collections.addAll(deprecationSupervisors, managers);
-        return this;
     }
 
     private void nextToken() throws IOException, LexerException, ParserException {
