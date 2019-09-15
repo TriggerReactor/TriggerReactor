@@ -33,6 +33,11 @@ import java.util.List;
 import java.util.*;
 
 public class Parser {
+    private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
+    public static void addDeprecationSupervisor(DeprecationSupervisor ds){
+        deprecationSupervisors.add(ds);
+    }
+    
     final Lexer lexer;
 
     private boolean showWarnings;
@@ -224,10 +229,12 @@ public class Parser {
                     Node commandNode = new Node(new Token(Type.EXECUTOR, builder.toString(), row, col));
 
                     if (showWarnings) {
+                        Type type = Type.EXECUTOR;
                         String value = builder.toString();
 
-                        if (DeprecationManager.isDeprecatedExecutor(value)) {
-                            this.warnings.add(new DeprecationWarning(row, value, lexer.getScriptLines()[row - 1]));
+                        if (deprecationSupervisors.stream()
+                                .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
+                            this.warnings.add(new DeprecationWarning(type, row, value, lexer.getScriptLines()[row - 1]));
                         }
                     }
 
