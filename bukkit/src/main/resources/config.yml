@@ -1,0 +1,8 @@
+PermissionManager:
+  Intercept: false
+Mysql:
+  Enable: false
+  Address: 127.0.0.1
+  DbName: TriggerReactor
+  UserName: root
+  Password: 1234
