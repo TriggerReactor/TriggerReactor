@@ -25,7 +25,6 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterExcept
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.DeprecationSupervisor;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
