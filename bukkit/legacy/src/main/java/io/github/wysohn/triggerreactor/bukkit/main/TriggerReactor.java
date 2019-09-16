@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class TriggerReactor extends JavaPlugin {
-    private final JavaPluginBridge javaPluginBridge;
+    public final JavaPluginBridge javaPluginBridge;
 
     public TriggerReactor() {
         javaPluginBridge = new JavaPluginBridge();
