@@ -38,7 +38,7 @@ import java.util.concurrent.Callable;
 
 @SuppressWarnings("serial")
 public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer {
-    private static final String JAR_FOLDER_LOCATION = "Executor" + JarUtil.JAR_SEPARATOR + "Bukkit";
+    private static final String JAR_FOLDER_LOCATION = "Executor";
 
     private File executorFolder;
 
