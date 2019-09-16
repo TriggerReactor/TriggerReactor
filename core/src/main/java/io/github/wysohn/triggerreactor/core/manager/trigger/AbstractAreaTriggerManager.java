@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager {
+public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager {
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
@@ -110,7 +110,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         areaTriggers.clear();
 
         for (File ymlfile : folder.listFiles(filter)) {
-            String triggerName = extractName(ymlfile);
+            String[] extracted = extractPrefix(extractName(ymlfile));
+            String prefix = extracted[0];
+            String triggerName = extracted[1];
 
             SimpleLocation smallest = null;
             SimpleLocation largest = null;
