@@ -28,7 +28,7 @@ import java.io.FileFilter;
 import java.io.IOException;
 
 public class PlaceholderManager extends AbstractPlaceholderManager implements BukkitScriptEngineInitializer {
-    private static final String JAR_FOLDER_LOCATION = "Placeholder" + JarUtil.JAR_SEPARATOR + "Bukkit";
+    private static final String JAR_FOLDER_LOCATION = "Placeholder";
 
     private File placeholderFolder;
 
