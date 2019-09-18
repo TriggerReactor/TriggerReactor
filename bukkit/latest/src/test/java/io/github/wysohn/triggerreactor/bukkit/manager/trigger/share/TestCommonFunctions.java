@@ -39,6 +39,11 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         return IS1.getType() == IS2.getType();
     }
 
+    @Override
+    protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
+        return IS1.getType() == IS2.getType() && IS1.getAmount() == IS2.getAmount();
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void testTakeItem(){
         ItemStack IS = new ItemStack(Material.STONE,64);
@@ -57,5 +62,37 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
         fn.takeItem(mockPlayer, 1, 5);
         fn.takeItem(mockPlayer, 1, 5, 1);
+    }
+
+    @Override
+    public void testGetPlayers() {
+        Assert.assertTrue(fn.getPlayers().contains(mockPlayer));
+    }
+
+    @Override
+    public void testMakePotionEffect() {
+        //TODO: not testable?
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testItem(){
+        ItemStack IS = new ItemStack(Material.STONE,64);
+        ItemStack IS2 = new ItemStack(Material.GRANITE, 63);
+
+        Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item("GRANITE", 63)));
+
+        Assert.assertTrue(isEqual(IS, fn.item(0, 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item(0, 63, 1)));
+    }
+
+    @Override
+    public void testHeadForName() {
+        //TODO: not testable?
+    }
+
+    @Override
+    public void testHeadForValue() {
+        //TODO: not testable?
     }
 }

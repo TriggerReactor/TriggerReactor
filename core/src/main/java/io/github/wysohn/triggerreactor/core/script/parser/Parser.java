@@ -20,6 +20,9 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
+import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -30,7 +33,15 @@ import java.util.List;
 import java.util.*;
 
 public class Parser {
+    private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
+    public static void addDeprecationSupervisor(DeprecationSupervisor ds){
+        deprecationSupervisors.add(ds);
+    }
+    
     final Lexer lexer;
+
+    private boolean showWarnings;
+    private List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
 
@@ -55,12 +66,25 @@ public class Parser {
             nextToken();
     }
 
-    public Node parse() throws IOException, LexerException, ParserException {
+    public Node parse(boolean showWarnings) throws IOException, LexerException, ParserException {
+    	this.showWarnings = showWarnings;
+    	lexer.setWarnings(showWarnings);
+    	
         Node root = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
         Node statement = null;
         while ((statement = parseStatement()) != null)
             root.getChildren().add(statement);
+        
+        List<Warning> lexWarnings = lexer.getWarnings();
+        if (lexWarnings != null) {
+        	this.warnings.addAll(lexWarnings);
+        }
+        
         return root;
+    }
+    
+    public Node parse() throws IOException, LexerException, ParserException {
+    	return parse(false);
     }
 
     private Node parseStatement() throws ParserException, IOException, LexerException {
@@ -203,6 +227,16 @@ public class Parser {
                     }
 
                     Node commandNode = new Node(new Token(Type.EXECUTOR, builder.toString(), row, col));
+
+                    if (showWarnings) {
+                        Type type = Type.EXECUTOR;
+                        String value = builder.toString();
+
+                        if (deprecationSupervisors.stream()
+                                .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
+                            this.warnings.add(new DeprecationWarning(type, row, value, lexer.getScriptLines()[row - 1]));
+                        }
+                    }
 
                     List<Node> args = new ArrayList<>();
                     if (token != null && token.type != Type.ENDL) {
@@ -774,6 +808,10 @@ public class Parser {
         }
 
         return stack.pop();
+    }
+    
+    public List<Warning> getWarnings() {
+    	return warnings;
     }
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException {

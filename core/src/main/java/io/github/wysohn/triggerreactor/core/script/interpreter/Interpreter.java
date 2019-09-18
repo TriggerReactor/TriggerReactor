@@ -19,17 +19,15 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
-import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -55,6 +53,7 @@ public class Interpreter {
 
     private Object context = null;
     private ProcessInterrupter interrupter = null;
+    private Timings.Timing timing = null;
     private boolean sync = false;
 
     private boolean stopFlag = false;
@@ -162,14 +161,18 @@ public class Interpreter {
         return vars;
     }
 
+    public void startWithContext(Object context) throws InterpreterException {
+        startWithContextAndInterrupter(context, null, Timings.LIMBO);
+    }
+
     /**
      * Start interpretation.
      *
      * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
      * @throws InterpreterException
      */
-    public void startWithContext(Object context) throws InterpreterException {
-        startWithContextAndInterrupter(context, null);
+    public void startWithContext(Object context, Timings.Timing timing) throws InterpreterException {
+        startWithContextAndInterrupter(context, null, timing);
     }
 
     /**
@@ -179,12 +182,16 @@ public class Interpreter {
      * @param interrupter gives the caller to interrupt the execution
      * @throws InterpreterException
      */
-    public void startWithContextAndInterrupter(Object context, ProcessInterrupter interrupter) throws InterpreterException {
+    public void startWithContextAndInterrupter(Object context, ProcessInterrupter interrupter,
+                                               Timings.Timing timing) throws InterpreterException {
         this.context = context;
         this.interrupter = interrupter;
+        this.timing = timing;
 
-        for (int i = 0; i < root.getChildren().size(); i++)
-            start(root.getChildren().get(i));
+        try(Timings.Timing t = this.timing.getTiming("Code Interpretation").begin(sync)){
+            for (int i = 0; i < root.getChildren().size(); i++)
+                start(root.getChildren().get(i));
+        }
     }
 
     //Check if stopFlag is on before pop Token from stack.
@@ -413,7 +420,7 @@ public class Interpreter {
                 copy.setSync(false);
 
                 try {
-                    copy.startWithContextAndInterrupter(context, interrupter);
+                    copy.startWithContextAndInterrupter(context, interrupter, timing);
                 } catch (InterpreterException e) {
                     TriggerReactor.getInstance().handleException(context, e);
                 }
@@ -547,7 +554,7 @@ public class Interpreter {
                     if (!executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
-                    return executorMap.get(command).execute(sync, vars, context, args);
+                    return executorMap.get(command).execute(timing, sync, vars, context, args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -572,7 +579,7 @@ public class Interpreter {
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
                 if (replaced == null) {
-                    replaced = placeholderMap.get(placeholderName).parse(context, vars, args);
+                    replaced = placeholderMap.get(placeholderName).parse(timing, context, vars, args);
                 }
 
                 if (replaced == null) {
@@ -1058,25 +1065,25 @@ public class Interpreter {
 
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
         }
     };
     private final Executor EXECUTOR_BREAK = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return BREAK;
         }
     };
     private final Executor EXECUTOR_CONTINUE = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return CONTINUE;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
             if (sync) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
@@ -1126,33 +1133,5 @@ public class Interpreter {
          * @param args
          */
         Object onPlaceholder(Object context, String placeholder, Object[] args);
-    }
-
-    public static void main(String[] ar) throws Exception {
-        Charset charset = Charset.forName("UTF-8");
-        String text = "x = null;" +
-                "y = null;" +
-                "x.y.hoho();";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                return null;
-            }
-        });
-
-        Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.placeholderMap = placeholderMap;
-        interpreter.gvars = gvars;
-
-        interpreter.startWithContext(null);
     }
 }

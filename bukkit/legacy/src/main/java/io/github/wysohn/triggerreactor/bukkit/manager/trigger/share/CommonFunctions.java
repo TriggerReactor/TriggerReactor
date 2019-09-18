@@ -20,11 +20,14 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.Collection;
 
@@ -45,6 +48,7 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param id
      * @param amount
      * @return
+     * @deprecated use {@link #takeItem(Player, String, int)} instead
      */
     @Deprecated
     public boolean takeItem(Player player, int id, int amount) {
@@ -84,7 +88,9 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param amount amount
      * @param data   data of item
      * @return true if took it; false if player doesn't have it
+     * @deprecated use {@link #takeItem(Player, String, int, int)} instead
      */
+    @Deprecated
     public boolean takeItem(Player player, int id, int amount, int data) {
         ItemStack IS = new ItemStack(id, amount, (short) data);
         return takeItem(player, IS, amount);
@@ -121,18 +127,17 @@ public class CommonFunctions extends AbstractCommonFunctions
         return BukkitUtil.getOnlinePlayers();
     }
 
-    /**
-     * Deprecated since 1.13
-     *
-     * @param type
-     * @param amount
-     * @param data
-     * @return
-     * @deprecated use {@link #item(String, int, int)} instead
-     */
-    @Deprecated
-    public ItemStack item(int type, int amount, int data) {
-        throw new RuntimeException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+    @Override
+    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
+                                         boolean particles, Color color) {
+        PotionEffectType type = null;
+        type = PotionEffectType.getByName(EffectType);
+
+        if (type != null) {
+            return new PotionEffect(type, duration, amplifier, ambient, particles, color);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -145,28 +150,47 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @param amount amount of item
      * @param data   data
      * @return the ItemStack
+     * @deprecated use {@link #item(String, int, int)} instead
+     */
+    @Deprecated
+    public ItemStack item(int type, int amount, int data) {
+        return new ItemStack(type, amount, (short) data);
+    }
+
+    /**
+     * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item("STONE", 64, 0)
+     * </p>
+     *
+     * @param type   typeId
+     * @param amount amount of item
+     * @param data   data
+     * @return the ItemStack
      */
     public ItemStack item(String type, int amount, int data) {
         return new ItemStack(Material.valueOf(type), amount, (short) data);
     }
 
     /**
-     * Deprecated since 1.13
+     * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item(1, 32)
+     * </p>
      *
-     * @param type
-     * @param amount
-     * @return
-     * @deprecated use {@link #item(String, int)} instead
+     * @param type   typeId
+     * @param amount amount of item
+     * @return the ItemStack
      */
     @Deprecated
-    public ItemStack item(int type, int amount) {
-        throw new RuntimeException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+	public ItemStack item(int type, int amount) {
+        return new ItemStack(type, amount);
     }
 
     /**
      * Create a new ItemStack
      * <p>
-     * Example) /trg run #GIVE item(1, 32)
+     * Example) /trg run #GIVE item("STONE", 32)
      * </p>
      *
      * @param type   typeId

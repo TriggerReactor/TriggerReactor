@@ -1,5 +1,5 @@
 function WEATHER(args){
-	if(args.length != 2)
+	if(args.length !== 2)
 		throw new Error("Invalid parameters! [String, Boolean]");
 		
 	if(typeof args[0] !== "string" 

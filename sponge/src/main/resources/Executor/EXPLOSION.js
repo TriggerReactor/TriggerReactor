@@ -12,6 +12,8 @@ function EXPLOSION(args) {
     if (args.length > 4) {
         if (typeof args[4] !== "number")
             throw new Error("fifth parameter should be a number.");
+        else if (args[4] < 0)
+        	throw new Error("power should not be negative")
         else
             power = args[4];
     }

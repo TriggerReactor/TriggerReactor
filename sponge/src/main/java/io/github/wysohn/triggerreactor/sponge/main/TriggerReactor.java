@@ -199,10 +199,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             @Override
             public CommandResult process(CommandSource src, String args) throws CommandException {
                 if (src instanceof Player) {
-                    onCommand(new SpongePlayer((Player) src), "io/github/wysohn/triggerreactor",
+                    onCommand(new SpongePlayer((Player) src), "triggerreactor",
                             args.split(" "));
                 } else {
-                    onCommand(new SpongeCommandSender(src), "io/github/wysohn/triggerreactor",
+                    onCommand(new SpongeCommandSender(src), "triggerreactor",
                             args.split(" "));
                 }
 

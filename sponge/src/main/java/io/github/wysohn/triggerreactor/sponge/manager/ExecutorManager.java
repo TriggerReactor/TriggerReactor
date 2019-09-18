@@ -6,6 +6,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.sponge.tools.TemporarilyPrivilegedPlayer;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 
@@ -57,7 +58,8 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         this.jsExecutors.put("CMDOP", new Executor() {
 
             @Override
-            protected Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
+                                      Object... args) throws Exception {
                 Object player = variables.get("player");
                 if (player == null || !(player instanceof Player))
                     return null;

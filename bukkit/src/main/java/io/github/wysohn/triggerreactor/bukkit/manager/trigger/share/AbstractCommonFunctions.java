@@ -14,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.text.NumberFormat;
 import java.util.*;
@@ -187,21 +186,11 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @param amplifier  how strong the effect should be
      * @param ambient    if true particle effects will be more transparent
      * @param particles  if false potion particle effects will not be shown
-     * @param color      color is no longer available since 1.13
+     * @param color      use bukkitColor() or is no longer available since 1.13
      * @return returns a PotionEffect object or null if specified PotionEffectType was not found.
      */
-    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
-                                         boolean particles, Color color) {
-        PotionEffectType type = null;
-        type = PotionEffectType.getByName(EffectType);
-
-        if (type != null) {
-            return new PotionEffect(type, duration, amplifier, ambient, particles);
-        } else {
-            return null;
-        }
-
-    }
+    public abstract PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
+                                         boolean particles, Color color);
 
     /**
      * try to get a player from name. Mostly online player.
@@ -248,9 +237,12 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      *
      * @param entity any entity(including player)
      * @return name of area; null if player is not on any area.
+     * @deprecated this returns only one area among the areas where entity is in. Use {@link #currentAreas(Entity)}
+     * instead to get all the areas.
      */
     public String currentArea(Entity entity) {
-        return currentAreaAt(entity.getLocation());
+        String[] areas = currentAreasAt(entity.getLocation());
+        return areas.length > 0 ? areas[0] : null;
     }
 
     /**
@@ -266,6 +258,19 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
     public String currentAreaAt(Location location) {
         String[] areaNames = currentAreasAt(location);
         return areaNames.length > 0 ? areaNames[0] : null;
+    }
+
+    /**
+     * Get the name of area where entity is currently standing on.
+     * <p>
+     * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
+     * </p>
+     *
+     * @param entity any entity(including player)
+     * @return array of name of areas; array can be empty but never null.
+     */
+    public String[] currentAreas(Entity entity) {
+        return currentAreasAt(entity.getLocation());
     }
 
     /**

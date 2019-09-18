@@ -38,8 +38,13 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.Proce
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
+import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -121,17 +126,49 @@ public abstract class TriggerReactor implements TaskSupervisor {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
 
+    //private boolean deprecationMessageShown = false;
+
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
 
+//            if(!deprecationMessageShown){
+//                deprecationMessageShown = true;
+//
+//                // show 1 tick later
+//                submitAsync(()->{
+//                    try{
+//                        Thread.sleep(50L);
+//                    }catch (InterruptedException ex){
+//                        //ignore
+//                    }
+//
+//                    deprecationPages.forEach((paragraph)->{
+//                        paragraph.sendParagraph(getConsoleSender());
+//                        if(sender.getClass() != getConsoleSender().getClass()){
+//                            paragraph.sendParagraph(sender);
+//                        }
+//                    });
+//                });
+//            }
+
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
                     debugging = !debugging;
-
-                    getLogger().info("Debugging is set to " + debugging);
+                    String color;
+                    if (debugging)
+                    {
+                    	color = "a";
+                    } else {
+                    	color = "c";
+                    }
+                    sender.sendMessage("Debugging is set to &" + color + debugging);
+                    
+                    getLogger().info("Debugging is set to &e" + debugging);
                     return true;
+                } else if (args[0].equalsIgnoreCase("version")) {
+                	sender.sendMessage("Current version: 2.2.0");
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
                         getScriptEditManager().startEdit(sender, "Click Trigger", "", new SaveHandler() {
@@ -1127,6 +1164,51 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     }
                     sender.sendMessage(" ");
                     return true;
+                } else if (args[0].equalsIgnoreCase("timings")) {
+                    if(args.length == 2 && args[1].equalsIgnoreCase("toggle")){
+                        Timings.on = !Timings.on;
+
+                        if(Timings.on){
+                            sender.sendMessage("&aEnabled");
+                        }else {
+                            sender.sendMessage("&cDisabled");
+                        }
+                    }else if(args.length == 2 && args[1].equalsIgnoreCase("reset")){
+                        Timings.reset();
+
+                        sender.sendMessage("&aReset Complete.");
+                    }else if(args.length > 1 && args[1].equalsIgnoreCase("print")) {
+                        OutputStream os;
+
+                        if (args.length > 2) {
+                            String fileName = args[2];
+                            File folder = new File(getDataFolder(), "timings");
+                            if (!folder.exists())
+                                folder.mkdirs();
+                            File file = new File(folder, fileName+".timings");
+                            if (file.exists())
+                                file.delete();
+                            try {
+                                file.createNewFile();
+                                os = new FileOutputStream(file);
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                                sender.sendMessage("&cCould not create log file. Check console for details.");
+                                return true;
+                            }
+                        } else {
+                            os = new SenderOutputStream(sender);
+                        }
+
+                        try{
+                            Timings.printAll(os);
+                        }catch(IOException ex){
+                            ex.printStackTrace();
+                        }
+                    } else {
+                        return false;
+                    }
+                    return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
                     for (Manager manager : Manager.getManagers())
                         manager.saveAll();
@@ -1183,7 +1265,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
         page = Math.max(0, Math.min(helpPages.size() - 1, page));
 
         sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        helpPages.get(page).sendHelpPage(sender);
+        helpPages.get(page).sendParagraph(sender);
         sender.sendMessage("");
         sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size() - 1) + " &8- &6/trg help <page> &7to see other pages.");
     }
@@ -1533,7 +1615,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
     public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
 
     @SuppressWarnings("serial")
-    private final List<HelpPage> helpPages = new ArrayList<HelpPage>() {{
+    private final List<Paragraph> helpPages = new ArrayList<Paragraph>() {{
         add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
             sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
@@ -1561,6 +1643,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
             sender.sendMessage("  &7/trg a to see more commands...");
 
             sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
+            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
             sender.sendMessage("  &7/trg r to see more commands...");
         });
         add((sender) -> {
@@ -1598,9 +1681,30 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
             sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
         });
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+        }));
     }};
 
-    private interface HelpPage {
-        void sendHelpPage(ICommandSender sender);
+//    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{
+//        add((sender -> {
+//            sender.sendMessage("&d===============================================================");
+//            sender.sendMessage("&6NOTICE: &cSyntax Change Planned!");
+//            sender.sendMessage("");
+//            sender.sendMessage("For version 3.0.0 and above, the Placholder now can be placed inside the 'string.'" +
+//                    " For example, &6\"My name is $playername\" &fis equivalent to &6\"My name is \"+$playername&f." +
+//                    " Therefore, you are hereby warned that the &6dollar sign($) &f used in the string will cause" +
+//                    " the problem in future version. &cPlease fix it accordingly &fto avoid this problem." +
+//                    " If you must use dollar sign, use escape sequence to do so;" +
+//                    " for example, you can do so by &6\"The cost was 5\\$\"");
+//            sender.sendMessage("&d===============================================================");
+//        }));
+//    }};
+
+    private interface Paragraph {
+        void sendParagraph(ICommandSender sender);
     }
 }

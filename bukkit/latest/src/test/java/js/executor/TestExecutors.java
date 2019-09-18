@@ -1,5 +1,8 @@
 package js.executor;
 
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+
+
 /**
  * Test environment for bukkit-latest.
  * The test should be written in parent class, AbstractTestExecutors,
@@ -11,4 +14,7 @@ package js.executor;
  * performed.
  */
 public class TestExecutors extends AbstractTestExecutors{
+    protected void before() throws Exception{
+        register(sem, engine, BukkitUtil.class);
+    }
 }

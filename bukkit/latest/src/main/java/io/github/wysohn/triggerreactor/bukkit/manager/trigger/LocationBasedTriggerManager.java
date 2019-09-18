@@ -215,12 +215,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     public boolean isWallSign(Material mat) {
-        return mat == Material.ACACIA_WALL_SIGN
-                || mat == Material.BIRCH_WALL_SIGN
-                || mat == Material.DARK_OAK_WALL_SIGN
-                || mat == Material.JUNGLE_WALL_SIGN
-                || mat == Material.OAK_WALL_SIGN
-                || mat == Material.SPRUCE_WALL_SIGN;
+        return mat.name().endsWith("WALL_SIGN");
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -242,12 +237,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     public boolean isSignPost(Material mat) {
-        return mat == Material.ACACIA_SIGN
-                || mat == Material.BIRCH_SIGN
-                || mat == Material.DARK_OAK_SIGN
-                || mat == Material.JUNGLE_SIGN
-                || mat == Material.OAK_SIGN
-                || mat == Material.SPRUCE_SIGN;
+        return mat.name().endsWith("SIGN");
     }
 
     @EventHandler(priority = EventPriority.LOW)

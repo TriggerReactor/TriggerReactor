@@ -20,6 +20,7 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
+import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -265,6 +266,52 @@ public class TestParser {
 
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testParseWithDeprecation() throws IOException, LexerException, ParserException {
+        Parser.addDeprecationSupervisor((type, value) ->
+            type == Type.EXECUTOR && "MODIFYPLAYER".equals(value));
+        
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n"
+                + "#MODIFYPLAYER \"text\"\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse(true);
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.DECIMAL, "2.0")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "*")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "*")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, ">=")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "text")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MODIFYPLAYER")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+
+        assertEquals(1, parser.getWarnings().size());
+        assertEquals(new DeprecationWarning(Type.EXECUTOR, 2, "MODIFYPLAYER", "#MODIFYPLAYER \"text\""),
+                parser.getWarnings().get(0));
     }
 
     private void serializeNode(Queue<Node> queue, Node node) {

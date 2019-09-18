@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TriggerReactor.class, Bukkit.class})
-public class AbstractTestJavaScripts {
+public abstract class AbstractTestJavaScripts {
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
 
@@ -57,13 +58,28 @@ public class AbstractTestJavaScripts {
                 }
         );
 
+        before();
+
         PowerMockito.mockStatic(TriggerReactor.class);
         Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
+
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
+        Mockito.when(Bukkit.dispatchCommand(Mockito.any(CommandSender.class), Mockito.anyString()))
+                .then(invocation -> {
+                    CommandSender sender = invocation.getArgument(0);
+                    String command = invocation.getArgument(1);
+
+                    // send the command as message for test purpose
+                    sender.sendMessage(command);
+
+                    return null;
+                });
     }
 
-    private void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)
+    protected abstract void before() throws Exception;
+
+    protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)
             throws ScriptException {
         engine.put("Temp", clazz);
         engine.eval("var "+clazz.getSimpleName()+" = Temp.static;");

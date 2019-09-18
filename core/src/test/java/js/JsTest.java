@@ -1,90 +1,56 @@
 package js;
 
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
-import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
-
 import javax.script.ScriptEngine;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
 public abstract class JsTest {
-    protected final String name;
-    protected final InputStream file;
-    protected Map<String, Object> varMap = new HashMap<>();
+    protected final InputStream stream;
+    protected final ScriptEngine engine;
+    protected Map<String, Object> varMap;
     protected Object[] args;
 
-    private JsTest(String name, InputStream file){
-        this.name = name;
-        this.file = file;
+    /**
+     * 
+     * 
+     * @param engine      the script engine to use
+     * @param name        the name of the js file being tested (last item in file path)
+     * @param otherDirectories list of directories to go through to reach the file, such as PLAYER for PLAYER/SETFLYMODE
+     * @throws FileNotFoundException 
+     */
+    protected JsTest(ScriptEngine engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
+    	StringBuilder builder = new StringBuilder();
+    	
+    	
+    	builder.append(firstDirectory);
+		builder.append('/');
+    	for (String dir : otherDirectories) {
+    		builder.append(dir);
+    		builder.append('/');
+    	}
+    	builder.append(name + ".js");
+        this.engine = engine;
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(builder.toString());
+        if (stream == null) {
+        	throw new FileNotFoundException("could not find file " + builder.toString());
+        }
+        this.stream = stream;
+        this.varMap = new HashMap<>();
+        this.args = new Object[] {};
+    }
+    
+    public JsTest addVariable(String name, Object value) {
+    	varMap.put(name, value);
+    	return this;
+    }
+    
+    public JsTest withArgs(Object... args) {
+    	this.args = args;
+    	return this;
     }
 
-    public abstract Object test(ScriptEngine engine) throws Exception;
-
-    public static class ExecutorTest extends JsTest{
-        public ExecutorTest(String name, InputStream file) {
-            super(name, file);
-        }
-
-        @Override
-        public Object test(ScriptEngine engine) throws Exception {
-            AbstractExecutorManager.JSExecutor exec =
-                    new AbstractExecutorManager.JSExecutor(name, engine, file);
-            exec.execute(true, varMap, null, args);
-            return null;
-        }
-    }
-
-    public static class PlaceholderTest extends JsTest{
-        public PlaceholderTest(String name, InputStream file) {
-            super(name, file);
-        }
-
-        @Override
-        public Object test(ScriptEngine engine) throws Exception {
-            AbstractPlaceholderManager.JSPlaceholder ph =
-                    new AbstractPlaceholderManager.JSPlaceholder(name, engine, file);
-            return ph.parse(null, varMap, args);
-        }
-    }
-
-    public static class JsTester<TEST extends JsTest>{
-        private final TEST test;
-
-        public JsTester(TEST test) {
-            this.test = test;
-        }
-
-        public JsTester<TEST> addVariable(String key, Object value){
-            test.varMap.put(key, value);
-            return this;
-        }
-
-        public JsTester<TEST> withArgs(Object... args){
-            test.args = args;
-            return this;
-        }
-
-        public Object test(ScriptEngine engine) throws Exception{
-            return test.test(engine);
-        }
-
-        public static JsTester<ExecutorTest> executorTestOf(String... name){
-            Path path = Paths.get("Executor", name);
-            InputStream file = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream(path.toString()+".js");
-            ExecutorTest test = new ExecutorTest(name[name.length - 1], file);
-            return new JsTester<>(test);
-        }
-
-        public static JsTester<PlaceholderTest> placeholderTestOf(String... name){
-            Path path = Paths.get("Placeholder", name);
-            InputStream file = Thread.currentThread()
-                    .getContextClassLoader().getResourceAsStream(path.toString()+".js");
-            PlaceholderTest test = new PlaceholderTest(name[name.length - 1], file);
-            return new JsTester<>(test);
-        }
-    }
+    public abstract Object test() throws Exception;
+    
 }
