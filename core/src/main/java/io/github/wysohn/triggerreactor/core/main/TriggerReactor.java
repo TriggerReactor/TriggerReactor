@@ -475,11 +475,11 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                         String name = args[1];
 
-                        int index = -1;
+                        int index;
                         try {
                             index = Integer.parseInt(args[3]);
                         } catch (NumberFormatException e) {
-                            sender.sendMessage("&c" + "" + index + " is not a valid number.");
+                            sender.sendMessage("&c" + "" + args[3] + " is not a valid number.");
                             return true;
                         }
 
@@ -489,14 +489,16 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (index > trigger.getItems().length - 1) {
-                            sender.sendMessage("&c" + "" + index + " is out of bound. (Size: " + trigger.getItems().length + ")");
+                        if (index > trigger.getItems().length - 1 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length - 1) + ")");
                             return true;
                         }
 
                         trigger.getItems()[index] = IS;
-
                         saveAsynchronously(getInvManager());
+                        
+                        sender.sendMessage("Successfully set item " + index);
+                        
                     } else if (args.length > 2 && args[2].equalsIgnoreCase("open")) {
                         String name = args[1];
                         IPlayer forWhom = null;
@@ -541,17 +543,88 @@ public abstract class TriggerReactor implements TaskSupervisor {
                                 saveAsynchronously(getInvManager());
                             }
                         });
+                    } else if (args.length == 4 && args[2].equals("row")) {
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        IS = IS == null ? null : IS.clone();
+
+                        String name = args[1];
+
+                        int index;
+                        try {
+                            index = Integer.parseInt(args[3]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("&c" + "" + args[3] + " is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        int rows = trigger.getItems().length / 9;
+                        if (index > rows - 1 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + (rows - 1) + ")");
+                            return true;
+                        }
+
+                        for (int i = 0; i < 9; i++)
+                        {
+                        	trigger.getItems()[index * 9 + i] = IS;
+                        }
+
+                        saveAsynchronously(getInvManager());
+                        sender.sendMessage("Successfully filled row " + index);
+                        
+                    } else if (args.length == 4 && args[2].equals("column")) {
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        IS = IS == null ? null : IS.clone();
+
+                        String name = args[1];
+
+                        int index;
+                        try {
+                            index = Integer.parseInt(args[3]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("&c" + "" + args[3] + " is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        int rows = trigger.getItems().length / 9;
+                        if (index > 8 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: 9)");
+                            return true;
+                        }
+
+                        for (int i = 0; i < rows; i++)
+                        {
+                        	trigger.getItems()[index + i * 9] = IS;
+                        }
+
+                        saveAsynchronously(getInvManager());
+                        sender.sendMessage("Successfully filled column " + index);
+                        
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
                         sendDetails(sender, "/trg i MyInventory create 54");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the held item. "
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "sets item of inventory to the held item. "
                                 + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> column <index>", "same as the item subcommand, but applied to an entire column."
+                                + "Clears the slot if you are holding nothing.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> row <index>", "same as the item subcommand, but applied to an entire row.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Preview the inventory");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Send <player name> a preview of the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
                     }
                     return true;

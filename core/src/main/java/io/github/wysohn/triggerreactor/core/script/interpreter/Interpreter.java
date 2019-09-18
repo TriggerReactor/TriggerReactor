@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
@@ -41,8 +42,8 @@ public class Interpreter {
 
     private TaskSupervisor task;
 
-    private Map<String, Executor> executorMap = new HashMap<>();
-    private Map<String, Placeholder> placeholderMap = new HashMap<>();
+    private Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
+    private Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     private Map<Object, Object> gvars = new ConcurrentHashMap<>();
     private Map<String, Object> vars = new ConcurrentHashMap<>();
     private SelfReference selfReference = new SelfReference() {
@@ -531,7 +532,7 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                Class clazz = (Class) right.value;
+                Class<?> clazz = (Class<?>) right.value;
                 stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;

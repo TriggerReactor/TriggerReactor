@@ -436,7 +436,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
 
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equals(command)) {
+                if ("CALL".equalsIgnoreCase(command)) {
                     if (args.length < 1)
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
@@ -462,7 +462,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
                         throw new RuntimeException("Parameter type not match; it should be a String."
                                 + " Make sure to put double quotes, if you provided String literal.");
                     }
-                } else if ("CANCELEVENT".equals(command)) {
+                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
                     if (!interpreter.isSync())
                         throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
@@ -472,7 +472,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
                     } else {
                         throw new RuntimeException(context + " is not a Cancellable event!");
                     }
-                } else if ("COOLDOWN".equals(command)) {
+                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
                     if (!(args[0] instanceof Number))
                         throw new RuntimeException(args[0] + " is not a number!");
 
@@ -526,7 +526,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
 
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equals(command)) {
+                if ("CALL".equalsIgnoreCase(command)) {
                     if (args.length < 1)
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
@@ -552,7 +552,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
                         throw new RuntimeException("Parameter type not match; it should be a String."
                                 + " Make sure to put double quotes, if you provided String literal.");
                     }
-                } else if ("CANCELEVENT".equals(command)) {
+                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
                     if (!interpreter.isSync())
                         throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
@@ -562,7 +562,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
                     } else {
                         throw new RuntimeException(context + " is not a Cancellable event!");
                     }
-                } else if ("COOLDOWN".equals(command)) {
+                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
                     if (!(args[0] instanceof Number))
                         throw new RuntimeException(args[0] + " is not a number!");
 
