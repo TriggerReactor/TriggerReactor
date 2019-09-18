@@ -10,6 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.times;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
@@ -143,7 +144,22 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testClearChat() throws Exception{
-        
+        Player vp = Mockito.mock(Player.class);
+        Player vp2 = Mockito.mock(Player.class);
+        Player nullP = null;
+        JsTest test = new ExecutorTest(engine, "CLEARCHAT").addVariable("player", vp);
+
+        //case1
+        test.withArgs().test();
+        Mockito.verify(vp, times(30)).sendMessage("");
+
+        //case2
+        test.withArgs(vp2).test();
+        Mockito.verify(vp2, times(30)).sendMessage("");
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs(nullP).test(), "Found unexpected parameter - player: null");
+        assertError(() -> test.withArgs(1, 2).test(), "Too many parameters found! CLEARCHAT accept up to one parameter.");
     }
     
     @Test
@@ -364,7 +380,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     	JsTest test = new ExecutorTest(engine, "WEATHER");
         World mockWorld = Mockito.mock(World.class);
         PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(mockWorld);
-        
+
         test.withArgs("merp", true).test();
         Mockito.verify(mockWorld).setStorm(true);
         
@@ -374,5 +390,41 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertError(() -> test.withArgs(mockWorld, false).test(), "Invalid parameters! [String, Boolean]");
         assertError(() -> test.withArgs("merp", true).test(), "Unknown world named merp");
     }
+    @Test
+    public void testKick() throws Exception{
+
+        Player vp = Mockito.mock(Player.class);
+        Player vp2 = Mockito.mock(Player.class);
+        Player nullP = null;
+        String msg = ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server.");
+        String msg2 = ChatColor.translateAlternateColorCodes('&', "&cKICKED");
+
+        //case1
+        JsTest test = new ExecutorTest(engine, "KICK").addVariable("player", vp);
+        test.withArgs().test();
+        Mockito.verify(vp).kickPlayer(msg);
+
+        //case2
+        test.withArgs(msg2).test();
+        Mockito.verify(vp).kickPlayer(msg2);
+
+        //case3
+        test.withArgs(vp2).test();
+        Mockito.verify(vp2).kickPlayer(msg);
+
+        //case4
+        test.withArgs(vp2, msg2).test();
+        Mockito.verify(vp2).kickPlayer(msg2);
+
+        //Unexpected Exception Cases
+        assertError(() -> test.withArgs(1).test(), "Found unexpected type of argument: 1");
+        assertError(() -> test.withArgs(vp, 232).test(), "Found unexpected type of argument(s) - player: "+vp+" | msg: 232");
+        assertError(() -> test.withArgs(1 , 2 , 3).test(), "Too many arguments! KICK Executor accepts up to two arguments.");
+        test.addVariable("player", null);
+        assertError(() -> test.withArgs().test(), "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
+        assertError(() -> test.withArgs(null, "msg").test(), "Found unexpected type of argument(s) - player: null | msg: msg");
+        assertError(() -> test.withArgs(nullP).test(), "Unexpected Error: parameter does not match - player: null");
+    }
+
 
 }
