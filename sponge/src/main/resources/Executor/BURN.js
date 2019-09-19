@@ -29,7 +29,7 @@ function BURN(args){
 		var entity = args[0];
 
 		if (entity !== null) {
-			yhrow new Error("player to burn should not be null");
+			throw new Error("player to burn should not be null");
 		}
 		if(typeof entity === "string"){
 			entity = Sponge.getServer().getPlayer(entity);
