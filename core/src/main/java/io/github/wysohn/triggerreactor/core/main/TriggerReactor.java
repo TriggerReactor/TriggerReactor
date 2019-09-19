@@ -164,6 +164,8 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     	color = "c";
                     }
                     sender.sendMessage("Debugging is set to &" + color + debugging);
+                    
+                    getLogger().info("Debugging state: "+debugging);
                     return true;
                 } else if (args[0].equalsIgnoreCase("version")) {
                 	sender.sendMessage("Current version: 2.2.0");
