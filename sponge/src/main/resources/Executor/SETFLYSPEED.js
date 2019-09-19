@@ -17,5 +17,7 @@ function SETFLYSPEED(args)
     throw new Error("Argument for Executor SETFLYSPEED is outside of range -1..1")
   }
   
-  player.offer(Keys.FLYING_SPEED, value);
+  arg *= 1.0 //convert arg to double
+  
+  player.offer(Keys.FLYING_SPEED, arg);
 }

@@ -17,5 +17,7 @@ function SETWALKSPEED(args)
     throw new Error("Argument for Executor SETWALKSPEED is outside of range -1..1")
   }
   
-  player.offer(Keys.WALKING_SPEED, value);
+  arg *= 1.0 //cast arg to double
+  
+  player.offer(Keys.WALKING_SPEED, arg);
 }

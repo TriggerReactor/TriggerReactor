@@ -17,6 +17,12 @@ function SETHEALTH(args)
     throw new Error("Argument for Exector SETHEALTH should not be negative")
   }
   
+  var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
+  
+  if (!(player instanceof ValueContainer)) {
+	  throw new Error("Value in player does not support health (did you set it to something else?)")
+  }
+  
   var maxHealth = player.get(Keys.MAX_HEALTH).orElse(-1);
   
   if (maxHealth === -1) 
@@ -29,5 +35,7 @@ function SETHEALTH(args)
     throw new Error("Argument for Executor SETHEALTH is greater than the maximum health of: " + maxHealth);
   }
   
-  player.offer(Keys.HEALTH, value);
+  arg *= 1.0 //cast arg to double
+  
+  player.offer(Keys.HEALTH, arg);
 }

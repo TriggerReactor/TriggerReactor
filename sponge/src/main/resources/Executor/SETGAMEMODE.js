@@ -12,15 +12,17 @@ function SETGAMEMODE(args)
     throw new Error("Invalid argument for Executor SETGAMEMODE: " + arg)
   }
   
-  if (!(player.supports(Keys.GAME_MODE))) {
+  var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
+  
+  if (!(player instanceof ValueContainer) || !(player.supports(Keys.GAME_MODE))) {
 	  throw new Error("value in variable player does not support gamemodes (did you set it to something else?)")
   }
   
   var GameModes = Java.type('org.spongepowered.api.entity.living.player.gamemode.GameModes')
   try {
-	  var mode = ReflectionUtil.getField(GameModes.class, null, value.toUpperCase())
+	  var mode = ReflectionUtil.getField(GameModes.class, null, arg.toUpperCase())
   } catch(ex) {
-	  throw new Error("Unknown GAEMMODE value "+value);
+	  throw new Error("Unknown GAMEMODE value " + arg);
   }
   
   player.offer(Keys.GAME_MODE, mode);

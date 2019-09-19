@@ -12,6 +12,12 @@ function SETXP(args)
     throw new Error("Invalid argument for SETXP: " + arg)
   }
   
+  var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
+  
+  if (!(player instanceof ValueContainer)) {
+	  throw new Error("Value in player does not support xp (did you set it to something else?)")
+  }
+  
   var bounded = player.get(Keys.EXPERIENCE_SINCE_LEVEL).orElse(-1);
   
   if (bounded === -1) {

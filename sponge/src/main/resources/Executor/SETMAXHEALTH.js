@@ -12,22 +12,24 @@ function SETMAXHEALTH(args)
     throw new Error("Invalid argument for SETMAXHEALTH: " + arg)
   }
   
+  if (arg < 1)
+  {
+	  throw new Error("Argument for SETSATURATION is too low: " + arg + " minimum is 1")
+  }
+  
+  var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
+  
+  if (!(player instanceof ValueContainer)) {
+	  throw new Error("Value in player does not support max health (did you set it to something else?)")
+  }
+  
   var bounded = player.get(Keys.MAX_HEALTH).orElse(-1);
   
   if (bounded === -1) {
 	  throw new Error("value in variable player does not support max health (did you set it to something else?)")
   }
   
-  var max = bounded.getMaxValue()
-  var min = bounded.getMinValue()
-  
-  if (arg > max) {
-	  throw new Error("Argument for SETHEALTH is too high: " + arg + " maximum is " + max)
-  }
-  
-  if (arg < min) {
-	  throw new Error("Argument for SETHEALTH is too low: " + arg + " minimum is " + min)
-  }
+  arg *= 1.0 //cast to double
   
   player.offer(Keys.MAX_HEALTH, arg)
 }

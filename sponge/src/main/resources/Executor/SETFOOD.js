@@ -19,6 +19,12 @@ function SETFOOD(args)
     throw new Error("Argument for Executor SETFOOD should be a whole number")
   }
   
+  var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
+  
+  if (!(player instanceof ValueContainer)) {
+	  throw new Error("Value in player does not support food (did you set it to something else?)")
+  }
+  
   var bounded = player.getValue(Keys.FOOD_LEVEL).orElse(null);
   
   if (bounded === null) {
@@ -29,7 +35,7 @@ function SETFOOD(args)
 	  throw new Error("argument for executor SETFOOD is too low: " + arg + ", minimum is: " + bounded.getMinValue())
   }
   
-  if (arg < bounded.getMaxValue()) {
+  if (arg > bounded.getMaxValue()) {
 	  throw new Error("argument for executor SETFOOD is too high: " + arg + ", maximum is: " + bounded.getMaxValue())
   }
   
