@@ -15,25 +15,13 @@ function SETXP(args)
   var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
   
   if (!(player instanceof ValueContainer)) {
-	  throw new Error("Value in player does not support xp (did you set it to something else?)")
+	  throw new Error("Value in player does not support food (did you set it to something else?)")
   }
   
-  var bounded = player.get(Keys.EXPERIENCE_SINCE_LEVEL).orElse(-1);
-  
-  if (bounded === -1) {
-	  throw new Error("value in variable player does not support saturation (did you set it to something else?)")
+  if (arg < 0) {
+	  throw new Error("Argument for SETXP is too low: " + arg + " minimum is 0")
   }
   
-  var max = bounded.getMaxValue()
-  var min = bounded.getMinValue()
-  
-  if (arg > max) {
-	  throw new Error("Argument for SETXP is too high: " + arg + " maximum is " + max)
-  }
-  
-  if (arg < min) {
-	  throw new Error("Argument for SETXP is too low: " + arg + " minimum is " + min)
-  }
-  
+  //TODO: use total experience level
   player.offer(Keys.EXPERIENCE_SINCE_LEVEL, arg)
 }
