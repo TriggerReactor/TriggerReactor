@@ -39,45 +39,164 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertError(() -> test.withArgs(true, true).test(), "Incorrect number of arguments for executor SETFLYMODE");
         assertError(() -> test.withArgs("merp").test(), "Invalid argument for executor SETFLYMODE: merp");
     }
-    
+
     @Test
     public void testPlayer_SetFlySpeed() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETFLYSPEED")
+                .addVariable("player", vp);
+
+        //only case
+        test.withArgs(0.5).test();
+        Mockito.verify(vp).setFlySpeed(0.5F);
+
+        //Unexpected cases
+        assertError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETFLYSPEED");
+        assertError(() -> test.withArgs(0.5, 13).test(), "Incorrect Number of arguments for Executor SETFLYSPEED");
+        assertError(() -> test.withArgs("HI").test(), "Invalid argument for SETFLYSPEED: HI");
+        assertError(() -> test.withArgs(4).test(), "Argument for Executor SETFLYSPEED is outside of range -1..1");
+        assertError(() -> test.withArgs(-4).test(), "Argument for Executor SETFLYSPEED is outside of range -1..1");
     }
-    
+
     @Test
     public void testPlayer_SetFood() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETFOOD")
+                .addVariable("player", vp);
+
+
+        //case1
+        test.withArgs(3).test();
+        Mockito.verify(vp).setFoodLevel(3);
+
+        //case2
+        test.withArgs(4.0).test();
+        Mockito.verify(vp).setFoodLevel(4);
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETFOOD");
+        assertError(() -> test.withArgs("HI").test(), "Invalid argument for Executor SETFOOD: HI");
+        assertError(() -> test.withArgs(3.4).test(), "Argument for Executor SETFOOD should be a whole number");
+        assertError(() -> test.withArgs(-3.0).test(), "Argument for Executor SETFOOD should not be negative");
     }
-    
+
     @Test
     public void testPlayer_SetGameMode() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETGAMEMODE")
+                .addVariable("player", vp);
+
+        //only case
+        test.withArgs("creative").test();
+        Mockito.verify(vp).setGameMode(GameMode.valueOf("CREATIVE"));
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs().test(), "Incorrect number of arguments for executor SETGAMEMODE");
+        assertError(() -> test.withArgs(34).test(), "Invalid argument for Executor SETGAMEMODE: 34");
+        assertError(() -> test.withArgs("hElLo").test(), "Unknown GAEMMODE value hElLo");
     }
-    
+
     @Test
     public void testPlayer_SetHealth() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETHEALTH")
+                .addVariable("player", vp);
+        PowerMockito.when(vp, "getMaxHealth").thenReturn(20.0);
+
+        //case1
+        test.withArgs(2).test();
+        Mockito.verify(vp).setHealth(2.0);
+
+        //case2
+        test.withArgs(3.0).test();
+        Mockito.verify(vp).setHealth(3.0);
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs(1, 334).test(), "Incorrect Number of arguments for executor SETHEALTH");
+        assertError(() -> test.withArgs("yeah").test(), "Invalid argument for SETHEALTH: yeah");
+        assertError(() -> test.withArgs(-17).test(), "Argument for Exector SETHEALTH should not be negative");
+        assertError(() -> test.withArgs(50).test(),"Argument for Executor SETHEALTH is greater than the max health");
     }
-    
+
     @Test
     public void testPlayer_SetMaxHealth() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
+                .addVariable("player", vp);
+
+        //case1
+        test.withArgs(30).test();
+        Mockito.verify(vp).setMaxHealth(30.0);
+
+        //case2
+        test.withArgs(35.4).test();
+        Mockito.verify(vp).setMaxHealth(35.4);
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs(20, 33).test(), "Incorrect Number of arguments for Executor SETMAXHEALTH");
+        assertError(() -> test.withArgs("NONO").test(), "Invalid argument for SETMAXHEALTH: NONO");
+        assertError(() -> test.withArgs(-30).test(), "Argument for Executor SETMAXHEALTH should not be negative or zero");
+        assertError(() -> test.withArgs(2098).test(), "Maximum health cannot be greater than 2048");
     }
-    
+
     @Test
     public void testPlayer_SetSaturation() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETSATURATION")
+                .addVariable("player", vp);
+
+        //case1
+        test.withArgs(25).test();
+        Mockito.verify(vp).setSaturation(25.0F);
+
+        //case2
+        test.withArgs(44.0).test();
+        Mockito.verify(vp).setSaturation(44.0F);
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETSATURATION");
+        assertError(() -> test.withArgs("Hi").test(), "Invalid argument for SETSATURATION: Hi");
+        assertError(() -> test.withArgs(-45).test(), "Argument for Executor SETSATURATION should not be negative");
     }
-    
+
     @Test
     public void testPlayer_SetWalkSpeed() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
+                .addVariable("player", vp);
+        //case1
+        test.withArgs(1).test();
+        Mockito.verify(vp).setWalkSpeed(1.0F);
+
+        //case2
+        test.withArgs(0.7).test();
+        Mockito.verify(vp).setWalkSpeed(0.7F);
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETWALKSPEED");
+        assertError(() -> test.withArgs("NUU").test(), "Invalid argument for SETWALKSPEED: NUU");
+        assertError(() -> test.withArgs(-3).test(), "Argument for Executor SETWALKSPEED is outside of the allowable range -1..1");
     }
-    
+
     @Test
     public void testPlayer_SetXp() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "SETXP")
+                .addVariable("player", vp);
+
+        //case1
+        test.withArgs(0.3).test();
+        Mockito.verify(vp).setExp(0.3F);
+
+        //case2
+        test.withArgs(1).test();
+        Mockito.verify(vp).setExp(1.0F);
+
+        //Unexpected Cases
+        assertError(() -> test.withArgs().test(), "Incorrect number of arguments for executor SETXP");
+        assertError(() -> test.withArgs("lmao").test(), "Invalid argument for SETXP: lmao");
+        assertError(() -> test.withArgs(33).test(), "33 is outside of the allowable range of 0..1 for executor SETXP");
+
     }
 
     @Test
@@ -161,20 +280,39 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertError(() -> test.withArgs(nullP).test(), "Found unexpected parameter - player: null");
         assertError(() -> test.withArgs(1, 2).test(), "Too many parameters found! CLEARCHAT accept up to one parameter.");
     }
-    
+
     @Test
     public void testClearEntity() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        Collection<Entity> entities = new ArrayList<>();
+        for(int i = 0; i < 10; i++){
+            entities.add(Mockito.mock(Entity.class));
+        }
+        JsTest test = new ExecutorTest(engine, "CLEARENTITY")
+                .addVariable("player", vp);
+        PowerMockito.when(vp, "getNearbyEntities", 2d, 2d, 2d).thenReturn(entities);
+        test.withArgs(2).test();
+        for(Entity ve : entities){
+            Mockito.verify(ve).remove();
+        }
+        assertError(() -> test.withArgs().test(), "Invalid parameters! [Number]");
+        assertError(() -> test.withArgs("NO").test(), "Invalid parameters! [Number]");
     }
-    
+
     @Test
     public void testClearPotion() throws Exception{
         //TODO
     }
-    
+
     @Test
     public void testCloseGUI() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "CLOSEGUI")
+                .addVariable("player", vp);
+
+        //only happy case
+        test.withArgs().test();
+        Mockito.verify(vp).closeInventory();
     }
     
     @Test
@@ -209,7 +347,13 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testExplosion() throws Exception{
-        //TODO
+        World world = Mockito.mock(World.class);
+        Location loc = new Location(world, 1, 2, 3);
+        Location vLoc = Mockito.spy(loc);
+        PowerMockito.when(Bukkit.class, "getWorld", "hello").thenReturn(world);
+        JsTest test = new ExecutorTest(engine, "EXPLOSION");
+        test.withArgs("hello", 1, 2, 3);
+        Mockito.verify(world).createExplosion(vLoc, 4.0F, false);
     }
     
     @Test
