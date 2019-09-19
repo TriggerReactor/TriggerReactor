@@ -1,11 +1,13 @@
 package js.executor;
 
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.ExecutorTest;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.junit.Test;
@@ -15,6 +17,8 @@ import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
 import java.util.ArrayList;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Test driving class for testing Executors.
@@ -347,13 +351,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testExplosion() throws Exception{
-        World world = Mockito.mock(World.class);
-        Location loc = new Location(world, 1, 2, 3);
-        Location vLoc = Mockito.spy(loc);
-        PowerMockito.when(Bukkit.class, "getWorld", "hello").thenReturn(world);
-        JsTest test = new ExecutorTest(engine, "EXPLOSION");
-        test.withArgs("hello", 1, 2, 3);
-        Mockito.verify(world).createExplosion(vLoc, 4.0F, false);
+        //TODO
     }
     
     @Test
@@ -363,12 +361,42 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testGive() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        PlayerInventory vpInv = Mockito.mock(PlayerInventory.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        JsTest test = new ExecutorTest(engine, "GIVE")
+                .addVariable("player", vp);
+
+        PowerMockito.when(vp, "getInventory").thenReturn(vpInv);
+        PowerMockito.when(vpInv, "firstEmpty").thenReturn(4);
+        test.withArgs(vItem).test();
+        Mockito.verify(vpInv).addItem(vItem);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameters. Need [ItemStack]");
+        PowerMockito.when(vpInv, "firstEmpty").thenReturn(-1);
+        assertError(() -> test.withArgs(vItem).test(), "Player has no empty slot.");
+        PowerMockito.when(vpInv, "firstEmpty").thenReturn(7);
+        assertError(() -> test.withArgs("hi").test(), "Invalid ItemStack: hi");
     }
     
     @Test
     public void testGUI() throws Exception{
-        //TODO
+        IPlayer vip = Mockito.mock(IPlayer.class);
+        TriggerReactor tr = Mockito.mock(TriggerReactor.class);
+        AbstractInventoryTriggerManager invManager = Mockito.mock(AbstractInventoryTriggerManager.class);
+        IInventory iInv = Mockito.mock(IInventory.class);
+        JsTest test = new ExecutorTest(engine, "GUI")
+                .addVariable("player", vip)
+                .addVariable("plugin", tr);
+
+        PowerMockito.when(tr, "getInvManager").thenReturn(invManager);
+        PowerMockito.when(invManager, "openGUI", vip, "Hi").thenReturn(iInv);
+        test.withArgs("Hi").test();
+        Mockito.verify(invManager).openGUI(vip, "Hi");
+
+        assertError(() -> test.withArgs().test(), "Invalid parameters. Need [String]");
+        PowerMockito.when(invManager, "openGUI", vip, "hello").thenReturn(null);
+        assertError(() -> test.withArgs("hello").test(), "No such Inventory Trigger named hello");
     }
     
     @Test
