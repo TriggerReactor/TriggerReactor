@@ -14,7 +14,7 @@ function SETMAXHEALTH(args)
   
   if (arg < 1)
   {
-	  throw new Error("Argument for SETSATURATION is too low: " + arg + " minimum is 1")
+	  throw new Error("Argument for SETMAXHEALTH is too low: " + arg + " minimum is 1")
   }
   
   var ValueContainer = Java.type("org.spongepowered.api.data.value.ValueContainer")
