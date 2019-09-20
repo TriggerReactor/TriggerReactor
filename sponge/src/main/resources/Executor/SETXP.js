@@ -18,22 +18,22 @@ function SETXP(args)
 	  throw new Error("Value in player does not support food (did you set it to something else?)")
   }
   
-  var bounded = player.get(Keys.TOTAL_EXPERIENCE).orElse(-1);
-
-  if (bounded === -1) {
-	  throw new Error("value in variable player does not support saturation (did you set it to something else?)")
-   }
-
-  var max = bounded.getMaxValue()
-  var min = bounded.getMinValue()
-
-  if (arg > max) {
-	  throw new Error("Argument for SETXP is too high: " + arg + " maximum is " + max)
-  }
-
-  if (arg < min) {
-	  throw new Error("Argument for SETXP is too low: " + arg + " minimum is " + min)
+  if (arg < 0) {
+	  throw new Error("Argument for SETXP is too low: " + arg + " minimum is 0")
   }
   
-  player.offer(Keys.TOTAL_EXPERIENCE, arg)
+  //a value of 0 means 1 xp for some reason
+  //and a value of -1 doesn't work
+  
+  arg -= 1
+  
+  print(arg)
+  
+  var Integer = Java.type("java.lang.Integer")
+  
+  if (arg < 0) {
+	  player.offer(Keys.EXPERIENCE_SINCE_LEVEL, Integer.valueOf(0))
+  } else {
+       player.offer(Keys.TOTAL_EXPERIENCE, Integer.valueOf(Math.round(arg)))
+  }
 }
