@@ -8,7 +8,9 @@ import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.ExecutorTest;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -401,7 +403,28 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testItemFrameRotate() throws Exception{
-        //TODO
+        Location vLoc = Mockito.mock(Location.class);
+        Location vLoc2 = Mockito.mock(Location.class);
+        Block vBlock = Mockito.mock(Block.class);
+        World vWorld = Mockito.mock(World.class);
+        Collection<ItemFrame> vEntities = new ArrayList<>();
+        for(int i = 0; i < 4; i++){
+            vEntities.add(Mockito.mock(ItemFrame.class));
+        }
+        JsTest test = new ExecutorTest(engine, "ITEMFRAMEROTATE");
+
+        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
+        PowerMockito.when(vBlock, "getWorld").thenReturn(vWorld);
+        PowerMockito.when(vBlock, "getLocation").thenReturn(vLoc2);
+        PowerMockito.when(vWorld, "getNearbyEntities", vLoc2, 2.0, 2.0, 2.0).thenReturn(vEntities);
+
+        test.withArgs("NOne", vLoc).test();
+        for(ItemFrame entity : vEntities){
+            Mockito.verify(entity).setRotation(Rotation.valueOf("NOne".toUpperCase()));
+        }
+        assertError(() -> test.withArgs().test(), "Invalid parameters. Need [Rotation<string>, Location<location or number number number>]");
+
+        //TODO - need test for the situation of args.length == 4
     }
     
     @Test
@@ -411,7 +434,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testKill() throws Exception{
-        //TODO
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "KILL")
+                .addVariable("player", vp);
+
+        test.withArgs().test();
+        Mockito.verify(vp).setHealth(0d);
     }
     
     @Test
