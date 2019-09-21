@@ -270,6 +270,8 @@ public class TestParser {
 
     @Test
     public void testParseWithDeprecation() throws IOException, LexerException, ParserException {
+        Parser.addDeprecationSupervisor((type, value) ->
+            type == Type.EXECUTOR && "MODIFYPLAYER".equals(value));
         
         Charset charset = Charset.forName("UTF-8");
         String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n"
@@ -308,7 +310,7 @@ public class TestParser {
         assertEquals(0, queue.size());
 
         assertEquals(1, parser.getWarnings().size());
-        assertEquals(new DeprecationWarning(2, "MODIFYPLAYER", "#MODIFYPLAYER \"text\""),
+        assertEquals(new DeprecationWarning(Type.EXECUTOR, 2, "MODIFYPLAYER", "#MODIFYPLAYER \"text\""),
                 parser.getWarnings().get(0));
     }
 
