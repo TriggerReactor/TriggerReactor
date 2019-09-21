@@ -1,17 +1,18 @@
 package io.github.wysohn.triggerreactor.core.script.warning;
 
-import org.junit.Test;
-
+import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestWarnings {
 	
@@ -36,6 +37,8 @@ public class TestWarnings {
 	
 	@Test
 	public void testInterpolationWarning() throws Exception {
+		Parser.addDeprecationSupervisor(((type, value) -> type == Token.Type.ID && value.contains("$")));
+
 		//#MESSAGE "pay me $3"
 		String escaped = "#MESSAGE \"pay me \\$3\"";
 		String notEscaped = "#MESSAGE \"pay me $3\"";
