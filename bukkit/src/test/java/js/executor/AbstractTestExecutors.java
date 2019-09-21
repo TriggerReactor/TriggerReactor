@@ -513,9 +513,19 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testLightning() throws Exception{
-        //TODO
+        Location vLoc = Mockito.mock(Location.class);
+        World vWorld = Mockito.mock(World.class);
+        JsTest test = new ExecutorTest(engine, "LIGHTNING");
+
+        PowerMockito.when(vLoc, "getWorld").thenReturn(vWorld);
+        test.withArgs(vLoc).test();
+        Mockito.verify(vWorld).strikeLightning(vLoc);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameters! [String, Number, Number, Number] or [Location]");
+        assertError(() -> test.withArgs("hff").test(), "Invalid parameters! [String, Number, Number, Number] or [Location]");
+        //TODO - need test for the situation of args.length == 4
     }
-    
+
     @Test
     public void testLog() throws Exception{
         //TODO
