@@ -50,9 +50,24 @@ public class Parser {
         nextToken();
     }
 
-    private void nextToken() throws IOException, LexerException, ParserException {
+    private void nextToken() throws IOException, ParserException {
         try {
             token = lexer.getToken();
+
+            if (showWarnings && token != null) {
+                int row = lexer.getRow();
+
+                Type type = token.type;
+                String value = String.valueOf(token.value);
+
+                if (type == null || value == null)
+                    return;
+
+                if (deprecationSupervisors.stream()
+                        .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
+                    this.warnings.add(new DeprecationWarning(row, value, lexer.getScriptLines()[row - 1]));
+                }
+            }
         } catch (LexerException lex) {
             ParserException pex = new ParserException("Error occured while processing a token after " + token);
             pex.initCause(lex);
@@ -226,16 +241,6 @@ public class Parser {
                     }
 
                     Node commandNode = new Node(new Token(Type.EXECUTOR, builder.toString(), row, col));
-
-                    if (showWarnings) {
-                        Type type = Type.EXECUTOR;
-                        String value = builder.toString();
-
-                        if (deprecationSupervisors.stream()
-                                .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
-                            this.warnings.add(new DeprecationWarning(type, row, value, lexer.getScriptLines()[row - 1]));
-                        }
-                    }
 
                     List<Node> args = new ArrayList<>();
                     if (token != null && token.type != Type.ENDL) {

@@ -1154,4 +1154,9 @@ public class Interpreter {
 
         interpreter.startWithContext(null);
     }
+
+    static {
+        Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && "MODIFYPLAYER".equals(value)));
+        Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && value.contains("$")));
+    }
 }
