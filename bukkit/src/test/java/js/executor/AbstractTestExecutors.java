@@ -9,12 +9,17 @@ import js.JsTest;
 import js.ExecutorTest;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.material.Lever;
+import org.bukkit.material.MaterialData;
 import org.junit.Test;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.times;
+
+import org.mockito.exceptions.base.MockitoAssertionError;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
@@ -444,17 +449,66 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testLeverOff() throws Exception{
-        //TODO
+
+        Location vLoc = Mockito.mock(Location.class);
+        Block vBlock = Mockito.mock(Block.class);
+        BlockState vBS = Mockito.mock(BlockState.class);
+        Lever vLever = Mockito.mock(Lever.class);
+        JsTest test = new ExecutorTest(engine, "LEVEROFF");
+
+        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
+        PowerMockito.when(vBlock, "getState").thenReturn(vBS);
+        PowerMockito.when(vBS, "getData").thenReturn(vLever);
+        test.withArgs(vLoc).test();
+        Mockito.verify(vLever).setPowered(false);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
+        //TODO - need test for the situation of args.length == 3
     }
     
     @Test
     public void testLeverOn() throws Exception{
-        //TODO
+
+        Location vLoc = Mockito.mock(Location.class);
+        Block vBlock = Mockito.mock(Block.class);
+        BlockState vBS = Mockito.mock(BlockState.class);
+        Lever vLever = Mockito.mock(Lever.class);
+        JsTest test = new ExecutorTest(engine, "LEVERON");
+
+        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
+        PowerMockito.when(vBlock, "getState").thenReturn(vBS);
+        PowerMockito.when(vBS, "getData").thenReturn(vLever);
+        test.withArgs(vLoc).test();
+        Mockito.verify(vLever).setPowered(true);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
+        //TODO - need test for the situation of args.length == 3
     }
     
     @Test
     public void testLeverToggle() throws Exception{
-        //TODO
+
+        Location vLoc = Mockito.mock(Location.class);
+        Block vBlock = Mockito.mock(Block.class);
+        BlockState vBS = Mockito.mock(BlockState.class);
+        Lever vLever = Mockito.mock(Lever.class);
+        JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
+
+        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
+        PowerMockito.when(vBlock, "getState").thenReturn(vBS);
+        PowerMockito.when(vBS, "getData").thenReturn(vLever);
+
+        //case1
+        PowerMockito.when(vLever, "isPowered").thenReturn(false);
+        test.withArgs(vLoc).test();
+        Mockito.verify(vLever).setPowered(true);
+        //case2
+        PowerMockito.when(vLever, "isPowered").thenReturn(true);
+        test.withArgs(vLoc).test();
+        Mockito.verify(vLever).setPowered(false);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
+        //TODO - need test for the situation of args.length == 3
     }
     
     @Test
