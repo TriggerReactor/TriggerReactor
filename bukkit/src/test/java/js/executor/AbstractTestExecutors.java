@@ -559,20 +559,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testMoney() throws Exception{
-/**        VaultSupport vVault = Mockito.mock(VaultSupport.class);
-        Player vp = Mockito.mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "MONEY")
-                .addVariable("vault", vVault)
-                .addVariable("player",vp);
-
-        test.withArgs(30).test();
-        Mockito.verify(vVault).give(vp, 30);
-
-        test.withArgs(-30).test();
-        Mockito.verify(vVault).take(vp,30);
-
-        assertError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
-        assertError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");**/
+        //written in each platform's test class.
     }
     
     @Test
