@@ -1,5 +1,6 @@
 package js.executor;
 
+//import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
@@ -14,12 +15,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.material.Lever;
-import org.bukkit.material.MaterialData;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import static org.mockito.Mockito.times;
-
-import org.mockito.exceptions.base.MockitoAssertionError;
 import org.powermock.api.mockito.PowerMockito;
 import java.util.Collection;
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.*;
@@ -560,7 +559,20 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testMoney() throws Exception{
+/**        VaultSupport vVault = Mockito.mock(VaultSupport.class);
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "MONEY")
+                .addVariable("vault", vVault)
+                .addVariable("player",vp);
 
+        test.withArgs(30).test();
+        Mockito.verify(vVault).give(vp, 30);
+
+        test.withArgs(-30).test();
+        Mockito.verify(vVault).take(vp,30);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
+        assertError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");**/
     }
     
     @Test

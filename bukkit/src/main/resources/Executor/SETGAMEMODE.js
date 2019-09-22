@@ -19,13 +19,15 @@ function SETGAMEMODE(args)
         arg = "creative"
     }else if(arg == 2){
         arg = "adventure"
+    }else if(arg ==3){
+        arg = "spectator"
     }else {
         throw new Error("Invalid argument for Executor SETGAMEMODE: " + arg)
     }
   }
   try
   {
-	  var GameMode = Java.type('org.bukkit.GameMode')
+      var GameMode = Java.type('org.bukkit.GameMode')
 	  var mode = GameMode.valueOf(arg.toUpperCase())
 	  player.setGameMode(mode)
   }
