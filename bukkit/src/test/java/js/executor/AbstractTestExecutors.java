@@ -101,6 +101,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.withArgs("creative").test();
         Mockito.verify(vp).setGameMode(GameMode.valueOf("CREATIVE"));
 
+        //case2
+        test.withArgs(2).test();
+        Mockito.verify(vp).setGameMode(GameMode.valueOf("ADVENTURE"));
+
         //Unexpected Cases
         assertError(() -> test.withArgs().test(), "Incorrect number of arguments for executor SETGAMEMODE");
         assertError(() -> test.withArgs(34).test(), "Invalid argument for Executor SETGAMEMODE: 34");
@@ -528,7 +532,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testLog() throws Exception{
-        //TODO
+        //no way to test window.print()
     }
     
     @Test
@@ -556,7 +560,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     
     @Test
     public void testMoney() throws Exception{
-        //TODO
+
     }
     
     @Test
