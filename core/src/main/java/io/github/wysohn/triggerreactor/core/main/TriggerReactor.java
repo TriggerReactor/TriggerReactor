@@ -164,6 +164,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("version")) {
                 	sender.sendMessage("Current version: 2.2.0");
+                    return true;
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
                         getScriptEditManager().startEdit(sender, "Click Trigger", "", new SaveHandler() {
