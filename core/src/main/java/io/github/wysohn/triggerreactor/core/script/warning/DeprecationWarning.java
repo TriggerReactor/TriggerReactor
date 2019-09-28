@@ -14,7 +14,7 @@ public class DeprecationWarning extends Warning {
     @Override
     public String[] getMessageLines() {
         return new String[]{
-                "Deprecated Executor found at line " + row + ": ",
+                "Deprecated token found at line " + row + ": ",
                 context,
                 value + " is deprecated and may be removed in a future release"
         };
