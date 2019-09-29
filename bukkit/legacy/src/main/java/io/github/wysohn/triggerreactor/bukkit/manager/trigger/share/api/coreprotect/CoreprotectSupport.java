@@ -23,10 +23,6 @@ import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
 
 public class CoreprotectSupport extends APISupport {
-    static {
-        addSharedVars("coreprotect", CoreprotectSupport.class);
-    }
-
     /**
      * I'm just too lazy to add all those methods. Please use this to access directly with api.
      * http://minerealm.com/community/viewtopic.php?f=32&t=16534
