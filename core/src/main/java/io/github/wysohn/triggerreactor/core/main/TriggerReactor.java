@@ -1205,7 +1205,10 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             ex.printStackTrace();
                         }
                     } else {
-                        return false;
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings toggle", "turn on/off timings analysis. Also analysis will be reset.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings reset", "turn on/off timings analysis. Also analysis will be reset.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings print", "7Show analysis result.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings print xx", "Save analysis to file named xx.timings");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
