@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
@@ -97,7 +98,11 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         }
 
         @Override
-        public Object parse(Object context, Map<String, Object> variables, Object... args) throws Exception {
+        public Object parse(Timings.Timing timing, Object context, Map<String, Object> variables,
+                            Object... args) throws Exception {
+            Timings.Timing time = timing.getTiming("Executors").getTiming(placeholderName);
+            time.setDisplayName("$" + placeholderName);
+
             final Bindings bindings = engine.createBindings();
 
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -119,17 +124,13 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 @Override
                 public Object call() throws Exception {
                     Object argObj = args;
+                    Object result = null;
 
-                    if (TriggerReactor.getInstance().isDebugging()) {
-                        Object result = null;
-                        long start = System.currentTimeMillis();
+                    try (Timings.Timing t = time.begin(true)) {
                         result = jsObject.call(null, argObj);
-                        long end = System.currentTimeMillis();
-                        TriggerReactor.getInstance().getLogger().info(placeholderName + " placeholder -- " + (end - start) + "ms");
-                        return result;
-                    } else {
-                        return jsObject.call(null, argObj);
                     }
+
+                    return result;
                 }
             };
 

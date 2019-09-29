@@ -36,7 +36,7 @@ public class Parser {
     public static void addDeprecationSupervisor(DeprecationSupervisor ds){
         deprecationSupervisors.add(ds);
     }
-    
+
     final Lexer lexer;
 
     private boolean showWarnings;

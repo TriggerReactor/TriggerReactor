@@ -31,6 +31,8 @@ import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.File;
 import java.io.IOException;
@@ -178,6 +180,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             super();
 
             this.file = file;
+
             this.triggerName = triggerName;
             this.script = script;
         }
@@ -189,6 +192,16 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          */
         public String getTriggerName() {
             return triggerName;
+        }
+
+        /**
+         * Get unique id to be used as fully qualified name for the Timings System.
+         * Override to alter the id.
+         *
+         * @return the id.
+         */
+        protected String getTimingId() {
+            return StringUtils.dottedPath(getClass().getSimpleName(), triggerName);
         }
 
         public void setTriggerName(String triggerName) {
@@ -342,8 +355,8 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             Callable<Void> call = new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    try {
-                        start(e, scriptVars, interpreter, sync);
+                    try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
+                        start(t, e, scriptVars, interpreter, sync);
                     } catch (Exception ex) {
                         TriggerReactor.getInstance().handleException(e, new Exception(
                                 "Trigger [" + getTriggerName() + "] produced an error!", ex));
@@ -383,14 +396,30 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          * @param scriptVars
          * @param interpreter
          * @param sync
+         * @param timing
          */
-        protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+        protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
+                             boolean sync) {
             try {
-                interpreter.startWithContextAndInterrupter(e, TriggerReactor.getInstance().createInterrupter(e, interpreter, cooldowns));
+                interpreter.startWithContextAndInterrupter(e,
+                        TriggerReactor.getInstance().createInterrupter(e, interpreter, cooldowns),
+                        timing);
             } catch (InterpreterException ex) {
                 TriggerReactor.getInstance().handleException(e,
                         new Exception("Could not finish interpretation for [" + getTriggerName() + "]!", ex));
             }
+        }
+
+        /**
+         * The actual execution part. The Trigger can be sync/async depends on which thread invokes this method.
+         *
+         * @param e
+         * @param scriptVars
+         * @param interpreter
+         * @param sync
+         */
+        protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+            start(Timings.LIMBO, e, scriptVars, interpreter, sync);
         }
 
         @Override
