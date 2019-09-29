@@ -11,7 +11,7 @@ public class SenderOutputStream extends OutputStream {
     /**
      * The internal memory for the written bytes.
      */
-    private String mem;
+    private String mem = "";
 
     public SenderOutputStream(ICommandSender sender) {
         this.sender = sender;
