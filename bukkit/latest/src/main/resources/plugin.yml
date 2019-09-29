@@ -1,28 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-<key>name</key>
-<string>GitHub</string>
-<key>settings</key>
-<array>
-<dict>
-<key>settings</key>
-<dict>
-<key>background</key>
-<string>#F8F8FF</string>
-<key>caret</key>
-<string>#000000</string>
-<key>foreground</key>
-<string>#000000</string>
-<key>invisibles</key>
-<string>#BFBFBF</string>
-<key>lineHighlight</key>
-<string>#00000012</string>
-<key>selection</key>
-<string>#BCD5FA</string>
-</dict>
-</dict>
-<dict>
-<key>name</key>
-<string>
+name: TriggerReactor
+main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
+version: 2.2.1
+author: wysohn
+authors:
+  - soliddanii
+  - MidnightSugar
+  - TheBestNightSky
+  - dltks0306
+  - RubrumExPlaneta
+  - Alex4386
+  - RedLime
+  - mrandriyg
+  - professer_snape
+  - gerzytet
+softdepend:
+  - Vault
+  - PlaceholderAPI
+  - mcMMO
+  - CoreProtect
+  - ProtocolLib
+  - WorldGuard
+commands:
+  triggerreactor:
+    aliases:
+      - trg
+    description: Simple script parser with infinite possibility
+permissions:
+  triggerreactor.admin:
+    description: Grant admin permission
+command:
+  triggerreactor:
+    aliases:
+      - trg
+    description: Simple script parser with infinite possibility
+api-version: 1.13
