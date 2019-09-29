@@ -49,7 +49,7 @@
         var pl = args[0]
         var msg = args[1]
         if(!(pl instanceof plType)){
-            throw new Error("Found unexpected type of argument(s) - player: "+pl+" | msg: "+ str)
+            throw new Error("Found unexpected type of argument(s) - player: "+pl+" | msg: "+ msg)
         }else {
             if(msg instanceof Text)
                 var msg = undefinedArgument;
