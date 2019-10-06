@@ -25,7 +25,9 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
@@ -44,8 +46,8 @@ public class Interpreter {
 
     private TaskSupervisor task;
 
-    private Map<String, Executor> executorMap = new HashMap<>();
-    private Map<String, Placeholder> placeholderMap = new HashMap<>();
+    private Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
+    private Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     private Map<Object, Object> gvars = new ConcurrentHashMap<>();
     private Map<String, Object> vars = new ConcurrentHashMap<>();
     private SelfReference selfReference = new SelfReference() {
@@ -55,6 +57,7 @@ public class Interpreter {
 
     private Object context = null;
     private ProcessInterrupter interrupter = null;
+    private Timings.Timing timing = null;
     private boolean sync = false;
 
     private boolean stopFlag = false;
@@ -162,14 +165,18 @@ public class Interpreter {
         return vars;
     }
 
+    public void startWithContext(Object context) throws InterpreterException {
+        startWithContextAndInterrupter(context, null, Timings.LIMBO);
+    }
+
     /**
      * Start interpretation.
      *
      * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
      * @throws InterpreterException
      */
-    public void startWithContext(Object context) throws InterpreterException {
-        startWithContextAndInterrupter(context, null);
+    public void startWithContext(Object context, Timings.Timing timing) throws InterpreterException {
+        startWithContextAndInterrupter(context, null, timing);
     }
 
     /**
@@ -179,12 +186,16 @@ public class Interpreter {
      * @param interrupter gives the caller to interrupt the execution
      * @throws InterpreterException
      */
-    public void startWithContextAndInterrupter(Object context, ProcessInterrupter interrupter) throws InterpreterException {
+    public void startWithContextAndInterrupter(Object context, ProcessInterrupter interrupter,
+                                               Timings.Timing timing) throws InterpreterException {
         this.context = context;
         this.interrupter = interrupter;
+        this.timing = timing;
 
-        for (int i = 0; i < root.getChildren().size(); i++)
-            start(root.getChildren().get(i));
+        try (Timings.Timing t = this.timing.getTiming("Code Interpretation").begin(sync)) {
+            for (int i = 0; i < root.getChildren().size(); i++)
+                start(root.getChildren().get(i));
+        }
     }
 
     //Check if stopFlag is on before pop Token from stack.
@@ -413,7 +424,7 @@ public class Interpreter {
                 copy.setSync(false);
 
                 try {
-                    copy.startWithContextAndInterrupter(context, interrupter);
+                    copy.startWithContextAndInterrupter(context, interrupter, timing);
                 } catch (InterpreterException e) {
                     TriggerReactor.getInstance().handleException(context, e);
                 }
@@ -525,7 +536,7 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                Class clazz = (Class) right.value;
+                Class<?> clazz = (Class<?>) right.value;
                 stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
@@ -547,7 +558,7 @@ public class Interpreter {
                     if (!executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
-                    return executorMap.get(command).execute(sync, vars, context, args);
+                    return executorMap.get(command).execute(timing, sync, vars, context, args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -572,7 +583,7 @@ public class Interpreter {
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
                 if (replaced == null) {
-                    replaced = placeholderMap.get(placeholderName).parse(context, vars, args);
+                    replaced = placeholderMap.get(placeholderName).parse(timing, context, vars, args);
                 }
                 
                 if (replaced instanceof Number) {
@@ -1068,25 +1079,27 @@ public class Interpreter {
 
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
-		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
         }
     };
     private final Executor EXECUTOR_BREAK = new Executor() {
         @Override
-		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return BREAK;
         }
     };
     private final Executor EXECUTOR_CONTINUE = new Executor() {
         @Override
-		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
+
             return CONTINUE;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
+
             if (sync) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
@@ -1151,8 +1164,9 @@ public class Interpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                return null;
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
+                    Object... args) throws Exception {
+            	return null;
             }
         });
 

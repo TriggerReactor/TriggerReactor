@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -54,6 +55,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     	ABBREVIATIONS.put("onEntityDeath", EntityDeathEvent.class);
 
     	ABBREVIATIONS.put("onBlockPlace", BlockPlaceEvent.class);
+        ABBREVIATIONS.put("onBlockMultiPlace", BlockMultiPlaceEvent.class);
         ABBREVIATIONS.put("onBlockBreak", BlockBreakEvent.class);
 
         ABBREVIATIONS.put("onStart", TriggerReactorStartEvent.class);

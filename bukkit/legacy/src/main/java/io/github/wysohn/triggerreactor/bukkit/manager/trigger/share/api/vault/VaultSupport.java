@@ -27,10 +27,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class VaultSupport extends APISupport {
-    static {
-        addSharedVars("vault", VaultSupport.class);
-    }
-
     public Permission permission = null;
     public Economy economy = null;
     public Chat chat = null;

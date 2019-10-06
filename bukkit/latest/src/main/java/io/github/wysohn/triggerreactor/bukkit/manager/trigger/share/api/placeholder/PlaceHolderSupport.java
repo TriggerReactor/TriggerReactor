@@ -22,10 +22,6 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 
 public class PlaceHolderSupport extends APISupport {
-    static {
-        addSharedVars("placeholder", PlaceHolderSupport.class);
-    }
-
     public PlaceHolderSupport(TriggerReactor plugin) {
         super(plugin, "PlaceholderAPI");
     }

@@ -25,10 +25,6 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import org.bukkit.entity.Player;
 
 public class McMmoSupport extends APISupport {
-    static {
-        addSharedVars("mcmmo", McMmoSupport.class);
-    }
-
     public McMmoSupport(TriggerReactor plugin) {
         super(plugin, "mcMMO");
     }

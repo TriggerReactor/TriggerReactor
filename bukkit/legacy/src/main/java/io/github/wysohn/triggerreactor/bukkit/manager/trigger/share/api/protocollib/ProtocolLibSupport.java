@@ -35,10 +35,6 @@ import java.util.Collection;
 import java.util.UUID;
 
 public class ProtocolLibSupport extends APISupport {
-    static {
-        addSharedVars("protocollib", ProtocolLibSupport.class);
-    }
-
     private String nmsVersion;
 
     private ProtocolManager protocolManager;

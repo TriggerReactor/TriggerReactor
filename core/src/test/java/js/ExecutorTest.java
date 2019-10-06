@@ -1,11 +1,11 @@
 package js;
 
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -19,8 +19,9 @@ public class ExecutorTest extends JsTest{
 		}
 		
 		@Override
-		protected Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
-			return super.execute(sync, variables, e, args);
+		public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
+                Object... args) throws Exception {
+			return super.execute(null, sync, variables, e, args);
 		}
 	}
 	
@@ -33,7 +34,7 @@ public class ExecutorTest extends JsTest{
 
 	@Override
     public Object test() throws Exception {
-        executor.execute(true, varMap, null, args);
+        executor.execute(Timings.LIMBO, true, varMap, null, args);
         return null;
     }
 }

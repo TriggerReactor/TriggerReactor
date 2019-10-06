@@ -1,6 +1,14 @@
 package js.executor;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import js.ExecutorTest;
+import js.JsTest;
+import org.bukkit.entity.Player;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertError;
 
 /**
  * Test environment for bukkit-legacy.
@@ -16,4 +24,23 @@ public class TestExecutors extends AbstractTestExecutors{
     protected void before() throws Exception{
         register(sem, engine, BukkitUtil.class);
     }
+
+    @Test
+    public void testMoney() throws Exception {
+        VaultSupport vVault = Mockito.mock(VaultSupport.class);
+        Player vp = Mockito.mock(Player.class);
+        JsTest test = new ExecutorTest(engine, "MONEY")
+                .addVariable("vault", vVault)
+                .addVariable("player", vp);
+
+        test.withArgs(30).test();
+        Mockito.verify(vVault).give(vp, 30);
+
+        test.withArgs(-30).test();
+        Mockito.verify(vVault).take(vp, 30);
+
+        assertError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
+        assertError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");
+    }
+
 }
