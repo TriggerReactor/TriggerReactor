@@ -73,7 +73,7 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
         this.jsExecutors.put("CMDOP", new Executor() {
 
             @Override
-            protected Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
+			protected Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
                 Object player = variables.get("player");
                 if (player == null || !(player instanceof Player))
                     return null;

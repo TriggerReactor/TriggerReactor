@@ -28,6 +28,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -573,11 +574,7 @@ public class Interpreter {
                 if (replaced == null) {
                     replaced = placeholderMap.get(placeholderName).parse(context, vars, args);
                 }
-
-                if (replaced == null) {
-                    replaced = "$" + placeholderName;
-                }
-
+                
                 if (replaced instanceof Number) {
                     double d = ((Number) replaced).doubleValue();
                     if (d % 1 == 0) {
@@ -586,6 +583,8 @@ public class Interpreter {
                     } else {
                         stack.push(new Token(Type.DECIMAL, d, node.getToken()));
                     }
+                } else if (replaced == null) {
+                	stack.push(new Token(Type.NULLVALUE, null, node.getToken()));
                 } else {
                     stack.push(new Token(Type.EPS, replaced, node.getToken()));
                 }
@@ -939,7 +938,9 @@ public class Interpreter {
             }
         } else if (id.type == Type.ID) {
             if (value.type == Type.NULLVALUE) {
-                vars.remove(id.value.toString());
+            	String name = id.value.toString();
+            	if (vars.containsKey(name))
+            		vars.remove(name);
             } else {
                 if (isVariable(value)) {
                     value = unwrapVariable(value);
@@ -948,7 +949,7 @@ public class Interpreter {
                 vars.put(id.value.toString(), value.value);
             }
         } else {
-            throw new InterpreterException("Cannot assign value to " + id.value.getClass().getSimpleName());
+            throw new InterpreterException("Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
         }
     }
 
@@ -968,16 +969,26 @@ public class Interpreter {
 
             try {
                 result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
-            } catch (Exception e) {
-                throw new InterpreterException("Cannot invoke static method " + right + " of " + clazz.getSimpleName() + "!", e);
+            } catch (IllegalAccessException e) {
+            	throw new InterpreterException("Function " + right + " is not visible.", e);
+            } catch (NoSuchMethodException e) {
+                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.", e);
+            } catch (InvocationTargetException e) {
+                throw new InterpreterException("Error while executing fuction " + right, e);
+            } catch (IllegalArgumentException e) {
+            	throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
             }
         } else {
             try {
                 result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+            } catch (IllegalAccessException e) {
+            	throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
-                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.");
-            } catch (Exception e) {
-                throw new InterpreterException("Error executing fuction " + right + "!", e);
+                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.", e);
+            } catch (InvocationTargetException e) {
+                throw new InterpreterException("Error while executing fuction " + right, e);
+            } catch (IllegalArgumentException e) {
+            	throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
             }
         }
 
@@ -1057,25 +1068,25 @@ public class Interpreter {
 
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
         }
     };
     private final Executor EXECUTOR_BREAK = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return BREAK;
         }
     };
     private final Executor EXECUTOR_CONTINUE = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             return CONTINUE;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
+		protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) {
             if (sync) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
@@ -1140,7 +1151,7 @@ public class Interpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
+			protected Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception {
                 return null;
             }
         });

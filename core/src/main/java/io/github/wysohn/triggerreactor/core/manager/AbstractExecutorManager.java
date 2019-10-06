@@ -136,7 +136,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         }
 
         @Override
-        public Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
+		protected Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
             final Bindings bindings = engine.createBindings();
 
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
