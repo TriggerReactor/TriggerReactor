@@ -52,7 +52,7 @@ public abstract class AbstractAPISupport {
      */
     public static void addSharedVar(Map<String, AbstractAPISupport> sharedVars, String varName, Class<? extends AbstractAPISupport> clazz) {
         if (!sharedVars.containsKey(varName)) {
-            Constructor con = null;
+            Constructor<?> con = null;
             try {
                 con = clazz.getConstructor(TriggerReactor.class);
             } catch (NoSuchMethodException | SecurityException e1) {

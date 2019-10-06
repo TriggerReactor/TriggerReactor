@@ -134,7 +134,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertError(() -> test.withArgs(50).test(), "Argument for Executor SETHEALTH is greater than the max health");
     }
 
-    @Test
+    @SuppressWarnings("deprecation")
+	@Test
     public void testPlayer_SetMaxHealth() throws Exception{
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")

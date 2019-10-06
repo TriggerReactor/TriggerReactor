@@ -306,7 +306,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     if (args.length == 3) {
                         if (args[1].equalsIgnoreCase("Item")) {
                             String name = args[2];
-                            if (!getVariableManager().isValidName(name)) {
+                            if (!AbstractVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -326,7 +326,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             sender.sendMessage("&aItem saved!");
                         } else if (args[1].equalsIgnoreCase("Location")) {
                             String name = args[2];
-                            if (!getVariableManager().isValidName(name)) {
+                            if (!AbstractVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -343,7 +343,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             String name = args[1];
                             String value = args[2];
 
-                            if (!getVariableManager().isValidName(name)) {
+                            if (!AbstractVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }

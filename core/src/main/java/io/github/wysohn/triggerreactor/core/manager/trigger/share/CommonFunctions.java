@@ -200,9 +200,9 @@ public class CommonFunctions implements SelfReference {
         try {
             Class<?> clazz = Class.forName(className);
 
-            List<Constructor> validConstructors = new ArrayList<>();
+            List<Constructor<?>> validConstructors = new ArrayList<>();
 
-            for (Constructor constructor : clazz.getConstructors()) {
+            for (Constructor<?> constructor : clazz.getConstructors()) {
                 Class<?>[] parameterTypes = null;
 
                 parameterTypes = constructor.getParameterTypes();
@@ -256,9 +256,9 @@ public class CommonFunctions implements SelfReference {
             }
 
             if (!validConstructors.isEmpty()) {
-                Constructor constructor = validConstructors.get(0);
+                Constructor<?> constructor = validConstructors.get(0);
                 for (int i = 1; i < validConstructors.size(); i++) {
-                    Constructor targetConstructor = validConstructors.get(i);
+                    Constructor<?> targetConstructor = validConstructors.get(i);
 
                     Class<?>[] params = constructor.getParameterTypes();
                     Class<?>[] otherParams = targetConstructor.getParameterTypes();

@@ -17,8 +17,9 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 public class InterpreterException extends Exception {
+	private static final long serialVersionUID = 1L;
 
-    public InterpreterException() {
+	public InterpreterException() {
         super();
     }
 

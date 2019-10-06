@@ -81,7 +81,8 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         //TODO: not testable?
     }
 
-    @Test
+    @SuppressWarnings("deprecation")
+	@Test
     public void testItem(){
         ItemStack IS = new ItemStack(Material.STONE,64);
         ItemStack IS2 = new ItemStack(Material.STONE, 63, (short) 1);

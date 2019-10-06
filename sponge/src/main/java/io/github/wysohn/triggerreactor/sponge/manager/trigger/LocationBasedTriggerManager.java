@@ -216,7 +216,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             ChangeBlockEvent.Break bbe = new ChangeBlockEvent.Break() {
                 private boolean cancelled = false;
 
-                @Override
+                @SuppressWarnings("serial")
+				@Override
                 public List<Transaction<BlockSnapshot>> getTransactions() {
                     return new ArrayList<Transaction<BlockSnapshot>>() {{
                         add(transaction);
