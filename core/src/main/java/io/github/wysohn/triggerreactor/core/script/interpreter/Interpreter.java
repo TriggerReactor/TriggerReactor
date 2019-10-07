@@ -27,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.VarMap;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
@@ -49,7 +50,7 @@ public class Interpreter {
     private Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
     private Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     private Map<Object, Object> gvars = new ConcurrentHashMap<>();
-    private Map<String, Object> vars = new ConcurrentHashMap<>();
+    private Map<String, Object> vars = new VarMap();
     private SelfReference selfReference = new SelfReference() {
     };
 
@@ -948,17 +949,11 @@ public class Interpreter {
                 gvars.put(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()), value.value);
             }
         } else if (id.type == Type.ID) {
-            if (value.type == Type.NULLVALUE) {
-            	String name = id.value.toString();
-            	if (vars.containsKey(name))
-            		vars.remove(name);
-            } else {
-                if (isVariable(value)) {
-                    value = unwrapVariable(value);
-                }
-
-                vars.put(id.value.toString(), value.value);
+            if (isVariable(value)) {
+                value = unwrapVariable(value);
             }
+
+            vars.put(id.value.toString(), value.value);
         } else {
             throw new InterpreterException("Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
         }
