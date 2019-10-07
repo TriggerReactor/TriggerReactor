@@ -863,15 +863,15 @@ public class Parser {
                 + "#TEST4 -x;";*/
         String text = ""
                 + "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" +
-                "    IF args[0] == \"초기화\"\n" +
+                "    IF args[0] == \"option\"\n" +
                 "        IF {$playername+\".kit\"} != true\n" +
-                "            #MESSAGE \"&f[ &c! &f] &c이미 지급횟수가 초기화 된 상태입니다!\"\n" +
+                "            #MESSAGE \"&f[ &c! &f] &ctrue message!\"\n" +
                 "            #STOP\n" +
                 "        ELSEIF {$playername+\".kit\"}\n" +
                 "            {$playername+\".kit\"} = null\n" +
-                "            #MESSAGE \"&f[ &c! &f] :: 기본킷 지급횟수가 초기화되었습니다.\"\n" +
+                "            #MESSAGE \"&f[ &c! &f] :: null message.\"\n" +
                 "        ELSEIF $haspermission: \"lenz.perms\" == false\n" +
-                "            #MESSAGE \"&f[ &c! &f] :: &c당신의 이 명령어에 대한 권한이 없습니다.\"\n" +
+                "            #MESSAGE \"&f[ &c! &f] :: &cfalse message.\"\n" +
                 "            #STOP\n" +
                 "        ENDIF\n" +
                 "    ENDIF\n" +
