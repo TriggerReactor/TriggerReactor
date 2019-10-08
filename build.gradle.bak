@@ -1,0 +1,144 @@
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.DumperOptions;
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.yaml:snakeyaml:1.8'
+    }
+}
+
+
+plugins {
+    id 'java'
+    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'groovy'
+}
+
+ext{
+    version = '2.1.8'
+}
+
+group = 'io.github.wysohn.triggerreactor'
+description = 'Simple script parser with infinite possibility'
+
+sponge {
+    plugin {
+        meta {
+            version = project.ext.version
+            description = 'Simple script parser with infinite possibility'
+        }
+    }
+}
+
+task setupPluginYml{
+    DumperOptions options = new DumperOptions();
+    options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    options.setPrettyFlow(true);
+
+    File file = new File("$projectDir/src/main/resources/plugin.yml");
+
+    InputStream input = new FileInputStream(file);
+    Yaml yaml = new Yaml(options);
+    Map<String, Object> map = yaml.load(input);
+    input.close();
+
+    map.put("version", project.ext.version);
+
+    FileWriter writer = new FileWriter(file);
+    yaml.dump(map, writer)
+    writer.close();
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/"
+    }
+    //maven {
+    //    url "http://nexus.hc.to/content/repositories/pub_releases/"
+    //}
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+    maven {
+        name = 'sponge'
+        url = 'https://repo.spongepowered.org/maven'
+    }
+    maven {
+        name = 'CodeMC'
+        url = 'https://repo.codemc.org/repository/maven-public'
+    }
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+            include '**/*.js'
+            include '**/*.yml'
+        }
+    }
+
+    test{
+        java {
+            srcDirs = ['src/test/java/']
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: "libs", includes: ['*.jar'])
+
+    //bukkit
+    compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+
+    //compile "net.milkbowl.vault:VaultAPI:1.6"
+    compile "org.bstats:bstats-bukkit-lite:1.4"
+    //////////////////////////////////////////////////////////
+    //sponge
+    compile 'org.spongepowered:spongeapi:7.+'
+
+    compile "org.bstats:bstats-sponge-lite:1.4"
+
+    //////////////////////////////////////////////////////////
+
+    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
+
+    testCompile 'junit:junit:4.+'
+    testCompile 'org.mockito:mockito-core:2.+'
+    testCompile 'eu.codearte.catch-exception:catch-exception:1.+'
+    testCompile 'org.assertj:assertj-core:1.+'
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+    failOnError = false
+    options {
+        links "https://docs.oracle.com/javase/8/docs/api/"
+        links "https://hub.spigotmc.org/javadocs/bukkit/"
+        links "https://jd.spongepowered.org/7.0.0/"
+    }
+}
+
+jar {
+    from {
+        String[] include = [
+                "bstats-bukkit-lite-1.4.jar",
+                "bstats-sponge-lite-1.4.jar",
+        ]
+
+        configurations.compile
+                .findAll { include.contains(it.name) }
+                .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

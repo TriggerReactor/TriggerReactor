@@ -1,0 +1,69 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.yaml:snakeyaml:1.8'
+    }
+}
+
+
+import org.yaml.snakeyaml.DumperOptions
+import org.yaml.snakeyaml.Yaml
+
+task writePluginYml {
+    DumperOptions options = new DumperOptions();
+    options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    options.setPrettyFlow(true);
+
+    File file = new File("$projectDir/src/main/resources/plugin.yml");
+
+    InputStream input = new FileInputStream(file);
+    Yaml yaml = new Yaml(options);
+    Map<String, Object> map = yaml.load(input);
+    input.close();
+
+    String id = project.ext.id
+    String desc = project.ext.description
+
+    map.put("name", id)
+    map.put("main", "io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor")
+    map.put("version", project.ext.version)
+    map.put("author", project.ext.author)
+    map.put("authors", project.ext.authors)
+    map.put("softdepend", [
+            "Vault",
+            "PlaceholderAPI",
+            "mcMMO",
+            "CoreProtect",
+            "ProtocolLib",
+            "WorldGuard",
+    ])
+    map.put("commands", new HashMap<String, Object>() {
+        {
+            put(id.toLowerCase(), new HashMap<String, Object>() {
+                {
+                    put("aliases", ["trg"])
+                    put("description", desc)
+                }
+            })
+        }
+    })
+    map.put("permissions", new HashMap<String, Object>() {
+        {
+            put(id.toLowerCase() + ".admin", new HashMap<String, Object>() {
+                {
+                    put("description", "Grant admin permission")
+                }
+            })
+        }
+    })
+
+    FileWriter writer = new FileWriter(file);
+    yaml.dump(map, writer)
+    writer.close();
+}
+
+dependencies {
+    compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+}

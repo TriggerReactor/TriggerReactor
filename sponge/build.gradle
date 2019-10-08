@@ -1,0 +1,45 @@
+plugins {
+    id 'org.spongepowered.plugin' version '0.8.1'
+}
+
+sponge {
+    plugin {
+        meta {
+            id = project.ext.id.toLowerCase()
+            version = project.ext.version
+            description = project.ext.description
+        }
+    }
+}
+
+repositories {
+    maven {
+        name = 'sponge'
+        url = 'https://repo.spongepowered.org/maven'
+    }
+}
+
+dependencies {
+    compile project(":core")
+    compile fileTree(dir: "libs", includes: ['*.jar'])
+
+    compile 'org.spongepowered:spongeapi:7.+'
+    compile "org.bstats:bstats-sponge-lite:1.4"
+
+    testCompile project(':core').sourceSets.test.output
+}
+
+jar {
+    from {
+        String[] include = [
+                "bstats-sponge-lite-1.4.jar",
+                "core.jar"
+        ]
+
+        configurations.compile
+                .findAll { include.contains(it.name) }
+                .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    baseName = "${rootProject.name}-${project.name}-${project.ext.version}"
+}

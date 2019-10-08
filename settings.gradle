@@ -16,3 +16,5 @@ include 'services:webservice'
 */
 
 rootProject.name = 'TriggerReactor'
+
+include 'core', 'sponge', 'bukkit', 'bukkit:legacy', 'bukkit:latest'
