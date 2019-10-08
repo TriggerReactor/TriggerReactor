@@ -7,6 +7,57 @@ If you want to know where to start contributing, look at issues with the [wiki](
 * If you include example code, make sure it is correct and try to make the examples practical. (use an example that might appear in an actual server)
 * Use factual information.  No opinions.
 
+## Development Cycle
+Please understand that we use Kanban to keep track of development.
+
+* You may check [this](https://github.com/wysohn/TriggerReactor/projects/) to see the task in progress, under testing, etc.
+
+Using the Kanban board allow us to keep track of implementation we have worked on so allow eaiser unit testing.
+
+### Versioning
+Assign version according to this rule
+
+* For major updates, change the first digit. `2.x.x -> 3.0.0`
+* For minor updates, change the second digit. `x.5.x -> x.6.0`
+* For bug-fixes, change the last digit. `x.x.3 -> x.x.4`
+
+However, since it's hard to keep track of bugs in different versions (as they can occur in any version), use [Bugs](https://github.com/wysohn/TriggerReactor/projects/5) specifically for bug tracking.
+
+### Kanban Description
+Always add cards to the `To do`, and move the cards to left or right columns as needed. Our aim is to move all the cards in the `To do` to `Done` in the end.
+
+##### To do
+The tasks that is not assigned to anyone, so it's pending.
+
+##### In Progress
+The task that is currently working on. Make sure to assign yourself (and co-worker) in order to avoid different people working on the same task.
+
+##### Testing
+The task that is implemented and need to be tested. This can be skipped if you have your unit test written already, or if it's hard to test it via unit testing, test it manually. Just test that everything written in the task is working as intended, not more or less.
+
+##### Beta
+The task that is implemented and fully tested by developer, so it's ready for user-acceptance test. We release it as `pre-release` so people can try the new features and provide feedbacks or report bugs.
+
+##### Done
+The task that is ready to be released, and they will be added 
+
+## Commit
+Commit messages has to be as detail as possible, so anybody who sees it can have at least some idea of what you have done in the commit.
+
+* For the commit title, use the following rules. By doing so, Github can keep track of what issue the commit is related to.
+* * Use the prefix `Fixes #X - ` if you fixed a bug. `Fixes #123 - This fixes that`
+* * Use the prefix `Resolve #X - ` anything other than bug fixes. `Resolve #321 - Something new something`
+
+Putting the prefix allow Github to automatically move the cards to `Done` when these commits are pushed into master branch.
+
+## Branches
+Branches are usually free, but keep in mind that these two branches have dedicated usage.
+
+* `master` is for release, which is correspond to the `Done` column of Kanban board.
+* `development` is for beta, which is correspond to the `Beta` column of Kanban board.
+
+Other than these two, you are free to add more branches as needed. More branch is always better in fact.
+
 ## Executor/Placeholder (Javascript)
 If you have created plugin yourself, and you think you want to contribute, Executors and Placeholders are good place. They are written in Javascript, yet it doesn't require for you to know all the aspects of Javascript.  Just some basic knowledge.
 
