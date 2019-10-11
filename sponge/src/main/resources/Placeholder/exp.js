@@ -17,6 +17,17 @@
 function exp(args){
 	if(player == null)
 		return null;
-		
-	return player.get(Keys.TOTAL_EXPERIENCE).orElse(-1);
+
+	var currentLevel = player.get(Keys.EXPERIENCE_LEVEL).orElse(0)
+	if(currentLevel >= 0 && currentLevel <= 15){
+		var requiredExp = 2 * currentLevel + 7
+	}else if(currentLevel >= 16 && currentLevel <= 30){
+		var requiredExp = 5 * currentLevel - 38
+	}else if(currentLevel >= 31){
+		var requiredExp = 9 * currentLevel -158
+	}
+	var currentExp = player.get(Keys.EXPERIENCE_SINCE_LEVEL).orElse(0);
+	var forRound = (currentExp / requiredExp) * 100
+	var actualValue = Math.round(forRound) / 100
+	return actualValue;
 }
