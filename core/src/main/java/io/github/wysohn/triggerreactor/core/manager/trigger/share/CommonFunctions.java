@@ -519,4 +519,22 @@ public class CommonFunctions implements SelfReference {
     public String formatCurrency(double money) {
         return formatCurrency(money, "en", "US");
     }
+
+    /**
+     * Return the name of the class that provided object was created by.
+     * if hasFullPath is set to true, this will return class name that
+     * contains full path. (Ex. org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer)
+     *
+     * @param value  the object to get its class name
+     * @param withFullPath  if true this returns class name containing full path
+     * @return source class of the object
+     */
+    public String typeOf(Object value, boolean withFullPath){
+        if (withFullPath == false) {
+            return value.getClass().getSimpleName();
+        }else {
+            return value.getClass().getCanonicalName();
+        }
+    }
+
 }
