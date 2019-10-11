@@ -5,8 +5,10 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -83,5 +85,14 @@ public abstract class AbstractTestJavaScripts {
             throws ScriptException {
         engine.put("Temp", clazz);
         engine.eval("var "+clazz.getSimpleName()+" = Temp.static;");
+    }
+
+    @Test
+    public void testIsNumber() throws Exception{
+        Player vp  = Mockito.mock(Player.class);
+        JsTest test = new PlaceholderTest(engine, "isnumber")
+                .addVariable("player", vp);
+
+        //TODO
     }
 }
