@@ -18,8 +18,10 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.phexpansion.PlaceholderExpansionSupport;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,7 +42,9 @@ public class TriggerReactor extends JavaPlugin {
     @Override
     public void onEnable() {
         super.onEnable();
-
+        if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PlaceholderExpansionSupport(this).register();
+        }
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
         File file = new File(getDataFolder(), "config.yml");

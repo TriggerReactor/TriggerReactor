@@ -86,13 +86,4 @@ public abstract class AbstractTestJavaScripts {
         engine.put("Temp", clazz);
         engine.eval("var "+clazz.getSimpleName()+" = Temp.static;");
     }
-
-    @Test
-    public void testIsNumber() throws Exception{
-        Player vp  = Mockito.mock(Player.class);
-        JsTest test = new PlaceholderTest(engine, "isnumber")
-                .addVariable("player", vp);
-
-        //TODO
-    }
 }
