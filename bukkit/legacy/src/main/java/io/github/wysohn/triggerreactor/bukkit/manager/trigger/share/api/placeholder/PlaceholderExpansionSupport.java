@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
@@ -38,7 +38,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      */
     @Override
     public String getAuthor(){
-        return plugin.getDescription().getAuthors().toString();
+        return plugin.getAuthor();
     }
 
     /**
@@ -70,7 +70,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      */
     @Override
     public String getVersion(){
-        return plugin.getDescription().getVersion();
+        return plugin.getVersion();
     }
 
     /**

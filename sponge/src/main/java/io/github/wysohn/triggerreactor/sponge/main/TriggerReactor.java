@@ -499,12 +499,30 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected String getPluginDescription() {
+    public String getPluginDescription() {
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
         if (plugin != null)
             return plugin.getDescription().orElse(ID + " v[?]");
         else
             return ID + " v[?]";
+    }
+
+    @Override
+    public String getVersion() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null)
+            return plugin.getVersion().orElse("?");
+        else
+            return "?";
+    }
+
+    @Override
+    public String getAuthor() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null)
+            return plugin.getAuthors().toString();
+        else
+            return "?";
     }
 
     @Override

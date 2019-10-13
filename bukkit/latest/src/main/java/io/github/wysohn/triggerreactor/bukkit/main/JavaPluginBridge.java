@@ -344,8 +344,18 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     }
 
     @Override
-    protected String getPluginDescription() {
+    public String getPluginDescription() {
         return bukkitPlugin.getDescription().getFullName();
+    }
+
+    @Override
+    public String getVersion() {
+        return bukkitPlugin.getDescription().getVersion();
+    }
+
+    @Override
+    public String getAuthor() {
+        return bukkitPlugin.getDescription().getAuthors().toString();
     }
 
     @Override

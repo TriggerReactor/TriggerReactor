@@ -1299,7 +1299,21 @@ public abstract class TriggerReactor implements TaskSupervisor {
      *
      * @return returns the full name of the plugin and its version.
      */
-    protected abstract String getPluginDescription();
+    public abstract String getPluginDescription();
+
+    /**
+     * get Plugin's version as String
+     *
+     * @return version of the plugin as String.
+     */
+    public abstract String getVersion();
+
+    /**
+     * get Author of plugin
+     *
+     * @return author name of the plugin as String.
+     */
+    public abstract String getAuthor();
 
     /**
      * @param args
