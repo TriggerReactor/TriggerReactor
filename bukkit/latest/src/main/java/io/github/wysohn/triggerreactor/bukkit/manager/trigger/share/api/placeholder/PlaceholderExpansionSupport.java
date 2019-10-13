@@ -94,7 +94,6 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      *
      * @return possibly-null String of the requested identifier.
      */
-    private io.github.wysohn.triggerreactor.core.main.TriggerReactor pl;
     @Override
     public String onPlaceholderRequest(Player player, String identifier){
 
@@ -110,8 +109,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
 
         // %tr_<variable name>%
         String variableName = identifier;
-        io.github.wysohn.triggerreactor.core.main.TriggerReactor plg = pl.getInstance();
-        AbstractVariableManager vm = plg.getVariableManager();
+        AbstractVariableManager vm = plugin.getVariableManager();
         Object value = vm.get(variableName);
         if(value == null) {
             return "";
