@@ -1,8 +1,7 @@
-package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.phexpansion;
+package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
 import io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
-import org.bukkit.OfflinePlayer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 

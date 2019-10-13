@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.phexpansion.PlaceholderExpansionSupport;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceholderExpansionSupport;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.Bukkit;
