@@ -97,18 +97,15 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
     @Override
     public String onPlaceholderRequest(Player player, String identifier){
 
-        // %tr_version% -> this should return TR version, but should use PluginDescription which is modified as protected method.
+        //%tr_version% -> this should return TR version, but should use PluginDescription which is modified as protected method.
 
-        /*
 
-        if(identifier.equals("version")){
-            return plugin.getConfig().getString("version", plugin.getPluginDescription());
-        }
-
-        */
-
+        if(identifier.toLowerCase().equals("version")){
+            return  plugin.getVersion();
+         }
         // %tr_<variable name>%
-        String variableName = identifier;
+        //if(identifier.contains("")){return "";}
+        String variableName = identifier.replace('_', '.');
         AbstractVariableManager vm = plugin.getVariableManager();
         Object value = vm.get(variableName);
         if(value == null) {
@@ -124,11 +121,5 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
             String output = (String) value;
             return output;
         }
-
-
-
-
-        // We return null if an invalid placeholder (f.e. %someplugin_placeholder3%)
-        // was provided
     }
 }
