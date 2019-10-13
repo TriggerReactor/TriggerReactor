@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertError;
+import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 
 
 /**
@@ -40,7 +40,7 @@ public class TestExecutors extends AbstractTestExecutors{
         test.withArgs(-30).test();
         Mockito.verify(vVault).take(vp, 30);
 
-        assertError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
-        assertError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");
+        assertJSError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
+        assertJSError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");
     }
 }

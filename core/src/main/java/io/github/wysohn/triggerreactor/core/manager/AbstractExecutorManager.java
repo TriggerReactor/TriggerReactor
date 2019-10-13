@@ -18,6 +18,8 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
+import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import jdk.nashorn.api.scripting.JSObject;
 
@@ -115,6 +117,8 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
 
         private ScriptEngine engine = null;
         private CompiledScript compiled = null;
+        private boolean firstRun = true;
+        private Validator validator = null;
 
         public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(executorName, engine, new FileInputStream(file));
@@ -134,6 +138,14 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
 
             Compilable compiler = (Compilable) engine;
             compiled = compiler.compile(sourceCode);
+        }
+        
+        private void registerValidationInfo(ScriptContext context) {
+        	JSObject validation = (JSObject) context.getAttribute("validation");
+        	if (validation == null) {
+        		return;
+        	}
+        	this.validator = Validator.from(validation);
         }
 
         @Override
@@ -157,6 +169,19 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
+            }
+            
+            if (firstRun) {
+            	registerValidationInfo(scriptContext);
+            	firstRun = false;
+            }
+            
+            if (validator != null) {
+            	int overload = validator.validate(args);
+            	if (overload == -1) {
+            		throw new ValidationException("Could not match any overloads for executor " + executorName);
+            	}
+            	scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
 
             JSObject jsObject = (JSObject) scriptContext.getAttribute(executorName);
