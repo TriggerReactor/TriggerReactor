@@ -23,12 +23,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.warning.DeprecationWarning;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import java.awt.*;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.List;
 import java.util.*;
 
 public class Parser {
@@ -818,92 +813,92 @@ public class Parser {
     	return warnings;
     }
 
-    public static void main(String[] ar) throws IOException, LexerException, ParserException {
-        Charset charset = Charset.forName("UTF-8");
-/*        String text = ""
-                + "X = 5\n"
-                + "str = \"abc\"\n"
-                + "WHILE 1 > 0\n"
-                + "    str = str + X\n"
-                + "    IF player.in.health > 2 && player.in.health > 0\n"
-                + "        #MESSAGE 3*4\n"
-                + "    ELSE\n"
-                + "        #MESSAGE str\n"
-                + "    ENDIF\n"
-                + "    #MESSAGE player.getTest().in.getHealth()\n"
-                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
-                + "    #MESSAGE player.in.hasPermission(\"t\")\n"
-                + "    X = X - 1\n"
-                + "    IF X < 0\n"
-                + "        #STOP\n"
-                + "    ENDIF\n"
-                + "    #WAIT 1\n"
-                + "ENDWHILE";*/
-/*        String text = ""
-                + "rand = common.random(3)\n"
-                + "IF rand == 0\n"
-                + "#MESSAGE 0\n"
-                + "ENDIF\n"
-                + "IF rand == 1\n"
-                + "#MESSAGE 1\n"
-                + "ENDIF\n"
-                + "IF rand == 2\n"
-                + "#MESSAGE 2\n"
-                + "ENDIF";*/
-        //String text = "#MESSAGE /mw goto ETC";
-        //String text = "#MESSAGE args[0]";
-/*        String text = ""
-                + "FOR i = 0:10\n"
-                + "    #TEST:MESSAGE \"test i=\"+i..i\n"
-                + "ENDFOR\n";*/
-/*        String text = "x = 4.0;"
-                + "#TEST1 -1;"
-                + "#TEST2 -2.0;"
-                + "#TEST3 -$test3;"
-                + "#TEST4 -x;";*/
-        String text = ""
-                + "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" +
-                "    IF args[0] == \"초기화\"\n" +
-                "        IF {$playername+\".kit\"} != true\n" +
-                "            #MESSAGE \"&f[ &c! &f] &c이미 지급횟수가 초기화 된 상태입니다!\"\n" +
-                "            #STOP\n" +
-                "        ELSEIF {$playername+\".kit\"}\n" +
-                "            {$playername+\".kit\"} = null\n" +
-                "            #MESSAGE \"&f[ &c! &f] :: 기본킷 지급횟수가 초기화되었습니다.\"\n" +
-                "        ELSEIF $haspermission: \"lenz.perms\" == false\n" +
-                "            #MESSAGE \"&f[ &c! &f] :: &c당신의 이 명령어에 대한 권한이 없습니다.\"\n" +
-                "            #STOP\n" +
-                "        ENDIF\n" +
-                "    ENDIF\n" +
-                "ENDIF";
-        System.out.println("original: \n" + text);
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        System.out.println(root.toString());
-
-        JFrame frame = new JFrame("Manual Nodes");
-        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Root");
-        setNode(rootNode, root);
-        JTree tree = new JTree(rootNode);
-        JScrollPane scrollPane = new JScrollPane(tree);
-        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
-        frame.setSize(300, 150);
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    }
-
-    private static void setNode(DefaultMutableTreeNode parent, Node node) {
-        if (node.getChildren().isEmpty()) {
-            parent.add(new DefaultMutableTreeNode(node.toString()));
-        } else {
-            DefaultMutableTreeNode holder = new DefaultMutableTreeNode(node.toString());
-            for (Node child : node.getChildren()) {
-                setNode(holder, child);
-                parent.add(holder);
-            }
-        }
-    }
+//    public static void main(String[] ar) throws IOException, LexerException, ParserException {
+//        Charset charset = Charset.forName("UTF-8");
+///*        String text = ""
+//                + "X = 5\n"
+//                + "str = \"abc\"\n"
+//                + "WHILE 1 > 0\n"
+//                + "    str = str + X\n"
+//                + "    IF player.in.health > 2 && player.in.health > 0\n"
+//                + "        #MESSAGE 3*4\n"
+//                + "    ELSE\n"
+//                + "        #MESSAGE str\n"
+//                + "    ENDIF\n"
+//                + "    #MESSAGE player.getTest().in.getHealth()\n"
+//                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
+//                + "    #MESSAGE player.in.hasPermission(\"t\")\n"
+//                + "    X = X - 1\n"
+//                + "    IF X < 0\n"
+//                + "        #STOP\n"
+//                + "    ENDIF\n"
+//                + "    #WAIT 1\n"
+//                + "ENDWHILE";*/
+///*        String text = ""
+//                + "rand = common.random(3)\n"
+//                + "IF rand == 0\n"
+//                + "#MESSAGE 0\n"
+//                + "ENDIF\n"
+//                + "IF rand == 1\n"
+//                + "#MESSAGE 1\n"
+//                + "ENDIF\n"
+//                + "IF rand == 2\n"
+//                + "#MESSAGE 2\n"
+//                + "ENDIF";*/
+//        //String text = "#MESSAGE /mw goto ETC";
+//        //String text = "#MESSAGE args[0]";
+///*        String text = ""
+//                + "FOR i = 0:10\n"
+//                + "    #TEST:MESSAGE \"test i=\"+i..i\n"
+//                + "ENDFOR\n";*/
+///*        String text = "x = 4.0;"
+//                + "#TEST1 -1;"
+//                + "#TEST2 -2.0;"
+//                + "#TEST3 -$test3;"
+//                + "#TEST4 -x;";*/
+//        String text = ""
+//                + "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" +
+//                "    IF args[0] == \"초기화\"\n" +
+//                "        IF {$playername+\".kit\"} != true\n" +
+//                "            #MESSAGE \"&f[ &c! &f] &c이미 지급횟수가 초기화 된 상태입니다!\"\n" +
+//                "            #STOP\n" +
+//                "        ELSEIF {$playername+\".kit\"}\n" +
+//                "            {$playername+\".kit\"} = null\n" +
+//                "            #MESSAGE \"&f[ &c! &f] :: 기본킷 지급횟수가 초기화되었습니다.\"\n" +
+//                "        ELSEIF $haspermission: \"lenz.perms\" == false\n" +
+//                "            #MESSAGE \"&f[ &c! &f] :: &c당신의 이 명령어에 대한 권한이 없습니다.\"\n" +
+//                "            #STOP\n" +
+//                "        ENDIF\n" +
+//                "    ENDIF\n" +
+//                "ENDIF";
+//        System.out.println("original: \n" + text);
+//
+//        Lexer lexer = new Lexer(text, charset);
+//        Parser parser = new Parser(lexer);
+//
+//        Node root = parser.parse();
+//        System.out.println(root.toString());
+//
+//        JFrame frame = new JFrame("Manual Nodes");
+//        DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Root");
+//        setNode(rootNode, root);
+//        JTree tree = new JTree(rootNode);
+//        JScrollPane scrollPane = new JScrollPane(tree);
+//        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+//        frame.setSize(300, 150);
+//        frame.setVisible(true);
+//        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//    }
+//
+//    private static void setNode(DefaultMutableTreeNode parent, Node node) {
+//        if (node.getChildren().isEmpty()) {
+//            parent.add(new DefaultMutableTreeNode(node.toString()));
+//        } else {
+//            DefaultMutableTreeNode holder = new DefaultMutableTreeNode(node.toString());
+//            for (Node child : node.getChildren()) {
+//                setNode(holder, child);
+//                parent.add(holder);
+//            }
+//        }
+//    }
 }
