@@ -59,7 +59,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             folder.mkdirs();
     }
 
-    protected <T> T getData(File file, String key) throws IOException {
+    protected <T> T getData(File file, String key) throws Exception {
         return getData(file, key, null);
     }
 

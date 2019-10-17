@@ -51,7 +51,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     sync = getData(triggerConfigFile, "sync", Boolean.FALSE);
                     permissions = getData(triggerConfigFile, "permissions", new ArrayList<>());
                     aliases = getData(triggerConfigFile, "aliases", new ArrayList<>());
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     continue;
                 }
@@ -106,7 +106,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 setData(triggerConfigFile, "sync", trigger.isSync());
                 setData(triggerConfigFile, "permissions", trigger.permissions);
                 setData(triggerConfigFile, "aliases", trigger.aliases);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 plugin.getLogger().severe("Could not save command trigger for " + triggerName);
                 failed.add(triggerName);
