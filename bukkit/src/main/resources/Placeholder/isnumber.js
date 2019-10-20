@@ -18,10 +18,14 @@ function isnumber(args){
     if(args.length !== 1)
         throw new Error("Invalid parameter(s) found. $isnumber accepts up to one argument.");
 
-    if(typeof args[0] !== "string")
+    if(typeof args[0] !== "string"){
+        if(typeof args[0] === "number")
+            return true;    
+        
         throw new Error("Invalid parameter type. $isnumber only accepts String value.");
-
-    var arg = args[0]
+    }
+    
+    var arg = args[0];
 
     return arg.matches("[-]{0,1}[0-9]+[.]{0,1}[0-9]{0,1}$");
 }
