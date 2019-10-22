@@ -1,12 +1,7 @@
 validation =  {
 	"overloads" : [
-		[
-		],
-		[
-			{
-			    "type": "string"
-			}
-		]
+		[],
+		[{"type": "string", "name": "effect type"}]
 	]
 }
 

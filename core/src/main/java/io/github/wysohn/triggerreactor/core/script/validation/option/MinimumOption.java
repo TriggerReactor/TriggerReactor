@@ -15,7 +15,10 @@ public class MinimumOption extends ValidationOption {
 	}
 
 	@Override
-	public boolean validate(Object arg, Object value) {
-		return ((Number) value).doubleValue() >= ((Number) arg).doubleValue();
+	public String validate(Object arg, Object value) {
+		if (((Number) value).doubleValue() >= ((Number) arg).doubleValue()) {
+			return null;
+		}
+		return "%name% must be greater than " + value;
 	}
 }

@@ -21,9 +21,9 @@ public class TestOptions {
 	public void testMinimum() {
 		ValidationOption min = ValidationOption.forName("minimum");
 		assertTrue(min.canContain(3));
-		assertTrue(min.validate(0, 5));
+		assertEquals(min.validate(0, 5), null);
 		assertFalse(min.canContain("derp"));
-		assertFalse(min.validate(0, -1));
+		assertNotEquals(min.validate(0, -1), null);
 	}
 	
 	@Test
@@ -33,17 +33,17 @@ public class TestOptions {
 		assertTrue(type.canContain("string"));
 		assertFalse(type.canContain("oOoOoOof"));
 		
-		assertTrue(type.validate("int", 6));
-		assertTrue(type.validate("int", 6.0));
-		assertTrue(type.validate("int", 0));
-		assertTrue(type.validate("int", -1));
-		assertTrue(type.validate("number", 30));
-		assertTrue(type.validate("number", 30.8));
-		assertTrue(type.validate("number", -30));
-		assertTrue(type.validate("string", "j"));
+		assertEquals(type.validate("int", 6), null);
+		assertEquals(type.validate("int", 6.0), null);
+		assertEquals(type.validate("int", 0), null);
+		assertEquals(type.validate("int", -1), null);
+		assertEquals(type.validate("number", 30), null);
+		assertEquals(type.validate("number", 30.8), null);
+		assertEquals(type.validate("number", -30), null);
+		assertEquals(type.validate("string", "j"), null);
 		
-		assertFalse(type.validate("int", 7.1));
-		assertFalse(type.validate("string", new Object()));
-		assertFalse(type.validate("number", "32"));
+		assertNotEquals(type.validate("int", 7.1), null);
+		assertNotEquals(type.validate("string", new Object()), null);
+		assertNotEquals(type.validate("number", "32"), null);
 	}
 }

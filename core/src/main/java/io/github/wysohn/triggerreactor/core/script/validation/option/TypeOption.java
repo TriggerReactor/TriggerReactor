@@ -29,28 +29,28 @@ public class TypeOption extends ValidationOption {
 	}
 	
 	@Override
-	public boolean validate(Object arg, Object value) {
+	public String validate(Object arg, Object value) {
 		switch((String) arg) {
 		case "int":
 			if (!(value instanceof Number)) {
-				return false;
+				return "%name% must be a whole number";
 			}
 			Number num = (Number) value;
 			if (Math.round(num.doubleValue()) == num.doubleValue()) {
-				return true;
+				return null;
 			}
-			return false;
+			return "%name% must be a whole number";
 		
 		case "number":
 			if (value instanceof Number) {
-				return true;
+				return null;
 			}
-			return false;
+			return "%name% must be a number";
 		case "string":
 			if (value instanceof String) {
-				return true;
+				return null;
 			}
-			return false;
+			return "%name% must be a string";
 		default:
 			throw new ValidationException("Unrecognized option type option: " + arg + ", this should *never* happen.  Report this immediately.");
 		}

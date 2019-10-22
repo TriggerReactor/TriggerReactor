@@ -2,7 +2,6 @@ package io.github.wysohn.triggerreactor.core.script.validation;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationOption;
 import io.github.wysohn.triggerreactor.tools.JSArrayIterator;
 import jdk.nashorn.api.scripting.JSObject;
@@ -10,24 +9,57 @@ import jdk.nashorn.api.scripting.JSObject;
 public class Validator {
 	private final Overload[] overloads;
 	
-	private Validator() {overloads = null;}
+	private Validator() {
+		overloads = null;
+	}
 	
 	private Validator(Overload[] overloads) {
 		this.overloads = overloads;
+		/*
+		for (Overload overload : overloads) {
+			lengths.add(overload.length());
+		}
+		this.lengths = lengths.toArray(new Integer[0]);
+		*/
 	}
 	
 	/**
-	 * Fings which overload the list of args matches, if any
+	 * Finds which overload the list of args matches, if any
 	 * 
 	 * @return the overload it matched, if any, else -1
 	 */
-	public int validate(Object... args) {
+	public ValidationResult validate(Object... args) {
+		String[] errorList = new String[overloads.length];
+		boolean lengthMatchFound = false;
 		for (int i = 0; i < overloads.length; i++) {
-			if (overloads[i].matches(args)) {
-				return i;
+			String error = null;
+			if (overloads[i].length() == args.length) {
+				error = overloads[i].matches(args);
+				lengthMatchFound = true;
+			} else {
+				continue;
 			}
+			if (error == null) {
+				return new ValidationResult(i);
+			}
+			errorList[i] = error;
 		}
-		return -1;
+		if (!lengthMatchFound) {
+			return new ValidationResult("Incorrect number of arguments: " + args.length);
+		}
+		
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < overloads.length; i++) {
+			if (errorList[i] == null) {
+				continue;
+			}
+			builder.append("Could not match <");
+			builder.append(overloads[i].overloadInfo());
+			builder.append("> because ");
+			builder.append(errorList[i]);
+			builder.append("\n");
+		}
+		return new ValidationResult(builder.toString());
 	}
 	
 	private static Object getOrFail(JSObject js, String slot) {

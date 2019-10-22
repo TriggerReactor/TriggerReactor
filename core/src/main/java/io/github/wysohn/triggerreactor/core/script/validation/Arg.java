@@ -10,7 +10,7 @@ import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationO
  */
 public class Arg {
 	private Map<ValidationOption, Object> options = new HashMap<>();
-
+	
 	public Arg() {}
 	
 	void addOption(ValidationOption option, Object value) {
@@ -25,16 +25,41 @@ public class Arg {
 		return options.containsKey(option);
 	}
 	
-	/**
-	 * true if the Object matches the validation criteria of this arg
-	 */
-	boolean validate(Object o) {
-		for (Map.Entry<ValidationOption, Object> entry : options.entrySet()) {
-			if (!entry.getKey().validate(entry.getValue(), o)) {
-				return false;
-			}
+	//returns a String describing this Arg's type, for error-construction purposes
+	String typeString() {
+		ValidationOption typeOption = ValidationOption.forName("type");
+		String type = (String) getOption(typeOption);
+		if (type == null) {
+			return "any";
 		}
-		
-		return true;
+		return type;
+	}
+	
+	String name() {
+		String name = (String) getOption(ValidationOption.forName("name"));
+		if (name == null) {
+			return "null";
+		}
+		return name;
+	}
+	
+	/**
+	 * null if the Object matches the validation criteria of this arg
+	 * A string representing the error otherwise
+	 */
+	String validate(Object o) {
+		for (Map.Entry<ValidationOption, Object> entry : options.entrySet()) {
+			String error = entry.getKey().validate(entry.getValue(), o);
+		    if (error == null) {
+		    	continue;
+		    }
+		    
+		    String name = name();
+		    if (name != null) {
+		    	error = error.replace("%name%", name);
+		    }
+		    return error;
+		}
+		return null;
 	}
 }

@@ -10,6 +10,7 @@ public abstract class ValidationOption {
 		//force static{} blocks to be run
 		MinimumOption.init();
 		TypeOption.init();
+		NameOption.init();
 	}
 	
 	/**
@@ -26,9 +27,9 @@ public abstract class ValidationOption {
 	 * 
 	 * @param arg the configuration value this option has
 	 * @param value the object to test
-	 * @return true if the validation succeeds, false otherwise
+	 * @return null if successful, an error message if it failed
 	 */
-	public abstract boolean validate(Object arg, Object value);
+	public abstract String validate(Object arg, Object value);
 	
 	static void register(ValidationOption option, String name) {
 		options.put(name, option);

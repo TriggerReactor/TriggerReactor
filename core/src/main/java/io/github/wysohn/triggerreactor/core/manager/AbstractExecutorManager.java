@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import jdk.nashorn.api.scripting.JSObject;
@@ -177,9 +178,10 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             }
             
             if (validator != null) {
-            	int overload = validator.validate(args);
+            	ValidationResult result = validator.validate(args);
+            	int overload = result.getOverload();
             	if (overload == -1) {
-            		throw new ValidationException("Could not match any overloads for executor " + executorName);
+            		throw new ValidationException(result.getError());
             	}
             	scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
