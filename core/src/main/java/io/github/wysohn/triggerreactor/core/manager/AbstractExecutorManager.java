@@ -148,6 +148,13 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         	}
         	this.validator = Validator.from(validation);
         }
+        
+        public ValidationResult validate(Object... args) {
+        	if (firstRun) {
+        		throw new RuntimeException("the executor must be run at least once before using validate");
+        	}
+        	return validator.validate(args);
+        }
 
         @Override
         public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,

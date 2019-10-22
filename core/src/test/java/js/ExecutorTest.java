@@ -20,4 +20,12 @@ public class ExecutorTest extends JsTest{
         executor.execute(Timings.LIMBO, true, varMap, null, args);
         return null;
     }
+	
+	public boolean isValid(Object... args) {
+		return executor.validate(args).getOverload() != -1;
+	}
+	
+	public int getOverload(Object... args) {
+		return executor.validate(args).getOverload();
+	}
 }

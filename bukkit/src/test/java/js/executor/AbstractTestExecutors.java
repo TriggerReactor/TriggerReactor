@@ -9,6 +9,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTri
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
+import junit.framework.Assert;
+
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -318,7 +320,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testClearPotion() throws Exception{
-        //TODO
+        Player p = Mockito.mock(Player.class);
+        ExecutorTest test = new ExecutorTest(engine, "CLEARPOTION");
+        test.addVariable("player", p);
+        test.test();
+        
+        Assert.assertEquals(0, test.getOverload());
+        Assert.assertEquals(1, test.getOverload("SPEED"));
+        
+        Assert.assertFalse(test.isValid(0));
+        Assert.assertFalse(test.isValid("SPEED", "SPEED"));
     }
 
     @Test
