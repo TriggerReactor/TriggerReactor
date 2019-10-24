@@ -2,6 +2,7 @@ package js;
 
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
+import static org.junit.Assert.*;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -27,5 +28,13 @@ public class ExecutorTest extends JsTest{
 	
 	public int getOverload(Object... args) {
 		return executor.validate(args).getOverload();
+	}
+	
+	public void assertValid(Object... args) {
+		assertTrue(isValid(args));
+	}
+	
+	public void assertInvalid(Object... args) {
+		assertFalse(isValid(args));
 	}
 }

@@ -15,6 +15,10 @@ public class TypeOption extends ValidationOption {
 	
 	@Override
 	public boolean canContain(Object arg) {
+		if (arg instanceof Class<?>) {
+			return true;
+		}
+		
 		if (!(arg instanceof String)) {
 			return false;
 		}
@@ -30,6 +34,17 @@ public class TypeOption extends ValidationOption {
 	
 	@Override
 	public String validate(Object arg, Object value) {
+		if (arg instanceof Class<?>) {
+			if (value == null) {
+				return "%name% must not be null";
+			}
+			if (((Class<?>) arg).isAssignableFrom(value.getClass())) {
+				return null;
+			} else {
+				return "%name% must be a " + ((Class<?>) arg).getSimpleName();
+			}
+		}
+		
 		switch((String) arg) {
 		case "int":
 			if (!(value instanceof Number)) {

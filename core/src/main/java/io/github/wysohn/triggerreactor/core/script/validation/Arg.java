@@ -28,11 +28,15 @@ public class Arg {
 	//returns a String describing this Arg's type, for error-construction purposes
 	String typeString() {
 		ValidationOption typeOption = ValidationOption.forName("type");
-		String type = (String) getOption(typeOption);
+		Object type = getOption(typeOption);
 		if (type == null) {
 			return "any";
 		}
-		return type;
+		if (type instanceof Class<?>) {
+			return ((Class<?>) type).getSimpleName();
+		}
+		
+		return type.toString();
 	}
 	
 	String name() {

@@ -682,7 +682,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         String msg2 = ChatColor.translateAlternateColorCodes('&', "&cKICKED");
 
         //case1
-        JsTest test = new ExecutorTest(engine, "KICK").addVariable("player", vp);
+        ExecutorTest test = new ExecutorTest(engine, "KICK");
+        test.addVariable("player", vp);
         test.withArgs().test();
         Mockito.verify(vp).kickPlayer(msg);
 
@@ -699,14 +700,13 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Mockito.verify(vp2).kickPlayer(msg2);
 
         //Unexpected Exception Cases
-        assertJSError(() -> test.withArgs(1).test(), "Found unexpected type of argument: 1");
-        assertJSError(() -> test.withArgs(vp, 232).test(), "Found unexpected type of argument(s) - player: " + vp + " | msg: 232");
-        assertJSError(() -> test.withArgs(1, 2, 3).test(), "Too many arguments! KICK Executor accepts up to two arguments.");
+        test.assertInvalid(1);
+        test.assertInvalid(vp, 232);
+        test.assertInvalid(1, 2, 3);
         test.addVariable("player", null);
+        
+        test.assertInvalid(null, "msg");
+        test.assertInvalid(nullP);
         assertJSError(() -> test.withArgs().test(), "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
-        assertJSError(() -> test.withArgs(null, "msg").test(), "Found unexpected type of argument(s) - player: null | msg: msg");
-        assertJSError(() -> test.withArgs(nullP).test(), "Unexpected Error: parameter does not match - player: null");
     }
-
-
 }
