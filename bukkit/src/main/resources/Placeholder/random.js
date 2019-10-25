@@ -14,6 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+validation = {
+	"overloads": [
+		[{"name": "minimum", "type": "number"}],
+		[{"name": "minimum", "type": "number"}, {"name": "maximum", "type": "number"}]
+	]
+}
+
 function random(args){
 	if(args.length == 1){
 		if(typeof args[0] !== "number")
