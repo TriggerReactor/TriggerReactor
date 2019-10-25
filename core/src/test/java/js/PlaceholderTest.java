@@ -17,7 +17,7 @@ public class PlaceholderTest extends JsTest{
 
 	@Override
     public Object test() throws Exception {
-        return placeholder.parse(Timings.LIMBO, true, varMap, null, args);
+        return placeholder.parse(Timings.LIMBO, null, varMap, args);
     }
 
 	@Override

@@ -9,10 +9,6 @@ import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-
-import javax.script.ScriptException;
-
 /**
  * Test driving class for testing Placeholders
  */
@@ -39,8 +35,11 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     */
     
     @Test
-    public void testRandom() throws ScriptException, IOException {
+    public void testRandom() throws Exception {
     	JsTest test = new PlaceholderTest(engine, "random");
+    	
+    	test.withArgs(1).test();
+    	
     	test.assertValid(0).assertValid(1, 2)
     	    .assertInvalid().assertInvalid(1, 2, 3).assertInvalid("j").assertInvalid(4, "j");
     }
