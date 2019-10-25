@@ -4,12 +4,14 @@ import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
 import org.bukkit.entity.Player;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertError;
 import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+
+import javax.script.ScriptException;
 
 /**
  * Test driving class for testing Placeholders
@@ -35,4 +37,11 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
        // assertEquals(true, output); TODO
     }
     */
+    
+    @Test
+    public void testRandom() throws ScriptException, IOException {
+    	JsTest test = new PlaceholderTest(engine, "random");
+    	test.assertValid(0).assertValid(1, 2)
+    	    .assertInvalid().assertInvalid(1, 2, 3).assertInvalid("j").assertInvalid(4, "j");
+    }
 }

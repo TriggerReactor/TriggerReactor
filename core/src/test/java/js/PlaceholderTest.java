@@ -19,4 +19,9 @@ public class PlaceholderTest extends JsTest{
     public Object test() throws Exception {
         return placeholder.parse(Timings.LIMBO, true, varMap, null, args);
     }
+
+	@Override
+	public int getOverload(Object... args) {
+		return placeholder.validate(args).getOverload();
+	}
 }

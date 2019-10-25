@@ -1,6 +1,9 @@
 package js;
 
 import javax.script.ScriptEngine;
+
+import static org.junit.Assert.*;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -53,4 +56,19 @@ public abstract class JsTest {
 
     public abstract Object test() throws Exception;
     
+    public abstract int getOverload(Object... args);
+    
+    public boolean isValid(Object... args) {
+		return getOverload(args) != -1;
+	}
+	
+	public JsTest assertValid(Object... args) {
+		assertTrue(isValid(args));
+		return this;
+	}
+	
+	public JsTest assertInvalid(Object... args) {
+		assertFalse(isValid(args));
+		return this;
+	}
 }
