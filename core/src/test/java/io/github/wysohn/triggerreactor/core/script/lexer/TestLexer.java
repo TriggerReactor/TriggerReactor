@@ -145,4 +145,15 @@ public class TestLexer {
         lexer = new Lexer(text, charset);
         assertEquals(new Token(Type.IMPORT, "some.class.with2num.import2.So2met2hing2"), lexer.getToken());
     }
+
+    @Test
+    public void testImportWithUnderscore() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text;
+        Lexer lexer;
+
+        text = "IMPORT net.md_5.bungee.api.chat.ComponentBuilder";
+        lexer = new Lexer(text, charset);
+        assertEquals(new Token(Type.IMPORT, "net.md_5.bungee.api.chat.ComponentBuilder"), lexer.getToken());
+    }
 }
