@@ -14,24 +14,16 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
 validation = {
     "overloads": [
-        [{"name": "index", "type": "int"}]
+        [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType}]
     ]
+
 }
-function slot(args){
-    var invOpenEvent = Java.type('org.bukkit.event.inventory.InventoryOpenEvent');
-    var invClickEvent = Java.type('org.bukkit.event.inventory.InventoryClickEvent');
-    var invCloseEvent = Java.type('org.bukkit.event.inventory.InventoryCloseEvent');
-    if(event instanceof invOpenEvent || event instanceof invClickEvent || event instanceof invCloseEvent){
-
-            if(args[0] < 0 || args[0] >= event.getInventory().getSize())
-                throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
-            else
-                var item = event.getInventory().getItem(args[0]);
-                return item;
-
-    }else {
-        throw new Error('$slot Placeholder is available only in InventoryTrigger!');
-    }
+function SETITEMNAME(args){
+    var item = args[1];
+    var name = ChatColor.translateAlternateColorCodes(Char('&'), args[0]);
+    item.getItemMeta().setDisplayName(name);
+    return null;
 }
