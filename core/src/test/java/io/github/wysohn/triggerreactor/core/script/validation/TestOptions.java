@@ -1,11 +1,11 @@
 package io.github.wysohn.triggerreactor.core.script.validation;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
-
 import io.github.wysohn.triggerreactor.core.script.validation.option.MinimumOption;
 import io.github.wysohn.triggerreactor.core.script.validation.option.TypeOption;
 import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationOption;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class TestOptions {
 	public TestOptions() {}
@@ -31,6 +31,7 @@ public class TestOptions {
 		ValidationOption type = ValidationOption.forName("type");
 		assertTrue(type.canContain("int"));
 		assertTrue(type.canContain("string"));
+		assertTrue(type.canContain("boolean"));
 		assertFalse(type.canContain("oOoOoOof"));
 		
 		assertEquals(type.validate("int", 6), null);
@@ -41,9 +42,13 @@ public class TestOptions {
 		assertEquals(type.validate("number", 30.8), null);
 		assertEquals(type.validate("number", -30), null);
 		assertEquals(type.validate("string", "j"), null);
-		
+		assertNull(type.validate("boolean", true));
+		assertNull(type.validate("boolean", false));
+
+
 		assertNotEquals(type.validate("int", 7.1), null);
 		assertNotEquals(type.validate("string", new Object()), null);
 		assertNotEquals(type.validate("number", "32"), null);
+		assertNotNull(type.validate("boolean", 2));
 	}
 }
