@@ -125,7 +125,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
             final Bindings bindings = engine.createBindings();
 
-            variables.put("event", context);
+            bindings.put("event", context);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();

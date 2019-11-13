@@ -165,7 +165,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
 
             final Bindings bindings = engine.createBindings();
 
-            variables.put("event", e);
+            bindings.put("event", e);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
