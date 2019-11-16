@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2019 wysohn
+ *     Copyright (C) 2019 Pro_Snape
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.spongepowered.api.item.inventory.ItemStack');
+var itemStackType = Java.type('org.bukkit.inventory.ItemStack');
 validation = {
     "overloads": [
         [{"name": "item", "type": itemStackType.class}]

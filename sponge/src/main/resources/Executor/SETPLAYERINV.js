@@ -14,25 +14,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+/**
+var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
 validation = {
     "overloads": [
-       [{"name": "slot", "type": "int"}]
+        [{"name":"slot", "type": "int"},{"name":"item", "type": itemStackType.class}]
     ]
+
 }
-function playerinv(args){
+function SETPLAYERINV(args){
     if(player == null)
         return null;
 
-    if(args[0] < 0 || args[0] >= player.getInventory().getSize())
+    var slot = args[0]
+    var item = args[1];
+    if(slot < 0 || slot >= player.getInventory().getSize())
         throw new Error('Unexpected token: slot number should be at least 0, up to 35.');
-    else
-        var item = player.getInventory().getItem(args[0]);
 
-    if(item == null){
-        var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
-        var Material = Java.type('org.bukkit.Material')
-        return new ItemStack(Material.AIR);
-    }else {
-        return item;
-    }
+    if(item == null)
+        return null;
+
+
+    player.getInventory().setItem(slot, item);
+    return null;
 }
+**/

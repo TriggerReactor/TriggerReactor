@@ -14,25 +14,22 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var itemStackType = Java.type('org.spongepowered.api.item.inventory.ItemStack')
 validation = {
     "overloads": [
-       [{"name": "slot", "type": "int"}]
+        [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType.class}]
     ]
+
 }
-function playerinv(args){
-    if(player == null)
+function SETITEMNAME(args){
+    var item = args[1];
+    var String = Java.type('java.lang.String');
+    var name = TextUtil.colorStringToText(String.valueOf(args[0]));
+    if(item.getType().name().toLowerCase().equals("minecraft:air") || item == null){
         return null;
-
-    if(args[0] < 0 || args[0] >= player.getInventory().getSize())
-        throw new Error('Unexpected token: slot number should be at least 0, up to 35.');
-    else
-        var item = player.getInventory().getItem(args[0]);
-
-    if(item == null){
-        var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
-        var Material = Java.type('org.bukkit.Material')
-        return new ItemStack(Material.AIR);
-    }else {
-        return item;
+    } else{
+        var Keys = Java.type('org.spongepowered.api.data.key.Keys');
+        item.offer(Keys.DISPLAY_NAME, name);
+        return null;
     }
 }
