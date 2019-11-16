@@ -709,4 +709,21 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertInvalid(nullP);
         assertJSError(() -> test.withArgs().test(), "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
     }
+
+    @Test
+    public void testSetHeldItem() throws Exception{
+        Player vp = Mockito.mock(Player.class);
+        PlayerInventory piv = Mockito.mock(PlayerInventory.class);
+        JsTest test = new ExecutorTest(engine, "SETHELDITEM")
+                .addVariable("player", vp);
+
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PowerMockito.when(vp, "getInventory").thenReturn(piv);
+
+        //only case
+        test.withArgs(vItem).test();
+        Mockito.verify(piv).setItemInHand(vItem);
+
+        //invalid
+    }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2019 wysohn
+ *     Copyright (C) 2019 Pro_Snape
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
 validation = {
     "overloads": [
-        [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType}]
+        [{"name":"lore", "type": "string"}, {"name": "item", "type": itemStackType.class}]
     ]
 
 }
@@ -29,6 +29,8 @@ function SETITEMLORE(args){
     for(var k = 0; k < lores.length; k++) {
         lores[k] = ChatColor.translateAlternateColorCodes(Char('&'), lores[k]);
     }
-    item.getItemMeta().setLore(lores);
+    var im = item.getItemMeta();
+    im.setLore(lores);
+    item.setItemMeta(im);
     return null;
 }

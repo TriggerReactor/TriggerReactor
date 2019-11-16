@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2019 wysohn
+ *     Copyright (C) 2019 Pro_Snape
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -17,13 +17,19 @@
 var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
 validation = {
     "overloads": [
-        [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType}]
+        [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType.class}]
     ]
 
 }
 function SETITEMNAME(args){
     var item = args[1];
     var name = ChatColor.translateAlternateColorCodes(Char('&'), args[0]);
-    item.getItemMeta().setDisplayName(name);
-    return null;
+    if(item.getType().name().toLowerCase().equals("air") || item == null){
+        return null;
+    } else{
+        var im = item.getItemMeta();
+        im.setDisplayName(name);
+        item.setItemMeta(im);
+        return null;
+    }
 }
