@@ -62,7 +62,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             try {
                 autoStart = this.getData(ymlfile, "AutoStart", false);
                 interval = this.getData(ymlfile, "Interval", 1000);
-            } catch (IOException e2) {
+            } catch (Exception e2) {
                 e2.printStackTrace();
             }
 
@@ -112,7 +112,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             try {
                 this.setData(ymlfile, "AutoStart", trigger.isAutoStart());
                 this.setData(ymlfile, "Interval", trigger.getInterval());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 

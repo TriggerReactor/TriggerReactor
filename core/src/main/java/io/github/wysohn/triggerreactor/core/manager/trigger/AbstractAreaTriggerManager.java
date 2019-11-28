@@ -118,7 +118,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
                 smallest = SimpleLocation.valueOf(getData(ymlfile, SMALLEST));
                 largest = SimpleLocation.valueOf(getData(ymlfile, LARGEST));
                 isSync = getData(ymlfile, SYNC, false);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 plugin.getLogger().warning("Could not load Area Trigger " + ymlfile);
                 continue;
@@ -216,7 +216,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
                 setData(ymlfile, SMALLEST, area.getSmallest().toString());
                 setData(ymlfile, LARGEST, area.getLargest().toString());
                 setData(ymlfile, SYNC, trigger.isSync());
-            } catch (IOException e1) {
+            } catch (Exception e1) {
                 e1.printStackTrace();
                 continue;
             }
