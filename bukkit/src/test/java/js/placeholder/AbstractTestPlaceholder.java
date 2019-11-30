@@ -3,14 +3,24 @@ package js.placeholder;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -101,5 +111,142 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         Mockito.when(mockEntity.getName()).thenReturn("SomeEntity");
 
         Assert.assertEquals("SomeEntity", test.test());
+    }
+    @Test
+    public void testHeldItem() throws Exception{
+        Player vp = Mockito.mock(Player.class);
+        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
+        PowerMockito.when(vInv, "getItemInHand").thenReturn(vItem);
+        PlaceholderTest test = new PlaceholderTest(engine, "helditem");
+        test.addVariable("player", vp);
+        ItemStack result = (ItemStack) test.withArgs().test();
+        Assert.assertEquals(result, vItem);
+
+        test.assertInvalid("hi");
+    }
+    @Test
+    public void testOffHandItem() throws Exception{
+        Player vp = Mockito.mock(Player.class);
+        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
+        PowerMockito.when(vInv, "getItemInOffHand").thenReturn(vItem);
+        PlaceholderTest test = new PlaceholderTest(engine, "offhanditem");
+        test.addVariable("player", vp);
+        ItemStack result = (ItemStack) test.withArgs().test();
+        Assert.assertEquals(result, vItem);
+
+        test.assertInvalid("hi");
+    }
+    @Test
+    public void testPlayerInv() throws Exception{
+        Player vp = Mockito.mock(Player.class);
+        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
+        PowerMockito.when(vInv, "getSize").thenReturn(36);
+        PowerMockito.when(vInv, "getItem", 2).thenReturn(vItem);
+        PlaceholderTest test = new PlaceholderTest(engine, "playerinv");
+        test.addVariable("player", vp);
+        ItemStack result = (ItemStack) test.withArgs(2).test();
+        Assert.assertEquals(result, vItem);
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
+
+    }
+    @Test
+    public void testId() throws Exception{
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        PlaceholderTest test = new PlaceholderTest(engine, "id");
+        Object result = test.withArgs(vItem).test();
+        Assert.assertEquals(result, stone);
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
+        test.assertInvalid(35);
+
+    }
+    @Test
+    public void testIdName() throws Exception{
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        PlaceholderTest test = new PlaceholderTest(engine, "idname");
+        Object result = test.withArgs(vItem).test();
+        Assert.assertEquals(result, stone.name());
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
+        test.assertInvalid(35);
+
+    }
+    @Test
+    public void testName() throws Exception{
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemMeta vIM = Mockito.mock(ItemMeta.class);
+        PowerMockito.when(vItem, "hasItemMeta").thenReturn(true);
+        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
+        PowerMockito.when(vIM, "hasDisplayName").thenReturn(true);
+        PowerMockito.when(vIM, "getDisplayName").thenReturn("awwman");
+
+        PlaceholderTest test = new PlaceholderTest(engine, "name");
+        Object result = test.withArgs(vItem).test();
+        Assert.assertEquals(result, "awwman");
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
+        test.assertInvalid(35);
+
+    }
+    @Test
+    public void testLore() throws Exception{
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemMeta vIM = Mockito.mock(ItemMeta.class);
+        List<String> lores = new ArrayList<>();
+        lores.add("creeper");
+        lores.add("awwman");
+        lores.add("sowebackinthemine");
+        PowerMockito.when(vItem, "hasItemMeta").thenReturn(true);
+        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
+        PowerMockito.when(vIM, "hasLore").thenReturn(true);
+        PowerMockito.when(vIM, "getLore").thenReturn(lores);
+        String loreString = "";
+        for(int k = 0; k < lores.size(); k++){
+            String lore = lores.get(k);
+            if(k == (lores.size() - 1))
+                loreString = loreString + lore;
+            else
+                loreString = loreString + lore + "\n";
+        }
+
+        PlaceholderTest test = new PlaceholderTest(engine, "lore");
+        Object result = test.withArgs(vItem).test();
+        Assert.assertEquals(result, loreString);
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
+        test.assertInvalid(35);
+
+    }
+    @Test
+    public void testSlot() throws Exception{
+        InventoryClickEvent vEvent = Mockito.mock(InventoryClickEvent.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Inventory vInv = Mockito.mock(Inventory.class);
+        PowerMockito.when(vEvent, "getInventory").thenReturn(vInv);
+        PowerMockito.when(vInv, "getSize").thenReturn(36);
+        PowerMockito.when(vInv, "getItem", 2).thenReturn(vItem);
+        PlaceholderTest test = new PlaceholderTest(engine, "slot");
+        test.addVariable("event", vEvent);
+        ItemStack result = (ItemStack) test.withArgs(2).test();
+        Assert.assertEquals(result, vItem);
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
     }
 }
