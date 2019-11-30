@@ -49,6 +49,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onInteract", PlayerInteractEvent.class);
         put("onInteractEntity", PlayerInteractEntityEvent.class);
         put("onChat", AsyncPlayerChatEvent.class);
+        put("onCommand", PlayerCommandPreprocessEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
         put("onEntityDeath", EntityDeathEvent.class);

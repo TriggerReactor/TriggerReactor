@@ -27,6 +27,7 @@ import org.spongepowered.api.event.Event;
 import org.spongepowered.api.event.EventListener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.command.SendCommandEvent;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.message.MessageEvent;
@@ -48,6 +49,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onInteract", InteractBlockEvent.class);
         put("onInteractEntity", InteractEntityEvent.class);
         put("onChat", MessageEvent.class);
+        put("onCommand", SendCommandEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
         put("onEntityDeath", DestructEntityEvent.Death.class);

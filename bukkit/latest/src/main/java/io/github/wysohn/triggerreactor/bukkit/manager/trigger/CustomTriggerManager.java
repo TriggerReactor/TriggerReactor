@@ -50,6 +50,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     	ABBREVIATIONS.put("onInteract", PlayerInteractEvent.class);
     	ABBREVIATIONS.put("onInteractEntity", PlayerInteractEntityEvent.class);
     	ABBREVIATIONS.put("onChat", AsyncPlayerChatEvent.class);
+    	ABBREVIATIONS.put("onCommand", PlayerCommandPreprocessEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
     	ABBREVIATIONS.put("onEntityDeath", EntityDeathEvent.class);
