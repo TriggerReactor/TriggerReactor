@@ -195,6 +195,9 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             }
 
             JSObject jsObject = (JSObject) scriptContext.getAttribute(executorName);
+            if(jsObject == null)
+                throw new Exception(executorName+".js does not have 'function "+executorName+"()'.");
+
             Callable<Integer> call = new Callable<Integer>() {
                 @Override
                 public Integer call() throws Exception {

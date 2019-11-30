@@ -155,6 +155,9 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             }
 
             JSObject jsObject = (JSObject) scriptContext.getAttribute(placeholderName);
+            if(jsObject == null)
+                throw new Exception(placeholderName+".js does not have 'function "+placeholderName+"()'.");
+
             Callable<Object> call = new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
