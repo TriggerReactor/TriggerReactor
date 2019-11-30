@@ -14,36 +14,42 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- validation={
+validation = {
     "overloads": [
         [], // whole line
-        [{"type":"int", "minimum": 0, "name": "fromIndex"}], //initial index to end
-        [{"type":"int", "minimum": 0, "name": "fromIndex"},
-            {"type":"int", "minimum": 0, "name": "toIndex"}] //initial to final
+        [{"type": "int", "minimum": 0, "name": "fromIndex"}], //initial index to end
+        [{"type": "int", "minimum": 0, "name": "fromIndex"},
+            {"type": "int", "minimum": 0, "name": "toIndex"}] //initial to final
     ]
- }
-function cmdline(args){
+}
+
+function cmdline(args) {
     var message = event.getMessage().substring(1); //first character is slash
 
-	if (overload == 0){
+    if (overload == 0) {
         return message;
-	} else if (overload == 1){
-	    var split = message.split(" ");
+    } else if (overload == 1) {
+        var split = message.split(" ");
         return merge(split, args[0], split.length - 1);
-	} else if (overload == 2){
-	    var split = message.split(" ");
-	    if(args[0] > args[1])
-	        throw new Error("fromIndex cannot be larger than toIndex!");
+    } else if (overload == 2) {
+        var split = message.split(" ");
+        if (args[0] > args[1])
+            throw new Error("fromIndex cannot be larger than toIndex!");
 
         return merge(split, args[0], args[1]);
-	}
+    }
 }
-function merge(split, indexFrom, indexTo){
+
+function merge(split, indexFrom, indexTo) {
     indexFrom = Math.max(0, indexFrom)
     indexTo = Math.min(split.length - 1, indexTo)
 
-    if (indexTo - indexFrom < 1)
-        return split[indexFrom];
+    if (indexTo - indexFrom < 1) {
+        if (indexFrom < split.length)
+            return split[indexFrom];
+        else
+            return null;
+    }
 
     var temp = split[indexFrom];
     for (var i = indexFrom + 1; i <= indexTo; i++) {

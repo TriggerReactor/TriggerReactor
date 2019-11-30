@@ -80,5 +80,8 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         line = (String) test.withArgs(0, 99).test();
         Assert.assertEquals("mycommand arg1 arg2", line);
+
+        line = (String) test.withArgs(8, 99).test();
+        Assert.assertNull(line);
     }
 }
