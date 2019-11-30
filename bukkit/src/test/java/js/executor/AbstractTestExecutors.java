@@ -17,12 +17,16 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Lever;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -713,17 +717,103 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testSetHeldItem() throws Exception{
         Player vp = Mockito.mock(Player.class);
-        PlayerInventory piv = Mockito.mock(PlayerInventory.class);
-        JsTest test = new ExecutorTest(engine, "SETHELDITEM")
-                .addVariable("player", vp);
-
         ItemStack vItem = Mockito.mock(ItemStack.class);
+        PlayerInventory piv = Mockito.mock(PlayerInventory.class);
+        ExecutorTest test = new ExecutorTest(engine, "SETHELDITEM");
+        test.addVariable("player", vp);
         PowerMockito.when(vp, "getInventory").thenReturn(piv);
-
-        //only case
         test.withArgs(vItem).test();
         Mockito.verify(piv).setItemInHand(vItem);
 
-        //invalid
+        Assert.assertEquals(0, test.getOverload(vItem));
+        test.assertInvalid(0);
+        test.assertInvalid("NUUP");
+        test.assertInvalid(true);
+    }
+
+    @Test
+    public void testSetOffHand() throws Exception{
+        Player vp = Mockito.mock(Player.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
+        ExecutorTest test = new ExecutorTest(engine, "SETOFFHAND");
+        test.addVariable("player", vp);
+        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
+        test.withArgs(vItem).test();
+        Mockito.verify(vInv).setItemInOffHand(vItem);
+
+        test.assertInvalid(0);
+        test.assertInvalid("HELLO");
+        test.assertInvalid(true);
+    }
+
+    @Test
+    public void testSetPlayerInv() throws Exception{
+        Player vp = Mockito.mock(Player.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
+        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
+        PowerMockito.when(vInv, "getSize").thenReturn(36);
+        ExecutorTest test = new ExecutorTest(engine, "SETPLAYERINV");
+        test.addVariable("player", vp);
+        test.withArgs(1, vItem).test();
+        Mockito.verify(vInv).setItem(1, vItem);
+        test.assertInvalid(0);
+        test.assertInvalid("HELLO");
+        test.assertInvalid(0,"hu");
+        test.assertInvalid(true, 0);
+    }
+
+    @Test
+    public void testSetItemLore() throws Exception {
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemMeta vIM = Mockito.mock(ItemMeta.class);
+        ExecutorTest test = new ExecutorTest(engine, "SETITEMLORE");
+        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
+        test.withArgs("NO\nNO", vItem).test();
+        Mockito.verify(vItem).setItemMeta(vIM);
+
+        test.assertValid("herllo", vItem);
+        test.assertInvalid(0);
+        test.assertInvalid("HELLO");
+        test.assertInvalid(0, "hu");
+        test.assertInvalid(true, 0);
+    }
+    @Test
+    public void testSetItemName() throws Exception{
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemMeta vIM = Mockito.mock(ItemMeta.class);
+        Material stone = Material.valueOf("STONE");
+        ExecutorTest test = new ExecutorTest(engine, "SETITEMNAME");
+        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        test.withArgs("NO--NO", vItem).test();
+        Mockito.verify(vIM).setDisplayName("NO--NO");
+        Mockito.verify(vItem).setItemMeta(vIM);
+
+        test.assertValid("herllo", vItem);
+        test.assertInvalid(0);
+        test.assertInvalid("HELLO");
+        test.assertInvalid(0,"hu");
+        test.assertInvalid(true, 0);
+    }
+
+    @Test
+    public void testSetSlot() throws Exception{
+        InventoryClickEvent vEvent = Mockito.mock(InventoryClickEvent.class);
+        Inventory vInv = Mockito.mock(Inventory.class);
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        PowerMockito.when(vEvent, "getInventory").thenReturn(vInv);
+        PowerMockito.when(vInv,"getSize").thenReturn(36);
+        ExecutorTest test = new ExecutorTest(engine, "SETSLOT");
+        test.addVariable("event", vEvent);
+        test.withArgs(1, vItem).test();
+        Mockito.verify(vInv).setItem(1, vItem);
+
+        test.assertValid(33, vItem);
+        test.assertInvalid("hi", vItem);
+        test.assertInvalid(0);
+        test.assertInvalid("NOPE");
+        test.assertInvalid(true, 0);
     }
 }
