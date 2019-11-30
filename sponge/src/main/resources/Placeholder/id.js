@@ -23,5 +23,5 @@ validation = {
 }
 function id(args){
     var item = args[0];
-    return item.getType().getId();
+    return item.getType();
 }
