@@ -1,5 +1,12 @@
 package js.placeholder;
 
+import js.JsTest;
+import js.PlaceholderTest;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.Mockito;
+
 /**
  * Test environment for bukkit-latest.
  * The test should be written in parent class, AbstractTestExecutors,
