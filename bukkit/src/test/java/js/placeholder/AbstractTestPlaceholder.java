@@ -3,7 +3,10 @@ package js.placeholder;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.junit.Assert;
 import org.junit.Test;
@@ -83,5 +86,20 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         line = (String) test.withArgs(8, 99).test();
         Assert.assertNull(line);
+    }
+
+    @Test
+    public void testEntityname() throws Exception{
+        EntityEvent mockEvent = Mockito.mock(EntityEvent.class);
+        Entity mockEntity = Mockito.mock(Entity.class);
+
+        JsTest test = new PlaceholderTest(engine, "entityname");
+        test.addVariable("event", mockEvent);
+
+
+        Mockito.when(mockEvent.getEntity()).thenReturn(mockEntity);
+        Mockito.when(mockEntity.getName()).thenReturn("SomeEntity");
+
+        Assert.assertEquals("SomeEntity", test.test());
     }
 }
