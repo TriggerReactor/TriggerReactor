@@ -22,12 +22,14 @@ import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class TriggerReactor extends JavaPlugin {
@@ -52,6 +54,9 @@ public class TriggerReactor extends JavaPlugin {
                 this.setEnabled(false);
             }
         }
+        
+        PluginCommand trg = this.getCommand("triggerreactor");
+        trg.setExecutor(this);
 
         javaPluginBridge.onEnable(this);
     }
@@ -116,5 +121,10 @@ public class TriggerReactor extends JavaPlugin {
 
     public boolean isDebugging() {
         return this.javaPluginBridge.isDebugging();
+    }
+    
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    	return io.github.wysohn.triggerreactor.core.main.TriggerReactor.getInstance().onTabComplete(args);
     }
 }

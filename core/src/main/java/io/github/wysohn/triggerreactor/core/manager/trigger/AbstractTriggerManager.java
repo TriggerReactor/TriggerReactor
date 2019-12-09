@@ -72,7 +72,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
         FileUtil.delete(trigger.file);
     }
 
-    protected abstract Collection<? extends Trigger> getAllTriggers();
+    public abstract Collection<? extends Trigger> getAllTriggers();
 
     public List<String> getTriggerList(TriggerFilter filter) {
         List<String> strs = new ArrayList<>();

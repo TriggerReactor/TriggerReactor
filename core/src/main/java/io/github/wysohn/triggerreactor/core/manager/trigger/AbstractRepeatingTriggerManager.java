@@ -207,7 +207,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+	public Collection<? extends Trigger> getAllTriggers() {
         return repeatTriggers.values();
     }
 

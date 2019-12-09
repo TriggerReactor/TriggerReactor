@@ -1246,7 +1246,48 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
         return true;
     }
+    
+    //returns all strings in completions that start with prefix.
+    private static List<String> filter(Collection<String> completions, String prefix) {
+    	prefix = prefix.trim();
+    	List<String> filtered = new ArrayList<String>();
+    	for (String s : completions) {
+    		if (s.startsWith(prefix)) {
+    			filtered.add(s);
+    		}
+    	}
+    	return filtered;
+    }
+    
+    private static List<String> EMPTY = new ArrayList<String>();
 
+    //only for /trg command
+    public List<String> onTabComplete(String[] args) {
+    	if (args.length == 1) {
+    	    return filter(Arrays.asList("area", "click", "command", "custom", "delete", "help", "inventory", "item", "list", 
+    	    		"reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+    	}
+    	if (args.length == 2) {
+    		List<String> names = new ArrayList<String>();
+    		
+    		if (args[0].equals("area")) {
+    			for (Trigger trigger : io.github.wysohn.triggerreactor.core.main.TriggerReactor.getInstance().getAreaManager().getAllTriggers()) {
+    			    names.add(trigger.getTriggerName());
+    			}
+    			
+    			// /trg area toggle
+    			names.add("toggle");
+    			return filter(names, args[1]);
+    		}
+    	}
+    	if (args.length == 3) {
+    		if (args[0].equals("area") && !args[1].equals("toggle")) {
+    			return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+    		}
+    	}
+    	return EMPTY;
+    }
+    
     protected abstract boolean removeLore(IItemStack iS, int index);
 
     protected abstract boolean setLore(IItemStack iS, int index, String lore);

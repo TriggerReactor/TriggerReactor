@@ -137,7 +137,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+	public Collection<? extends Trigger> getAllTriggers() {
         // Think about this later
         return Collections.emptySet();
     }

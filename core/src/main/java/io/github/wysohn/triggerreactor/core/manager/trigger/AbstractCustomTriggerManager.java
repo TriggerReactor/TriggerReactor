@@ -274,7 +274,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+	public Collection<? extends Trigger> getAllTriggers() {
         return nameMap.values();
     }
 
