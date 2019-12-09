@@ -1271,7 +1271,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
     		List<String> names = new ArrayList<String>();
     		
     		if (args[0].equals("area")) {
-    			for (Trigger trigger : io.github.wysohn.triggerreactor.core.main.TriggerReactor.getInstance().getAreaManager().getAllTriggers()) {
+    			for (Trigger trigger : getInstance().getAreaManager().getAllTriggers()) {
     			    names.add(trigger.getTriggerName());
     			}
     			
