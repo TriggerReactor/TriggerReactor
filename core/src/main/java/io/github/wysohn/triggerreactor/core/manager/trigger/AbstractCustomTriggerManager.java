@@ -194,7 +194,9 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     protected abstract void unregisterEvent(TriggerReactor plugin, EventHook eventHook);
 
-    /**
+    public abstract Collection<String> getAbbreviations();
+
+	/**
      * Create a new CustomTrigger.
      *
      * @param eventName the class name of the Event that this Custom Trigger will
@@ -277,7 +279,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 	public Collection<? extends Trigger> getAllTriggers() {
         return nameMap.values();
     }
-
+    
     public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
     }

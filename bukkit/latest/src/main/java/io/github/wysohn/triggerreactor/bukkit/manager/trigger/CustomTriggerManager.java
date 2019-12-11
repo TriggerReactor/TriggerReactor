@@ -83,6 +83,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     private static final String basePackageName = "org.bukkit.event";
+    
+    public Collection<String> getAbbreviations() {
+    	return ABBREVIATIONS.keySet();
+    }
 
     protected void initEvents() throws IOException {
         for (String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)) {

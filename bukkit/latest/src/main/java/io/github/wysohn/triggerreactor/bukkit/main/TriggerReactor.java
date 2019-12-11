@@ -125,6 +125,6 @@ public class TriggerReactor extends JavaPlugin {
     //only for /trg command
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-    	return io.github.wysohn.triggerreactor.core.main.TriggerReactor.getInstance().onTabComplete(args);
+		return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(args);
     }
 }

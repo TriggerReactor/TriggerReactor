@@ -42,7 +42,8 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
+    @SuppressWarnings("serial")
+	private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
         put("onJoin", ClientConnectionEvent.Join.class);
         put("onQuit", ClientConnectionEvent.Disconnect.class);
         //put("onPlayerDeath", DestructEntityEvent.Death.class); same as entity death event
@@ -81,6 +82,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     private static final String basePackageName = "org.spongepowered.api.event";
+    
+    public Collection<String> getAbbreviations() {
+    	return ABBREVIATIONS.keySet();
+    }
 
     protected void initEvents() throws IOException {
         for (String clazzName : ReflectionUtil.getAllClasses(Sponge.class.getClassLoader(), basePackageName)) {

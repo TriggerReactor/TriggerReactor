@@ -1,4 +1,4 @@
-/*******************************************************************************
+/***************************************************************************
  *     Copyright (C) 2018 wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
@@ -1249,40 +1249,61 @@ public abstract class TriggerReactor implements TaskSupervisor {
     
     //returns all strings in completions that start with prefix.
     private static List<String> filter(Collection<String> completions, String prefix) {
-    	prefix = prefix.trim();
+    	prefix = prefix.trim().toUpperCase();
     	List<String> filtered = new ArrayList<String>();
     	for (String s : completions) {
-    		if (s.startsWith(prefix)) {
+    		if (s.toUpperCase().startsWith(prefix)) {
     			filtered.add(s);
     		}
     	}
     	return filtered;
     }
     
+    //get all trigger names for a manager
+    private static List<String> triggerNames(AbstractTriggerManager manager) {
+    	List<String> names = new ArrayList<String>();
+    	for (Trigger trigger : manager.getAllTriggers()) {
+		    names.add(trigger.getTriggerName());
+		}
+    	return names;
+    }
+    
     private static List<String> EMPTY = new ArrayList<String>();
 
     //only for /trg command
-    public List<String> onTabComplete(String[] args) {
-    	if (args.length == 1) {
-    	    return filter(Arrays.asList("area", "click", "command", "custom", "delete", "help", "inventory", "item", "list", 
+    public static List<String> onTabComplete(String[] args) {
+    	switch (args.length) {
+    	case 1:
+    	    return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "delete", "help", "inventory", "item", "list", 
     	    		"reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
-    	}
-    	if (args.length == 2) {
-    		List<String> names = new ArrayList<String>();
-    		
-    		if (args[0].equals("area")) {
-    			for (Trigger trigger : getInstance().getAreaManager().getAllTriggers()) {
-    			    names.add(trigger.getTriggerName());
-    			}
-    			
+    	case 2:
+    		switch (args[0]) {
+    		case "area":
+    		case "a":
+    			List<String> names = triggerNames(getInstance().getAreaManager());
     			// /trg area toggle
     			names.add("toggle");
     			return filter(names, args[1]);
+    		case "cmd":
+    		case "command":
+    			return filter(triggerNames(getInstance().getCmdManager()), args[1]);
+    		case "custom":
+    			//event list
+    			return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
     		}
-    	}
-    	if (args.length == 3) {
-    		if (args[0].equals("area") && !args[1].equals("toggle")) {
-    			return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+    	case 3:
+    		switch (args[0]) {
+    		case "area":
+    		case "a":
+    		    if (!args[1].equals("toggle")) {
+    		    	return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+    		    }
+    		    return EMPTY;
+    		case "command":
+    		case "cmd":
+    			return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
+    		case "custom":
+    			return filter(triggerNames(getInstance().getCustomManager()), args[2]);
     		}
     	}
     	return EMPTY;
