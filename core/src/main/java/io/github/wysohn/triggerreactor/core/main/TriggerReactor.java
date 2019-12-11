@@ -1274,10 +1274,10 @@ public abstract class TriggerReactor implements TaskSupervisor {
     public static List<String> onTabComplete(String[] args) {
     	switch (args.length) {
     	case 1:
-    	    return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "delete", "help", "inventory", "item", "list", 
+    	    return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list", 
     	    		"reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
     	case 2:
-    		switch (args[0]) {
+    		switch (args[0].toLowerCase()) {
     		case "area":
     		case "a":
     			List<String> names = triggerNames(getInstance().getAreaManager());
@@ -1290,12 +1290,29 @@ public abstract class TriggerReactor implements TaskSupervisor {
     		case "custom":
     			//event list
     			return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+    		case "delete":
+    		case "del":
+    			return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
+    		case "inventory":
+    		case "i":
+    			return filter(triggerNames(getInstance().getInvManager()), args[1]);
+    		case "item":
+    			return filter(Arrays.asList("lore", "title"), args[1]);
+    		case "repeat":
+    		case "r":
+    			return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
+    		case "sudo":
+    			return null; //player selection
+    		case "synccustom":
+    			return filter(triggerNames(getInstance().getCustomManager()), args[1]);
+    		case "timings":
+    			return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
     		}
     	case 3:
-    		switch (args[0]) {
+    		switch (args[0].toLowerCase()) {
     		case "area":
     		case "a":
-    		    if (!args[1].equals("toggle")) {
+    		    if (!args[1].equalsIgnoreCase("toggle")) {
     		    	return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
     		    }
     		    return EMPTY;
@@ -1304,6 +1321,43 @@ public abstract class TriggerReactor implements TaskSupervisor {
     			return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
     		case "custom":
     			return filter(triggerNames(getInstance().getCustomManager()), args[2]);
+    		case "delete":
+    		case "del":
+    			AbstractTriggerManager manager;
+    			switch(args[1]) {
+    			case "cmd":
+    			case "command":
+    				manager = getInstance().getCmdManager();
+    				break;
+    			case "custom":
+    				manager = getInstance().getCustomManager();
+    				break;
+    			//"vars" and "variables" also possible, but I won't be offering completions for these
+    			default:
+    				return EMPTY;
+    			}
+    			return filter(triggerNames(manager), args[2]);
+    		case "inventory":
+    		case "i":
+    			return filter(Arrays.asList("column", "create", "delete", "edit", "item", "open", "row"), args[2]);
+    		case "item":
+    			if (args[1].equals("lore")) {
+    				return filter(Arrays.asList("add", "set", "remove"), args[2]);
+    			}
+    		case "repeat":
+    		case "r":
+    			return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
+    		}
+    	case 4:
+    		switch (args[0].toLowerCase()) {
+    		case "inventory":
+    		case "i":
+    			if (args[2].equalsIgnoreCase("open")) {
+    				return null; //player selection
+    			}
+    			if (args[2].equalsIgnoreCase("create")) {
+    				return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
+    			}
     		}
     	}
     	return EMPTY;
