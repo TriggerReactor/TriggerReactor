@@ -21,16 +21,16 @@ validation = {
     ]
 }
 var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes')
-var GridInventory = Java.type('org.spongepowered.api.item.inventory.type.GridInventory')
+var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory')
 var ItemTypes = Java.type('org.spongepowered.api.item.ItemTypes')
 var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
 function playerinv(args){
     if(player == null)
         return null;
 
-    if(overload == 1){
+    if(overload == 0){
         var carriedInv = player.getInventory();
-        var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
+        var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
 
         var y = args[0] / 9;
         var x = args[0] % 9;
