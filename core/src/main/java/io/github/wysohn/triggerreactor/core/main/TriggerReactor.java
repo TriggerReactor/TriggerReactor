@@ -229,16 +229,21 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         //if no permission is given, delete all permission required
+                        String[] permissions = null;
                         if (args.length == 3) {
                             trigger.setPermissions(null);
                         } else {
-                            String[] permissions = new String[args.length - 3];
+                            permissions = new String[args.length - 3];
                             for (int i = 3; i < args.length; i++) {
                                 permissions[i - 3] = args[i];
                             }
                             trigger.setPermissions(permissions);
                         }
-                        sender.sendMessage("&7Permission(s) is(are) set.");
+                        if (permissions == null ) {
+                        	sender.sendMessage("&7Cleared permissions");
+                        } else {
+                        	sender.sendMessage("&7Set permissions.");
+                        }
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
@@ -248,17 +253,23 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         getCmdManager().removeAliases(trigger);
 
                         //if no aliases is given, delete all aliases
+                        String[] aliases = null;
                         if (args.length == 3) {
                             trigger.setAliases(null);
                         } else {
-                            String[] aliases = new String[args.length - 3];
+                            aliases = new String[args.length - 3];
                             for (int i = 3; i < args.length; i++) {
                                 aliases[i - 3] = args[i];
                             }
                             trigger.setAliases(aliases);
                             getCmdManager().registerAliases(trigger);
                         }
-                        sender.sendMessage("&7Aliases(s) is(are) set.");
+                        if (aliases == null) {
+                        	sender.sendMessage("&7Cleared aliases");
+                        }
+                        else {
+                            sender.sendMessage("&7Set Aliases");
+                        }
                         saveAsynchronously(getCmdManager());
                     } else if (getCmdManager().hasCommandTrigger(args[1])) {
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
@@ -425,6 +436,14 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         } catch (NumberFormatException e) {
                             sender.sendMessage("&c" + "" + size + " is not a valid number");
                             return true;
+                        }
+                        if (size > 54 || size < 9) {
+                        	sender.sendMessage("&csize must be between 9 and 54");
+                        	return true;
+                        }
+                        if (size % 9 != 0) {
+                        	sender.sendMessage("&csize must be a multiple of 9");
+                        	return true;
                         }
 
                         if (args.length == 4) {
@@ -744,7 +763,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         if (getAreaManager().createArea(name, selected.getSmallest(), selected.getLargest())) {
-                            sender.sendMessage("&aArea Trigger has created!");
+                            sender.sendMessage("&aCreated area trigger: " + name);
 
                             saveAsynchronously(getAreaManager());
 
@@ -762,7 +781,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                             getSelectionManager().resetSelections(((IPlayer) sender).getUniqueId());
                         } else {
-                            sender.sendMessage("&7Area Trigger " + name + " does not exists.");
+                            sender.sendMessage("&7Area Trigger " + name + " does not exist.");
                         }
                     } else if (args.length > 2 && args[2].equals("enter")) {
                         String name = args[1];
