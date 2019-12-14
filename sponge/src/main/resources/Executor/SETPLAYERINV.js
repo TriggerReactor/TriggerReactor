@@ -14,28 +14,33 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-/**
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
 validation = {
     "overloads": [
-        [{"name":"slot", "type": "int"},{"name":"item", "type": itemStackType.class}]
+       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 35},
+            {"name": "item"}]
     ]
-
 }
+var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes')
+var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory')
+var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
 function SETPLAYERINV(args){
     if(player == null)
         return null;
 
-    var slot = args[0]
-    var item = args[1];
-    if(slot < 0 || slot >= player.getInventory().getSize())
-        throw new Error('Unexpected token: slot number should be at least 0, up to 35.');
+    if(overload == 0){
+        var itemStack = args[1];
+        if(!(itemStack instanceof ItemStack))
+            throw new Error("Invalid item: " + itemStack)
 
-    if(item == null)
+        var carriedInv = player.getInventory();
+        var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
+
+        var y = args[0] / 9;
+        var x = args[0] % 9;
+
+        var result = grids.set(x, y, itemStack);
+        //should we return result?
+
         return null;
-
-
-    player.getInventory().setItem(slot, item);
-    return null;
+    }
 }
-**/
