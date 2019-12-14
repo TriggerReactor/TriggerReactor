@@ -35,11 +35,6 @@ function playerinv(args){
         var y = args[0] / 9;
         var x = args[0] % 9;
 
-        var item = grids.peek(x, y).orElse(null);
-        if(item == null){
-            item = ItemStack.builder().itemType(ItemTypes.AIR).build();
-        }
-
-        return item;
+        return grids.peek(x, y).orElse(ItemStack.builder().itemType(ItemTypes.AIR).build());
     }
 }
