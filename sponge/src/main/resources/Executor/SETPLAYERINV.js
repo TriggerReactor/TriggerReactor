@@ -16,7 +16,7 @@
  *******************************************************************************/
 validation = {
     "overloads": [
-       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 35},
+       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 44},
             {"name": "item"}]
     ]
 }

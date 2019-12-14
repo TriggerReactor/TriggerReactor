@@ -17,7 +17,7 @@
 
 validation = {
     "overloads": [
-       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 35}]
+       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 44}]
     ]
 }
 var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes')
