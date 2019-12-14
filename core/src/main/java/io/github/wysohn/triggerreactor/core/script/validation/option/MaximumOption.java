@@ -11,6 +11,6 @@ public class MaximumOption extends ValidationOption {
         if (((Number) value).doubleValue() <= ((Number) arg).doubleValue()) {
             return null;
         }
-        return "%name% must be less than or equal to " + value;
+        return "%name% must be less than or equal to " + arg;
     }
 }
