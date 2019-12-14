@@ -1,18 +1,19 @@
 package io.github.wysohn.triggerreactor.core.script.validation;
 
-import java.util.ArrayList;
-import java.util.List;
-import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationOption;
+import io.github.wysohn.triggerreactor.core.script.validation.option.*;
 import io.github.wysohn.triggerreactor.tools.JSArrayIterator;
 import jdk.nashorn.api.scripting.JSObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Validator {
 	private final Overload[] overloads;
-	
+
 	private Validator() {
 		overloads = null;
 	}
-	
+
 	private Validator(Overload[] overloads) {
 		this.overloads = overloads;
 		/*
@@ -78,28 +79,35 @@ public class Validator {
 				List<Arg> argList = new ArrayList<>();
 				
 				for (Object argObject : new JSArrayIterator((JSObject) overload)) {
-					Arg arg = new Arg();
-					
+					Arg arg = new Arg(validationOptions);
+
 					for (String key : ((JSObject) argObject).keySet()) {
-						ValidationOption option = ValidationOption.forName(key);
+						ValidationOption option = validationOptions.forName(key);
 						Object value = getOrFail((JSObject) argObject, key);
 						if (!(option.canContain(value))) {
 							throw new ValidationException("Invalid value for option " + option.getClass().getSimpleName() +
 									" : " + value);
 						}
-						
+
 						arg.addOption(option, value);
 					}
 					argList.add(arg);
 				}
-				
+
 				Arg[] args = argList.toArray(new Arg[0]);
 				overloadList.add(new Overload(args));
 			}
-			
+
 			return new Validator(overloadList.toArray(new Overload[0]));
 		} catch (ClassCastException e) {
 			throw new ValidationException("Incorrect data type found while processing validation info", e);
 		}
 	}
+
+	private static final ValidationOptions validationOptions = new ValidationOptionsBuilder()
+			.addOption(new MinimumOption(), "minimum")
+			.addOption(new MaximumOption(), "maximum")
+			.addOption(new NameOption(), "name")
+			.addOption(new TypeOption(), "type")
+			.build();
 }
