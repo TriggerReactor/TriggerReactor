@@ -14,26 +14,32 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-/**
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
 validation = {
     "overloads": [
-        [{"name": "index", "type": "int"}, {"name":"item", "type": itemStackType.class}]
+        [{"name": "index", "type": "int"}, {"name":"item"}]
     ]
 }
+var InteractInventoryEvent = Java.type('org.spongepowered.api.event.item.inventory.InteractInventoryEvent');
+var ClickInventoryEvent = Java.type('org.spongepowered.api.event.item.inventory.ClickInventoryEvent');
 function SETSLOT(args){
-    var invOpenEvent = Java.type('org.bukkit.event.inventory.InventoryOpenEvent');
-    var invClickEvent = Java.type('org.bukkit.event.inventory.InventoryClickEvent');
-    var invCloseEvent = Java.type('org.bukkit.event.inventory.InventoryCloseEvent');
-    if(event instanceof invOpenEvent || event instanceof invClickEvent || event instanceof invCloseEvent){
+    if(event instanceof InteractInventoryEvent.Open || event instanceof ClickInventoryEvent
+        || event instanceof InteractInventoryEvent.Close){
+            var itemStack = args[1];
+            if(!(itemStack instanceof ItemStack))
+                throw new Error("Invalid item: " + itemStack)
 
-        if(args[0] < 0 || args[0] >= event.getInventory().getSize())
-            throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
-        else
-            var item = event.getInventory().setItem(args[0], args[1]);
-            return null;
+            if(args[0] < 0 || args[0] >= inventory.capacity())
+                throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
+            else{
+                var y = args[0] / 9;
+                var x = args[0] % 9;
+
+                var result = inventory.set(x, y, itemStack);
+                //should we return result?
+
+                return null;
+            }
     }else {
-        throw new Error('$slot Placeholder is available only in InventoryTrigger!');
+        throw new Error('#SETSLOT Executor is available only in InventoryTrigger!');
     }
 }
-**/
