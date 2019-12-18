@@ -816,4 +816,42 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertInvalid("NOPE");
         test.assertInvalid(true, 0);
     }
+
+    @Test
+    public void testSetType() throws Exception {
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        Material newDirt = Material.valueOf("DIRT");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+
+        ExecutorTest test = new ExecutorTest(engine, "SETTYPE");
+
+        test.withArgs("DIRT", vItem).test();
+
+        Mockito.verify(vItem).setType(newDirt);
+
+        test.assertValid("STONE", vItem);
+        test.assertInvalid(1, vItem);
+        test.assertInvalid(1, 3);
+        test.assertInvalid("h", "d");
+        test.assertInvalid(vItem, 2);
+    }
+
+    @Test
+    public void testSetCount() throws Exception {
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+
+        ExecutorTest test = new ExecutorTest(engine, "SETCOUNT");
+
+        test.withArgs(3, vItem).test();
+
+        Mockito.verify(vItem).setAmount(3);
+
+        test.assertValid(1, vItem);
+        test.assertInvalid(1, 3);
+        test.assertInvalid("h", "d");
+        test.assertInvalid(vItem, 2);
+    }
 }

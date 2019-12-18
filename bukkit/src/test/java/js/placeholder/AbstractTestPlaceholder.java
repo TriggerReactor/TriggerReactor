@@ -249,4 +249,20 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid("hi");
         test.assertInvalid(true);
     }
+
+    @Test
+    public void testCount() throws Exception {
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        PlaceholderTest test = new PlaceholderTest(engine, "count");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        PowerMockito.when(vItem, "getAmount").thenReturn(34);
+
+        Object result = test.withArgs(vItem).test();
+
+        Assert.assertEquals(result, 34);
+        test.assertValid(vItem);
+        test.assertInvalid("hi");
+        test.assertInvalid(24);
+    }
 }
