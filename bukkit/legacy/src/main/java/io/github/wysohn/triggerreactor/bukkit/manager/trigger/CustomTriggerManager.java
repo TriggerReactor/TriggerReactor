@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -41,6 +42,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
+    @SuppressWarnings("serial")
     private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
         put("onJoin", PlayerJoinEvent.class);
         put("onQuit", PlayerQuitEvent.class);
@@ -48,11 +50,13 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onInteract", PlayerInteractEvent.class);
         put("onInteractEntity", PlayerInteractEntityEvent.class);
         put("onChat", AsyncPlayerChatEvent.class);
+        put("onCommand", PlayerCommandPreprocessEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
         put("onEntityDeath", EntityDeathEvent.class);
 
         put("onBlockPlace", BlockPlaceEvent.class);
+        put("onBlockMultiPlace", BlockMultiPlaceEvent.class);
         put("onBlockBreak", BlockBreakEvent.class);
 
         put("onStart", TriggerReactorStartEvent.class);
@@ -79,6 +83,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     private static final String basePackageName = "org.bukkit.event";
+
+    public Collection<String> getAbbreviations() {
+        return ABBREVIATIONS.keySet();
+    }
 
     protected void initEvents() throws IOException {
         for (String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)) {

@@ -73,7 +73,8 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
                 invocation -> {
                     return mockWorld;
                 });
-        Collection<? extends Player> players = new ArrayList<Player>(){{
+        @SuppressWarnings("serial")
+        Collection<? extends Player> players = new ArrayList<Player>() {{
             add(mockPlayer);
         }};
         PowerMockito.doReturn(players).when(Bukkit.class, "getOnlinePlayers");

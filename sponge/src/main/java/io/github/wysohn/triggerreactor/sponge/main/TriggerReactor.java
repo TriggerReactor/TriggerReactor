@@ -499,12 +499,30 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected String getPluginDescription() {
+    public String getPluginDescription() {
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
         if (plugin != null)
             return plugin.getDescription().orElse(ID + " v[?]");
         else
             return ID + " v[?]";
+    }
+
+    @Override
+    public String getVersion() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null)
+            return plugin.getVersion().orElse("?");
+        else
+            return "?";
+    }
+
+    @Override
+    public String getAuthor() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null)
+            return plugin.getAuthors().toString();
+        else
+            return "?";
     }
 
     @Override
@@ -630,7 +648,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equals(command)) {
+                if ("CALL".equalsIgnoreCase(command)) {
                     if (args.length < 1)
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
@@ -656,7 +674,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException("Parameter type not match; it should be a String."
                                 + " Make sure to put double quotes, if you provided String literal.");
                     }
-                } else if ("CANCELEVENT".equals(command)) {
+                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
                     if (!interpreter.isSync())
                         throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
@@ -666,7 +684,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                     } else {
                         throw new RuntimeException(context + " is not a Cancellable event!");
                     }
-                } else if ("COOLDOWN".equals(command)) {
+                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
                     if (!(args[0] instanceof Number))
                         throw new RuntimeException(args[0] + " is not a number!");
 
@@ -733,7 +751,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equals(command)) {
+                if ("CALL".equalsIgnoreCase(command)) {
                     if (args.length < 1)
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
@@ -759,7 +777,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException("Parameter type not match; it should be a String."
                                 + " Make sure to put double quotes, if you provided String literal.");
                     }
-                } else if ("CANCELEVENT".equals(command)) {
+                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
                     if (!interpreter.isSync())
                         throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
@@ -769,7 +787,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                     } else {
                         throw new RuntimeException(context + " is not a Cancellable event!");
                     }
-                } else if ("COOLDOWN".equals(command)) {
+                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
                     if (!(args[0] instanceof Number))
                         throw new RuntimeException(args[0] + " is not a number!");
 

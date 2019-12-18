@@ -1,10 +1,17 @@
+validation =  {
+	"overloads" : [
+		[],
+		[{"type": "string", "name": "effect type"}]
+	]
+}
+
 function CLEARPOTION(args){
 	if(player === null)
 		return null;
 
-	if(args.length == 0){
+	if(overload === 0){
 		var list = player.get(Keys.POTION_EFFECTS).orElse(null);
-		if(list == null)
+		if(list === null)
 			return null;
 		list.clear();
 		player.offer(Keys.POTION_EFFECTS, list);

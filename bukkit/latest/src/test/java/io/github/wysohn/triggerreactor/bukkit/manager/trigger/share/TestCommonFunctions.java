@@ -44,9 +44,10 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         return IS1.getType() == IS2.getType() && IS1.getAmount() == IS2.getAmount();
     }
 
+    @SuppressWarnings("deprecation")
     @Test(expected = UnsupportedOperationException.class)
-    public void testTakeItem(){
-        ItemStack IS = new ItemStack(Material.STONE,64);
+    public void testTakeItem() {
+        ItemStack IS = new ItemStack(Material.STONE, 64);
         ItemStack IS2 = new ItemStack(Material.GRANITE, 64);
         FakeInventory inv = fInventory(this, IS, IS2);
 
@@ -74,9 +75,10 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         //TODO: not testable?
     }
 
+    @SuppressWarnings("deprecation")
     @Test(expected = UnsupportedOperationException.class)
-    public void testItem(){
-        ItemStack IS = new ItemStack(Material.STONE,64);
+    public void testItem() {
+        ItemStack IS = new ItemStack(Material.STONE, 64);
         ItemStack IS2 = new ItemStack(Material.GRANITE, 63);
 
         Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));

@@ -18,6 +18,10 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
+import io.github.wysohn.triggerreactor.core.script.validation.Validator;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
@@ -114,6 +118,8 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
 
         private ScriptEngine engine = null;
         private CompiledScript compiled = null;
+        private boolean firstRun = true;
+        private Validator validator = null;
 
         public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(executorName, engine, new FileInputStream(file));
@@ -135,10 +141,31 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             compiled = compiler.compile(sourceCode);
         }
 
+        private void registerValidationInfo(ScriptContext context) {
+            JSObject validation = (JSObject) context.getAttribute("validation");
+            if (validation == null) {
+                return;
+            }
+            this.validator = Validator.from(validation);
+        }
+
+        public ValidationResult validate(Object... args) {
+            if (firstRun) {
+                throw new RuntimeException("the executor must be run at least once before using validate");
+            }
+            return validator.validate(args);
+        }
+
         @Override
-        public Integer execute(boolean sync, Map<String, Object> variables, Object e, Object... args) throws Exception {
+        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
+                               Object... args) throws Exception {
+            Timings.Timing time = timing.getTiming("Executors").getTiming(executorName);
+            time.setDisplayName("#" + executorName);
+
+
             final Bindings bindings = engine.createBindings();
 
+            bindings.put("event", e);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -153,19 +180,31 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 e2.printStackTrace();
             }
 
+            if (firstRun) {
+                registerValidationInfo(scriptContext);
+                firstRun = false;
+            }
+
+            if (validator != null) {
+                ValidationResult result = validator.validate(args);
+                int overload = result.getOverload();
+                if (overload == -1) {
+                    throw new ValidationException(result.getError());
+                }
+                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+            }
+
             JSObject jsObject = (JSObject) scriptContext.getAttribute(executorName);
+            if (jsObject == null)
+                throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
+
             Callable<Integer> call = new Callable<Integer>() {
                 @Override
                 public Integer call() throws Exception {
                     Object argObj = args;
                     Object result = null;
 
-                    if (TriggerReactor.getInstance().isDebugging()) {
-                        long start = System.currentTimeMillis();
-                        result = jsObject.call(null, argObj);
-                        long end = System.currentTimeMillis();
-                        TriggerReactor.getInstance().getLogger().info(executorName + " execution -- " + (end - start) + "ms");
-                    } else {
+                    try (Timings.Timing t = time.begin(true)) {
                         result = jsObject.call(null, argObj);
                     }
 
@@ -178,6 +217,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
 
             if (TriggerReactor.getInstance().isServerThread()) {
                 Integer result = null;
+
                 try {
                     result = call.call();
                 } catch (Exception e1) {

@@ -17,6 +17,8 @@
 package io.github.wysohn.triggerreactor.core.script.lexer;
 
 public class LexerException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     public LexerException(Lexer lexer) {
         super("An Error near row:" + lexer.getRow() + " col:" + lexer.getCol());
     }

@@ -14,42 +14,39 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var plType = Java.type("org.bukkit.entity.Player")
+
+validation = {
+	overloads: [
+		[],
+		[{"name": "player", "type": plType.class}],
+		[{"name": "reason", "type": "string"}],
+		[{"name": "player", "type": plType.class}, {"name": "reason", "type": "string"}]
+	]
+}
+
  function KICK(args) {
-    var plType = Java.type("org.bukkit.entity.Player")
-    if(args.length === 0){
-        if(player === null){
+    switch (overload) {
+    case 0:
+    	if(player === null){
             throw new Error("Too few arguments! You should enter at least on argument if you use KICK executor from console.")
-        }else {
-            player.kickPlayer(ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server."));
-            return null;
         }
-    }else if(args.length === 1) {
-        var undefinedArgument = args[0]
-        if(undefinedArgument === null)
-            throw new Error("Unexpected Error: parameter does not match - player: null")
+        player.kickPlayer(ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server."))
+        break
 
-        if(args[0] instanceof plType) {
-            var definedToPlayer = undefinedArgument;
-            definedToPlayer.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."));
-            return null;
-        } else if(typeof undefinedArgument === "string"){
-            var msg = undefinedArgument;
-            player.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), msg));
-            return null;
-        }else {
-            throw new Error("Found unexpected type of argument: "+ undefinedArgument);
+    case 1:
+    	args[0].kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."))
+    	break
+
+    case 2:
+    	if(player === null){
+            throw new Error("player should not be null")
         }
-    }else if(args.length === 2) {
-        var pl = args[0]
-        var str = args[1]
-        if(!(pl instanceof plType) || !(typeof str === "string")){
-            throw new Error("Found unexpected type of argument(s) - player: "+pl+" | msg: "+ str)
-        }else {
-            pl.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), str))
-            return null;
-        }
-    }else if(args.length > 2){
-       throw new Error("Too many arguments! KICK Executor accepts up to two arguments.")
+    	player.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), args[0]))
+    	break
+
+    case 3:
+    	args[0].kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), args[1]))
+    	break
     }
-
 }

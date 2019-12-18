@@ -16,6 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
+
 import java.util.Map;
 
 public abstract class Executor extends SynchronizableTask {
@@ -25,11 +27,13 @@ public abstract class Executor extends SynchronizableTask {
     public static final int CONTINUE = 3;
 
     /**
-     * @param context
-     * @param vars
-     * @param args
+     * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
+     * @param context the context where the Executor was started
+     * @param vars    variables to be used in the Executor script
+     * @param args    arguments passed from the interpreted code
      * @return usually null; return code to intercept execution
      * @throws Exception
      */
-    protected abstract Integer execute(boolean sync, Map<String, Object> vars, Object context, Object... args) throws Exception;
+    protected abstract Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                       Object... args) throws Exception;
 }
