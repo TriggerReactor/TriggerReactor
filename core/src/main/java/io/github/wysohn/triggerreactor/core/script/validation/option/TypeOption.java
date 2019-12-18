@@ -3,16 +3,6 @@ package io.github.wysohn.triggerreactor.core.script.validation.option;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 
 public class TypeOption extends ValidationOption {
-    static {
-        ValidationOption.register(new TypeOption(), "type");
-    }
-
-    public static void init() {
-    }
-
-    private TypeOption() {
-    }
-
     private static final String[] types = {"int", "number", "boolean", "string"};
 
     @Override

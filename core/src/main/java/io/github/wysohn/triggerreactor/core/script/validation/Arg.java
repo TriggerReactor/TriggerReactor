@@ -1,33 +1,38 @@
 package io.github.wysohn.triggerreactor.core.script.validation;
 
+import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationOption;
+import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationOptions;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import io.github.wysohn.triggerreactor.core.script.validation.option.ValidationOption;
 
 /**
  * Represents a list of ValidationOptions
  */
 public class Arg {
+	private final ValidationOptions validationOptions;
+
 	private Map<ValidationOption, Object> options = new HashMap<>();
-	
-	public Arg() {}
-	
+
+	public Arg(ValidationOptions validationOptions) {
+		this.validationOptions = validationOptions;
+	}
+
 	void addOption(ValidationOption option, Object value) {
 		options.put(option, value);
 	}
-	
+
 	Object getOption(ValidationOption option) {
 		return options.get(option);
 	}
-	
+
 	boolean hasOption(ValidationOption option) {
 		return options.containsKey(option);
 	}
 	
 	//returns a String describing this Arg's type, for error-construction purposes
 	String typeString() {
-		ValidationOption typeOption = ValidationOption.forName("type");
+		ValidationOption typeOption = validationOptions.forName("type");
 		Object type = getOption(typeOption);
 		if (type == null) {
 			return "any";
@@ -35,12 +40,12 @@ public class Arg {
 		if (type instanceof Class<?>) {
 			return ((Class<?>) type).getSimpleName();
 		}
-		
+
 		return type.toString();
 	}
 	
 	String name() {
-		String name = (String) getOption(ValidationOption.forName("name"));
+		String name = (String) getOption(validationOptions.forName("name"));
 		if (name == null) {
 			return "null";
 		}
