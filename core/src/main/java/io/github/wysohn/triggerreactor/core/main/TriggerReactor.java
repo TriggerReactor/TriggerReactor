@@ -1096,10 +1096,10 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> interval <time format>", "Change the interval of this trigger.");
                         sendDetails(sender, "Notice the <time format> is not just a number but has specific format for it. For example, you first"
                                 + " type what number you want to set and also define the unit of it. If you want it to repeat it every 1 hour, 20 minutes,"
-                                + " and 50seconds, then it will be &6" + "/trg r BlahBlah interval 1h20m50s." + "&7 Currently only h, m,"
-                                + " and s are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
+                                + " 50seconds, and 10ticks, then it will be &6" + "/trg r BlahBlah interval 1h20m50s10t." + "&7 Currently only h, m,"
+                                + " s, and t are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
                                 + "&6 /trg r BlahBlah interval 30s40s" + "&7 will be added up to 70seconds total. All units other than"
-                                + " h, m, or s will be ignored.");
+                                + " h, m, s, or t will be ignored.");
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> autostart", "Enable/Disable automatic start for this trigger.");
                         sendDetails(sender, "By setting this to " + "&atrue" + "&7, this trigger will start on plugin enables itself. "
                                 + "Otherwise, you have to start it yourself every time.");
