@@ -27,6 +27,7 @@ import org.spongepowered.api.event.Event;
 import org.spongepowered.api.event.EventListener;
 import org.spongepowered.api.event.block.ChangeBlockEvent;
 import org.spongepowered.api.event.block.InteractBlockEvent;
+import org.spongepowered.api.event.command.SendCommandEvent;
 import org.spongepowered.api.event.entity.DestructEntityEvent;
 import org.spongepowered.api.event.entity.InteractEntityEvent;
 import org.spongepowered.api.event.message.MessageEvent;
@@ -41,6 +42,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
+    @SuppressWarnings("serial")
     private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
         put("onJoin", ClientConnectionEvent.Join.class);
         put("onQuit", ClientConnectionEvent.Disconnect.class);
@@ -48,6 +50,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onInteract", InteractBlockEvent.class);
         put("onInteractEntity", InteractEntityEvent.class);
         put("onChat", MessageEvent.class);
+        put("onCommand", SendCommandEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
         put("onEntityDeath", DestructEntityEvent.Death.class);
@@ -79,6 +82,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     private static final String basePackageName = "org.spongepowered.api.event";
+
+    public Collection<String> getAbbreviations() {
+        return ABBREVIATIONS.keySet();
+    }
 
     protected void initEvents() throws IOException {
         for (String clazzName : ReflectionUtil.getAllClasses(Sponge.class.getClassLoader(), basePackageName)) {

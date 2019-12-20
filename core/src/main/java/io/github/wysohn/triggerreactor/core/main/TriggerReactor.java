@@ -1,4 +1,4 @@
-/*******************************************************************************
+/***************************************************************************
  *     Copyright (C) 2018 wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
@@ -38,8 +38,13 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.Proce
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
+import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -152,18 +157,17 @@ public abstract class TriggerReactor implements TaskSupervisor {
                 if (args[0].equalsIgnoreCase("debug")) {
                     debugging = !debugging;
                     String color;
-                    if (debugging)
-                    {
-                    	color = "a";
+                    if (debugging) {
+                        color = "a";
                     } else {
-                    	color = "c";
+                        color = "c";
                     }
                     sender.sendMessage("Debugging is set to &" + color + debugging);
-                    
-                    getLogger().info("Debugging is set to &e" + debugging);
+
+                    getLogger().info("Debugging state: " + debugging);
                     return true;
                 } else if (args[0].equalsIgnoreCase("version")) {
-                	sender.sendMessage("Current version: 2.2.0");
+                    sender.sendMessage("Current version: " + getVersion());
                     return true;
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
@@ -224,16 +228,21 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         //if no permission is given, delete all permission required
+                        String[] permissions = null;
                         if (args.length == 3) {
                             trigger.setPermissions(null);
                         } else {
-                            String[] permissions = new String[args.length - 3];
+                            permissions = new String[args.length - 3];
                             for (int i = 3; i < args.length; i++) {
                                 permissions[i - 3] = args[i];
                             }
                             trigger.setPermissions(permissions);
                         }
-                        sender.sendMessage("&7Permission(s) is(are) set.");
+                        if (permissions == null) {
+                            sender.sendMessage("&7Cleared permissions");
+                        } else {
+                            sender.sendMessage("&7Set permissions.");
+                        }
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
@@ -243,17 +252,22 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         getCmdManager().removeAliases(trigger);
 
                         //if no aliases is given, delete all aliases
+                        String[] aliases = null;
                         if (args.length == 3) {
                             trigger.setAliases(null);
                         } else {
-                            String[] aliases = new String[args.length - 3];
+                            aliases = new String[args.length - 3];
                             for (int i = 3; i < args.length; i++) {
                                 aliases[i - 3] = args[i];
                             }
                             trigger.setAliases(aliases);
                             getCmdManager().registerAliases(trigger);
                         }
-                        sender.sendMessage("&7Aliases(s) is(are) set.");
+                        if (aliases == null) {
+                            sender.sendMessage("&7Cleared aliases");
+                        } else {
+                            sender.sendMessage("&7Set Aliases");
+                        }
                         saveAsynchronously(getCmdManager());
                     } else if (getCmdManager().hasCommandTrigger(args[1])) {
                         Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
@@ -301,7 +315,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     if (args.length == 3) {
                         if (args[1].equalsIgnoreCase("Item")) {
                             String name = args[2];
-                            if (!getVariableManager().isValidName(name)) {
+                            if (!AbstractVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -321,7 +335,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             sender.sendMessage("&aItem saved!");
                         } else if (args[1].equalsIgnoreCase("Location")) {
                             String name = args[2];
-                            if (!getVariableManager().isValidName(name)) {
+                            if (!AbstractVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -338,7 +352,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             String name = args[1];
                             String value = args[2];
 
-                            if (!getVariableManager().isValidName(name)) {
+                            if (!AbstractVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -421,6 +435,14 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             sender.sendMessage("&c" + "" + size + " is not a valid number");
                             return true;
                         }
+                        if (size > 54 || size < 9) {
+                            sender.sendMessage("&csize must be between 9 and 54");
+                            return true;
+                        }
+                        if (size % 9 != 0) {
+                            sender.sendMessage("&csize must be a multiple of 9");
+                            return true;
+                        }
 
                         if (args.length == 4) {
                             final int sizeCopy = size;
@@ -471,11 +493,11 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                         String name = args[1];
 
-                        int index = -1;
+                        int index;
                         try {
                             index = Integer.parseInt(args[3]);
                         } catch (NumberFormatException e) {
-                            sender.sendMessage("&c" + "" + index + " is not a valid number.");
+                            sender.sendMessage("&c" + "" + args[3] + " is not a valid number.");
                             return true;
                         }
 
@@ -485,14 +507,16 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (index > trigger.getItems().length - 1) {
-                            sender.sendMessage("&c" + "" + index + " is out of bound. (Size: " + trigger.getItems().length + ")");
+                        if (index > trigger.getItems().length - 1 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length - 1) + ")");
                             return true;
                         }
 
                         trigger.getItems()[index] = IS;
-
                         saveAsynchronously(getInvManager());
+
+                        sender.sendMessage("Successfully set item " + index);
+
                     } else if (args.length > 2 && args[2].equalsIgnoreCase("open")) {
                         String name = args[1];
                         IPlayer forWhom = null;
@@ -537,17 +561,86 @@ public abstract class TriggerReactor implements TaskSupervisor {
                                 saveAsynchronously(getInvManager());
                             }
                         });
+                    } else if (args.length == 4 && args[2].equals("row")) {
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        IS = IS == null ? null : IS.clone();
+
+                        String name = args[1];
+
+                        int index;
+                        try {
+                            index = Integer.parseInt(args[3]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("&c" + "" + args[3] + " is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        int rows = trigger.getItems().length / 9;
+                        if (index > rows - 1 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + (rows - 1) + ")");
+                            return true;
+                        }
+
+                        for (int i = 0; i < 9; i++) {
+                            trigger.getItems()[index * 9 + i] = IS;
+                        }
+
+                        saveAsynchronously(getInvManager());
+                        sender.sendMessage("Successfully filled row " + index);
+
+                    } else if (args.length == 4 && args[2].equals("column")) {
+                        IItemStack IS = ((IPlayer) sender).getItemInMainHand();
+                        IS = IS == null ? null : IS.clone();
+
+                        String name = args[1];
+
+                        int index;
+                        try {
+                            index = Integer.parseInt(args[3]);
+                        } catch (NumberFormatException e) {
+                            sender.sendMessage("&c" + "" + args[3] + " is not a valid number.");
+                            return true;
+                        }
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        int rows = trigger.getItems().length / 9;
+                        if (index > 8 || index < 0) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: 9)");
+                            return true;
+                        }
+
+                        for (int i = 0; i < rows; i++) {
+                            trigger.getItems()[index + i * 9] = IS;
+                        }
+
+                        saveAsynchronously(getInvManager());
+                        sender.sendMessage("Successfully filled column " + index);
+
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
                         sendDetails(sender, "/trg i MyInventory create 54");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "set item of inventory to the held item. "
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "sets item of inventory to the held item. "
                                 + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Simply open GUI");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Simply open GUI for <player name>");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> column <index>", "same as the item subcommand, but applied to an entire column."
+                                + "Clears the slot if you are holding nothing.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> row <index>", "same as the item subcommand, but applied to an entire row.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Preview the inventory");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Send <player name> a preview of the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
                     }
                     return true;
@@ -668,7 +761,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         if (getAreaManager().createArea(name, selected.getSmallest(), selected.getLargest())) {
-                            sender.sendMessage("&aArea Trigger has created!");
+                            sender.sendMessage("&aCreated area trigger: " + name);
 
                             saveAsynchronously(getAreaManager());
 
@@ -686,7 +779,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                             getSelectionManager().resetSelections(((IPlayer) sender).getUniqueId());
                         } else {
-                            sender.sendMessage("&7Area Trigger " + name + " does not exists.");
+                            sender.sendMessage("&7Area Trigger " + name + " does not exist.");
                         }
                     } else if (args.length > 2 && args[2].equals("enter")) {
                         String name = args[1];
@@ -1087,6 +1180,54 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     }
                     sender.sendMessage(" ");
                     return true;
+                } else if (args[0].equalsIgnoreCase("timings")) {
+                    if (args.length == 2 && args[1].equalsIgnoreCase("toggle")) {
+                        Timings.on = !Timings.on;
+
+                        if (Timings.on) {
+                            sender.sendMessage("&aEnabled");
+                        } else {
+                            sender.sendMessage("&cDisabled");
+                        }
+                    } else if (args.length == 2 && args[1].equalsIgnoreCase("reset")) {
+                        Timings.reset();
+
+                        sender.sendMessage("&aReset Complete.");
+                    } else if (args.length > 1 && args[1].equalsIgnoreCase("print")) {
+                        OutputStream os;
+
+                        if (args.length > 2) {
+                            String fileName = args[2];
+                            File folder = new File(getDataFolder(), "timings");
+                            if (!folder.exists())
+                                folder.mkdirs();
+                            File file = new File(folder, fileName + ".timings");
+                            if (file.exists())
+                                file.delete();
+                            try {
+                                file.createNewFile();
+                                os = new FileOutputStream(file);
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                                sender.sendMessage("&cCould not create log file. Check console for details.");
+                                return true;
+                            }
+                        } else {
+                            os = new SenderOutputStream(sender);
+                        }
+
+                        try {
+                            Timings.printAll(os);
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+                    } else {
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings toggle", "turn on/off timings analysis. Also analysis will be reset.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings reset", "turn on/off timings analysis. Also analysis will be reset.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings print", "Show analysis result.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] timings print xx", "Save analysis to file named xx.timings");
+                    }
+                    return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
                     for (Manager manager : Manager.getManagers())
                         manager.saveAll();
@@ -1121,6 +1262,122 @@ public abstract class TriggerReactor implements TaskSupervisor {
         }
 
         return true;
+    }
+
+    //returns all strings in completions that start with prefix.
+    private static List<String> filter(Collection<String> completions, String prefix) {
+        prefix = prefix.trim().toUpperCase();
+        List<String> filtered = new ArrayList<String>();
+        for (String s : completions) {
+            if (s.toUpperCase().startsWith(prefix)) {
+                filtered.add(s);
+            }
+        }
+        return filtered;
+    }
+
+    //get all trigger names for a manager
+    private static List<String> triggerNames(AbstractTriggerManager manager) {
+        List<String> names = new ArrayList<String>();
+        for (Trigger trigger : manager.getAllTriggers()) {
+            names.add(trigger.getTriggerName());
+        }
+        return names;
+    }
+
+    private static List<String> EMPTY = new ArrayList<String>();
+
+    //only for /trg command
+    public static List<String> onTabComplete(String[] args) {
+        switch (args.length) {
+            case 1:
+                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
+                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+            case 2:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        List<String> names = triggerNames(getInstance().getAreaManager());
+                        // /trg area toggle
+                        names.add("toggle");
+                        return filter(names, args[1]);
+                    case "cmd":
+                    case "command":
+                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
+                    case "custom":
+                        //event list
+                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                    case "delete":
+                    case "del":
+                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
+                    case "inventory":
+                    case "i":
+                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
+                    case "item":
+                        return filter(Arrays.asList("lore", "title"), args[1]);
+                    case "repeat":
+                    case "r":
+                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
+                    case "sudo":
+                        return null; //player selection
+                    case "synccustom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
+                    case "timings":
+                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
+                }
+            case 3:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        if (!args[1].equalsIgnoreCase("toggle")) {
+                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+                        }
+                        return EMPTY;
+                    case "command":
+                    case "cmd":
+                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
+                    case "custom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
+                    case "delete":
+                    case "del":
+                        AbstractTriggerManager manager;
+                        switch (args[1]) {
+                            case "cmd":
+                            case "command":
+                                manager = getInstance().getCmdManager();
+                                break;
+                            case "custom":
+                                manager = getInstance().getCustomManager();
+                                break;
+                            //"vars" and "variables" also possible, but I won't be offering completions for these
+                            default:
+                                return EMPTY;
+                        }
+                        return filter(triggerNames(manager), args[2]);
+                    case "inventory":
+                    case "i":
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "item", "open", "row"), args[2]);
+                    case "item":
+                        if (args[1].equals("lore")) {
+                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
+                        }
+                    case "repeat":
+                    case "r":
+                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
+                }
+            case 4:
+                switch (args[0].toLowerCase()) {
+                    case "inventory":
+                    case "i":
+                        if (args[2].equalsIgnoreCase("open")) {
+                            return null; //player selection
+                        }
+                        if (args[2].equalsIgnoreCase("create")) {
+                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
+                        }
+                }
+        }
+        return EMPTY;
     }
 
     protected abstract boolean removeLore(IItemStack iS, int index);
@@ -1175,7 +1432,21 @@ public abstract class TriggerReactor implements TaskSupervisor {
      *
      * @return returns the full name of the plugin and its version.
      */
-    protected abstract String getPluginDescription();
+    public abstract String getPluginDescription();
+
+    /**
+     * get Plugin's version as String
+     *
+     * @return version of the plugin as String.
+     */
+    public abstract String getVersion();
+
+    /**
+     * get Author of plugin
+     *
+     * @return author name of the plugin as String.
+     */
+    public abstract String getAuthor();
 
     /**
      * @param args
@@ -1559,6 +1830,12 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
             sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
         });
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+        }));
     }};
 
 //    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{

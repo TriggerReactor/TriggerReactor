@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTriggerManager {
+public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager {
     protected Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
     private Map<UUID, String> settingLocation = new HashMap<>();
 
@@ -55,7 +55,9 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                 if (!isTriggerFile(file))
                     continue;
 
-                String triggerName = extractName(file);
+                String[] extracted = extractPrefix(extractName(file));
+                String prefix = extracted[0];
+                String triggerName = extracted[1];
 
                 SimpleLocation sloc = null;
                 try {
@@ -135,7 +137,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         // Think about this later
         return Collections.emptySet();
     }

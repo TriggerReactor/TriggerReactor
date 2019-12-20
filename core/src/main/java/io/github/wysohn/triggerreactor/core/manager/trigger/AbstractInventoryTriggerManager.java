@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -238,7 +239,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return invenTriggers.values();
     }
 
@@ -313,10 +314,12 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         }
 
         @Override
-        protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+        protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
+                             boolean sync) {
             try {
                 interpreter.startWithContextAndInterrupter(e,
-                        TriggerReactor.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap));
+                        TriggerReactor.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap),
+                        timing);
             } catch (Exception ex) {
                 TriggerReactor.getInstance().handleException(e,
                         new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));

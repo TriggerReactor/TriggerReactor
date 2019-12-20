@@ -61,7 +61,6 @@ public abstract class APISupport extends AbstractAPISupport {
         this.plugin.getLogger().info("Enabled support for " + targetPluginName + " " + target.getDescription().getFullName());
     }
 
-    @SuppressWarnings("serial")
     private static Map<String, Class<? extends AbstractAPISupport>> sharedVars
             = new HashMap<String, Class<? extends AbstractAPISupport>>();
 

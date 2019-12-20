@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.*;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -43,17 +44,19 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
 	private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>();
     static {
-    	ABBREVIATIONS.put("onJoin", PlayerJoinEvent.class);
-    	ABBREVIATIONS.put("onQuit", PlayerQuitEvent.class);
-    	ABBREVIATIONS.put("onPlayerDeath", PlayerDeathEvent.class);
-    	ABBREVIATIONS.put("onInteract", PlayerInteractEvent.class);
-    	ABBREVIATIONS.put("onInteractEntity", PlayerInteractEntityEvent.class);
-    	ABBREVIATIONS.put("onChat", AsyncPlayerChatEvent.class);
+        ABBREVIATIONS.put("onJoin", PlayerJoinEvent.class);
+        ABBREVIATIONS.put("onQuit", PlayerQuitEvent.class);
+        ABBREVIATIONS.put("onPlayerDeath", PlayerDeathEvent.class);
+        ABBREVIATIONS.put("onInteract", PlayerInteractEvent.class);
+        ABBREVIATIONS.put("onInteractEntity", PlayerInteractEntityEvent.class);
+        ABBREVIATIONS.put("onChat", AsyncPlayerChatEvent.class);
+        ABBREVIATIONS.put("onCommand", PlayerCommandPreprocessEvent.class);
 
         //put("onEntitySpawn", EntitySpawnEvent.class);
-    	ABBREVIATIONS.put("onEntityDeath", EntityDeathEvent.class);
+        ABBREVIATIONS.put("onEntityDeath", EntityDeathEvent.class);
 
-    	ABBREVIATIONS.put("onBlockPlace", BlockPlaceEvent.class);
+        ABBREVIATIONS.put("onBlockPlace", BlockPlaceEvent.class);
+        ABBREVIATIONS.put("onBlockMultiPlace", BlockMultiPlaceEvent.class);
         ABBREVIATIONS.put("onBlockBreak", BlockBreakEvent.class);
 
         ABBREVIATIONS.put("onStart", TriggerReactorStartEvent.class);
@@ -80,6 +83,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     private static final String basePackageName = "org.bukkit.event";
+
+    public Collection<String> getAbbreviations() {
+        return ABBREVIATIONS.keySet();
+    }
 
     protected void initEvents() throws IOException {
         for (String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)) {

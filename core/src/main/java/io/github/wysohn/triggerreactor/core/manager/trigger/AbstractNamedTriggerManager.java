@@ -74,7 +74,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return triggers.values();
     }
 

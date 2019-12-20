@@ -24,6 +24,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -35,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager {
+public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager {
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
@@ -109,7 +110,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         areaTriggers.clear();
 
         for (File ymlfile : folder.listFiles(filter)) {
-            String triggerName = extractName(ymlfile);
+            String[] extracted = extractPrefix(extractName(ymlfile));
+            String prefix = extracted[0];
+            String triggerName = extracted[1];
 
             SimpleLocation smallest = null;
             SimpleLocation largest = null;
@@ -416,7 +419,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
     }
 
     @Override
-    protected Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return nameMapper.values();
     }
 
@@ -473,6 +476,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
         @Override
         public Trigger clone() {
             return null;
+        }
+
+        @Override
+        protected String getTimingId() {
+            return StringUtils.dottedPath(super.getTimingId(), area.toString());
         }
 
         @Override
@@ -571,6 +579,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
             }
 
             @Override
+            protected String getTimingId() {
+                return StringUtils.dottedPath(areaTrigger.getTimingId(), "Enter");
+            }
+
+            @Override
             public boolean isSync() {
                 return areaTrigger.isSync();
             }
@@ -600,6 +613,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTriggerManager 
                 this.areaTrigger = areaTrigger;
 
                 init();
+            }
+
+            @Override
+            protected String getTimingId() {
+                return StringUtils.dottedPath(areaTrigger.getTimingId(), "Exit");
             }
 
             @Override

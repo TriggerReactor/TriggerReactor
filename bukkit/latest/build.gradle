@@ -66,5 +66,5 @@ task writePluginYml {
 }
 
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.14.2-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot-api:1.15-R0.1-SNAPSHOT'
 }

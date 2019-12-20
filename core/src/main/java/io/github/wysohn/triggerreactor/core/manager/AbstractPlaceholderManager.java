@@ -18,6 +18,10 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
+import io.github.wysohn.triggerreactor.core.script.validation.Validator;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
@@ -75,9 +79,19 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
         private ScriptEngine engine = null;
         private CompiledScript compiled = null;
+        private boolean firstRun = true;
+        private Validator validator = null;
 
         public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(placeholderName, engine, new FileInputStream(file));
+        }
+
+        private void registerValidationInfo(ScriptContext context) {
+            JSObject validation = (JSObject) context.getAttribute("validation");
+            if (validation == null) {
+                return;
+            }
+            this.validator = Validator.from(validation);
         }
 
         public JSPlaceholder(String placeholderName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
@@ -96,10 +110,22 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             compiled = compiler.compile(sourceCode);
         }
 
+        public ValidationResult validate(Object... args) {
+            if (firstRun) {
+                throw new RuntimeException("the executor must be run at least once before using validate");
+            }
+            return validator.validate(args);
+        }
+
         @Override
-        public Object parse(Object context, Map<String, Object> variables, Object... args) throws Exception {
+        public Object parse(Timings.Timing timing, Object context, Map<String, Object> variables,
+                            Object... args) throws Exception {
+            Timings.Timing time = timing.getTiming("Executors").getTiming(placeholderName);
+            time.setDisplayName("$" + placeholderName);
+
             final Bindings bindings = engine.createBindings();
 
+            bindings.put("event", context);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -114,22 +140,35 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 e2.printStackTrace();
             }
 
+            if (firstRun) {
+                registerValidationInfo(scriptContext);
+                firstRun = false;
+            }
+
+            if (validator != null) {
+                ValidationResult result = validator.validate(args);
+                int overload = result.getOverload();
+                if (overload == -1) {
+                    throw new ValidationException(result.getError());
+                }
+                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+            }
+
             JSObject jsObject = (JSObject) scriptContext.getAttribute(placeholderName);
+            if (jsObject == null)
+                throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
+
             Callable<Object> call = new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
                     Object argObj = args;
+                    Object result = null;
 
-                    if (TriggerReactor.getInstance().isDebugging()) {
-                        Object result = null;
-                        long start = System.currentTimeMillis();
+                    try (Timings.Timing t = time.begin(true)) {
                         result = jsObject.call(null, argObj);
-                        long end = System.currentTimeMillis();
-                        TriggerReactor.getInstance().getLogger().info(placeholderName + " placeholder -- " + (end - start) + "ms");
-                        return result;
-                    } else {
-                        return jsObject.call(null, argObj);
                     }
+
+                    return result;
                 }
             };
 

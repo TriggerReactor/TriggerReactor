@@ -14,19 +14,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+validation = {
+	"overloads": [
+		[{"name": "minimum", "type": "number"}],
+		[{"name": "minimum", "type": "number"}, {"name": "maximum", "type": "number"}]
+	]
+}
+
 function random(args){
-	if(args.length == 1){
-		if(typeof args[0] !== "number")
-			throw new Error("Invalid parameter! [Number]");
+	if(overload === 0){
+		return Math.floor(Math.random() * args[0])
 			
-		return Math.floor(Math.random() * args[0]);
-	}else if(args.length == 2){
-		if(typeof args[0] !== "number"
-			|| typeof args[1] !== "number")
-			throw new Error("Invalid parameter! [Number, Number]");
-			
-		return Math.floor(Math.random() * (args[1] - args[0])) + args[0];
-	}else{
-		throw new Error("Invalid parameter! [Number] or [Number, Number]");
+	} else {
+		return Math.floor(Math.random() * (args[1] - args[0])) + args[0]
 	}
 }

@@ -57,6 +57,7 @@ public class CommonFunctions extends AbstractCommonFunctions {
 
     @Override
     public boolean takeItem(Player player, String id, int amount, int data) {
+        @SuppressWarnings("deprecation")
         ItemStack IS = new ItemStack(Material.valueOf(id), amount, (short) data);
         return takeItem(player, IS, amount);
     }
@@ -80,6 +81,7 @@ public class CommonFunctions extends AbstractCommonFunctions {
         throw new UnsupportedOperationException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ItemStack item(String type, int amount, int data) {
         return new ItemStack(Material.valueOf(type), amount, (short) data);
