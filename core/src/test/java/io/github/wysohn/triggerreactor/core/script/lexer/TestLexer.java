@@ -319,4 +319,15 @@ public class TestLexer {
     public void testEndline() throws Exception {
 
     }
+
+    @Test
+    public void testImportWithUnderscore() throws Exception{
+        Charset charset = Charset.forName("UTF-8");
+        String text;
+        Lexer lexer;
+
+        text = "IMPORT net.md_5.bungee.api.chat.ComponentBuilder";
+        lexer = new Lexer(text, charset);
+        assertEquals(new Token(Type.IMPORT, "net.md_5.bungee.api.chat.ComponentBuilder"), lexer.getToken());
+    }
 }
