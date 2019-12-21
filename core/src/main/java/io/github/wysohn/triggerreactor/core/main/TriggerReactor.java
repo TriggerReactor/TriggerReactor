@@ -509,12 +509,12 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (index > trigger.getItems().length - 1 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length - 1) + ")");
+                        if (index > trigger.getItems().length|| index < 1) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length) + ")");
                             return true;
                         }
 
-                        trigger.getItems()[index] = IS;
+                        trigger.getItems()[index - 1] = IS;
                         saveAsynchronously(getInvManager());
 
                         sender.sendMessage("Successfully set item " + index);
@@ -584,13 +584,13 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         int rows = trigger.getItems().length / 9;
-                        if (index > rows - 1 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + (rows - 1) + ")");
+                        if (index > rows || index < 1) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + rows + ")");
                             return true;
                         }
 
                         for (int i = 0; i < 9; i++) {
-                            trigger.getItems()[index * 9 + i] = IS;
+                            trigger.getItems()[(index - 1) * 9 + i] = IS;
                         }
 
                         saveAsynchronously(getInvManager());
@@ -617,13 +617,13 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         int rows = trigger.getItems().length / 9;
-                        if (index > 8 || index < 0) {
+                        if (index > 9 || index < 1) {
                             sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: 9)");
                             return true;
                         }
 
                         for (int i = 0; i < rows; i++) {
-                            trigger.getItems()[index + i * 9] = IS;
+                            trigger.getItems()[index - 1 + i * 9] = IS;
                         }
 
                         saveAsynchronously(getInvManager());
@@ -688,8 +688,8 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                         String lore = mergeArguments(args, 4, args.length - 1);
 
-                        if (!setLore(IS, index, lore)) {
-                            sender.sendMessage("&c" + "" + index + " is out of bound.");
+                        if (!setLore(IS, index - 1, lore)) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds.");
                             return true;
                         }
 
@@ -710,7 +710,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (!removeLore(IS, index)) {
+                        if (!removeLore(IS, index - 1)) {
                             sender.sendMessage("&7No lore at index " + index);
                             return true;
                         }
@@ -1395,16 +1395,16 @@ public abstract class TriggerReactor implements TaskSupervisor {
     protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
     private void showHelp(ICommandSender sender) {
-        showHelp(sender, 0);
+        showHelp(sender, 1);
     }
 
     private void showHelp(ICommandSender sender, int page) {
-        page = Math.max(0, Math.min(helpPages.size() - 1, page));
+        page = Math.max(1, Math.min(helpPages.size(), page));
 
         sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        helpPages.get(page).sendParagraph(sender);
+        helpPages.get(page - 1).sendParagraph(sender);
         sender.sendMessage("");
-        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size() - 1) + " &8- &6/trg help <page> &7to see other pages.");
+        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
 
     /**
