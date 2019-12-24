@@ -103,6 +103,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
+    private AbstractInventoryEditManager invEditManager;
 
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
@@ -147,6 +148,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     @Override
     public AbstractAreaSelectionManager getSelectionManager() {
         return selectionManager;
+    }
+    
+    public AbstractInventoryEditManager getInvEditManager() {
+    	return invEditManager;
     }
 
     @Override
@@ -237,6 +242,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
         selectionManager = new AreaSelectionManager(this);
+        invEditManager = new InventoryEditManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);

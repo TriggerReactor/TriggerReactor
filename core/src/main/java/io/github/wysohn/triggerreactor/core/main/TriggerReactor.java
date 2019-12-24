@@ -112,6 +112,8 @@ public abstract class TriggerReactor implements TaskSupervisor {
     public abstract AbstractCommandTriggerManager getCmdManager();
 
     public abstract AbstractInventoryTriggerManager getInvManager();
+    
+    public abstract AbstractInventoryEditManager getInvEditManager();
 
     public abstract AbstractAreaTriggerManager getAreaManager();
 
@@ -629,6 +631,17 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         saveAsynchronously(getInvManager());
                         sender.sendMessage("Successfully filled column " + index);
 
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
+                    	String name = args[1];
+                    	
+                    	InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+                    	
+                    	getInvEditManager().startEdit((IPlayer) sender, trigger);
+                    	return true;
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
@@ -1258,6 +1271,24 @@ public abstract class TriggerReactor implements TaskSupervisor {
                     showHelp(sender, page);
                     return true;
                 }
+                else if (args[0].equalsIgnoreCase("links")) {
+                	if (args.length < 2) {
+                		return true;
+                	}
+                	AbstractInventoryEditManager manager = getInvEditManager();
+                	IPlayer player = (IPlayer) sender;
+                	switch (args[1]) {
+                	case "inveditsave":
+                		manager.saveEdit(player);
+                		return true;
+                	case "inveditcontinue":
+                		manager.continueEdit(player);
+                		return true;
+                	case "inveditdiscard":
+                		manager.discardEdit(player);
+                		return true;
+                	}
+                }
             }
 
             showHelp(sender);
@@ -1358,7 +1389,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
     			return filter(triggerNames(manager), args[2]);
     		case "inventory":
     		case "i":
-    			return filter(Arrays.asList("column", "create", "delete", "edit", "item", "open", "row"), args[2]);
+    			return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
     		case "item":
     			if (args[1].equals("lore")) {
     				return filter(Arrays.asList("add", "set", "remove"), args[2]);

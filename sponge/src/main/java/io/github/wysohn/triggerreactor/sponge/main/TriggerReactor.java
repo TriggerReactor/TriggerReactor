@@ -118,6 +118,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
+    private AbstractInventoryEditManager invEditManager;
 
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
@@ -158,6 +159,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         this.locationManager = new PlayerLocationManager(this);
         //this.permissionManager = new PermissionManager(this);
         this.selectionManager = new AreaSelectionManager(this);
+        invEditManager = null;
 
         this.clickManager = new ClickTriggerManager(this);
         this.walkManager = new WalkTriggerManager(this);
@@ -359,6 +361,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractAreaSelectionManager getSelectionManager() {
         return selectionManager;
+    }
+    
+    @Override
+    public AbstractInventoryEditManager getInvEditManager() {
+    	return invEditManager;
     }
 
     @Override
