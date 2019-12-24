@@ -242,8 +242,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
         selectionManager = new AreaSelectionManager(this);
-        //TODO
-        invEditManager = null;
+        invEditManager = new InventoryEditManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
