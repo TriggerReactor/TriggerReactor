@@ -129,6 +129,10 @@ public class Lexer {
         if (c == '"') {
             return readString();
         }
+        
+        if (c == '`') {
+        	return readMultilineString();
+        }
 
         if (isOperator(c)) {
             return readOperator();
@@ -287,6 +291,20 @@ public class Lexer {
         	warnings.add(new StringInterpolationWarning(row, scriptLines[row - 1]));
 
         return new Token(Type.STRING, builder.toString(), row, col);
+    }
+    
+    private Token readMultilineString() throws IOException, LexerException {
+    	StringBuilder builder = new StringBuilder();
+    	
+    	while (read() && c != '`') {
+    		if (c != '\r') //skip carrige returns
+    		    builder.append(c);
+    	}
+    	if (eos)
+    		throw new LexerException("End of stream reached before finding '`'", this);
+    	
+    	read();
+    	return new Token(Type.STRING, builder.toString(), row, col);
     }
 
     private void readEscapeChar(StringBuilder builder) throws LexerException {

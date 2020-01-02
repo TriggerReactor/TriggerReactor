@@ -259,6 +259,45 @@ public class TestLexer {
         testToken(lexer, Type.STRING, "9");
         testEnd(lexer);
     }
+    
+    @Test
+    public void testMultilineString() throws IOException, LexerException {
+    	Charset charset = Charset.forName("UTF-8");
+        Lexer lexer;
+        String text;
+        
+        text = "`\nmerp\nderp\n`";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "\nmerp\nderp\n");
+        testEnd(lexer);
+        
+        text = "`\\\"$hi`";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "\\\"$hi");
+        testEnd(lexer);
+        
+        text = "`\r`";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "");
+        testEnd(lexer);
+        
+        text = "``";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "");
+        testEnd(lexer);
+    }
+    
+    @Test(expected = LexerException.class)
+    public void testMultilineStringException() throws IOException, LexerException {
+    	Charset charset = Charset.forName("UTF-8");
+        Lexer lexer;
+        String text;
+        
+        text = "`\nmerp";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "\nmerp");
+        testEnd(lexer);
+    }
 
     @Test(expected = LexerException.class)
     public void testStringException() throws Exception {
