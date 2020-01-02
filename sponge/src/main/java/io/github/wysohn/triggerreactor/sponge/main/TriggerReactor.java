@@ -159,7 +159,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         this.locationManager = new PlayerLocationManager(this);
         //this.permissionManager = new PermissionManager(this);
         this.selectionManager = new AreaSelectionManager(this);
-        invEditManager = null;
+        this.invEditManager = new InventoryEditManager(this);
 
         this.clickManager = new ClickTriggerManager(this);
         this.walkManager = new WalkTriggerManager(this);
