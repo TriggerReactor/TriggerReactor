@@ -200,7 +200,8 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		//18 items + 36 player items = 54.  We only need the 18 at the top.
 		//but I can't figure out how to get the right inventory.
 		Inventory inv = e.getTargetInventory();
-		suspended.put(u, new SpongeInventory(inv, null));
+		GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(InventoryTitle.of(Text.of(sessions.get(u).getTriggerName()))));
+		suspended.put(u, new SpongeInventory(gridInv, null));
 		p.sendMessage(savePrompt);
 	}
 
