@@ -62,6 +62,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
+import org.spongepowered.api.event.command.TabCompleteEvent;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
@@ -212,7 +213,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             @Override
             public List<String> getSuggestions(CommandSource source, String arguments, Location<World> targetPosition)
                     throws CommandException {
-                return new ArrayList<>();
+            	//return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(arguments.split(" "));
+            	return new ArrayList<>();
             }
 
             @Override
@@ -324,6 +326,18 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
         getExecutorManager().reload();
         getPlaceholderManager().reload();
+    }
+    
+    @Listener
+    public void onTabComplete(TabCompleteEvent.Command e) {
+    	String cmd = e.getCommand();
+    	if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
+    		return;
+    	}
+    	String[] args = e.getArguments().split(" ", -1);
+    	List<String> completions = e.getTabCompletions();
+    	completions.clear();
+    	completions.addAll(io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(args));
     }
 
     @Override
