@@ -18,6 +18,7 @@ import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.type.GridInventory;
+import org.spongepowered.api.item.inventory.type.Inventory2D;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
@@ -200,7 +201,11 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		//18 items + 36 player items = 54.  We only need the 18 at the top.
 		//but I can't figure out how to get the right inventory.
 		Inventory inv = e.getTargetInventory();
-		GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(InventoryTitle.of(Text.of(sessions.get(u).getTriggerName()))));
+		for (Inventory sub : inv) {
+			System.out.println(sub);
+		}
+		//GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(InventoryTitle.of(Text.of(sessions.get(u).getTriggerName()))));
+		Inventory2D gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(Inventory2D.class));
 		suspended.put(u, new SpongeInventory(gridInv, null));
 		p.sendMessage(savePrompt);
 	}
