@@ -53,4 +53,14 @@ public abstract class Manager {
      * Save all triggers
      */
     public abstract void saveAll();
+
+    /**
+     * Empty method to be called when the plugin is about to shutting down.
+     * This method will block main thread so that the managers can finalize whatever it was doing before
+     * the plugin shutting down.
+     * Since this method is empty, the child class must override.
+     */
+    public void disable(){
+
+    }
 }

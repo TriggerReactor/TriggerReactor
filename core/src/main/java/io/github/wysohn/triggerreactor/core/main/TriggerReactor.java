@@ -1381,6 +1381,10 @@ public abstract class TriggerReactor implements TaskSupervisor {
     	}
     	return EMPTY;
     }
+
+    public void onDisable(){
+        Manager.getManagers().forEach(Manager::disable);
+    }
     
     protected abstract boolean removeLore(IItemStack iS, int index);
 

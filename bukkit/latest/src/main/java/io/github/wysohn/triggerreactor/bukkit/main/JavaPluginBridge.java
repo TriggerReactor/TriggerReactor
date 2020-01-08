@@ -326,6 +326,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     }
 
     public void onDisable(JavaPlugin plugin) {
+        getLogger().info("Shutting down the managers...");
+        bukkitPlugin.onDisable();
+        getLogger().info("OK");
+
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
         bungeeConnectionThread.interrupt();

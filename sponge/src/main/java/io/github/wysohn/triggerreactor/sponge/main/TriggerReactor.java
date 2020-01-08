@@ -311,6 +311,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         try {
             Sponge.getEventManager().post(new TriggerReactorStopEvent(TriggerReactor.this));
         } finally {
+            getLogger().info("Shutting down the managers...");
+            onDisable();
+            getLogger().info("OK");
+
             getLogger().info("Finalizing the scheduled script executions...");
             cachedThreadPool.shutdown();
             getLogger().info("Shut down complete!");
