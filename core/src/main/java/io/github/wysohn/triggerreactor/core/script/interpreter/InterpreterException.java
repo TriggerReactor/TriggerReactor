@@ -16,12 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.script.Token;
+
 public class InterpreterException extends Exception {
 	private static final long serialVersionUID = 1L;
-
-	public InterpreterException() {
-        super();
-    }
 
     public InterpreterException(String message) {
         super(message);
@@ -31,4 +29,7 @@ public class InterpreterException extends Exception {
         super(message, cause);
     }
 
+    public InterpreterException(String message, Token context) {
+    	
+    }
 }

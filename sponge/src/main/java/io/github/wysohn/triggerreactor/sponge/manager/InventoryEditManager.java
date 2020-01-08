@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.sponge.manager;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -129,9 +130,6 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		}
 		
 		IInventory inv = suspended.remove(u);
-		
-		//TODO this simply does nothing, probably because the event gives us an inventory we can't use
-		//(see onClose(Close) for more details) fixing that issue would probably fix this method as well
 		player.openInventory(inv);
 	}
 
@@ -201,12 +199,36 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		//18 items + 36 player items = 54.  We only need the 18 at the top.
 		//but I can't figure out how to get the right inventory.
 		Inventory inv = e.getTargetInventory();
-		for (Inventory sub : inv) {
-			System.out.println(sub);
+		
+		//TODO this one came the closest to working.  but pressing continue clears the items
+		/*InventoryTrigger trigger = sessions.get(u);
+		
+		int size = trigger.getItems().length;
+		Inventory newInv = createInventory(size, trigger.getTriggerName());
+		Iterator<Inventory> oldIterator = inv.iterator();
+		Iterator<Inventory> newIterator = newInv.iterator();
+		
+		while (newIterator.hasNext()) {
+			Slot oldSlot = (Slot) oldIterator.next();
+			Slot newSlot = (Slot) newIterator.next();
+			
+			newSlot.offer(oldSlot.peek().orElse(ItemStack.of(ItemTypes.AIR)));
 		}
+		*/
+		
+		/*
+		for (int i = 0; i < size; i++) {
+			Inventory oldSlot = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(i)));
+			Inventory newSlot = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(i)));
+			
+			newSlot.offer(oldSlot.peek().orElse(ItemStack.of(ItemTypes.AIR)));
+		}
+		*/
+		
 		//GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(InventoryTitle.of(Text.of(sessions.get(u).getTriggerName()))));
-		Inventory2D gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(Inventory2D.class));
-		suspended.put(u, new SpongeInventory(gridInv, null));
+		//Inventory2D gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(Inventory2D.class));
+		
+		suspended.put(u, new SpongeInventory(inv, null));
 		p.sendMessage(savePrompt);
 	}
 
