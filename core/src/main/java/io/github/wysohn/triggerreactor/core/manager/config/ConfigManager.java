@@ -17,14 +17,18 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class ConfigManager extends Manager {
     private static final ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -33,11 +37,34 @@ public class ConfigManager extends Manager {
 
     //Lock order: file -> cache
     private final File file;
+    private final Function<File, Reader> readerFactory;
+    private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
 
     public ConfigManager(TriggerReactor plugin, File file) {
-        super(plugin);
-        this.file = file;
+        this(plugin, file, f -> {
+			try {
+				return new FileReader(f);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}, f -> {
+			try {
+				return new FileWriter(f);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		});
+    }
+    
+    public ConfigManager(TriggerReactor plugin, File file,
+    		Function<File, Reader> readerFactory, Function<File, Writer> writerFactory) {
+    	super(plugin);
+    	this.file = file;
+    	this.readerFactory = readerFactory;
+    	this.writerFactory = writerFactory;
     }
 
     private void ensureFile() {
@@ -58,7 +85,7 @@ public class ConfigManager extends Manager {
         ensureFile();
 
         synchronized (file) {
-            try (FileReader fr = new FileReader(file)) {
+            try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
                     Map<String, Object> loaded = gson.fromJson(fr, new TypeToken<Map<String, Object>>() {
                     }.getType());
@@ -89,7 +116,7 @@ public class ConfigManager extends Manager {
      * Blocking operation
      */
     private void cacheToFile() {
-        try (FileWriter fw = new FileWriter(file)) {
+        try (Writer fw = this.writerFactory.apply(file)) {
             synchronized (cache){
                 gson.toJson(cache, fw);
             }
@@ -116,7 +143,15 @@ public class ConfigManager extends Manager {
     }
 
     public Set<String> keys(){
-        return new HashSet<>(cache.keySet());
+    	synchronized(cache) {
+    		return new HashSet<>(cache.keySet());
+    	}
+    }
+    
+    public boolean isSection(String key) {
+    	synchronized(cache) {
+    		return cache.get(key) instanceof Map;
+    	}
     }
 
     /**
