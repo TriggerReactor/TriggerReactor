@@ -78,7 +78,16 @@ public final class ObjectTypeAdapter extends TypeAdapter<Object> {
                 return in.nextString();
 
             case NUMBER:
-                return in.nextDouble();
+                String value = in.nextString();
+                if (value.contains("."))
+                    return Double.parseDouble(value);
+                else
+                    try {
+                        return Integer.parseInt(value);
+                    } catch (NumberFormatException ex) {
+                        return Long.parseLong(value);
+                    }
+//                return in.nextDouble();
 
             case BOOLEAN:
                 return in.nextBoolean();
