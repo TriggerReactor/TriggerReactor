@@ -16,13 +16,7 @@ import io.github.wysohn.triggerreactor.core.manager.config.serialize.UUIDSeriali
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -117,7 +111,7 @@ public class ConfigManager extends Manager {
      */
     private void cacheToFile() {
         try (Writer fw = this.writerFactory.apply(file)) {
-            synchronized (cache){
+            synchronized (cache) {
                 gson.toJson(cache, fw);
             }
         } catch (IOException e) {
@@ -125,16 +119,55 @@ public class ConfigManager extends Manager {
         }
     }
 
+    private <T> T get(Map<String, Object> map, String[] path, Class<T> asType) {
+        for (int i = 0; i < path.length; i++) {
+            String key = path[i];
+            Object value = map.get(key);
+
+            if (i == path.length - 1) {
+                return asType.cast(value);
+            } else if (value instanceof Map) {
+                map = (Map<String, Object>) value;
+            } else {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
     public <T> Optional<T> get(String key, Class<T> asType) {
         synchronized (cache) {
-            return Optional.ofNullable(asType.cast(cache.get(key)));
+            return Optional.ofNullable(get(cache, toPath(key), asType));
         }
     }
 
-    public void put(String key, Object value){
+    public <T> Optional<T> get(String key) {
         synchronized (cache) {
-            cache.put(key, value);
-            exec.execute(()->{
+            return Optional.ofNullable((T) get(cache, toPath(key), Object.class));
+        }
+    }
+
+    private void put(Map<String, Object> map, String[] path, Object value) {
+        for (int i = 0; i < path.length; i++) {
+            String key = path[i];
+
+            if (i == path.length - 1) {
+                map.put(key, value);
+            } else {
+                Object previous = map.computeIfAbsent(key, (k) -> new HashMap<>());
+                if (!(previous instanceof Map))
+                    throw new RuntimeException("Value found at " + key + " is not a section.");
+
+                map = (Map<String, Object>) previous;
+            }
+        }
+    }
+
+    public void put(String key, Object value) {
+        synchronized (cache) {
+            put(cache, toPath(key), value);
+            exec.execute(() -> {
                 synchronized (file) {
                     cacheToFile();
                 }
@@ -150,14 +183,14 @@ public class ConfigManager extends Manager {
     
     public boolean isSection(String key) {
     	synchronized(cache) {
-    		return cache.get(key) instanceof Map;
-    	}
+            return get(cache, toPath(key), Object.class) instanceof Map;
+        }
     }
 
     /**
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
-    public void shutdown(){
+    public void shutdown() {
         exec.shutdown();
         try {
             exec.awaitTermination(20, TimeUnit.SECONDS);
@@ -165,6 +198,34 @@ public class ConfigManager extends Manager {
             e.printStackTrace();
         }
     }
+
+    private static String[] toPath(String key) {
+        Queue<String> path = new LinkedList<>();
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < key.length(); i++) {
+            if (key.charAt(i) == '.') {
+                if (builder.length() > 0) {
+                    path.add(builder.toString());
+                    builder = new StringBuilder();
+                }
+                continue;
+            }
+
+            builder.append(key.charAt(i));
+        }
+
+        if (builder.length() > 0) {
+            path.add(builder.toString());
+        }
+
+        return path.toArray(new String[0]);
+    }
+
+//    public static void main(String[] ar){
+//        System.out.println(Arrays.toString(toPath("..ab.c..de.f....ger")));
+//        System.out.println(Arrays.toString(toPath(".c..de.f....ger...")));
+//    }
 
     private static final TypeAdapter<String> NULL_ADOPTER_STRING = new TypeAdapter<String>() {
 
