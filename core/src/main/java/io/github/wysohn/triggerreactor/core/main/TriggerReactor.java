@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.config.ConfigManager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -36,6 +37,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
@@ -71,6 +73,8 @@ public abstract class TriggerReactor implements TaskSupervisor {
     });
 
     private static TriggerReactor instance;
+
+    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "var.json"));
 
     /**
      * get instance of this class.
@@ -120,6 +124,12 @@ public abstract class TriggerReactor implements TaskSupervisor {
     public abstract AbstractRepeatingTriggerManager getRepeatManager();
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
+
+    public abstract SelfReference getSelfReference();
+
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
 
     private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
     private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");

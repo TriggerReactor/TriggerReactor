@@ -29,7 +29,6 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
@@ -37,6 +36,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -45,15 +45,10 @@ import java.util.logging.Logger;
 public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO {
     private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
 
-    protected static SelfReference common;
-
     protected final File folder;
 
-    public AbstractTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
+    public AbstractTriggerManager(TriggerReactor plugin, File tirggerFolder) {
         super(plugin);
-
-        if (common == null)
-            common = ref;
 
         folder = tirggerFolder;
 
@@ -216,7 +211,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          */
         public void init() throws TriggerInitFailedException {
             try {
-                Charset charset = Charset.forName("UTF-8");
+                Charset charset = StandardCharsets.UTF_8;
 
                 Lexer lexer = new Lexer(script, charset);
                 Parser parser = new Parser(lexer);
@@ -310,11 +305,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
                 if (uuid != null) {
                     Long end = cooldowns.get(uuid);
-                    if (end != null && System.currentTimeMillis() < end) {
-                        return true;
-                    }
-
-                    return false;
+                    return end != null && System.currentTimeMillis() < end;
                 }
             }
             return false;
@@ -333,7 +324,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             interpreter.setPlaceholderMap(placeholderMap);
             interpreter.setGvars(gvarMap);
             interpreter.setVars(scriptVars);
-            interpreter.setSelfReference(common);
+            interpreter.setSelfReference(TriggerReactor.getInstance().getSelfReference());
 
             interpreter.setSync(isSync());
 

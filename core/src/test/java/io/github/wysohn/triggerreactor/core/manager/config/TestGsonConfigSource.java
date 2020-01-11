@@ -15,7 +15,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.*;
 
-public class TestConfigManager {
+public class TestGsonConfigSource {
 	private final String jsonString = "{\r\n" +
 			"  \"array\": [\r\n" +
 			"    1,\r\n" +
@@ -38,7 +38,7 @@ public class TestConfigManager {
 	private TriggerReactor mockMain;
 	private File mockFile;
 	private StringWriter stringWriter;
-	private ConfigManager manager;
+	private GsonConfigSource manager;
 
 	@Before
 	public void init() {
@@ -46,7 +46,7 @@ public class TestConfigManager {
 		mockFile = Mockito.mock(File.class);
 		stringWriter = new StringWriter();
 
-		manager = new ConfigManager(mockMain, mockFile,
+		manager = new GsonConfigSource(mockMain, mockFile,
 				(f) -> new StringReader(jsonString), (f) -> stringWriter);
 	}
 	
@@ -102,7 +102,7 @@ public class TestConfigManager {
 		manager.saveAll();
 
 		String out = stringWriter.toString();
-		GsonBuilder builder = org.powermock.reflect.Whitebox.getInternalState(ConfigManager.class, "builder");
+		GsonBuilder builder = org.powermock.reflect.Whitebox.getInternalState(GsonConfigSource.class, "builder");
 		Gson gson = builder.create();
 		Map<String, Object> deser = gson.fromJson(out, new TypeToken<Map<String, Object>>() {
 		}.getType());
