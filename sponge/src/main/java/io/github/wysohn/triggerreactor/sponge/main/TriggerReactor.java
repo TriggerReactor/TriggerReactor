@@ -23,6 +23,8 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
@@ -31,6 +33,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
@@ -38,13 +41,12 @@ import io.github.wysohn.triggerreactor.sponge.manager.*;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.*;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import org.bstats.sponge.MetricsLite2;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandException;
@@ -128,6 +130,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractRepeatingTriggerManager repeatManager;
 
     private AbstractNamedTriggerManager namedTriggerManager;
+
+    private SelfReference commonFunctions = new CommonFunctions(this);
 
     @Listener
     public void onConstruct(GameInitializationEvent event) {
@@ -243,15 +247,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
         File file = new File(getDataFolder(), "config.yml");
-        if (!file.exists()) {
-            try {
-                Asset asset = Sponge.getAssetManager().getAsset(this, "config.yml").orElseThrow(() -> new IOException("Can't load config.yml"));
-                String configStr = asset.readString();
-                FileUtil.writeToFile(file, configStr);
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        getConfigManager().setMigrationHelper(new IMigrationHelper() {
+            @Override
+            public void migrate(IConfigSource current) {
+                // seems not necessary since we haven't been using config.yml in sponge
             }
-        }
+        });
 
         for (Manager manager : Manager.getManagers()) {
             try {
@@ -403,6 +404,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractNamedTriggerManager getNamedTriggerManager() {
         return namedTriggerManager;
+    }
+
+    @Override
+    public SelfReference getSelfReference() {
+        return commonFunctions;
     }
 
     @Override
@@ -746,8 +752,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         return false;
 
                     //it's not GUI so stop execution
-                    if (!inventoryMap.containsKey(new SpongeInventory(inv, carrier)))
-                        return true;
+                    return !inventoryMap.containsKey(new SpongeInventory(inv, carrier));
                 }
 
                 return false;

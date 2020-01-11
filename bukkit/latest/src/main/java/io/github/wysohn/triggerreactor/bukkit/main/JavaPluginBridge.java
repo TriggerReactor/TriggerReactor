@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -46,6 +47,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bstats.bukkit.MetricsLite;
@@ -113,6 +115,8 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     private AbstractRepeatingTriggerManager repeatManager;
 
     private AbstractNamedTriggerManager namedTriggerManager;
+
+    private SelfReference commonFunctions = new CommonFunctions(this);
 
     @Override
     public AbstractExecutorManager getExecutorManager() {
@@ -187,6 +191,11 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     @Override
     public AbstractNamedTriggerManager getNamedTriggerManager() {
         return namedTriggerManager;
+    }
+
+    @Override
+    public SelfReference getSelfReference() {
+        return commonFunctions;
     }
 
     public BungeeCordHelper getBungeeHelper() {
@@ -531,8 +540,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
                     Inventory inv = ((InventoryEvent) e).getInventory();
 
                     //it's not GUI so stop execution
-                    if (!inventoryMap.containsKey(new BukkitInventory(inv)))
-                        return true;
+                    return !inventoryMap.containsKey(new BukkitInventory(inv));
                 }
 
                 return false;
@@ -786,7 +794,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
             Object out = null;
 
             try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?");) {
+                 PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
                 pstmt.setString(1, key);
                 ResultSet rs = pstmt.executeQuery();
 
@@ -807,11 +815,11 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
 
         public void set(String key, Serializable value) throws SQLException {
             try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)");) {
+                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)")) {
 
 
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     ObjectOutputStream oos = new ObjectOutputStream(baos);) {
+                     ObjectOutputStream oos = new ObjectOutputStream(baos)) {
                     oos.writeObject(value);
 
                     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
