@@ -20,7 +20,6 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Event;
@@ -63,7 +62,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }};
 
     public CustomTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CustomTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"));
 
         try {
             initEvents();

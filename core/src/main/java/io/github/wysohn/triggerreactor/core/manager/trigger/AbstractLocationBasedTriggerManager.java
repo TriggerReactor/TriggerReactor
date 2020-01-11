@@ -22,7 +22,6 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -36,8 +35,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     protected Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
     private Map<UUID, String> settingLocation = new HashMap<>();
 
-    public AbstractLocationBasedTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
+    public AbstractLocationBasedTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+        super(plugin, tirggerFolder);
     }
 
     @Override
@@ -248,7 +247,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
 
         enum BoardType {
-            CUT, COPY;
+            CUT, COPY
         }
     }
 

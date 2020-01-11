@@ -23,7 +23,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongeEntity;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.Sponge;
@@ -49,7 +48,7 @@ import java.util.concurrent.Future;
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements SpongeConfigurationFileIO {
 
     public AreaTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "AreaTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
 
         Thread entityTrackingThread = new Thread(new Runnable() {
 

@@ -18,13 +18,12 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 
 import java.io.File;
 
 public class NamedTriggerManager extends AbstractNamedTriggerManager implements SpongeConfigurationFileIO {
     public NamedTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "NamedTriggers"));
+        super(plugin, new File(plugin.getDataFolder(), "NamedTriggers"));
     }
 
     @Override

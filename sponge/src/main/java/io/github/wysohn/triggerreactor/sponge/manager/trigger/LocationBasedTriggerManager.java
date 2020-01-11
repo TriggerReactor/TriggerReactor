@@ -24,7 +24,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -61,7 +60,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public static final ItemType COPY_TOOL = ItemTypes.PAPER;
 
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
+        super(plugin, new File(plugin.getDataFolder(), folderName));
     }
 
     @Listener(order = Order.LATE)

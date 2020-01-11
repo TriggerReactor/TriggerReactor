@@ -23,7 +23,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTri
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -58,7 +57,7 @@ import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements SpongeConfigurationFileIO {
     public InventoryTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "InventoryTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"));
     }
 
     @Override

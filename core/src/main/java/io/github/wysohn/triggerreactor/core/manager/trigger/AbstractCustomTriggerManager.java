@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -276,12 +275,12 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return nameMap.values();
     }
-    
-    public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
+
+    public AbstractCustomTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+        super(plugin, tirggerFolder);
     }
 
     public static class CustomTrigger extends Trigger implements EventHook {
@@ -339,11 +338,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 return false;
             CustomTrigger other = (CustomTrigger) obj;
             if (triggerName == null) {
-                if (other.triggerName != null)
-                    return false;
-            } else if (!triggerName.equals(other.triggerName))
-                return false;
-            return true;
+                return other.triggerName == null;
+            } else return triggerName.equals(other.triggerName);
         }
 
         public String getEventName() {

@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
@@ -64,7 +63,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }};
 
     public CustomTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CustomTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"));
 
         try {
             initEvents();

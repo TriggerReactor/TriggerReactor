@@ -22,7 +22,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 
@@ -56,8 +55,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AbstractAreaTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
+    public AbstractAreaTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+        super(plugin, tirggerFolder);
 
         Thread referenceCleaningThread = new Thread() {
 
@@ -410,7 +409,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     public enum EventType {
-        ENTER, EXIT;
+        ENTER, EXIT
     }
 
     @Override

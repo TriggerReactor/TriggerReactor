@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -30,7 +29,7 @@ import java.util.Map;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements SpongeConfigurationFileIO {
     public CommandTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CommandTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
     }
 
     @Listener(order = Order.EARLY)

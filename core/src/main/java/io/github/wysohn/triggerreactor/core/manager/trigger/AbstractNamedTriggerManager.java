@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -33,8 +32,8 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
 
     protected final Map<String, Trigger> triggers = new HashMap<>();
 
-    public AbstractNamedTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
+    public AbstractNamedTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+        super(plugin, tirggerFolder);
     }
 
     @Override

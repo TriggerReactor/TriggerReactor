@@ -23,7 +23,6 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
@@ -280,8 +279,8 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         return inventorySharedVars.get(inventory);
     }
 
-    public AbstractInventoryTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
+    public AbstractInventoryTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+        super(plugin, tirggerFolder);
     }
 
     public static class InventoryTrigger extends Trigger {

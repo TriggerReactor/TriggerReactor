@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -30,7 +29,7 @@ import java.io.IOException;
 
 public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements SpongeConfigurationFileIO {
     public RepeatingTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "RepeatTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
     }
 
     @Override

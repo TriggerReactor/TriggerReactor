@@ -17,7 +17,6 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -57,7 +56,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public static final Material COPY_TOOL = Material.PAPER;
 
     public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), folderName));
+        super(plugin, new File(plugin.getDataFolder(), folderName));
     }
 
     @SuppressWarnings("deprecation")

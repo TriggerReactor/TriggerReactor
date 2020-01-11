@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -50,7 +49,7 @@ import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements BukkitTriggerManager {
     public InventoryTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "InventoryTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"));
     }
 
     @Override
