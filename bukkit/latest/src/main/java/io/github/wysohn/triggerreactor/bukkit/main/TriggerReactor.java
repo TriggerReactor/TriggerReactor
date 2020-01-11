@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -27,7 +26,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,16 +41,6 @@ public class TriggerReactor extends JavaPlugin {
     public void onEnable() {
         super.onEnable();
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.exists()) {
-            try {
-                String configStr = FileUtil.readFromStream(getResource("config.yml"));
-                FileUtil.writeToFile(file, configStr);
-            } catch (IOException e) {
-                e.printStackTrace();
-                this.setEnabled(false);
-            }
-        }
         
         PluginCommand trg = this.getCommand("triggerreactor");
         trg.setExecutor(this);
