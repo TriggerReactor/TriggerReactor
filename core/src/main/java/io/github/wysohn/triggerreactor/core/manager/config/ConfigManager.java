@@ -12,7 +12,6 @@ public class ConfigManager extends Manager {
 
     public ConfigManager(TriggerReactor plugin, File file) {
         super(plugin);
-
         this.file = file;
         this.configSource = new GsonConfigSource(file);
     }
