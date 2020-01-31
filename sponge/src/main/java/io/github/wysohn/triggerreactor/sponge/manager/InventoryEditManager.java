@@ -19,7 +19,6 @@ import org.spongepowered.api.item.inventory.property.InventoryTitle;
 import org.spongepowered.api.item.inventory.property.SlotIndex;
 import org.spongepowered.api.item.inventory.query.QueryOperationTypes;
 import org.spongepowered.api.item.inventory.type.GridInventory;
-import org.spongepowered.api.item.inventory.type.Inventory2D;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
@@ -111,6 +110,8 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
 	@Override
 	public void startEdit(IPlayer player, InventoryTrigger trigger) {
+		player.sendMessage("inventory editing is not supported in sponge");
+		/*
 		UUID u = player.getUniqueId();
 		if (sessions.containsKey(u)) {
 			return;
@@ -120,10 +121,12 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		Inventory inv = createInventory(size, trigger.getTriggerName());
 		fillInventory(trigger, size, inv);
 		player.openInventory(new SpongeInventory(inv, null));
+		*/
 	}
 
 	@Override
 	public void continueEdit(IPlayer player) {
+		/*
 		UUID u = player.getUniqueId();
 		if (!suspended.containsKey(u)) {
 			return;
@@ -131,10 +134,12 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		
 		IInventory inv = suspended.remove(u);
 		player.openInventory(inv);
+		*/
 	}
 
 	@Override
 	public void discardEdit(IPlayer player) {
+		/*
 		UUID u = player.getUniqueId();
 		if (!suspended.containsKey(u)) {
 			return;
@@ -142,10 +147,12 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		
 		stopEdit(player);
 		player.sendMessage("Discarded Edits");
+		*/
 	}
 
 	@Override
 	public void saveEdit(IPlayer player) {
+		/*
 		UUID u = player.getUniqueId();
 		if (!suspended.containsKey(u)) {
 			return;
@@ -193,13 +200,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 			return;
 		}
 		
-		//TODO The inventory returned contains both the edited items and the player's stuff.
-		//For example, inside of saveEdit(), I had a debug print that gave all the indicies of the items in the inventory.
-		//When I tested with an 18 item inventory trigger, the item indicies went from 0 to 53.
-		//18 items + 36 player items = 54.  We only need the 18 at the top.
-		//but I can't figure out how to get the right inventory.
 		Inventory inv = e.getTargetInventory();
-		GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class)).first();
 
 		//TODO this one came the closest to working.  but pressing continue clears the items
 		InventoryTrigger trigger = sessions.get(u);
@@ -215,22 +216,17 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
 			newSlot.offer(oldSlot.peek().orElse(ItemStack.of(ItemTypes.AIR)));
 		}
-
-
-
+		
 		for (int i = 0; i < size; i++) {
 			Inventory oldSlot = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(i)));
 			Inventory newSlot = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(i)));
 
 			newSlot.offer(oldSlot.peek().orElse(ItemStack.of(ItemTypes.AIR)));
 		}
-
-
-		//GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(InventoryTitle.of(Text.of(sessions.get(u).getTriggerName()))));
-		//Inventory2D gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(Inventory2D.class));
 		
 		suspended.put(u, new SpongeInventory(inv, null));
 		p.sendMessage(savePrompt);
+		*/
 	}
 
 	@Override
