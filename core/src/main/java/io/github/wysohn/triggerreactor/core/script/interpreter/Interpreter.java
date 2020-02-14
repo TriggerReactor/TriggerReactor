@@ -33,6 +33,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -433,9 +434,12 @@ public class Interpreter {
             return;
         } else {
             for (int i = 0; i < node.getChildren().size(); i++) {
-                //ignore rest of body if continue flag is set
+                //ignore rest of body and continue if continue flag is set
                 if (continueFlag)
                     continue;
+                //ignore rest of body and stop
+                if (breakFlag)
+                    break;
 
                 Node child = node.getChildren().get(i);
                 start(child);
@@ -612,9 +616,9 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                if (((String) node.getToken().value).equals("+")
+                if (node.getToken().value.equals("+")
                         && (left.type == Type.STRING || right.type == Type.STRING)) {
-                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + String.valueOf(right.value), node.getToken()));
+                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + right.value, node.getToken()));
                 } else {
                     if (!left.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
@@ -974,7 +978,7 @@ public class Interpreter {
             Class<?> clazz = (Class<?>) left.value;
 
             try {
-                result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
+                result = ReflectionUtil.invokeMethod(clazz, null, (String) right.value, args);
             } catch (IllegalAccessException e) {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
@@ -1147,7 +1151,7 @@ public class Interpreter {
     }
 
     public static void main(String[] ar) throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = null;" +
                 "y = null;" +
                 "x.y.hoho();";

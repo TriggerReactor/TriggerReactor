@@ -28,11 +28,13 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -40,7 +42,7 @@ import java.util.concurrent.*;
 public class TestInterpreter {
     @Test
     public void testMethod() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "rand = common.random(3);"
                 + "IF rand == 0\n"
@@ -80,7 +82,7 @@ public class TestInterpreter {
 
     @Test
     public void testMethodReturnValue() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "{\"temp1\"} = random(0, 10);"
                 + "{\"temp2\"} = random(0.0, 10.0);"
                 + "{\"temp3\"} = random(0, 10.0);";
@@ -108,7 +110,7 @@ public class TestInterpreter {
 
     @Test
     public void testMethodWithEnumParameter() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
                 + "{\"temp2\"} = temp.testEnumMethod(\"Something\");"
                 + "{\"temp3\"} = random(0, 10.0);";
@@ -138,7 +140,7 @@ public class TestInterpreter {
 
     @Test
     public void testReference() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
@@ -185,7 +187,7 @@ public class TestInterpreter {
 
     @Test
     public void testStringAppend() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "arr = array(4)\n"
                 + "arr[0] = \"beh\"+player.in.health\n"
@@ -225,7 +227,7 @@ public class TestInterpreter {
 
     @Test
     public void testGlobalVariable() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "{text+\".something\"} = 12.54\n"
                 + "#MESSAGE {text+\".something\"}\n";
@@ -258,7 +260,7 @@ public class TestInterpreter {
 
     @Test
     public void testTempGlobalVariable() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "{?text+\".something\"} = 12.54;"
                 + "#MESSAGE {?text+\".something\"};" +
@@ -332,7 +334,7 @@ public class TestInterpreter {
 
     @Test
     public void testGlobalVariableDeletion() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "key = \"temp\";" +
                 "{key} = 1;" +
                 "#TEST1 {key};" +
@@ -378,7 +380,7 @@ public class TestInterpreter {
 
     @Test
     public void testArray() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "args[0] = \"arg1\"\n"
                 + "args[1] = \"arg2\"\n"
@@ -408,7 +410,7 @@ public class TestInterpreter {
 
     @Test
     public void testCustomArray() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "args = array(2)\n"
                 + "args[0] = \"arg1\"\n"
@@ -438,7 +440,7 @@ public class TestInterpreter {
 
     @Test
     public void testIteration2() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "FOR i = 0:10\n"
                 + "    #MESSAGE i\n"
@@ -470,7 +472,7 @@ public class TestInterpreter {
 
     @Test
     public void testIteration3() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "start=0;"
                 + "stop=10;"
@@ -503,7 +505,7 @@ public class TestInterpreter {
 
     @Test
     public void testIteration4() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "start=0;"
                 + "stop=10;"
@@ -536,7 +538,7 @@ public class TestInterpreter {
 
     @Test
     public void testNegation() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "arr = array(6)\n"
                 + "arr[0] = true\n"
@@ -569,7 +571,7 @@ public class TestInterpreter {
 
     @Test
     public void testShortCircuit() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF player != null && player.health == 0.82;"
                 + "    #TEST1 \"work\";"
@@ -623,7 +625,7 @@ public class TestInterpreter {
 
     @Test
     public void testWhile() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "number = 1;"
                 + "WHILE number < 3;"
@@ -646,7 +648,7 @@ public class TestInterpreter {
 
     @Test
     public void testEnumParse() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter\\$TestEnum\","
                 + " \"IMTEST\");";
@@ -668,7 +670,7 @@ public class TestInterpreter {
 
     @Test
     public void testPlaceholder() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 100.0;"
                 + "returnvalue = $test:0:x:true:\"hoho\";"
                 + "#MESSAGE $playername returnvalue;"
@@ -819,7 +821,7 @@ public class TestInterpreter {
 
     @Test
     public void testPlaceholderNull() throws IOException, LexerException, ParserException, InterpreterException {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "a = $merp";
         Lexer lexer = new Lexer(text, charset);
         Parser parser;
@@ -844,7 +846,7 @@ public class TestInterpreter {
 
     @Test
     public void testUnaryMinus() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "#TEST1 -1+-5;"
                 + "#TEST2 -2.0--5;"
@@ -924,7 +926,7 @@ public class TestInterpreter {
     public void testSimpleIf() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x > 0.0;"
                 + "    #TEST1 \"pass\";"
@@ -971,7 +973,7 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf2() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF someunknown != 0.0;"
                 + "    #TEST \"pass\";"
@@ -1004,7 +1006,7 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf3() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF 0.0 != someunknown;"
                 + "    #TEST \"pass\";"
@@ -1037,7 +1039,7 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf4() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF someunknown == someunknown;"
                 + "    #TEST \"pass\";"
@@ -1070,7 +1072,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x < 0.0;"
                 + "    #TEST \"no\";"
@@ -1105,7 +1107,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf2() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x < 0.0;"
                 + "    #TEST \"no\";"
@@ -1140,7 +1142,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf3() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF x > 999;"
                 + "    result = \"test1\";"
@@ -1188,7 +1190,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf4() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1226,7 +1228,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf5() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1268,7 +1270,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIfNoElse() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1309,7 +1311,7 @@ public class TestInterpreter {
 
     @Test
     public void testImport() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
                 + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
                 + "#TEST TheTest;"
@@ -1387,7 +1389,7 @@ public class TestInterpreter {
 
     @Test
     public void testComparison() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST 1 < 2, 2 < 1;"
                 + "#TEST2 5 > 4, 4 > 5;"
                 + "#TEST3 1 <= 1, 3 <= 2;"
@@ -1427,7 +1429,7 @@ public class TestInterpreter {
 
     @Test
     public void testNullComparison() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "IF {\"temp\"} == null;"
                 + "{\"temp\"} = true;"
                 + "ENDIF;";
@@ -1450,7 +1452,7 @@ public class TestInterpreter {
 
     @Test
     public void testLineBreak() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST \"abcd\\nABCD\"";
 
         Lexer lexer = new Lexer(text, charset);
@@ -1476,7 +1478,7 @@ public class TestInterpreter {
 
     @Test
     public void testCarriageReturn() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST \"abcd\\rABCD\"";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1501,7 +1503,7 @@ public class TestInterpreter {
 
     @Test
     public void testISStatement() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT " + TheTest.class.getName() + ";" +
                 "IMPORT " + InTest.class.getName() + ";" +
                 "" +
@@ -1534,7 +1536,7 @@ public class TestInterpreter {
 
     @Test
     public void testBreak() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 0;" +
                 "WHILE x < 5;" +
                 "x = x + 1;" +
@@ -1579,9 +1581,38 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
+
+    @Test
+    public void testBreak2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "FOR i = 0:5;" +
+                "IF i == 3;" +
+                "#BREAK;" +
+                "ENDIF;" +
+                "#TEST;" +
+                "ENDFOR;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = Mockito.mock(Executor.class);
+        Mockito.when(mockExecutor.execute(Mockito.any(), Mockito.anyBoolean(), Mockito.anyMap(),
+                Mockito.any(), ArgumentMatchers.any())).thenReturn(null);
+        executorMap.put("TEST", mockExecutor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+
+        interpreter.startWithContext(null);
+
+        Mockito.verify(mockExecutor, Mockito.times(3)).execute(Mockito.any(), Mockito.anyBoolean(), Mockito.anyMap(),
+                Mockito.any(), ArgumentMatchers.any());
+    }
+
     @Test
     public void testContinue() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 0;" +
                 "i = 0;" +
                 "WHILE i < 5;" +
@@ -1633,7 +1664,7 @@ public class TestInterpreter {
 
     @Test
     public void testContinueIterator() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "sum = 0;" +
                 "FOR val = arr;" +
                 "IF val == 1 || val == 5;" +
@@ -1687,7 +1718,7 @@ public class TestInterpreter {
     public void testSyncAsync() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "SYNC;"
                 + "#TEST1;"
@@ -1765,7 +1796,7 @@ public class TestInterpreter {
     public void testSyncAsync2() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "SYNC;"
                 + "FOR i = 0:1;"
@@ -1847,7 +1878,7 @@ public class TestInterpreter {
     public void testConstructorNoArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest();"
@@ -1889,7 +1920,7 @@ public class TestInterpreter {
     public void testConstructorOneArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(1);"
@@ -1931,7 +1962,7 @@ public class TestInterpreter {
     public void testConstructorThreeArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(2, 5.0, \"hoho\");"
@@ -1973,7 +2004,7 @@ public class TestInterpreter {
     public void testConstructorVarArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(1, 2, 3, 4, 5);"
@@ -2015,7 +2046,7 @@ public class TestInterpreter {
     public void testArrayAndClass() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + TestEnum.class.getName() + ";"
                 + "enumVal = TestEnum.IMTEST;"
@@ -2107,7 +2138,7 @@ public class TestInterpreter {
     }
 
     public enum TestEnum {
-        IMTEST;
+        IMTEST
     }
 
     public static class ConstTest {
