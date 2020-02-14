@@ -97,7 +97,7 @@ public class Lexer {
             eos = true;
             return false;
         } else {
-            if (c == '\n' || c == ';') {
+            if (c == '\n') {
                 row++;
                 col = 0;
             } else {
