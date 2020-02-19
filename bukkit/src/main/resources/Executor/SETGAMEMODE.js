@@ -15,7 +15,7 @@ function SETGAMEMODE(args)
   if(typeof arg === "number"){
     if(arg == 0){
         arg = "survival"
-    }else if(args == 1){
+    }else if(arg == 1){
         arg = "creative"
     }else if(arg == 2){
         arg = "adventure"
