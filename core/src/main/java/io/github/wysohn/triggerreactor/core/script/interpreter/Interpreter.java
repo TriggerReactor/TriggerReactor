@@ -419,6 +419,10 @@ public class Interpreter {
                 // to handle it from the caller
                 copy.setExecutorMap(executorMap);
                 copy.setPlaceholderMap(placeholderMap);
+                
+                //prevents default executors/placeholders from being overwritten by setting the maps
+                copy.initDefaultPlaceholders();
+                copy.initDefaultExecutors();
                 copy.setGvars(gvars);
                 copy.setVars(vars);
                 copy.setSelfReference(selfReference);
