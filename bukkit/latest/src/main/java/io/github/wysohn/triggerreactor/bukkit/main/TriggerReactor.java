@@ -53,7 +53,7 @@ public class TriggerReactor extends JavaPlugin {
                 this.setEnabled(false);
             }
         }
-        
+
         PluginCommand trg = this.getCommand("triggerreactor");
         trg.setExecutor(this);
 
@@ -121,10 +121,10 @@ public class TriggerReactor extends JavaPlugin {
     public boolean isDebugging() {
         return this.javaPluginBridge.isDebugging();
     }
-    
+
     //only for /trg command
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-		return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(args);
+        return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(args);
     }
 }

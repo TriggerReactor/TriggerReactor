@@ -10,65 +10,65 @@ import java.util.Map;
  * Represents a list of ValidationOptions
  */
 public class Arg {
-	private final ValidationOptions validationOptions;
+    private final ValidationOptions validationOptions;
 
-	private Map<ValidationOption, Object> options = new HashMap<>();
+    private Map<ValidationOption, Object> options = new HashMap<>();
 
-	public Arg(ValidationOptions validationOptions) {
-		this.validationOptions = validationOptions;
-	}
+    public Arg(ValidationOptions validationOptions) {
+        this.validationOptions = validationOptions;
+    }
 
-	void addOption(ValidationOption option, Object value) {
-		options.put(option, value);
-	}
+    void addOption(ValidationOption option, Object value) {
+        options.put(option, value);
+    }
 
-	Object getOption(ValidationOption option) {
-		return options.get(option);
-	}
+    Object getOption(ValidationOption option) {
+        return options.get(option);
+    }
 
-	boolean hasOption(ValidationOption option) {
-		return options.containsKey(option);
-	}
-	
-	//returns a String describing this Arg's type, for error-construction purposes
-	String typeString() {
-		ValidationOption typeOption = validationOptions.forName("type");
-		Object type = getOption(typeOption);
-		if (type == null) {
-			return "any";
-		}
-		if (type instanceof Class<?>) {
-			return ((Class<?>) type).getSimpleName();
-		}
+    boolean hasOption(ValidationOption option) {
+        return options.containsKey(option);
+    }
 
-		return type.toString();
-	}
-	
-	String name() {
-		String name = (String) getOption(validationOptions.forName("name"));
-		if (name == null) {
-			return "null";
-		}
-		return name;
-	}
-	
-	/**
-	 * null if the Object matches the validation criteria of this arg
-	 * A string representing the error otherwise
-	 */
-	String validate(Object o) {
-		for (Map.Entry<ValidationOption, Object> entry : options.entrySet()) {
-			String error = entry.getKey().validate(entry.getValue(), o);
-		    if (error == null) {
-		    	continue;
-		    }
-		    
-		    String name = name();
-		    if (name != null) {
-		    	error = error.replace("%name%", name);
-		    }
-		    return error;
-		}
-		return null;
-	}
+    //returns a String describing this Arg's type, for error-construction purposes
+    String typeString() {
+        ValidationOption typeOption = validationOptions.forName("type");
+        Object type = getOption(typeOption);
+        if (type == null) {
+            return "any";
+        }
+        if (type instanceof Class<?>) {
+            return ((Class<?>) type).getSimpleName();
+        }
+
+        return type.toString();
+    }
+
+    String name() {
+        String name = (String) getOption(validationOptions.forName("name"));
+        if (name == null) {
+            return "null";
+        }
+        return name;
+    }
+
+    /**
+     * null if the Object matches the validation criteria of this arg
+     * A string representing the error otherwise
+     */
+    String validate(Object o) {
+        for (Map.Entry<ValidationOption, Object> entry : options.entrySet()) {
+            String error = entry.getKey().validate(entry.getValue(), o);
+            if (error == null) {
+                continue;
+            }
+
+            String name = name();
+            if (name != null) {
+                error = error.replace("%name%", name);
+            }
+            return error;
+        }
+        return null;
+    }
 }

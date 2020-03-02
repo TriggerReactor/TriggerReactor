@@ -5,17 +5,17 @@ import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
-public class PlaceholderExpansionSupport extends PlaceholderExpansion{
+public class PlaceholderExpansionSupport extends PlaceholderExpansion {
     private TriggerReactor plugin;
+
     /**
      * Since we register the expansion inside our own plugin, we
      * can simply use this method here to get an instance of our
      * plugin.
      *
-     * @param plugin
-     *        The instance of our plugin.
+     * @param plugin The instance of our plugin.
      */
-    public PlaceholderExpansionSupport(TriggerReactor plugin){
+    public PlaceholderExpansionSupport(TriggerReactor plugin) {
         this.plugin = plugin;
     }
 
@@ -27,7 +27,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      * @return true to persist through reloads
      */
     @Override
-    public boolean persist(){
+    public boolean persist() {
         return true;
     }
 
@@ -38,7 +38,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      * @return Always true since it's an internal class.
      */
     @Override
-    public boolean canRegister(){
+    public boolean canRegister() {
         return true;
     }
 
@@ -49,7 +49,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      * @return The name of the author as a String.
      */
     @Override
-    public String getAuthor(){
+    public String getAuthor() {
         return plugin.getAuthor();
     }
 
@@ -63,20 +63,20 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      * @return The identifier in {@code %<identifier>_<value>%} as String.
      */
     @Override
-    public String getIdentifier(){
+    public String getIdentifier() {
         return "tr";
     }
 
     /**
      * This is the version of the expansion.
      * <br>You don't have to use numbers, since it is set as a String.
-     *
+     * <p>
      * For convienience do we return the version from the plugin.yml
      *
      * @return The version as a String.
      */
     @Override
-    public String getVersion(){
+    public String getVersion() {
         return plugin.getVersion();
     }
 
@@ -86,38 +86,35 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      * <br>We specify the value identifier in this method.
      * <br>Since version 2.9.1 can you use OfflinePlayers in your requests.
      *
-     * @param  player
-     *         A Player who performed the task which contains interaction on
-     *         PlaceholderAPI.
-     * @param  identifier
-     *         A String containing the identifier/value.
-     *
+     * @param player     A Player who performed the task which contains interaction on
+     *                   PlaceholderAPI.
+     * @param identifier A String containing the identifier/value.
      * @return possibly-null String of the requested identifier.
      */
     @Override
-    public String onPlaceholderRequest(Player player, String identifier){
+    public String onPlaceholderRequest(Player player, String identifier) {
 
         //%tr_version% -> this should return TR version, but should use PluginDescription which is modified as protected method.
 
 
-        if(identifier.toLowerCase().equals("version")){
-            return  plugin.getVersion();
-         }
+        if (identifier.toLowerCase().equals("version")) {
+            return plugin.getVersion();
+        }
         // %tr_<variable name>%
         //if(identifier.contains("")){return "";}
         String variableName = identifier.replace('_', '.');
         AbstractVariableManager vm = plugin.getVariableManager();
         Object value = vm.get(variableName);
-        if(value == null) {
+        if (value == null) {
             return "";
         }
-        if(value instanceof Number){
-            value =  String.valueOf(value);
+        if (value instanceof Number) {
+            value = String.valueOf(value);
         }
 
-        if(!(value instanceof String)){
+        if (!(value instanceof String)) {
             return "";
-        }else{
+        } else {
             String output = (String) value;
             return output;
         }

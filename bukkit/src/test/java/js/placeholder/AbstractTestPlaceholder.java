@@ -6,7 +6,6 @@ import js.PlaceholderTest;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -29,7 +28,7 @@ import static org.junit.Assert.assertEquals;
  */
 public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
-    public void testPlayername() throws Exception{
+    public void testPlayername() throws Exception {
         Player mockPlayer = Mockito.mock(Player.class);
         Mockito.when(mockPlayer.getName()).thenReturn("wysohn");
 
@@ -48,15 +47,15 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
        // assertEquals(true, output); TODO
     }
     */
-    
+
     @Test
     public void testRandom() throws Exception {
-    	JsTest test = new PlaceholderTest(engine, "random");
-    	
-    	test.withArgs(1).test();
-    	
-    	test.assertValid(0).assertValid(1, 2)
-    	    .assertInvalid().assertInvalid(1, 2, 3).assertInvalid("j").assertInvalid(4, "j");
+        JsTest test = new PlaceholderTest(engine, "random");
+
+        test.withArgs(1).test();
+
+        test.assertValid(0).assertValid(1, 2)
+                .assertInvalid().assertInvalid(1, 2, 3).assertInvalid("j").assertInvalid(4, "j");
     }
 
     @Test
@@ -99,7 +98,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testEntityname() throws Exception{
+    public void testEntityname() throws Exception {
         EntityEvent mockEvent = Mockito.mock(EntityEvent.class);
         Entity mockEntity = Mockito.mock(Entity.class);
 
@@ -112,8 +111,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         Assert.assertEquals("SomeEntity", test.test());
     }
+
     @Test
-    public void testHeldItem() throws Exception{
+    public void testHeldItem() throws Exception {
         Player vp = Mockito.mock(Player.class);
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
@@ -126,8 +126,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         test.assertInvalid("hi");
     }
+
     @Test
-    public void testOffHandItem() throws Exception{
+    public void testOffHandItem() throws Exception {
         Player vp = Mockito.mock(Player.class);
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
@@ -140,8 +141,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         test.assertInvalid("hi");
     }
+
     @Test
-    public void testPlayerInv() throws Exception{
+    public void testPlayerInv() throws Exception {
         Player vp = Mockito.mock(Player.class);
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
@@ -157,8 +159,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid(true);
 
     }
+
     @Test
-    public void testId() throws Exception{
+    public void testId() throws Exception {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
         PowerMockito.when(vItem, "getType").thenReturn(stone);
@@ -171,8 +174,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid(35);
 
     }
+
     @Test
-    public void testIdName() throws Exception{
+    public void testIdName() throws Exception {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
         PowerMockito.when(vItem, "getType").thenReturn(stone);
@@ -185,8 +189,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid(35);
 
     }
+
     @Test
-    public void testName() throws Exception{
+    public void testName() throws Exception {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         ItemMeta vIM = Mockito.mock(ItemMeta.class);
         PowerMockito.when(vItem, "hasItemMeta").thenReturn(true);
@@ -203,8 +208,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid(35);
 
     }
+
     @Test
-    public void testLore() throws Exception{
+    public void testLore() throws Exception {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         ItemMeta vIM = Mockito.mock(ItemMeta.class);
         List<String> lores = new ArrayList<>();
@@ -216,9 +222,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         PowerMockito.when(vIM, "hasLore").thenReturn(true);
         PowerMockito.when(vIM, "getLore").thenReturn(lores);
         String loreString = "";
-        for(int k = 0; k < lores.size(); k++){
+        for (int k = 0; k < lores.size(); k++) {
             String lore = lores.get(k);
-            if(k == (lores.size() - 1))
+            if (k == (lores.size() - 1))
                 loreString = loreString + lore;
             else
                 loreString = loreString + lore + "\n";
@@ -233,8 +239,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid(35);
 
     }
+
     @Test
-    public void testSlot() throws Exception{
+    public void testSlot() throws Exception {
         InventoryClickEvent vEvent = Mockito.mock(InventoryClickEvent.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
         Inventory vInv = Mockito.mock(Inventory.class);

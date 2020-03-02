@@ -10,7 +10,6 @@ import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
 import junit.framework.Assert;
-
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -26,7 +25,6 @@ import org.bukkit.material.Lever;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,30 +34,28 @@ import static org.mockito.Mockito.times;
 
 /**
  * Test driving class for testing Executors.
- *
  */
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
-    public void testPlayer_SetFlyMode() throws Exception{
+    public void testPlayer_SetFlyMode() throws Exception {
         Player mockPlayer = Mockito.mock(Player.class);
-        
+
         JsTest test = new ExecutorTest(engine, "SETFLYMODE")
                 .addVariable("player", mockPlayer);
 
-        for (boolean b : new boolean[] {true, false})
-        {
-        	test.withArgs(b).test();
-        	Mockito.verify(mockPlayer).setAllowFlight(Mockito.eq(b));
-        	Mockito.verify(mockPlayer).setFlying(Mockito.eq(b));
+        for (boolean b : new boolean[]{true, false}) {
+            test.withArgs(b).test();
+            Mockito.verify(mockPlayer).setAllowFlight(Mockito.eq(b));
+            Mockito.verify(mockPlayer).setFlying(Mockito.eq(b));
         }
-        
+
         assertJSError(() -> test.withArgs(true, true).test(), "Incorrect number of arguments for executor SETFLYMODE");
         assertJSError(() -> test.withArgs("merp").test(), "Invalid argument for executor SETFLYMODE: merp");
     }
 
     @Test
-    public void testPlayer_SetFlySpeed() throws Exception{
+    public void testPlayer_SetFlySpeed() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETFLYSPEED")
                 .addVariable("player", vp);
@@ -77,7 +73,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testPlayer_SetFood() throws Exception{
+    public void testPlayer_SetFood() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETFOOD")
                 .addVariable("player", vp);
@@ -99,7 +95,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testPlayer_SetGameMode() throws Exception{
+    public void testPlayer_SetGameMode() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETGAMEMODE")
                 .addVariable("player", vp);
@@ -119,7 +115,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testPlayer_SetHealth() throws Exception{
+    public void testPlayer_SetHealth() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETHEALTH")
                 .addVariable("player", vp);
@@ -141,8 +137,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @SuppressWarnings("deprecation")
-	@Test
-    public void testPlayer_SetMaxHealth() throws Exception{
+    @Test
+    public void testPlayer_SetMaxHealth() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
                 .addVariable("player", vp);
@@ -163,7 +159,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testPlayer_SetSaturation() throws Exception{
+    public void testPlayer_SetSaturation() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETSATURATION")
                 .addVariable("player", vp);
@@ -183,7 +179,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testPlayer_SetWalkSpeed() throws Exception{
+    public void testPlayer_SetWalkSpeed() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
                 .addVariable("player", vp);
@@ -202,7 +198,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testPlayer_SetXp() throws Exception{
+    public void testPlayer_SetXp() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETXP")
                 .addVariable("player", vp);
@@ -223,69 +219,69 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testActionBar() throws Exception{
+    public void testActionBar() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testBroadcast() throws Exception{
+    public void testBroadcast() throws Exception {
         Collection<Player> players = new ArrayList<>();
-        for(int i = 0; i < 5; i++){
+        for (int i = 0; i < 5; i++) {
             players.add(Mockito.mock(Player.class));
         }
-        
+
         String message = "&cHey all";
         String colored = ChatColor.translateAlternateColorCodes('&', message);
-        
+
         PowerMockito.doReturn(players)
-            .when(Bukkit.class, "getOnlinePlayers");
-        
+                .when(Bukkit.class, "getOnlinePlayers");
+
         new ExecutorTest(engine, "BROADCAST")
-            .withArgs(message)
-            .test();
-        
-        for(Player mockPlayer : players){ 
+                .withArgs(message)
+                .test();
+
+        for (Player mockPlayer : players) {
             Mockito.verify(mockPlayer)
-                .sendMessage(Mockito.argThat((String s) -> colored.equals(s)));
+                    .sendMessage(Mockito.argThat((String s) -> colored.equals(s)));
         }
     }
-    
+
     @Test
-    public void testBurn() throws Exception{
-    	//happy cases
-    	
-    	Player mockPlayer = Mockito.mock(Player.class);
-    	Entity mockEntity = Mockito.mock(Entity.class);
-    	JsTest test = new ExecutorTest(engine, "BURN").addVariable("player", mockPlayer);
-    	
-    	test.withArgs(3).test();
-    	Mockito.verify(mockPlayer).setFireTicks(60);
-    	
-    	test.withArgs(0.101).test();
-    	Mockito.verify(mockPlayer).setFireTicks(2);
-    	
-    	test.withArgs(mockEntity, 1).test();
-    	Mockito.verify(mockEntity).setFireTicks(20);
-    	
-    	PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(mockPlayer);
-    	test.withArgs("merp", 5).test();
-    	Mockito.verify(mockPlayer).setFireTicks(100);
-    	
-    	//sad cases
-    	PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(null);
-    	assertJSError(() -> test.withArgs(-1).test(),                 "The number of seconds to burn should be positive");
-    	assertJSError(() -> test.withArgs().test(),                   "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
-    	assertJSError(() -> test.withArgs(1, 1, 1).test(),            "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
-    	assertJSError(() -> test.withArgs(true).test(),               "Invalid number for seconds to burn: true");
-    	assertJSError(() -> test.withArgs(null, 4).test(),            "player to burn should not be null");
-    	assertJSError(() -> test.withArgs("merp", 3).test(),          "player to burn does not exist");
-    	assertJSError(() -> test.withArgs(3, 3).test(),               "invalid entity to burn: 3");
-    	assertJSError(() -> test.withArgs(mockEntity, "merp").test(), "The number of seconds to burn should be a number");
-    	assertJSError(() -> test.withArgs(mockEntity, -1).test(),     "The number of seconds to burn should be positive");
+    public void testBurn() throws Exception {
+        //happy cases
+
+        Player mockPlayer = Mockito.mock(Player.class);
+        Entity mockEntity = Mockito.mock(Entity.class);
+        JsTest test = new ExecutorTest(engine, "BURN").addVariable("player", mockPlayer);
+
+        test.withArgs(3).test();
+        Mockito.verify(mockPlayer).setFireTicks(60);
+
+        test.withArgs(0.101).test();
+        Mockito.verify(mockPlayer).setFireTicks(2);
+
+        test.withArgs(mockEntity, 1).test();
+        Mockito.verify(mockEntity).setFireTicks(20);
+
+        PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(mockPlayer);
+        test.withArgs("merp", 5).test();
+        Mockito.verify(mockPlayer).setFireTicks(100);
+
+        //sad cases
+        PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(null);
+        assertJSError(() -> test.withArgs(-1).test(), "The number of seconds to burn should be positive");
+        assertJSError(() -> test.withArgs().test(), "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
+        assertJSError(() -> test.withArgs(1, 1, 1).test(), "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
+        assertJSError(() -> test.withArgs(true).test(), "Invalid number for seconds to burn: true");
+        assertJSError(() -> test.withArgs(null, 4).test(), "player to burn should not be null");
+        assertJSError(() -> test.withArgs("merp", 3).test(), "player to burn does not exist");
+        assertJSError(() -> test.withArgs(3, 3).test(), "invalid entity to burn: 3");
+        assertJSError(() -> test.withArgs(mockEntity, "merp").test(), "The number of seconds to burn should be a number");
+        assertJSError(() -> test.withArgs(mockEntity, -1).test(), "The number of seconds to burn should be positive");
     }
-    
+
     @Test
-    public void testClearChat() throws Exception{
+    public void testClearChat() throws Exception {
         Player vp = Mockito.mock(Player.class);
         Player vp2 = Mockito.mock(Player.class);
         Player nullP = null;
@@ -305,7 +301,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testClearEntity() throws Exception{
+    public void testClearEntity() throws Exception {
         Player vp = Mockito.mock(Player.class);
         Collection<Entity> entities = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -323,21 +319,21 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testClearPotion() throws Exception{
+    public void testClearPotion() throws Exception {
         Player p = Mockito.mock(Player.class);
         ExecutorTest test = new ExecutorTest(engine, "CLEARPOTION");
         test.addVariable("player", p);
         test.test();
-        
+
         Assert.assertEquals(0, test.getOverload());
         Assert.assertEquals(1, test.getOverload("SPEED"));
-        
+
         Assert.assertFalse(test.isValid(0));
         Assert.assertFalse(test.isValid("SPEED", "SPEED"));
     }
 
     @Test
-    public void testCloseGUI() throws Exception{
+    public void testCloseGUI() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "CLOSEGUI")
                 .addVariable("player", vp);
@@ -346,49 +342,49 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.withArgs().test();
         Mockito.verify(vp).closeInventory();
     }
-    
+
     @Test
-    public void testCmd() throws Exception{
+    public void testCmd() throws Exception {
         // #CMD internally creates Event which cannot be tested
     }
-    
+
     @Test
-    public void testCmdCon() throws Exception{
+    public void testCmdCon() throws Exception {
         // #CMDCON retrieve ConsoleCommandSender by static method
     }
-    
+
     @Test
-    public void testDoorClose() throws Exception{
+    public void testDoorClose() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testDoorOpen() throws Exception{
+    public void testDoorOpen() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testDoorToggle() throws Exception{
+    public void testDoorToggle() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testDropItem() throws Exception{
+    public void testDropItem() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testExplosion() throws Exception{
+    public void testExplosion() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testFallingBlock() throws Exception{
+    public void testFallingBlock() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testGive() throws Exception{
+    public void testGive() throws Exception {
         Player vp = Mockito.mock(Player.class);
         PlayerInventory vpInv = Mockito.mock(PlayerInventory.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
@@ -406,9 +402,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         PowerMockito.when(vpInv, "firstEmpty").thenReturn(7);
         assertJSError(() -> test.withArgs("hi").test(), "Invalid ItemStack: hi");
     }
-    
+
     @Test
-    public void testGUI() throws Exception{
+    public void testGUI() throws Exception {
         IPlayer vip = Mockito.mock(IPlayer.class);
         TriggerReactor tr = Mockito.mock(TriggerReactor.class);
         AbstractInventoryTriggerManager invManager = Mockito.mock(AbstractInventoryTriggerManager.class);
@@ -426,9 +422,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         PowerMockito.when(invManager, "openGUI", vip, "hello").thenReturn(null);
         assertJSError(() -> test.withArgs("hello").test(), "No such Inventory Trigger named hello");
     }
-    
+
     @Test
-    public void testItemFrameRotate() throws Exception{
+    public void testItemFrameRotate() throws Exception {
         Location vLoc = Mockito.mock(Location.class);
         Location vLoc2 = Mockito.mock(Location.class);
         Block vBlock = Mockito.mock(Block.class);
@@ -452,14 +448,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         //TODO - need test for the situation of args.length == 4
     }
-    
+
     @Test
-    public void testItemFrameSet() throws Exception{
+    public void testItemFrameSet() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testKill() throws Exception{
+    public void testKill() throws Exception {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "KILL")
                 .addVariable("player", vp);
@@ -467,9 +463,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.withArgs().test();
         Mockito.verify(vp).setHealth(0d);
     }
-    
+
     @Test
-    public void testLeverOff() throws Exception{
+    public void testLeverOff() throws Exception {
 
         Location vLoc = Mockito.mock(Location.class);
         Block vBlock = Mockito.mock(Block.class);
@@ -486,9 +482,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
         //TODO - need test for the situation of args.length == 3
     }
-    
+
     @Test
-    public void testLeverOn() throws Exception{
+    public void testLeverOn() throws Exception {
 
         Location vLoc = Mockito.mock(Location.class);
         Block vBlock = Mockito.mock(Block.class);
@@ -505,9 +501,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
         //TODO - need test for the situation of args.length == 3
     }
-    
+
     @Test
-    public void testLeverToggle() throws Exception{
+    public void testLeverToggle() throws Exception {
 
         Location vLoc = Mockito.mock(Location.class);
         Block vBlock = Mockito.mock(Block.class);
@@ -531,9 +527,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Location<location or number number number>]");
         //TODO - need test for the situation of args.length == 3
     }
-    
+
     @Test
-    public void testLightning() throws Exception{
+    public void testLightning() throws Exception {
         Location vLoc = Mockito.mock(Location.class);
         World vWorld = Mockito.mock(World.class);
         JsTest test = new ExecutorTest(engine, "LIGHTNING");
@@ -548,12 +544,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testLog() throws Exception{
+    public void testLog() throws Exception {
         //no way to test window.print()
     }
-    
+
     @Test
-    public void testMessage() throws Exception{
+    public void testMessage() throws Exception {
         Player mockPlayer = Mockito.mock(Player.class);
 
         new ExecutorTest(engine, "MESSAGE")
@@ -564,111 +560,111 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
         Mockito.verify(mockPlayer).sendMessage(Mockito.argThat((String str) -> expected.equals(str)));
     }
-    
+
     @Test
-    public void testModifyHeldItem() throws Exception{
+    public void testModifyHeldItem() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testModifyPlayer() throws Exception{
+    public void testModifyPlayer() throws Exception {
         //No longer supported
     }
-    
+
     @Test
-    public void testMoney() throws Exception{
+    public void testMoney() throws Exception {
         //written in each platform's test class.
     }
-    
+
     @Test
-    public void testMysql() throws Exception{
+    public void testMysql() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testPermission() throws Exception{
+    public void testPermission() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testPotion() throws Exception{
+    public void testPotion() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testPush() throws Exception{
+    public void testPush() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testRotateBlock() throws Exception{
+    public void testRotateBlock() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testScoreboard() throws Exception{
+    public void testScoreboard() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testServer() throws Exception{
+    public void testServer() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testSetBlock() throws Exception{
+    public void testSetBlock() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testSignEdit() throws Exception{
+    public void testSignEdit() throws Exception {
         //TODO        
     }
-    
+
     @Test
-    public void testSound() throws Exception{
+    public void testSound() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testSoundAll() throws Exception{
+    public void testSoundAll() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testSpawn() throws Exception{
+    public void testSpawn() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testTime() throws Exception{
+    public void testTime() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testTp() throws Exception{
+    public void testTp() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testTppos() throws Exception{
+    public void testTppos() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testVelocity() throws Exception{
+    public void testVelocity() throws Exception {
         //TODO
     }
-    
+
     @Test
-    public void testWeather() throws Exception{
-    	JsTest test = new ExecutorTest(engine, "WEATHER");
+    public void testWeather() throws Exception {
+        JsTest test = new ExecutorTest(engine, "WEATHER");
         World mockWorld = Mockito.mock(World.class);
         PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(mockWorld);
 
         test.withArgs("merp", true).test();
         Mockito.verify(mockWorld).setStorm(true);
-        
+
         PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(null);
         assertJSError(() -> test.withArgs("merp", true, true).test(), "Invalid parameters! [String, Boolean]");
         assertJSError(() -> test.withArgs("merp", 1).test(), "Invalid parameters! [String, Boolean]");
@@ -708,14 +704,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertInvalid(vp, 232);
         test.assertInvalid(1, 2, 3);
         test.addVariable("player", null);
-        
+
         test.assertInvalid(null, "msg");
         test.assertInvalid(nullP);
         assertJSError(() -> test.withArgs().test(), "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
     }
 
     @Test
-    public void testSetHeldItem() throws Exception{
+    public void testSetHeldItem() throws Exception {
         Player vp = Mockito.mock(Player.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
         PlayerInventory piv = Mockito.mock(PlayerInventory.class);
@@ -732,7 +728,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testSetOffHand() throws Exception{
+    public void testSetOffHand() throws Exception {
         Player vp = Mockito.mock(Player.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
@@ -748,7 +744,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testSetPlayerInv() throws Exception{
+    public void testSetPlayerInv() throws Exception {
         Player vp = Mockito.mock(Player.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
@@ -760,7 +756,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Mockito.verify(vInv).setItem(1, vItem);
         test.assertInvalid(0);
         test.assertInvalid("HELLO");
-        test.assertInvalid(0,"hu");
+        test.assertInvalid(0, "hu");
         test.assertInvalid(true, 0);
     }
 
@@ -779,8 +775,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertInvalid(0, "hu");
         test.assertInvalid(true, 0);
     }
+
     @Test
-    public void testSetItemName() throws Exception{
+    public void testSetItemName() throws Exception {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         ItemMeta vIM = Mockito.mock(ItemMeta.class);
         Material stone = Material.valueOf("STONE");
@@ -794,17 +791,17 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertValid("herllo", vItem);
         test.assertInvalid(0);
         test.assertInvalid("HELLO");
-        test.assertInvalid(0,"hu");
+        test.assertInvalid(0, "hu");
         test.assertInvalid(true, 0);
     }
 
     @Test
-    public void testSetSlot() throws Exception{
+    public void testSetSlot() throws Exception {
         InventoryClickEvent vEvent = Mockito.mock(InventoryClickEvent.class);
         Inventory vInv = Mockito.mock(Inventory.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
         PowerMockito.when(vEvent, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv,"getSize").thenReturn(36);
+        PowerMockito.when(vInv, "getSize").thenReturn(36);
         ExecutorTest test = new ExecutorTest(engine, "SETSLOT");
         test.addVariable("event", vEvent);
         test.withArgs(1, vItem).test();

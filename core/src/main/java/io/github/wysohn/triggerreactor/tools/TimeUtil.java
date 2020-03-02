@@ -71,7 +71,7 @@ public class TimeUtil {
 
         int tick = r / (50);
 
-        return hour + "h " + minute + "m " + second + "s " + tick +"t";
+        return hour + "h " + minute + "m " + second + "s " + tick + "t";
     }
 
     public static void main(String[] ar) {

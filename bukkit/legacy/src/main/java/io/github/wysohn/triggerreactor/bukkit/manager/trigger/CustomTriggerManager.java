@@ -43,7 +43,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
     @SuppressWarnings("serial")
-	private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
+    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
         put("onJoin", PlayerJoinEvent.class);
         put("onQuit", PlayerQuitEvent.class);
         put("onPlayerDeath", PlayerDeathEvent.class);
@@ -83,9 +83,9 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     private static final String basePackageName = "org.bukkit.event";
-    
+
     public Collection<String> getAbbreviations() {
-    	return ABBREVIATIONS.keySet();
+        return ABBREVIATIONS.keySet();
     }
 
     protected void initEvents() throws IOException {

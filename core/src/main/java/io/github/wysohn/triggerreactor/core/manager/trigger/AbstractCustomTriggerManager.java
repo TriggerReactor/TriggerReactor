@@ -196,7 +196,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     public abstract Collection<String> getAbbreviations();
 
-	/**
+    /**
      * Create a new CustomTrigger.
      *
      * @param eventName the class name of the Event that this Custom Trigger will
@@ -276,10 +276,10 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return nameMap.values();
     }
-    
+
     public AbstractCustomTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
         super(plugin, ref, tirggerFolder);
     }
@@ -339,11 +339,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 return false;
             CustomTrigger other = (CustomTrigger) obj;
             if (triggerName == null) {
-                if (other.triggerName != null)
-                    return false;
-            } else if (!triggerName.equals(other.triggerName))
-                return false;
-            return true;
+                return other.triggerName == null;
+            } else return triggerName.equals(other.triggerName);
         }
 
         public String getEventName() {

@@ -362,10 +362,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     public AbstractAreaSelectionManager getSelectionManager() {
         return selectionManager;
     }
-    
+
     @Override
     public AbstractInventoryEditManager getInvEditManager() {
-    	return invEditManager;
+        return invEditManager;
     }
 
     @Override
@@ -749,8 +749,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         return false;
 
                     //it's not GUI so stop execution
-                    if (!inventoryMap.containsKey(new SpongeInventory(inv, carrier)))
-                        return true;
+                    return !inventoryMap.containsKey(new SpongeInventory(inv, carrier));
                 }
 
                 return false;
