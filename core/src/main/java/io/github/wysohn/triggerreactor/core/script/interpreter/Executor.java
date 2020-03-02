@@ -27,10 +27,10 @@ public abstract class Executor extends SynchronizableTask {
     public static final int CONTINUE = 3;
 
     /**
-     * @param timing the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
+     * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
      * @param context the context where the Executor was started
-     * @param vars variables to be used in the Executor script
-     * @param args arguments passed from the interpreted code
+     * @param vars    variables to be used in the Executor script
+     * @param args    arguments passed from the interpreted code
      * @return usually null; return code to intercept execution
      * @throws Exception
      */

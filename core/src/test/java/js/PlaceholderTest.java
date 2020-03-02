@@ -7,21 +7,21 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
 
-public class PlaceholderTest extends JsTest{
-	private final JSPlaceholder placeholder;
-	
-	public PlaceholderTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
-		super(engine, name, "Placeholder", directories);
-		placeholder = new JSPlaceholder(name, engine, stream);
-	}
+public class PlaceholderTest extends JsTest {
+    private final JSPlaceholder placeholder;
 
-	@Override
+    public PlaceholderTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
+        super(engine, name, "Placeholder", directories);
+        placeholder = new JSPlaceholder(name, engine, stream);
+    }
+
+    @Override
     public Object test() throws Exception {
         return placeholder.parse(Timings.LIMBO, null, varMap, args);
     }
 
-	@Override
-	public int getOverload(Object... args) {
-		return placeholder.validate(args).getOverload();
-	}
+    @Override
+    public int getOverload(Object... args) {
+        return placeholder.validate(args).getOverload();
+    }
 }

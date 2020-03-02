@@ -119,6 +119,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
+    private AbstractInventoryEditManager invEditManager;
 
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
@@ -159,6 +160,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         this.locationManager = new PlayerLocationManager(this);
         //this.permissionManager = new PermissionManager(this);
         this.selectionManager = new AreaSelectionManager(this);
+        this.invEditManager = new InventoryEditManager(this);
 
         this.clickManager = new ClickTriggerManager(this);
         this.walkManager = new WalkTriggerManager(this);
@@ -373,6 +375,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractAreaSelectionManager getSelectionManager() {
         return selectionManager;
+    }
+
+    @Override
+    public AbstractInventoryEditManager getInvEditManager() {
+        return invEditManager;
     }
 
     @Override
@@ -756,8 +763,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         return false;
 
                     //it's not GUI so stop execution
-                    if (!inventoryMap.containsKey(new SpongeInventory(inv, carrier)))
-                        return true;
+                    return !inventoryMap.containsKey(new SpongeInventory(inv, carrier));
                 }
 
                 return false;

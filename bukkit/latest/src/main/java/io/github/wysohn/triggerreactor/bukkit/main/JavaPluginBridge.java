@@ -103,6 +103,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
+    private AbstractInventoryEditManager invEditManager;
 
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
@@ -147,6 +148,10 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     @Override
     public AbstractAreaSelectionManager getSelectionManager() {
         return selectionManager;
+    }
+
+    public AbstractInventoryEditManager getInvEditManager() {
+        return invEditManager;
     }
 
     @Override
@@ -237,6 +242,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
         selectionManager = new AreaSelectionManager(this);
+        invEditManager = new InventoryEditManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
@@ -527,8 +533,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
                     Inventory inv = ((InventoryEvent) e).getInventory();
 
                     //it's not GUI so stop execution
-                    if (!inventoryMap.containsKey(new BukkitInventory(inv)))
-                        return true;
+                    return !inventoryMap.containsKey(new BukkitInventory(inv));
                 }
 
                 return false;
@@ -782,7 +787,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
             Object out = null;
 
             try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?");) {
+                 PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
                 pstmt.setString(1, key);
                 ResultSet rs = pstmt.executeQuery();
 
@@ -803,11 +808,11 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
 
         public void set(String key, Serializable value) throws SQLException {
             try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)");) {
+                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)")) {
 
 
                 try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     ObjectOutputStream oos = new ObjectOutputStream(baos);) {
+                     ObjectOutputStream oos = new ObjectOutputStream(baos)) {
                     oos.writeObject(value);
 
                     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());

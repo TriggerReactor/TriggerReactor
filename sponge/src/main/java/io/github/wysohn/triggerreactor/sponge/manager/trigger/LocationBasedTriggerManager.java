@@ -217,7 +217,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 private boolean cancelled = false;
 
                 @SuppressWarnings("serial")
-				@Override
+                @Override
                 public List<Transaction<BlockSnapshot>> getTransactions() {
                     return new ArrayList<Transaction<BlockSnapshot>>() {{
                         add(transaction);

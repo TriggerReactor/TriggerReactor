@@ -128,7 +128,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return commandTriggerMap.values();
     }
 

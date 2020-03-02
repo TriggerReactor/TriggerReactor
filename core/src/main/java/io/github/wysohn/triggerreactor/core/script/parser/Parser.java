@@ -28,12 +28,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 
 public class Parser {
     private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
-    public static void addDeprecationSupervisor(DeprecationSupervisor ds){
+
+    public static void addDeprecationSupervisor(DeprecationSupervisor ds) {
         deprecationSupervisors.add(ds);
     }
 
@@ -81,24 +83,24 @@ public class Parser {
     }
 
     public Node parse(boolean showWarnings) throws IOException, LexerException, ParserException {
-    	this.showWarnings = showWarnings;
-    	lexer.setWarnings(showWarnings);
-    	
+        this.showWarnings = showWarnings;
+        lexer.setWarnings(showWarnings);
+
         Node root = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
         Node statement = null;
         while ((statement = parseStatement()) != null)
             root.getChildren().add(statement);
-        
+
         List<Warning> lexWarnings = lexer.getWarnings();
         if (lexWarnings != null) {
-        	this.warnings.addAll(lexWarnings);
+            this.warnings.addAll(lexWarnings);
         }
-        
+
         return root;
     }
-    
+
     public Node parse() throws IOException, LexerException, ParserException {
-    	return parse(false);
+        return parse(false);
     }
 
     private Node parseStatement() throws ParserException, IOException, LexerException {
@@ -607,7 +609,7 @@ public class Parser {
         }
 
         if ("null".equals(token.value)) {
-            Node node = new Node(new Token(Type.NULLVALUE, (Object) null, token.row, token.col));
+            Node node = new Node(new Token(Type.NULLVALUE, null, token.row, token.col));
             nextToken();
             return node;
         }
@@ -813,13 +815,13 @@ public class Parser {
 
         return stack.pop();
     }
-    
+
     public List<Warning> getWarnings() {
-    	return warnings;
+        return warnings;
     }
 
     public static void main(String[] ar) throws IOException, LexerException, ParserException {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
 /*        String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
