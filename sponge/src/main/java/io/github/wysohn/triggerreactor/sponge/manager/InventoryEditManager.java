@@ -8,11 +8,13 @@ import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
+import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.item.inventory.InteractInventoryEvent;
+import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.item.ItemTypes;
 import org.spongepowered.api.item.inventory.Inventory;
 import org.spongepowered.api.item.inventory.InventoryArchetypes;
@@ -200,6 +202,11 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		p.sendMessage(savePrompt);
 	}
 
+	@Listener
+	public void onQuit(ClientConnectionEvent.Disconnect e) {
+		Player player = e.getTargetEntity();
+		stopEdit(new SpongePlayer(player));
+	}
 
 	@Override
 	public void reload() {
