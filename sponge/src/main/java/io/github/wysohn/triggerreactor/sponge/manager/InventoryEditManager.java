@@ -1,10 +1,14 @@
 package io.github.wysohn.triggerreactor.sponge.manager;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
+import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -25,15 +29,8 @@ import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.text.format.TextStyle;
 import org.spongepowered.api.text.format.TextStyles;
 
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
-import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
-import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
-import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
+import java.util.List;
+import java.util.UUID;
 
 public class InventoryEditManager extends AbstractInventoryEditManager {
 	private static Text savePrompt;
@@ -68,13 +65,12 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 	
 	//adapted from InventoryTriggerManager
 	private Inventory createInventory(int size, String name) {
-        Inventory inv = Inventory.builder()
-                .of(InventoryArchetypes.CHEST)
-                .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
-                .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(name)))
-                .build(plugin);
-        return inv;
-    }
+		return Inventory.builder()
+				.of(InventoryArchetypes.CHEST)
+				.property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
+				.property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(name)))
+				.build(plugin);
+	}
 	
 	//adapted from InventoryTriggerManager
 	private void fillInventory(InventoryTrigger trigger, int size, Inventory inv) {
@@ -110,8 +106,6 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
 	@Override
 	public void startEdit(IPlayer player, InventoryTrigger trigger) {
-		player.sendMessage("inventory editing is not supported in sponge");
-		/*
 		UUID u = player.getUniqueId();
 		if (sessions.containsKey(u)) {
 			return;
@@ -121,12 +115,10 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		Inventory inv = createInventory(size, trigger.getTriggerName());
 		fillInventory(trigger, size, inv);
 		player.openInventory(new SpongeInventory(inv, null));
-		*/
 	}
 
 	@Override
 	public void continueEdit(IPlayer player) {
-		/*
 		UUID u = player.getUniqueId();
 		if (!suspended.containsKey(u)) {
 			return;
@@ -134,12 +126,10 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		
 		IInventory inv = suspended.remove(u);
 		player.openInventory(inv);
-		*/
 	}
 
 	@Override
 	public void discardEdit(IPlayer player) {
-		/*
 		UUID u = player.getUniqueId();
 		if (!suspended.containsKey(u)) {
 			return;
@@ -147,45 +137,38 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		
 		stopEdit(player);
 		player.sendMessage("Discarded Edits");
-		*/
 	}
 
 	@Override
 	public void saveEdit(IPlayer player) {
-		/*
 		UUID u = player.getUniqueId();
 		if (!suspended.containsKey(u)) {
 			return;
 		}
-		
+
 		Inventory inv = suspended.get(u).get();
 		InventoryTrigger trigger = sessions.get(u);
-		int size = trigger.getItems().length;
+		int size = inv.capacity();
+
 		IItemStack[] iitems = new IItemStack[size];
-		
+
 		for (Inventory slot : inv.slots()) {
-			Slot s = (Slot) slot;
-		    Optional<SlotIndex> maybeIndex = s.getInventoryProperty(SlotIndex.class);
-		    if (maybeIndex.isPresent()) {
-		    	int index = maybeIndex.get().getValue();
-		    	//System.out.println(index);
-		    	if (index < size) {
-		    	    iitems[index] = new SpongeItemStack(s.peek().orElse(ItemStack.of(ItemTypes.AIR)));
-		    	}
-		    }
+			slot.getInventoryProperty(SlotIndex.class).ifPresent(slotIndex ->
+					slot.peek().ifPresent(itemStack ->
+							iitems[slotIndex.getValue()] = new SpongeItemStack(itemStack)));
 		}
-		
+
 		//TODO this causes an error waaay down the call chain.  replaceItems also saves the inventory trigger manager
 		//but while trying to write the new data, NPE is thrown.  Starting a new edit shows that the new data at least
 		//gets written to the trigger, but reloading will throw away the edits.
-		//None of the items I want to save are null, so that isn't the source of the NPE.  
+		//None of the items I want to save are null, so that isn't the source of the NPE.
 		//I know this because item.createSnapshot() in the sponge InventoryTriggerManager.writeItemsList() succeeds.
 		//please investigate this wysohn, because I have no idea at all why it can't save.
 		replaceItems(trigger, iitems);
 		stopEdit(player);
 		player.sendMessage("Saved edits");
-	 }
-	
+	}
+
 	@Listener
 	public void onClose(InteractInventoryEvent.Close e) {
 		Player p = e.getCause().first(Player.class).orElse(null);
@@ -199,35 +182,24 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 		if (suspended.containsKey(u)) {
 			return;
 		}
-		
-		Inventory inv = e.getTargetInventory();
 
-		//TODO this one came the closest to working.  but pressing continue clears the items
+		Inventory inv = e.getTargetInventory();
+		GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class)).first();
 		InventoryTrigger trigger = sessions.get(u);
 
-		int size = trigger.getItems().length;
+		int size = gridInv.capacity();
 		Inventory newInv = createInventory(size, trigger.getTriggerName());
-		Iterator<Inventory> oldIterator = inv.iterator();
-		Iterator<Inventory> newIterator = newInv.iterator();
+		GridInventory newGrid = newInv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
 
-		while (newIterator.hasNext()) {
-			Slot oldSlot = (Slot) oldIterator.next();
-			Slot newSlot = (Slot) newIterator.next();
-
-			newSlot.offer(oldSlot.peek().orElse(ItemStack.of(ItemTypes.AIR)));
-		}
-		
 		for (int i = 0; i < size; i++) {
-			Inventory oldSlot = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(i)));
-			Inventory newSlot = inv.query(QueryOperationTypes.INVENTORY_PROPERTY.of(SlotIndex.of(i)));
-
-			newSlot.offer(oldSlot.peek().orElse(ItemStack.of(ItemTypes.AIR)));
+			SlotIndex index = new SlotIndex(i);
+			gridInv.getSlot(index).ifPresent(slot -> newGrid.set(index, slot.peek().orElse(ItemStack.of(ItemTypes.AIR))));
 		}
-		
-		suspended.put(u, new SpongeInventory(inv, null));
+
+		suspended.put(u, new SpongeInventory(newGrid, null));
 		p.sendMessage(savePrompt);
-		*/
 	}
+
 
 	@Override
 	public void reload() {
