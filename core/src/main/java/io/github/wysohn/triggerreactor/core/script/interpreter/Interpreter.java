@@ -531,15 +531,31 @@ public class Interpreter {
                     right = unwrapVariable(right);
                 }
 
-                if (!(right.value instanceof Class))
-                    throw new RuntimeException(right + " is not a Class!");
+                if (!(right.value instanceof Class || right.value instanceof String))
+                    throw new RuntimeException(right + " is not a Class or Class's simple name!");
 
                 if (isVariable(left)) {
                     left = unwrapVariable(left);
                 }
 
-                Class<?> clazz = (Class<?>) right.value;
-                stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
+                if(right.value instanceof Class) {
+                    Class<?> clazz = (Class<?>) right.value;
+                    stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
+                }else {
+                    String className = (String) right.value;
+                    Class<?> superClass = left.value.getClass().getSuperclass();
+                    Class<?>[] interfaces = left.value.getClass().getInterfaces();
+                    boolean interfacesCheck = false;
+                    infCheck:
+                    for (Class<?> clazz : interfaces) {
+                        if (clazz.getSimpleName().equalsIgnoreCase(className))
+                            interfacesCheck = true;
+                        break infCheck;
+                    }
+                    stack.push(new Token(Type.BOOLEAN, superClass.getSimpleName().equalsIgnoreCase(className)
+                            || interfacesCheck
+                            || left.value.getClass().getSimpleName().equalsIgnoreCase(className), node.getToken()));
+                }
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
 
