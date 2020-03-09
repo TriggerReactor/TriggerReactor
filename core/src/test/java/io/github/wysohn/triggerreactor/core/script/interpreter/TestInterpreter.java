@@ -1503,6 +1503,7 @@ public class TestInterpreter {
 
     @Test
     public void testISStatement() throws Exception {
+        //test1 -> when right side is provided as Class.
         Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT " + TheTest.class.getName() + ";" +
                 "IMPORT " + InTest.class.getName() + ";" +
@@ -1532,6 +1533,24 @@ public class TestInterpreter {
         interpreter.setVars(vars);
 
         interpreter.startWithContext(null);
+
+        vars.clear(); //clear the vars map
+
+        //test2 -> when right side is provided as String.
+        String text2 = "#TEST test3 IS \"TheTest\", test3 IS \"InTest\""+
+                "#TEST test4 IS \"TheTest\", test4 IS \"InTest\"";
+        lexer = new Lexer(text2, charset);
+        parser = new Parser(lexer);
+        root = parser.parse();
+        vars.put("test3", new TheTest());
+        vars.put("test4", new InTest());
+        interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setVars(vars);
+
+        interpreter.startWithContext(null);
+
+
     }
 
     @Test
