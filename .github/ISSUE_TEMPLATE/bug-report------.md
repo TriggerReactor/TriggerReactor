@@ -7,6 +7,13 @@ assignees: ''
 
 ---
 
+### **Before/읽어주세요**
+
+Make sure that you have used `/trg debug` so that the more detailed error message will show up in the console.
+신고전에 `/trg debug` 명령어를 사용해서 디버그 모드를 켜주세요. 그래야 콘솔창에 더 자세한 정보가 나옵니다.
+
+---
+
 **Describe the bug/버그 증상**
 A clear and concise description of what the bug is.
 
