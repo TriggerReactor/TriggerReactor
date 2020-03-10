@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2020 Pro_Snape
+ *     Copyright (C) 2020 Dr_Romantic(a.k.a. Pro_Snape)
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
