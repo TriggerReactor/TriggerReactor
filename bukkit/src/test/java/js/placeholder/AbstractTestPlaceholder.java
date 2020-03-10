@@ -329,7 +329,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         result = test.withArgs(Material.STONE).test();
         Assert.assertEquals(result, 20);
 
-        //cas4 -> MaterialType with victim player
+        //case4 -> MaterialType with victim player
         test.addVariable("player", null);
         result = test.withArgs(Material.DIRT, vPlayer).test();
         Assert.assertEquals(result, 60);
@@ -345,6 +345,82 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         Assert.assertEquals(result, 60);
 
         //Exception case
+        test.addVariable("player", null);
+        TestUtil.assertJSError(() -> test.withArgs(Material.STONE).test(), "Unexpected error found! player cannot be null.");
+        test.assertInvalid();
+        test.assertInvalid(1);
+        test.assertInvalid(true);
+    }
+
+    @Test
+    public void testSearchItem() throws Exception {
+
+        //initial set
+        ItemStack[] contents = new ItemStack[41];
+        ItemStack item1 = Mockito.mock(ItemStack.class);
+        ItemStack item2 = Mockito.mock(ItemStack.class);
+        ItemStack item3 = Mockito.mock(ItemStack.class);
+        ItemStack item4 = Mockito.mock(ItemStack.class);
+        contents = (ItemStack[]) ArrayUtils.add(contents, 7, item1);
+        contents = (ItemStack[]) ArrayUtils.add(contents, 13, item2);
+        contents = (ItemStack[]) ArrayUtils.add(contents,25, item3);
+        contents = (ItemStack[]) ArrayUtils.add(contents, 33, item4);
+        PowerMockito.when(item1,"getType").thenReturn(Material.STONE);
+        PowerMockito.when(item1, "getAmount").thenReturn(3);
+        PowerMockito.when(item2, "getType").thenReturn(Material.DIRT);
+        PowerMockito.when(item2, "getAmount").thenReturn(34);
+        PowerMockito.when(item3, "getType").thenReturn(Material.STONE);
+        PowerMockito.when(item3, "getAmount").thenReturn(17);
+        PowerMockito.when(item4, "getType").thenReturn(Material.DIRT);
+        PowerMockito.when(item4, "getAmount").thenReturn(26);
+        PowerMockito.when(item1, "isSimilar", item1).thenReturn(true);
+        PowerMockito.when(item1, "isSimilar", item2).thenReturn(false);
+        PowerMockito.when(item1, "isSimilar", item3).thenReturn(true);
+        PowerMockito.when(item1, "isSimilar", item4).thenReturn(false);
+        PowerMockito.when(item2, "isSimilar", item1).thenReturn(false);
+        PowerMockito.when(item2, "isSimilar", item2).thenReturn(true);
+        PowerMockito.when(item2, "isSimilar", item3).thenReturn(false);
+        PowerMockito.when(item2, "isSimilar", item4).thenReturn(true);
+        Player vPlayer = Mockito.mock(Player.class);
+        PlayerInventory vPlayerInv = Mockito.mock(PlayerInventory.class);
+        PowerMockito.when(vPlayer, "getInventory").thenReturn(vPlayerInv);
+        PowerMockito.when(vPlayerInv, "getContents").thenReturn(contents);
+        PowerMockito.when(vPlayerInv, "contains", item1).thenReturn(true);
+        PowerMockito.when(vPlayerInv, "contains", item2).thenReturn(true);
+        PowerMockito.when(vPlayerInv, "contains", Material.STONE).thenReturn(true);
+        PowerMockito.when(vPlayerInv, "contains", Material.DIRT).thenReturn(true);
+        PlaceholderTest test = new PlaceholderTest(engine, "searchitem");
+        test.addVariable("player", vPlayer);
+
+        //case1 -> itemStack only
+        Object result = test.withArgs(item1).test();
+        Assert.assertEquals(result, 7);
+
+        //case2 -> itemStack with start index
+        result = test.withArgs(item2, "22s").test();
+        Assert.assertEquals(result, 33);
+
+        //case3 -> itemStack with end index
+        result = test.withArgs(item1, "6e").test();
+        Assert.assertEquals(result, -1);
+
+        //case4 -> bothProvided case.
+        result = test.withArgs(item2, 15, 35).test();
+        Assert.assertEquals(result, 33);
+
+        //startIndex only, endIndex only, bothProvided case was handled on previous case 2,3,4.
+
+        //case5 -> MaterialType only
+        result = test.withArgs(Material.STONE).test();
+        Assert.assertEquals(result, 7);
+
+
+        //case6 -> StringType only
+        result = test.withArgs("dirt").test();
+        Assert.assertEquals(result, 13);
+
+        //Unexpected error cases
+        TestUtil.assertJSError(() -> test.withArgs(item1, "35es").test(), "The provided FromTo string was invalid! You have to follow the rule: \"[int]s\" or \"[int]e\"");
         test.addVariable("player", null);
         TestUtil.assertJSError(() -> test.withArgs(Material.STONE).test(), "Unexpected error found! player cannot be null.");
         test.assertInvalid();
