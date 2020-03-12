@@ -16,9 +16,10 @@ Make sure that you have used `/trg debug` so that the more detailed error messag
 
 **Describe the bug/버그 증상**
 A clear and concise description of what the bug is.
+어떤 증상이 발상하는지 작성 해 주세요.
 
 **Server information/서버 정보**
-1. Spigot/Paper/Bukkit/etc... version/사용중인 버전
+1. Spigot/Paper/Bukkit/etc... version/사용중인 서버 버전
 2. TriggerReactor version/사용중인 트리거 버전
 
 **Error message/에러 메시지**
