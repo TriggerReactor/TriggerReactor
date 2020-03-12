@@ -16,26 +16,18 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
 
 import java.io.File;
-import java.io.IOException;
 
-public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements BukkitTriggerManager {
-    public RepeatingTriggerManager(TriggerReactor plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
+public class NamedTriggerManager extends AbstractNamedTriggerManager implements BukkitTriggerManager {
+    public NamedTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "NamedTriggers"));
     }
 
     @Override
-    protected void saveInfo(RepeatingTrigger trigger) throws IOException {
-        Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
-        yaml.set("AutoStart", false);
-        yaml.set("Interval", trigger.getInterval());
-        yaml.save(new File(folder, trigger.getTriggerName() + ".yml"));
-
-        FileUtil.writeToFile(new File(folder, trigger.getTriggerName()), trigger.getScript());
+    protected void deleteInfo(Trigger trigger) {
+        //We don't delete named triggers in-game
     }
 }

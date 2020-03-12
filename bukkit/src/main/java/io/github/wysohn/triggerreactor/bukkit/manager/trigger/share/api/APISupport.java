@@ -16,13 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import org.apache.commons.lang.Validate;
@@ -37,7 +31,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
     protected Plugin target;
 
-    public APISupport(TriggerReactor plugin, String targetPluginName) {
+    public APISupport(TriggerReactorCore plugin, String targetPluginName) {
         super(plugin);
         Validate.notNull(plugin);
         Validate.notNull(targetPluginName);
@@ -61,23 +55,15 @@ public abstract class APISupport extends AbstractAPISupport {
         this.plugin.getLogger().info("Enabled support for " + targetPluginName + " " + target.getDescription().getFullName());
     }
 
+    @SuppressWarnings("serial")
     private static Map<String, Class<? extends AbstractAPISupport>> sharedVars
             = new HashMap<String, Class<? extends AbstractAPISupport>>();
 
-    protected static boolean addSharedVars(String name, Class<? extends AbstractAPISupport> clazz) {
+    public static boolean addSharedVars(String name, Class<? extends AbstractAPISupport> clazz) {
         return sharedVars.put(name, clazz) == null;
     }
 
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
         return sharedVars;
-    }
-
-    static {
-        addSharedVars("coreprotect", CoreprotectSupport.class);
-        addSharedVars("mcmmo", McMmoSupport.class);
-        addSharedVars("placeholder", PlaceHolderSupport.class);
-        addSharedVars("protocollib", ProtocolLibSupport.class);
-        addSharedVars("vault", VaultSupport.class);
-        addSharedVars("worldguard", WorldguardSupport.class);
     }
 }

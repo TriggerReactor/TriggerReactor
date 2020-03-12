@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
@@ -56,7 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements SpongeConfigurationFileIO {
-    public InventoryTriggerManager(TriggerReactor plugin) {
+    public InventoryTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"));
     }
 

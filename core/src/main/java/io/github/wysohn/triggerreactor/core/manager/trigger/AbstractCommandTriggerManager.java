@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -201,7 +201,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }
     }
 
-    public AbstractCommandTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+    public AbstractCommandTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
     }
 

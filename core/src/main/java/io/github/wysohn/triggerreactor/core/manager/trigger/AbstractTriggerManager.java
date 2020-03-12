@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -47,7 +47,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
     protected final File folder;
 
-    public AbstractTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+    public AbstractTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin);
 
         folder = tirggerFolder;
@@ -129,7 +129,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
     	}
     	
     	Level L = Level.WARNING;
-    	Logger log = TriggerReactor.getInstance().getLogger();
+    	Logger log = TriggerReactorCore.getInstance().getLogger();
     	int numWarnings = warnings.size();
     	String ww;
     	if (numWarnings > 1) {
@@ -220,9 +220,9 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                 List<Warning> warnings = parser.getWarnings();
                 
                 reportWarnings(warnings, this);
-                executorMap = TriggerReactor.getInstance().getExecutorManager().getBackedMap();
-                placeholderMap = TriggerReactor.getInstance().getPlaceholderManager().getBackedMap();
-                gvarMap = TriggerReactor.getInstance().getVariableManager().getGlobalVariableAdapter();
+                executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
+                placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();
+                gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();
             } catch (Exception ex) {
                 throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
                         + " -- " + triggerName + "]!", ex);
@@ -282,8 +282,8 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             }
 
             scriptVars.put("event", e);
-            scriptVars.putAll(TriggerReactor.getInstance().getSharedVars());
-            Map<String, Object> customVars = TriggerReactor.getInstance().getCustomVarsForTrigger(e);
+            scriptVars.putAll(TriggerReactorCore.getInstance().getSharedVars());
+            Map<String, Object> customVars = TriggerReactorCore.getInstance().getCustomVarsForTrigger(e);
             if (customVars != null)
                 scriptVars.putAll(customVars);
 
@@ -298,7 +298,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
          */
         protected boolean checkCooldown(Object e) {
-            IPlayer iPlayer = TriggerReactor.getInstance().extractPlayerFromContext(e);
+            IPlayer iPlayer = TriggerReactorCore.getInstance().extractPlayerFromContext(e);
 
             if (iPlayer != null) {
                 UUID uuid = iPlayer.getUniqueId();
@@ -319,12 +319,12 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          */
         protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
             Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(TriggerReactor.getInstance());
+            interpreter.setTaskSupervisor(TriggerReactorCore.getInstance());
             interpreter.setExecutorMap(executorMap);
             interpreter.setPlaceholderMap(placeholderMap);
             interpreter.setGvars(gvarMap);
             interpreter.setVars(scriptVars);
-            interpreter.setSelfReference(TriggerReactor.getInstance().getSelfReference());
+            interpreter.setSelfReference(TriggerReactorCore.getInstance().getSelfReference());
 
             interpreter.setSync(isSync());
 
@@ -349,7 +349,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                     try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
                         start(t, e, scriptVars, interpreter, sync);
                     } catch (Exception ex) {
-                        TriggerReactor.getInstance().handleException(e, new Exception(
+                        TriggerReactorCore.getInstance().handleException(e, new Exception(
                                 "Trigger [" + getTriggerName() + "] produced an error!", ex));
                     }
                     return null;
@@ -357,20 +357,20 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             };
 
             if (sync) {
-                if (TriggerReactor.getInstance().isServerThread()) {
+                if (TriggerReactorCore.getInstance().isServerThread()) {
                     try {
                         call.call();
                     } catch (Exception e1) {
 
                     }
                 } else {
-                    Future<Void> future = TriggerReactor.getInstance().callSyncMethod(call);
+                    Future<Void> future = TriggerReactorCore.getInstance().callSyncMethod(call);
                     try {
                         future.get(3, TimeUnit.SECONDS);
                     } catch (InterruptedException | ExecutionException e1) {
 
                     } catch (TimeoutException e1) {
-                        TriggerReactor.getInstance().handleException(e, new RuntimeException(
+                        TriggerReactorCore.getInstance().handleException(e, new RuntimeException(
                                 "Took too long to process Trigger [" + getTriggerName() + "]! Is the server lagging?",
                                 e1));
                     }
@@ -393,10 +393,10 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
                              boolean sync) {
             try {
                 interpreter.startWithContextAndInterrupter(e,
-                        TriggerReactor.getInstance().createInterrupter(e, interpreter, cooldowns),
+                        TriggerReactorCore.getInstance().createInterrupter(e, interpreter, cooldowns),
                         timing);
             } catch (InterpreterException ex) {
-                TriggerReactor.getInstance().handleException(e,
+                TriggerReactorCore.getInstance().handleException(e,
                         new Exception("Could not finish interpretation for [" + getTriggerName() + "]!", ex));
             }
         }

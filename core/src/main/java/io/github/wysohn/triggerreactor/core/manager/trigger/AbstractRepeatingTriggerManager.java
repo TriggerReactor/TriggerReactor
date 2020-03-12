@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -279,10 +279,10 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             @Override
             public void onFail(Throwable throwable) {
                 throwable.printStackTrace();
-                TriggerReactor.getInstance().getLogger()
+                TriggerReactorCore.getInstance().getLogger()
                         .warning("Repeating Trigger [" + triggerName + "] encountered an error!");
-                TriggerReactor.getInstance().getLogger().warning(throwable.getMessage());
-                TriggerReactor.getInstance().getLogger()
+                TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
+                TriggerReactorCore.getInstance().getLogger()
                         .warning("If you are an administrator, see console for more details.");
             }
         };
@@ -429,7 +429,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         void onFail(Throwable throwable);
     }
 
-    public AbstractRepeatingTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+    public AbstractRepeatingTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
     }
 

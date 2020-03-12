@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -57,9 +57,9 @@ import java.util.*;
 
 public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions
         implements SelfReference {
-    private final TriggerReactor plugin;
+    private final TriggerReactorCore plugin;
 
-    public CommonFunctions(TriggerReactor plugin) {
+    public CommonFunctions(TriggerReactorCore plugin) {
         super();
         this.plugin = plugin;
     }

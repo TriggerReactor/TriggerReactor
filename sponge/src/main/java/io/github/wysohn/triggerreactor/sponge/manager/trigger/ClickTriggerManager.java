@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.type.HandTypes;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> {
-    public ClickTriggerManager(TriggerReactor plugin) {
+    public ClickTriggerManager(TriggerReactorCore plugin) {
         super(plugin, "ClickTrigger");
     }
 

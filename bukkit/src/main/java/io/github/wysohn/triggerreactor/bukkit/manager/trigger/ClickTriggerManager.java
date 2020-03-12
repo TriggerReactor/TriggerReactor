@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> {
-    public ClickTriggerManager(TriggerReactor plugin) {
+    public ClickTriggerManager(TriggerReactorCore plugin) {
         super(plugin, "ClickTrigger");
     }
 

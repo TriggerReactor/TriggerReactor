@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
-    public CommandTriggerManager(TriggerReactor plugin) {
+    public CommandTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
     }
 

@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -288,7 +288,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactor triggerReactor = Mockito.mock(TriggerReactor.class);
+        TriggerReactorCore triggerReactor = Mockito.mock(TriggerReactorCore.class);
         AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
             @Override
             public void remove(String key) {

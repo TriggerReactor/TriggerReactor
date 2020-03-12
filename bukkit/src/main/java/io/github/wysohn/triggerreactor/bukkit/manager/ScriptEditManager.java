@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import io.github.wysohn.triggerreactor.bukkit.tools.prompts.EditingPrompt;
 import io.github.wysohn.triggerreactor.bukkit.tools.prompts.UsagePrompt;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
@@ -29,7 +29,7 @@ import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationFactory;
 
 public class ScriptEditManager extends AbstractScriptEditManager implements ConversationAbandonedListener {
-    public ScriptEditManager(TriggerReactor plugin) {
+    public ScriptEditManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

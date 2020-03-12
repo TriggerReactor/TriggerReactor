@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.sponge.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
@@ -42,7 +42,7 @@ public class ScriptEditManager extends AbstractScriptEditManager {
     private final Set<ScriptEditorUser> viewingUsage = new HashSet<>();
     private final Set<ScriptEditorUser> exitDoublecheck = new HashSet<>();
 
-    public ScriptEditManager(TriggerReactor plugin) {
+    public ScriptEditManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements SpongeConfigurationFileIO {
-    public CommandTriggerManager(TriggerReactor plugin) {
+    public CommandTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
     }
 

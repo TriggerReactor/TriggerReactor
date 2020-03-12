@@ -1,12 +1,12 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion{
-    private TriggerReactor plugin;
+    private TriggerReactorCore plugin;
     /**
      * Since we register the expansion inside our own plugin, we
      * can simply use this method here to get an instance of our
@@ -15,7 +15,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion{
      * @param plugin
      *        The instance of our plugin.
      */
-    public PlaceholderExpansionSupport(TriggerReactor plugin){
+    public PlaceholderExpansionSupport(TriggerReactorCore plugin){
         this.plugin = plugin;
     }
 

@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -34,7 +34,7 @@ import java.util.Collection;
 public class CommonFunctions extends AbstractCommonFunctions
         implements SelfReference {
 
-    public CommonFunctions(TriggerReactor plugin) {
+    public CommonFunctions(TriggerReactorCore plugin) {
         super(plugin);
     }
 

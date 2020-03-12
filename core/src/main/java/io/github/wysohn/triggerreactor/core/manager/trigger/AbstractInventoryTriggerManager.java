@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
@@ -279,7 +279,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         return inventorySharedVars.get(inventory);
     }
 
-    public AbstractInventoryTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
     }
 
@@ -317,10 +317,10 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
                              boolean sync) {
             try {
                 interpreter.startWithContextAndInterrupter(e,
-                        TriggerReactor.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap),
+                        TriggerReactorCore.getInstance().createInterrupterForInv(e, interpreter, cooldowns, inventoryMap),
                         timing);
             } catch (Exception ex) {
-                TriggerReactor.getInstance().handleException(e,
+                TriggerReactorCore.getInstance().handleException(e,
                         new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
             }
         }

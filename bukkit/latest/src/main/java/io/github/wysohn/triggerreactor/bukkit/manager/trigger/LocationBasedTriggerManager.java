@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
@@ -55,7 +55,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
-    public LocationBasedTriggerManager(TriggerReactor plugin, String folderName) {
+    public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName) {
         super(plugin, new File(plugin.getDataFolder(), folderName));
     }
 

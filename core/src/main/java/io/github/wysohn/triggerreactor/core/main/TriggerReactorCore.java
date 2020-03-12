@@ -59,7 +59,7 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-public abstract class TriggerReactor implements TaskSupervisor {
+public abstract class TriggerReactorCore implements TaskSupervisor {
     /**
      * Cached Pool for thread execution.
      */
@@ -72,7 +72,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
         }
     });
 
-    private static TriggerReactor instance;
+    private static TriggerReactorCore instance;
 
     private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "var.json"));
 
@@ -81,13 +81,13 @@ public abstract class TriggerReactor implements TaskSupervisor {
      *
      * @return
      */
-    public static TriggerReactor getInstance() {
+    public static TriggerReactorCore getInstance() {
         return instance;
     }
 
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
-    protected TriggerReactor() {
+    protected TriggerReactorCore() {
         instance = this;
     }
 

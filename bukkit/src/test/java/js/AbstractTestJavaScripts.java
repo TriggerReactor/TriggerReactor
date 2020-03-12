@@ -1,6 +1,6 @@
 package js;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({TriggerReactor.class, Bukkit.class})
+@PrepareForTest({TriggerReactorCore.class, Bukkit.class})
 public abstract class AbstractTestJavaScripts {
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
@@ -41,7 +41,7 @@ public abstract class AbstractTestJavaScripts {
         register(sem, engine, Bukkit.class);
         register(sem, engine, ChatColor.class);
 
-        TriggerReactor mockMain = Mockito.mock(TriggerReactor.class);
+        TriggerReactorCore mockMain = Mockito.mock(TriggerReactorCore.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
 
         PluginManager mockPluginManager = Mockito.mock(PluginManager.class);
@@ -60,8 +60,8 @@ public abstract class AbstractTestJavaScripts {
 
         before();
 
-        PowerMockito.mockStatic(TriggerReactor.class);
-        Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
+        PowerMockito.mockStatic(TriggerReactorCore.class);
+        Mockito.when(TriggerReactorCore.getInstance()).thenReturn(mockMain);
 
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);

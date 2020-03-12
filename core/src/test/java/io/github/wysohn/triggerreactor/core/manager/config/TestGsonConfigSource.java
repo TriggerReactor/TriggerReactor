@@ -3,7 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.config;
 import copy.com.google.gson.Gson;
 import copy.com.google.gson.GsonBuilder;
 import copy.com.google.gson.reflect.TypeToken;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,14 +35,14 @@ public class TestGsonConfigSource {
 			"  \"string\": \"Hello World\"\r\n" +
 			"}";
 
-	private TriggerReactor mockMain;
+	private TriggerReactorCore mockMain;
 	private File mockFile;
 	private StringWriter stringWriter;
 	private GsonConfigSource manager;
 
 	@Before
 	public void init() {
-		mockMain = Mockito.mock(TriggerReactor.class);
+		mockMain = Mockito.mock(TriggerReactorCore.class);
 		mockFile = Mockito.mock(File.class);
 		stringWriter = new StringWriter();
 

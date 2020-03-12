@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.CommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
@@ -41,7 +41,7 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
 
     private File executorFolder;
 
-    public ExecutorManager(TriggerReactor plugin) throws ScriptException, IOException {
+    public ExecutorManager(TriggerReactorCore plugin) throws ScriptException, IOException {
         super(plugin);
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 

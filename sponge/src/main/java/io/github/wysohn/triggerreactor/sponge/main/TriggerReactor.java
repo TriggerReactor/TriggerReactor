@@ -92,7 +92,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 @Plugin(id = TriggerReactor.ID)
-public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor {
+public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactorCore {
     protected static final String ID = "triggerreactor";
 
     private static SpongeExecutorService syncExecutor = null;

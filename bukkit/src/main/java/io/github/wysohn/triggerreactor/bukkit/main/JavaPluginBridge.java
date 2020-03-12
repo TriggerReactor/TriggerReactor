@@ -29,7 +29,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -37,7 +36,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
@@ -95,8 +94,8 @@ import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-public class JavaPluginBridge extends TriggerReactor implements Plugin {
-    private io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor bukkitPlugin;
+public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
+    private io.github.wysohn.triggerreactor.bukkit.main.AbstractBukkitTriggerReactor bukkitPlugin;
 
     private BungeeCordHelper bungeeHelper;
     private Lag tpsHelper;
@@ -119,8 +118,6 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     private AbstractRepeatingTriggerManager repeatManager;
 
     private AbstractNamedTriggerManager namedTriggerManager;
-
-    private SelfReference commonFunctions = new CommonFunctions(this);
 
     @Override
     public AbstractExecutorManager getExecutorManager() {
@@ -199,7 +196,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
 
     @Override
     public SelfReference getSelfReference() {
-        return commonFunctions;
+        return bukkitPlugin.getSelfReference();
     }
 
     public BungeeCordHelper getBungeeHelper() {
@@ -216,7 +213,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
 
     private Thread bungeeConnectionThread;
 
-    public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor plugin) {
+    public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.AbstractBukkitTriggerReactor plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
 
         File file = new File(getDataFolder(), "config.yml");
@@ -356,7 +353,7 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
         }, plugin);
 
         System.setProperty("bstats.relocatecheck", "false");
-        new MetricsLite(this);
+        MetricsLite metrics = new MetricsLite(this);
     }
 
     private void initFailed(Exception e) {
@@ -367,10 +364,6 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     }
 
     public void onDisable(JavaPlugin plugin) {
-        getLogger().info("Shutting down the managers...");
-        bukkitPlugin.onDisable();
-        getLogger().info("OK");
-
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
         bungeeConnectionThread.interrupt();

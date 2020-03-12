@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements BukkitTriggerManager {
-    public RepeatingTriggerManager(TriggerReactor plugin) {
+    public RepeatingTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
     }
 

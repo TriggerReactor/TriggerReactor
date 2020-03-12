@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.config;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 
 import java.io.File;
@@ -10,7 +10,7 @@ public class ConfigManager extends Manager {
     private final IConfigSource configSource;
     private IMigrationHelper migrationHelper;
 
-    public ConfigManager(TriggerReactor plugin, File file) {
+    public ConfigManager(TriggerReactorCore plugin, File file) {
         super(plugin);
         this.file = file;
         this.configSource = new GsonConfigSource(file);

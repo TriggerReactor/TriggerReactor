@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -189,9 +189,9 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      * @param clazz
      * @param eventHook
      */
-    protected abstract void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook);
+    protected abstract void registerEvent(TriggerReactorCore plugin, Class<?> clazz, EventHook eventHook);
 
-    protected abstract void unregisterEvent(TriggerReactor plugin, EventHook eventHook);
+    protected abstract void unregisterEvent(TriggerReactorCore plugin, EventHook eventHook);
 
     public abstract Collection<String> getAbbreviations();
 
@@ -279,7 +279,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         return nameMap.values();
     }
 
-    public AbstractCustomTriggerManager(TriggerReactor plugin, File tirggerFolder) {
+    public AbstractCustomTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
     }
 

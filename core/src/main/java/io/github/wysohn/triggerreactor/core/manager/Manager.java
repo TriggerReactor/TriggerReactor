@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +34,9 @@ public abstract class Manager {
         return managers;
     }
 
-    protected final TriggerReactor plugin;
+    protected final TriggerReactorCore plugin;
 
-    public Manager(TriggerReactor plugin) {
+    public Manager(TriggerReactorCore plugin) {
         this.plugin = plugin;
 
         managers.add(this);

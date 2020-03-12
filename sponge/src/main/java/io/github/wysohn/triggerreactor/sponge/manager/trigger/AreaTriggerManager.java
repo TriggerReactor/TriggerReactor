@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
@@ -47,7 +47,7 @@ import java.util.concurrent.Future;
 
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements SpongeConfigurationFileIO {
 
-    public AreaTriggerManager(TriggerReactor plugin) {
+    public AreaTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
 
         Thread entityTrackingThread = new Thread(new Runnable() {

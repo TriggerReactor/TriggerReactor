@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.bukkit.ChatColor;
@@ -32,7 +32,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import java.util.UUID;
 
 public class AreaSelectionManager extends AbstractAreaSelectionManager implements Listener {
-    public AreaSelectionManager(TriggerReactor plugin) {
+    public AreaSelectionManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 
