@@ -481,15 +481,6 @@ public class ReflectionUtil {
                 return null;
 
             Constructor<?> target = possibleTarget.get(0);
-            
-            //TODO: the logic here is a bit broken
-            //It doesn't make script-crashing choices, but it will still choose the wrong constructor sometimes.
-            //for example, if there's a constructor that accepts ints and one that accepts doubles
-            //and you construct with an int, it might go for the one that accepts doubles because
-            //ints can be assigned to doubles.
-            //Which one it actually chooses depends on whatever order getConstructors() returns
-            //@wysohn why don't we just use Class.getConstructor(Class<?>... parameterTypes) ?
-            //or some adaptation of it instead of this huge method?
             if (possibleTarget.size() > 1) {
                 for (Constructor<?> con : possibleTarget.subList(1, possibleTarget.size())) {
                     if (con.isVarArgs()) {
@@ -497,7 +488,7 @@ public class ReflectionUtil {
                             Class<?> paramsOther = getParamType(con, i);
                             Class<?> params = getParamType(target, i);
 
-                            if (ClassUtils.isAssignable(params, paramsOther, true)) {
+                            if (ClassUtils.isAssignable(paramsOther, params, true)) {
                                 target = con;
                             }
                         }
@@ -509,7 +500,7 @@ public class ReflectionUtil {
                             Class<?> paramsOther = getParamType(con, i);
                             Class<?> params = getParamType(target, i);
 
-                            if (ClassUtils.isAssignable(params, paramsOther, true)) {
+                            if (ClassUtils.isAssignable(paramsOther, params, true)) {
                                 target = con;
                             }
                         }
