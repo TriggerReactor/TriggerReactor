@@ -2,10 +2,10 @@ name: Java CI
 
 on:
   push:
-    branches: 
-      - master
     tags:
       - '*'
+    branches: 
+      - master
 
 jobs:
   build:
