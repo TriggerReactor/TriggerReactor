@@ -22,21 +22,11 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${GITHUB_REF#refs/*/}
-        release_name: ${GITHUB_REF#refs/*/}
-        draft: true
-        prerelease: false
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/libs/TriggerReactor-*.jar
-        tag: ${GITHUB_REF#refs/*/}
+        tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
