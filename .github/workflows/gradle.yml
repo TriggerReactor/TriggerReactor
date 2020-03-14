@@ -28,8 +28,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${GITHUB_REF#refs/*/}
+        release_name: ${GITHUB_REF#refs/*/}
         draft: true
         prerelease: false
     - name: Upload binaries to release
@@ -37,6 +37,6 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/libs/TriggerReactor-*.jar
-        tag: ${{ github.ref }}
+        tag: ${GITHUB_REF#refs/*/}
         overwrite: true
         file_glob: true
