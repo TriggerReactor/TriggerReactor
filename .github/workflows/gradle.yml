@@ -24,4 +24,4 @@ jobs:
       with:
         token: ${{secrets.GITHUB_TOKEN}}
         tag : RELEASE_TAG
-        files: build/lib/
+        files: build/libs/
