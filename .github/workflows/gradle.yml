@@ -28,3 +28,4 @@ jobs:
         tags: true
         draft: true
         overwrite: true
+        verbose: true
