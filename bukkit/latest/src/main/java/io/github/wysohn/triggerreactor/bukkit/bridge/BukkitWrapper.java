@@ -1,0 +1,15 @@
+package io.github.wysohn.triggerreactor.bukkit.bridge;
+
+import org.bukkit.entity.Player;
+
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+
+public class BukkitWrapper extends AbstractBukkitWrapper{
+
+	@Override
+	public IPlayer wrap(Player player) {
+		return new BukkitPlayer(player);
+	}
+
+}

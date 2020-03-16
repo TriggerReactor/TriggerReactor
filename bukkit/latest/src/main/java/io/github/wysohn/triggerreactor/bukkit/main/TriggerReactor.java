@@ -24,14 +24,15 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placehol
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
+import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
-public class TriggerReactor extends AbstractBukkitTriggerReactor {
+public class TriggerReactor extends AbstractJavaPlugin {
 	private SelfReference selfReference;
 	
 	@Override
 	public void onEnable() {
-		selfReference = new CommonFunctions(javaPluginBridge);
+		selfReference = new CommonFunctions(core);
 		super.onEnable();
 	}
 
@@ -46,7 +47,13 @@ public class TriggerReactor extends AbstractBukkitTriggerReactor {
 	}
     
 	@Override
-	public SelfReference getSelfReference() {
+	public SelfReference createSelfReference() {
 		return selfReference;
+	}
+
+	@Override
+	public IWrapper createWrapper() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

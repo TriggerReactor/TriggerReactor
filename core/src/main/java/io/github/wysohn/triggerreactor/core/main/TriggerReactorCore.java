@@ -20,6 +20,7 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -74,8 +75,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     private static TriggerReactorCore instance;
 
-    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "var.json"));
-
     /**
      * get instance of this class.
      *
@@ -84,6 +83,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     public static TriggerReactorCore getInstance() {
         return instance;
     }
+    
+    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "var.json"));
 
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
@@ -94,6 +95,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     public Map<String, AbstractAPISupport> getSharedVars() {
         return sharedVars;
     }
+    
+    public abstract SelfReference getSelfReference();
+    
+    public abstract IWrapper getWrapper();
 
     public abstract AbstractExecutorManager getExecutorManager();
 
@@ -124,8 +129,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     public abstract AbstractRepeatingTriggerManager getRepeatManager();
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
-
-    public abstract SelfReference getSelfReference();
 
     public ConfigManager getConfigManager() {
         return configManager;
@@ -1480,8 +1483,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public boolean isDebugging() {
         return debugging;
-    }
-
+    } 
+    
     /**
      * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
      * instead of changing the real block.

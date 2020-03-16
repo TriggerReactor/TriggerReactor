@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractBukkitTriggerReactor;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
+import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
@@ -9,18 +10,10 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placehol
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
+import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
-public class TriggerReactor extends AbstractBukkitTriggerReactor {
-	private SelfReference selfReference;
-	
-	@Override
-	public void onEnable() {
-		super.onEnable();
-		
-		selfReference = new CommonFunctions(javaPluginBridge);
-	}
-
+public class TriggerReactor extends AbstractJavaPlugin {
 	@Override
 	protected void registerAPIs() {
         APISupport.addSharedVars("coreprotect", CoreprotectSupport.class);
@@ -32,8 +25,13 @@ public class TriggerReactor extends AbstractBukkitTriggerReactor {
 	}
 	
 	@Override
-	public SelfReference getSelfReference() {
-		return selfReference;
+	public SelfReference createSelfReference() {
+		return new CommonFunctions(core);
+	}
+
+	@Override
+	public IWrapper createWrapper() {
+		return new BukkitWrapper();
 	}
 	
 	

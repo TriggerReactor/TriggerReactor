@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -66,14 +65,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             return;
 
         Player player = e.getPlayer();
-
         ItemStack IS = player.getInventory().getItemInHand();
         Block clicked = e.getClickedBlock();
         if (clicked == null)
             return;
 
         T trigger = getTriggerForLocation(clicked.getLocation());
-
+        IPlayer bukkitPlayer = plugin.getWrapper().wrap(player);
+        
         if (IS != null && !e.isCancelled() && player.hasPermission("triggerreactor.admin")) {
 
             if (IS.getType() == INSPECTION_TOOL) {
@@ -87,7 +86,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                         handleScriptEdit(player, trigger);
                         e.setCancelled(true);
                     } else {
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
+                        this.showTriggerInfo(bukkitPlayer, clicked);
                         e.setCancelled(true);
                     }
                 }
@@ -95,7 +94,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
                     if (pasteTrigger(player, clicked.getLocation())) {
                         player.sendMessage(ChatColor.GREEN + "Successfully pasted the trigger!");
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
+                        this.showTriggerInfo(bukkitPlayer, clicked);
                         e.setCancelled(true);
                     }
                 } else if (trigger != null && e.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -109,7 +108,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                 if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
                     if (pasteTrigger(player, clicked.getLocation())) {
                         player.sendMessage(ChatColor.GREEN + "Successfully pasted the trigger!");
-                        this.showTriggerInfo(new BukkitPlayer(player), clicked);
+                        this.showTriggerInfo(bukkitPlayer, clicked);
                         e.setCancelled(true);
                     }
                 } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -122,60 +121,61 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             }
         }
 
-        if (!e.isCancelled() && isLocationSetting(new BukkitPlayer(player))) {
+        if (!e.isCancelled() && isLocationSetting(bukkitPlayer)) {
             handleLocationSetting(clicked, player);
             e.setCancelled(true);
         }
     }
 
     private void handleLocationSetting(Block clicked, Player p) {
-        IPlayer player = new BukkitPlayer(p);
+    	IPlayer bukkitPlayer = plugin.getWrapper().wrap(p);
 
         Location loc = clicked.getLocation();
         T trigger = getTriggerForLocation(loc);
         if (trigger != null) {
-            player.sendMessage(ChatColor.RED + "Another trigger is set at there!");
-            showTriggerInfo(player, clicked);
+            bukkitPlayer.sendMessage(ChatColor.RED + "Another trigger is set at there!");
+            showTriggerInfo(bukkitPlayer, clicked);
             return;
         }
 
-        String script = getSettingLocationScript(player);
+        String script = getSettingLocationScript(bukkitPlayer);
         if (script == null) {
-            player.sendMessage(ChatColor.RED + "Could not find script... but how?");
+            bukkitPlayer.sendMessage(ChatColor.RED + "Could not find script... but how?");
             return;
         }
 
         try {
             trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
         } catch (TriggerInitFailedException e1) {
-            player.sendMessage(ChatColor.RED + "Encounterd an error!");
-            player.sendMessage(ChatColor.RED + e1.getMessage());
-            player.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
+            bukkitPlayer.sendMessage(ChatColor.RED + "Encounterd an error!");
+            bukkitPlayer.sendMessage(ChatColor.RED + e1.getMessage());
+            bukkitPlayer.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
             e1.printStackTrace();
 
-            stopLocationSet(player);
+            stopLocationSet(bukkitPlayer);
             return;
         }
 
         setTriggerForLocation(loc, trigger);
 
-        showTriggerInfo(player, clicked);
+        showTriggerInfo(bukkitPlayer, clicked);
 
-        stopLocationSet(player);
+        stopLocationSet(bukkitPlayer);
 
         plugin.saveAsynchronously(this);
     }
 
     private void handleScriptEdit(Player player, T trigger) {
-
-        plugin.getScriptEditManager().startEdit(new BukkitPlayer(player), trigger.getTriggerName(), trigger.getScript(),
+    	IPlayer bukkitPlayer = plugin.getWrapper().wrap(player);
+    	
+        plugin.getScriptEditManager().startEdit(bukkitPlayer, trigger.getTriggerName(), trigger.getScript(),
                 new SaveHandler() {
                     @Override
                     public void onSave(String script) {
                         try {
                             trigger.setScript(script);
                         } catch (TriggerInitFailedException e) {
-                            plugin.handleException(new BukkitPlayer(player), e);
+                            plugin.handleException(bukkitPlayer, e);
                         }
 
                         plugin.saveAsynchronously(LocationBasedTriggerManager.this);
@@ -266,7 +266,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     @EventHandler
     public void onItemSwap(PlayerItemHeldEvent e) {
-        onItemSwap(new BukkitPlayer(e.getPlayer()));
+        onItemSwap((IPlayer) plugin.getWrapper().wrap(e.getPlayer()));
     }
 
     protected T getTriggerForLocation(Location loc) {
@@ -329,7 +329,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      */
     protected boolean cutTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return cutTrigger(new BukkitPlayer(player), sloc);
+        return cutTrigger((IPlayer) plugin.getWrapper().wrap(player), sloc);
     }
 
     /**
@@ -339,7 +339,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      */
     protected boolean copyTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return copyTrigger(new BukkitPlayer(player), sloc);
+        return copyTrigger((IPlayer) plugin.getWrapper().wrap(player), sloc);
     }
 
     /**
@@ -349,7 +349,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      */
     protected boolean pasteTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return pasteTrigger(new BukkitPlayer(player), sloc);
+        return pasteTrigger((IPlayer) plugin.getWrapper().wrap(player), sloc);
     }
 
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {

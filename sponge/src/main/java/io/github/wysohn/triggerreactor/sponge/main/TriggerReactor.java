@@ -20,6 +20,7 @@ import com.google.inject.Inject;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -36,6 +37,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeWrapper;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.manager.*;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
@@ -131,8 +133,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     private AbstractNamedTriggerManager namedTriggerManager;
 
-    private SelfReference commonFunctions = new CommonFunctions(this);
-
+    private SelfReference selfReference = new CommonFunctions(this);
+    private IWrapper wrapper = new SpongeWrapper();
+    
     @Listener
     public void onConstruct(GameInitializationEvent event) {
         syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
@@ -332,6 +335,16 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
+	public SelfReference getSelfReference() {
+		return selfReference;
+	}
+
+	@Override
+	public IWrapper getWrapper() {
+		return wrapper;
+	}
+
+	@Override
     public AbstractExecutorManager getExecutorManager() {
         return executorManager;
     }
@@ -404,11 +417,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractNamedTriggerManager getNamedTriggerManager() {
         return namedTriggerManager;
-    }
-
-    @Override
-    public SelfReference getSelfReference() {
-        return commonFunctions;
     }
 
     @Override

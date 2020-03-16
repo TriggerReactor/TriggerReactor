@@ -24,7 +24,6 @@ import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
-import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
@@ -34,6 +33,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -52,31 +52,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bstats.bukkit.MetricsLite;
-import org.bukkit.*;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.*;
-import org.bukkit.event.block.BlockEvent;
-import org.bukkit.event.entity.EntityEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginLoader;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.script.ScriptException;
 import java.io.*;
@@ -90,16 +66,27 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
-    private io.github.wysohn.triggerreactor.bukkit.main.AbstractBukkitTriggerReactor bukkitPlugin;
+/**
+ * Abstract class to reduce writing boilerplate codes in latest and legacy bukkit project.
+ * 
+ * Try <b>not</b> to import Bukkit related classes in here for sake of code cohesiveness
+ *  if it's not necessary.
+ * (Put them in the AbstractJavaPlugin or its child instead. Plugin class is exception since
+ *  the BukkitTriggerReactorCore wants to act as delegate class of JavaPlugin)
+ * 
+ * @author wysohn
+ *
+ */
+public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin {
+    private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
 
     private BungeeCordHelper bungeeHelper;
     private Lag tpsHelper;
-    private MysqlSupport mysqlHelper;
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
@@ -120,6 +107,16 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
     private AbstractNamedTriggerManager namedTriggerManager;
 
     @Override
+    public SelfReference getSelfReference() {
+        return bukkit.createSelfReference();
+    }
+    
+    @Override
+	public IWrapper getWrapper() {
+		return bukkit.createWrapper();
+	}
+
+	@Override
     public AbstractExecutorManager getExecutorManager() {
         return executorManager;
     }
@@ -194,11 +191,6 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
         return namedTriggerManager;
     }
 
-    @Override
-    public SelfReference getSelfReference() {
-        return bukkitPlugin.getSelfReference();
-    }
-
     public BungeeCordHelper getBungeeHelper() {
         return bungeeHelper;
     }
@@ -207,44 +199,44 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
         return tpsHelper;
     }
 
-    public MysqlSupport getMysqlHelper() {
-        return mysqlHelper;
+    public AbstractJavaPlugin.MysqlSupport getMysqlHelper() {
+        return bukkit.getMysqlHelper();
     }
 
     private Thread bungeeConnectionThread;
 
-    public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.AbstractBukkitTriggerReactor plugin) {
+    public void onEnable(AbstractJavaPlugin plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
 
         File file = new File(getDataFolder(), "config.yml");
         getConfigManager().setMigrationHelper(new IMigrationHelper() {
             private void traversal(String parentNode, Map<String, Object> map, BiConsumer<String, Object> consumer) {
                 map.forEach(((s, o) -> {
-                    if (o instanceof ConfigurationSection) {
-                        Map<String, Object> section = ((ConfigurationSection) o).getValues(false);
-                        if (parentNode == null) {
-                            traversal(s, section, consumer);
-                        } else {
-                            traversal(parentNode + "." + s, section, consumer);
-                        }
-                    } else {
-                        consumer.accept(s, o);
-                    }
+//                    if (o instanceof ConfigurationSection) {
+//                        Map<String, Object> section = ((ConfigurationSection) o).getValues(false);
+//                        if (parentNode == null) {
+//                            traversal(s, section, consumer);
+//                        } else {
+//                            traversal(parentNode + "." + s, section, consumer);
+//                        }
+//                    } else {
+//                        consumer.accept(s, o);
+//                    }
                 }));
             }
 
             @Override
             public void migrate(IConfigSource current) {
-                FileConfiguration config = getConfig();
-
-                traversal(null, config.getValues(false), current::put);
-
-                if (file.exists())
-                    file.renameTo(new File(file.getParentFile(), "config.yml.bak"));
+//                FileConfiguration config = getConfig();
+//
+//                traversal(null, config.getValues(false), current::put);
+//
+//                if (file.exists())
+//                    file.renameTo(new File(file.getParentFile(), "config.yml.bak"));
             }
         });
 
-        this.bukkitPlugin = plugin;
+        this.bukkit = plugin;
 
         for (Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()) {
             AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
@@ -266,7 +258,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
 
         try {
             variableManager = new VariableManager(this);
-        } catch (IOException | InvalidConfigurationException e) {
+        } catch (Exception e) {
             initFailed(e);
             return;
         }
@@ -296,61 +288,25 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
         bungeeConnectionThread.start();
 
         tpsHelper = new Lag();
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(bukkitPlugin, tpsHelper, 100L, 1L);
-
-        FileConfiguration config = plugin.getConfig();
-        if (config.getBoolean("Mysql.Enable", false)) {
-            try {
-                plugin.getLogger().info("Initializing Mysql support...");
-                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
-                        config.getString("Mysql.DbName"),
-                        "data",
-                        config.getString("Mysql.UserName"),
-                        config.getString("Mysql.Password"));
-                plugin.getLogger().info(mysqlHelper.toString());
-                plugin.getLogger().info("Done!");
-            } catch (SQLException e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Failed to initialize Mysql. Check for the error above.");
-            }
-        } else {
-            String path = "Mysql.Enable";
-            if (!config.isSet(path))
-                config.set(path, false);
-            path = "Mysql.Address";
-            if (!config.isSet(path))
-                config.set(path, "127.0.0.1:3306");
-            path = "Mysql.DbName";
-            if (!config.isSet(path))
-                config.set(path, "TriggerReactor");
-            path = "Mysql.UserName";
-            if (!config.isSet(path))
-                config.set(path, "root");
-            path = "Mysql.Password";
-            if (!config.isSet(path))
-                config.set(path, "1234");
-
-            plugin.saveConfig();
-        }
-
-        Bukkit.getScheduler().runTask(plugin, new Runnable() {
-
-            @Override
-            public void run() {
-                Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent());
-            }
-
-        });
-
-        Bukkit.getPluginManager().registerEvents(new Listener() {
-            @EventHandler
-            public void onDisable(PluginDisableEvent e) {
-                if (plugin != e.getPlugin())
-                    return;
-
-                Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent());
-            }
-        }, plugin);
+        new Thread() {
+        	@Override
+        	public void run() {
+        		try {
+        			Thread.sleep(50L * 100);
+                	
+                	while(isAlive() && !isInterrupted()) {
+                		submitSync(()->{
+                			tpsHelper.run();
+                			return null;
+                		}).get();
+                		Thread.sleep(50L);
+                	}	
+        		}catch(ExecutionException | InterruptedException ex) {
+        			getLogger().info("TPS Helper stopped working." + ex);
+        		}
+        		
+        	}
+        }.start();
 
         System.setProperty("bstats.relocatecheck", "false");
         MetricsLite metrics = new MetricsLite(this);
@@ -363,7 +319,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
         disablePlugin();
     }
 
-    public void onDisable(JavaPlugin plugin) {
+    public void onDisable(AbstractJavaPlugin plugin) {
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
         bungeeConnectionThread.interrupt();
@@ -383,22 +339,22 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
 
     @Override
     public String getPluginDescription() {
-        return bukkitPlugin.getDescription().getFullName();
+        return bukkit.getDescription().getFullName();
     }
 
     @Override
     public String getVersion() {
-        return bukkitPlugin.getDescription().getVersion();
+        return bukkit.getDescription().getVersion();
     }
 
     @Override
     public String getAuthor() {
-        return bukkitPlugin.getDescription().getAuthors().toString();
+        return bukkit.getDescription().getAuthors().toString();
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    protected void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
+	public void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
         for (Entry<SimpleLocation, Trigger> entry : set) {
             SimpleLocation sloc = entry.getKey();
             Player player = sender.get();
@@ -411,67 +367,67 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
     @Override
     public void registerEvents(Manager manager) {
         if (manager instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) manager, this.bukkitPlugin);
+            Bukkit.getPluginManager().registerEvents((Listener) manager, this.bukkit);
     }
 
     @Override
     public File getDataFolder() {
-        return bukkitPlugin.getDataFolder();
+        return bukkit.getDataFolder();
     }
 
     @Override
     public Logger getLogger() {
-        return bukkitPlugin.getLogger();
+        return bukkit.getLogger();
     }
 
     @Override
     public boolean isEnabled() {
-        return bukkitPlugin.isEnabled();
+        return bukkit.isEnabled();
     }
 
     @Override
     public <T> T getMain() {
-        return (T) bukkitPlugin;
+        return (T) bukkit;
     }
 
     @Override
     public boolean isConfigSet(String key) {
-        return bukkitPlugin.getConfig().isSet(key);
+        return bukkit.getConfig().isSet(key);
     }
 
     @Override
     public void setConfig(String key, Object value) {
-        bukkitPlugin.getConfig().set(key, value);
+        bukkit.getConfig().set(key, value);
     }
 
     @Override
     public Object getConfig(String key) {
-        return bukkitPlugin.getConfig().get(key);
+        return bukkit.getConfig().get(key);
     }
 
     @Override
     public <T> T getConfig(String key, T def) {
-        return (T) bukkitPlugin.getConfig().get(key, def);
+        return (T) bukkit.getConfig().get(key, def);
     }
 
     @Override
     public void saveConfig() {
-        bukkitPlugin.saveConfig();
+        bukkit.saveConfig();
     }
 
     @Override
     public void reloadConfig() {
-        bukkitPlugin.reloadConfig();
+        bukkit.reloadConfig();
     }
 
     @Override
     public void runTask(Runnable runnable) {
-        Bukkit.getScheduler().runTask(bukkitPlugin, runnable);
+        Bukkit.getScheduler().runTask(bukkit, runnable);
     }
 
     @Override
     public void saveAsynchronously(Manager manager) {
-        bukkitPlugin.saveAsynchronously(manager);
+        bukkit.saveAsynchronously(manager);
     }
 
     @Override
@@ -646,11 +602,11 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
     public IPlayer extractPlayerFromContext(Object e) {
         if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
-            return new BukkitPlayer(player);
+            return bukkit.createWrapper().wrap(player);
         } else if (e instanceof InventoryInteractEvent) {
             HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
             if (he instanceof Player)
-                return new BukkitPlayer((Player) he);
+                return bukkit.createWrapper().wrap((Player) he);
         }
 
         return null;
@@ -668,8 +624,8 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
          * constructor should only be called from onEnable()
          */
         private BungeeCordHelper() {
-            Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(bukkitPlugin, CHANNEL);
-            Bukkit.getServer().getMessenger().registerIncomingPluginChannel(bukkitPlugin, CHANNEL, this);
+            Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(bukkit, CHANNEL);
+            Bukkit.getServer().getMessenger().registerIncomingPluginChannel(bukkit, CHANNEL, this);
         }
 
         @Override
@@ -711,7 +667,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
             out.writeUTF("Connect");
             out.writeUTF(serverName);
 
-            player.sendPluginMessage(bukkitPlugin, CHANNEL, out.toByteArray());
+            player.sendPluginMessage(bukkit, CHANNEL, out.toByteArray());
         }
 
         public String[] getServerNames() {
@@ -733,7 +689,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
                 out.writeUTF(SUB_SERVERLIST);
                 out.writeUTF("GetServers");
-                player.sendPluginMessage(bukkitPlugin, SUB_SERVERLIST, out.toByteArray());
+                player.sendPluginMessage(bukkit, SUB_SERVERLIST, out.toByteArray());
 
                 if (!playerCounts.isEmpty()) {
                     for (Entry<String, Integer> entry : playerCounts.entrySet()) {
@@ -741,7 +697,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
                         out2.writeUTF(SUB_USERCOUNT);
                         out2.writeUTF("PlayerCount");
                         out2.writeUTF(entry.getKey());
-                        player.sendPluginMessage(bukkitPlugin, SUB_USERCOUNT, out2.toByteArray());
+                        player.sendPluginMessage(bukkit, SUB_USERCOUNT, out2.toByteArray());
                     }
                 }
 
@@ -754,123 +710,10 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
         }
     }
 
-    public class MysqlSupport {
-        private final String KEY = "dbkey";
-        private final String VALUE = "dbval";
-
-        private final MysqlConnectionPoolDataSource ds;
-        private final MiniConnectionPoolManager pool;
-
-        private String dbName;
-        private String tablename;
-
-        private String address;
-
-        private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws SQLException {
-            this.dbName = dbName;
-            this.tablename = tablename;
-            this.address = address;
-
-            ds = new MysqlConnectionPoolDataSource();
-            ds.setURL("jdbc:mysql://" + address + "/" + dbName);
-            ds.setUser(userName);
-            ds.setPassword(password);
-            ds.setCharacterEncoding("UTF-8");
-            ds.setUseUnicode(true);
-            ds.setAutoReconnectForPools(true);
-            ds.setAutoReconnect(true);
-            ds.setAutoReconnectForConnectionPools(true);
-
-            ds.setCachePreparedStatements(true);
-            ds.setCachePrepStmts(true);
-
-            pool = new MiniConnectionPoolManager(ds, 2);
-
-            Connection conn = createConnection();
-            initTable(conn);
-            conn.close();
-        }
-
-        private Connection createConnection() {
-            Connection conn = null;
-
-            try {
-                conn = pool.getConnection();
-            } catch (SQLException e) {
-                // e.printStackTrace();
-            } finally {
-                if (conn == null)
-                    conn = pool.getValidConnection();
-            }
-
-            return conn;
-        }
-
-        private final String CREATETABLEQUARY = "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY
-                + " CHAR(128) PRIMARY KEY," + "" + VALUE + " MEDIUMBLOB" + ")";
-
-        private void initTable(Connection conn) throws SQLException {
-            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
-            pstmt.executeUpdate();
-            pstmt.close();
-        }
-
-        public Object get(String key) throws SQLException {
-            Object out = null;
-
-            try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
-                pstmt.setString(1, key);
-                ResultSet rs = pstmt.executeQuery();
-
-                if (!rs.next())
-                    return null;
-                InputStream is = rs.getBinaryStream(VALUE);
-
-                try (ObjectInputStream ois = new ObjectInputStream(is)) {
-                    out = ois.readObject();
-                } catch (IOException | ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                    return null;
-                }
-            }
-
-            return out;
-        }
-
-        public void set(String key, Serializable value) throws SQLException {
-            try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)")) {
-
-
-                try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-                    oos.writeObject(value);
-
-                    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-
-                    pstmt.setString(1, key);
-                    pstmt.setBinaryStream(2, bais);
-
-                    pstmt.executeUpdate();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        @Override
-        public String toString() {
-            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
-        }
-
-
-    }
-
     @Override
     public <T> Future<T> callSyncMethod(Callable<T> call) {
         try {
-            return Bukkit.getScheduler().callSyncMethod(bukkitPlugin, call);
+            return Bukkit.getScheduler().callSyncMethod(bukkit, call);
         } catch (Exception e) {
         }
         return null;
@@ -878,7 +721,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
 
     @Override
     public void disablePlugin() {
-        Bukkit.getPluginManager().disablePlugin(bukkitPlugin);
+        Bukkit.getPluginManager().disablePlugin(bukkit);
     }
 
     @Override
@@ -890,7 +733,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
     protected IPlayer getPlayer(String string) {
         Player player = Bukkit.getPlayer(string);
         if (player != null)
-            return new BukkitPlayer(player);
+            return bukkit.createWrapper().wrap(player);
         else
             return null;
     }
@@ -977,7 +820,7 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return bukkitPlugin.onTabComplete(sender, command, alias, args);
+        return bukkit.onTabComplete(sender, command, alias, args);
     }
 
     @Override
@@ -987,72 +830,72 @@ public class JavaPluginBridge extends TriggerReactorCore implements Plugin {
 
     @Override
     public PluginDescriptionFile getDescription() {
-        return bukkitPlugin.getDescription();
+        return bukkit.getDescription();
     }
 
     @Override
     public FileConfiguration getConfig() {
-        return bukkitPlugin.getConfig();
+        return bukkit.getConfig();
     }
 
     @Override
     public InputStream getResource(String filename) {
-        return bukkitPlugin.getResource(filename);
+        return bukkit.getResource(filename);
     }
 
     @Override
     public void saveDefaultConfig() {
-        bukkitPlugin.saveDefaultConfig();
+        bukkit.saveDefaultConfig();
     }
 
     @Override
     public void saveResource(String resourcePath, boolean replace) {
-        bukkitPlugin.saveResource(resourcePath, replace);
+        bukkit.saveResource(resourcePath, replace);
     }
 
     @Override
     public PluginLoader getPluginLoader() {
-        return bukkitPlugin.getPluginLoader();
+        return bukkit.getPluginLoader();
     }
 
     @Override
     public Server getServer() {
-        return bukkitPlugin.getServer();
+        return bukkit.getServer();
     }
 
     @Override
     public void onDisable() {
-        bukkitPlugin.onDisable();
+        bukkit.onDisable();
     }
 
     @Override
     public void onLoad() {
-        bukkitPlugin.onLoad();
+        bukkit.onLoad();
     }
 
     @Override
     public void onEnable() {
-        bukkitPlugin.onEnable();
+        bukkit.onEnable();
     }
 
     @Override
     public boolean isNaggable() {
-        return bukkitPlugin.isNaggable();
+        return bukkit.isNaggable();
     }
 
     @Override
     public void setNaggable(boolean canNag) {
-        bukkitPlugin.setNaggable(canNag);
+        bukkit.setNaggable(canNag);
     }
 
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return bukkitPlugin.getDefaultWorldGenerator(worldName, id);
+        return bukkit.getDefaultWorldGenerator(worldName, id);
     }
 
     @Override
     public String getName() {
-        return bukkitPlugin.getName();
+        return bukkit.getName();
     }
 
     @Override
