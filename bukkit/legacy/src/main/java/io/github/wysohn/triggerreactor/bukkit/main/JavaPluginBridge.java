@@ -39,8 +39,6 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
@@ -56,7 +54,6 @@ import org.bstats.bukkit.MetricsLite;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -92,7 +89,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 public class JavaPluginBridge extends TriggerReactor implements Plugin {
@@ -219,33 +215,33 @@ public class JavaPluginBridge extends TriggerReactor implements Plugin {
     public void onEnable(io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
 
-        File file = new File(getDataFolder(), "config.yml");
-        getConfigManager().setMigrationHelper(new IMigrationHelper() {
-            private void traversal(String parentNode, Map<String, Object> map, BiConsumer<String, Object> consumer) {
-                map.forEach(((s, o) -> {
-                    if (o instanceof ConfigurationSection) {
-                        Map<String, Object> section = ((ConfigurationSection) o).getValues(false);
-                        if (parentNode == null) {
-                            traversal(s, section, consumer);
-                        } else {
-                            traversal(parentNode + "." + s, section, consumer);
-                        }
-                    } else {
-                        consumer.accept(s, o);
-                    }
-                }));
-            }
-
-            @Override
-            public void migrate(IConfigSource current) {
-                FileConfiguration config = getConfig();
-
-                traversal(null, config.getValues(false), current::put);
-
-                if (file.exists())
-                    file.renameTo(new File(file.getParentFile(), "config.yml.bak"));
-            }
-        });
+//        File file = new File(getDataFolder(), "config.yml");
+//        getConfigManager().setMigrationHelper(new IMigrationHelper() {
+//            private void traversal(String parentNode, Map<String, Object> map, BiConsumer<String, Object> consumer) {
+//                map.forEach(((s, o) -> {
+//                    if (o instanceof ConfigurationSection) {
+//                        Map<String, Object> section = ((ConfigurationSection) o).getValues(false);
+//                        if (parentNode == null) {
+//                            traversal(s, section, consumer);
+//                        } else {
+//                            traversal(parentNode + "." + s, section, consumer);
+//                        }
+//                    } else {
+//                        consumer.accept(s, o);
+//                    }
+//                }));
+//            }
+//
+//            @Override
+//            public void migrate(IConfigSource current) {
+//                FileConfiguration config = getConfig();
+//
+//                traversal(null, config.getValues(false), current::put);
+//
+//                if (file.exists())
+//                    file.renameTo(new File(file.getParentFile(), "config.yml.bak"));
+//            }
+//        });
 
         this.bukkitPlugin = plugin;
 

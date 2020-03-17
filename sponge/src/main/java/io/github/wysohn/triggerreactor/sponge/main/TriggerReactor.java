@@ -23,8 +23,6 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
@@ -245,14 +243,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Listener
     public void onEnable(GameStartedServerEvent e) {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-
-        File file = new File(getDataFolder(), "config.yml");
-        getConfigManager().setMigrationHelper(new IMigrationHelper() {
-            @Override
-            public void migrate(IConfigSource current) {
-                // seems not necessary since we haven't been using config.yml in sponge
-            }
-        });
 
         for (Manager manager : Manager.getManagers()) {
             try {
