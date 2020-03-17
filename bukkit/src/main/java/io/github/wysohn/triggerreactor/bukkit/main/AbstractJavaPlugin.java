@@ -23,6 +23,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
@@ -31,8 +32,6 @@ import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -46,7 +45,6 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -77,7 +75,6 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin {
     public final BukkitTriggerReactorCore core;
@@ -107,33 +104,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     }
 
     private void migrateOldConfig() {
-        File file = new File(getDataFolder(), "config.yml");
-        core.getConfigManager().setMigrationHelper(new IMigrationHelper() {
-            private void traversal(String parentNode, Map<String, Object> map, BiConsumer<String, Object> consumer) {
-                map.forEach(((s, o) -> {
-                    if (o instanceof ConfigurationSection) {
-                        Map<String, Object> section = ((ConfigurationSection) o).getValues(false);
-                        if (parentNode == null) {
-                            traversal(s, section, consumer);
-                        } else {
-                            traversal(parentNode + "." + s, section, consumer);
-                        }
-                    } else {
-                        consumer.accept(s, o);
-                    }
-                }));
-            }
-
-            @Override
-            public void migrate(IConfigSource current) {
-                FileConfiguration config = getConfig();
-
-                traversal(null, config.getValues(false), current::put);
-
-                if (file.exists())
-                    file.renameTo(new File(file.getParentFile(), "config.yml.bak"));
-            }
-        });
+        if (core.getConfigManager().isMigrationNeeded()) {
+            core.getConfigManager().migrate(new BukkitMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
+        }
     }
 
     protected abstract void registerAPIs();

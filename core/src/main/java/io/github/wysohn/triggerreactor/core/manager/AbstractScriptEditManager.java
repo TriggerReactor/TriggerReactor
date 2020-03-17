@@ -45,7 +45,7 @@ public abstract class AbstractScriptEditManager extends Manager {
         while (str.charAt(index++) == ' ') {
             builder.append('^');
         }
-        builder.append(str.substring(index - 1, str.length()));
+        builder.append(str.substring(index - 1));
 
         return builder.toString();
     }
