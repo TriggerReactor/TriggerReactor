@@ -16,11 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.main;
 
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
-import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
+import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -1715,7 +1711,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                 }
 
                 @Override
-                public T get() throws InterruptedException, ExecutionException {
+                public T get() throws ExecutionException {
                     T out = null;
                     try {
                         out = call.call();
@@ -1728,7 +1724,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                 @Override
                 public T get(long arg0, TimeUnit arg1)
-                        throws InterruptedException, ExecutionException, TimeoutException {
+                        throws ExecutionException {
                     T out = null;
                     try {
                         out = call.call();

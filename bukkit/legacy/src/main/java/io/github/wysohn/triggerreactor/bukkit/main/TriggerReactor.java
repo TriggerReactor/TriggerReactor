@@ -1,7 +1,6 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
@@ -25,14 +24,14 @@ public class TriggerReactor extends AbstractJavaPlugin {
 	}
 	
 	@Override
-	public SelfReference createSelfReference() {
-		return new CommonFunctions(core);
-	}
+    public SelfReference getSelfReference() {
+        return new CommonFunctions(core);
+    }
 
-	@Override
-	public IWrapper createWrapper() {
-		return new BukkitWrapper();
-	}
+    @Override
+    public IWrapper getWrapper() {
+        return new BukkitWrapper();
+    }
 	
 	
 }

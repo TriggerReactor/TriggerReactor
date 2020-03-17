@@ -47,12 +47,12 @@ public class TriggerReactor extends AbstractJavaPlugin {
 	}
     
 	@Override
-	public SelfReference createSelfReference() {
+	public SelfReference getSelfReference() {
 		return selfReference;
 	}
 
 	@Override
-	public IWrapper createWrapper() {
+	public IWrapper getWrapper() {
 		// TODO Auto-generated method stub
 		return null;
 	}

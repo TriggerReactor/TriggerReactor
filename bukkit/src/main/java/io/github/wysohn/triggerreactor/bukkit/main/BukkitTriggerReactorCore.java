@@ -16,20 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.manager.*;
-import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
-import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -38,8 +27,6 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
@@ -47,28 +34,30 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
-import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
-import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bstats.bukkit.MetricsLite;
+import org.bukkit.Server;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginLoader;
 
 import javax.script.ScriptException;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 /**
@@ -85,7 +74,6 @@ import java.util.logging.Logger;
 public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin {
     private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
 
-    private BungeeCordHelper bungeeHelper;
     private Lag tpsHelper;
 
     private AbstractExecutorManager executorManager;
@@ -108,13 +96,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
     @Override
     public SelfReference getSelfReference() {
-        return bukkit.createSelfReference();
+        return bukkit.getSelfReference();
     }
     
     @Override
 	public IWrapper getWrapper() {
-		return bukkit.createWrapper();
-	}
+        return bukkit.getWrapper();
+    }
 
 	@Override
     public AbstractExecutorManager getExecutorManager() {
@@ -191,8 +179,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         return namedTriggerManager;
     }
 
-    public BungeeCordHelper getBungeeHelper() {
-        return bungeeHelper;
+    public AbstractJavaPlugin.BungeeCordHelper getBungeeHelper() {
+        return bukkit.getBungeeHelper();
     }
 
     public Lag getTpsHelper() {
@@ -203,38 +191,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         return bukkit.getMysqlHelper();
     }
 
-    private Thread bungeeConnectionThread;
-
     public void onEnable(AbstractJavaPlugin plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
-
-        File file = new File(getDataFolder(), "config.yml");
-        getConfigManager().setMigrationHelper(new IMigrationHelper() {
-            private void traversal(String parentNode, Map<String, Object> map, BiConsumer<String, Object> consumer) {
-                map.forEach(((s, o) -> {
-//                    if (o instanceof ConfigurationSection) {
-//                        Map<String, Object> section = ((ConfigurationSection) o).getValues(false);
-//                        if (parentNode == null) {
-//                            traversal(s, section, consumer);
-//                        } else {
-//                            traversal(parentNode + "." + s, section, consumer);
-//                        }
-//                    } else {
-//                        consumer.accept(s, o);
-//                    }
-                }));
-            }
-
-            @Override
-            public void migrate(IConfigSource current) {
-//                FileConfiguration config = getConfig();
-//
-//                traversal(null, config.getValues(false), current::put);
-//
-//                if (file.exists())
-//                    file.renameTo(new File(file.getParentFile(), "config.yml.bak"));
-            }
-        });
 
         this.bukkit = plugin;
 
@@ -282,11 +240,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             manager.reload();
         }
 
-        bungeeHelper = new BungeeCordHelper();
-        bungeeConnectionThread = new Thread(bungeeHelper);
-        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
-        bungeeConnectionThread.start();
-
         tpsHelper = new Lag();
         new Thread() {
         	@Override
@@ -322,19 +275,17 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     public void onDisable(AbstractJavaPlugin plugin) {
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
-        bungeeConnectionThread.interrupt();
         getLogger().info("Shut down complete!");
     }
 
     @Override
     protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
-        sender.sendMessage(ChatColor.AQUA + command + " " + ChatColor.DARK_GRAY + "- " + ChatColor.GRAY + desc);
+        sender.sendMessage("&b" + command + " &8- &7" + desc);
     }
 
     @Override
     protected void sendDetails(ICommandSender sender, String detail) {
-        detail = ChatColor.translateAlternateColorCodes('&', detail);
-        sender.sendMessage("  " + ChatColor.GRAY + detail);
+        sender.sendMessage("  &7" + detail);
     }
 
     @Override
@@ -353,21 +304,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    @SuppressWarnings("deprecation")
 	public void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
-        for (Entry<SimpleLocation, Trigger> entry : set) {
-            SimpleLocation sloc = entry.getKey();
-            Player player = sender.get();
-            player.sendBlockChange(
-                    new Location(Bukkit.getWorld(sloc.getWorld()), sloc.getX(), sloc.getY(), sloc.getZ()),
-                    Material.GLOWSTONE, (byte) 0);
-        }
+        bukkit.showGlowStones(sender, set);
     }
 
     @Override
     public void registerEvents(Manager manager) {
-        if (manager instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) manager, this.bukkit);
+        bukkit.registerEvents(manager);
     }
 
     @Override
@@ -422,7 +365,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
     @Override
     public void runTask(Runnable runnable) {
-        Bukkit.getScheduler().runTask(bukkit, runnable);
+        bukkit.runTask(runnable);
     }
 
     @Override
@@ -432,392 +375,94 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
     @Override
     public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        return new ProcessInterrupter() {
-            @Override
-            public boolean onNodeProcess(Node node) {
-                return false;
-            }
-
-            @Override
-            public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1)
-                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
-
-                    if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
-                        if (trigger == null)
-                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
-
-                        if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
-                        }
-
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
-                        } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
-                        }
-
-                        return true;
-                    } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
-                    }
-                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
-                    if (context instanceof Cancellable) {
-                        ((Cancellable) context).setCancelled(true);
-                        return true;
-                    } else {
-                        throw new RuntimeException(context + " is not a Cancellable event!");
-                    }
-                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number))
-                        throw new RuntimeException(args[0] + " is not a number!");
-
-                    if (e instanceof PlayerEvent) {
-                        long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                        Player player = ((PlayerEvent) e).getPlayer();
-                        UUID uuid = player.getUniqueId();
-                        cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-//                if("cooldown".equals(placeholder)){
-//                    if(e instanceof PlayerEvent){
-//                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
-//                    }else{
-//                        return 0;
-//                    }
-//                }else{
-//                    return null;
-//                }
-                return null;
-            }
-        };
+        return bukkit.createInterrupter(e, interpreter, cooldowns);
     }
 
     @Override
     public ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
                                                       Map<IInventory, InventoryTrigger> inventoryMap) {
-        return new ProcessInterrupter() {
-            @Override
-            public boolean onNodeProcess(Node node) {
-                //safety feature to stop all trigger immediately if executing on 'open' or 'click'
-                //  is still running after the inventory is closed.
-                if (e instanceof InventoryOpenEvent
-                        || e instanceof InventoryClickEvent) {
-                    Inventory inv = ((InventoryEvent) e).getInventory();
-
-                    //it's not GUI so stop execution
-                    return !inventoryMap.containsKey(new BukkitInventory(inv));
-                }
-
-                return false;
-            }
-
-            @Override
-            public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1)
-                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
-
-                    if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
-                        if (trigger == null)
-                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
-
-                        if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
-                        }
-
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
-                        } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
-                        }
-
-                        return true;
-                    } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
-                    }
-                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
-                    if (context instanceof Cancellable) {
-                        ((Cancellable) context).setCancelled(true);
-                        return true;
-                    } else {
-                        throw new RuntimeException(context + " is not a Cancellable event!");
-                    }
-                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number))
-                        throw new RuntimeException(args[0] + " is not a number!");
-
-                    if (e instanceof PlayerEvent) {
-                        long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                        Player player = ((PlayerEvent) e).getPlayer();
-                        UUID uuid = player.getUniqueId();
-                        cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-//                if("cooldown".equals(placeholder)){
-//                    if(e instanceof PlayerEvent){
-//                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
-//                    }else{
-//                        return 0L;
-//                    }
-//                }else{
-//                    return null;
-//                }
-                return null;
-            }
-
-        };
+        return bukkit.createInterrupterForInv(e, interpreter, cooldowns, inventoryMap);
     }
 
     @Override
     public IPlayer extractPlayerFromContext(Object e) {
-        if (e instanceof PlayerEvent) {
-            Player player = ((PlayerEvent) e).getPlayer();
-            return bukkit.createWrapper().wrap(player);
-        } else if (e instanceof InventoryInteractEvent) {
-            HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
-            if (he instanceof Player)
-                return bukkit.createWrapper().wrap((Player) he);
-        }
-
-        return null;
-    }
-
-    public class BungeeCordHelper implements PluginMessageListener, Runnable {
-        private final String CHANNEL = "BungeeCord";
-
-        private final String SUB_SERVERLIST = "ServerList";
-        private final String SUB_USERCOUNT = "UserCount";
-
-        private final Map<String, Integer> playerCounts = new ConcurrentHashMap<>();
-
-        /**
-         * constructor should only be called from onEnable()
-         */
-        private BungeeCordHelper() {
-            Bukkit.getServer().getMessenger().registerOutgoingPluginChannel(bukkit, CHANNEL);
-            Bukkit.getServer().getMessenger().registerIncomingPluginChannel(bukkit, CHANNEL, this);
-        }
-
-        @Override
-        public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-            if (!channel.equals(CHANNEL)) {
-                return;
-            }
-
-            ByteArrayDataInput in = ByteStreams.newDataInput(message);
-            String subchannel = in.readUTF();
-            if (subchannel.equals(SUB_SERVERLIST)) {
-                String[] serverList = in.readUTF().split(", ");
-                Set<String> serverListSet = Sets.newHashSet(serverList);
-
-                for (String server : serverListSet) {
-                    if (!playerCounts.containsKey(server))
-                        playerCounts.put(server, -1);
-                }
-
-                Set<String> deleteServer = new HashSet<>();
-                for (Entry<String, Integer> entry : playerCounts.entrySet()) {
-                    if (!serverListSet.contains(entry.getKey()))
-                        deleteServer.add(entry.getKey());
-                }
-
-                for (String delete : deleteServer) {
-                    playerCounts.remove(delete);
-                }
-            } else if (subchannel.equals(SUB_USERCOUNT)) {
-                String server = in.readUTF(); // Name of server, as given in the arguments
-                int playercount = in.readInt();
-
-                playerCounts.put(server, playercount);
-            }
-        }
-
-        public void sendToServer(Player player, String serverName) {
-            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF("Connect");
-            out.writeUTF(serverName);
-
-            player.sendPluginMessage(bukkit, CHANNEL, out.toByteArray());
-        }
-
-        public String[] getServerNames() {
-            String[] servers = playerCounts.keySet().toArray(new String[playerCounts.size()]);
-            return servers;
-        }
-
-        public int getPlayerCount(String serverName) {
-            return playerCounts.getOrDefault(serverName, -1);
-        }
-
-        @Override
-        public void run() {
-            while (!Thread.interrupted()) {
-                Player player = Iterables.getFirst(BukkitUtil.getOnlinePlayers(), null);
-                if (player == null)
-                    return;
-
-                ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                out.writeUTF(SUB_SERVERLIST);
-                out.writeUTF("GetServers");
-                player.sendPluginMessage(bukkit, SUB_SERVERLIST, out.toByteArray());
-
-                if (!playerCounts.isEmpty()) {
-                    for (Entry<String, Integer> entry : playerCounts.entrySet()) {
-                        ByteArrayDataOutput out2 = ByteStreams.newDataOutput();
-                        out2.writeUTF(SUB_USERCOUNT);
-                        out2.writeUTF("PlayerCount");
-                        out2.writeUTF(entry.getKey());
-                        player.sendPluginMessage(bukkit, SUB_USERCOUNT, out2.toByteArray());
-                    }
-                }
-
-                try {
-                    Thread.sleep(5 * 1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        return bukkit.extractPlayerFromContext(e);
     }
 
     @Override
     public <T> Future<T> callSyncMethod(Callable<T> call) {
-        try {
-            return Bukkit.getScheduler().callSyncMethod(bukkit, call);
-        } catch (Exception e) {
-        }
-        return null;
+        return bukkit.callSyncMethod(call);
     }
 
     @Override
     public void disablePlugin() {
-        Bukkit.getPluginManager().disablePlugin(bukkit);
+        bukkit.disablePlugin();
     }
 
     @Override
     public void callEvent(IEvent event) {
-        Bukkit.getPluginManager().callEvent(event.get());
+        bukkit.callEvent(event);
     }
 
     @Override
     protected IPlayer getPlayer(String string) {
-        Player player = Bukkit.getPlayer(string);
-        if (player != null)
-            return bukkit.createWrapper().wrap(player);
-        else
-            return null;
+        return bukkit.getPlayer(string);
     }
 
     @Override
     protected Object createEmptyPlayerEvent(ICommandSender sender) {
-        Object unwrapped = sender.get();
-
-        if (unwrapped instanceof Player) {
-            return new PlayerEvent((Player) unwrapped) {
-                @Override
-                public HandlerList getHandlers() {
-                    return null;
-                }
-            };
-        } else if (unwrapped instanceof CommandSender) {
-            return new CommandSenderEvent((CommandSender) unwrapped);
-        } else {
-            throw new RuntimeException("Cannot create empty PlayerEvent for " + sender);
-        }
+        return bukkit.createEmptyPlayerEvent(sender);
     }
 
     @Override
     protected void setItemTitle(IItemStack iS, String title) {
-        ItemStack IS = iS.get();
-        ItemMeta IM = IS.getItemMeta();
-        IM.setDisplayName(title);
-        IS.setItemMeta(IM);
+        bukkit.setItemTitle(iS, title);
     }
 
     @Override
     protected void addItemLore(IItemStack iS, String lore) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        lores.add(lore);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
+        bukkit.addItemLore(iS, lore);
     }
 
     @Override
     protected boolean setLore(IItemStack iS, int index, String lore) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        if (lore == null || index < 0 || index > lores.size() - 1)
-            return false;
-
-        lores.set(index, lore);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-
-        return true;
+        return bukkit.setLore(iS, index, lore);
     }
 
     @Override
     protected boolean removeLore(IItemStack iS, int index) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.getLore();
-        if (lores == null || index < 0 || index > lores.size() - 1)
-            return false;
-
-        lores.remove(index);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-
-        return true;
+        return bukkit.removeLore(iS, index);
     }
 
     @Override
     public boolean isServerThread() {
-        boolean result = false;
-
-        synchronized (this) {
-            result = Bukkit.isPrimaryThread();
-        }
-
-        return result;
+        return bukkit.isServerThread();
     }
 
+    @Override
+    public Map<String, Object> getCustomVarsForTrigger(Object e) {
+        return bukkit.getCustomVarsForTrigger(e);
+    }
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return bukkit.getConsoleSender();
+    }
+
+    //DO NOT TOUCH AREA
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //The codes below are merely to implement the 'Plugin' class and not meant to do anything other than
+    //delegating the methods to AbstractJavaPlugin. These methods are usually not called since we use JavaPlugin
+    // to implement these methods, and they will be in the AbstractJavaPlugin or its children classes
+    //TriggerCore class must implement Plugin so that it can be treated as Plugin; when javascript code
+    // (Executors and Placeholders) calls the method which requires Plugin argument, we can simply use
+    // 'plugin' variable inside the javascript since 'plugin' is indeed a Plugin since we implement it.
+    //For example, the Bukkit API's scheduler method (such as #runTask(Plugin, Runnable)) requires Plugin
+    //instance specifically, and we can do that directly using the 'plugin' variable, which is in fact
+    //TriggerReactorCore, without doing extra works like 'plugin.bukkit'.
+    //
+    //This extra work is due to JavaPlugin being an abstract class, so child class cannot extend both JavaPlugin
+    //and TriggerReactorCore at the same time. Plus, Bukkit's class loader only accepts JavaPlugin, not Plugin.
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return bukkit.onTabComplete(sender, command, alias, args);
@@ -825,7 +470,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return super.onCommand(new BukkitCommandSender(sender), command.getName(), args);
+        return bukkit.onCommand(sender, command, label, args);
     }
 
     @Override
@@ -896,66 +541,5 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public String getName() {
         return bukkit.getName();
-    }
-
-    @Override
-    public Map<String, Object> getCustomVarsForTrigger(Object e) {
-        Map<String, Object> variables = new HashMap<String, Object>();
-        //this should be fine as script loosely check the variable type
-        if (e instanceof CommandSenderEvent) {
-            variables.put("player", ((CommandSenderEvent) e).sender);
-        } else if (e instanceof PlayerEvent) {
-            variables.put("player", ((PlayerEvent) e).getPlayer());
-        } else if (e instanceof InventoryInteractEvent) {
-            if (((InventoryInteractEvent) e).getWhoClicked() instanceof Player)
-                variables.put("player", ((InventoryInteractEvent) e).getWhoClicked());
-        } else if (e instanceof InventoryCloseEvent) {
-            if (((InventoryCloseEvent) e).getPlayer() instanceof Player)
-                variables.put("player", ((InventoryCloseEvent) e).getPlayer());
-        } else if (e instanceof InventoryOpenEvent) {
-            if (((InventoryOpenEvent) e).getPlayer() instanceof Player)
-                variables.put("player", ((InventoryOpenEvent) e).getPlayer());
-        } else if (e instanceof PlayerDeathEvent) {
-            variables.put("player", ((PlayerDeathEvent) e).getEntity());
-        } else if (e instanceof EntityEvent) { // Some EntityEvent use entity field to store Player instance.
-            Entity entity = ((EntityEvent) e).getEntity();
-            variables.put("entity", entity);
-
-            if (entity instanceof Player) {
-                variables.put("player", entity);
-            }
-        } else if (e instanceof BlockEvent) {
-            variables.put("block", ((BlockEvent) e).getBlock());
-
-            try {
-                Method m = e.getClass().getMethod("getPlayer");
-                variables.put("player", m.invoke(e));
-            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
-                    | InvocationTargetException e1) {
-                return variables;
-            }
-        }
-
-        return variables;
-    }
-
-    @Override
-    public ICommandSender getConsoleSender() {
-        return new BukkitCommandSender(Bukkit.getConsoleSender());
-    }
-
-    private class CommandSenderEvent extends Event {
-        private final CommandSender sender;
-
-        public CommandSenderEvent(CommandSender sender) {
-            super();
-            this.sender = sender;
-        }
-
-        @Override
-        public HandlerList getHandlers() {
-            return null;
-        }
-
     }
 }
