@@ -19,7 +19,6 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
@@ -309,11 +308,6 @@ public class GsonConfigSource implements IConfigSource {
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
     public void shutdown() {
-        exec.shutdown();
-        try {
-            exec.awaitTermination(20, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        exec.shutdownNow().forEach(Runnable::run);
     }
 }

@@ -54,7 +54,6 @@ public class ScriptEditManager extends AbstractScriptEditManager implements Conv
 
     @Override
     public void reload() {
-        // TODO Auto-generated method stub
 
     }
 
