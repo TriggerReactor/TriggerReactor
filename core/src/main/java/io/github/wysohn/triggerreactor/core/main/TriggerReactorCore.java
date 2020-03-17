@@ -80,7 +80,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         return instance;
     }
     
-    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "var.json"));
+    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
 
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
