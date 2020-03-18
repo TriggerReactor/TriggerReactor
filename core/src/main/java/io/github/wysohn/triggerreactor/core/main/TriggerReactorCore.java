@@ -80,8 +80,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         return instance;
     }
     
-    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
-
+    private ConfigManager configManager;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
     protected TriggerReactorCore() {
@@ -135,32 +134,18 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
 
-    //private boolean deprecationMessageShown = false;
+    public void onEnable() {
+        configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
+    }
+
+    public void onDisable() {
+        Manager.getManagers().forEach(Manager::disable);
+    }
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
-
-//            if(!deprecationMessageShown){
-//                deprecationMessageShown = true;
-//
-//                // show 1 tick later
-//                submitAsync(()->{
-//                    try{
-//                        Thread.sleep(50L);
-//                    }catch (InterruptedException ex){
-//                        //ignore
-//                    }
-//
-//                    deprecationPages.forEach((paragraph)->{
-//                        paragraph.sendParagraph(getConsoleSender());
-//                        if(sender.getClass() != getConsoleSender().getClass()){
-//                            paragraph.sendParagraph(sender);
-//                        }
-//                    });
-//                });
-//            }
 
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
@@ -1389,10 +1374,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     		}
     	}
     	return EMPTY;
-    }
-
-    public void onDisable(){
-        Manager.getManagers().forEach(Manager::disable);
     }
     
     protected abstract boolean removeLore(IItemStack iS, int index);
