@@ -238,7 +238,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+    public Collection<? extends Trigger> getAllTriggers() {
         return invenTriggers.values();
     }
 

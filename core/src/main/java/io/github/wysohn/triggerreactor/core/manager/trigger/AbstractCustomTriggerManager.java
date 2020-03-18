@@ -279,8 +279,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         return nameMap.values();
     }
 
-    public AbstractCustomTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
-        super(plugin, tirggerFolder);
+    public AbstractCustomTriggerManager(TriggerReactorCore core, SelfReference ref, File tirggerFolder) {
+        super(plugin, ref, tirggerFolder);
     }
 
     public static class CustomTrigger extends Trigger implements EventHook {

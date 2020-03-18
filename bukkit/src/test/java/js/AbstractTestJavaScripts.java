@@ -27,7 +27,7 @@ public abstract class AbstractTestJavaScripts {
     protected ScriptEngine engine;
 
     @Before
-    public void init() throws Exception{
+    public void init() throws Exception {
         sem = new ScriptEngineManager(null);
         engine = sem.getEngineByName("nashorn");
 
@@ -49,7 +49,7 @@ public abstract class AbstractTestJavaScripts {
                 invocation -> {
                     String pluginName = invocation.getArgument(0);
 
-                    switch (pluginName){
+                    switch (pluginName) {
                         case "PlaceholderAPI":
                             return false;
                     }
@@ -82,6 +82,6 @@ public abstract class AbstractTestJavaScripts {
     protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)
             throws ScriptException {
         engine.put("Temp", clazz);
-        engine.eval("var "+clazz.getSimpleName()+" = Temp.static;");
+        engine.eval("var " + clazz.getSimpleName() + " = Temp.static;");
     }
 }

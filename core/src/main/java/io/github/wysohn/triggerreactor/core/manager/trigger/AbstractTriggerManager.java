@@ -122,7 +122,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         return triggerFile;
     }
-    
+
     protected static void reportWarnings(List<Warning> warnings, Trigger trigger) {
     	if (warnings == null || warnings.isEmpty()) {
     		return;
@@ -218,7 +218,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
                 root = parser.parse(true);
                 List<Warning> warnings = parser.getWarnings();
-                
+
                 reportWarnings(warnings, this);
                 executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
                 placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();

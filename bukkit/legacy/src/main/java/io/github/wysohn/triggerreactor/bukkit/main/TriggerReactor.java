@@ -20,9 +20,9 @@ public class TriggerReactor extends AbstractJavaPlugin {
         APISupport.addSharedVars("placeholder", PlaceHolderSupport.class);
         APISupport.addSharedVars("protocollib", ProtocolLibSupport.class);
         APISupport.addSharedVars("vault", VaultSupport.class);
-        APISupport.addSharedVars("worldguard", WorldguardSupport.class);		
+        APISupport.addSharedVars("worldguard", WorldguardSupport.class);
 	}
-	
+
 	@Override
     public SelfReference getSelfReference() {
         return new CommonFunctions(core);
@@ -32,6 +32,6 @@ public class TriggerReactor extends AbstractJavaPlugin {
     public IWrapper getWrapper() {
         return new BukkitWrapper();
     }
-	
-	
+
+
 }

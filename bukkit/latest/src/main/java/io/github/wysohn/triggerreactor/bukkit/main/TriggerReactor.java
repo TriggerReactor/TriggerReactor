@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
@@ -29,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public class TriggerReactor extends AbstractJavaPlugin {
 	private SelfReference selfReference;
-	
+
 	@Override
 	public void onEnable() {
 		selfReference = new CommonFunctions(core);
@@ -45,7 +46,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
 		APISupport.addSharedVars("vault", VaultSupport.class);
 		APISupport.addSharedVars("worldguard", WorldguardSupport.class);
 	}
-    
+
 	@Override
 	public SelfReference getSelfReference() {
 		return selfReference;
@@ -53,7 +54,6 @@ public class TriggerReactor extends AbstractJavaPlugin {
 
 	@Override
 	public IWrapper getWrapper() {
-		// TODO Auto-generated method stub
-		return null;
+		return new BukkitWrapper();
 	}
 }

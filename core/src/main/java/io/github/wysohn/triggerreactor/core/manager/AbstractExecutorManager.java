@@ -140,20 +140,20 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             Compilable compiler = (Compilable) engine;
             compiled = compiler.compile(sourceCode);
         }
-        
+
         private void registerValidationInfo(ScriptContext context) {
-        	JSObject validation = (JSObject) context.getAttribute("validation");
-        	if (validation == null) {
-        		return;
-        	}
-        	this.validator = Validator.from(validation);
+            JSObject validation = (JSObject) context.getAttribute("validation");
+            if (validation == null) {
+                return;
+            }
+            this.validator = Validator.from(validation);
         }
-        
+
         public ValidationResult validate(Object... args) {
-        	if (firstRun) {
-        		throw new RuntimeException("the executor must be run at least once before using validate");
-        	}
-        	return validator.validate(args);
+            if (firstRun) {
+                throw new RuntimeException("the executor must be run at least once before using validate");
+            }
+            return validator.validate(args);
         }
 
         @Override
@@ -179,24 +179,24 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             } catch (ScriptException e2) {
                 e2.printStackTrace();
             }
-            
+
             if (firstRun) {
-            	registerValidationInfo(scriptContext);
-            	firstRun = false;
+                registerValidationInfo(scriptContext);
+                firstRun = false;
             }
-            
+
             if (validator != null) {
-            	ValidationResult result = validator.validate(args);
-            	int overload = result.getOverload();
-            	if (overload == -1) {
-            		throw new ValidationException(result.getError());
-            	}
-            	scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+                ValidationResult result = validator.validate(args);
+                int overload = result.getOverload();
+                if (overload == -1) {
+                    throw new ValidationException(result.getError());
+                }
+                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
 
             JSObject jsObject = (JSObject) scriptContext.getAttribute(executorName);
-            if(jsObject == null)
-                throw new Exception(executorName+".js does not have 'function "+executorName+"()'.");
+            if (jsObject == null)
+                throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
 
             Callable<Integer> call = new Callable<Integer>() {
                 @Override
@@ -250,7 +250,8 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
     }
 
     private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
-    static{
+
+    static {
         DEPRECATED_EXECUTORS.add("MODIFYPLAYER");
     }
 }

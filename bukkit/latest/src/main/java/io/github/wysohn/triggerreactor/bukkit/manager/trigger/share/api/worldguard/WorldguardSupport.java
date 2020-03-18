@@ -55,7 +55,7 @@ public class WorldguardSupport extends APISupport {
         wg = WorldGuard.getInstance();
     }
 
-    private BlockVector3 toVector3(Location loc){
+    private BlockVector3 toVector3(Location loc) {
         return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
     }
 
