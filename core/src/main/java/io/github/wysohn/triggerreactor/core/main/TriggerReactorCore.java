@@ -134,11 +134,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
 
-    public void onEnable() {
+    public void onCoreEnable() {
         configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
     }
 
-    public void onDisable() {
+    public void onCoreDisable() {
         Manager.getManagers().forEach(Manager::disable);
     }
 

@@ -191,8 +191,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         return bukkit.getMysqlHelper();
     }
 
-    public void onEnable(AbstractJavaPlugin plugin) {
-        super.onEnable();
+    public void onCoreEnable(AbstractJavaPlugin plugin) {
+        super.onCoreEnable();
 
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
 
@@ -274,8 +274,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         disablePlugin();
     }
 
-    public void onDisable(AbstractJavaPlugin plugin) {
-        super.onDisable();
+    public void onCoreDisable(AbstractJavaPlugin plugin) {
+        super.onCoreDisable();
 
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();

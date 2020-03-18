@@ -98,7 +98,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         initBungeeHelper();
         initMysql();
 
-        core.onEnable(this);
+        core.onCoreEnable(this);
 
         migrateOldConfig();
     }
@@ -163,7 +163,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
         bungeeConnectionThread.interrupt();
 
-        core.onDisable(this);
+        core.onCoreDisable(this);
     }
 
     @Override
