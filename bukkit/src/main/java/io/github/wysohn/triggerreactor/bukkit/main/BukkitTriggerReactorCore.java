@@ -192,11 +192,10 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     public void onCoreEnable(AbstractJavaPlugin plugin) {
-        super.onCoreEnable();
-
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
-
         this.bukkit = plugin;
+
+        super.onCoreEnable();
 
         for (Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()) {
             AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
