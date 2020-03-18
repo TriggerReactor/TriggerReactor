@@ -192,6 +192,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     public void onEnable(AbstractJavaPlugin plugin) {
+        super.onEnable();
+
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
 
         this.bukkit = plugin;
@@ -273,6 +275,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     public void onDisable(AbstractJavaPlugin plugin) {
+        super.onDisable();
+
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
         getLogger().info("Shut down complete!");
