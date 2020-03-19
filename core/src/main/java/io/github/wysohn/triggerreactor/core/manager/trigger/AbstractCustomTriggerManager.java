@@ -20,6 +20,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -30,7 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager {
+public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<AbstractCustomTriggerManager.CustomTrigger> {
 
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
@@ -269,13 +270,13 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(CustomTrigger trigger) {
         FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName() + ".yml"));
         super.deleteInfo(trigger);
     }
 
     @Override
-    public Collection<? extends Trigger> getAllTriggers() {
+    public Collection<CustomTrigger> getAllTriggers() {
         return nameMap.values();
     }
 

@@ -23,7 +23,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
@@ -31,7 +30,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager {
+public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
     protected Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
     private Map<UUID, String> settingLocation = new HashMap<>();
 
@@ -136,7 +135,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+	public Collection<T> getAllTriggers() {
         // Think about this later
         return Collections.emptySet();
     }

@@ -19,13 +19,14 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
-public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager {
+public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<AbstractCommandTriggerManager.CommandTrigger> {
     protected final Map<String, CommandTrigger> commandTriggerMap = new CommandMap();
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
@@ -118,7 +119,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(CommandTrigger trigger) {
         if (trigger instanceof CommandTrigger)
             removeAliases((CommandTrigger) trigger);
 
@@ -127,7 +128,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+	public Collection<CommandTrigger> getAllTriggers() {
         return commandTriggerMap.values();
     }
 

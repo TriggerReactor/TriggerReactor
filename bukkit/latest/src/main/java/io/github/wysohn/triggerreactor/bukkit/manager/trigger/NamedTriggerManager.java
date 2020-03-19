@@ -27,7 +27,7 @@ public class NamedTriggerManager extends AbstractNamedTriggerManager implements 
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(NamedTrigger trigger) {
         //We don't delete named triggers in-game
     }
 }

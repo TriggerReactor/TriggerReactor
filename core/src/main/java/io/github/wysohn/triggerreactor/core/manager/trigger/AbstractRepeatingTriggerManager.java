@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -32,7 +33,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager {
+public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<AbstractRepeatingTriggerManager.RepeatingTrigger> {
     protected static final String TRIGGER = "trigger";
 
     protected final Map<String, RepeatingTrigger> repeatTriggers = new ConcurrentHashMap<>();
@@ -200,13 +201,13 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(RepeatingTrigger trigger) {
         FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName() + ".yml"));
         super.deleteInfo(trigger);
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+	public Collection<RepeatingTrigger> getAllTriggers() {
         return repeatTriggers.values();
     }
 

@@ -232,7 +232,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(AreaTrigger trigger) {
         File areafile = new File(folder, trigger.getTriggerName() + ".yml");
         FileUtil.delete(areafile);
         File areafolder = new File(folder, trigger.getTriggerName());

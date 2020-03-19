@@ -20,6 +20,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +29,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager {
+public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<AbstractNamedTriggerManager.NamedTrigger> {
 
-    protected final Map<String, Trigger> triggers = new HashMap<>();
+    protected final Map<String, NamedTrigger> triggers = new HashMap<>();
 
     public AbstractNamedTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
@@ -73,7 +74,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+	public Collection<NamedTrigger> getAllTriggers() {
         return triggers.values();
     }
 
@@ -129,7 +130,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
             if (triggers.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
             } else {
-                Trigger trigger = new NamedTrigger(builder.toString(), file, FileUtil.readFromFile(file));
+                NamedTrigger trigger = new NamedTrigger(builder.toString(), file, FileUtil.readFromFile(file));
                 triggers.put(builder.toString(), trigger);
             }
         }

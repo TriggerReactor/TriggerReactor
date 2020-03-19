@@ -24,6 +24,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -35,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager {
+public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AbstractAreaTriggerManager.AreaTrigger> {
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
@@ -413,12 +414,12 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(AreaTrigger trigger) {
         FileUtil.delete(new File(folder, trigger.getTriggerName()));
     }
 
     @Override
-	public Collection<? extends Trigger> getAllTriggers() {
+	public Collection<AreaTrigger> getAllTriggers() {
         return nameMapper.values();
     }
 

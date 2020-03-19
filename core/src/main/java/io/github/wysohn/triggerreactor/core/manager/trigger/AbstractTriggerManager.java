@@ -42,7 +42,7 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractTriggerManager extends Manager implements ConfigurationFileIO {
+public abstract class AbstractTriggerManager<T extends AbstractTriggerManager.Trigger> extends Manager implements ConfigurationFileIO {
     private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
 
     protected final File folder;
@@ -56,18 +56,18 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
             folder.mkdirs();
     }
 
-    protected <T> T getData(File file, String key) throws IOException {
+    protected <TYPE> TYPE getData(File file, String key) throws IOException {
         return getData(file, key, null);
     }
 
     /**
      * Default behavior is delete one file associated with the trigger. Override this method to change this behavior.
      */
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(T trigger) {
         FileUtil.delete(trigger.file);
     }
 
-    public abstract Collection<? extends Trigger> getAllTriggers();
+    public abstract Collection<T> getAllTriggers();
 
     public List<String> getTriggerList(TriggerFilter filter) {
         List<String> strs = new ArrayList<>();

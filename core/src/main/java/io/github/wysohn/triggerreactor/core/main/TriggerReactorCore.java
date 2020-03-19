@@ -1176,10 +1176,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                 } else if (args[0].equalsIgnoreCase("list")) {
                     sender.sendMessage("- - - - - Result - - - - ");
                     for (Manager manager : Manager.getManagers()) {
-                        if (!(manager instanceof AbstractTriggerManager))
+                        if (!(manager instanceof AbstractTriggerManager<?>))
                             continue;
 
-                        for (String val : ((AbstractTriggerManager) manager).getTriggerList((name) -> {
+                        for (String val : ((AbstractTriggerManager<? extends Trigger>) manager).getTriggerList((name) -> {
                             for (int i = 1; i < args.length; i++) {
                                 if (!name.contains(args[i]))
                                     return false;
@@ -1288,7 +1288,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     }
     
     //get all trigger names for a manager
-    private static List<String> triggerNames(AbstractTriggerManager manager) {
+    private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
     	List<String> names = new ArrayList<String>();
     	for (Trigger trigger : manager.getAllTriggers()) {
 		    names.add(trigger.getTriggerName());

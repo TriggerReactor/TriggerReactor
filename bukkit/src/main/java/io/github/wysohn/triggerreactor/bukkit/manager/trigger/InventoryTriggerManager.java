@@ -260,7 +260,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(InventoryTrigger trigger) {
         File yamlFile = new File(folder, trigger.getTriggerName() + ".yml");
         FileUtil.delete(yamlFile);
         File triggerFile = new File(folder, trigger.getTriggerName());
