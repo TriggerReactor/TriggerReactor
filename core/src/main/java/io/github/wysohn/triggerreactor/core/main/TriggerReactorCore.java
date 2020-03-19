@@ -80,8 +80,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         return instance;
     }
     
-    private ConfigManager configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
-
+    private ConfigManager configManager;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
     protected TriggerReactorCore() {
@@ -118,6 +117,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract AbstractInventoryTriggerManager getInvManager();
 
+    public abstract AbstractInventoryEditManager getInvEditManager();
+
     public abstract AbstractAreaTriggerManager getAreaManager();
 
     public abstract AbstractCustomTriggerManager getCustomManager();
@@ -135,49 +136,34 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private boolean debugging = false;
 
-    //private boolean deprecationMessageShown = false;
+    public void onCoreEnable() {
+        configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
+    }
+
+    public void onCoreDisable() {
+        Manager.getManagers().forEach(Manager::disable);
+    }
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
 
-//            if(!deprecationMessageShown){
-//                deprecationMessageShown = true;
-//
-//                // show 1 tick later
-//                submitAsync(()->{
-//                    try{
-//                        Thread.sleep(50L);
-//                    }catch (InterruptedException ex){
-//                        //ignore
-//                    }
-//
-//                    deprecationPages.forEach((paragraph)->{
-//                        paragraph.sendParagraph(getConsoleSender());
-//                        if(sender.getClass() != getConsoleSender().getClass()){
-//                            paragraph.sendParagraph(sender);
-//                        }
-//                    });
-//                });
-//            }
-
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
                     debugging = !debugging;
                     String color;
-                    if (debugging)
-                    {
-                    	color = "a";
+                    if (debugging) {
+                        color = "a";
                     } else {
-                    	color = "c";
+                        color = "c";
                     }
                     sender.sendMessage("Debugging is set to &" + color + debugging);
 
                     getLogger().info("Debugging state: " + debugging);
                     return true;
                 } else if (args[0].equalsIgnoreCase("version")) {
-                	sender.sendMessage("Current version: "+getVersion());
+                    sender.sendMessage("Current version: " + getVersion());
                     return true;
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
@@ -248,10 +234,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             }
                             trigger.setPermissions(permissions);
                         }
-                        if (permissions == null ) {
-                        	sender.sendMessage("&7Cleared permissions");
+                        if (permissions == null) {
+                            sender.sendMessage("&7Cleared permissions");
                         } else {
-                        	sender.sendMessage("&7Set permissions.");
+                            sender.sendMessage("&7Set permissions.");
                         }
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
@@ -274,9 +260,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             getCmdManager().registerAliases(trigger);
                         }
                         if (aliases == null) {
-                        	sender.sendMessage("&7Cleared aliases");
-                        }
-                        else {
+                            sender.sendMessage("&7Cleared aliases");
+                        } else {
                             sender.sendMessage("&7Set Aliases");
                         }
                         saveAsynchronously(getCmdManager());
@@ -447,12 +432,12 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
                         if (size > 54 || size < 9) {
-                        	sender.sendMessage("&csize must be between 9 and 54");
-                        	return true;
+                            sender.sendMessage("&csize must be between 9 and 54");
+                            return true;
                         }
                         if (size % 9 != 0) {
-                        	sender.sendMessage("&csize must be a multiple of 9");
-                        	return true;
+                            sender.sendMessage("&csize must be a multiple of 9");
+                            return true;
                         }
 
                         if (args.length == 4) {
@@ -518,7 +503,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        if (index > trigger.getItems().length|| index < 1) {
+                        if (index > trigger.getItems().length || index < 1) {
                             sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length) + ")");
                             return true;
                         }
@@ -527,7 +512,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         saveAsynchronously(getInvManager());
 
                         sender.sendMessage("Successfully set item " + index);
-                        
+
                     } else if (args.length > 2 && args[2].equalsIgnoreCase("open")) {
                         String name = args[1];
                         IPlayer forWhom = null;
@@ -638,6 +623,17 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         saveAsynchronously(getInvManager());
                         sender.sendMessage("Successfully filled column " + index);
 
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
+                        String name = args[1];
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        getInvEditManager().startEdit((IPlayer) sender, trigger);
+                        return true;
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
@@ -1266,6 +1262,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                     showHelp(sender, page);
                     return true;
+                } else if (args[0].equalsIgnoreCase("links")) {
+                    if (args.length < 2) {
+                        return true;
+                    }
+                    AbstractInventoryEditManager manager = getInvEditManager();
+                    IPlayer player = (IPlayer) sender;
+                    switch (args[1]) {
+                        case "inveditsave":
+                            manager.saveEdit(player);
+                            return true;
+                        case "inveditcontinue":
+                            manager.continueEdit(player);
+                            return true;
+                        case "inveditdiscard":
+                            manager.discardEdit(player);
+                            return true;
+                    }
                 }
             }
 
@@ -1274,19 +1287,19 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
         return true;
     }
-    
+
     //returns all strings in completions that start with prefix.
     private static List<String> filter(Collection<String> completions, String prefix) {
-    	prefix = prefix.trim().toUpperCase();
-    	List<String> filtered = new ArrayList<String>();
-    	for (String s : completions) {
-    		if (s.toUpperCase().startsWith(prefix)) {
-    			filtered.add(s);
-    		}
-    	}
-    	return filtered;
+        prefix = prefix.trim().toUpperCase();
+        List<String> filtered = new ArrayList<String>();
+        for (String s : completions) {
+            if (s.toUpperCase().startsWith(prefix)) {
+                filtered.add(s);
+            }
+        }
+        return filtered;
     }
-    
+
     //get all trigger names for a manager
     private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
     	List<String> names = new ArrayList<String>();
@@ -1295,106 +1308,102 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 		}
     	return names;
     }
-    
+
     private static List<String> EMPTY = new ArrayList<String>();
 
     //only for /trg command
     public static List<String> onTabComplete(String[] args) {
-    	switch (args.length) {
-    	case 1:
-    	    return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list", 
-    	    		"reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
-    	case 2:
-    		switch (args[0].toLowerCase()) {
-    		case "area":
-    		case "a":
-    			List<String> names = triggerNames(getInstance().getAreaManager());
-    			// /trg area toggle
-    			names.add("toggle");
-    			return filter(names, args[1]);
-    		case "cmd":
-    		case "command":
-    			return filter(triggerNames(getInstance().getCmdManager()), args[1]);
-    		case "custom":
-    			//event list
-    			return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
-    		case "delete":
-    		case "del":
-    			return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
-    		case "inventory":
-    		case "i":
-    			return filter(triggerNames(getInstance().getInvManager()), args[1]);
-    		case "item":
-    			return filter(Arrays.asList("lore", "title"), args[1]);
-    		case "repeat":
-    		case "r":
-    			return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
-    		case "sudo":
-    			return null; //player selection
-    		case "synccustom":
-    			return filter(triggerNames(getInstance().getCustomManager()), args[1]);
-    		case "timings":
-    			return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
-    		}
-    	case 3:
-    		switch (args[0].toLowerCase()) {
-    		case "area":
-    		case "a":
-    		    if (!args[1].equalsIgnoreCase("toggle")) {
-    		    	return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
-    		    }
-    		    return EMPTY;
-    		case "command":
-    		case "cmd":
-    			return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
-    		case "custom":
-    			return filter(triggerNames(getInstance().getCustomManager()), args[2]);
-    		case "delete":
-    		case "del":
-    			AbstractTriggerManager manager;
-    			switch(args[1]) {
-    			case "cmd":
-    			case "command":
-    				manager = getInstance().getCmdManager();
-    				break;
-    			case "custom":
-    				manager = getInstance().getCustomManager();
-    				break;
-    			//"vars" and "variables" also possible, but I won't be offering completions for these
-    			default:
-    				return EMPTY;
-    			}
-    			return filter(triggerNames(manager), args[2]);
-    		case "inventory":
-    		case "i":
-    			return filter(Arrays.asList("column", "create", "delete", "edit", "item", "open", "row"), args[2]);
-    		case "item":
-    			if (args[1].equals("lore")) {
-    				return filter(Arrays.asList("add", "set", "remove"), args[2]);
-    			}
-    		case "repeat":
-    		case "r":
-    			return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
-    		}
-    	case 4:
-    		switch (args[0].toLowerCase()) {
-    		case "inventory":
-    		case "i":
-    			if (args[2].equalsIgnoreCase("open")) {
-    				return null; //player selection
-    			}
-    			if (args[2].equalsIgnoreCase("create")) {
-    				return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
-    			}
-    		}
-    	}
-    	return EMPTY;
+        switch (args.length) {
+            case 1:
+                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
+                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+            case 2:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        List<String> names = triggerNames(getInstance().getAreaManager());
+                        // /trg area toggle
+                        names.add("toggle");
+                        return filter(names, args[1]);
+                    case "cmd":
+                    case "command":
+                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
+                    case "custom":
+                        //event list
+                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                    case "delete":
+                    case "del":
+                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
+                    case "inventory":
+                    case "i":
+                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
+                    case "item":
+                        return filter(Arrays.asList("lore", "title"), args[1]);
+                    case "repeat":
+                    case "r":
+                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
+                    case "sudo":
+                        return null; //player selection
+                    case "synccustom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
+                    case "timings":
+                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
+                }
+            case 3:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        if (!args[1].equalsIgnoreCase("toggle")) {
+                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+                        }
+                        return EMPTY;
+                    case "command":
+                    case "cmd":
+                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
+                    case "custom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
+                    case "delete":
+                    case "del":
+                        AbstractTriggerManager manager;
+                        switch (args[1]) {
+                            case "cmd":
+                            case "command":
+                                manager = getInstance().getCmdManager();
+                                break;
+                            case "custom":
+                                manager = getInstance().getCustomManager();
+                                break;
+                            //"vars" and "variables" also possible, but I won't be offering completions for these
+                            default:
+                                return EMPTY;
+                        }
+                        return filter(triggerNames(manager), args[2]);
+                    case "inventory":
+                    case "i":
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
+                    case "item":
+                        if (args[1].equals("lore")) {
+                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
+                        }
+                    case "repeat":
+                    case "r":
+                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
+                }
+            case 4:
+                switch (args[0].toLowerCase()) {
+                    case "inventory":
+                    case "i":
+                        if (args[2].equalsIgnoreCase("open")) {
+                            return null; //player selection
+                        }
+                        if (args[2].equalsIgnoreCase("create")) {
+                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
+                        }
+                }
+        }
+        return EMPTY;
     }
 
-    public void onDisable(){
-        Manager.getManagers().forEach(Manager::disable);
-    }
-    
     protected abstract boolean removeLore(IItemStack iS, int index);
 
     protected abstract boolean setLore(IItemStack iS, int index, String lore);

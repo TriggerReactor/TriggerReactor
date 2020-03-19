@@ -32,8 +32,8 @@ public class ConfigManager extends Manager implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
-        // if .json file already exist, it's already up to date.
-        return !file.exists();
+        // .json need migration if it didn't exist or its length is 0 (empty).
+        return !file.exists() || file.length() == 0L;
     }
 
     @Override

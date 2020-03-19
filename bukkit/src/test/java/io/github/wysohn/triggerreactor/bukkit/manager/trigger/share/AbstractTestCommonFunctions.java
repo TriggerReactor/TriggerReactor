@@ -1,4 +1,3 @@
-
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -33,7 +32,7 @@ import java.util.List;
  * Test driving class for both legacy and latest bukkit.
  * Since the structure of legacy and latest bukkit yet shares a lot of similarities,
  * we don't have to write each test case for each different platforms.
- *
+ * <p>
  * If, however, there are some tests that has to be platform specific,
  * write them in the child class instead.
  */
@@ -74,7 +73,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
                     return mockWorld;
                 });
         @SuppressWarnings("serial")
-		Collection<? extends Player> players = new ArrayList<Player>(){{
+        Collection<? extends Player> players = new ArrayList<Player>() {{
             add(mockPlayer);
         }};
         PowerMockito.doReturn(players).when(Bukkit.class, "getOnlinePlayers");
@@ -102,10 +101,10 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         }
     }
 
-    public static FakeInventory fInventory(AbstractTestCommonFunctions test, ItemStack... items){
+    public static FakeInventory fInventory(AbstractTestCommonFunctions test, ItemStack... items) {
         FakeInventory inv = test.new FakeInventory();
 
-        for(int i = 0; i < Math.min(inv.contents.length, items.length); i++){
+        for (int i = 0; i < Math.min(inv.contents.length, items.length); i++) {
             inv.contents[i] = items[i];
         }
 
@@ -116,7 +115,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
     protected abstract boolean isEqual(ItemStack IS1, ItemStack IS2);
 
-    protected PlayerInventory preparePlayerInventory(Player mockPlayer, FakeInventory inv){
+    protected PlayerInventory preparePlayerInventory(Player mockPlayer, FakeInventory inv) {
         PlayerInventory mockInventory = Mockito.mock(PlayerInventory.class);
 
         Mockito.when(mockPlayer.getInventory()).thenReturn(mockInventory);
@@ -126,14 +125,14 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
                     int amount = invocation.getArgument(1);
 
                     int count = 0;
-                    for(ItemStack IS : inv.contents){
+                    for (ItemStack IS : inv.contents) {
                         if (IS == null)
                             continue;
 
-                        if(isSimilar(IS, target))
+                        if (isSimilar(IS, target))
                             count += IS.getAmount();
 
-                        if(count >= amount)
+                        if (count >= amount)
                             return true;
                     }
 
@@ -187,7 +186,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testLocation(){
+    public void testLocation() {
         Location loc1 = new Location(mockWorld, 1, 2, 3);
         Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
 
@@ -197,39 +196,39 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         Mockito.when(mockWorld.getName()).thenReturn("test2");
         Assert.assertEquals(loc2, fn.location("test2", 4, 5, 6, 0.5, 0.6));
     }
-    
+
     @Test
-    public void testBlock(){
+    public void testBlock() {
         Block mockBlock = Mockito.mock(Block.class);
         Mockito.when(mockWorld.getBlockAt(Mockito.any(Location.class)))
-            .thenReturn(mockBlock);
-            
+                .thenReturn(mockBlock);
+
         Assert.assertEquals(mockBlock, fn.block("test", 1, 2, 3));
     }
-    
+
     @Test
-    public void testLocationEqual(){
+    public void testLocationEqual() {
         Location loc1 = new Location(mockWorld, 1, 2, 3);
         Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
         Location loc3 = new Location(mockWorld, 1, 2, 3, 0.7F, 0.8F);
         Location loc4 = new Location(mockWorld, 4, 5, 6, 0.1F, 0.2F);
-        
+
         Assert.assertFalse(fn.locationEqual(loc1, loc2));
         Assert.assertTrue(fn.locationEqual(loc1, loc3));
         Assert.assertFalse(fn.locationEqual(loc2, loc3));
         Assert.assertTrue(fn.locationEqual(loc2, loc4));
     }
-    
+
     @Test
     public abstract void testMakePotionEffect();
 
     @Test
-    public void testPlayer(){
+    public void testPlayer() {
         Assert.assertEquals(mockPlayer, fn.player("wysohn"));
     }
 
     @Test
-    public void testOPlayer(){
+    public void testOPlayer() {
         Assert.assertEquals(mockPlayer, fn.oplayer("wysohn"));
     }
 
@@ -237,38 +236,38 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     public abstract void testGetPlayers();
 
     @Test
-    public void testCurrentArea(){
+    public void testCurrentArea() {
         //TODO: testable?
     }
 
     @Test
-    public void testCurrentAreaAt(){
+    public void testCurrentAreaAt() {
         //TODO: testable?
     }
 
     @Test
-    public void testCurrentAreas(){
+    public void testCurrentAreas() {
         //TODO: testable?
     }
 
     @Test
-    public void testCurrentAreasAt(){
+    public void testCurrentAreasAt() {
         //TODO: testable?
     }
 
     @Test
-    public void testGetEntitiesInArea(){
+    public void testGetEntitiesInArea() {
         //TODO: testable?
     }
 
     @Test
-    public void testColor(){
-        Assert.assertEquals(ChatColor.RED+"My message",
+    public void testColor() {
+        Assert.assertEquals(ChatColor.RED + "My message",
                 fn.color("&cMy message"));
     }
 
     @Test
-    public void testBukkitColor(){
+    public void testBukkitColor() {
         Color expect = Color.fromRGB(3, 6, 8);
         Color result = fn.bukkitColor(3, 6, 8);
         Assert.assertEquals(expect.asBGR(), result.asBGR());
@@ -278,8 +277,9 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     public abstract void testItem();
 
     private String title;
+
     @Test
-    public void testGetItemTitle(){
+    public void testGetItemTitle() {
         ItemStack IS = new ItemStack(Material.STONE);
         Mockito.doAnswer(invocation -> "abc").when(mockItemMeta).getDisplayName();
 
@@ -287,7 +287,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testSetItemTitle(){
+    public void testSetItemTitle() {
         ItemStack IS = new ItemStack(Material.STONE);
         Mockito.doAnswer(invocation -> {
             title = invocation.getArgument(0);
@@ -299,7 +299,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testHasLore(){
+    public void testHasLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -312,7 +312,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testGetLore(){
+    public void testGetLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -327,7 +327,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testAddLore(){
+    public void testAddLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -341,7 +341,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testSetLore(){
+    public void testSetLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -357,7 +357,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testRemoveLore(){
+    public void testRemoveLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -377,7 +377,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testClearLore(){
+    public void testClearLore() {
         ItemStack IS = new ItemStack(Material.STONE);
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
 
@@ -387,7 +387,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testLoreSize(){
+    public void testLoreSize() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -400,14 +400,14 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testFormatCurrency(){
+    public void testFormatCurrency() {
         Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44));
         Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44, "en", "US"));
         Assert.assertEquals("\u00a33,234,463.44", fn.formatCurrency(3234463.44, "en", "GB"));
     }
 
     @Test
-    public void testGetTargetBlock(){
+    public void testGetTargetBlock() {
         fn.getTargetBlock(mockPlayer, 30);
         Mockito.verify(mockPlayer).getTargetBlock(null, 30);
     }

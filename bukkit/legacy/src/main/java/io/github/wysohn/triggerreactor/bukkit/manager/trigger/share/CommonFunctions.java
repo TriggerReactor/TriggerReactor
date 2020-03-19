@@ -183,7 +183,7 @@ public class CommonFunctions extends AbstractCommonFunctions
      * @return the ItemStack
      */
     @Deprecated
-	public ItemStack item(int type, int amount) {
+    public ItemStack item(int type, int amount) {
         return new ItemStack(type, amount);
     }
 

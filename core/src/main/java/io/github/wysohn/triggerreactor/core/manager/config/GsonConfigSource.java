@@ -128,7 +128,8 @@ public class GsonConfigSource implements IConfigSource {
     };
     private static GsonBuilder builder = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
-            .serializeNulls().registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NULL_ADOPTER_STRING))
+            .setPrettyPrinting().serializeNulls()
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NULL_ADOPTER_STRING))
             .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class, Boolean.class, NULL_ADOPTER_BOOLEAN))
             .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class, Integer.class, NULL_ADOPTER_NUMBER))
             .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class, Long.class, NULL_ADOPTER_NUMBER))
@@ -188,10 +189,13 @@ public class GsonConfigSource implements IConfigSource {
         synchronized (file) {
             try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
+                    cache.clear();
+
                     Map<String, Object> loaded = gson.fromJson(fr, new TypeToken<Map<String, Object>>() {
                     }.getType());
-                    cache.clear();
-                    cache.putAll(loaded);
+                    if (loaded != null) {
+                        cache.putAll(loaded);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();

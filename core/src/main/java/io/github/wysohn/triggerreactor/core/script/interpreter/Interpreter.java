@@ -33,6 +33,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -586,7 +587,7 @@ public class Interpreter {
                 if (replaced == null) {
                     replaced = placeholderMap.get(placeholderName).parse(timing, context, vars, args);
                 }
-                
+
                 if (replaced instanceof Number) {
                     double d = ((Number) replaced).doubleValue();
                     if (d % 1 == 0) {
@@ -596,7 +597,7 @@ public class Interpreter {
                         stack.push(new Token(Type.DECIMAL, d, node.getToken()));
                     }
                 } else if (replaced == null) {
-                	stack.push(new Token(Type.NULLVALUE, null, node.getToken()));
+                    stack.push(new Token(Type.NULLVALUE, null, node.getToken()));
                 } else {
                     stack.push(new Token(Type.EPS, replaced, node.getToken()));
                 }
@@ -612,9 +613,9 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                if (((String) node.getToken().value).equals("+")
+                if (node.getToken().value.equals("+")
                         && (left.type == Type.STRING || right.type == Type.STRING)) {
-                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + String.valueOf(right.value), node.getToken()));
+                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + right.value, node.getToken()));
                 } else {
                     if (!left.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
@@ -974,27 +975,27 @@ public class Interpreter {
             Class<?> clazz = (Class<?>) left.value;
 
             try {
-                result = ReflectionUtil.invokeMethod(clazz, (Object) null, (String) right.value, args);
+                result = ReflectionUtil.invokeMethod(clazz, null, (String) right.value, args);
             } catch (IllegalAccessException e) {
-            	throw new InterpreterException("Function " + right + " is not visible.", e);
+                throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.", e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error while executing fuction " + right, e);
             } catch (IllegalArgumentException e) {
-            	throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
+                throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
             }
         } else {
             try {
                 result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
             } catch (IllegalAccessException e) {
-            	throw new InterpreterException("Function " + right + " is not visible.", e);
+                throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.", e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error while executing fuction " + right, e);
             } catch (IllegalArgumentException e) {
-            	throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
+                throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
             }
         }
 
@@ -1147,7 +1148,7 @@ public class Interpreter {
     }
 
     public static void main(String[] ar) throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = null;" +
                 "y = null;" +
                 "x.y.hoho();";
@@ -1160,8 +1161,8 @@ public class Interpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
-                    Object... args) throws Exception {
-            	return null;
+                                   Object... args) throws Exception {
+                return null;
             }
         });
 

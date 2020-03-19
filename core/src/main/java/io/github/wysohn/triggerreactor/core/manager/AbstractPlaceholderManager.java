@@ -85,13 +85,13 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(placeholderName, engine, new FileInputStream(file));
         }
-        
+
         private void registerValidationInfo(ScriptContext context) {
-        	JSObject validation = (JSObject) context.getAttribute("validation");
-        	if (validation == null) {
-        		return;
-        	}
-        	this.validator = Validator.from(validation);
+            JSObject validation = (JSObject) context.getAttribute("validation");
+            if (validation == null) {
+                return;
+            }
+            this.validator = Validator.from(validation);
         }
 
         public JSPlaceholder(String placeholderName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
@@ -109,12 +109,12 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             Compilable compiler = (Compilable) engine;
             compiled = compiler.compile(sourceCode);
         }
-        
+
         public ValidationResult validate(Object... args) {
-        	if (firstRun) {
-        		throw new RuntimeException("the executor must be run at least once before using validate");
-        	}
-        	return validator.validate(args);
+            if (firstRun) {
+                throw new RuntimeException("the executor must be run at least once before using validate");
+            }
+            return validator.validate(args);
         }
 
         @Override
@@ -139,24 +139,24 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             } catch (ScriptException e2) {
                 e2.printStackTrace();
             }
-            
+
             if (firstRun) {
-            	registerValidationInfo(scriptContext);
-            	firstRun = false;
+                registerValidationInfo(scriptContext);
+                firstRun = false;
             }
-            
+
             if (validator != null) {
-            	ValidationResult result = validator.validate(args);
-            	int overload = result.getOverload();
-            	if (overload == -1) {
-            		throw new ValidationException(result.getError());
-            	}
-            	scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+                ValidationResult result = validator.validate(args);
+                int overload = result.getOverload();
+                if (overload == -1) {
+                    throw new ValidationException(result.getError());
+                }
+                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
 
             JSObject jsObject = (JSObject) scriptContext.getAttribute(placeholderName);
-            if(jsObject == null)
-                throw new Exception(placeholderName+".js does not have 'function "+placeholderName+"()'.");
+            if (jsObject == null)
+                throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
 
             Callable<Object> call = new Callable<Object>() {
                 @Override

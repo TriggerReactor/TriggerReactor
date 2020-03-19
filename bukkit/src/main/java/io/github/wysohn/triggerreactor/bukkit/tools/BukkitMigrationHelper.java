@@ -28,7 +28,11 @@ public class BukkitMigrationHelper implements IMigrationHelper {
                     traversal(parentNode + "." + s, section, consumer);
                 }
             } else {
-                consumer.accept(s, o);
+                if (parentNode == null) {
+                    consumer.accept(s, o);
+                } else {
+                    consumer.accept(parentNode + "." + s, o);
+                }
             }
         }));
     }

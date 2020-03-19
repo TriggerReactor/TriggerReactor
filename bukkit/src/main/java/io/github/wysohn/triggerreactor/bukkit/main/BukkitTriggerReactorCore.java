@@ -83,6 +83,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
+    private AbstractInventoryEditManager invEditManager;
 
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
@@ -191,10 +192,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         return bukkit.getMysqlHelper();
     }
 
-    public void onEnable(AbstractJavaPlugin plugin) {
+    public void onCoreEnable(AbstractJavaPlugin plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
-
         this.bukkit = plugin;
+
+        super.onCoreEnable();
 
         for (Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()) {
             AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
@@ -272,7 +274,9 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         disablePlugin();
     }
 
-    public void onDisable(AbstractJavaPlugin plugin) {
+    public void onCoreDisable(AbstractJavaPlugin plugin) {
+        super.onCoreDisable();
+
         getLogger().info("Finalizing the scheduled script executions...");
         cachedThreadPool.shutdown();
         getLogger().info("Shut down complete!");
@@ -542,4 +546,9 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     public String getName() {
         return bukkit.getName();
     }
+
+	@Override
+	public AbstractInventoryEditManager getInvEditManager() {
+		return invEditManager;
+	}
 }

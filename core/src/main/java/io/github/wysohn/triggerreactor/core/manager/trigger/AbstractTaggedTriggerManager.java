@@ -23,7 +23,7 @@ public abstract class AbstractTaggedTriggerManager<T extends Trigger> extends Ab
      * 0th value will be null if no deliminator exist in the rawTriggerName.
      */
     protected static String[] extractPrefix(String rawTriggerName) {
-        if(rawTriggerName.indexOf("@") < rawTriggerName.indexOf("-")){
+        if (rawTriggerName.indexOf("@") < rawTriggerName.indexOf("-")) {
             return new String[]{null, rawTriggerName};
         }
         String[] split = rawTriggerName.split("-", 2);

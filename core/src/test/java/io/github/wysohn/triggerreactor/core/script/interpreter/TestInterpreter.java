@@ -33,6 +33,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
@@ -40,7 +41,7 @@ import java.util.concurrent.*;
 public class TestInterpreter {
     @Test
     public void testMethod() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "rand = common.random(3);"
                 + "IF rand == 0\n"
@@ -62,7 +63,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 String value = String.valueOf(args[0]);
                 Assert.assertTrue("0".equals(value) || "1".equals(value) || "2".equals(value));
                 return null;
@@ -80,7 +81,7 @@ public class TestInterpreter {
 
     @Test
     public void testMethodReturnValue() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "{\"temp1\"} = random(0, 10);"
                 + "{\"temp2\"} = random(0.0, 10.0);"
                 + "{\"temp3\"} = random(0, 10.0);";
@@ -108,7 +109,7 @@ public class TestInterpreter {
 
     @Test
     public void testMethodWithEnumParameter() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
                 + "{\"temp2\"} = temp.testEnumMethod(\"Something\");"
                 + "{\"temp3\"} = random(0, 10.0);";
@@ -138,7 +139,7 @@ public class TestInterpreter {
 
     @Test
     public void testReference() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
@@ -167,7 +168,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 return null;
             }
         });
@@ -185,7 +186,7 @@ public class TestInterpreter {
 
     @Test
     public void testStringAppend() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "arr = array(4)\n"
                 + "arr[0] = \"beh\"+player.in.health\n"
@@ -203,7 +204,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Object[] arr = (Object[]) args[0];
                 Assert.assertEquals("beh0.82", arr[0]);
                 Assert.assertEquals("0.82beh", arr[1]);
@@ -225,7 +226,7 @@ public class TestInterpreter {
 
     @Test
     public void testGlobalVariable() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "{text+\".something\"} = 12.54\n"
                 + "#MESSAGE {text+\".something\"}\n";
@@ -239,7 +240,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals(12.54, args[0]);
                 return null;
             }
@@ -258,7 +259,7 @@ public class TestInterpreter {
 
     @Test
     public void testTempGlobalVariable() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "{?text+\".something\"} = 12.54;"
                 + "#MESSAGE {?text+\".something\"};" +
@@ -274,7 +275,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals(12.54, args[0]);
                 return null;
             }
@@ -283,7 +284,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertNull(args[0]);
                 return null;
             }
@@ -332,7 +333,7 @@ public class TestInterpreter {
 
     @Test
     public void testGlobalVariableDeletion() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "key = \"temp\";" +
                 "{key} = 1;" +
                 "#TEST1 {key};" +
@@ -344,24 +345,22 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST1", new Executor() {
             @Override
- 
-			 
- 
+
+
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(1, args[0]);
                 return null;
             }
         });
         executorMap.put("TEST2", new Executor() {
             @Override
- 
-			 
- 
+
+
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertNull(args[0]);
                 return null;
             }
@@ -380,7 +379,7 @@ public class TestInterpreter {
 
     @Test
     public void testArray() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "args[0] = \"arg1\"\n"
                 + "args[1] = \"arg2\"\n"
@@ -395,7 +394,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals("arg1, arg2", args[0]);
                 return null;
             }
@@ -410,7 +409,7 @@ public class TestInterpreter {
 
     @Test
     public void testCustomArray() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "args = array(2)\n"
                 + "args[0] = \"arg1\"\n"
@@ -426,7 +425,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals("arg1, arg2", args[0]);
                 return null;
             }
@@ -440,7 +439,7 @@ public class TestInterpreter {
 
     @Test
     public void testIteration2() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "FOR i = 0:10\n"
                 + "    #MESSAGE i\n"
@@ -457,7 +456,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals(index++, args[0]);
                 return null;
             }
@@ -472,7 +471,7 @@ public class TestInterpreter {
 
     @Test
     public void testIteration3() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "start=0;"
                 + "stop=10;"
@@ -491,7 +490,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals(index++, args[0]);
                 return null;
             }
@@ -505,7 +504,7 @@ public class TestInterpreter {
 
     @Test
     public void testIteration4() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "start=0;"
                 + "stop=10;"
@@ -524,7 +523,7 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
- 
+
                 Assert.assertEquals(index++, args[0]);
                 return null;
             }
@@ -538,7 +537,7 @@ public class TestInterpreter {
 
     @Test
     public void testNegation() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "arr = array(6)\n"
                 + "arr[0] = true\n"
@@ -571,7 +570,7 @@ public class TestInterpreter {
 
     @Test
     public void testShortCircuit() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF player != null && player.health == 0.82;"
                 + "    #TEST1 \"work\";"
@@ -585,31 +584,32 @@ public class TestInterpreter {
 
         Node root = parser.parse();
         @SuppressWarnings("serial")
-		Map<String, Executor> executorMap = new HashMap<String, Executor>() {
-		{
-            put("TEST1", new Executor() {
+        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
+            {
+                put("TEST1", new Executor() {
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
- 
-                    Assert.assertEquals("work", args[0]);
-                    return null;
-                }
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
 
-            });
-            put("TEST2", new Executor() {
+                        Assert.assertEquals("work", args[0]);
+                        return null;
+                    }
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
- 
-                    Assert.assertEquals("work2", args[0]);
-                    return null;
-                }
+                });
+                put("TEST2", new Executor() {
 
-            });
-        }};
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+
+                        Assert.assertEquals("work2", args[0]);
+                        return null;
+                    }
+
+                });
+            }
+        };
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -625,7 +625,7 @@ public class TestInterpreter {
 
     @Test
     public void testWhile() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "number = 1;"
                 + "WHILE number < 3;"
@@ -648,7 +648,7 @@ public class TestInterpreter {
 
     @Test
     public void testEnumParse() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter\\$TestEnum\","
                 + " \"IMTEST\");";
@@ -670,7 +670,7 @@ public class TestInterpreter {
 
     @Test
     public void testPlaceholder() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 100.0;"
                 + "returnvalue = $test:0:x:true:\"hoho\";"
                 + "#MESSAGE $playername returnvalue;"
@@ -689,7 +689,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("testplayer", args[0]);
                 Assert.assertEquals("testwithargs", args[1]);
                 return null;
@@ -702,7 +702,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertTrue(args[0] instanceof String);
                 return null;
             }
@@ -714,7 +714,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertTrue(args[0] instanceof Integer);
                 return null;
             }
@@ -726,7 +726,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertTrue(args[0] instanceof Double);
                 return null;
             }
@@ -738,7 +738,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertTrue(args[0] instanceof Boolean);
                 return null;
             }
@@ -818,27 +818,27 @@ public class TestInterpreter {
 
         Assert.assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
     }
-    
+
     @Test
     public void testPlaceholderNull() throws IOException, LexerException, ParserException, InterpreterException {
-    	Charset charset = Charset.forName("UTF-8");
-    	String text = "a = $merp";
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "a = $merp";
         Lexer lexer = new Lexer(text, charset);
         Parser parser;
-		parser = new Parser(lexer);
-		Node root = parser.parse();
-		
-		Map<String, Placeholder> placeholderMap = new HashMap<>();
-    	
-    	placeholderMap.put("merp", new Placeholder() {
+        parser = new Parser(lexer);
+        Node root = parser.parse();
+
+        Map<String, Placeholder> placeholderMap = new HashMap<>();
+
+        placeholderMap.put("merp", new Placeholder() {
             @Override
             public Object parse(Timings.Timing timing, Object context, Map<String, Object> vars, Object... args) throws Exception {
                 return null;
             }
 
         });
-    	
-    	Interpreter interpreter = new Interpreter(root);
+
+        Interpreter interpreter = new Interpreter(root);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.startWithContext(null);
         Assert.assertEquals(null, interpreter.getVars().get("a"));
@@ -846,7 +846,7 @@ public class TestInterpreter {
 
     @Test
     public void testUnaryMinus() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "#TEST1 -1+-5;"
                 + "#TEST2 -2.0--5;"
@@ -863,7 +863,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(-6, args[0]);
                 return null;
             }
@@ -874,7 +874,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(3.0, args[0]);
                 return null;
             }
@@ -885,7 +885,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(-8, args[0]);
                 return null;
             }
@@ -896,7 +896,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(-9.0, args[0]);
                 return null;
             }
@@ -926,7 +926,7 @@ public class TestInterpreter {
     public void testSimpleIf() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x > 0.0;"
                 + "    #TEST1 \"pass\";"
@@ -943,7 +943,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 Assert.assertEquals("pass", args[0]);
                 set.add("true");
@@ -954,7 +954,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 Assert.assertEquals("fail", args[0]);
                 set.add("false");
@@ -973,7 +973,7 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf2() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF someunknown != 0.0;"
                 + "    #TEST \"pass\";"
@@ -991,7 +991,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("pass", args[0]);
                 return null;
             }
@@ -1006,7 +1006,7 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf3() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF 0.0 != someunknown;"
                 + "    #TEST \"pass\";"
@@ -1024,7 +1024,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("pass", args[0]);
                 return null;
             }
@@ -1039,7 +1039,7 @@ public class TestInterpreter {
 
     @Test
     public void testSimpleIf4() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF someunknown == someunknown;"
                 + "    #TEST \"pass\";"
@@ -1057,7 +1057,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("pass", args[0]);
                 return null;
             }
@@ -1072,7 +1072,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x < 0.0;"
                 + "    #TEST \"no\";"
@@ -1092,7 +1092,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("pass", args[0]);
                 return null;
             }
@@ -1107,7 +1107,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf2() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "IF x < 0.0;"
                 + "    #TEST \"no\";"
@@ -1127,7 +1127,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("pass", args[0]);
                 return null;
             }
@@ -1142,7 +1142,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf3() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IF x > 999;"
                 + "    result = \"test1\";"
@@ -1190,7 +1190,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf4() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1213,7 +1213,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(1, args[0]);
                 return null;
             }
@@ -1228,7 +1228,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIf5() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1255,7 +1255,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(1, args[0]);
                 return null;
             }
@@ -1270,7 +1270,7 @@ public class TestInterpreter {
 
     @Test
     public void testNestedIfNoElse() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "" +
                 "IF x > 0.0;" +
@@ -1296,7 +1296,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(2, args[0]);
                 return null;
             }
@@ -1311,7 +1311,7 @@ public class TestInterpreter {
 
     @Test
     public void testImport() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
                 + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
                 + "#TEST TheTest;"
@@ -1330,7 +1330,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(TheTest.class, args[0]);
                 return null;
             }
@@ -1341,7 +1341,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("static", args[0]);
                 return null;
             }
@@ -1352,7 +1352,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("local", args[0]);
                 return null;
             }
@@ -1363,7 +1363,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("staticField", args[0]);
                 return null;
             }
@@ -1374,7 +1374,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(TestEnum.IMTEST, args[0]);
                 return null;
             }
@@ -1389,7 +1389,7 @@ public class TestInterpreter {
 
     @Test
     public void testComparison() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST 1 < 2, 2 < 1;"
                 + "#TEST2 5 > 4, 4 > 5;"
                 + "#TEST3 1 <= 1, 3 <= 2;"
@@ -1407,7 +1407,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(true, args[0]);
                 Assert.assertEquals(false, args[1]);
                 return null;
@@ -1429,7 +1429,7 @@ public class TestInterpreter {
 
     @Test
     public void testNullComparison() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "IF {\"temp\"} == null;"
                 + "{\"temp\"} = true;"
                 + "ENDIF;";
@@ -1452,7 +1452,7 @@ public class TestInterpreter {
 
     @Test
     public void testLineBreak() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST \"abcd\\nABCD\"";
 
         Lexer lexer = new Lexer(text, charset);
@@ -1464,7 +1464,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals("abcd\nABCD", args[0]);
                 return null;
             }
@@ -1478,7 +1478,7 @@ public class TestInterpreter {
 
     @Test
     public void testCarriageReturn() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST \"abcd\\rABCD\"";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1488,7 +1488,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 Assert.assertEquals("abcd\rABCD", args[0]);
                 return null;
@@ -1503,7 +1503,7 @@ public class TestInterpreter {
 
     @Test
     public void testISStatement() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT " + TheTest.class.getName() + ";" +
                 "IMPORT " + InTest.class.getName() + ";" +
                 "" +
@@ -1517,7 +1517,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertTrue((boolean) args[0]);
                 Assert.assertFalse((boolean) args[1]);
                 return null;
@@ -1536,7 +1536,7 @@ public class TestInterpreter {
 
     @Test
     public void testBreak() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 0;" +
                 "WHILE x < 5;" +
                 "x = x + 1;" +
@@ -1560,7 +1560,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(2, args[0]);
                 return null;
             }
@@ -1569,7 +1569,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(2, args[0]);
                 return null;
             }
@@ -1583,7 +1583,7 @@ public class TestInterpreter {
 
     @Test
     public void testContinue() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "x = 0;" +
                 "i = 0;" +
                 "WHILE i < 5;" +
@@ -1611,7 +1611,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(2, args[0]);
                 Assert.assertEquals(5, args[1]);
                 return null;
@@ -1621,7 +1621,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(2, args[0]);
                 Assert.assertEquals(5, args[1]);
                 return null;
@@ -1635,7 +1635,7 @@ public class TestInterpreter {
 
     @Test
     public void testContinueIterator() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "sum = 0;" +
                 "FOR val = arr;" +
                 "IF val == 1 || val == 5;" +
@@ -1661,7 +1661,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(9, args[0]);
                 return null;
             }
@@ -1670,7 +1670,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
- 
+
                 Assert.assertEquals(9, args[0]);
                 return null;
             }
@@ -1689,7 +1689,7 @@ public class TestInterpreter {
     public void testSyncAsync() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "SYNC;"
                 + "#TEST1;"
@@ -1706,7 +1706,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test1");
                 return null;
@@ -1718,7 +1718,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test2");
                 return null;
@@ -1767,7 +1767,7 @@ public class TestInterpreter {
     public void testSyncAsync2() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "SYNC;"
                 + "FOR i = 0:1;"
@@ -1788,7 +1788,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test1");
                 return null;
@@ -1800,7 +1800,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test2");
                 return null;
@@ -1849,7 +1849,7 @@ public class TestInterpreter {
     public void testConstructorNoArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest();"
@@ -1863,7 +1863,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test");
 
@@ -1891,7 +1891,7 @@ public class TestInterpreter {
     public void testConstructorOneArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(1);"
@@ -1905,7 +1905,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test");
 
@@ -1933,7 +1933,7 @@ public class TestInterpreter {
     public void testConstructorThreeArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(2, 5.0, \"hoho\");"
@@ -1947,7 +1947,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test");
 
@@ -1975,7 +1975,7 @@ public class TestInterpreter {
     public void testConstructorVarArg() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + ConstTest.class.getName() + ";"
                 + "obj = ConstTest(1, 2, 3, 4, 5);"
@@ -1989,7 +1989,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test");
 
@@ -2017,7 +2017,7 @@ public class TestInterpreter {
     public void testArrayAndClass() throws Exception {
         Set<String> set = new HashSet<>();
 
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = ""
                 + "IMPORT " + TestEnum.class.getName() + ";"
                 + "enumVal = TestEnum.IMTEST;"
@@ -2033,7 +2033,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
- 
+
                     throws Exception {
                 set.add("test");
 
@@ -2047,7 +2047,7 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
         interpreter.setSelfReference(new SelfReference() {
             @SuppressWarnings("unused")
-			public Object array(int size) {
+            public Object array(int size) {
                 return new Object[size];
             }
         });
@@ -2109,7 +2109,7 @@ public class TestInterpreter {
     }
 
     public enum TestEnum {
-        IMTEST;
+        IMTEST
     }
 
     public static class ConstTest {
