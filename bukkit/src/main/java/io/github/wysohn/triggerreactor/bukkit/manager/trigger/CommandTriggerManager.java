@@ -17,7 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

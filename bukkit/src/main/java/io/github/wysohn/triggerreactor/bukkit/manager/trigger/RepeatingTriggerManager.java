@@ -18,7 +18,8 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;

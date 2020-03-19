@@ -14,19 +14,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.trigger;
+package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
-public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<AbstractCommandTriggerManager.CommandTrigger> {
+public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
     @Override
@@ -122,7 +122,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         if (trigger instanceof CommandTrigger)
             removeAliases((CommandTrigger) trigger);
 
-        FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName() + ".yml"));
+        FileUtil.delete(new File(trigger.getFile().getParent(), trigger.getTriggerName() + ".yml"));
         super.deleteInfo(trigger);
     }
 
@@ -198,59 +198,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
-    }
-
-    public static class CommandTrigger extends Trigger {
-        private String[] permissions = new String[0];
-        private String[] aliases = new String[0];
-
-        public CommandTrigger(String name, File file, String script) throws TriggerInitFailedException {
-            super(name, file, script);
-
-            init();
-        }
-
-        public String[] getPermissions() {
-            return permissions;
-        }
-
-        public void setPermissions(String[] permissions) {
-            if (permissions == null) {
-                this.permissions = new String[0];
-            } else {
-                this.permissions = permissions;
-            }
-        }
-
-        public String[] getAliases() {
-            return aliases;
-        }
-
-        public void setAliases(String[] aliases) {
-            if (aliases == null) {
-                this.aliases = new String[0];
-            } else {
-                this.aliases = aliases;
-            }
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CommandTrigger(triggerName, file, getScript());
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + "{" +
-                    "permissions=" + Arrays.toString(permissions) +
-                    ", aliases=" + Arrays.toString(aliases) +
-                    '}';
-        }
     }
 
     private static class CommandMap extends HashMap<String, CommandTrigger> {

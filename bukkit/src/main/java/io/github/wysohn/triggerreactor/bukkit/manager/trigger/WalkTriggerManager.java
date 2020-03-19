@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationE
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.*;

@@ -17,7 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTrigger;
 
 import java.io.File;
 

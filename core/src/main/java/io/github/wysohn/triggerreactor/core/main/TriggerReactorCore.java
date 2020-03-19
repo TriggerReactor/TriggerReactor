@@ -25,11 +25,19 @@ import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager.AreaTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager.CustomTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager.RepeatingTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
@@ -221,7 +229,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
-                        AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+                        CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         //if no permission is given, delete all permission required
                         String[] permissions = null;
@@ -242,7 +250,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
-                        AbstractCommandTriggerManager.CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+                        CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
 
                         //first, clean up all aliases
                         getCmdManager().removeAliases(trigger);

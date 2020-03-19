@@ -17,7 +17,8 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;

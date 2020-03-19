@@ -33,8 +33,8 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -335,7 +335,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     }
 
     public Interpreter.ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns, Map<IInventory,
-            AbstractInventoryTriggerManager.InventoryTrigger> inventoryMap) {
+            InventoryTrigger> inventoryMap) {
         return new Interpreter.ProcessInterrupter() {
             @Override
             public boolean onNodeProcess(Node node) {

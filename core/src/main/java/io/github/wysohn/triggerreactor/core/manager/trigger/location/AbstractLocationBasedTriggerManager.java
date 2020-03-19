@@ -14,13 +14,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.trigger;
+package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import java.io.File;
@@ -93,8 +94,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                     if (triggerMap.containsKey(sloc)) {
                         Trigger previous = triggerMap.get(sloc);
                         plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
-                        plugin.getLogger().warning("Existing: " + previous.file.getAbsolutePath());
-                        plugin.getLogger().warning("Skipped: " + trigger.file.getAbsolutePath());
+                        plugin.getLogger().warning("Existing: " + previous.getFile().getAbsolutePath());
+                        plugin.getLogger().warning("Skipped: " + trigger.getFile().getAbsolutePath());
                     } else {
                         triggerMap.put(sloc, trigger);
                     }

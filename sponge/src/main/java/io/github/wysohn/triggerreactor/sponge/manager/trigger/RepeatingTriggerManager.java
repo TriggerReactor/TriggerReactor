@@ -17,7 +17,8 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import ninja.leaping.configurate.ConfigurationNode;

@@ -18,10 +18,10 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
@@ -310,7 +310,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(areaTriggerName);
+        AreaTrigger trigger = areaManager.getArea(areaTriggerName);
         if (trigger == null)
             return null;
 

@@ -28,9 +28,15 @@ import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.*;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
@@ -141,6 +147,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
+    public AbstractInventoryEditManager getInvEditManager() {
+        return invEditManager;
+    }
+
+    @Override
     public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
         return clickManager;
     }
@@ -227,6 +238,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
         selectionManager = new AreaSelectionManager(this);
+        invEditManager = new InventoryEditManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
@@ -546,9 +558,4 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     public String getName() {
         return bukkit.getName();
     }
-
-	@Override
-	public AbstractInventoryEditManager getInvEditManager() {
-		return invEditManager;
-	}
 }

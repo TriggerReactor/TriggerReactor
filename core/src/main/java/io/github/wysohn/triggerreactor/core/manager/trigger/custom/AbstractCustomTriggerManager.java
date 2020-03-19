@@ -14,29 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.trigger;
+package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<AbstractCustomTriggerManager.CustomTrigger> {
+public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
 
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
-    private final Map<String, CustomTrigger> triggers = new ConcurrentHashMap<>();
 
     @Override
     public void reload() {
@@ -272,87 +268,12 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     @Override
     protected void deleteInfo(CustomTrigger trigger) {
-        FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName() + ".yml"));
+        FileUtil.delete(new File(trigger.getFile().getParent(), trigger.getTriggerName() + ".yml"));
         super.deleteInfo(trigger);
     }
 
     public AbstractCustomTriggerManager(TriggerReactorCore core, SelfReference ref, File tirggerFolder) {
         super(core, tirggerFolder);
-    }
-
-    public static class CustomTrigger extends Trigger implements EventHook {
-        final Class<?> event;
-        private final String eventName;
-
-        /**
-         * @param event
-         * @param name
-         * @param script
-         * @throws IOException     {@link Trigger#init()}
-         * @throws LexerException  {@link Trigger#init()}
-         * @throws ParserException {@link Trigger#init()}
-         */
-        public CustomTrigger(Class<?> event, String eventName, String name, File file, String script) throws TriggerInitFailedException {
-            super(name, file, script);
-            this.event = event;
-            this.eventName = eventName;
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new CustomTrigger(event, getEventName(), triggerName, file, this.getScript());
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + "{" +
-                    "event=" + (event == null ? null : event.getName()) +
-                    '}';
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((triggerName == null) ? 0 : triggerName.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            CustomTrigger other = (CustomTrigger) obj;
-            if (triggerName == null) {
-                return other.triggerName == null;
-            } else return triggerName.equals(other.triggerName);
-        }
-
-        public String getEventName() {
-            return eventName;
-        }
-
-        @Override
-        public void onEvent(Object e) {
-            if (e.getClass() != event
-                    // temporary way to deal with sponge events
-                    && !e.getClass().getSimpleName().contains(event.getSimpleName()))
-                return;
-
-            Map<String, Object> vars = new HashMap<>();
-            this.activate(e, vars);
-        }
     }
 
     @FunctionalInterface

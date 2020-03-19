@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;

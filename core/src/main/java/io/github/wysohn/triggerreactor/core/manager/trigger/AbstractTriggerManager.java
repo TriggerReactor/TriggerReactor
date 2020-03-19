@@ -115,7 +115,7 @@ public abstract class AbstractTriggerManager<T extends AbstractTriggerManager.Tr
         return file.getName().substring(0, file.getName().indexOf('.'));
     }
 
-    protected static File getTriggerFile(File folder, String triggerName, boolean write) {
+    public static File getTriggerFile(File folder, String triggerName, boolean write) {
         File triggerFile = new File(folder, triggerName + ".trg");
 
         //if reading the file, first check if .trg file exists and then try with no extension
@@ -181,6 +181,14 @@ public abstract class AbstractTriggerManager<T extends AbstractTriggerManager.Tr
 
             this.triggerName = triggerName;
             this.script = script;
+        }
+
+        /**
+         * Get File instance pointing to the Trigger file
+         * @return
+         */
+        public File getFile() {
+            return file;
         }
 
         /**

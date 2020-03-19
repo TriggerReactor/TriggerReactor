@@ -5,7 +5,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;

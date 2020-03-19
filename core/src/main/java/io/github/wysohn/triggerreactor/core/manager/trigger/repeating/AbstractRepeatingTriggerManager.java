@@ -14,26 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.trigger;
+package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<AbstractRepeatingTriggerManager.RepeatingTrigger> {
+public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
     protected static final String TRIGGER = "trigger";
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
@@ -201,7 +200,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
     @Override
     protected void deleteInfo(RepeatingTrigger trigger) {
-        FileUtil.delete(new File(trigger.file.getParent(), trigger.getTriggerName() + ".yml"));
+        FileUtil.delete(new File(trigger.getFile().getParent(), trigger.getTriggerName() + ".yml"));
         super.deleteInfo(trigger);
     }
 
@@ -267,143 +266,6 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
         thread.interrupt();
         return true;
-    }
-
-    public static class RepeatingTrigger extends Trigger implements Runnable {
-        private final ThrowableHandler throwableHandler = new ThrowableHandler() {
-            @Override
-            public void onFail(Throwable throwable) {
-                throwable.printStackTrace();
-                TriggerReactorCore.getInstance().getLogger()
-                        .warning("Repeating Trigger [" + triggerName + "] encountered an error!");
-                TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
-                TriggerReactorCore.getInstance().getLogger()
-                        .warning("If you are an administrator, see console for more details.");
-            }
-        };
-
-        private long interval = 1000L;
-        private boolean autoStart = false;
-        private Map<String, Object> vars;
-
-        public RepeatingTrigger(String name, File file, String script) throws TriggerInitFailedException {
-            super(name, file, script);
-
-            init();
-        }
-
-        public RepeatingTrigger(String name, File file, String script, long interval)
-                throws TriggerInitFailedException {
-            this(name, file, script);
-
-            this.interval = interval;
-        }
-
-        /**
-         * This should be called at least once on start up so variables can be
-         * initialized.
-         */
-        @Override
-        public boolean activate(Object e, Map<String, Object> scriptVars) {
-            vars = scriptVars;
-
-            return super.activate(e, scriptVars);
-        }
-
-        /**
-         * We don't use cooldown for this trigger. Just return false always
-         */
-        @Override
-        protected boolean checkCooldown(Object e) {
-            return false;
-        }
-
-        public long getInterval() {
-            return interval;
-        }
-
-        public void setInterval(long interval) {
-            this.interval = interval;
-        }
-
-        public boolean isAutoStart() {
-            return autoStart;
-        }
-
-        public void setAutoStart(boolean autoStart) {
-            this.autoStart = autoStart;
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new RepeatingTrigger(this.triggerName, file, this.getScript(), interval);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        public String toString() {
-            return super.toString() + "{" +
-                    "interval=" + interval +
-                    ", autoStart=" + autoStart +
-                    ", paused=" + paused +
-                    '}';
-        }
-
-        //////////////////////////////////////////////////////////////////////////////////////
-        private boolean paused;
-
-        public boolean isPaused() {
-            return paused;
-        }
-
-        public void setPaused(boolean paused) {
-            this.paused = paused;
-
-            if (!paused) {
-                synchronized (this) {
-                    this.notify();
-                }
-            }
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (!Thread.interrupted()) {
-                    synchronized (this) {
-                        while (paused && !Thread.interrupted()) {
-                            this.wait();
-                        }
-                    }
-
-                    vars.put(TRIGGER, "repeat");
-
-                    // we re-use the variables over and over.
-                    activate(new Object(), vars);
-
-                    try {
-                        Thread.sleep(interval);
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                throwableHandler.onFail(e);
-            }
-
-            try {
-                vars.put(TRIGGER, "stop");
-                activate(new Object(), vars);
-            } catch (Exception e) {
-                throwableHandler.onFail(e);
-            }
-        }
-
     }
 
     public void showTriggerInfo(ICommandSender sender, RepeatingTrigger trigger) {

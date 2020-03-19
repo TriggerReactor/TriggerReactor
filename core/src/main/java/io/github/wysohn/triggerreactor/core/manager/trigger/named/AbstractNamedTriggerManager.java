@@ -14,20 +14,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.trigger;
+package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Stack;
 
-public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<AbstractNamedTriggerManager.NamedTrigger> {
+public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
 
     public AbstractNamedTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);
@@ -126,26 +125,6 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
                 triggers.put(builder.toString(), trigger);
             }
         }
-    }
-
-    protected static class NamedTrigger extends Trigger {
-
-        public NamedTrigger(String name, File file, String script) throws TriggerInitFailedException {
-            super(name, file, script);
-
-            init();
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new NamedTrigger(triggerName, file, getScript());
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
     }
 
 }
