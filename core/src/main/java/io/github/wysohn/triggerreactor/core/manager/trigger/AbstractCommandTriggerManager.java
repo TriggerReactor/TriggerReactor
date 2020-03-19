@@ -27,12 +27,11 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<AbstractCommandTriggerManager.CommandTrigger> {
-    protected final Map<String, CommandTrigger> commandTriggerMap = new CommandMap();
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
     @Override
     public void reload() {
-        commandTriggerMap.clear();
+        triggers.clear();
         aliasesMap.clear();
 
         for (File file : folder.listFiles()) {
@@ -77,7 +76,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             trigger.setPermissions(permissions.toArray(new String[0]));
             trigger.setAliases(aliases.toArray(new String[0]));
 
-            commandTriggerMap.put(triggerName, trigger);
+            triggers.put(triggerName, trigger);
             registerAliases(trigger);
         }
     }
@@ -85,7 +84,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     @Override
     public void saveAll() {
         Set<String> failed = new HashSet<>();
-        for (Entry<String, CommandTrigger> entry : commandTriggerMap.entrySet()) {
+        for (Entry<String, CommandTrigger> entry : triggers.entrySet()) {
             String triggerName = entry.getKey();
             CommandTrigger trigger = entry.getValue();
 
@@ -114,7 +113,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }
 
         for (String key : failed) {
-            commandTriggerMap.remove(key);
+            triggers.remove(key);
         }
     }
 
@@ -129,15 +128,15 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
     @Override
 	public Collection<CommandTrigger> getAllTriggers() {
-        return commandTriggerMap.values();
+        return triggers.values();
     }
 
     public boolean hasCommandTrigger(String cmd) {
-        return commandTriggerMap.containsKey(cmd);
+        return triggers.containsKey(cmd);
     }
 
     public CommandTrigger getCommandTrigger(String cmd) {
-        return commandTriggerMap.get(cmd);
+        return triggers.get(cmd);
     }
 
     /**
@@ -147,7 +146,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      * @return true on success; false if cmd already binded.
      */
     public boolean addCommandTrigger(ICommandSender adding, String cmd, String script) {
-        if (commandTriggerMap.containsKey(cmd))
+        if (triggers.containsKey(cmd))
             return false;
 
         File triggerFile = getTriggerFile(folder, cmd, true);
@@ -159,7 +158,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             return false;
         }
 
-        commandTriggerMap.put(cmd, trigger);
+        triggers.put(cmd, trigger);
 
         plugin.saveAsynchronously(this);
         return true;
@@ -170,10 +169,10 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      * @return true on success; false if cmd does not exist.
      */
     public boolean removeCommandTrigger(String cmd) {
-        if (!commandTriggerMap.containsKey(cmd))
+        if (!triggers.containsKey(cmd))
             return false;
 
-        deleteInfo(commandTriggerMap.remove(cmd));
+        deleteInfo(triggers.remove(cmd));
 
         return true;
     }

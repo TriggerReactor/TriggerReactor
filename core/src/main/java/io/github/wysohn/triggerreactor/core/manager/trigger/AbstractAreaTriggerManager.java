@@ -42,7 +42,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     protected static final String SYNC = "Sync";
 
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggers = new ConcurrentHashMap<>();
-    protected Map<String, AreaTrigger> nameMapper = new HashMap<>();
 
     /**
      * The child class should update this map with its own way. Though, the entity which garbage-corrected will
@@ -75,9 +74,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                         entityLocationMap.remove(delete);
                     }
 
-                    Set<String> keys = nameMapper.keySet();
+                    Set<String> keys = triggers.keySet();
                     for (String key : keys) {
-                        AreaTrigger area = nameMapper.get(key);
+                        AreaTrigger area = triggers.get(key);
                         area.getEntities();
                     }
 
@@ -111,7 +110,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         for (File ymlfile : folder.listFiles(filter)) {
             String[] extracted = extractPrefix(extractName(ymlfile));
-            String prefix = extracted[0];
             String triggerName = extracted[1];
 
             SimpleLocation smallest = null;
@@ -162,7 +160,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             AreaTrigger trigger = new AreaTrigger(area, scriptFolder, triggerName);
             trigger.setSync(isSync);
 
-            nameMapper.put(triggerName, trigger);
+            triggers.put(triggerName, trigger);
 
             this.setupArea(trigger);
 
@@ -191,10 +189,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         Set<AreaTrigger> saveReady = new HashSet<>();
 
         for (Entry<SimpleChunkLocation, Map<Area, AreaTrigger>> oentry : areaTriggers.entrySet()) {
-            SimpleChunkLocation scloc = oentry.getKey();
 
             for (Entry<Area, AreaTrigger> entry : oentry.getValue().entrySet()) {
-                Area area = entry.getKey();
                 AreaTrigger trigger = entry.getValue();
 
                 saveReady.add(trigger);
@@ -316,7 +312,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         File areaFolder = new File(folder, name);
         AreaTrigger trigger = new AreaTrigger(area, areaFolder, name);
-        nameMapper.put(name, trigger);
+        triggers.put(name, trigger);
 
         setupArea(trigger);
 
@@ -350,7 +346,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      * @return Area if found; null if nothing
      */
     public AreaTrigger getArea(String name) {
-        return nameMapper.get(name);
+        return triggers.get(name);
     }
 
     /**
@@ -360,7 +356,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      * @return false if can't find any Area Trigger with the name; true if deleted.
      */
     public boolean deleteArea(String name) {
-        AreaTrigger trigger = nameMapper.get(name);
+        AreaTrigger trigger = triggers.get(name);
         if (trigger == null)
             return false;
 
@@ -371,7 +367,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         deleteInfo(trigger);
 
-        nameMapper.remove(name);
+        triggers.remove(name);
         return true;
     }
 
@@ -420,7 +416,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
     @Override
 	public Collection<AreaTrigger> getAllTriggers() {
-        return nameMapper.values();
+        return triggers.values();
     }
 
     public static class AreaTrigger extends Trigger {

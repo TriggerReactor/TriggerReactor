@@ -25,13 +25,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Stack;
 
 public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<AbstractNamedTriggerManager.NamedTrigger> {
-
-    protected final Map<String, NamedTrigger> triggers = new HashMap<>();
 
     public AbstractNamedTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
         super(plugin, tirggerFolder);

@@ -39,7 +39,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         String cmd = e.getCommand();
         String[] args = e.getArguments().split(" ");
 
-        CommandTrigger trigger = commandTriggerMap.get(cmd);
+        CommandTrigger trigger = triggers.get(cmd);
         if (trigger == null)
             trigger = aliasesMap.get(cmd);
         if (trigger == null)

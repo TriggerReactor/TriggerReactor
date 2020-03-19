@@ -44,7 +44,8 @@ import java.util.logging.Logger;
 
 public abstract class AbstractTriggerManager<T extends AbstractTriggerManager.Trigger> extends Manager implements ConfigurationFileIO {
     private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
-
+    
+    protected Map<String, T> triggers = new ConcurrentHashMap<>();
     protected final File folder;
 
     public AbstractTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {

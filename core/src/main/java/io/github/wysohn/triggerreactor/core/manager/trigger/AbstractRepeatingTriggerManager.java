@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<AbstractRepeatingTriggerManager.RepeatingTrigger> {
     protected static final String TRIGGER = "trigger";
 
-    protected final Map<String, RepeatingTrigger> repeatTriggers = new ConcurrentHashMap<>();
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
     @Override
@@ -48,7 +47,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             }
         };
 
-        repeatTriggers.clear();
+        triggers.clear();
         for (Entry<String, Thread> entry : runningThreads.entrySet()) {
             entry.getValue().interrupt();
         }
@@ -85,7 +84,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
             trigger.setAutoStart(autoStart);
             trigger.setInterval(interval);
 
-            repeatTriggers.put(triggerName, trigger);
+            triggers.put(triggerName, trigger);
 
             final RepeatingTrigger triggerCopy = trigger;
             //start 1 tick later so other managers can be initialized.
@@ -102,7 +101,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
     @Override
     public void saveAll() {
-        for (Entry<String, RepeatingTrigger> entry : repeatTriggers.entrySet()) {
+        for (Entry<String, RepeatingTrigger> entry : triggers.entrySet()) {
             String triggerName = entry.getKey();
             RepeatingTrigger trigger = entry.getValue();
 
@@ -131,7 +130,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @return Repeating Trigger if found; null if not found.
      */
     public RepeatingTrigger getTrigger(String triggerName) {
-        return repeatTriggers.get(triggerName);
+        return triggers.get(triggerName);
     }
 
     /**
@@ -152,7 +151,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         }
 
         RepeatingTrigger trigger = new RepeatingTrigger(triggerName, file, script, interval);
-        repeatTriggers.put(triggerName, trigger);
+        triggers.put(triggerName, trigger);
 
         saveInfo(trigger);
 
@@ -185,7 +184,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @return true on success; false if trigger with the name not found.
      */
     public boolean deleteTrigger(String triggerName) {
-        RepeatingTrigger trigger = repeatTriggers.remove(triggerName);
+        RepeatingTrigger trigger = triggers.remove(triggerName);
         if (trigger == null) {
             return false;
         }
@@ -208,7 +207,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
     @Override
 	public Collection<RepeatingTrigger> getAllTriggers() {
-        return repeatTriggers.values();
+        return triggers.values();
     }
 
     /**
@@ -235,7 +234,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @return true on success; false if trigger not found.
      */
     public boolean startTrigger(String triggerName) {
-        RepeatingTrigger trigger = repeatTriggers.get(triggerName);
+        RepeatingTrigger trigger = triggers.get(triggerName);
         if (trigger == null) {
             return false;
         }

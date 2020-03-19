@@ -42,7 +42,6 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
     private final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
 
-    protected final Map<String, InventoryTrigger> invenTriggers = new ConcurrentHashMap<>();
     private final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
     @Override
@@ -120,13 +119,13 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
                 continue;
             }
 
-            invenTriggers.put(triggerName, trigger);
+            triggers.put(triggerName, trigger);
         }
     }
 
     @Override
     public void saveAll() {
-        for (Entry<String, InventoryTrigger> entry : invenTriggers.entrySet()) {
+        for (Entry<String, InventoryTrigger> entry : triggers.entrySet()) {
             String triggerName = entry.getKey();
             InventoryTrigger trigger = entry.getValue();
 
@@ -163,7 +162,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
     public IInventory openGUI(IPlayer player, String name) {
-        InventoryTrigger trigger = invenTriggers.get(name);
+        InventoryTrigger trigger = triggers.get(name);
         if (trigger == null)
             return null;
 
@@ -197,7 +196,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
      * @return null if not exists
      */
     public InventoryTrigger getTriggerForName(String name) {
-        return invenTriggers.get(name);
+        return triggers.get(name);
     }
 
     /**
@@ -210,11 +209,11 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
      */
     public boolean createTrigger(int size, String name, String script)
             throws TriggerInitFailedException {
-        if (invenTriggers.containsKey(name))
+        if (triggers.containsKey(name))
             return false;
 
         File triggerFile = getTriggerFile(folder, name, true);
-        invenTriggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), triggerFile, script));
+        triggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), triggerFile, script));
 
         return true;
     }
@@ -224,10 +223,10 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
      * @return true on success; false if not exists
      */
     public boolean deleteTrigger(String name) {
-        if (!invenTriggers.containsKey(name))
+        if (!triggers.containsKey(name))
             return false;
 
-        deleteInfo(invenTriggers.remove(name));
+        deleteInfo(triggers.remove(name));
 
         return true;
     }
@@ -240,7 +239,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
     @Override
 	public Collection<InventoryTrigger> getAllTriggers() {
-        return invenTriggers.values();
+        return triggers.values();
     }
 
     /**

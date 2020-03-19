@@ -36,7 +36,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
-    private final Map<String, CustomTrigger> nameMap = new ConcurrentHashMap<>();
+    private final Map<String, CustomTrigger> triggers = new ConcurrentHashMap<>();
 
     @Override
     public void reload() {
@@ -47,7 +47,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             }
         };
 
-        nameMap.clear();
+        triggers.clear();
 
         for (File ymlfile : folder.listFiles(filter)) {
             if (!ymlfile.isFile())
@@ -90,7 +90,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                     CustomTrigger trigger = new CustomTrigger(event, eventName, triggerName, triggerFile, read);
                     trigger.setSync(isSync);
 
-                    nameMap.put(triggerName, trigger);
+                    triggers.put(triggerName, trigger);
 
                     registerEvent(plugin, event, trigger);
                 } catch (TriggerInitFailedException e) {
@@ -106,7 +106,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     @Override
     public void saveAll() {
-        for (Entry<String, CustomTrigger> entry : nameMap.entrySet()) {
+        for (Entry<String, CustomTrigger> entry : triggers.entrySet()) {
             CustomTrigger trigger = entry.getValue();
 
             File triggerfile = getTriggerFile(folder, trigger.getTriggerName(), true);
@@ -214,7 +214,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      */
     public boolean createCustomTrigger(String eventName, String name, String script)
             throws ClassNotFoundException, TriggerInitFailedException {
-        if (nameMap.containsKey(name))
+        if (triggers.containsKey(name))
             return false;
 
         Class<?> event = this.getEventFromName(eventName);
@@ -222,7 +222,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         File triggerFile = getTriggerFile(folder, name, true);
         CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
 
-        nameMap.put(name, trigger);
+        triggers.put(name, trigger);
 
         this.registerEvent(plugin, event, trigger);
 
@@ -236,7 +236,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      * @return null if no such trigger with that name; CustomTrigger if found
      */
     public CustomTrigger getTriggerForName(String name) {
-        return nameMap.get(name);
+        return triggers.get(name);
     }
 
 //    /**
@@ -258,10 +258,10 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      * @return false if no such trigger exists with 'name'; true if deleted
      */
     public boolean removeTriggerForName(String name) {
-        if (!nameMap.containsKey(name))
+        if (!triggers.containsKey(name))
             return false;
 
-        CustomTrigger trigger = nameMap.remove(name);
+        CustomTrigger trigger = triggers.remove(name);
 
         unregisterEvent(plugin, trigger);
 
@@ -278,7 +278,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     @Override
     public Collection<CustomTrigger> getAllTriggers() {
-        return nameMap.values();
+        return triggers.values();
     }
 
     public AbstractCustomTriggerManager(TriggerReactorCore core, SelfReference ref, File tirggerFolder) {
