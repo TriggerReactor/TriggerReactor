@@ -31,7 +31,7 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
     }
 
     @Override
-    public Trigger clone() {
+    public CustomTrigger clone() {
         try {
             return new CustomTrigger(event, getEventName(), triggerName, file, this.getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

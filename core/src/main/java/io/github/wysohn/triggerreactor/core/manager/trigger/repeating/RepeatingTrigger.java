@@ -20,8 +20,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
     };
 
-    long interval = 1000L;
-    boolean autoStart = false;
+    private long interval = 1000L;
+    private boolean autoStart = false;
     Map<String, Object> vars;
 
     public RepeatingTrigger(String name, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
@@ -73,7 +73,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     @Override
-    public Trigger clone() {
+    public RepeatingTrigger clone() {
         try {
             return new RepeatingTrigger(this.triggerName, file, this.getScript(), interval);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

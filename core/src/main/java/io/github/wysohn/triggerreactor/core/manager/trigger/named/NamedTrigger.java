@@ -14,7 +14,7 @@ public class NamedTrigger extends Trigger {
     }
 
     @Override
-    public Trigger clone() {
+    public NamedTrigger clone() {
         try {
             return new NamedTrigger(triggerName, file, getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

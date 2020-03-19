@@ -41,7 +41,7 @@ public class CommandTrigger extends Trigger {
     }
 
     @Override
-    public Trigger clone() {
+    public CommandTrigger clone() {
         try {
             return new CommandTrigger(triggerName, file, getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

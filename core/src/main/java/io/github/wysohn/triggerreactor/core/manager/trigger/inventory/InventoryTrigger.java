@@ -53,7 +53,7 @@ public class InventoryTrigger extends Trigger {
     }
 
     @Override
-    public Trigger clone() {
+    public InventoryTrigger clone() {
         try {
             return new InventoryTrigger(triggerName, script, file, items);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
