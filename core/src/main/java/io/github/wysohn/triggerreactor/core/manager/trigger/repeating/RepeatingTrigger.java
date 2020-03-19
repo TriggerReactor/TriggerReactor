@@ -2,11 +2,12 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 
 import java.io.File;
 import java.util.Map;
 
-public class RepeatingTrigger extends AbstractTriggerManager.Trigger implements Runnable {
+public class RepeatingTrigger extends Trigger implements Runnable {
     private final AbstractRepeatingTriggerManager.ThrowableHandler throwableHandler = new AbstractRepeatingTriggerManager.ThrowableHandler() {
         @Override
         public void onFail(Throwable throwable) {
@@ -72,7 +73,7 @@ public class RepeatingTrigger extends AbstractTriggerManager.Trigger implements 
     }
 
     @Override
-    public AbstractTriggerManager.Trigger clone() {
+    public Trigger clone() {
         try {
             return new RepeatingTrigger(this.triggerName, file, this.getScript(), interval);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

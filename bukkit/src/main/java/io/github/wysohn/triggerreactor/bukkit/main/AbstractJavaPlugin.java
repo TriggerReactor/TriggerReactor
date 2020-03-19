@@ -33,7 +33,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -238,8 +238,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         return io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(args);
     }
 
-    public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, AbstractTriggerManager.Trigger>> set) {
-        for (Map.Entry<SimpleLocation, AbstractTriggerManager.Trigger> entry : set) {
+    public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set) {
+        for (Map.Entry<SimpleLocation, Trigger> entry : set) {
             SimpleLocation sloc = entry.getKey();
             Player player = sender.get();
             player.sendBlockChange(
@@ -271,7 +271,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        AbstractTriggerManager.Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -359,7 +359,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        AbstractTriggerManager.Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 

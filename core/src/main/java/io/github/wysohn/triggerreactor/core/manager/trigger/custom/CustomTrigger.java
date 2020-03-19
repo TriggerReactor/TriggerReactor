@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CustomTrigger extends AbstractTriggerManager.Trigger implements AbstractCustomTriggerManager.EventHook {
+public class CustomTrigger extends Trigger implements AbstractCustomTriggerManager.EventHook {
     final Class<?> event;
     final String eventName;
 
@@ -17,9 +18,9 @@ public class CustomTrigger extends AbstractTriggerManager.Trigger implements Abs
      * @param event
      * @param name
      * @param script
-     * @throws IOException     {@link AbstractTriggerManager.Trigger#init()}
-     * @throws LexerException  {@link AbstractTriggerManager.Trigger#init()}
-     * @throws ParserException {@link AbstractTriggerManager.Trigger#init()}
+     * @throws IOException     {@link Trigger#init()}
+     * @throws LexerException  {@link Trigger#init()}
+     * @throws ParserException {@link Trigger#init()}
      */
     public CustomTrigger(Class<?> event, String eventName, String name, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(name, file, script);
@@ -30,7 +31,7 @@ public class CustomTrigger extends AbstractTriggerManager.Trigger implements Abs
     }
 
     @Override
-    public AbstractTriggerManager.Trigger clone() {
+    public Trigger clone() {
         try {
             return new CustomTrigger(event, getEventName(), triggerName, file, this.getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

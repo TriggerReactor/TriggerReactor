@@ -3,13 +3,14 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.File;
 import java.util.Map;
 
-public class InventoryTrigger extends AbstractTriggerManager.Trigger {
+public class InventoryTrigger extends Trigger {
     public static final int MAXSIZE = 6 * 9;
 
     final IItemStack[] items;
@@ -52,7 +53,7 @@ public class InventoryTrigger extends AbstractTriggerManager.Trigger {
     }
 
     @Override
-    public AbstractTriggerManager.Trigger clone() {
+    public Trigger clone() {
         try {
             return new InventoryTrigger(triggerName, script, file, items);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {

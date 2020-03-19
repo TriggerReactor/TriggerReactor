@@ -18,8 +18,8 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
@@ -296,7 +296,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
-                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .map(Trigger::getTriggerName)
                 .toArray(String[]::new);
         return names;
     }
