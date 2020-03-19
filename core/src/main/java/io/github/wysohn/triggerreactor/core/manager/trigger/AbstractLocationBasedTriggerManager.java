@@ -134,12 +134,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
     }
 
-    @Override
-	public Collection<T> getAllTriggers() {
-        // Think about this later
-        return Collections.emptySet();
-    }
-
     protected String slocToString(SimpleLocation sloc) {
         return sloc.getWorld() + "@" + sloc.getX() + "," + sloc.getY() + "," + sloc.getZ();
     }

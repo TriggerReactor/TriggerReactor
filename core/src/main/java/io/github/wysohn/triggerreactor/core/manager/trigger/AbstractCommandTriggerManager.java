@@ -126,11 +126,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         super.deleteInfo(trigger);
     }
 
-    @Override
-	public Collection<CommandTrigger> getAllTriggers() {
-        return triggers.values();
-    }
-
     public boolean hasCommandTrigger(String cmd) {
         return triggers.containsKey(cmd);
     }

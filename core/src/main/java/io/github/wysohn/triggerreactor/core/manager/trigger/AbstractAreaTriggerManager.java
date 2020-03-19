@@ -41,7 +41,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
 
-    protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggers = new ConcurrentHashMap<>();
+    protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
 
     /**
      * The child class should update this map with its own way. Though, the entity which garbage-corrected will
@@ -106,7 +106,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             }
         };
 
-        areaTriggers.clear();
+        areaTriggersByLocation.clear();
 
         for (File ymlfile : folder.listFiles(filter)) {
             String[] extracted = extractPrefix(extractName(ymlfile));
@@ -188,7 +188,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     public void saveAll() {
         Set<AreaTrigger> saveReady = new HashSet<>();
 
-        for (Entry<SimpleChunkLocation, Map<Area, AreaTrigger>> oentry : areaTriggers.entrySet()) {
+        for (Entry<SimpleChunkLocation, Map<Area, AreaTrigger>> oentry : areaTriggersByLocation.entrySet()) {
 
             for (Entry<Area, AreaTrigger> entry : oentry.getValue().entrySet()) {
                 AreaTrigger trigger = entry.getValue();
@@ -256,10 +256,10 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             return new ArrayList<>();
 
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-        if (!areaTriggers.containsKey(scloc))
+        if (!areaTriggersByLocation.containsKey(scloc))
             return new ArrayList<>();
 
-        List<Map.Entry<Area, AreaTrigger>> list = areaTriggers.get(scloc).entrySet().stream()
+        List<Map.Entry<Area, AreaTrigger>> list = areaTriggersByLocation.get(scloc).entrySet().stream()
                 .filter(entry -> entry.getKey().isInThisArea(sloc))
                 .collect(Collectors.toList());
 
@@ -279,7 +279,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
         for (SimpleChunkLocation scloc : sclocs) {
-            Map<Area, AreaTrigger> map = areaTriggers.get(scloc);
+            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
             if (map == null)
                 continue;
 
@@ -329,10 +329,10 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
         for (SimpleChunkLocation scloc : sclocs) {
-            Map<Area, AreaTrigger> map = areaTriggers.get(scloc);
+            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
             if (map == null) {
                 map = new ConcurrentHashMap<>();
-                areaTriggers.put(scloc, map);
+                areaTriggersByLocation.put(scloc, map);
             }
 
             map.put(area, trigger);
@@ -361,7 +361,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             return false;
 
         for (SimpleChunkLocation scloc : Area.getAllChunkLocations(trigger.area)) {
-            Map<Area, AreaTrigger> map = areaTriggers.get(scloc);
+            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
             map.remove(trigger.area);
         }
 
@@ -412,11 +412,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     @Override
     protected void deleteInfo(AreaTrigger trigger) {
         FileUtil.delete(new File(folder, trigger.getTriggerName()));
-    }
-
-    @Override
-	public Collection<AreaTrigger> getAllTriggers() {
-        return triggers.values();
     }
 
     public static class AreaTrigger extends Trigger {

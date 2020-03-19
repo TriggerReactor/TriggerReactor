@@ -69,10 +69,6 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
         }*/
     }
 
-    @Override
-	public Collection<NamedTrigger> getAllTriggers() {
-        return triggers.values();
-    }
 
     /**
      * The naming follows this rule: triggers saved in the NamedTriggers folder will have name exactly same as the file name.

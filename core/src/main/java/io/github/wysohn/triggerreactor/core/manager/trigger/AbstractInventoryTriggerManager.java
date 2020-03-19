@@ -237,11 +237,6 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
         super.deleteInfo(trigger);
     }
 
-    @Override
-	public Collection<InventoryTrigger> getAllTriggers() {
-        return triggers.values();
-    }
-
     /**
      * @param trigger
      * @param size      mutiple of 9; must be less than or equalt to 54 (exclusive)

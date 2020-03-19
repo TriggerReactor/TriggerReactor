@@ -205,11 +205,6 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         super.deleteInfo(trigger);
     }
 
-    @Override
-	public Collection<RepeatingTrigger> getAllTriggers() {
-        return triggers.values();
-    }
-
     /**
      * Checks whether the specified trigger is running. However, this also can
      * return false even if the trigger with name 'triggerName' does not exists.

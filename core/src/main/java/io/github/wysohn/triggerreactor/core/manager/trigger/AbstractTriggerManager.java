@@ -68,7 +68,9 @@ public abstract class AbstractTriggerManager<T extends AbstractTriggerManager.Tr
         FileUtil.delete(trigger.file);
     }
 
-    public abstract Collection<T> getAllTriggers();
+    public Collection<T> getAllTriggers() {
+    	return triggers.values();
+    }
 
     public List<String> getTriggerList(TriggerFilter filter) {
         List<String> strs = new ArrayList<>();

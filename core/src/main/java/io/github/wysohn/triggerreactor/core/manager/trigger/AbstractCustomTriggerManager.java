@@ -276,11 +276,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         super.deleteInfo(trigger);
     }
 
-    @Override
-    public Collection<CustomTrigger> getAllTriggers() {
-        return triggers.values();
-    }
-
     public AbstractCustomTriggerManager(TriggerReactorCore core, SelfReference ref, File tirggerFolder) {
         super(core, tirggerFolder);
     }
