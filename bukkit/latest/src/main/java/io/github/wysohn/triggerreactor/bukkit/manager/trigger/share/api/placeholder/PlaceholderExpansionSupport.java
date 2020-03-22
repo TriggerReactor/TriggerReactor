@@ -2,7 +2,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeho
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -94,31 +93,15 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      */
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
+
+        //%tr_version% -> this should return TR version, but should use PluginDescription which is modified as protected method.
+
+
         if (identifier.toLowerCase().equals("version")) {
             return plugin.getVersion();
         }
-        //%tr_?<variable name>% - temporary global variable
-        if (identifier.substring(0, 1).equals("?")) {
-            String variableName = identifier.substring(1).replace('_', '.');
-            TemporaryGlobalVariableKey tempKey = new TemporaryGlobalVariableKey(variableName);
-            AbstractVariableManager.GlobalVariableAdapter adapter = (AbstractVariableManager.GlobalVariableAdapter) plugin.getVariableManager().getGlobalVariableAdapter();
-            Object value = adapter.get(tempKey);
-            if (value == null) {
-                return "";
-            }
-            if (value instanceof Number) {
-                value = String.valueOf(value);
-            }
-
-            if (!(value instanceof String)) {
-                return "";
-            } else {
-                String output = (String) value;
-                return output;
-            }
-        }
-
         // %tr_<variable name>%
+        //if(identifier.contains("")){return "";}
         String variableName = identifier.replace('_', '.');
         AbstractVariableManager vm = plugin.getVariableManager();
         Object value = vm.get(variableName);
