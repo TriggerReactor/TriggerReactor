@@ -3,8 +3,8 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.*;
@@ -287,7 +287,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
-                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .map(Trigger::getTriggerName)
                 .toArray(String[]::new);
         return names;
     }

@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 
@@ -11,7 +12,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class AreaTrigger extends AbstractTriggerManager.Trigger {
+public class AreaTrigger extends Trigger {
     final Area area;
     final File folder;
 
@@ -62,7 +63,7 @@ public class AreaTrigger extends AbstractTriggerManager.Trigger {
     }
 
     @Override
-    public AbstractTriggerManager.Trigger clone() {
+    public Trigger clone() {
         return null;
     }
 
@@ -156,7 +157,7 @@ public class AreaTrigger extends AbstractTriggerManager.Trigger {
         return entities;
     }
 
-    public static class EnterTrigger extends AbstractTriggerManager.Trigger {
+    public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
         public EnterTrigger(AreaTrigger areaTrigger, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
@@ -182,7 +183,7 @@ public class AreaTrigger extends AbstractTriggerManager.Trigger {
         }
 
         @Override
-        public AbstractTriggerManager.Trigger clone() {
+        public Trigger clone() {
             try {
                 return new EnterTrigger(areaTrigger, file, script);
             } catch (AbstractTriggerManager.TriggerInitFailedException e) {
@@ -193,7 +194,7 @@ public class AreaTrigger extends AbstractTriggerManager.Trigger {
 
     }
 
-    public static class ExitTrigger extends AbstractTriggerManager.Trigger {
+    public static class ExitTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
         public ExitTrigger(AreaTrigger areaTrigger, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
@@ -219,7 +220,7 @@ public class AreaTrigger extends AbstractTriggerManager.Trigger {
         }
 
         @Override
-        public AbstractTriggerManager.Trigger clone() {
+        public Trigger clone() {
             try {
                 return new ExitTrigger(areaTrigger, file, script);
             } catch (AbstractTriggerManager.TriggerInitFailedException e) {

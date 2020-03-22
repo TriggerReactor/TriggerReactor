@@ -1,11 +1,12 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 
 import java.io.File;
 import java.util.Arrays;
 
-public class CommandTrigger extends AbstractTriggerManager.Trigger {
+public class CommandTrigger extends Trigger {
     String[] permissions = new String[0];
     String[] aliases = new String[0];
 
@@ -40,7 +41,7 @@ public class CommandTrigger extends AbstractTriggerManager.Trigger {
     }
 
     @Override
-    public AbstractTriggerManager.Trigger clone() {
+    public CommandTrigger clone() {
         try {
             return new CommandTrigger(triggerName, file, getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
