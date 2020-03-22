@@ -98,7 +98,7 @@ public class Lexer {
             eos = true;
             return false;
         } else {
-            if (c == '\n' || c == ';') {
+            if (c == '\n') {
                 row++;
                 col = 0;
             } else {
@@ -429,7 +429,7 @@ public class Lexer {
     }
 
     private static boolean isClassNameCharacter(char c) {
-        return Character.isDigit(c) || Character.isAlphabetic(c) || c == '.' || c == '$';
+        return Character.isDigit(c) || Character.isAlphabetic(c) || c == '.' || c == '$' || c == '_';
     }
 
     private static boolean isIdCharacter(char c) {

@@ -75,7 +75,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
             Map<Integer, IItemStack> items = null;
             try {
                 size = getData(ymlfile, SIZE, 0);
-            } catch (IOException e1) {
+            } catch (Exception e1) {
                 e1.printStackTrace();
             }
 
@@ -92,7 +92,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
             try {
                 items = this.getData(ymlfile, ITEMS);
-            } catch (IOException e1) {
+            } catch (Exception e1) {
                 e1.printStackTrace();
             }
 
@@ -144,7 +144,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
             try {
                 this.setData(yamlFile, SIZE, trigger.getItems().length);
                 this.setData(yamlFile, ITEMS, trigger.getItems());
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 

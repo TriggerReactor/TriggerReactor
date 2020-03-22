@@ -419,6 +419,10 @@ public class Interpreter {
                 // to handle it from the caller
                 copy.setExecutorMap(executorMap);
                 copy.setPlaceholderMap(placeholderMap);
+                
+                //prevents default executors/placeholders from being overwritten by setting the maps
+                copy.initDefaultPlaceholders();
+                copy.initDefaultExecutors();
                 copy.setGvars(gvars);
                 copy.setVars(vars);
                 copy.setSelfReference(selfReference);
@@ -434,9 +438,12 @@ public class Interpreter {
             return;
         } else {
             for (int i = 0; i < node.getChildren().size(); i++) {
-                //ignore rest of body if continue flag is set
+                //ignore rest of body and continue if continue flag is set
                 if (continueFlag)
                     continue;
+                //ignore rest of body and stop
+                if (breakFlag)
+                    break;
 
                 Node child = node.getChildren().get(i);
                 start(child);

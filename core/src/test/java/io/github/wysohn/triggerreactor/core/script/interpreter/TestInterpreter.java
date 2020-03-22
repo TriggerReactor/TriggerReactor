@@ -28,6 +28,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -591,7 +592,6 @@ public class TestInterpreter {
                     @Override
                     protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                               Object... args) throws Exception {
-
                         Assert.assertEquals("work", args[0]);
                         return null;
                     }
@@ -602,7 +602,6 @@ public class TestInterpreter {
                     @Override
                     protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                               Object... args) throws Exception {
-
                         Assert.assertEquals("work2", args[0]);
                         return null;
                     }
@@ -1581,6 +1580,35 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
+
+    @Test
+    public void testBreak2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "FOR i = 0:5;" +
+                "IF i == 3;" +
+                "#BREAK;" +
+                "ENDIF;" +
+                "#TEST;" +
+                "ENDFOR;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = Mockito.mock(Executor.class);
+        Mockito.when(mockExecutor.execute(Mockito.any(), Mockito.anyBoolean(), Mockito.anyMap(),
+                Mockito.any(), ArgumentMatchers.any())).thenReturn(null);
+        executorMap.put("TEST", mockExecutor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+
+        interpreter.startWithContext(null);
+
+        Mockito.verify(mockExecutor, Mockito.times(3)).execute(Mockito.any(), Mockito.anyBoolean(), Mockito.anyMap(),
+                Mockito.any(), ArgumentMatchers.any());
+    }
+
     @Test
     public void testContinue() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
@@ -1706,7 +1734,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test1");
                 return null;
@@ -1718,7 +1745,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test2");
                 return null;
@@ -1788,7 +1814,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test1");
                 return null;
@@ -1800,7 +1825,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test2");
                 return null;
@@ -1863,7 +1887,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test");
 
@@ -1905,7 +1928,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test");
 
@@ -1947,7 +1969,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test");
 
@@ -1989,7 +2010,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test");
 
@@ -2033,7 +2053,6 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
             throws Exception {
                 set.add("test");
 

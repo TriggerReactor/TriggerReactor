@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2019 wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -8,7 +8,7 @@
  *
  *     This program is distributed in the hope that it will be useful,
  *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *     GNU General Public License for more details.
  *
  *     You should have received a copy of the GNU General Public License
@@ -33,18 +33,18 @@ validation = {
         }
         player.kickPlayer(ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server."))
         break
-        
+
     case 1:
     	args[0].kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."))
     	break
-    	
+
     case 2:
     	if(player === null){
             throw new Error("player should not be null")
         }
     	player.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), args[0]))
     	break
-    	
+
     case 3:
     	args[0].kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), args[1]))
     	break

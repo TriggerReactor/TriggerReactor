@@ -59,7 +59,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             try {
                 eventName = this.getData(ymlfile, EVENT);
                 isSync = this.getData(ymlfile, SYNC, false);
-            } catch (IOException e2) {
+            } catch (Exception e2) {
                 e2.printStackTrace();
                 continue;
             }
@@ -122,7 +122,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
             try {
                 this.setData(ymlfile, SYNC, trigger.isSync());
                 this.setData(ymlfile, EVENT, trigger.getEventName());
-            } catch (IOException e1) {
+            } catch (Exception e1) {
                 e1.printStackTrace();
                 continue;
             }
