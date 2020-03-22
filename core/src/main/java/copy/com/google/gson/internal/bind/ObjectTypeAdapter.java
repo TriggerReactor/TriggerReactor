@@ -109,7 +109,7 @@ public final class ObjectTypeAdapter extends TypeAdapter<Object> {
             return;
         }
 
-        TypeAdapter<Object> typeAdapter = gson.getAdapter(value.getClass());
+        TypeAdapter<Object> typeAdapter = gson.getAdapter((Class<Object>) value.getClass());
         if (typeAdapter instanceof ObjectTypeAdapter) {
             out.beginObject();
             out.endObject();

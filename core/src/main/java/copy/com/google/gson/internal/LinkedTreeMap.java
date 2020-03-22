@@ -66,7 +66,7 @@ public final class LinkedTreeMap<K, V> extends AbstractMap<K, V> implements Seri
     // null, this assumes K is
     // comparable
     public LinkedTreeMap(Comparator<? super K> comparator) {
-        this.comparator = comparator != null ? comparator : NATURAL_ORDER;
+        this.comparator = comparator != null ? comparator : (Comparator<? super K>) NATURAL_ORDER;
     }
 
     @Override

@@ -66,7 +66,7 @@ public final class LinkedHashTreeMap<K, V> extends AbstractMap<K, V> implements 
     // null, this assumes K is
     // comparable
     public LinkedHashTreeMap(Comparator<? super K> comparator) {
-        this.comparator = comparator != null ? comparator : NATURAL_ORDER;
+        this.comparator = comparator != null ? comparator : (Comparator<? super K>) NATURAL_ORDER;
         this.header = new Node<K, V>();
         this.table = new Node[16]; // TODO: sizing/resizing policies
         this.threshold = (table.length / 2) + (table.length / 4); // 3/4
