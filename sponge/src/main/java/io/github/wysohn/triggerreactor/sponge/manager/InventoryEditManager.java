@@ -3,9 +3,9 @@ package io.github.wysohn.triggerreactor.sponge.manager;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
@@ -61,7 +61,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         savePrompt = Text.builder().append(save, newline, continue_, newline, cancel).build();
     }
 
-    public InventoryEditManager(TriggerReactor plugin) {
+    public InventoryEditManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

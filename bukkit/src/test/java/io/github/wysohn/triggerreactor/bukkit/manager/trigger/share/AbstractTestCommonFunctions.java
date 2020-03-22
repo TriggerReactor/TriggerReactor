@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunctions;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -38,9 +38,9 @@ import java.util.List;
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({TriggerReactor.class, Bukkit.class})
+@PrepareForTest({TriggerReactorCore.class, Bukkit.class})
 public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<AbstractCommonFunctions> {
-    protected TriggerReactor mockMain;
+    protected TriggerReactorCore mockMain;
     protected PluginManager mockPluginManager;
     protected ItemFactory mockItemFactory;
     protected World mockWorld;
@@ -53,15 +53,15 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
     @Before
     public void init() throws Exception {
-        mockMain = Mockito.mock(TriggerReactor.class);
+        mockMain = Mockito.mock(TriggerReactorCore.class);
         mockItemFactory = Mockito.mock(ItemFactory.class);
         mockPluginManager = Mockito.mock(PluginManager.class);
         mockWorld = Mockito.mock(World.class);
         mockPlayer = Mockito.mock(Player.class);
         mockItemMeta = Mockito.mock(ItemMeta.class);
 
-        PowerMockito.mockStatic(TriggerReactor.class);
-        Mockito.when(TriggerReactor.getInstance()).thenReturn(mockMain);
+        PowerMockito.mockStatic(TriggerReactorCore.class);
+        Mockito.when(TriggerReactorCore.getInstance()).thenReturn(mockMain);
 
         PowerMockito.mockStatic(Bukkit.class);
         Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);

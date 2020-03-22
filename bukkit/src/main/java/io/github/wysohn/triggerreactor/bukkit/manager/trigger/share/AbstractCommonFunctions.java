@@ -2,9 +2,10 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -19,9 +20,9 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
-    protected final TriggerReactor plugin;
+    protected final TriggerReactorCore plugin;
 
-    public AbstractCommonFunctions(TriggerReactor plugin) {
+    public AbstractCommonFunctions(TriggerReactorCore plugin) {
         this.plugin = plugin;
     }
 
@@ -286,7 +287,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
-                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .map(Trigger::getTriggerName)
                 .toArray(String[]::new);
         return names;
     }
@@ -299,7 +300,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AbstractAreaTriggerManager.AreaTrigger trigger = areaManager.getArea(areaTriggerName);
+        AreaTrigger trigger = areaManager.getArea(areaTriggerName);
         if (trigger == null)
             return null;
 

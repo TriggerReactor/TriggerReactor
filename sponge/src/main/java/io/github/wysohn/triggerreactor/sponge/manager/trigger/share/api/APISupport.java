@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.nucleus.NucleusSupport;
@@ -32,7 +32,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
     protected PluginContainer target;
 
-    public APISupport(TriggerReactor plugin, String targetPluginName) {
+    public APISupport(TriggerReactorCore plugin, String targetPluginName) {
         super(plugin);
         ValidationUtil.notNull(plugin);
         ValidationUtil.notNull(targetPluginName);

@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -290,7 +290,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactor triggerReactor = Mockito.mock(TriggerReactor.class);
+        TriggerReactorCore triggerReactor = Mockito.mock(TriggerReactorCore.class);
         AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
             @Override
             public void remove(String key) {
@@ -1734,7 +1734,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test1");
                 return null;
             }
@@ -1745,7 +1746,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test2");
                 return null;
             }
@@ -1814,7 +1816,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test1");
                 return null;
             }
@@ -1825,7 +1828,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test2");
                 return null;
             }
@@ -1887,7 +1891,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -1928,7 +1933,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -1969,7 +1975,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -2010,7 +2017,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -2053,7 +2061,8 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-            throws Exception {
+
+                    throws Exception {
                 set.add("test");
 
                 Assert.assertEquals(TestEnum.IMTEST, args[0]);

@@ -130,9 +130,9 @@ public class Lexer {
         if (c == '"') {
             return readString();
         }
-        
+
         if (c == '`') {
-        	return readMultilineString();
+            return readMultilineString();
         }
 
         if (isOperator(c)) {
@@ -293,19 +293,19 @@ public class Lexer {
 
         return new Token(Type.STRING, builder.toString(), row, col);
     }
-    
+
     private Token readMultilineString() throws IOException, LexerException {
-    	StringBuilder builder = new StringBuilder();
-    	
-    	while (read() && c != '`') {
-    		if (c != '\r') //skip carrige returns
-    		    builder.append(c);
-    	}
-    	if (eos)
-    		throw new LexerException("End of stream reached before finding '`'", this);
-    	
-    	read();
-    	return new Token(Type.STRING, builder.toString(), row, col);
+        StringBuilder builder = new StringBuilder();
+
+        while (read() && c != '`') {
+            if (c != '\r') //skip carrige returns
+                builder.append(c);
+        }
+        if (eos)
+            throw new LexerException("End of stream reached before finding '`'", this);
+
+        read();
+        return new Token(Type.STRING, builder.toString(), row, col);
     }
 
     private void readEscapeChar(StringBuilder builder) throws LexerException {

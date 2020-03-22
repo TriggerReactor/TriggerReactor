@@ -18,12 +18,12 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -57,8 +57,8 @@ import java.util.List;
 import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements SpongeConfigurationFileIO {
-    public InventoryTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "InventoryTrigger"));
+    public InventoryTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"));
     }
 
     @Override
@@ -270,7 +270,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(InventoryTrigger trigger) {
         File yamlFile = new File(folder, trigger.getTriggerName() + ".yml");
         FileUtil.delete(yamlFile);
         File triggerFile = new File(folder, trigger.getTriggerName());

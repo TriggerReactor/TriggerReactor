@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 
 import javax.script.ScriptEngineManager;
@@ -75,7 +75,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager implements 
         });
     }
 
-    public AbstractJavascriptBasedManager(TriggerReactor plugin) throws ScriptException {
+    public AbstractJavascriptBasedManager(TriggerReactorCore plugin) throws ScriptException {
         super(plugin);
 
         instance = this;

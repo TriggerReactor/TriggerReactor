@@ -57,5 +57,5 @@ subprojects {
 
 test {
     // not for tests
-    exclude '**/**.class'
+    exclude '**/Abstract*.class'
 }
