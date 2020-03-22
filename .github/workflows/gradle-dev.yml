@@ -6,7 +6,7 @@ on:
       - '*'
     branches: [development]
   pull_request:
-    types: [opened, synchronized]
+    types: [opened, reopened, synchronized]
   pull_request_review:
     types: [submitted, editted]
 
