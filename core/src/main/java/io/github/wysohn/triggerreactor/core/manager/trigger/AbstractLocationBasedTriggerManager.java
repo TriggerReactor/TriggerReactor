@@ -248,7 +248,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
 
         enum BoardType {
-            CUT, COPY;
+            CUT, COPY
         }
     }
 

@@ -410,7 +410,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     public enum EventType {
-        ENTER, EXIT;
+        ENTER, EXIT
     }
 
     @Override

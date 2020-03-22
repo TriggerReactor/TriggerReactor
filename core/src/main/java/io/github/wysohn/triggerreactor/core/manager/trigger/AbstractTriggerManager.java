@@ -37,6 +37,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -127,31 +128,31 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
         return triggerFile;
     }
-    
+
     protected static void reportWarnings(List<Warning> warnings, Trigger trigger) {
-    	if (warnings == null || warnings.isEmpty()) {
-    		return;
-    	}
-    	
-    	Level L = Level.WARNING;
-    	Logger log = TriggerReactor.getInstance().getLogger();
-    	int numWarnings = warnings.size();
-    	String ww;
-    	if (numWarnings > 1) {
-    		ww = "warnings were";
-    	} else {
-    		ww = "warning was";
-    	}
-    	
-    	log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " + 
-    	           trigger.getTriggerName() + " =====");
-    	for (Warning w : warnings) {
-    	    for (String line : w.getMessageLines()) {
-    	    	log.log(L, line);
-    	    }
-    	    log.log(Level.WARNING, "");
-    	}
-    	log.log(Level.WARNING, "");
+        if (warnings == null || warnings.isEmpty()) {
+            return;
+        }
+
+        Level L = Level.WARNING;
+        Logger log = TriggerReactor.getInstance().getLogger();
+        int numWarnings = warnings.size();
+        String ww;
+        if (numWarnings > 1) {
+            ww = "warnings were";
+        } else {
+            ww = "warning was";
+        }
+
+        log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
+                trigger.getTriggerName() + " =====");
+        for (Warning w : warnings) {
+            for (String line : w.getMessageLines()) {
+                log.log(L, line);
+            }
+            log.log(Level.WARNING, "");
+        }
+        log.log(Level.WARNING, "");
     }
 
     public static abstract class Trigger implements Cloneable {
@@ -216,14 +217,14 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
          */
         public void init() throws TriggerInitFailedException {
             try {
-                Charset charset = Charset.forName("UTF-8");
+                Charset charset = StandardCharsets.UTF_8;
 
                 Lexer lexer = new Lexer(script, charset);
                 Parser parser = new Parser(lexer);
 
                 root = parser.parse(true);
                 List<Warning> warnings = parser.getWarnings();
-                
+
                 reportWarnings(warnings, this);
                 executorMap = TriggerReactor.getInstance().getExecutorManager().getBackedMap();
                 placeholderMap = TriggerReactor.getInstance().getPlaceholderManager().getBackedMap();
@@ -310,11 +311,7 @@ public abstract class AbstractTriggerManager extends Manager implements Configur
 
                 if (uuid != null) {
                     Long end = cooldowns.get(uuid);
-                    if (end != null && System.currentTimeMillis() < end) {
-                        return true;
-                    }
-
-                    return false;
+                    return end != null && System.currentTimeMillis() < end;
                 }
             }
             return false;

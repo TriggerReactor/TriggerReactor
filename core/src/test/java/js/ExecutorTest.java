@@ -7,8 +7,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
 
-public class ExecutorTest extends JsTest{
-	private final JSExecutor executor;
+public class ExecutorTest extends JsTest {
+    private final JSExecutor executor;
 
     public ExecutorTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
         super(engine, name, "Executor", directories);

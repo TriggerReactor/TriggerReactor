@@ -96,7 +96,6 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void parseItemsList(ConfigurationNode itemSection, Map<Integer, IItemStack> items, int size) {
         for (int i = 0; i < size; i++) {
             ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));

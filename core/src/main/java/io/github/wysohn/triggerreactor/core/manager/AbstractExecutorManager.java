@@ -250,7 +250,8 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
     }
 
     private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
-    static{
+
+    static {
         DEPRECATED_EXECUTORS.add("MODIFYPLAYER");
     }
 }

@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,7 +62,7 @@ public class Lexer {
     }
 
     private void initInputStream() throws IOException {
-        InputStreamReader isr = new InputStreamReader(stream, "UTF-8");
+        InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
         reader = new PushbackReader(new BufferedReader(isr), 256);
         read();//position to first element
     }
@@ -75,18 +76,18 @@ public class Lexer {
     }
 
     public List<Warning> getWarnings() {
-    	return warnings;
+        return warnings;
     }
 
     public boolean getShowWarnings() {
-    	return showWarnings;
+        return showWarnings;
     }
 
     public String[] getScriptLines() {
-		return scriptLines;
-	}
+        return scriptLines;
+    }
 
-	/**
+    /**
      * @return false if end of stream is reached.
      * @throws IOException
      */
@@ -128,6 +129,10 @@ public class Lexer {
 
         if (c == '"') {
             return readString();
+        }
+        
+        if (c == '`') {
+        	return readMultilineString();
         }
 
         if (isOperator(c)) {
@@ -284,9 +289,23 @@ public class Lexer {
             throw new LexerException("End of stream is reached before finding '\"'", this);
         read();
         if (warn)
-        	warnings.add(new StringInterpolationWarning(row, scriptLines[row - 1]));
+            warnings.add(new StringInterpolationWarning(row, scriptLines[row - 1]));
 
         return new Token(Type.STRING, builder.toString(), row, col);
+    }
+    
+    private Token readMultilineString() throws IOException, LexerException {
+    	StringBuilder builder = new StringBuilder();
+    	
+    	while (read() && c != '`') {
+    		if (c != '\r') //skip carrige returns
+    		    builder.append(c);
+    	}
+    	if (eos)
+    		throw new LexerException("End of stream reached before finding '`'", this);
+    	
+    	read();
+    	return new Token(Type.STRING, builder.toString(), row, col);
     }
 
     private void readEscapeChar(StringBuilder builder) throws LexerException {
@@ -406,7 +425,7 @@ public class Lexer {
 
     private Token readEndline() throws IOException {
         read();
-        return new Token(Type.ENDL, (Object) null, row, col);
+        return new Token(Type.ENDL, null, row, col);
     }
 
     private static boolean isClassNameCharacter(char c) {
@@ -422,11 +441,11 @@ public class Lexer {
     }
 
     public void setWarnings(boolean w) {
-    	showWarnings = w;
+        showWarnings = w;
     }
 
     public static void main(String[] ar) throws IOException, LexerException {
-        Charset charset = Charset.forName("UTF-8");
+        Charset charset = StandardCharsets.UTF_8;
         String text = "";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n" + text);

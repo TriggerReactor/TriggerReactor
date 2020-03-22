@@ -339,11 +339,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 return false;
             CustomTrigger other = (CustomTrigger) obj;
             if (triggerName == null) {
-                if (other.triggerName != null)
-                    return false;
-            } else if (!triggerName.equals(other.triggerName))
-                return false;
-            return true;
+                return other.triggerName == null;
+            } else return triggerName.equals(other.triggerName);
         }
 
         public String getEventName() {

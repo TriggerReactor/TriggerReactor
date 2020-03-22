@@ -20,7 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TimeUtil {
-    private static Pattern pattern = Pattern.compile("(\\d+)(h|m|s)");
+    private static Pattern pattern = Pattern.compile("(\\d+)(h|m|s|t)");
 
     /**
      * convert time format into milliseconds
@@ -43,6 +43,8 @@ public class TimeUtil {
                 case "s":
                     sum += Long.parseLong(matcher.group(1)) * 1000;
                     break;
+                case "t":
+                    sum += Long.parseLong(matcher.group(1)) * 50;
             }
         }
 
@@ -65,8 +67,11 @@ public class TimeUtil {
         r = r % (60 * 1000);
 
         int second = r / (1000);
+        r = r % (1000);
 
-        return hour + "h " + minute + "m " + second + "s";
+        int tick = r / (50);
+
+        return hour + "h " + minute + "m " + second + "s " + tick + "t";
     }
 
     public static void main(String[] ar) {

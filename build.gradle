@@ -22,9 +22,9 @@ javadoc {
 subprojects {
     apply plugin: 'java'
     test {
-        reports.html.enabled = false    
+        reports.html.enabled = false
     }
-    
+
     ext {
         id = 'TriggerReactor'
         version = '3.0.3'

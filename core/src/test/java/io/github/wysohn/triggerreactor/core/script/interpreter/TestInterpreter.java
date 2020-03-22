@@ -585,31 +585,30 @@ public class TestInterpreter {
 
         Node root = parser.parse();
         @SuppressWarnings("serial")
-		Map<String, Executor> executorMap = new HashMap<String, Executor>() {
-		{
-            put("TEST1", new Executor() {
+        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
+            {
+                put("TEST1", new Executor() {
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+                        Assert.assertEquals("work", args[0]);
+                        return null;
+                    }
 
-                    Assert.assertEquals("work", args[0]);
-                    return null;
-                }
+                });
+                put("TEST2", new Executor() {
 
-            });
-            put("TEST2", new Executor() {
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+                        Assert.assertEquals("work2", args[0]);
+                        return null;
+                    }
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
-
-                    Assert.assertEquals("work2", args[0]);
-                    return null;
-                }
-
-            });
-        }};
+                });
+            }
+        };
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -1735,8 +1734,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test1");
                 return null;
             }
@@ -1747,8 +1745,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test2");
                 return null;
             }
@@ -1817,8 +1814,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test1");
                 return null;
             }
@@ -1829,8 +1825,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test2");
                 return null;
             }
@@ -1892,8 +1887,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -1934,8 +1928,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -1976,8 +1969,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -2018,8 +2010,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test");
 
                 Object obj = args[0];
@@ -2062,8 +2053,7 @@ public class TestInterpreter {
             @Override
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
-
-                    throws Exception {
+            throws Exception {
                 set.add("test");
 
                 Assert.assertEquals(TestEnum.IMTEST, args[0]);
@@ -2076,7 +2066,7 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
         interpreter.setSelfReference(new SelfReference() {
             @SuppressWarnings("unused")
-			public Object array(int size) {
+            public Object array(int size) {
                 return new Object[size];
             }
         });

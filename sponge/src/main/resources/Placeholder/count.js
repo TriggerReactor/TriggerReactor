@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2019 Pro_Snape
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,22 +14,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.script.interpreter;
+var itemStackType = Java.type("org.spongepowered.api.item.inventory.ItemStack")
+validation = {
+    "overloads": [
+        [{"name": "item", "type": itemStackType.class}]
+    ]
+}
 
-import io.github.wysohn.triggerreactor.core.script.Token;
-
-public class InterpreterException extends Exception {
-    private static final long serialVersionUID = 1L;
-
-    public InterpreterException(String message) {
-        super(message);
-    }
-
-    public InterpreterException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public InterpreterException(String message, Token context) {
-
+function count(args) {
+    if (overload == 0) {
+        var item = args[0]
+        if (item == null) {
+            return 0;
+        }
+        return item.getQuantity();
     }
 }

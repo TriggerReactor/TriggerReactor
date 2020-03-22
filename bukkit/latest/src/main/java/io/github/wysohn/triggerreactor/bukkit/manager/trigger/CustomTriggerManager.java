@@ -42,7 +42,8 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
-	private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>();
+    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>();
+
     static {
         ABBREVIATIONS.put("onJoin", PlayerJoinEvent.class);
         ABBREVIATIONS.put("onQuit", PlayerQuitEvent.class);

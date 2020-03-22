@@ -113,6 +113,8 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
     public abstract AbstractInventoryTriggerManager getInvManager();
 
+    public abstract AbstractInventoryEditManager getInvEditManager();
+
     public abstract AbstractAreaTriggerManager getAreaManager();
 
     public abstract AbstractCustomTriggerManager getCustomManager();
@@ -507,12 +509,12 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (index > trigger.getItems().length - 1 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length - 1) + ")");
+                        if (index > trigger.getItems().length || index < 1) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length) + ")");
                             return true;
                         }
 
-                        trigger.getItems()[index] = IS;
+                        trigger.getItems()[index - 1] = IS;
                         saveAsynchronously(getInvManager());
 
                         sender.sendMessage("Successfully set item " + index);
@@ -582,13 +584,13 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         int rows = trigger.getItems().length / 9;
-                        if (index > rows - 1 || index < 0) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + (rows - 1) + ")");
+                        if (index > rows || index < 1) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: " + rows + ")");
                             return true;
                         }
 
                         for (int i = 0; i < 9; i++) {
-                            trigger.getItems()[index * 9 + i] = IS;
+                            trigger.getItems()[(index - 1) * 9 + i] = IS;
                         }
 
                         saveAsynchronously(getInvManager());
@@ -615,18 +617,29 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         }
 
                         int rows = trigger.getItems().length / 9;
-                        if (index > 8 || index < 0) {
+                        if (index > 9 || index < 1) {
                             sender.sendMessage("&c" + "" + index + " is out of bounds. (Maximum: 9)");
                             return true;
                         }
 
                         for (int i = 0; i < rows; i++) {
-                            trigger.getItems()[index + i * 9] = IS;
+                            trigger.getItems()[index - 1 + i * 9] = IS;
                         }
 
                         saveAsynchronously(getInvManager());
                         sender.sendMessage("Successfully filled column " + index);
 
+                    } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
+                        String name = args[1];
+
+                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        getInvEditManager().startEdit((IPlayer) sender, trigger);
+                        return true;
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
@@ -686,8 +699,8 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                         String lore = mergeArguments(args, 4, args.length - 1);
 
-                        if (!setLore(IS, index, lore)) {
-                            sender.sendMessage("&c" + "" + index + " is out of bound.");
+                        if (!setLore(IS, index - 1, lore)) {
+                            sender.sendMessage("&c" + "" + index + " is out of bounds.");
                             return true;
                         }
 
@@ -708,7 +721,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                             return true;
                         }
 
-                        if (!removeLore(IS, index)) {
+                        if (!removeLore(IS, index - 1)) {
                             sender.sendMessage("&7No lore at index " + index);
                             return true;
                         }
@@ -1094,10 +1107,10 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> interval <time format>", "Change the interval of this trigger.");
                         sendDetails(sender, "Notice the <time format> is not just a number but has specific format for it. For example, you first"
                                 + " type what number you want to set and also define the unit of it. If you want it to repeat it every 1 hour, 20 minutes,"
-                                + " and 50seconds, then it will be &6" + "/trg r BlahBlah interval 1h20m50s." + "&7 Currently only h, m,"
-                                + " and s are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
+                                + " 50seconds, and 10ticks, then it will be &6" + "/trg r BlahBlah interval 1h20m50s10t." + "&7 Currently only h, m,"
+                                + " s, and t are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
                                 + "&6 /trg r BlahBlah interval 30s40s" + "&7 will be added up to 70seconds total. All units other than"
-                                + " h, m, or s will be ignored.");
+                                + " h, m, s, or t will be ignored.");
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> autostart", "Enable/Disable automatic start for this trigger.");
                         sendDetails(sender, "By setting this to " + "&atrue" + "&7, this trigger will start on plugin enables itself. "
                                 + "Otherwise, you have to start it yourself every time.");
@@ -1255,6 +1268,23 @@ public abstract class TriggerReactor implements TaskSupervisor {
 
                     showHelp(sender, page);
                     return true;
+                } else if (args[0].equalsIgnoreCase("links")) {
+                    if (args.length < 2) {
+                        return true;
+                    }
+                    AbstractInventoryEditManager manager = getInvEditManager();
+                    IPlayer player = (IPlayer) sender;
+                    switch (args[1]) {
+                        case "inveditsave":
+                            manager.saveEdit(player);
+                            return true;
+                        case "inveditcontinue":
+                            manager.continueEdit(player);
+                            return true;
+                        case "inveditdiscard":
+                            manager.discardEdit(player);
+                            return true;
+                    }
                 }
             }
 
@@ -1356,7 +1386,7 @@ public abstract class TriggerReactor implements TaskSupervisor {
                         return filter(triggerNames(manager), args[2]);
                     case "inventory":
                     case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "item", "open", "row"), args[2]);
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);
@@ -1393,16 +1423,16 @@ public abstract class TriggerReactor implements TaskSupervisor {
     protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
     private void showHelp(ICommandSender sender) {
-        showHelp(sender, 0);
+        showHelp(sender, 1);
     }
 
     private void showHelp(ICommandSender sender, int page) {
-        page = Math.max(0, Math.min(helpPages.size() - 1, page));
+        page = Math.max(1, Math.min(helpPages.size(), page));
 
         sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        helpPages.get(page).sendParagraph(sender);
+        helpPages.get(page - 1).sendParagraph(sender);
         sender.sendMessage("");
-        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size() - 1) + " &8- &6/trg help <page> &7to see other pages.");
+        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
 
     /**
