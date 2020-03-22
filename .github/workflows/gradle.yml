@@ -6,6 +6,10 @@ on:
       - '*'
     branches: 
       - master
+  pull_request:
+    types: [opened, synchronized]
+  pull_request_review:
+    types: [submitted, editted]
 
 jobs:
   build:
