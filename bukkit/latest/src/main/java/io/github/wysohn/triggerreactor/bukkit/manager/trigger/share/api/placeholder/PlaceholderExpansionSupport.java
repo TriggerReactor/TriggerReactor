@@ -94,6 +94,8 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      */
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
+        if(identifier == null || identifier.length() == 0 || identifier.equals("?"))
+            return "";
         if (identifier.toLowerCase().equals("version")) {
             return plugin.getVersion();
         }
