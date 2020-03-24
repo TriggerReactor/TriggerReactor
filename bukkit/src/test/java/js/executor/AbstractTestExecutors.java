@@ -4,8 +4,8 @@ package js.executor;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -406,7 +406,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testGUI() throws Exception {
         IPlayer vip = Mockito.mock(IPlayer.class);
-        TriggerReactor tr = Mockito.mock(TriggerReactor.class);
+        TriggerReactorCore tr = Mockito.mock(TriggerReactorCore.class);
         AbstractInventoryTriggerManager invManager = Mockito.mock(AbstractInventoryTriggerManager.class);
         IInventory iInv = Mockito.mock(IInventory.class);
         JsTest test = new ExecutorTest(engine, "GUI")

@@ -17,13 +17,13 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongeEntity;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.Sponge;
@@ -48,8 +48,8 @@ import java.util.concurrent.Future;
 
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements SpongeConfigurationFileIO {
 
-    public AreaTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "AreaTrigger"));
+    public AreaTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
 
         Thread entityTrackingThread = new Thread(new Runnable() {
 
@@ -201,7 +201,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Sp
     }
 
     @Override
-    protected void deleteInfo(Trigger trigger) {
+    protected void deleteInfo(AreaTrigger trigger) {
         File areafile = new File(folder, trigger.getTriggerName() + ".yml");
         FileUtil.delete(areafile);
         File areafolder = new File(folder, trigger.getTriggerName());

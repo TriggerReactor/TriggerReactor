@@ -1,13 +1,12 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.io.File;
 
-public abstract class AbstractTaggedTriggerManager extends AbstractTriggerManager {
-    public AbstractTaggedTriggerManager(TriggerReactor plugin, SelfReference ref, File tirggerFolder) {
-        super(plugin, ref, tirggerFolder);
+public abstract class AbstractTaggedTriggerManager<T extends Trigger> extends AbstractTriggerManager<T> {
+    public AbstractTaggedTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
+        super(plugin, tirggerFolder);
     }
 
     /**

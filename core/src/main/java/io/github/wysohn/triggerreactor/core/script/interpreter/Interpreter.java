@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -419,6 +419,10 @@ public class Interpreter {
                 // to handle it from the caller
                 copy.setExecutorMap(executorMap);
                 copy.setPlaceholderMap(placeholderMap);
+                
+                //prevents default executors/placeholders from being overwritten by setting the maps
+                copy.initDefaultPlaceholders();
+                copy.initDefaultExecutors();
                 copy.setGvars(gvars);
                 copy.setVars(vars);
                 copy.setSelfReference(selfReference);
@@ -428,15 +432,18 @@ public class Interpreter {
                 try {
                     copy.startWithContextAndInterrupter(context, interrupter, timing);
                 } catch (InterpreterException e) {
-                    TriggerReactor.getInstance().handleException(context, e);
+                    TriggerReactorCore.getInstance().handleException(context, e);
                 }
             });
             return;
         } else {
             for (int i = 0; i < node.getChildren().size(); i++) {
-                //ignore rest of body if continue flag is set
+                //ignore rest of body and continue if continue flag is set
                 if (continueFlag)
                     continue;
+                //ignore rest of body and stop
+                if (breakFlag)
+                    break;
 
                 Node child = node.getChildren().get(i);
                 start(child);

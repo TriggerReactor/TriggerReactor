@@ -18,7 +18,7 @@ function CLEARCHAT(args){
     if(player === null){
         return null;
     }
-    if(args.length === 0){	
+    if(args.length === 0){
         for(var i = 0; i < 30; i++){
             player.sendMessage("");
         }

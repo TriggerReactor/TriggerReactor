@@ -1,18 +1,18 @@
 name: TriggerReactor
 main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
-version: 3.0.0
+version: 3.0.3
 author: wysohn
 authors:
-  - soliddanii
-  - MidnightSugar
-  - TheBestNightSky
-  - dltks0306
-  - RubrumExPlaneta
-  - Alex4386
-  - RedLime
-  - mrandriyg
-  - professer_snape
-  - gerzytet
+- soliddanii
+- MidnightSugar
+- TheBestNightSky
+- dltks0306
+- RubrumExPlaneta
+- Alex4386
+- RedLime
+- mrandriyg
+- professer_snape
+- gerzytet
 softdepend:
   - Vault
   - PlaceholderAPI

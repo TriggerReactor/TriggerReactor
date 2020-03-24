@@ -20,31 +20,39 @@ import com.google.inject.Inject;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.*;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeWrapper;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.manager.*;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.*;
+import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import org.bstats.sponge.MetricsLite2;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.asset.Asset;
 import org.spongepowered.api.block.BlockTypes;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandException;
@@ -91,7 +99,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
 @Plugin(id = TriggerReactor.ID)
-public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactor {
+public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactorCore {
     protected static final String ID = "triggerreactor";
 
     private static SpongeExecutorService syncExecutor = null;
@@ -130,6 +138,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractRepeatingTriggerManager repeatManager;
 
     private AbstractNamedTriggerManager namedTriggerManager;
+
+    private SelfReference selfReference = new CommonFunctions(this);
+    private IWrapper wrapper = new SpongeWrapper();
 
     @Listener
     public void onConstruct(GameInitializationEvent event) {
@@ -215,8 +226,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             @Override
             public List<String> getSuggestions(CommandSource source, String arguments, Location<World> targetPosition)
                     throws CommandException {
-            	//return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(arguments.split(" "));
-            	return new ArrayList<>();
+                //return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(arguments.split(" "));
+                return new ArrayList<>();
             }
 
             @Override
@@ -245,17 +256,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Listener
     public void onEnable(GameStartedServerEvent e) {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-
-        File file = new File(getDataFolder(), "config.yml");
-        if (!file.exists()) {
-            try {
-                Asset asset = Sponge.getAssetManager().getAsset(this, "config.yml").orElseThrow(() -> new IOException("Can't load config.yml"));
-                String configStr = asset.readString();
-                FileUtil.writeToFile(file, configStr);
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
 
         for (Manager manager : Manager.getManagers()) {
             try {
@@ -315,6 +315,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         try {
             Sponge.getEventManager().post(new TriggerReactorStopEvent(TriggerReactor.this));
         } finally {
+            getLogger().info("Shutting down the managers...");
+            onCoreDisable();
+            getLogger().info("OK");
+
             getLogger().info("Finalizing the scheduled script executions...");
             cachedThreadPool.shutdown();
             getLogger().info("Shut down complete!");
@@ -329,17 +333,27 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         getExecutorManager().reload();
         getPlaceholderManager().reload();
     }
-    
+
     @Listener
     public void onTabComplete(TabCompleteEvent.Command e) {
-    	String cmd = e.getCommand();
-    	if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
-    		return;
-    	}
-    	String[] args = e.getArguments().split(" ", -1);
-    	List<String> completions = e.getTabCompletions();
-    	completions.clear();
-    	completions.addAll(io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(args));
+        String cmd = e.getCommand();
+        if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
+            return;
+        }
+        String[] args = e.getArguments().split(" ", -1);
+        List<String> completions = e.getTabCompletions();
+        completions.clear();
+        completions.addAll(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(args));
+    }
+
+    @Override
+    public SelfReference getSelfReference() {
+        return selfReference;
+    }
+
+    @Override
+    public IWrapper getWrapper() {
+        return wrapper;
     }
 
     @Override

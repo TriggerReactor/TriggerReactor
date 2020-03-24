@@ -15,11 +15,26 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function CLEARCHAT(args){
-    if(player == null)
-		return null;
-		
-	for(var i = 0; i < 30; i++)
-		player.sendMessage(Text.of(""));
-
-    return null;
+    if(player === null){
+        return null;
+    }
+    if(args.length === 0){
+        for(var i = 0; i < 30; i++){
+            player.sendMessage(Text.of(""));
+        }
+        return null;
+    }else if(args.length === 1){
+        var plType = Java.type("org.spongepowered.api.entity.living.player.Player")
+        if(args[0] instanceof plType){
+            var pl = args[0];
+        }else {
+            throw new Error("Found unexpected parameter - player: null")
+        }
+        for(var i = 0; i < 30; i++){
+            pl.sendMessage(Text.of(""));
+        }
+        return null;
+    }else if(args.length >= 2){
+            	throw new Error("Too many parameters found! CLEARCHAT accept up to one parameter.")
+    }
 }

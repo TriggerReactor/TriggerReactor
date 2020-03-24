@@ -16,11 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Event;
@@ -62,8 +61,8 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onStop", TriggerReactorStopEvent.class);
     }};
 
-    public CustomTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CustomTrigger"));
+    public CustomTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, null, new File(plugin.getDataFolder(), "CustomTrigger"));
 
         try {
             initEvents();
@@ -111,7 +110,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
+    protected void registerEvent(TriggerReactorCore plugin, Class<?> clazz, EventHook eventHook) {
         EventListener listener = new EventListener() {
 
             @Override
@@ -125,7 +124,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     @Override
-    protected void unregisterEvent(TriggerReactor plugin, EventHook eventHook) {
+    protected void unregisterEvent(TriggerReactorCore plugin, EventHook eventHook) {
         EventListener listener = registeredListeners.remove(eventHook);
         if (listener != null) {
             Sponge.getEventManager().unregisterListeners(listener);

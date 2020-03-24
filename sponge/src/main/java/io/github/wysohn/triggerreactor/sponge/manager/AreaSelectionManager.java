@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractAreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
@@ -30,7 +30,7 @@ import org.spongepowered.api.text.format.TextColors;
 import java.util.UUID;
 
 public class AreaSelectionManager extends AbstractAreaSelectionManager {
-    public AreaSelectionManager(TriggerReactor plugin) {
+    public AreaSelectionManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

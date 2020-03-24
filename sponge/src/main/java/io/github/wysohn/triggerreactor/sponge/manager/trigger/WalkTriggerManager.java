@@ -16,9 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import org.spongepowered.api.entity.living.player.Player;
@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> {
-    public WalkTriggerManager(TriggerReactor plugin) {
+    public WalkTriggerManager(TriggerReactorCore plugin) {
         super(plugin, "WalkTrigger");
     }
 

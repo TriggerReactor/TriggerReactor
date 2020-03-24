@@ -1,4 +1,4 @@
-# TriggerReactor [![Build Status](https://travis-ci.org/wysohn/TriggerReactor.svg?branch=master)](https://travis-ci.org/wysohn/TriggerReactor)
+# TriggerReactor ![Java CI](https://github.com/TriggerReactor/TriggerReactor/workflows/Java%20CI/badge.svg)
 
 For easy to use script solution and infinite possibility to expand
 

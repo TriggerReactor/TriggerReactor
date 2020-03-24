@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 import java.util.Map;
@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractPlayerLocationManager extends Manager {
     private transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
 
-    public AbstractPlayerLocationManager(TriggerReactor plugin) {
+    public AbstractPlayerLocationManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

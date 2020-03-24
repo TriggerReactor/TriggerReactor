@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 import java.util.HashMap;
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 public abstract class AbstractVariableManager extends Manager {
-    public AbstractVariableManager(TriggerReactor plugin) {
+    public AbstractVariableManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

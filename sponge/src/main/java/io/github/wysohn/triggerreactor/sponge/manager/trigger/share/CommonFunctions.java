@@ -17,11 +17,11 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
@@ -57,9 +57,9 @@ import java.util.*;
 
 public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions
         implements SelfReference {
-    private final TriggerReactor plugin;
+    private final TriggerReactorCore plugin;
 
-    public CommonFunctions(TriggerReactor plugin) {
+    public CommonFunctions(TriggerReactorCore plugin) {
         super();
         this.plugin = plugin;
     }
@@ -296,7 +296,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
-                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .map(Trigger::getTriggerName)
                 .toArray(String[]::new);
         return names;
     }
@@ -310,7 +310,7 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTriggerManager.AreaTrigger trigger = areaManager.getArea(areaTriggerName);
+        AreaTrigger trigger = areaManager.getArea(areaTriggerName);
         if (trigger == null)
             return null;
 

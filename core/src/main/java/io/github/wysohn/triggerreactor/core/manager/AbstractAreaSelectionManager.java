@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
@@ -27,7 +27,7 @@ public abstract class AbstractAreaSelectionManager extends Manager {
     protected final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();
     protected final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
 
-    public AbstractAreaSelectionManager(TriggerReactor plugin) {
+    public AbstractAreaSelectionManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 
@@ -145,7 +145,7 @@ public abstract class AbstractAreaSelectionManager extends Manager {
         /**
          * Right clicked on block
          **/
-        RIGHT_CLICK_BLOCK;
+        RIGHT_CLICK_BLOCK
     }
 
     public enum ClickResult {
@@ -164,6 +164,6 @@ public abstract class AbstractAreaSelectionManager extends Manager {
         /**
          * Only right clicked coordinated is ready
          **/
-        RIGHTSET;
+        RIGHTSET
     }
 }

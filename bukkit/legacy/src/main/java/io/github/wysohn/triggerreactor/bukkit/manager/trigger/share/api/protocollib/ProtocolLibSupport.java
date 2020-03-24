@@ -22,7 +22,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import org.bukkit.Location;
@@ -39,7 +39,7 @@ public class ProtocolLibSupport extends APISupport {
 
     private ProtocolManager protocolManager;
 
-    public ProtocolLibSupport(TriggerReactor plugin) {
+    public ProtocolLibSupport(TriggerReactorCore plugin) {
         super(plugin, "ProtocolLib");
 
         Plugin bukkitPlugin = plugin.getMain();
@@ -238,7 +238,7 @@ public class ProtocolLibSupport extends APISupport {
      * @throws InvocationTargetException
      */
     public void sendEntityDestroy(Player p, int entityId) throws InvocationTargetException {
-        sendEntitiesDestroy(p, new Object[]{entityId});
+        sendEntitiesDestroy(p, entityId);
     }
 
     /**
@@ -341,7 +341,7 @@ public class ProtocolLibSupport extends APISupport {
     public void sendEntityLook(Player p, int entityId,
                                double fromX, double fromY, double fromZ,
                                double toX, double toY, double toZ) throws InvocationTargetException {
-        double result[] = getAngle(fromX, fromY, fromZ, toX, toY, toZ);
+        double[] result = getAngle(fromX, fromY, fromZ, toX, toY, toZ);
 
         this.sendEntityLook(p, entityId, (int) result[0], (int) result[1]);
     }
@@ -393,6 +393,6 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     public enum EnumItemSlot {
-        MAINHAND, OFFHAND, FEET, LEGS, CHEST, HEAD;
+        MAINHAND, OFFHAND, FEET, LEGS, CHEST, HEAD
     }
 }

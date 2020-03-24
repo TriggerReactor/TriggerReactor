@@ -16,9 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
@@ -29,8 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements SpongeConfigurationFileIO {
-    public CommandTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CommandTrigger"));
+    public CommandTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
     }
 
     @Listener(order = Order.EARLY)
@@ -40,7 +40,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         String cmd = e.getCommand();
         String[] args = e.getArguments().split(" ");
 
-        CommandTrigger trigger = commandTriggerMap.get(cmd);
+        CommandTrigger trigger = triggers.get(cmd);
         if (trigger == null)
             trigger = aliasesMap.get(cmd);
         if (trigger == null)
