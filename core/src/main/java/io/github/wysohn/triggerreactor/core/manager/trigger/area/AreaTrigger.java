@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 
@@ -21,8 +22,8 @@ public class AreaTrigger extends Trigger {
 
     private Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
 
-    public AreaTrigger(Area area, File folder, String name) {
-        super(name, null, null);
+    public AreaTrigger(TriggerInfo info, Area area, File folder) {
+        super(info, null); // area trigger has scripts in its folder
         this.area = area;
         this.folder = folder;
     }
@@ -79,22 +80,13 @@ public class AreaTrigger extends Trigger {
                 '}';
     }
 
-    void setEnterTrigger(String script, File triggerFile) throws AbstractTriggerManager.TriggerInitFailedException {
-        enterTrigger = new EnterTrigger(this, triggerFile, script);
-    }
-
     public void setEnterTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        File triggerFile = AbstractTriggerManager.getTriggerFile(folder, "Enter", true);
-        setEnterTrigger(script, triggerFile);
-    }
-
-    void setExitTrigger(String script, File triggerFile) throws AbstractTriggerManager.TriggerInitFailedException {
-        exitTrigger = new ExitTrigger(this, triggerFile, script);
+        enterTrigger = new EnterTrigger(this.getInfo(), script, this);
     }
 
     public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        File triggerFile = AbstractTriggerManager.getTriggerFile(folder, "Enter", true);
-        setExitTrigger(script, triggerFile);
+        exitTrigger = new ExitTrigger(this.getInfo(), script, this);
+
     }
 
     public EnterTrigger getEnterTrigger() {
@@ -160,8 +152,8 @@ public class AreaTrigger extends Trigger {
     public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
-        public EnterTrigger(AreaTrigger areaTrigger, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-            super(areaTrigger.triggerName, file, script);
+        public EnterTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws AbstractTriggerManager.TriggerInitFailedException {
+            super(info, script);
             this.areaTrigger = areaTrigger;
 
             init();
@@ -185,7 +177,7 @@ public class AreaTrigger extends Trigger {
         @Override
         public Trigger clone() {
             try {
-                return new EnterTrigger(areaTrigger, file, script);
+                return new EnterTrigger(info, script, areaTrigger);
             } catch (AbstractTriggerManager.TriggerInitFailedException e) {
                 e.printStackTrace();
             }
@@ -197,8 +189,8 @@ public class AreaTrigger extends Trigger {
     public static class ExitTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
-        public ExitTrigger(AreaTrigger areaTrigger, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-            super(areaTrigger.getTriggerName(), file, script);
+        public ExitTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws AbstractTriggerManager.TriggerInitFailedException {
+            super(info, script);
             this.areaTrigger = areaTrigger;
 
             init();
@@ -222,7 +214,7 @@ public class AreaTrigger extends Trigger {
         @Override
         public Trigger clone() {
             try {
-                return new ExitTrigger(areaTrigger, file, script);
+                return new ExitTrigger(info, script, areaTrigger);
             } catch (AbstractTriggerManager.TriggerInitFailedException e) {
                 e.printStackTrace();
             }

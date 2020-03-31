@@ -44,4 +44,9 @@ public interface IConfigSource {
     void saveAll();
 
     void disable();
+
+    /**
+     * Delete the config file.
+     */
+    void delete();
 }

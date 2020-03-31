@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.core.manager.config;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 
 import java.io.File;
 

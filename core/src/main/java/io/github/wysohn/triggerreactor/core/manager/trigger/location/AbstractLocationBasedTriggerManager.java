@@ -22,11 +22,11 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.Map.Entry;
@@ -36,102 +36,42 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     protected Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
     private Map<UUID, String> settingLocation = new HashMap<>();
 
-    public AbstractLocationBasedTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
-        super(plugin, tirggerFolder);
+    public AbstractLocationBasedTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
+        super(plugin, folder, loader);
     }
 
     @Override
     public void reload() {
+        super.reload();
+
         locationTriggers.clear();
 
-        loadTriggers(folder.listFiles());
-    }
-
-    private void loadTriggers(File[] target) {
-        for (File file : target) {
-            if (file.isDirectory()) {
-                loadTriggers(file.listFiles());
-            } else {
-                if (!isTriggerFile(file))
-                    continue;
-
-                String[] extracted = extractPrefix(extractName(file));
-                String prefix = extracted[0];
-                String triggerName = extracted[1];
-
-                SimpleLocation sloc = null;
-                try {
-                    sloc = stringToSloc(triggerName);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    continue;
-                }
-
-                String script = null;
-                try {
-                    script = FileUtil.readFromFile(file);
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                    continue;
-                }
-
-                T trigger = null;
-                try {
-                    trigger = constructTrigger(sloc.toString(), script);
-                } catch (TriggerInitFailedException e) {
-                    e.printStackTrace();
-                    continue;
-                }
-
-                if (sloc != null && trigger != null) {
-                    SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-                    Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-                    if (!locationTriggers.containsKey(scloc)) {
-                        triggerMap = new ConcurrentHashMap<>();
-                        locationTriggers.put(scloc, triggerMap);
-                    }
-
-                    if (triggerMap.containsKey(sloc)) {
-                        Trigger previous = triggerMap.get(sloc);
-                        plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
-                        plugin.getLogger().warning("Existing: " + previous.getFile().getAbsolutePath());
-                        plugin.getLogger().warning("Skipped: " + trigger.getFile().getAbsolutePath());
-                    } else {
-                        triggerMap.put(sloc, trigger);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    public void saveAll() {
-        for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> chunkEntry : locationTriggers.entrySet()) {
-            SimpleChunkLocation scloc = chunkEntry.getKey();
-            Map<SimpleLocation, T> slocMap = chunkEntry.getValue();
-
-            Set<SimpleLocation> failed = new HashSet<>();
-
-            for (Entry<SimpleLocation, T> entry : slocMap.entrySet()) {
-                SimpleLocation sloc = entry.getKey();
-                T trigger = entry.getValue();
-
-                String fileName = slocToString(sloc);
-                String script = trigger.getScript();
-
-                File file = getTriggerFile(folder, fileName, true);
-                try {
-                    FileUtil.writeToFile(file, script);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    plugin.getLogger().severe("Could not save a trigger at " + sloc);
-                    failed.add(sloc);
-                }
+        for (T trigger : getAllTriggers()) {
+            SimpleLocation sloc = null;
+            try {
+                sloc = stringToSloc(trigger.getInfo().getTriggerName());
+            } catch (Exception e) {
+                e.printStackTrace();
+                continue;
             }
 
-            for (SimpleLocation sloc : failed) {
-                slocMap.remove(sloc);
+            if (sloc != null && trigger != null) {
+                SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+
+                Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
+                if (!locationTriggers.containsKey(scloc)) {
+                    triggerMap = new ConcurrentHashMap<>();
+                    locationTriggers.put(scloc, triggerMap);
+                }
+
+                if (triggerMap.containsKey(sloc)) {
+                    Trigger previous = triggerMap.get(sloc);
+                    plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
+                    plugin.getLogger().warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
+                    plugin.getLogger().warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
+                } else {
+                    triggerMap.put(sloc, trigger);
+                }
             }
         }
     }
@@ -310,7 +250,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                 trigger = removeTriggerForLocation(board.location);
 
             T copy = (T) trigger.clone();
-            copy.setTriggerName(sloc.toString());
 
             setTriggerForLocation(sloc, copy);
         } catch (Exception e) {
@@ -339,17 +278,17 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     public static class WalkTrigger extends Trigger {
-
-        public WalkTrigger(String name, File file, String script) throws TriggerInitFailedException {
-            super(name, file, script);
+        public WalkTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+            super(info, script);
 
             init();
+
         }
 
         @Override
         public Trigger clone() {
             try {
-                return new WalkTrigger(triggerName, file, getScript());
+                return new WalkTrigger(info, script);
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
@@ -360,8 +299,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     public static class ClickTrigger extends Trigger {
         private ClickHandler handler;
 
-        public ClickTrigger(String name, File file, String script, ClickHandler handler) throws TriggerInitFailedException {
-            super(name, file, script);
+        public ClickTrigger(TriggerInfo info, String script, ClickHandler handler) throws TriggerInitFailedException {
+            super(info, script);
             this.handler = handler;
 
             init();
@@ -379,7 +318,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         public Trigger clone() {
             try {
                 //TODO: using same handler will be safe?
-                Trigger trigger = new ClickTrigger(triggerName, file, script, handler);
+                Trigger trigger = new ClickTrigger(info, script, handler);
                 return trigger;
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();

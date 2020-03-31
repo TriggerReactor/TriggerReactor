@@ -220,16 +220,16 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     }
                     return true;
                 } else if (args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))) {
-                    if (args.length == 3 && getCmdManager().hasCommandTrigger(args[1]) && args[2].equals("sync")) {
-                        Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
+                    if (args.length == 3 && getCmdManager().has(args[1]) && args[2].equals("sync")) {
+                        Trigger trigger = getCmdManager().get(args[1]);
 
                         trigger.setSync(!trigger.isSync());
 
                         sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
                         saveAsynchronously(getCmdManager());
-                    } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
+                    } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
-                        CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+                        CommandTrigger trigger = getCmdManager().get(args[1]);
 
                         //if no permission is given, delete all permission required
                         String[] permissions = null;
@@ -248,9 +248,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             sender.sendMessage("&7Set permissions.");
                         }
                         saveAsynchronously(getCmdManager());
-                    } else if (args.length > 2 && getCmdManager().hasCommandTrigger(args[1])
+                    } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
-                        CommandTrigger trigger = getCmdManager().getCommandTrigger(args[1]);
+                        CommandTrigger trigger = getCmdManager().get(args[1]);
 
                         //first, clean up all aliases
                         getCmdManager().removeAliases(trigger);
@@ -273,8 +273,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             sender.sendMessage("&7Set Aliases");
                         }
                         saveAsynchronously(getCmdManager());
-                    } else if (getCmdManager().hasCommandTrigger(args[1])) {
-                        Trigger trigger = getCmdManager().getCommandTrigger(args[1]);
+                    } else if (getCmdManager().has(args[1])) {
+                        Trigger trigger = getCmdManager().get(args[1]);
 
                         getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler() {
                             @Override
@@ -983,7 +983,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     if (args.length == 2) {
                         String name = args[1];
 
-                        Trigger trigger = getRepeatManager().getTrigger(name);
+                        Trigger trigger = getRepeatManager().get(name);
                         if (trigger != null) {
                             getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler() {
                                 @Override
@@ -1016,7 +1016,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 4 && args[2].equalsIgnoreCase("interval")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1037,7 +1037,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1052,7 +1052,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("toggle")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1069,7 +1069,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("pause")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1082,7 +1082,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("status")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1093,7 +1093,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("delete")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().getTrigger(name);
+                        RepeatingTrigger trigger = getRepeatManager().get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1148,7 +1148,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             break;
                         case "cmd":
                         case "command":
-                            if (getCmdManager().removeCommandTrigger(key)) {
+                            if (getCmdManager().remove(key)) {
                                 sender.sendMessage("&aRemoved the command trigger &6" + key);
 
                                 saveAsynchronously(getCmdManager());

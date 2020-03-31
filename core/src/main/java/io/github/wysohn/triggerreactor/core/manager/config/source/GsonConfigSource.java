@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.config;
+package io.github.wysohn.triggerreactor.core.manager.config.source;
 
 import copy.com.google.gson.Gson;
 import copy.com.google.gson.GsonBuilder;
@@ -9,6 +9,7 @@ import copy.com.google.gson.reflect.TypeToken;
 import copy.com.google.gson.stream.JsonReader;
 import copy.com.google.gson.stream.JsonToken;
 import copy.com.google.gson.stream.JsonWriter;
+import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.DefaultSerializer;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -145,7 +146,7 @@ public class GsonConfigSource implements IConfigSource {
     private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
 
-    public GsonConfigSource(File file) {
+    GsonConfigSource(File file) {
         this(file, f -> {
             try {
                 return new FileReader(f);
@@ -163,6 +164,12 @@ public class GsonConfigSource implements IConfigSource {
         });
     }
 
+    /**
+     * @param file
+     * @param readerFactory
+     * @param writerFactory
+     * @deprecated for test. Do not use it directly unless necessary.
+     */
     public GsonConfigSource(File file, Function<File, Reader> readerFactory, Function<File, Writer> writerFactory) {
         this.file = file;
         this.readerFactory = readerFactory;
@@ -313,5 +320,11 @@ public class GsonConfigSource implements IConfigSource {
      */
     public void shutdown() {
         exec.shutdownNow().forEach(Runnable::run);
+    }
+
+    @Override
+    public void delete() {
+        exec.shutdownNow();
+        file.delete();
     }
 }

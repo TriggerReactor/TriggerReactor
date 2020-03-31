@@ -18,10 +18,15 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -53,8 +58,93 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AbstractAreaTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
-        super(plugin, tirggerFolder);
+    public AbstractAreaTriggerManager(TriggerReactorCore plugin, File folder) {
+        super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
+            @Override
+            public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
+                return new AreaTriggerInfo(file, configSource);
+            }
+
+            @Override
+            public AreaTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+                SimpleLocation smallest = info.getConfig().get(SMALLEST, SimpleLocation.class)
+                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find " + SMALLEST, info.getConfig()));
+                SimpleLocation largest = info.getConfig().get(LARGEST, SimpleLocation.class)
+                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find " + LARGEST, info.getConfig()));
+                boolean isSync = info.getConfig().get(SYNC, Boolean.class)
+                        .orElse(false);
+
+                File scriptFolder = new File(folder, info.getTriggerName());
+                if (!scriptFolder.exists()) {
+                    scriptFolder.mkdirs();
+                }
+
+                String enterScript = null;
+                File enterFile = null;
+                try {
+                    enterFile = getTriggerFile(scriptFolder, "Enter", false);
+                    enterScript = FileUtil.readFromFile(enterFile);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    return null;
+                }
+
+                String exitScript = null;
+                File exitFile = null;
+                try {
+                    exitFile = getTriggerFile(scriptFolder, "Exit", false);
+                    exitScript = FileUtil.readFromFile(exitFile);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    return null;
+                }
+
+                Area area = new Area(smallest, largest);
+                AreaTrigger trigger = new AreaTrigger(info, area, scriptFolder);
+                trigger.setSync(isSync);
+
+                try {
+                    trigger.setEnterTrigger(enterScript);
+                    trigger.setExitTrigger(exitScript);
+                } catch (TriggerInitFailedException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+
+                return trigger;
+            }
+
+            @Override
+            public void save(AreaTrigger trigger) {
+                Area area = trigger.getArea();
+                trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest());
+                trigger.getInfo().getConfig().put(LARGEST, area.getLargest());
+                trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
+
+                File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
+                if (!triggerFolder.exists()) {
+                    triggerFolder.mkdirs();
+                }
+
+                if (trigger.getEnterTrigger() != null) {
+                    try {
+                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        plugin.getLogger().warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
+                    }
+                }
+
+                if (trigger.getExitTrigger() != null) {
+                    try {
+                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        plugin.getLogger().warning("Could not save Area Trigger [Exit] " + trigger.getInfo());
+                    }
+                }
+            }
+        });
 
         Thread referenceCleaningThread = new Thread() {
 
@@ -72,11 +162,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                         entityLocationMap.remove(delete);
                     }
 
-                    Set<String> keys = triggers.keySet();
-                    for (String key : keys) {
-                        AreaTrigger area = triggers.get(key);
-                        area.getEntities();
-                    }
+                    getAllTriggers().forEach(AreaTrigger::getEntities);
 
                     try {
                         Thread.sleep(50L);
@@ -87,6 +173,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             }
 
         };
+
         referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
         referenceCleaningThread.setDaemon(true);
         referenceCleaningThread.start();
@@ -106,140 +193,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         areaTriggersByLocation.clear();
 
-        for (File ymlfile : folder.listFiles(filter)) {
-            String[] extracted = extractPrefix(extractName(ymlfile));
-            String triggerName = extracted[1];
-
-            SimpleLocation smallest = null;
-            SimpleLocation largest = null;
-            boolean isSync = false;
-            try {
-                smallest = SimpleLocation.valueOf(getData(ymlfile, SMALLEST));
-                largest = SimpleLocation.valueOf(getData(ymlfile, LARGEST));
-                isSync = getData(ymlfile, SYNC, false);
-            } catch (Exception e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Could not load Area Trigger " + ymlfile);
-                continue;
-            }
-
-            if (smallest == null || largest == null) {
-                plugin.getLogger().warning("Could not load Area Trigger" + ymlfile);
-                plugin.getLogger().warning("Could not find Smallest: or Largest:");
-                continue;
-            }
-
-            File scriptFolder = new File(folder, triggerName);
-            if (!scriptFolder.exists()) {
-                scriptFolder.mkdirs();
-            }
-
-            String enterScript = null;
-            File enterFile = null;
-            try {
-                enterFile = getTriggerFile(scriptFolder, "Enter", false);
-                enterScript = FileUtil.readFromFile(enterFile);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            String exitScript = null;
-            File exitFile = null;
-            try {
-                exitFile = getTriggerFile(scriptFolder, "Exit", false);
-                exitScript = FileUtil.readFromFile(exitFile);
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            Area area = new Area(smallest, largest);
-            AreaTrigger trigger = new AreaTrigger(area, scriptFolder, triggerName);
-            trigger.setSync(isSync);
-
-            triggers.put(triggerName, trigger);
-
+        for (AreaTrigger trigger : getAllTriggers()) {
             this.setupArea(trigger);
-
-            try {
-                if (enterScript != null) {
-                    trigger.setEnterTrigger(enterScript, enterFile);
-                }
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                continue;
-            }
-
-            try {
-                if (exitScript != null) {
-                    trigger.setExitTrigger(exitScript, exitFile);
-                }
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                continue;
-            }
-        }
-    }
-
-    @Override
-    public void saveAll() {
-        Set<AreaTrigger> saveReady = new HashSet<>();
-
-        for (Entry<SimpleChunkLocation, Map<Area, AreaTrigger>> oentry : areaTriggersByLocation.entrySet()) {
-
-            for (Entry<Area, AreaTrigger> entry : oentry.getValue().entrySet()) {
-                AreaTrigger trigger = entry.getValue();
-
-                saveReady.add(trigger);
-            }
-        }
-
-        for (AreaTrigger trigger : saveReady) {
-            Area area = trigger.getArea();
-
-            File ymlfile = new File(folder, trigger.getTriggerName() + ".yml");
-            if (!ymlfile.exists()) {
-                try {
-                    ymlfile.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    plugin.getLogger().warning("Could not create " + ymlfile);
-                    continue;
-                }
-            }
-
-            try {
-                setData(ymlfile, SMALLEST, area.getSmallest().toString());
-                setData(ymlfile, LARGEST, area.getLargest().toString());
-                setData(ymlfile, SYNC, trigger.isSync());
-            } catch (Exception e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            File triggerFolder = new File(folder, trigger.getTriggerName());
-            if (!triggerFolder.exists()) {
-                triggerFolder.mkdirs();
-            }
-
-            if (trigger.getEnterTrigger() != null) {
-                try {
-                    FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    plugin.getLogger().warning("Could not save Area Trigger [Enter] " + trigger.getTriggerName());
-                }
-            }
-
-            if (trigger.getExitTrigger() != null) {
-                try {
-                    FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    plugin.getLogger().warning("Could not save Area Trigger [Exit] " + trigger.getTriggerName());
-                }
-            }
         }
     }
 
@@ -293,13 +248,12 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     /**
-     * This method does not check if world of smallest and largest are same.
-     * Also <b>check confliction with {@link #getConflictingAreas(Area, Predicate)} before</b> using this method.
+     * Create a new Area Trigger.
      *
-     * @param name
-     * @param smallest
-     * @param largest
-     * @return true on success; false if exact same area already exist.
+     * @param name     name of the Area Trigger.
+     * @param smallest smallest point (ex. 0,0,0)
+     * @param largest  largest point(ex. 15,15,15)
+     * @return true on success; false if exact same area (same smallest and largest) already exist.
      */
     public boolean createArea(String name, SimpleLocation smallest, SimpleLocation largest) {
         Area area = new Area(smallest, largest);
@@ -309,8 +263,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             return false;
 
         File areaFolder = new File(folder, name);
-        AreaTrigger trigger = new AreaTrigger(area, areaFolder, name);
-        triggers.put(name, trigger);
+        IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+        AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config), area, areaFolder);
+        put(name, trigger);
 
         setupArea(trigger);
 
@@ -318,7 +273,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     /**
-     * reset the area cache. Should be called for reloading.
+     * reset the area cache. Should be called on reload or on Area Trigger created.
      *
      * @param trigger
      */
@@ -337,36 +292,18 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         }
     }
 
-    /**
-     * Try to get Area Trigger by given name
-     *
-     * @param name
-     * @return Area if found; null if nothing
-     */
-    public AreaTrigger getArea(String name) {
-        return triggers.get(name);
-    }
+    @Override
+    protected AreaTrigger remove(String name) {
+        AreaTrigger remove = super.remove(name);
 
-    /**
-     * Try to remove Area Trigger by given name
-     *
-     * @param name
-     * @return false if can't find any Area Trigger with the name; true if deleted.
-     */
-    public boolean deleteArea(String name) {
-        AreaTrigger trigger = triggers.get(name);
-        if (trigger == null)
-            return false;
+        Optional.ofNullable(remove).ifPresent(areaTrigger -> {
+            for (SimpleChunkLocation scloc : Area.getAllChunkLocations(areaTrigger.area)) {
+                Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
+                map.remove(areaTrigger.area);
+            }
+        });
 
-        for (SimpleChunkLocation scloc : Area.getAllChunkLocations(trigger.area)) {
-            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
-            map.remove(trigger.area);
-        }
-
-        deleteInfo(trigger);
-
-        triggers.remove(name);
-        return true;
+        return remove;
     }
 
     /**
@@ -406,10 +343,4 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     public enum EventType {
         ENTER, EXIT
     }
-
-    @Override
-    protected void deleteInfo(AreaTrigger trigger) {
-        FileUtil.delete(new File(folder, trigger.getTriggerName()));
-    }
-
 }

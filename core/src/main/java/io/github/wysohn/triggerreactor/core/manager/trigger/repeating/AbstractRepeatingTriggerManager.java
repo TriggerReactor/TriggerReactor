@@ -129,7 +129,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @param triggerName name of trigger
      * @return Repeating Trigger if found; null if not found.
      */
-    public RepeatingTrigger getTrigger(String triggerName) {
+    public RepeatingTrigger get(String triggerName) {
         return triggers.get(triggerName);
     }
 
@@ -146,7 +146,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      */
     public boolean createTrigger(String triggerName, File file, String script, long interval)
             throws TriggerInitFailedException, IOException {
-        if (getTrigger(triggerName) != null) {
+        if (get(triggerName) != null) {
             return false;
         }
 
