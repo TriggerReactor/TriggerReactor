@@ -35,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
@@ -542,19 +543,49 @@ public class Interpreter {
                     Class<?> clazz = (Class<?>) right.value;
                     stack.push(new Token(Type.BOOLEAN, clazz.isInstance(left.value), node.getToken()));
                 }else {
-                    String className = (String) right.value;
-                    Class<?> superClass = left.value.getClass().getSuperclass();
-                    Class<?>[] interfaces = left.value.getClass().getInterfaces();
                     boolean interfacesCheck = false;
-                    infCheck:
-                    for (Class<?> clazz : interfaces) {
-                        if (clazz.getSimpleName().equalsIgnoreCase(className))
-                            interfacesCheck = true;
-                        break infCheck;
+                    boolean nameItselfCheck;
+                    boolean finalCheck = false;
+                    String className = (String) right.value;
+                    Class<?> tempLeftClass = left.value.getClass();
+                    while(tempLeftClass != null){
+                        String tempName = tempLeftClass.getSimpleName(); // check1
+                        nameItselfCheck = tempName.equalsIgnoreCase((className));
+                        Class<?>[] tempInterfaces = tempLeftClass.getInterfaces();
+                        //in minecraft, every object becomes NMS class and it has general class as its interface like CraftPlayer extends Player
+                        //So, we have to iterate 2 times to implement instanceof manually.
+                        craftCheck:
+                        if(tempInterfaces != null) {
+                            for (Class<?> clazz : tempInterfaces) {
+                                if (clazz.getSimpleName().equalsIgnoreCase(className)) {
+                                    interfacesCheck = true;
+                                    break;
+                                }
+                                Class<?>[] itfcs = clazz.getInterfaces();
+                                if(itfcs != null){
+                                    generalCheck:
+                                    for(Class<?> itfc : itfcs){
+                                        if (itfc.getSimpleName().equalsIgnoreCase(className)) {
+                                            interfacesCheck = true;
+                                            break craftCheck;
+                                        }else {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if(nameItselfCheck || interfacesCheck){
+                            stack.push(new Token(Type.BOOLEAN, true));
+                            finalCheck = true;
+                            break;
+                        }else{
+                            tempLeftClass = tempLeftClass.getSuperclass();
+                            continue;
+                        }
                     }
-                    stack.push(new Token(Type.BOOLEAN, superClass.getSimpleName().equalsIgnoreCase(className)
-                            || interfacesCheck
-                            || left.value.getClass().getSimpleName().equalsIgnoreCase(className), node.getToken()));
+                    if(!finalCheck)
+                        stack.push(new Token(Type.BOOLEAN, false));
                 }
             } else if (node.getToken().type == Type.EXECUTOR) {
                 String command = (String) node.getToken().value;
