@@ -1514,16 +1514,16 @@ public class TestInterpreter {
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                      Object... args) throws Exception {
 
-                Assert.assertTrue((boolean) args[0]);
-                Assert.assertFalse((boolean) args[1]);
-                return null;
-            }
-        });
+        Executor mockExecutor = Mockito.mock(Executor.class);
+        Mockito.when(mockExecutor.execute(Mockito.any(Timings.Timing.class),
+                Mockito.anyBoolean(),
+                Mockito.anyMap(),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.anyBoolean())).thenReturn(null);
+
+        executorMap.put("TEST", mockExecutor);
 
         HashMap<String, Object> vars = new HashMap<>();
         vars.put("test", new TheTest());
@@ -1533,24 +1533,119 @@ public class TestInterpreter {
         interpreter.setVars(vars);
 
         interpreter.startWithContext(null);
+        Mockito.verify(mockExecutor, Mockito.times(2))
+                .execute(Mockito.any(Timings.Timing.class),
+                        Mockito.anyBoolean(),
+                        Mockito.anyMap(),
+                        Mockito.any(),
+                        Mockito.eq(true), Mockito.eq(false));
+    }
 
-        vars.clear(); //clear the vars map
-
+    @Test
+    public void testISStatementString() throws Exception {
         //test2 -> when right side is provided as String.
-        String text2 = "#TEST test3 IS \"TheTest\", test3 IS \"InTest\""+
-                "#TEST test4 IS \"TheTest\", test4 IS \"InTest\"";
-        lexer = new Lexer(text2, charset);
-        parser = new Parser(lexer);
-        root = parser.parse();
-        vars.put("test3", new TheTest());
-        vars.put("test4", new InTest());
-        interpreter = new Interpreter(root);
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "#TEST test IS \"TheTest\", test IS \"InTest\";" +
+                "#TEST test2 IS \"InTest\", test2 IS \"TheTest\";";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        Executor mockExecutor = Mockito.mock(Executor.class);
+        Mockito.when(mockExecutor.execute(Mockito.any(Timings.Timing.class),
+                Mockito.anyBoolean(),
+                Mockito.anyMap(),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.anyBoolean())).thenReturn(null);
+
+        executorMap.put("TEST", mockExecutor);
+
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("test", new TheTest());
+        vars.put("test2", new InTest());
+        Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setVars(vars);
 
         interpreter.startWithContext(null);
+        Mockito.verify(mockExecutor, Mockito.times(2))
+                .execute(Mockito.any(Timings.Timing.class),
+                        Mockito.anyBoolean(),
+                        Mockito.anyMap(),
+                        Mockito.any(),
+                        Mockito.eq(true), Mockito.eq(false));
+    }
 
+    @Test
+    public void testISStatementString2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "#TEST test IS \"TheTest\", test IS \"InTest\";" +
+                "#TEST test IS \"TheTestParent\", test IS \"Other\";" +
+                "#TEST test IS \"TheTestInterface\", test IS \"Something\";";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
 
+        Executor mockExecutor = Mockito.mock(Executor.class);
+        Mockito.when(mockExecutor.execute(Mockito.any(Timings.Timing.class),
+                Mockito.anyBoolean(),
+                Mockito.anyMap(),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.anyBoolean())).thenReturn(null);
+
+        executorMap.put("TEST", mockExecutor);
+
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("test", new TheTest());
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setVars(vars);
+
+        interpreter.startWithContext(null);
+        Mockito.verify(mockExecutor, Mockito.times(3))
+                .execute(Mockito.any(Timings.Timing.class),
+                        Mockito.anyBoolean(),
+                        Mockito.anyMap(),
+                        Mockito.any(),
+                        Mockito.eq(true), Mockito.eq(false));
+    }
+
+    @Test
+    public void testISStatementString3() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "#TEST test IS \"Object\", test IS \"InTest\";";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        Executor mockExecutor = Mockito.mock(Executor.class);
+        Mockito.when(mockExecutor.execute(Mockito.any(Timings.Timing.class),
+                Mockito.anyBoolean(),
+                Mockito.anyMap(),
+                Mockito.any(),
+                Mockito.anyBoolean(),
+                Mockito.anyBoolean())).thenReturn(null);
+
+        executorMap.put("TEST", mockExecutor);
+
+        HashMap<String, Object> vars = new HashMap<>();
+        vars.put("test", new TheTest());
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setVars(vars);
+
+        interpreter.startWithContext(null);
+        Mockito.verify(mockExecutor)
+                .execute(Mockito.any(Timings.Timing.class),
+                        Mockito.anyBoolean(),
+                        Mockito.anyMap(),
+                        Mockito.any(),
+                        Mockito.eq(true), Mockito.eq(false));
     }
 
     @Test
@@ -2076,7 +2171,15 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
-    public static class TheTest {
+    public static class TheTestParent {
+
+    }
+
+    public interface TheTestInterface {
+
+    }
+
+    public static class TheTest extends TheTestParent implements TheTestInterface {
         public static String staticField = "staticField";
 
         public InTest in = new InTest();
