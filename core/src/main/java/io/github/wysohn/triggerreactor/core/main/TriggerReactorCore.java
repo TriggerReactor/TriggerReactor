@@ -123,7 +123,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract AbstractCommandTriggerManager getCmdManager();
 
-    public abstract AbstractInventoryTriggerManager getInvManager();
+    public abstract AbstractInventoryTriggerManager<? extends IInventory> getInvManager();
 
     public abstract AbstractInventoryEditManager getInvEditManager();
 
@@ -276,7 +276,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (getCmdManager().has(args[1])) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
-                        getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler() {
+                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                             @Override
                             public void onSave(String script) {
                                 try {
@@ -484,7 +484,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("delete")) {
                         String name = args[1];
 
-                        if (getInvManager().deleteTrigger(name)) {
+                        if (getInvManager().remove(name) != null) {
                             sender.sendMessage("&aDeleted!");
 
                             saveAsynchronously(getInvManager());
@@ -505,7 +505,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -545,13 +545,13 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edit")) {
                         String name = args[1];
 
-                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
                         }
 
-                        getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler() {
+                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                             @Override
                             public void onSave(String script) {
                                 try {
@@ -579,7 +579,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -612,7 +612,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -634,7 +634,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
                         String name = args[1];
 
-                        InventoryTrigger trigger = getInvManager().getTriggerForName(name);
+                        InventoryTrigger trigger = getInvManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -754,7 +754,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        AreaTrigger trigger = getAreaManager().getArea(name);
+                        AreaTrigger trigger = getAreaManager().get(name);
                         if (trigger != null) {
                             sender.sendMessage("&c" + "Area Trigger " + name + " is already exists!");
                             return true;
@@ -787,7 +787,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equals("delete")) {
                         String name = args[1];
 
-                        if (getAreaManager().deleteArea(name)) {
+                        if (getAreaManager().remove(name) != null) {
                             sender.sendMessage("&aArea Trigger deleted");
 
                             saveAsynchronously(getAreaManager());
@@ -799,14 +799,14 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length > 2 && args[2].equals("enter")) {
                         String name = args[1];
 
-                        AreaTrigger trigger = getAreaManager().getArea(name);
+                        AreaTrigger trigger = getAreaManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
                         if (trigger.getEnterTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler() {
+                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
@@ -847,14 +847,14 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length > 2 && args[2].equals("exit")) {
                         String name = args[1];
 
-                        AreaTrigger trigger = getAreaManager().getArea(name);
+                        AreaTrigger trigger = getAreaManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
                         if (trigger.getExitTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getExitTrigger().getScript(), new SaveHandler() {
+                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getExitTrigger().getScript(), new SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
@@ -895,7 +895,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equals("sync")) {
                         String name = args[1];
 
-                        AreaTrigger trigger = getAreaManager().getArea(name);
+                        AreaTrigger trigger = getAreaManager().get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
@@ -925,9 +925,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     String eventName = args[1];
                     String name = args[2];
 
-                    CustomTrigger trigger = getCustomManager().getTriggerForName(name);
+                    CustomTrigger trigger = getCustomManager().get(name);
                     if (trigger != null) {
-                        getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler() {
+                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                             @Override
                             public void onSave(String script) {
                                 try {
@@ -985,7 +985,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                         Trigger trigger = getRepeatManager().get(name);
                         if (trigger != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getTriggerName(), trigger.getScript(), new SaveHandler() {
+                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
                                     try {
@@ -1126,7 +1126,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                 } else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
                     String name = args[1];
 
-                    CustomTrigger trigger = getCustomManager().getTriggerForName(name);
+                    CustomTrigger trigger = getCustomManager().get(name);
                     if (trigger == null) {
                         sender.sendMessage("&7No Custom Trigger found with that name.");
                         return true;
@@ -1148,7 +1148,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             break;
                         case "cmd":
                         case "command":
-                            if (getCmdManager().remove(key)) {
+                            if (getCmdManager().remove(key) != null) {
                                 sender.sendMessage("&aRemoved the command trigger &6" + key);
 
                                 saveAsynchronously(getCmdManager());
@@ -1157,7 +1157,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             }
                             break;
                         case "custom":
-                            if (getCustomManager().removeTriggerForName(key)) {
+                            if (getCustomManager().remove(key) != null) {
                                 sender.sendMessage("&aRemoved the custom trigger &6" + key);
 
                                 saveAsynchronously(getCustomManager());
@@ -1312,7 +1312,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
         List<String> names = new ArrayList<String>();
         for (Trigger trigger : manager.getAllTriggers()) {
-            names.add(trigger.getTriggerName());
+            names.add(trigger.getInfo().getTriggerName());
         }
         return names;
     }

@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
+import java.util.Objects;
 
 public abstract class TriggerInfo {
     private final File sourceCodeFile;
@@ -85,6 +86,21 @@ public abstract class TriggerInfo {
     @Override
     public String toString() {
         return triggerName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TriggerInfo that = (TriggerInfo) o;
+
+        return Objects.equals(triggerName, that.triggerName);
+    }
+
+    @Override
+    public int hashCode() {
+        return triggerName != null ? triggerName.hashCode() : 0;
     }
 
     /**

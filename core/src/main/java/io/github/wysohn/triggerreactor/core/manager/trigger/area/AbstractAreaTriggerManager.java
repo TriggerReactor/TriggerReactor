@@ -293,7 +293,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     @Override
-    protected AreaTrigger remove(String name) {
+    public AreaTrigger remove(String name) {
         AreaTrigger remove = super.remove(name);
 
         Optional.ofNullable(remove).ifPresent(areaTrigger -> {

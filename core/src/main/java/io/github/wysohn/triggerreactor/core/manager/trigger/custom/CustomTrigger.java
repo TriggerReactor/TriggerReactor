@@ -2,11 +2,8 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,16 +11,8 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
     final Class<?> event;
     final String eventName;
 
-    /**
-     * @param event
-     * @param name
-     * @param script
-     * @throws IOException     {@link Trigger#init()}
-     * @throws LexerException  {@link Trigger#init()}
-     * @throws ParserException {@link Trigger#init()}
-     */
-    public CustomTrigger(Class<?> event, String eventName, String name, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(name, file, script);
+    public CustomTrigger(TriggerInfo info, String script, Class<?> event, String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
         this.event = event;
         this.eventName = eventName;
 
@@ -33,7 +22,7 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
     @Override
     public CustomTrigger clone() {
         try {
-            return new CustomTrigger(event, getEventName(), triggerName, file, this.getScript());
+            return new CustomTrigger(info, script, event, eventName);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }
@@ -51,7 +40,7 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((triggerName == null) ? 0 : triggerName.hashCode());
+        result = prime * result + ((getInfo() == null) ? 0 : getInfo().hashCode());
         return result;
     }
 
@@ -64,9 +53,9 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
         if (getClass() != obj.getClass())
             return false;
         CustomTrigger other = (CustomTrigger) obj;
-        if (triggerName == null) {
-            return other.triggerName == null;
-        } else return triggerName.equals(other.triggerName);
+        if (getInfo() == null) {
+            return other.getInfo() == null;
+        } else return getInfo().equals(other.getInfo());
     }
 
     public String getEventName() {

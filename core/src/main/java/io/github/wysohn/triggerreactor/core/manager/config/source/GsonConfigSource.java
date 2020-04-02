@@ -11,6 +11,7 @@ import copy.com.google.gson.stream.JsonToken;
 import copy.com.google.gson.stream.JsonWriter;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.DefaultSerializer;
+import io.github.wysohn.triggerreactor.core.manager.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -139,6 +140,22 @@ public class GsonConfigSource implements IConfigSource {
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(SimpleLocation.class, new DefaultSerializer<SimpleLocation>())
             .registerTypeAdapter(SimpleChunkLocation.class, new DefaultSerializer<SimpleChunkLocation>());
+
+    public static <T> void registerTypeAdapter(Class<T> clazz, Serializer<T> serializer) {
+        builder.registerTypeAdapter(clazz, serializer);
+    }
+
+    /**
+     * Check if the given class is serializable. Do not use this to check data consistency as it may have performance downside.
+     * Ideally, use it only once (on instantiation) to ensure that the provided class can be serialized.
+     *
+     * @param clazz the class
+     * @throws IllegalArgumentException throw if 'clazz' is not serializable. See {@link Gson#getAdapter(Class)}.
+     */
+    public static void assertSerializable(Class<?> clazz) {
+        builder.create().getAdapter(clazz);
+    }
+
     private final Gson gson = builder.create();
     //Lock order: file -> cache
     private final File file;

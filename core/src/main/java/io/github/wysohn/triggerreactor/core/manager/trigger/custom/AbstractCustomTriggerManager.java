@@ -17,118 +17,65 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map.Entry;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
-
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
 
-    @Override
-    public void reload() {
-        FileFilter filter = new FileFilter() {
+    protected final EventRegistry registry;
+
+    public AbstractCustomTriggerManager(TriggerReactorCore plugin, File folder, EventRegistry registry) {
+        super(plugin, folder, new ITriggerLoader<CustomTrigger>() {
             @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".yml");
-            }
-        };
-
-        triggers.clear();
-
-        for (File ymlfile : folder.listFiles(filter)) {
-            if (!ymlfile.isFile())
-                continue;
-
-            String triggerName = extractName(ymlfile);
-
-            String eventName = null;
-            boolean isSync = false;
-            try {
-                eventName = this.getData(ymlfile, EVENT);
-                isSync = this.getData(ymlfile, SYNC, false);
-            } catch (Exception e2) {
-                e2.printStackTrace();
-                continue;
-            }
-
-            if (eventName == null) {
-                plugin.getLogger().warning("Could not find Event: for " + ymlfile);
-                continue;
-            }
-
-            Class<?> event = null;
-            try {
-                event = getEventFromName(eventName);
-            } catch (ClassNotFoundException e1) {
-                plugin.getLogger().warning("Could not load " + ymlfile);
-                plugin.getLogger().warning(e1.getMessage() + " does not exist.");
-                continue;
-            }
-
-            File triggerFile = getTriggerFile(folder, triggerName, false);
-
-            try {
-                String read = FileUtil.readFromFile(triggerFile);
-
-                //Set<CustomTrigger> triggers = getTriggerSetForEvent(event);
+            public CustomTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+                String eventName = info.getConfig().get(EVENT, String.class)
+                        .filter(registry::eventExist)
+                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));
+                boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
 
                 try {
-                    CustomTrigger trigger = new CustomTrigger(event, eventName, triggerName, triggerFile, read);
+                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
+                    CustomTrigger trigger = new CustomTrigger(info, script, registry.getEvent(eventName), eventName);
                     trigger.setSync(isSync);
-
-                    triggers.put(triggerName, trigger);
-
-                    registerEvent(plugin, event, trigger);
-                } catch (TriggerInitFailedException e) {
-                    e.printStackTrace();
-                    continue;
+                    return trigger;
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return null;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
             }
-        }
+
+            @Override
+            public void save(CustomTrigger trigger) {
+                String eventName = trigger.getEventName();
+                boolean isSync = trigger.isSync();
+
+                trigger.getInfo().getConfig().put(EVENT, eventName);
+                trigger.getInfo().getConfig().put(SYNC, isSync);
+            }
+        });
+
+        this.registry = registry;
     }
 
     @Override
-    public void saveAll() {
-        for (Entry<String, CustomTrigger> entry : triggers.entrySet()) {
-            CustomTrigger trigger = entry.getValue();
+    public void reload() {
+        super.reload();
 
-            File triggerfile = getTriggerFile(folder, trigger.getTriggerName(), true);
-            File ymlfile = new File(folder, trigger.getTriggerName() + ".yml");
-            try {
-                if (!triggerfile.exists())
-                    triggerfile.createNewFile();
-                if (!ymlfile.exists())
-                    ymlfile.createNewFile();
-            } catch (IOException e2) {
-                e2.printStackTrace();
-            }
-
-            try {
-                this.setData(ymlfile, SYNC, trigger.isSync());
-                this.setData(ymlfile, EVENT, trigger.getEventName());
-            } catch (Exception e1) {
-                e1.printStackTrace();
-                continue;
-            }
-
-            try {
-                FileUtil.writeToFile(triggerfile, trigger.getScript());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        for (CustomTrigger trigger : getAllTriggers()) {
+            registerEvent(plugin, trigger.event, trigger);
         }
     }
 
@@ -210,29 +157,20 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      */
     public boolean createCustomTrigger(String eventName, String name, String script)
             throws ClassNotFoundException, TriggerInitFailedException {
-        if (triggers.containsKey(name))
+        if (has(name))
             return false;
 
-        Class<?> event = this.getEventFromName(eventName);
+        Class<?> event = registry.getEvent(eventName);
+        File file = getTriggerFile(folder, name, true);
+        IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+        CustomTrigger trigger = new CustomTrigger(info, script, event, eventName);
 
-        File triggerFile = getTriggerFile(folder, name, true);
-        CustomTrigger trigger = new CustomTrigger(event, eventName, name, triggerFile, script);
-
-        triggers.put(name, trigger);
+        put(name, trigger);
 
         this.registerEvent(plugin, event, trigger);
 
         return true;
-    }
-
-    /**
-     * Find and return Custom Trigger with the 'name'
-     *
-     * @param name
-     * @return null if no such trigger with that name; CustomTrigger if found
-     */
-    public CustomTrigger getTriggerForName(String name) {
-        return triggers.get(name);
     }
 
 //    /**
@@ -247,37 +185,33 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 //        return triggerMap.get(clazz);
 //    }
 
-    /**
-     * Delete the Custom Trigger with 'name'
-     *
-     * @param name
-     * @return false if no such trigger exists with 'name'; true if deleted
-     */
-    public boolean removeTriggerForName(String name) {
-        if (!triggers.containsKey(name))
-            return false;
-
-        CustomTrigger trigger = triggers.remove(name);
-
-        unregisterEvent(plugin, trigger);
-
-        deleteInfo(trigger);
-
-        return true;
-    }
 
     @Override
-    protected void deleteInfo(CustomTrigger trigger) {
-        FileUtil.delete(new File(trigger.getFile().getParent(), trigger.getTriggerName() + ".yml"));
-        super.deleteInfo(trigger);
-    }
-
-    public AbstractCustomTriggerManager(TriggerReactorCore core, SelfReference ref, File tirggerFolder) {
-        super(core, tirggerFolder);
+    public CustomTrigger remove(String name) {
+        CustomTrigger remove = super.remove(name);
+        unregisterEvent(plugin, remove);
+        return remove;
     }
 
     @FunctionalInterface
     public interface EventHook {
         void onEvent(Object e);
+    }
+
+    public interface EventRegistry {
+
+        boolean eventExist(String eventStr);
+
+        /**
+         * First it tries to return Event in ABBREVIATIONS if such name exists. If it wasn't found, then it simply
+         * treat the eventStr as full class name and try to get the Event using {@link Class#forName(String)} method.
+         * ex) 1. onJoin -> 2. org.bukkit.event.player.PlayerJoinEvent
+         *
+         * @param eventStr name of event to search
+         * @return the event class
+         * @throws ClassNotFoundException throws if search fails or the result event is
+         *                                a event that cannot receive events (abstract events).
+         */
+        Class<?> getEvent(String eventStr) throws ClassNotFoundException;
     }
 }

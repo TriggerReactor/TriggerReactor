@@ -20,137 +20,84 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractInventoryTriggerManager extends AbstractTriggerManager<InventoryTrigger> {
+public abstract class AbstractInventoryTriggerManager<T extends IItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     protected static final String ITEMS = "Items";
     protected static final String SIZE = "Size";
 
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    @Override
-    public void reload() {
-        FileFilter filter = new FileFilter() {
+    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<T> itemClass) {
+        super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".yml");
-            }
-        };
+            public InventoryTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+                int size = info.getConfig().get(SIZE, Integer.class)
+                        .filter(s -> s != 0 && s % 9 == 0)
+                        .filter(s -> s <= InventoryTrigger.MAXSIZE)
+                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
+                Map<Integer, IItemStack> items = new HashMap<>();
 
-        for (File ymlfile : folder.listFiles(filter)) {
-            String triggerName = extractName(ymlfile);
+                if (!info.getConfig().isSection(ITEMS))
+                    throw new InvalidTrgConfigurationException("Items should be an object", info.getConfig());
 
-            File triggerFile = getTriggerFile(folder, triggerName, false);
+                for (int i = 0; i < size; i++) {
+                    final int itemIndex = i;
+                    info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item -> items.put(itemIndex, item));
+                }
 
-            if (!triggerFile.exists()) {
-                plugin.getLogger().warning(triggerFile + " does not exists!");
-                plugin.getLogger().warning(triggerFile + " is skipped.");
-                continue;
-            }
-
-            if (triggerFile.isDirectory()) {
-                plugin.getLogger().warning(triggerFile + " should be a file not a directory!");
-                plugin.getLogger().warning(triggerFile + " is skipped.");
-                continue;
-            }
-
-            int size = 0;
-            Map<Integer, IItemStack> items = null;
-            try {
-                size = getData(ymlfile, SIZE, 0);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-
-            if (size == 0 || size % 9 != 0) {
-                plugin.getLogger().warning("Could not load inventory trigger " + triggerName);
-                plugin.getLogger().warning("Size: does not exists or not multiple of 9!");
-                continue;
-            }
-            if (size > InventoryTrigger.MAXSIZE) {
-                plugin.getLogger().warning("Could not load inventory trigger " + triggerName);
-                plugin.getLogger().warning("Size: cannot be larger than " + InventoryTrigger.MAXSIZE);
-                continue;
-            }
-
-            try {
-                items = this.getData(ymlfile, ITEMS);
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-
-            if (items == null) {
-                plugin.getLogger().warning("Could not find Items: for inventory trigger " + triggerName);
-                continue;
-            }
-
-            String script = null;
-            try {
-                script = FileUtil.readFromFile(triggerFile);
-            } catch (IOException e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Could not load inventory trigger " + triggerName);
-                continue;
-            }
-
-            InventoryTrigger trigger = null;
-            try {
-                trigger = new InventoryTrigger(size, triggerName, items, triggerFile, script);
-                //trigger.setSync(isSync);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                plugin.getLogger().warning("Could not load inventory trigger " + triggerName);
-                continue;
-            }
-
-            triggers.put(triggerName, trigger);
-        }
-    }
-
-    @Override
-    public void saveAll() {
-        for (Entry<String, InventoryTrigger> entry : triggers.entrySet()) {
-            String triggerName = entry.getKey();
-            InventoryTrigger trigger = entry.getValue();
-
-            File yamlFile = new File(folder, triggerName + ".yml");
-            File triggerFile = getTriggerFile(folder, triggerName, true);
-
-            if (!yamlFile.exists()) {
                 try {
-                    yamlFile.createNewFile();
-                } catch (IOException e) {
+                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
+                    IItemStack[] itemArray = new IItemStack[size];
+                    for (int i = 0; i < size; i++)
+                        itemArray[i] = items.getOrDefault(i, null);
+                    return new InventoryTrigger(info, script, itemArray);
+                } catch (Exception e) {
                     e.printStackTrace();
+                    return null;
                 }
             }
 
-            try {
-                this.setData(yamlFile, SIZE, trigger.getItems().length);
-                this.setData(yamlFile, ITEMS, trigger.getItems());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            @Override
+            public void save(InventoryTrigger trigger) {
+                IItemStack[] items = trigger.items;
+                int size = trigger.items.length;
 
-            try {
-                FileUtil.writeToFile(triggerFile, trigger.getScript());
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                plugin.getLogger().warning("Could not save " + triggerName);
+                trigger.getInfo().getConfig().put(SIZE, size);
+                for (int i = 0; i < items.length; i++) {
+                    IItemStack item = items[i];
+                    if (item == null)
+                        continue;
+
+                    trigger.getInfo().getConfig().put(ITEMS + "." + i, item);
+                }
             }
-        }
+        });
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+
+        // the serializer for ItemStack differ for each platform, so just verify that we do have it
+        GsonConfigSource.assertSerializable(IItemStack.class);
     }
 
     /**
@@ -159,7 +106,7 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
     public IInventory openGUI(IPlayer player, String name) {
-        InventoryTrigger trigger = triggers.get(name);
+        InventoryTrigger trigger = get(name);
         if (trigger == null)
             return null;
 
@@ -189,14 +136,6 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
     protected abstract IInventory createInventory(int size, String name);
 
     /**
-     * @param name
-     * @return null if not exists
-     */
-    public InventoryTrigger getTriggerForName(String name) {
-        return triggers.get(name);
-    }
-
-    /**
      * @param name this can contain color code &, but you should specify exact
      *             name for the title.
      * @return true on success; false if already exist
@@ -206,32 +145,22 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
      */
     public boolean createTrigger(int size, String name, String script)
             throws TriggerInitFailedException {
-        if (triggers.containsKey(name))
+        if (has(name))
             return false;
 
-        File triggerFile = getTriggerFile(folder, name, true);
-        triggers.put(name, new InventoryTrigger(size, name, new HashMap<>(), triggerFile, script));
-
-        return true;
-    }
-
-    /**
-     * @param name
-     * @return true on success; false if not exists
-     */
-    public boolean deleteTrigger(String name) {
-        if (!triggers.containsKey(name))
-            return false;
-
-        deleteInfo(triggers.remove(name));
+        File file = getTriggerFile(folder, name, true);
+        IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+        put(name, new InventoryTrigger(info, script, size, new HashMap<>()));
 
         return true;
     }
 
     @Override
-    protected void deleteInfo(InventoryTrigger trigger) {
-        FileUtil.delete(new File(trigger.getFile().getParent(), trigger.getTriggerName() + ".yml"));
-        super.deleteInfo(trigger);
+    public InventoryTrigger remove(String name) {
+        InventoryTrigger remove = super.remove(name);
+        deleteInfo(remove);
+        return remove;
     }
 
     /**
@@ -269,10 +198,6 @@ public abstract class AbstractInventoryTriggerManager extends AbstractTriggerMan
 
     public Map<String, Object> getSharedVarsForInventory(IInventory inventory) {
         return inventorySharedVars.get(inventory);
-    }
-
-    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
-        super(plugin, tirggerFolder);
     }
 
 }

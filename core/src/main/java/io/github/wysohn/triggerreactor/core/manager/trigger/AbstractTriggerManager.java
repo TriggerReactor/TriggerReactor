@@ -79,16 +79,16 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return triggers.get(name);
     }
 
-    public boolean has(String cmd) {
-        return triggers.containsKey(cmd);
+    public boolean has(String name) {
+        return triggers.containsKey(name);
     }
 
-    protected T put(String name, T t) {
+    public T put(String name, T t) {
         t.setObserver(observer);
         return triggers.put(name, t);
     }
 
-    protected T remove(String name) {
+    public T remove(String name) {
         T deleted = triggers.remove(name);
 
         //TODO File I/O need to be done asynchronously
@@ -158,6 +158,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     private class Observer implements IObserver {
         @Override
         public void onUpdate(IObservable observable) {
+            //TODO need to be done async (file I/O)
             loader.save((T) observable);
         }
     }

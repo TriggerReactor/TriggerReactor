@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.core.manager.config;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 
 import java.io.File;
 
@@ -13,7 +13,7 @@ public class ConfigManager extends Manager implements IMigratable {
     public ConfigManager(TriggerReactorCore plugin, File file) {
         super(plugin);
         this.file = file;
-        this.configSource = new GsonConfigSource(file);
+        this.configSource = ConfigSourceFactory.gson(file);
     }
 
     @Override
