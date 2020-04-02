@@ -34,15 +34,19 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
+    private static final String SYNC = "sync";
+    private static final String PERMISSION = "permissions";
+    private static final String ALIASES = "aliases";
+
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
             @Override
             public CommandTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
-                boolean sync = info.getConfig().get("sync", Boolean.class).orElse(false);
-                List<String> permissions = info.getConfig().get("permissions", List.class).orElse(new ArrayList<>());
-                List<String> aliases = info.getConfig().get("aliases", List.class).orElse(new ArrayList<>());
+                boolean sync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
+                List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
+                List<String> aliases = info.getConfig().get(ALIASES, List.class).orElse(new ArrayList<>());
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -61,9 +65,9 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                    trigger.getInfo().getConfig().put("sync", trigger.isSync());
-                    trigger.getInfo().getConfig().put("permissions", trigger.getPermissions());
-                    trigger.getInfo().getConfig().put("aliases", trigger.getAliases());
+                    trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
+                    trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
+                    trigger.getInfo().getConfig().put(ALIASES, trigger.getAliases());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

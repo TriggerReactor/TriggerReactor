@@ -59,11 +59,14 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
             @Override
             public void save(CustomTrigger trigger) {
-                String eventName = trigger.getEventName();
-                boolean isSync = trigger.isSync();
+                try {
+                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                trigger.getInfo().getConfig().put(EVENT, eventName);
-                trigger.getInfo().getConfig().put(SYNC, isSync);
+                    trigger.getInfo().getConfig().put(EVENT, trigger.getEventName());
+                    trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
