@@ -77,16 +77,22 @@ public abstract class AbstractInventoryTriggerManager<T extends IItemStack> exte
 
             @Override
             public void save(InventoryTrigger trigger) {
-                IItemStack[] items = trigger.items;
-                int size = trigger.items.length;
+                try {
+                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                trigger.getInfo().getConfig().put(SIZE, size);
-                for (int i = 0; i < items.length; i++) {
-                    IItemStack item = items[i];
-                    if (item == null)
-                        continue;
+                    IItemStack[] items = trigger.items;
+                    int size = trigger.items.length;
 
-                    trigger.getInfo().getConfig().put(ITEMS + "." + i, item);
+                    trigger.getInfo().getConfig().put(SIZE, size);
+                    for (int i = 0; i < items.length; i++) {
+                        IItemStack item = items[i];
+                        if (item == null)
+                            continue;
+
+                        trigger.getInfo().getConfig().put(ITEMS + "." + i, item);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
