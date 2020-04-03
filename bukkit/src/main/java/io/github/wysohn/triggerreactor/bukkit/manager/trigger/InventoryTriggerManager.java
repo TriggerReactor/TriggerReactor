@@ -53,9 +53,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 
-public class InventoryTriggerManager extends AbstractInventoryTriggerManager<BukkitItemStack> implements BukkitTriggerManager {
+public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements BukkitTriggerManager {
     public InventoryTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), BukkitItemStack.class);
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class);
     }
 
     @Override

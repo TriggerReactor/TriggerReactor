@@ -38,14 +38,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractInventoryTriggerManager<T extends IItemStack> extends AbstractTriggerManager<InventoryTrigger> {
+public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     protected static final String ITEMS = "Items";
     protected static final String SIZE = "Size";
 
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<T> itemWrapperClass) {
+    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<ItemStack> itemClass) {
         super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override
             public InventoryTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
@@ -60,7 +60,8 @@ public abstract class AbstractInventoryTriggerManager<T extends IItemStack> exte
 
                 for (int i = 0; i < size; i++) {
                     final int itemIndex = i;
-                    info.getConfig().get(ITEMS + "." + i, itemWrapperClass).ifPresent(item -> items.put(itemIndex, item));
+                    info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item ->
+                            items.put(itemIndex, plugin.getWrapper().wrap(item)));
                 }
 
                 try {
@@ -96,14 +97,9 @@ public abstract class AbstractInventoryTriggerManager<T extends IItemStack> exte
                 }
             }
         });
-    }
-
-    @Override
-    public void reload() {
-        super.reload();
 
         // the serializer for ItemStack differ for each platform, so just verify that we have registered it
-        GsonConfigSource.assertSerializable(IItemStack.class);
+        GsonConfigSource.assertSerializable(itemClass);
     }
 
     /**
