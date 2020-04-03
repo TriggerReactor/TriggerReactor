@@ -1100,7 +1100,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        getRepeatManager().deleteTrigger(name);
+                        getRepeatManager().remove(name);
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
                         sendDetails(sender, "&4Quick create is not supported.");

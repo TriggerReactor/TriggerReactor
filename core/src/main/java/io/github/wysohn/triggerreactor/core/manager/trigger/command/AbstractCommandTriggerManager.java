@@ -51,6 +51,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     CommandTrigger trigger = new CommandTrigger(info, script);
+                    trigger.setSync(sync);
                     trigger.setPermissions(permissions.toArray(new String[0]));
                     trigger.setAliases(aliases.toArray(new String[0]));
                     return trigger;

@@ -50,7 +50,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
             items[i] = iitems[i].get();
         }
 
-        Inventory inv = Bukkit.createInventory(null, items.length, trigger.getTriggerName());
+        Inventory inv = Bukkit.createInventory(null, items.length, trigger.getInfo().getTriggerName());
         inv.setContents(items);
         player.openInventory(new BukkitInventory(inv));
     }

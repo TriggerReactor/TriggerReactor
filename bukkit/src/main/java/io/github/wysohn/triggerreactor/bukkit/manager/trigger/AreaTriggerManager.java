@@ -25,7 +25,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -230,13 +229,5 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         getAreaForLocation(sloc).stream()
                 .map(Map.Entry::getValue)
                 .forEach((trigger) -> trigger.removeEntity(e.getEntity().getUniqueId()));
-    }
-
-    @Override
-    protected void deleteInfo(AreaTrigger trigger) {
-        File areafile = new File(folder, trigger.getTriggerName() + ".yml");
-        FileUtil.delete(areafile);
-        File areafolder = new File(folder, trigger.getTriggerName());
-        FileUtil.delete(areafolder);
     }
 }

@@ -45,7 +45,7 @@ public abstract class AbstractInventoryTriggerManager<T extends IItemStack> exte
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<T> itemClass) {
+    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<T> itemWrapperClass) {
         super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override
             public InventoryTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
@@ -60,7 +60,7 @@ public abstract class AbstractInventoryTriggerManager<T extends IItemStack> exte
 
                 for (int i = 0; i < size; i++) {
                     final int itemIndex = i;
-                    info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item -> items.put(itemIndex, item));
+                    info.getConfig().get(ITEMS + "." + i, itemWrapperClass).ifPresent(item -> items.put(itemIndex, item));
                 }
 
                 try {
@@ -102,7 +102,7 @@ public abstract class AbstractInventoryTriggerManager<T extends IItemStack> exte
     public void reload() {
         super.reload();
 
-        // the serializer for ItemStack differ for each platform, so just verify that we do have it
+        // the serializer for ItemStack differ for each platform, so just verify that we have registered it
         GsonConfigSource.assertSerializable(IItemStack.class);
     }
 

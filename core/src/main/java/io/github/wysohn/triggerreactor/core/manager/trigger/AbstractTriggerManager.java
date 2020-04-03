@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
@@ -27,6 +28,7 @@ import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,20 +38,36 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     protected final File folder;
     protected final ITriggerLoader<T> loader;
+    protected final BiFunction<File, String, IConfigSource> configSourceFactory;
 
     public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin);
         this.folder = folder;
         this.loader = loader;
+        this.configSourceFactory = ConfigSourceFactory::gson;
+    }
+
+    public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader,
+                                  BiFunction<File, String, IConfigSource> configSourceFactory) {
+        super(plugin);
+        this.folder = folder;
+        this.loader = loader;
+        this.configSourceFactory = configSourceFactory;
     }
 
     @Override
     public void reload() {
         triggers.clear();
 
-        for (TriggerInfo info : loader.listTriggers(folder, ConfigSourceFactory::gson)) {
+        for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
             try {
-                Optional.ofNullable(loader.instantiateTrigger(info)).ifPresent(t -> put(info.getTriggerName(), t));
+                Optional.ofNullable(loader.instantiateTrigger(info)).ifPresent(t -> {
+                    if (has(info.getTriggerName())) {
+                        plugin.getLogger().warning(info + " is already registered! Duplicated Trigger?");
+                    } else {
+                        put(info.getTriggerName(), t);
+                    }
+                });
             } catch (InvalidTrgConfigurationException e) {
                 e.printStackTrace();
             }

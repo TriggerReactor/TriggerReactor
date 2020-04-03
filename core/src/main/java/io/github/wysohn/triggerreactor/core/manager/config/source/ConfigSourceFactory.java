@@ -3,8 +3,32 @@ package io.github.wysohn.triggerreactor.core.manager.config.source;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 
 import java.io.File;
+import java.util.Optional;
+import java.util.Set;
 
 public class ConfigSourceFactory {
+
+    /**
+     * Create empty datasource. This is useful if the Trigger do not have config file.
+     *
+     * @param folder
+     * @param fileName
+     * @return the datasource which does nothing.
+     */
+    public static IConfigSource none(File folder, String fileName) {
+        return new EmptyConfigSource();
+    }
+
+    /**
+     * Create empty datasource. This is useful if the Trigger do not have config file.
+     *
+     * @param file
+     * @return the datasource which does nothing.
+     */
+    public static IConfigSource none(File file) {
+        return new EmptyConfigSource();
+    }
+
     /**
      * Create a Gson based datasource.
      *
@@ -32,5 +56,52 @@ public class ConfigSourceFactory {
             throw new RuntimeException("it must be a file.");
 
         return new GsonConfigSource(file);
+    }
+
+    private static class EmptyConfigSource implements IConfigSource {
+        @Override
+        public <T> Optional<T> get(String key, Class<T> asType) {
+            return Optional.empty();
+        }
+
+        @Override
+        public <T> Optional<T> get(String key) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void put(String key, Object value) {
+
+        }
+
+        @Override
+        public Set<String> keys() {
+            return null;
+        }
+
+        @Override
+        public boolean isSection(String key) {
+            return false;
+        }
+
+        @Override
+        public void reload() {
+
+        }
+
+        @Override
+        public void saveAll() {
+
+        }
+
+        @Override
+        public void disable() {
+
+        }
+
+        @Override
+        public void delete() {
+
+        }
     }
 }

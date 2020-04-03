@@ -16,6 +16,11 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import copy.com.google.gson.JsonDeserializationContext;
+import copy.com.google.gson.JsonElement;
+import copy.com.google.gson.JsonParseException;
+import copy.com.google.gson.JsonSerializationContext;
+import copy.com.google.gson.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
@@ -23,14 +28,16 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.config.serialize.Serializer;
+import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -43,14 +50,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
 
-public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements BukkitTriggerManager {
+public class InventoryTriggerManager extends AbstractInventoryTriggerManager<BukkitItemStack> implements BukkitTriggerManager {
     public InventoryTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), BukkitItemStack.class);
     }
 
     @Override
@@ -261,17 +266,32 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     }
 
     @Override
-    protected void deleteInfo(InventoryTrigger trigger) {
-        File yamlFile = new File(folder, trigger.getTriggerName() + ".yml");
-        FileUtil.delete(yamlFile);
-        File triggerFile = new File(folder, trigger.getTriggerName());
-        FileUtil.delete(triggerFile);
-    }
-
-    @Override
     protected IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
         name = ChatColor.translateAlternateColorCodes('&', name);
         return new BukkitInventory(Bukkit.createInventory(null, size, name));
+    }
+
+    static {
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, new Serializer<ItemStack>() {
+            @Override
+            public ItemStack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                Map<String, Object> ser = context.deserialize(json, new TypeToken<Map<String, Object>>() {
+                }.getType());
+                try {
+                    return (ItemStack) ConfigurationSerialization.deserializeObject(ser);
+                } catch (IllegalArgumentException ex) {
+                    throw new JsonParseException(ex);
+                }
+            }
+
+            @Override
+            public JsonElement serialize(ItemStack src, Type typeOfSrc, JsonSerializationContext context) {
+                Map<String, Object> ser = new LinkedHashMap<>();
+                ser.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(src.getClass()));
+                ser.putAll(src.serialize());
+                return context.serialize(ser);
+            }
+        });
     }
 }
