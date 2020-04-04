@@ -16,27 +16,13 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
-import java.io.IOException;
 
 public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements BukkitTriggerManager {
     public RepeatingTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
-    }
-
-    @Override
-    protected void saveInfo(RepeatingTrigger trigger) throws IOException {
-        Utf8YamlConfiguration yaml = new Utf8YamlConfiguration();
-        yaml.set("AutoStart", false);
-        yaml.set("Interval", trigger.getInterval());
-        yaml.save(new File(folder, trigger.getTriggerName() + ".yml"));
-
-        FileUtil.writeToFile(new File(folder, trigger.getTriggerName()), trigger.getScript());
     }
 }

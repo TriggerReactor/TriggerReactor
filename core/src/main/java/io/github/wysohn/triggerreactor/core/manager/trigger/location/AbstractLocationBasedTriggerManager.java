@@ -90,12 +90,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return new SimpleLocation(world, x, y, z);
     }
 
-    protected abstract T constructTrigger(String slocString, String script) throws TriggerInitFailedException;
-
-    protected T constructTrigger(SimpleLocation sloc, String script) throws TriggerInitFailedException {
-        return constructTrigger(sloc.toString(), script);
-    }
-
     protected abstract String getTriggerTypeName();
 
     protected T getTriggerForLocation(SimpleLocation sloc) {

@@ -2,6 +2,9 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import java.io.File;
 
+/**
+ * @deprecated Use {@link TriggerInfo#getConfig()}
+ */
 public interface ConfigurationFileIO {
     /**
      * Get data from yml file. It may not needed depends on the trigger type.
@@ -12,6 +15,7 @@ public interface ConfigurationFileIO {
      * @param key  yml key
      * @param def  default value if key does not exists
      * @return the value
+     * @deprecated Use {@link TriggerInfo#getConfig()}
      */
     <T> T getData(File file, String key, T def) throws Exception;
 
@@ -22,6 +26,7 @@ public interface ConfigurationFileIO {
      * @param key
      * @param value
      * @return
+     * @deprecated Use {@link TriggerInfo#getConfig()}
      */
     void setData(File file, String key, Object value) throws Exception;
 }

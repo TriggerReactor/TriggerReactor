@@ -271,7 +271,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -359,7 +359,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
