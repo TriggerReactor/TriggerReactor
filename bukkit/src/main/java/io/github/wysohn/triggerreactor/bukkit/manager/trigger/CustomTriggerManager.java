@@ -160,18 +160,4 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
             HandlerList.unregisterAll(listener);
         }
     }
-
-    @Override
-    protected Class<?> getEventFromName(String name) throws ClassNotFoundException {
-        Class<? extends Event> event;
-        if (ABBREVIATIONS.containsKey(name)) {
-            event = ABBREVIATIONS.get(name);
-        } else if (EVENTS.containsKey(name)) {
-            event = EVENTS.get(name);
-        } else {
-            event = (Class<? extends Event>) Class.forName(name);
-        }
-
-        return event;
-    }
 }

@@ -16,9 +16,16 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
+import copy.com.google.gson.JsonDeserializationContext;
+import copy.com.google.gson.JsonElement;
+import copy.com.google.gson.JsonParseException;
+import copy.com.google.gson.JsonSerializationContext;
+import copy.com.google.gson.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.config.serialize.Serializer;
+import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
@@ -26,13 +33,14 @@ import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -52,13 +60,14 @@ import org.spongepowered.api.util.TypeTokens;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InventoryTriggerManager extends AbstractInventoryTriggerManager implements SpongeConfigurationFileIO {
-    public InventoryTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"));
+public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements SpongeConfigurationFileIO {
+    public InventoryTriggerManager(TriggerReactorCore plugin, File folder) {
+        super(plugin, folder, ItemStack.class);
     }
 
     @Override
@@ -270,14 +279,6 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
     }
 
     @Override
-    protected void deleteInfo(InventoryTrigger trigger) {
-        File yamlFile = new File(folder, trigger.getTriggerName() + ".yml");
-        FileUtil.delete(yamlFile);
-        File triggerFile = new File(folder, trigger.getTriggerName());
-        FileUtil.delete(triggerFile);
-    }
-
-    @Override
     protected IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
         Text text = TextUtil.colorStringToText(name);
@@ -312,5 +313,27 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
             return uniqueObject.equals(((DummyCarrier) obj).uniqueObject);
         }
+    }
+
+    static {
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, new Serializer<ItemStack>() {
+            @Override
+            public ItemStack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+                Map<String, Object> ser = context.deserialize(json, new TypeToken<Map<String, Object>>() {
+                }.getType());
+                DataContainer container = DataContainer.createNew();
+                ser.forEach((s, o) -> container.set(DataQuery.of(".", s), o));
+                return Sponge.getDataManager().deserialize(ItemStack.class, container)
+                        .orElseThrow(() -> new RuntimeException("Cannot deserialized [" + ser + "] to ItemStack."));
+            }
+
+            @Override
+            public JsonElement serialize(ItemStack src, Type typeOfSrc, JsonSerializationContext context) {
+                DataContainer container = src.toContainer();
+                Map<String, Object> map = new HashMap<>();
+                container.getValues(true).forEach((dataQuery, o) -> map.put(dataQuery.toString(), o));
+                return context.serialize(map);
+            }
+        });
     }
 }

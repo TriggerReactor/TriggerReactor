@@ -17,7 +17,11 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.type.HandTypes;
 import org.spongepowered.api.entity.living.player.Player;
@@ -29,27 +33,42 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> {
     public ClickTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, "ClickTrigger");
-    }
-
-    @Override
-    protected ClickTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
-        File triggerFile = getTriggerFile(folder, slocstr, true);
-        return new ClickTrigger(slocstr, triggerFile, script, new ClickHandler() {
+        super(plugin, "ClickTrigger", new ITriggerLoader<ClickTrigger>() {
             @Override
-            public boolean allow(Object context) {
-                if (context instanceof InteractBlockEvent) {
-                    return context instanceof InteractBlockEvent.Primary.MainHand
-                            || context instanceof InteractBlockEvent.Secondary.MainHand;
-                }
+            public ClickTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+                try {
+                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
+                    ClickTrigger trigger = new ClickTrigger(info, script, new ClickHandler() {
+                        @Override
+                        public boolean allow(Object context) {
+                            if (context instanceof InteractBlockEvent) {
+                                return context instanceof InteractBlockEvent.Primary.MainHand
+                                        || context instanceof InteractBlockEvent.Secondary.MainHand;
+                            }
 
-                return true;
+                            return true;
+                        }
+                    });
+                    return trigger;
+                } catch (TriggerInitFailedException | IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            public void save(ClickTrigger trigger) {
+                try {
+                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
     }

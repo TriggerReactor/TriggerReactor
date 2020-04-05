@@ -114,7 +114,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         }
         sessions.put(u, trigger);
         int size = trigger.getItems().length;
-        Inventory inv = createInventory(size, trigger.getTriggerName());
+        Inventory inv = createInventory(size, trigger.getInfo().getTriggerName());
         fillInventory(trigger, size, inv);
         player.openInventory(new SpongeInventory(inv, null));
     }
@@ -190,7 +190,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         InventoryTrigger trigger = sessions.get(u);
 
         int size = gridInv.capacity();
-        Inventory newInv = createInventory(size, trigger.getTriggerName());
+        Inventory newInv = createInventory(size, trigger.getInfo().getTriggerName());
         GridInventory newGrid = newInv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
 
         for (int i = 0; i < size; i++) {

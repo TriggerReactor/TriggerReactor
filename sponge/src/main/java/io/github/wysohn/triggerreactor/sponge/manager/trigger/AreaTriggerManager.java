@@ -25,7 +25,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongeEntity;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.event.Listener;
@@ -198,13 +197,5 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Sp
         getAreaForLocation(sloc).stream()
                 .map(Entry::getValue)
                 .forEach((trigger) -> trigger.removeEntity(e.getTargetEntity().getUniqueId()));
-    }
-
-    @Override
-    protected void deleteInfo(AreaTrigger trigger) {
-        File areafile = new File(folder, trigger.getTriggerName() + ".yml");
-        FileUtil.delete(areafile);
-        File areafolder = new File(folder, trigger.getTriggerName());
-        FileUtil.delete(areafolder);
     }
 }

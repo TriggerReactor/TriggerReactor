@@ -82,54 +82,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         }
     }
 
-//    /**
-//     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
-//     *  if couldn't find existing one already, and register it so can handle the event.
-//     * @param eventname full name of the event
-//     * @return Set of CustomTriggers associated with the event
-//     */
-//    protected Set<CustomTrigger> getTriggerSetForEvent(String eventname) {
-//        Class<?> event;
-//        try {
-//            event = Class.forName(eventname);
-//        } catch (ClassNotFoundException e) {
-//            return new HashSet<>();
-//        }
-//
-//        return getTriggerSetForEvent(event);
-//    }
-
-    /**
-     * First it tries to return Event in ABBREVIATIONS if such name exists; if
-     * not exists, then it will try to find event by event name; if it fails
-     * too, will look for full class name.
-     * ex) 1. onJoin -> 2. PlayerJoinEvent -> 3. org.bukkit.event.player.PlayerJoinEvent
-     *
-     * @param name name of event to search
-     * @return the event class
-     * @throws ClassNotFoundException throws if search fails or the result event is
-     *                                a event that cannot receive events.
-     */
-    protected abstract Class<?> getEventFromName(String name) throws ClassNotFoundException;
-
-//    /**
-//     * Try to get set of Triggers associated with the event. It creates and puts new empty Set
-//     *  if couldn't find existing one already, and register it so can handle the event.
-//     * @param event
-//     * @return Set of CustomTriggers associated with the event
-//     */
-//    protected Set<CustomTrigger> getTriggerSetForEvent(Class<?> event) {
-//        Set<CustomTrigger> triggers = triggerMap.get(event);
-//        if(triggers == null){
-//            //this will allow TriggerReactor to hook events from other plugins as well.
-//            registerEvent(plugin, event, eventHook);
-//
-//            triggers = new HashSet<>();
-//            triggerMap.put(event, triggers);
-//        }
-//        return triggers;
-//    }
-
     /**
      * Hook event to handle it manually.
      *
