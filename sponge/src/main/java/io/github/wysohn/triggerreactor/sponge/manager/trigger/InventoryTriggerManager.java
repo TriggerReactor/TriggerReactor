@@ -29,15 +29,8 @@ import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSour
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
-import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
-import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
 import org.spongepowered.api.data.DataQuery;
@@ -56,89 +49,87 @@ import org.spongepowered.api.item.inventory.transaction.SlotTransaction;
 import org.spongepowered.api.item.inventory.type.CarriedInventory;
 import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.util.TypeTokens;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements SpongeConfigurationFileIO {
-    public InventoryTriggerManager(TriggerReactorCore plugin, File folder) {
-        super(plugin, folder, ItemStack.class);
+    public InventoryTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class);
     }
 
-    @Override
-    public <T> T getData(File file, String key, T def) throws IOException {
-        if (key.equals(ITEMS)) {
-            int size = getData(file, SIZE, 0);
-            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-            ConfigurationNode conf = loader.load();
-
-            Map<Integer, IItemStack> items = new HashMap<>();
-
-            ConfigurationNode node = ConfigurationUtil.getNodeByKeyString(conf, ITEMS);
-            if (node != null)
-                parseItemsList(node, items, size);
-
-            return (T) items;
-        } else {
-            return SpongeConfigurationFileIO.super.getData(file, key, def);
-        }
-    }
-
-    @Override
-    public void setData(File file, String key, Object value) throws IOException {
-        if (key.equals(ITEMS)) {
-            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-            ConfigurationNode conf = loader.load();
-
-            IItemStack[] items = (IItemStack[]) value;
-
-            writeItemsList(ConfigurationUtil.getNodeByKeyString(conf, ITEMS), items);
-
-            loader.save(conf);
-        } else {
-            SpongeConfigurationFileIO.super.setData(file, key, value);
-        }
-    }
-
-    private void parseItemsList(ConfigurationNode itemSection, Map<Integer, IItemStack> items, int size) {
-        for (int i = 0; i < size; i++) {
-            ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-            if (section.isVirtual())
-                continue;
-
-            ItemStackSnapshot IS;
-            try {
-                IS = section.getValue(TypeTokens.ITEM_SNAPSHOT_TOKEN);
-            } catch (ObjectMappingException e) {
-                e.printStackTrace();//temp
-                continue;
-            }
-
-            items.put(i, new SpongeItemStack(IS.createStack()));
-        }
-    }
-
-    private void writeItemsList(ConfigurationNode itemSection, IItemStack[] items) {
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] == null)
-                continue;
-
-            ItemStack item = items[i].get();
-
-            ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-            try {
-                section.setValue(TypeTokens.ITEM_SNAPSHOT_TOKEN, item.createSnapshot());
-            } catch (ObjectMappingException e) {
-                e.printStackTrace();//temp
-                continue;
-            }
-        }
-    }
+//    @Override
+//    public <T> T getData(File file, String key, T def) throws IOException {
+//        if (key.equals(ITEMS)) {
+//            int size = getData(file, SIZE, 0);
+//            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+//            ConfigurationNode conf = loader.load();
+//
+//            Map<Integer, IItemStack> items = new HashMap<>();
+//
+//            ConfigurationNode node = ConfigurationUtil.getNodeByKeyString(conf, ITEMS);
+//            if (node != null)
+//                parseItemsList(node, items, size);
+//
+//            return (T) items;
+//        } else {
+//            return SpongeConfigurationFileIO.super.getData(file, key, def);
+//        }
+//    }
+//
+//    @Override
+//    public void setData(File file, String key, Object value) throws IOException {
+//        if (key.equals(ITEMS)) {
+//            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+//            ConfigurationNode conf = loader.load();
+//
+//            IItemStack[] items = (IItemStack[]) value;
+//
+//            writeItemsList(ConfigurationUtil.getNodeByKeyString(conf, ITEMS), items);
+//
+//            loader.save(conf);
+//        } else {
+//            SpongeConfigurationFileIO.super.setData(file, key, value);
+//        }
+//    }
+//
+//    private void parseItemsList(ConfigurationNode itemSection, Map<Integer, IItemStack> items, int size) {
+//        for (int i = 0; i < size; i++) {
+//            ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
+//            if (section.isVirtual())
+//                continue;
+//
+//            ItemStackSnapshot IS;
+//            try {
+//                IS = section.getValue(TypeTokens.ITEM_SNAPSHOT_TOKEN);
+//            } catch (ObjectMappingException e) {
+//                e.printStackTrace();//temp
+//                continue;
+//            }
+//
+//            items.put(i, new SpongeItemStack(IS.createStack()));
+//        }
+//    }
+//
+//    private void writeItemsList(ConfigurationNode itemSection, IItemStack[] items) {
+//        for (int i = 0; i < items.length; i++) {
+//            if (items[i] == null)
+//                continue;
+//
+//            ItemStack item = items[i].get();
+//
+//            ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
+//            try {
+//                section.setValue(TypeTokens.ITEM_SNAPSHOT_TOKEN, item.createSnapshot());
+//            } catch (ObjectMappingException e) {
+//                e.printStackTrace();//temp
+//                continue;
+//            }
+//        }
+//    }
 
     /**
      * @param player

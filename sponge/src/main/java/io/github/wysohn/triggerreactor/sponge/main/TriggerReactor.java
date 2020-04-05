@@ -688,7 +688,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -790,7 +790,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
