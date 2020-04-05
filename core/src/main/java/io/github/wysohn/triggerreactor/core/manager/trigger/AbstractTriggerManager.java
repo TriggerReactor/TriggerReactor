@@ -32,7 +32,7 @@ import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractTriggerManager<T extends Trigger> extends Manager implements ConfigurationFileIO {
+public abstract class AbstractTriggerManager<T extends Trigger> extends Manager {
     private final Observer observer = new Observer();
     private Map<String, T> triggers = new ConcurrentHashMap<>();
 
@@ -79,10 +79,6 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         for (T trigger : triggers.values()) {
             loader.save(trigger);
         }
-    }
-
-    protected <TYPE> TYPE getData(File file, String key) throws Exception {
-        return getData(file, key, null);
     }
 
     /**

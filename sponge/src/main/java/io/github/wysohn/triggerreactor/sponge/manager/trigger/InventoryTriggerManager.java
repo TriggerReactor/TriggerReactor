@@ -56,7 +56,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements SpongeConfigurationFileIO {
+public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> {
     public InventoryTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class);
     }

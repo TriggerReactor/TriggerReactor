@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRe
 
 import java.io.File;
 
-public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements SpongeConfigurationFileIO {
+public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager {
     public RepeatingTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
     }

@@ -37,7 +37,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class CustomTriggerManager extends AbstractCustomTriggerManager implements SpongeConfigurationFileIO {
+public class CustomTriggerManager extends AbstractCustomTriggerManager {
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 

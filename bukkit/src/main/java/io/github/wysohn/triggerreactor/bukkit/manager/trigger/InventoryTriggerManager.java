@@ -22,8 +22,6 @@ import copy.com.google.gson.JsonParseException;
 import copy.com.google.gson.JsonSerializationContext;
 import copy.com.google.gson.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
-import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -35,8 +33,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,112 +45,114 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements BukkitTriggerManager {
     public InventoryTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class);
     }
 
-    @Override
-    public <T> T getData(File file, String key, T def) throws IOException {
-        if (key.equals(ITEMS)) {
-            int size = BukkitTriggerManager.super.getData(file, SIZE, 0);
-            Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
-            try {
-                conf.load(file);
-            } catch (InvalidConfigurationException e) {
-                e.printStackTrace();
-            }
-
-            Map<Integer, IItemStack> items = new HashMap<>();
-
-            if (conf.contains(ITEMS))
-                parseItemsList(conf.getConfigurationSection(ITEMS), items, size);
-
-            return (T) items;
-        } else {
-            return BukkitTriggerManager.super.getData(file, key, def);
-        }
-    }
-
-    @Override
-    public void setData(File file, String key, Object value) throws IOException {
-        if (key.equals(ITEMS)) {
-            Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
-            try {
-                conf.load(file);
-            } catch (InvalidConfigurationException e) {
-                e.printStackTrace();
-            }
-
-            IItemStack[] items = (IItemStack[]) value;
-
-            ConfigurationSection itemsSection;
-            if (conf.contains(ITEMS))
-                itemsSection = conf.getConfigurationSection(ITEMS);
-            else
-                itemsSection = conf.createSection(ITEMS);
-
-            writeItemList(itemsSection, items);
-
-            conf.save(file);
-        } else {
-            BukkitTriggerManager.super.setData(file, key, value);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void parseItemsList(ConfigurationSection itemSection, Map<Integer, IItemStack> items, int size) {
-        for (int i = 0; i < size; i++) {
-            if (itemSection.isConfigurationSection(String.valueOf(i))) { // 1.12.2 or below
-                ConfigurationSection section = itemSection.getConfigurationSection(String.valueOf(i));
-
-                Material type = Material.valueOf((String) section.get("Type", Material.DIRT.name()));
-                int amount = section.getInt("Amount", 1);
-                short data = (short) section.getInt("Data", 0);
-                ItemMeta IM = (ItemMeta) section.get("Meta");
-
-                ItemStack IS = new ItemStack(type, amount, data);
-                if (IM == null)
-                    IM = IS.getItemMeta();
-
-                if (IM != null) {
-                    //leave these for backward compatibility
-                    String title = section.getString("Title", null);
-                    Object lore = section.get("Lore", null);
-
-                    if (title != null)
-                        IM.setDisplayName(title);
-                    if (lore != null && lore instanceof List)
-                        IM.setLore((List<String>) lore);
-
-                    IS.setItemMeta(IM);
-                }
-
-                items.put(i, new BukkitItemStack(IS));
-            } else { // just leave it to bukkit
-                ItemStack IS = itemSection.getItemStack(String.valueOf(i));
-                if (IS != null) {
-                    items.put(i, new BukkitItemStack(IS));
-                }
-            }
-        }
-    }
-
-    private void writeItemList(ConfigurationSection itemSection, IItemStack[] items) {
-        for (int i = 0; i < items.length; i++) {
-            if (items[i] == null)
-                continue;
-
-            ItemStack item = items[i].get();
-
-            //leave it to bukkit
-            itemSection.set(String.valueOf(i), item);
-        }
-    }
+//    @Override
+//    public <T> T getData(File file, String key, T def) throws IOException {
+//        if (key.equals(ITEMS)) {
+//            int size = BukkitTriggerManager.super.getData(file, SIZE, 0);
+//            Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
+//            try {
+//                conf.load(file);
+//            } catch (InvalidConfigurationException e) {
+//                e.printStackTrace();
+//            }
+//
+//            Map<Integer, IItemStack> items = new HashMap<>();
+//
+//            if (conf.contains(ITEMS))
+//                parseItemsList(conf.getConfigurationSection(ITEMS), items, size);
+//
+//            return (T) items;
+//        } else {
+//            return BukkitTriggerManager.super.getData(file, key, def);
+//        }
+//    }
+//
+//    @Override
+//    public void setData(File file, String key, Object value) throws IOException {
+//        if (key.equals(ITEMS)) {
+//            Utf8YamlConfiguration conf = new Utf8YamlConfiguration();
+//            try {
+//                conf.load(file);
+//            } catch (InvalidConfigurationException e) {
+//                e.printStackTrace();
+//            }
+//
+//            IItemStack[] items = (IItemStack[]) value;
+//
+//            ConfigurationSection itemsSection;
+//            if (conf.contains(ITEMS))
+//                itemsSection = conf.getConfigurationSection(ITEMS);
+//            else
+//                itemsSection = conf.createSection(ITEMS);
+//
+//            writeItemList(itemsSection, items);
+//
+//            conf.save(file);
+//        } else {
+//            BukkitTriggerManager.super.setData(file, key, value);
+//        }
+//    }
+//
+//    @SuppressWarnings("unchecked")
+//    private void parseItemsList(ConfigurationSection itemSection, Map<Integer, IItemStack> items, int size) {
+//        for (int i = 0; i < size; i++) {
+//            if (itemSection.isConfigurationSection(String.valueOf(i))) { // 1.12.2 or below
+//                ConfigurationSection section = itemSection.getConfigurationSection(String.valueOf(i));
+//
+//                Material type = Material.valueOf((String) section.get("Type", Material.DIRT.name()));
+//                int amount = section.getInt("Amount", 1);
+//                short data = (short) section.getInt("Data", 0);
+//                ItemMeta IM = (ItemMeta) section.get("Meta");
+//
+//                ItemStack IS = new ItemStack(type, amount, data);
+//                if (IM == null)
+//                    IM = IS.getItemMeta();
+//
+//                if (IM != null) {
+//                    //leave these for backward compatibility
+//                    String title = section.getString("Title", null);
+//                    Object lore = section.get("Lore", null);
+//
+//                    if (title != null)
+//                        IM.setDisplayName(title);
+//                    if (lore != null && lore instanceof List)
+//                        IM.setLore((List<String>) lore);
+//
+//                    IS.setItemMeta(IM);
+//                }
+//
+//                items.put(i, new BukkitItemStack(IS));
+//            } else { // just leave it to bukkit
+//                ItemStack IS = itemSection.getItemStack(String.valueOf(i));
+//                if (IS != null) {
+//                    items.put(i, new BukkitItemStack(IS));
+//                }
+//            }
+//        }
+//    }
+//
+//    private void writeItemList(ConfigurationSection itemSection, IItemStack[] items) {
+//        for (int i = 0; i < items.length; i++) {
+//            if (items[i] == null)
+//                continue;
+//
+//            ItemStack item = items[i].get();
+//
+//            //leave it to bukkit
+//            itemSection.set(String.valueOf(i), item);
+//        }
+//    }
 
     /**
      * @param player

@@ -45,7 +45,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class AreaTriggerManager extends AbstractAreaTriggerManager implements SpongeConfigurationFileIO {
+public class AreaTriggerManager extends AbstractAreaTriggerManager {
 
     public AreaTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
