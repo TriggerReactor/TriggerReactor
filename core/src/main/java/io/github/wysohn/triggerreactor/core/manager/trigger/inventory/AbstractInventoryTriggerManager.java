@@ -158,13 +158,6 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         return true;
     }
 
-    @Override
-    public InventoryTrigger remove(String name) {
-        InventoryTrigger remove = super.remove(name);
-        deleteInfo(remove);
-        return remove;
-    }
-
     /**
      * @param trigger
      * @param size      mutiple of 9; must be less than or equalt to 54 (exclusive)

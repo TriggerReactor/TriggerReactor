@@ -88,12 +88,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     @Override
-    protected void deleteInfo(CommandTrigger trigger) {
-        removeAliases(trigger);
-        super.deleteInfo(trigger);
-    }
-
-    @Override
     public CommandTrigger remove(String name) {
         CommandTrigger remove = super.remove(name);
         removeAliases(remove);
