@@ -81,14 +81,6 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         }
     }
 
-    /**
-     * @param trigger
-     * @deprecated use {@link #remove(String)}
-     */
-    protected void deleteInfo(T trigger) {
-        trigger.getInfo().delete();
-    }
-
     public T get(String name) {
         return triggers.get(name);
     }
