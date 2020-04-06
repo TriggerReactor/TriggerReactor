@@ -285,12 +285,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     protected void setTriggerForLocation(Location loc, T trigger) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        setTriggerForLocation(sloc, trigger);
+        setLocationCache(sloc, trigger);
     }
 
     protected T removeTriggerForLocation(Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return removeTriggerForLocation(sloc);
+        return removeLocationCache(sloc);
     }
 
     protected void showTriggerInfo(ICommandSender sender, Block clicked) {

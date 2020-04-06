@@ -33,8 +33,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
-    protected Map<SimpleChunkLocation, Map<SimpleLocation, T>> locationTriggers = new ConcurrentHashMap<>();
-    private Map<UUID, String> settingLocation = new HashMap<>();
+    protected final Map<SimpleChunkLocation, Map<SimpleLocation, T>> chunkMap = new ConcurrentHashMap<>();
+    private final Map<UUID, String> settingLocation = new HashMap<>();
+
+    private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
     public AbstractLocationBasedTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin, folder, loader);
@@ -44,50 +46,34 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     public void reload() {
         super.reload();
 
-        locationTriggers.clear();
+        chunkMap.clear();
 
         for (T trigger : getAllTriggers()) {
             SimpleLocation sloc = null;
             try {
-                sloc = stringToSloc(trigger.getInfo().getTriggerName());
+                sloc = SimpleLocation.valueOf(trigger.getInfo().getTriggerName());
             } catch (Exception e) {
                 e.printStackTrace();
                 continue;
             }
 
-            if (sloc != null && trigger != null) {
-                SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+            SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
-                Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-                if (!locationTriggers.containsKey(scloc)) {
-                    triggerMap = new ConcurrentHashMap<>();
-                    locationTriggers.put(scloc, triggerMap);
-                }
+            Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+            if (!chunkMap.containsKey(scloc)) {
+                locationMap = new ConcurrentHashMap<>();
+                chunkMap.put(scloc, locationMap);
+            }
 
-                if (triggerMap.containsKey(sloc)) {
-                    Trigger previous = triggerMap.get(sloc);
-                    plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
-                    plugin.getLogger().warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
-                    plugin.getLogger().warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
-                } else {
-                    triggerMap.put(sloc, trigger);
-                }
+            if (locationMap.containsKey(sloc)) {
+                Trigger previous = locationMap.get(sloc);
+                plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
+                plugin.getLogger().warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
+                plugin.getLogger().warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
+            } else {
+                locationMap.put(sloc, trigger);
             }
         }
-    }
-
-    protected String slocToString(SimpleLocation sloc) {
-        return sloc.getWorld() + "@" + sloc.getX() + "," + sloc.getY() + "," + sloc.getZ();
-    }
-
-    protected SimpleLocation stringToSloc(String str) {
-        String[] wsplit = str.split("@");
-        String world = wsplit[0];
-        String[] lsplit = wsplit[1].split(",");
-        int x = Integer.parseInt(lsplit[0]);
-        int y = Integer.parseInt(lsplit[1]);
-        int z = Integer.parseInt(lsplit[2]);
-        return new SimpleLocation(world, x, y, z);
     }
 
     protected abstract String getTriggerTypeName();
@@ -95,50 +81,47 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     protected T getTriggerForLocation(SimpleLocation sloc) {
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
-        if (!locationTriggers.containsKey(scloc))
+        if (!chunkMap.containsKey(scloc))
             return null;
 
-        Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-        if (!triggerMap.containsKey(sloc))
+        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+        if (!locationMap.containsKey(sloc))
             return null;
 
-        T trigger = triggerMap.get(sloc);
-        return trigger;
+        return locationMap.get(sloc);
     }
 
-    protected void setTriggerForLocation(SimpleLocation sloc, T trigger) {
+    protected void setLocationCache(SimpleLocation sloc, T trigger) {
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
-        Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-        if (!locationTriggers.containsKey(scloc)) {
-            triggerMap = new ConcurrentHashMap<>();
-            locationTriggers.put(scloc, triggerMap);
+        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+        if (!chunkMap.containsKey(scloc)) {
+            locationMap = new ConcurrentHashMap<>();
+            chunkMap.put(scloc, locationMap);
         }
 
-        triggerMap.put(sloc, trigger);
+        locationMap.put(sloc, trigger);
+        put(scloc.toString(), trigger);
 
         plugin.saveAsynchronously(this);
     }
 
-    protected T removeTriggerForLocation(SimpleLocation sloc) {
+    protected T removeLocationCache(SimpleLocation sloc) {
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
-        Map<SimpleLocation, T> triggerMap = locationTriggers.get(scloc);
-        if (!locationTriggers.containsKey(scloc)) {
+        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+        if (!chunkMap.containsKey(scloc)) {
             return null;
         }
 
-        T result = triggerMap.remove(sloc);
-
-        deleteInfo(result);
+        T result = locationMap.remove(sloc);
+        remove(sloc.toString());
 
         plugin.saveAsynchronously(this);
         return result;
     }
 
     protected abstract void showTriggerInfo(ICommandSender sender, SimpleLocation sloc);
-
-    private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
     protected boolean isLocationSetting(IPlayer player) {
         return settingLocation.containsKey(player.getUniqueId());
@@ -164,20 +147,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     protected String getSettingLocationScript(IPlayer player) {
         return settingLocation.get(player.getUniqueId());
-    }
-
-    private static class ClipBoard {
-        final BoardType type;
-        final SimpleLocation location;
-
-        public ClipBoard(BoardType type, SimpleLocation location) {
-            this.type = type;
-            this.location = location;
-        }
-
-        enum BoardType {
-            CUT, COPY
-        }
     }
 
     protected void onItemSwap(IPlayer player) {
@@ -241,16 +210,16 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
         try {
             if (board.type == ClipBoard.BoardType.CUT)
-                trigger = removeTriggerForLocation(board.location);
+                trigger = removeLocationCache(board.location);
 
             T copy = (T) trigger.clone();
 
-            setTriggerForLocation(sloc, copy);
+            setLocationCache(sloc, copy);
         } catch (Exception e) {
             e.printStackTrace();
             //put it back if failed
             if (board.type == ClipBoard.BoardType.CUT && trigger != null) {
-                setTriggerForLocation(board.location, (T) trigger.clone());
+                setLocationCache(board.location, (T) trigger.clone());
             }
         }
 
@@ -259,16 +228,30 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     public Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(SimpleChunkLocation scloc) {
         Set<Map.Entry<SimpleLocation, Trigger>> triggers = new HashSet<>();
-        if (!locationTriggers.containsKey(scloc))
+        if (!chunkMap.containsKey(scloc))
             return triggers;
 
-        for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : locationTriggers.entrySet()) {
+        for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : chunkMap.entrySet()) {
             for (Entry<SimpleLocation, T> entryIn : entry.getValue().entrySet()) {
                 triggers.add(new SimpleEntry<SimpleLocation, Trigger>(entryIn.getKey(), entryIn.getValue()));
             }
         }
 
         return triggers;
+    }
+
+    private static class ClipBoard {
+        final BoardType type;
+        final SimpleLocation location;
+
+        public ClipBoard(BoardType type, SimpleLocation location) {
+            this.type = type;
+            this.location = location;
+        }
+
+        enum BoardType {
+            CUT, COPY
+        }
     }
 
     public static class WalkTrigger extends Trigger {
@@ -312,8 +295,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         public Trigger clone() {
             try {
                 //TODO: using same handler will be safe?
-                Trigger trigger = new ClickTrigger(info, script, handler);
-                return trigger;
+                return new ClickTrigger(info, script, handler);
             } catch (TriggerInitFailedException e) {
                 e.printStackTrace();
             }
