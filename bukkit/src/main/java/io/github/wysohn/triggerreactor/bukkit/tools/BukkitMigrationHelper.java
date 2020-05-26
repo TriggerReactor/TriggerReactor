@@ -42,6 +42,6 @@ public class BukkitMigrationHelper implements IMigrationHelper {
         traversal(null, oldConfig.getValues(false), current::put);
 
         if (oldFile.exists())
-            oldFile.renameTo(new File(oldFile.getParentFile(), "config.yml.bak"));
+            oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
     }
 }

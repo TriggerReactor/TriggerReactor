@@ -14,16 +14,16 @@ authors:
 - professer_snape
 - gerzytet
 softdepend:
-  - Vault
-  - PlaceholderAPI
-  - mcMMO
-  - CoreProtect
-  - ProtocolLib
-  - WorldGuard
+- Vault
+- PlaceholderAPI
+- mcMMO
+- CoreProtect
+- ProtocolLib
+- WorldGuard
 commands:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility
 permissions:
   triggerreactor.admin:
@@ -31,6 +31,6 @@ permissions:
 command:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility
 api-version: 1.13

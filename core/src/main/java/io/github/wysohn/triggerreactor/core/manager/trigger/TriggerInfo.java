@@ -1,12 +1,14 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.config.IMigratable;
+import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.util.Objects;
 
-public abstract class TriggerInfo {
+public abstract class TriggerInfo implements IMigratable {
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -21,6 +23,20 @@ public abstract class TriggerInfo {
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = triggerName;
+    }
+
+    @Override
+    public boolean isMigrationNeeded() {
+        File folder = sourceCodeFile.getParentFile();
+        File oldFile = new File(folder, triggerName + ".yml");
+        // if migration already happened, it should be renamed to .yml.bak
+        // so migration is needed if .yml file exists
+        return oldFile.exists();
+    }
+
+    @Override
+    public void migrate(IMigrationHelper migrationHelper) {
+        migrationHelper.migrate(config);
     }
 
     public File getSourceCodeFile() {

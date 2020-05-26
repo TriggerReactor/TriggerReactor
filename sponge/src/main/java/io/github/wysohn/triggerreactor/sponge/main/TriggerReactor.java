@@ -25,7 +25,9 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
@@ -50,7 +52,12 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.*;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
+import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelper;
 import io.github.wysohn.triggerreactor.tools.Lag;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.bstats.sponge.MetricsLite2;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockTypes;
@@ -308,6 +315,37 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             }
 
         }).submit(this);
+
+        migrateOldConfig();
+    }
+
+    private void migrateOldConfig() {
+        // there was no config to start with anyway
+//        if (getConfigManager().isMigrationNeeded()) {
+//            getConfigManager().migrate(new SpongeMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
+//        }
+
+        Manager.getManagers().stream()
+                .filter(AbstractTriggerManager.class::isInstance)
+                .map(AbstractTriggerManager.class::cast)
+                .map(AbstractTriggerManager::getTriggerInfos)
+                .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                        .filter(TriggerInfo::isMigrationNeeded)
+                        .forEach(triggerInfo -> {
+                            File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                            File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                    .setPath(oldFile.toPath())
+                                    .build();
+                            ConfigurationNode oldConfig = null;
+                            try {
+                                oldConfig = loader.load();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
+                        }));
     }
 
     @Listener

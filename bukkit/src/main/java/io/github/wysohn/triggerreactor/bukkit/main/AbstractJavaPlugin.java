@@ -33,7 +33,9 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -46,6 +48,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -107,6 +110,19 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         if (core.getConfigManager().isMigrationNeeded()) {
             core.getConfigManager().migrate(new BukkitMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
         }
+
+        Manager.getManagers().stream()
+                .filter(AbstractTriggerManager.class::isInstance)
+                .map(AbstractTriggerManager.class::cast)
+                .map(AbstractTriggerManager::getTriggerInfos)
+                .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                        .filter(TriggerInfo::isMigrationNeeded)
+                        .forEach(triggerInfo -> {
+                            File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                            File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                            FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                            triggerInfo.migrate(new BukkitMigrationHelper(oldFileConfig, oldFile));
+                        }));
     }
 
     protected abstract void registerAPIs();

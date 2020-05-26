@@ -55,6 +55,14 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         this.configSourceFactory = configSourceFactory;
     }
 
+    public File getFolder() {
+        return folder;
+    }
+
+    public TriggerInfo[] getTriggerInfos() {
+        return loader.listTriggers(folder, configSourceFactory);
+    }
+
     @Override
     public void reload() {
         triggers.clear();
