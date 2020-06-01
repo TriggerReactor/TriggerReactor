@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
@@ -34,7 +33,7 @@ import java.util.logging.Logger;
 
 public abstract class AbstractTriggerManager<T extends Trigger> extends Manager {
     private final Observer observer = new Observer();
-    private Map<String, T> triggers = new ConcurrentHashMap<>();
+    private final Map<String, T> triggers = new ConcurrentHashMap<>();
 
     protected final File folder;
     protected final ITriggerLoader<T> loader;
@@ -69,14 +68,16 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
         for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
             try {
-                Optional.ofNullable(loader.instantiateTrigger(info)).ifPresent(t -> {
-                    if (has(info.getTriggerName())) {
-                        plugin.getLogger().warning(info + " is already registered! Duplicated Trigger?");
-                    } else {
-                        put(info.getTriggerName(), t);
-                    }
-                });
-            } catch (InvalidTrgConfigurationException e) {
+                T t = loader.instantiateTrigger(info);
+                Optional.ofNullable(t)
+                        .ifPresent(trigger -> {
+                            if (has(info.getTriggerName())) {
+                                plugin.getLogger().warning(info + " is already registered! Duplicated Trigger?");
+                            } else {
+                                put(info.getTriggerName(), trigger);
+                            }
+                        });
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
