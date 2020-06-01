@@ -41,6 +41,8 @@ jobs:
       id: get_artifact
       with:
         route: GET /repos/:owner/:repo/actions/artifacts/:artifact_id
+        owner: ${{ github.repository }}
+        repo: ${{ github.repository }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: comment PR
