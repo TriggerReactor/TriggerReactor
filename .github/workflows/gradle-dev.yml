@@ -33,6 +33,7 @@ jobs:
   upload_artifact:
     
     runs-on: ubuntu-latest
+    needs: [build]
     
     steps:
     - name: get artifact url
