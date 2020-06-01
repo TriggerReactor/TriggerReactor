@@ -25,8 +25,21 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
-    - name: Archive code coverage results
+    - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
-        name: code-coverage-report
         path: build/libs/TriggerReactor-*.jar
+    - uses: octokit/request-action@v2.x
+      id: get_artifact
+      with:
+        route: GET /repos/:owner/:repo/actions/artifacts/:artifact_id
+        repository: ${{ github.repository }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: comment PR
+      uses: unsplash/comment-on-pr@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        msg: ${{ fromJson(steps.get_artifact.outputs.data).archive_download_url }}
+        check_for_duplicate_msg: true
