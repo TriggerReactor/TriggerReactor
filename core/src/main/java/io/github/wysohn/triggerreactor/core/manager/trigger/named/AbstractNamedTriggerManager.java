@@ -27,34 +27,38 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
 
     public AbstractNamedTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<NamedTrigger>() {
+            private File[] getAllFiles(List<File> list, File file){
+                if(file.isDirectory()){
+                    File[] files = file.listFiles();
+                    if(files != null){
+                        for(File each : files){
+                            getAllFiles(list, each);
+                        }
+                    }
+                } else {
+                    list.add(file);
+                }
+
+                return list.toArray(new File[0]);
+            }
+
             @Override
             public TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
-                return Optional.ofNullable(folder.listFiles())
-                        .map(Arrays::stream)
-                        .map(stream -> {
-                            Stream<File> folderToFilesStream = stream.filter(File::isDirectory)
-                                    .map(file -> listTriggers(file, fn))
-                                    .flatMap(Arrays::stream)
-                                    .map(TriggerInfo::getSourceCodeFile);
-
-                            return Stream.concat(stream.filter(File::isFile), folderToFilesStream);
-                        })
-                        .map(stream -> stream.map(file -> {
-                            String name = TriggerInfo.extractName(file);
-                            IConfigSource config = fn.apply(folder, name);
-                            return new NamedTriggerInfo(folder, file, config);
-                        }).collect(Collectors.toList()).toArray(new NamedTriggerInfo[0]))
-                        .orElse(new NamedTriggerInfo[0]);
+                File[] files = getAllFiles(new ArrayList<>(), folder);
+                return Arrays.stream(files).map(file -> {
+                    String name = TriggerInfo.extractName(file);
+                    IConfigSource config = fn.apply(folder, name);
+                    return new NamedTriggerInfo(folder, file, config);
+                }).toArray(NamedTriggerInfo[]::new);
             }
 
             @Override
