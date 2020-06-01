@@ -26,7 +26,7 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build
     - name: Upload artifact
-      uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         path: build/libs/TriggerReactor-*.jar
     - uses: octokit/request-action@v2.x
