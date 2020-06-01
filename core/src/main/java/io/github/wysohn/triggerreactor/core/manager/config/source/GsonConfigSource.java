@@ -21,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
@@ -128,7 +129,7 @@ public class GsonConfigSource implements IConfigSource {
         }
 
     };
-    private static GsonBuilder builder = new GsonBuilder()
+    private static final GsonBuilder builder = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
             .setPrettyPrinting().serializeNulls()
             .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NULL_ADOPTER_STRING))
@@ -337,6 +338,11 @@ public class GsonConfigSource implements IConfigSource {
      */
     public void shutdown() {
         exec.shutdownNow().forEach(Runnable::run);
+        try {
+            exec.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

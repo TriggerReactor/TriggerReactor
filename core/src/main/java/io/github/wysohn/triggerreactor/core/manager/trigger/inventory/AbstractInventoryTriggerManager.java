@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     protected static final String ITEMS = "Items";
@@ -45,7 +46,8 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<ItemStack> itemClass) {
+    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<ItemStack> itemClass,
+                                           Function<ItemStack, IItemStack> itemWrapper) {
         super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override
             public InventoryTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
@@ -61,7 +63,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                 for (int i = 0; i < size; i++) {
                     final int itemIndex = i;
                     info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item ->
-                            items.put(itemIndex, plugin.getWrapper().wrap(item)));
+                            items.put(itemIndex, itemWrapper.apply(item)));
                 }
 
                 try {

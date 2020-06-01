@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSour
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
+import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import org.spongepowered.api.Sponge;
@@ -58,7 +59,7 @@ import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> {
     public InventoryTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class);
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class, SpongeItemStack::new);
     }
 
 //    @Override

@@ -28,7 +28,6 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
@@ -186,12 +185,12 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player) {
             return this.core.onCommand(
-                    getWrapper().wrap(sender),
+                    BukkitTriggerReactorCore.WRAPPER.wrap((Player) sender),
                     command.getName(),
                     args);
         } else {
             return this.core.onCommand(
-                    getWrapper().wrap(sender),
+                    BukkitTriggerReactorCore.WRAPPER.wrap(sender),
                     command.getName(),
                     args);
         }
@@ -210,8 +209,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     }
 
     public abstract SelfReference getSelfReference();
-
-    public abstract IWrapper getWrapper();
 
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
 
@@ -442,11 +439,11 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     public IPlayer extractPlayerFromContext(Object e) {
         if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
-            return getWrapper().wrap(player);
+            return BukkitTriggerReactorCore.WRAPPER.wrap(player);
         } else if (e instanceof InventoryInteractEvent) {
             HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
             if (he instanceof Player)
-                return getWrapper().wrap(he);
+                return BukkitTriggerReactorCore.WRAPPER.wrap((Player) he);
         }
 
         return null;
@@ -471,13 +468,13 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     public IPlayer getPlayer(String string) {
         Player player = Bukkit.getPlayer(string);
         if (player != null)
-            return getWrapper().wrap(player);
+            return BukkitTriggerReactorCore.WRAPPER.wrap(player);
         else
             return null;
     }
 
     public ICommandSender getConsoleSender() {
-        return getWrapper().wrap(Bukkit.getConsoleSender());
+        return BukkitTriggerReactorCore.WRAPPER.wrap(Bukkit.getConsoleSender());
     }
 
     public Object createEmptyPlayerEvent(ICommandSender sender) {
@@ -601,10 +598,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         private final MysqlConnectionPoolDataSource ds;
         private final MiniConnectionPoolManager pool;
 
-        private String dbName;
-        private String tablename;
+        private final String dbName;
+        private final String tablename;
 
-        private String address;
+        private final String address;
 
         private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws SQLException {
             this.dbName = dbName;

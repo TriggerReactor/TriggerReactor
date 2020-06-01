@@ -16,10 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.bridge.event;
 
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public class BukkitPlayerBlockLocationEvent implements IPlayerBlockLocationEvent {
@@ -32,7 +32,7 @@ public class BukkitPlayerBlockLocationEvent implements IPlayerBlockLocationEvent
 
     @Override
     public IPlayer getIPlayer() {
-        return TriggerReactorCore.getInstance()
+        return BukkitTriggerReactorCore
                 .getWrapper()
                 .wrap(event.getPlayer());
     }

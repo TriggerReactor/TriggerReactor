@@ -1,6 +1,9 @@
 package io.github.wysohn.triggerreactor.sponge.bridge;
 
-import io.github.wysohn.triggerreactor.core.bridge.*;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
@@ -17,17 +20,17 @@ import org.spongepowered.api.item.inventory.ItemStack;
 import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
-public class SpongeWrapper implements IWrapper {
-	public IEntity wrap(Entity entity) {
-		return new SpongeEntity(entity);
-	}
+public class SpongeWrapper {
+    public IEntity wrap(Entity entity) {
+        return new SpongeEntity(entity);
+    }
 
-	public IPlayer wrap(Player player) {
-		return new SpongePlayer(player);
-	}
+    public IPlayer wrap(Player player) {
+        return new SpongePlayer(player);
+    }
 
-	public IPlayerBlockLocationEvent wrap(PlayerBlockLocationEvent event) {
-		return new SpongePlayerBlockLocationEvent(event);
+    public IPlayerBlockLocationEvent wrap(PlayerBlockLocationEvent event) {
+        return new SpongePlayerBlockLocationEvent(event);
 	}
 
 	public ICommandSender wrap(CommandSource commandSender) {
