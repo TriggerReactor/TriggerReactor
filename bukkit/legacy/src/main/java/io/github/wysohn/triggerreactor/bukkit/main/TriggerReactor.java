@@ -9,10 +9,18 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placehol
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
-import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public class TriggerReactor extends AbstractJavaPlugin {
+    private SelfReference selfReference;
+
+    @Override
+    public void onEnable() {
+        selfReference = new CommonFunctions(core);
+        BukkitTriggerReactorCore.WRAPPER = new BukkitWrapper();
+        super.onEnable();
+    }
+
     @Override
     protected void registerAPIs() {
         APISupport.addSharedVars("coreprotect", CoreprotectSupport.class);
@@ -25,13 +33,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
 
     @Override
     public SelfReference getSelfReference() {
-        return new CommonFunctions(core);
+        return selfReference;
     }
-
-    @Override
-    public IWrapper getWrapper() {
-        return new BukkitWrapper();
-    }
-
 
 }

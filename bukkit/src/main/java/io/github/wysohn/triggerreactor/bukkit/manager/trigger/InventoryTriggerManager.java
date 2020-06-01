@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -157,7 +158,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
     public IInventory openGUI(Player player, String name) {
-        IPlayer bukkitPlayer = plugin.getWrapper().wrap(player);
+        IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap(player);
         return openGUI(bukkitPlayer, name);
     }
 
@@ -218,7 +219,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager imp
 
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
-        IPlayer bukkitPlayer = plugin.getWrapper().wrap(e.getPlayer());
+        IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap((Player) e.getPlayer());
         onInventoryClose(e, bukkitPlayer, new BukkitInventory(e.getInventory()));
     }
 

@@ -16,13 +16,13 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.AbstractBukkitWrapper;
 import io.github.wysohn.triggerreactor.bukkit.manager.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -42,6 +42,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import org.bstats.bukkit.MetricsLite;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -78,6 +79,11 @@ import java.util.logging.Logger;
  */
 public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin {
     private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
+    protected static AbstractBukkitWrapper WRAPPER = null;
+
+    public static AbstractBukkitWrapper getWrapper() {
+        return WRAPPER;
+    }
 
     private Lag tpsHelper;
 
@@ -103,11 +109,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public SelfReference getSelfReference() {
         return bukkit.getSelfReference();
-    }
-
-    @Override
-    public IWrapper getWrapper() {
-        return bukkit.getWrapper();
     }
 
     @Override
@@ -205,6 +206,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     public void onCoreEnable(AbstractJavaPlugin plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
         this.bukkit = plugin;
+        ValidationUtil.notNull(WRAPPER);
 
         super.onCoreEnable();
 

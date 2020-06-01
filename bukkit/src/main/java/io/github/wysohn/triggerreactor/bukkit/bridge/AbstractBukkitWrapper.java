@@ -3,7 +3,10 @@ package io.github.wysohn.triggerreactor.bukkit.bridge;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitEntity;
 import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.core.bridge.*;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
@@ -14,7 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-public abstract class AbstractBukkitWrapper implements IWrapper {
+public abstract class AbstractBukkitWrapper {
     public IEntity wrap(Entity entity) {
         return new BukkitEntity(entity);
     }

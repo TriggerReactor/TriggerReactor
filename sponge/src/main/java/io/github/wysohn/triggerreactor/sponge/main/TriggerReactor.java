@@ -20,7 +20,6 @@ import com.google.inject.Inject;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.IWrapper;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -102,7 +101,12 @@ import java.util.logging.Logger;
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactorCore {
     protected static final String ID = "triggerreactor";
 
-    private static SpongeExecutorService syncExecutor = null;
+    private static SpongeExecutorService SYNC_EXECUTOR = null;
+    private static SpongeWrapper WRAPPER = null;
+
+    public static SpongeWrapper getWrapper() {
+        return WRAPPER;
+    }
 
     @Inject
     private Logger logger;
@@ -139,12 +143,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     private AbstractNamedTriggerManager namedTriggerManager;
 
-    private SelfReference selfReference = new CommonFunctions(this);
-    private IWrapper wrapper = new SpongeWrapper();
+    private final SelfReference selfReference = new CommonFunctions(this);
 
     @Listener
     public void onConstruct(GameInitializationEvent event) {
-        syncExecutor = Sponge.getScheduler().createSyncExecutor(this);
+        SYNC_EXECUTOR = Sponge.getScheduler().createSyncExecutor(this);
+        WRAPPER = new SpongeWrapper();
 
         try {
             executorManager = new ExecutorManager(this);
@@ -349,11 +353,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public SelfReference getSelfReference() {
         return selfReference;
-    }
-
-    @Override
-    public IWrapper getWrapper() {
-        return wrapper;
     }
 
     @Override
@@ -871,7 +870,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public <T> Future<T> callSyncMethod(Callable<T> call) {
-        return syncExecutor.submit(call);
+        return SYNC_EXECUTOR.submit(call);
     }
 
     @Override

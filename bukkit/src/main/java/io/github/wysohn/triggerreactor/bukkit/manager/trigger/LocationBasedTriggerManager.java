@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
@@ -71,7 +72,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             return;
 
         T trigger = getTriggerForLocation(clicked.getLocation());
-        IPlayer bukkitPlayer = plugin.getWrapper().wrap(player);
+        IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap(player);
 
         if (IS != null && !e.isCancelled() && player.hasPermission("triggerreactor.admin")) {
 
@@ -128,7 +129,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     private void handleLocationSetting(Block clicked, Player p) {
-        IPlayer bukkitPlayer = plugin.getWrapper().wrap(p);
+        IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap(p);
 
         Location loc = clicked.getLocation();
         T trigger = getTriggerForLocation(loc);
@@ -166,7 +167,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     private void handleScriptEdit(Player player, T trigger) {
-        IPlayer bukkitPlayer = plugin.getWrapper().wrap(player);
+        IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap(player);
 
         plugin.getScriptEditManager().startEdit(bukkitPlayer, trigger.getTriggerName(), trigger.getScript(),
                 new SaveHandler() {
@@ -266,7 +267,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     @EventHandler
     public void onItemSwap(PlayerItemHeldEvent e) {
-        onItemSwap((IPlayer) plugin.getWrapper().wrap(e.getPlayer()));
+        onItemSwap(BukkitTriggerReactorCore.getWrapper().wrap(e.getPlayer()));
     }
 
     protected T getTriggerForLocation(Location loc) {
@@ -329,7 +330,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      */
     protected boolean cutTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return cutTrigger(plugin.getWrapper().wrap(player), sloc);
+        return cutTrigger(BukkitTriggerReactorCore.getWrapper().wrap(player), sloc);
     }
 
     /**
@@ -339,7 +340,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      */
     protected boolean copyTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return copyTrigger(plugin.getWrapper().wrap(player), sloc);
+        return copyTrigger(BukkitTriggerReactorCore.getWrapper().wrap(player), sloc);
     }
 
     /**
@@ -349,7 +350,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      */
     protected boolean pasteTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return pasteTrigger(plugin.getWrapper().wrap(player), sloc);
+        return pasteTrigger(BukkitTriggerReactorCore.getWrapper().wrap(player), sloc);
     }
 
     protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
