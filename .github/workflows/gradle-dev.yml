@@ -25,3 +25,8 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v1
+      with:
+        name: code-coverage-report
+        path: build/libs/TriggerReactor-*.jar
