@@ -29,11 +29,17 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         path: build/libs/TriggerReactor-*.jar
-    - uses: octokit/request-action@v2.x
+  
+  upload_artifact:
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: get artifact url
+      uses: octokit/request-action@v2.x
       id: get_artifact
       with:
         route: GET /repos/:owner/:repo/actions/artifacts/:artifact_id
-        repository: ${{ github.repository }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: comment PR
