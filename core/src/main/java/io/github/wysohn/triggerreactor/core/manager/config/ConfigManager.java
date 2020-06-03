@@ -40,5 +40,6 @@ public class ConfigManager extends Manager implements IMigratable {
     @Override
     public void migrate(IMigrationHelper migrationHelper) {
         migrationHelper.migrate(configSource);
+        configSource.reload();
     }
 }

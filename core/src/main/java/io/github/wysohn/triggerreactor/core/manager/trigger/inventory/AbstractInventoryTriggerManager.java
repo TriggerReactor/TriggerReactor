@@ -92,7 +92,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                         if (item == null)
                             continue;
 
-                        trigger.getInfo().getConfig().put(ITEMS + "." + i, item);
+                        trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();

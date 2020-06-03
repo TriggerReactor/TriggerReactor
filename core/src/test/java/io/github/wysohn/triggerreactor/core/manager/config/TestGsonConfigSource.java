@@ -1,8 +1,8 @@
 package io.github.wysohn.triggerreactor.core.manager.config;
 
-import copy.com.google.gson.Gson;
-import copy.com.google.gson.GsonBuilder;
-import copy.com.google.gson.reflect.TypeToken;
+import io.github.wysohn.gsoncopy.Gson;
+import io.github.wysohn.gsoncopy.GsonBuilder;
+import io.github.wysohn.gsoncopy.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import org.junit.Assert;

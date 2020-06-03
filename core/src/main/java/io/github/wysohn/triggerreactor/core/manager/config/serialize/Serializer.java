@@ -16,8 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.config.serialize;
 
-import copy.com.google.gson.JsonDeserializer;
-import copy.com.google.gson.JsonSerializer;
+import io.github.wysohn.gsoncopy.JsonDeserializer;
+import io.github.wysohn.gsoncopy.JsonSerializer;
 
 public interface Serializer<T> extends JsonSerializer<T>, JsonDeserializer<T> {
 

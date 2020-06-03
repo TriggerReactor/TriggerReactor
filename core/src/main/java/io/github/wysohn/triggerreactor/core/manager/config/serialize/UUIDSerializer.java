@@ -16,10 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.config.serialize;
 
-import copy.com.google.gson.JsonDeserializationContext;
-import copy.com.google.gson.JsonElement;
-import copy.com.google.gson.JsonParseException;
-import copy.com.google.gson.JsonSerializationContext;
+import io.github.wysohn.gsoncopy.JsonDeserializationContext;
+import io.github.wysohn.gsoncopy.JsonElement;
+import io.github.wysohn.gsoncopy.JsonParseException;
+import io.github.wysohn.gsoncopy.JsonSerializationContext;
 
 import java.lang.reflect.Type;
 import java.util.UUID;

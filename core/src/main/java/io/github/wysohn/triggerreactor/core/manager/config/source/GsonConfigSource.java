@@ -1,11 +1,11 @@
 package io.github.wysohn.triggerreactor.core.manager.config.source;
 
-import copy.com.google.gson.*;
-import copy.com.google.gson.internal.bind.TypeAdapters;
-import copy.com.google.gson.reflect.TypeToken;
-import copy.com.google.gson.stream.JsonReader;
-import copy.com.google.gson.stream.JsonToken;
-import copy.com.google.gson.stream.JsonWriter;
+import io.github.wysohn.gsoncopy.*;
+import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
+import io.github.wysohn.gsoncopy.reflect.TypeToken;
+import io.github.wysohn.gsoncopy.stream.JsonReader;
+import io.github.wysohn.gsoncopy.stream.JsonToken;
+import io.github.wysohn.gsoncopy.stream.JsonWriter;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.DefaultSerializer;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.MapDeserializer;
@@ -141,7 +141,7 @@ public class GsonConfigSource implements IConfigSource {
     private static final Map<Class<?>, MapDeserializer<?>> deserializerMap = new HashMap<>();
 
     public static <T> void registerTypeAdapter(Class<T> clazz, JsonSerializer<T> serializer) {
-        builder.registerTypeAdapter(clazz, serializer);
+        builder.registerTypeHierarchyAdapter(clazz, serializer);
     }
 
     public static <T> void registerTypeAdapter(Class<T> clazz, MapDeserializer<T> mapDeserializer) {
@@ -250,7 +250,8 @@ public class GsonConfigSource implements IConfigSource {
     private void cacheToFile() {
         try (Writer fw = this.writerFactory.apply(file)) {
             synchronized (cache) {
-                gson.toJson(cache, fw);
+                String ser = gson.toJson(cache);
+                fw.write(ser);
             }
         } catch (IOException e) {
             e.printStackTrace();

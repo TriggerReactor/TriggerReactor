@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import copy.com.google.gson.JsonParseException;
+import io.github.wysohn.gsoncopy.JsonParseException;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;

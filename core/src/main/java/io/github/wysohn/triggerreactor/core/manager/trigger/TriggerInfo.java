@@ -37,6 +37,7 @@ public abstract class TriggerInfo implements IMigratable {
     @Override
     public void migrate(IMigrationHelper migrationHelper) {
         migrationHelper.migrate(config);
+        config.reload();
     }
 
     public File getSourceCodeFile() {

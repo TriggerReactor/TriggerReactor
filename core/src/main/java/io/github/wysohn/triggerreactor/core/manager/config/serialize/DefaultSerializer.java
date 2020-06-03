@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.config.serialize;
 
-import copy.com.google.gson.*;
+import io.github.wysohn.gsoncopy.*;
 
 import java.lang.reflect.Type;
 
