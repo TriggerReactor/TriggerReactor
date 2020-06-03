@@ -90,7 +90,7 @@ public abstract class TriggerInfo implements IMigratable {
      * @return the filename. null if the file is not file
      */
     public static String extractName(File file) {
-        if (!file.isFile())
+        if (file.isDirectory())
             return null;
 
         if (file.getName().indexOf('.') == -1)
