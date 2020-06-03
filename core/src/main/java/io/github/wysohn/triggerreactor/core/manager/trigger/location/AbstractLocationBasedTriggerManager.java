@@ -121,6 +121,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return result;
     }
 
+    protected abstract T newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException;
+
     protected abstract void showTriggerInfo(ICommandSender sender, SimpleLocation sloc);
 
     protected boolean isLocationSetting(IPlayer player) {
@@ -274,7 +276,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     public static class ClickTrigger extends Trigger {
-        private ClickHandler handler;
+        private final ClickHandler handler;
 
         public ClickTrigger(TriggerInfo info, String script, ClickHandler handler) throws TriggerInitFailedException {
             super(info, script);

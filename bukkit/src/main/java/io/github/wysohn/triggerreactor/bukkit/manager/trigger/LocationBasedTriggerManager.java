@@ -23,7 +23,6 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -155,8 +154,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             String name = TriggerInfo.extractName(file);
             IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = loader.instantiateTrigger(info);
-        } catch (InvalidTrgConfigurationException e1) {
+            trigger = newTrigger(info, script);
+        } catch (TriggerInitFailedException e1) {
             bukkitPlayer.sendMessage(ChatColor.RED + "Encounterd an error!");
             bukkitPlayer.sendMessage(ChatColor.RED + e1.getMessage());
             bukkitPlayer.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");

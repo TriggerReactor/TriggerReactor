@@ -41,7 +41,10 @@ public class ConfigSourceFactory {
         if (!folder.isDirectory())
             throw new RuntimeException("folder must be a directory.");
 
-        return new GsonConfigSource(new File(folder, fileName + ".json"));
+        if (!fileName.endsWith(".json"))
+            fileName = fileName + ".json";
+
+        return new GsonConfigSource(new File(folder, fileName));
     }
 
     /**

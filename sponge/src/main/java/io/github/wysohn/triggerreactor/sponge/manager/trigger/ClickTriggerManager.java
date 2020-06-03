@@ -44,17 +44,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
             public ClickTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    ClickTrigger trigger = new ClickTrigger(info, script, new ClickHandler() {
-                        @Override
-                        public boolean allow(Object context) {
-                            if (context instanceof InteractBlockEvent) {
-                                return context instanceof InteractBlockEvent.Primary.MainHand
-                                        || context instanceof InteractBlockEvent.Secondary.MainHand;
-                            }
-
-                            return true;
-                        }
-                    });
+                    ClickTrigger trigger = getTrigger(info, script);
                     return trigger;
                 } catch (TriggerInitFailedException | IOException e) {
                     e.printStackTrace();
@@ -73,10 +63,26 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         });
     }
 
+    private static ClickTrigger getTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return new ClickTrigger(info, script, context -> {
+            if (context instanceof InteractBlockEvent) {
+                return context instanceof InteractBlockEvent.Primary.MainHand
+                        || context instanceof InteractBlockEvent.Secondary.MainHand;
+            }
+
+            return true;
+        });
+    }
+
     @Listener
     @Exclude({InteractBlockEvent.Primary.OffHand.class, InteractBlockEvent.Secondary.OffHand.class})
     public void onClickTrigger(InteractBlockEvent e) {
         handleClick(e);
+    }
+
+    @Override
+    protected ClickTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return getTrigger(info, script);
     }
 
     private void handleClick(InteractBlockEvent e) {

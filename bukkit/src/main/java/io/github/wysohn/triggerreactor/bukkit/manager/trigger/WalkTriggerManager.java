@@ -64,6 +64,11 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         handleWalk(e, e.getTo());
     }
 
+    @Override
+    protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return new WalkTrigger(info, script);
+    }
+
     private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to) {
         Player player = e.getPlayer();
         SimpleLocation bottomLoc = to.clone();
