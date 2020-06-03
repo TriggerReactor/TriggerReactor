@@ -68,6 +68,8 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
         for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
             try {
+                info.reloadConfig();
+
                 T t = loader.instantiateTrigger(info);
                 Optional.ofNullable(t)
                         .ifPresent(trigger -> {

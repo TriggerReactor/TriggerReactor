@@ -47,6 +47,10 @@ public abstract class TriggerInfo implements IMigratable {
         return config;
     }
 
+    public void reloadConfig() {
+        config.reload();
+    }
+
     public String getTriggerName() {
         return triggerName;
     }
