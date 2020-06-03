@@ -57,7 +57,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                         .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
                 Map<Integer, IItemStack> items = new HashMap<>();
 
-                if (!info.getConfig().isSection(ITEMS))
+                if (info.getConfig().has(ITEMS) && !info.getConfig().isSection(ITEMS))
                     throw new InvalidTrgConfigurationException("Items should be an object", info.getConfig());
 
                 for (int i = 0; i < size; i++) {

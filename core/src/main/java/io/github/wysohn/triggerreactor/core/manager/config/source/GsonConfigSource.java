@@ -320,6 +320,11 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     @Override
+    public boolean has(String key) {
+        return get(cache, IConfigSource.toPath(key), Object.class) != null;
+    }
+
+    @Override
     public Set<String> keys() {
         synchronized (cache) {
             return new HashSet<>(cache.keySet());

@@ -35,6 +35,8 @@ public interface IConfigSource {
 
     void put(String key, Object value);
 
+    boolean has(String key);
+
     Set<String> keys();
 
     boolean isSection(String key);
