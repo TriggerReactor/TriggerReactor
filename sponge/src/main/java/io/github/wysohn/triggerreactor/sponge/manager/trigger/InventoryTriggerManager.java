@@ -16,15 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import copy.com.google.gson.JsonDeserializationContext;
-import copy.com.google.gson.JsonElement;
-import copy.com.google.gson.JsonParseException;
-import copy.com.google.gson.JsonSerializationContext;
-import copy.com.google.gson.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
@@ -52,7 +46,6 @@ import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
 
 import java.io.File;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,76 +54,6 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     public InventoryTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class, SpongeItemStack::new);
     }
-
-//    @Override
-//    public <T> T getData(File file, String key, T def) throws IOException {
-//        if (key.equals(ITEMS)) {
-//            int size = getData(file, SIZE, 0);
-//            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-//            ConfigurationNode conf = loader.load();
-//
-//            Map<Integer, IItemStack> items = new HashMap<>();
-//
-//            ConfigurationNode node = ConfigurationUtil.getNodeByKeyString(conf, ITEMS);
-//            if (node != null)
-//                parseItemsList(node, items, size);
-//
-//            return (T) items;
-//        } else {
-//            return SpongeConfigurationFileIO.super.getData(file, key, def);
-//        }
-//    }
-//
-//    @Override
-//    public void setData(File file, String key, Object value) throws IOException {
-//        if (key.equals(ITEMS)) {
-//            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-//            ConfigurationNode conf = loader.load();
-//
-//            IItemStack[] items = (IItemStack[]) value;
-//
-//            writeItemsList(ConfigurationUtil.getNodeByKeyString(conf, ITEMS), items);
-//
-//            loader.save(conf);
-//        } else {
-//            SpongeConfigurationFileIO.super.setData(file, key, value);
-//        }
-//    }
-//
-//    private void parseItemsList(ConfigurationNode itemSection, Map<Integer, IItemStack> items, int size) {
-//        for (int i = 0; i < size; i++) {
-//            ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-//            if (section.isVirtual())
-//                continue;
-//
-//            ItemStackSnapshot IS;
-//            try {
-//                IS = section.getValue(TypeTokens.ITEM_SNAPSHOT_TOKEN);
-//            } catch (ObjectMappingException e) {
-//                e.printStackTrace();//temp
-//                continue;
-//            }
-//
-//            items.put(i, new SpongeItemStack(IS.createStack()));
-//        }
-//    }
-//
-//    private void writeItemsList(ConfigurationNode itemSection, IItemStack[] items) {
-//        for (int i = 0; i < items.length; i++) {
-//            if (items[i] == null)
-//                continue;
-//
-//            ItemStack item = items[i].get();
-//
-//            ConfigurationNode section = ConfigurationUtil.getNodeByKeyString(itemSection, String.valueOf(i));
-//            try {
-//                section.setValue(TypeTokens.ITEM_SNAPSHOT_TOKEN, item.createSnapshot());
-//            } catch (ObjectMappingException e) {
-//                e.printStackTrace();//temp
-//                continue;
-//            }
-//        }
-//    }
 
     /**
      * @param player
@@ -308,24 +231,18 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     }
 
     static {
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, new Serializer<ItemStack>() {
-            @Override
-            public ItemStack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                Map<String, Object> ser = context.deserialize(json, new TypeToken<Map<String, Object>>() {
-                }.getType());
-                DataContainer container = DataContainer.createNew();
-                ser.forEach((s, o) -> container.set(DataQuery.of(".", s), o));
-                return Sponge.getDataManager().deserialize(ItemStack.class, container)
-                        .orElseThrow(() -> new RuntimeException("Cannot deserialized [" + ser + "] to ItemStack."));
-            }
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
+            DataContainer container = src.toContainer();
+            Map<String, Object> map = new HashMap<>();
+            container.getValues(true).forEach((dataQuery, o) -> map.put(dataQuery.toString(), o));
+            return context.serialize(map);
+        });
 
-            @Override
-            public JsonElement serialize(ItemStack src, Type typeOfSrc, JsonSerializationContext context) {
-                DataContainer container = src.toContainer();
-                Map<String, Object> map = new HashMap<>();
-                container.getValues(true).forEach((dataQuery, o) -> map.put(dataQuery.toString(), o));
-                return context.serialize(map);
-            }
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
+            DataContainer container = DataContainer.createNew();
+            map.forEach((s, o) -> container.set(DataQuery.of(".", s), o));
+            return Sponge.getDataManager().deserialize(ItemStack.class, container)
+                    .orElseThrow(() -> new RuntimeException("Cannot deserialized [" + map + "] to ItemStack."));
         });
     }
 }

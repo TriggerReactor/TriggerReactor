@@ -1,9 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.config.source;
 
-import copy.com.google.gson.Gson;
-import copy.com.google.gson.GsonBuilder;
-import copy.com.google.gson.JsonSyntaxException;
-import copy.com.google.gson.TypeAdapter;
+import copy.com.google.gson.*;
 import copy.com.google.gson.internal.bind.TypeAdapters;
 import copy.com.google.gson.reflect.TypeToken;
 import copy.com.google.gson.stream.JsonReader;
@@ -11,7 +8,7 @@ import copy.com.google.gson.stream.JsonToken;
 import copy.com.google.gson.stream.JsonWriter;
 import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.DefaultSerializer;
-import io.github.wysohn.triggerreactor.core.manager.config.serialize.Serializer;
+import io.github.wysohn.triggerreactor.core.manager.config.serialize.MapDeserializer;
 import io.github.wysohn.triggerreactor.core.manager.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -141,9 +138,14 @@ public class GsonConfigSource implements IConfigSource {
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(SimpleLocation.class, new DefaultSerializer<SimpleLocation>())
             .registerTypeAdapter(SimpleChunkLocation.class, new DefaultSerializer<SimpleChunkLocation>());
+    private static final Map<Class<?>, MapDeserializer<?>> deserializerMap = new HashMap<>();
 
-    public static <T> void registerTypeAdapter(Class<T> clazz, Serializer<T> serializer) {
+    public static <T> void registerTypeAdapter(Class<T> clazz, JsonSerializer<T> serializer) {
         builder.registerTypeAdapter(clazz, serializer);
+    }
+
+    public static <T> void registerTypeAdapter(Class<T> clazz, MapDeserializer<T> mapDeserializer) {
+        deserializerMap.put(clazz, mapDeserializer);
     }
 
     /**
@@ -261,7 +263,10 @@ public class GsonConfigSource implements IConfigSource {
             Object value = map.get(key);
 
             if (i == path.length - 1) {
-                return asType.cast(value);
+                if (value instanceof Map)
+                    return (T) deserializerMap.computeIfAbsent(asType, type -> (m) -> m).deserialize((Map) value);
+                else
+                    return asType.cast(value);
             } else if (value instanceof Map) {
                 map = (Map<String, Object>) value;
             } else {

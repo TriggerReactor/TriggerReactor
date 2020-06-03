@@ -78,6 +78,11 @@ public class ConfigSourceFactory {
         }
 
         @Override
+        public boolean has(String key) {
+            return false;
+        }
+
+        @Override
         public Set<String> keys() {
             return null;
         }
