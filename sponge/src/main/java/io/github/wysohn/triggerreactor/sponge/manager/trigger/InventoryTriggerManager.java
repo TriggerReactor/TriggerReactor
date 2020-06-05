@@ -234,15 +234,24 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
             DataContainer container = src.toContainer();
             Map<String, Object> map = new HashMap<>();
-            container.getValues(true).forEach((dataQuery, o) -> map.put(dataQuery.toString(), o));
+            container.getValues(true)
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> !(entry.getValue() instanceof Map))
+                    .forEach(entry -> {
+                        DataQuery dataQuery = entry.getKey();
+                        Object o = entry.getValue();
+                        map.put(dataQuery.toString(), o);
+                    });
             return context.serialize(map);
         });
 
         GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
             DataContainer container = DataContainer.createNew();
-            map.forEach((s, o) -> container.set(DataQuery.of(".", s), o));
-            return Sponge.getDataManager().deserialize(ItemStack.class, container)
-                    .orElseThrow(() -> new RuntimeException("Cannot deserialized [" + map + "] to ItemStack."));
+            map.forEach((s, o) -> container.set(DataQuery.of(s.split("\\.")), o));
+            return ItemStack.builder()
+                    .fromContainer(container)
+                    .build();
         });
     }
 }
