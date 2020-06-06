@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -169,7 +170,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     }
 
     static {
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
+        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (src, typeOfSrc, context) -> {
             Map<String, Object> ser = new LinkedHashMap<>();
             ser.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(src.getClass()));
             ser.putAll(src.serialize());
