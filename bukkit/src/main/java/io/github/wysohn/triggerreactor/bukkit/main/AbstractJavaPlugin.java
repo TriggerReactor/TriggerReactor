@@ -32,6 +32,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.config.serialize.MapDeserializer;
 import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -830,11 +831,25 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             return context.serialize(ser);
         });
 
-        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (map) -> {
-            try {
-                return ConfigurationSerialization.deserializeObject(map);
-            } catch (IllegalArgumentException ex) {
-                throw new JsonParseException(ex);
+        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, new MapDeserializer<ConfigurationSerializable>() {
+            @Override
+            public ConfigurationSerializable deserialize(Map<String, Object> map) {
+                // ignore Map without SERIALIZED_TYPE_KEY (they are simple map in such case)
+                if (!map.containsKey(ConfigurationSerialization.SERIALIZED_TYPE_KEY))
+                    return null;
+
+                try {
+                    Map<String, ConfigurationSerializable> subs = new HashMap<>();
+                    map.entrySet().stream()
+                            .filter(entry -> entry.getValue() instanceof Map)
+                            .forEach(entry -> Optional.ofNullable(deserialize((Map<String, Object>) entry.getValue()))
+                                    .ifPresent(serializable -> subs.put(entry.getKey(), serializable)));
+                    map.putAll(subs);
+
+                    return ConfigurationSerialization.deserializeObject(map);
+                } catch (IllegalArgumentException ex) {
+                    throw new JsonParseException(ex);
+                }
             }
         });
     }
