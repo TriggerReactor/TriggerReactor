@@ -54,11 +54,13 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
             @Override
             public TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
                 File[] files = getAllFiles(new ArrayList<>(), folder);
-                return Arrays.stream(files).map(file -> {
-                    String name = TriggerInfo.extractName(file);
-                    IConfigSource config = fn.apply(folder, name);
-                    return new NamedTriggerInfo(folder, file, config);
-                }).toArray(NamedTriggerInfo[]::new);
+                return Arrays.stream(files)
+                        .filter(file -> file.getName().endsWith(".trg"))
+                        .map(file -> {
+                            String name = TriggerInfo.extractName(file);
+                            IConfigSource config = fn.apply(folder, name + ".json");
+                            return new NamedTriggerInfo(folder, file, config);
+                        }).toArray(NamedTriggerInfo[]::new);
             }
 
             @Override

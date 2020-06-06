@@ -13,9 +13,10 @@ public interface ITriggerLoader<T extends Trigger> {
         return Optional.ofNullable(folder.listFiles())
                 .map(files -> Arrays.stream(files)
                         .filter(File::isFile)
+                        .filter(file -> file.getName().endsWith(".trg"))
                         .map(file -> {
                             String name = TriggerInfo.extractName(file);
-                            IConfigSource config = fn.apply(folder, name);
+                            IConfigSource config = fn.apply(folder, name + ".json");
                             return toTriggerInfo(file, config);
                         })
                         .toArray(TriggerInfo[]::new))

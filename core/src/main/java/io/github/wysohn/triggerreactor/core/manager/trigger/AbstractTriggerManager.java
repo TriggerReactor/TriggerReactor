@@ -64,6 +64,9 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     @Override
     public void reload() {
+        if (!folder.exists())
+            folder.mkdirs();
+
         triggers.clear();
 
         for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {

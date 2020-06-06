@@ -33,7 +33,7 @@ public class ConfigSourceFactory {
      * Create a Gson based datasource.
      *
      * @param folder   the folder where json file is located
-     * @param fileName the filename (without extension)
+     * @param fileName the filename ends with .json
      * @return the datasource
      * @throws RuntimeException if folder is not directory.
      */
@@ -42,7 +42,7 @@ public class ConfigSourceFactory {
             throw new RuntimeException("folder must be a directory.");
 
         if (!fileName.endsWith(".json"))
-            fileName = fileName + ".json";
+            throw new RuntimeException(fileName + " does not ends with .json.");
 
         return new GsonConfigSource(new File(folder, fileName));
     }
