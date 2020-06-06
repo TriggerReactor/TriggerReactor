@@ -261,7 +261,7 @@ public class GsonConfigSource implements IConfigSource {
     private Class<?> getValidDeserializer(Queue<Class<?>> queue) {
         while (!queue.isEmpty()) {
             Class<?> current = queue.poll();
-            if (deserializerMap.containsKey(current))
+            if (!Objects.equals(Object.class, current) && deserializerMap.containsKey(current))
                 return current;
 
             Optional.ofNullable(current.getSuperclass())
