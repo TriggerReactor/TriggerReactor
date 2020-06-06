@@ -43,5 +43,7 @@ public class BukkitMigrationHelper implements IMigrationHelper {
 
         if (oldFile.exists())
             oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+
+        current.saveAll();
     }
 }

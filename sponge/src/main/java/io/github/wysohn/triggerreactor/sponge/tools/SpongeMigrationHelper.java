@@ -31,7 +31,9 @@ public class SpongeMigrationHelper implements IMigrationHelper {
     public void migrate(IConfigSource current) {
         traversal(oldConfig.getChildrenMap(), (key, node) -> current.put(key, node.getValue()));
 
-        if(oldFile.exists())
+        if (oldFile.exists())
             oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+
+        current.saveAll();
     }
 }
