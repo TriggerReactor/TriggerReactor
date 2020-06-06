@@ -66,7 +66,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             }
 
             @Override
-            public AreaTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 SimpleLocation smallest = info.getConfig().get(SMALLEST, SimpleLocation.class)
                         .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find " + SMALLEST, info.getConfig()));
                 SimpleLocation largest = info.getConfig().get(LARGEST, SimpleLocation.class)

@@ -37,7 +37,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
     public WalkTriggerManager(TriggerReactorCore plugin) {
         super(plugin, "WalkTrigger", new ITriggerLoader<WalkTrigger>() {
             @Override
-            public WalkTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     WalkTrigger trigger = new WalkTrigger(info, script);

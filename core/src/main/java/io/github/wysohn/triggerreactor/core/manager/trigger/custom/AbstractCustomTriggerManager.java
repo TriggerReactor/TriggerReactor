@@ -40,7 +40,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     public AbstractCustomTriggerManager(TriggerReactorCore plugin, File folder, EventRegistry registry) {
         super(plugin, folder, new ITriggerLoader<CustomTrigger>() {
             @Override
-            public CustomTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 String eventName = info.getConfig().get(EVENT, String.class)
                         .filter(registry::eventExist)
                         .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));

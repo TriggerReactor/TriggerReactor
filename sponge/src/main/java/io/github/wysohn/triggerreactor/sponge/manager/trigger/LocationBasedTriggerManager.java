@@ -167,7 +167,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             String name = TriggerInfo.extractName(file);
             IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = loader.instantiateTrigger(info);
+            trigger = loader.load(info);
         } catch (InvalidTrgConfigurationException e1) {
             p.sendMessage(Text.builder("Encounterd an error!").color(TextColors.RED).build());
             p.sendMessage(Text.builder(e1.getMessage()).color(TextColors.RED).build());

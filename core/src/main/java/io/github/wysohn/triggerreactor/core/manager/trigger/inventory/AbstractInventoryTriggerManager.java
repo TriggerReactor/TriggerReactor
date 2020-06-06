@@ -50,7 +50,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                                            Function<ItemStack, IItemStack> itemWrapper) {
         super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override
-            public InventoryTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 int size = info.getConfig().get(SIZE, Integer.class)
                         .filter(s -> s != 0 && s % 9 == 0)
                         .filter(s -> s <= InventoryTrigger.MAXSIZE)

@@ -27,7 +27,7 @@ public interface ITriggerLoader<T extends Trigger> {
         return TriggerInfo.defaultInfo(file, configSource);
     }
 
-    T instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException;
+    T load(TriggerInfo info) throws InvalidTrgConfigurationException;
 
     void save(T trigger);
 }

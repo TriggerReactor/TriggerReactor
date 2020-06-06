@@ -48,7 +48,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
     public AbstractRepeatingTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<RepeatingTrigger>() {
             @Override
-            public RepeatingTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 boolean autoStart = info.getConfig().get(AUTOSTART, Boolean.class).orElse(false);
                 int interval = info.getConfig().get(INTERVAL, Integer.class).orElse(1000);
 

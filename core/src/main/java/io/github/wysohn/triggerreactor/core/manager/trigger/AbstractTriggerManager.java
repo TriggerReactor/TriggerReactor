@@ -73,7 +73,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             try {
                 info.reloadConfig();
 
-                T t = loader.instantiateTrigger(info);
+                T t = loader.load(info);
                 Optional.ofNullable(t)
                         .ifPresent(trigger -> {
                             if (has(info.getTriggerName())) {

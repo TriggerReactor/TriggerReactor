@@ -64,7 +64,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
             }
 
             @Override
-            public NamedTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public NamedTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     return new NamedTrigger(info, script);

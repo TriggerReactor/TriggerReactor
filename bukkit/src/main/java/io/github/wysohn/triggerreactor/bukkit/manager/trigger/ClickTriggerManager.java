@@ -38,7 +38,7 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
     public ClickTriggerManager(TriggerReactorCore plugin) {
         super(plugin, "ClickTrigger", new ITriggerLoader<ClickTrigger>() {
             @Override
-            public ClickTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public ClickTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     ClickTrigger trigger = getTrigger(info, script);

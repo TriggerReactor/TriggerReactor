@@ -43,7 +43,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
             @Override
-            public CommandTrigger instantiateTrigger(TriggerInfo info) throws InvalidTrgConfigurationException {
+            public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 boolean sync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
                 List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
                 List<String> aliases = info.getConfig().get(ALIASES, List.class).orElse(new ArrayList<>());
