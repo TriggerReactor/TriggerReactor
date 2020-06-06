@@ -361,4 +361,11 @@ public class GsonConfigSource implements IConfigSource {
         exec.shutdownNow();
         file.delete();
     }
+
+    @Override
+    public String toString() {
+        return "GsonConfigSource{" +
+                "file=" + file +
+                '}';
+    }
 }
