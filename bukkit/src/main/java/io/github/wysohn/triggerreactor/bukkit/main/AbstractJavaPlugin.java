@@ -101,8 +101,11 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         initMysql();
 
         core.onCoreEnable(this);
-
         migrateOldConfig();
+
+        for (Manager manager : Manager.getManagers()) {
+            manager.reload();
+        }
     }
 
     private void migrateOldConfig() {

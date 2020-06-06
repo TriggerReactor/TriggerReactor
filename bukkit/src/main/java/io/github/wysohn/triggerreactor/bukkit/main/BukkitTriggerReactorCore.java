@@ -251,10 +251,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         namedTriggerManager = new NamedTriggerManager(this);
 
-        for (Manager manager : Manager.getManagers()) {
-            manager.reload();
-        }
-
         tpsHelper = new Lag();
         new Thread() {
             @Override

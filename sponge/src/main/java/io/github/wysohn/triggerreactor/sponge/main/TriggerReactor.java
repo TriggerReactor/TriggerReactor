@@ -262,19 +262,42 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             }
 
         }, "trg", "trigger");
+
+        migrateOldConfig();
+    }
+
+    private void migrateOldConfig() {
+        // there was no config to start with anyway
+//        if (getConfigManager().isMigrationNeeded()) {
+//            getConfigManager().migrate(new SpongeMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
+//        }
+
+        Manager.getManagers().stream()
+                .filter(AbstractTriggerManager.class::isInstance)
+                .map(AbstractTriggerManager.class::cast)
+                .map(AbstractTriggerManager::getTriggerInfos)
+                .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                        .filter(TriggerInfo::isMigrationNeeded)
+                        .forEach(triggerInfo -> {
+                            File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                            File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                    .setPath(oldFile.toPath())
+                                    .build();
+                            ConfigurationNode oldConfig = null;
+                            try {
+                                oldConfig = loader.load();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                return;
+                            }
+                            triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
+                        }));
     }
 
     @Listener
     public void onEnable(GameStartedServerEvent e) {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-
-        for (Manager manager : Manager.getManagers()) {
-            try {
-                manager.reload();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
 
 //        FileConfiguration config = plugin.getConfig();
 //        if(config.getBoolean("Mysql.Enable", false)) {
@@ -311,6 +334,14 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 //            plugin.saveConfig();
 //        }
 
+        for (Manager manager : Manager.getManagers()) {
+            try {
+                manager.reload();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         Sponge.getScheduler().createTaskBuilder().execute(new Runnable() {
 
             @Override
@@ -319,37 +350,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             }
 
         }).submit(this);
-
-        migrateOldConfig();
-    }
-
-    private void migrateOldConfig() {
-        // there was no config to start with anyway
-//        if (getConfigManager().isMigrationNeeded()) {
-//            getConfigManager().migrate(new SpongeMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
-//        }
-
-        Manager.getManagers().stream()
-                .filter(AbstractTriggerManager.class::isInstance)
-                .map(AbstractTriggerManager.class::cast)
-                .map(AbstractTriggerManager::getTriggerInfos)
-                .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                        .filter(TriggerInfo::isMigrationNeeded)
-                        .forEach(triggerInfo -> {
-                            File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                            File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-                                    .setPath(oldFile.toPath())
-                                    .build();
-                            ConfigurationNode oldConfig = null;
-                            try {
-                                oldConfig = loader.load();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
-                        }));
     }
 
     @Listener
