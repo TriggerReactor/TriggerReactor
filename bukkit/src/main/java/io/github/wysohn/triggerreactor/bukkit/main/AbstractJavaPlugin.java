@@ -830,9 +830,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             return context.serialize(ser);
         });
 
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, (map) -> {
+        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (map) -> {
             try {
-                return (ItemStack) ConfigurationSerialization.deserializeObject(map);
+                return ConfigurationSerialization.deserializeObject(map);
             } catch (IllegalArgumentException ex) {
                 throw new JsonParseException(ex);
             }
