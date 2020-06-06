@@ -258,16 +258,51 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
+    private Class<?> getValidDeserializer(Queue<Class<?>> queue) {
+        while (!queue.isEmpty()) {
+            Class<?> current = queue.poll();
+            if (deserializerMap.containsKey(current))
+                return current;
+
+            Optional.ofNullable(current.getSuperclass())
+                    .ifPresent(queue::add);
+            Optional.of(current.getInterfaces())
+                    .map(Arrays::asList)
+                    .ifPresent(queue::addAll);
+        }
+
+        return null;
+    }
+
+    private Class<?> getValidDeserializer(Class<?> current) {
+        if (current == null)
+            return null;
+
+        Queue<Class<?>> queue = new LinkedList<>();
+        queue.add(current);
+
+        return getValidDeserializer(queue);
+    }
+
     private <T> T get(Map<String, Object> map, String[] path, Class<T> asType) {
         for (int i = 0; i < path.length; i++) {
             String key = path[i];
             Object value = map.get(key);
 
             if (i == path.length - 1) {
-                if (value instanceof Map)
-                    return (T) deserializerMap.computeIfAbsent(asType, type -> (m) -> m).deserialize((Map) value);
-                else
+                if (value instanceof Map) {
+                    Class<?> targetType = getValidDeserializer(asType); // find possible deserializer
+                    if (targetType == null)
+                        targetType = asType;
+
+                    MapDeserializer<?> deserializer = deserializerMap.computeIfAbsent(targetType, type -> (m) -> m);
+                    if (!deserializerMap.containsKey(asType))
+                        deserializerMap.put(asType, deserializer); // add it so we don't have to search again
+
+                    return (T) deserializer.deserialize((Map) value);
+                } else {
                     return asType.cast(value);
+                }
             } else if (value instanceof Map) {
                 map = (Map<String, Object>) value;
             } else {
