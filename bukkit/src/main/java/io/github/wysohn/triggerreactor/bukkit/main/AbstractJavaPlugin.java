@@ -22,6 +22,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import io.github.wysohn.gsoncopy.JsonParseException;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
@@ -31,6 +32,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -48,6 +50,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -816,5 +820,22 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             return null;
         }
 
+    }
+
+    static {
+        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (src, typeOfSrc, context) -> {
+            Map<String, Object> ser = new LinkedHashMap<>();
+            ser.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(src.getClass()));
+            ser.putAll(src.serialize());
+            return context.serialize(ser);
+        });
+
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, (map) -> {
+            try {
+                return (ItemStack) ConfigurationSerialization.deserializeObject(map);
+            } catch (IllegalArgumentException ex) {
+                throw new JsonParseException(ex);
+            }
+        });
     }
 }

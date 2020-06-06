@@ -16,21 +16,17 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.gsoncopy.JsonParseException;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -43,7 +39,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -167,22 +162,5 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         name = name.replaceAll("_", " ");
         name = ChatColor.translateAlternateColorCodes('&', name);
         return new BukkitInventory(Bukkit.createInventory(null, size, name));
-    }
-
-    static {
-        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (src, typeOfSrc, context) -> {
-            Map<String, Object> ser = new LinkedHashMap<>();
-            ser.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(src.getClass()));
-            ser.putAll(src.serialize());
-            return context.serialize(ser);
-        });
-
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, (map) -> {
-            try {
-                return (ItemStack) ConfigurationSerialization.deserializeObject(map);
-            } catch (IllegalArgumentException ex) {
-                throw new JsonParseException(ex);
-            }
-        });
     }
 }

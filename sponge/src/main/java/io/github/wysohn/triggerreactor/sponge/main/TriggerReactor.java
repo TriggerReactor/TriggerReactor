@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -66,6 +67,8 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.data.DataContainer;
+import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
@@ -948,5 +951,30 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public ICommandSender getConsoleSender() {
         return new SpongeCommandSender(Sponge.getServer().getConsole());
+    }
+
+    static {
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
+            DataContainer container = src.toContainer();
+            Map<String, Object> map = new HashMap<>();
+            container.getValues(true)
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> !(entry.getValue() instanceof Map))
+                    .forEach(entry -> {
+                        DataQuery dataQuery = entry.getKey();
+                        Object o = entry.getValue();
+                        map.put(dataQuery.toString(), o);
+                    });
+            return context.serialize(map);
+        });
+
+        GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
+            DataContainer container = DataContainer.createNew();
+            map.forEach((s, o) -> container.set(DataQuery.of(s.split("\\.")), o));
+            return ItemStack.builder()
+                    .fromContainer(container)
+                    .build();
+        });
     }
 }

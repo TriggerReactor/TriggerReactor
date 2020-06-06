@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
@@ -27,8 +26,6 @@ import io.github.wysohn.triggerreactor.sponge.bridge.SpongeItemStack;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.tools.TextUtil;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataQuery;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
@@ -46,7 +43,6 @@ import org.spongepowered.api.item.inventory.type.GridInventory;
 import org.spongepowered.api.text.Text;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -228,30 +224,5 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
 
             return uniqueObject.equals(((DummyCarrier) obj).uniqueObject);
         }
-    }
-
-    static {
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
-            DataContainer container = src.toContainer();
-            Map<String, Object> map = new HashMap<>();
-            container.getValues(true)
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> !(entry.getValue() instanceof Map))
-                    .forEach(entry -> {
-                        DataQuery dataQuery = entry.getKey();
-                        Object o = entry.getValue();
-                        map.put(dataQuery.toString(), o);
-                    });
-            return context.serialize(map);
-        });
-
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
-            DataContainer container = DataContainer.createNew();
-            map.forEach((s, o) -> container.set(DataQuery.of(s.split("\\.")), o));
-            return ItemStack.builder()
-                    .fromContainer(container)
-                    .build();
-        });
     }
 }
