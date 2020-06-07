@@ -972,9 +972,13 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
             DataContainer container = DataContainer.createNew();
             map.forEach((s, o) -> container.set(DataQuery.of(s.split("\\.")), o));
-            return ItemStack.builder()
-                    .fromContainer(container)
-                    .build();
+            try {
+                return ItemStack.builder()
+                        .fromContainer(container)
+                        .build();
+            } catch (Exception ex) {
+                throw new RuntimeException("Cannot serialize " + map, ex);
+            }
         });
     }
 }
