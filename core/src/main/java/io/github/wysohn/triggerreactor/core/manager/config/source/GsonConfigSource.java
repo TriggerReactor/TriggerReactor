@@ -257,7 +257,7 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
-    private Class<?> getValidDeserializer(Queue<Class<?>> queue) {
+    private Class<?> getDeserializableType(Queue<Class<?>> queue) {
         while (!queue.isEmpty()) {
             Class<?> current = queue.poll();
             if (!Objects.equals(Object.class, current) && deserializerMap.containsKey(current))
@@ -273,14 +273,21 @@ public class GsonConfigSource implements IConfigSource {
         return null;
     }
 
-    private Class<?> getValidDeserializer(Class<?> current) {
+    /**
+     * Get a class which a deserializer is registered for it. The search start from most specific to general (BFS).
+     * In other words, it starts by class itself, its direct superclass and interfaces, and so on.
+     *
+     * @param current the class to check
+     * @return the most specific class which can be deserialized.
+     */
+    private Class<?> getDeserializableType(Class<?> current) {
         if (current == null)
             return null;
 
         Queue<Class<?>> queue = new LinkedList<>();
         queue.add(current);
 
-        return getValidDeserializer(queue);
+        return getDeserializableType(queue);
     }
 
     private <T> T get(Map<String, Object> map, String[] path, Class<T> asType) {
@@ -290,15 +297,13 @@ public class GsonConfigSource implements IConfigSource {
 
             if (i == path.length - 1) {
                 if (value instanceof Map) {
-                    Class<?> targetType = getValidDeserializer(asType); // find possible deserializer
-                    if (targetType == null)
-                        targetType = asType;
+                    MapDeserializer<?> deserializer = getMapDeserializer(asType);
 
-                    MapDeserializer<?> deserializer = deserializerMap.computeIfAbsent(targetType, type -> (m) -> m);
-                    if (!deserializerMap.containsKey(asType))
-                        deserializerMap.put(asType, deserializer); // add it so we don't have to search again
-
-                    return (T) deserializer.deserialize((Map) value);
+                    if (deserializer == null) {
+                        throw new RuntimeException("Cannot deserialize " + value + ". Deserializer not registered.");
+                    } else {
+                        return (T) deserializer.deserialize((Map) value);
+                    }
                 } else {
                     return asType.cast(value);
                 }
@@ -331,11 +336,55 @@ public class GsonConfigSource implements IConfigSource {
 //        System.out.println(Arrays.toString(toPath(".c..de.f....ger...")));
 //    }
 
+    /**
+     * Check whether the 'aClass' can be deserialized back from the json Object to its original data type.
+     * The deserializer must be registered since gson will simply convert the entire json file into a Map, so if there
+     * is an object that has to be deserialized, the deserializer must exist to avoid ClassCastException (because
+     * the deserialized Map contains raw data, not the actual object which the data was serialized from).
+     * <p>
+     * Primitive types (Collection, primitive array, Map, String, Number, Boolean) always return true.
+     * Refer to {@link TypeAdapters} for details.
+     *
+     * @param aClass
+     * @return true if 'aClass' has deserializer registered or if is primitive types; false otherwise.
+     */
+    private boolean isDeserializable(Class<?> aClass) {
+        // primitive types which does not require deserializer.
+        if (Collection.class.isAssignableFrom(aClass)
+                || aClass.isArray()
+                || Map.class.isAssignableFrom(aClass)
+                || String.class.isAssignableFrom(aClass)
+                || Number.class.isAssignableFrom(aClass)
+                || Boolean.class.isAssignableFrom(aClass))
+            return true;
+
+        // exact match
+        if (deserializerMap.containsKey(aClass))
+            return true;
+
+        return getMapDeserializer(aClass) != null;
+    }
+
+    private MapDeserializer<?> getMapDeserializer(Class<?> aClass) {
+        Class<?> targetType = getDeserializableType(aClass); // find possible deserializer
+        if (targetType == null)
+            targetType = aClass;
+
+        MapDeserializer<?> deserializer = deserializerMap.get(targetType);
+        if (deserializer != null && !deserializerMap.containsKey(aClass))
+            deserializerMap.put(aClass, deserializer); // add it so we don't have to search again
+
+        return deserializer;
+    }
+
     private void put(Map<String, Object> map, String[] path, Object value) {
         for (int i = 0; i < path.length; i++) {
             String key = path[i];
 
             if (i == path.length - 1) {
+                if (value != null && !isDeserializable(value.getClass()))
+                    throw new RuntimeException("GsonConfigSource does not support type: " + value.getClass());
+
                 map.put(key, value);
             } else {
                 Object previous = map.computeIfAbsent(key, (k) -> new HashMap<>());

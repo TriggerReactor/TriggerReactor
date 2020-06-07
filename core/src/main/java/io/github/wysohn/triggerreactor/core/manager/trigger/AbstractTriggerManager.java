@@ -83,7 +83,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
                             }
                         });
             } catch (Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to load " + info, e);
             }
         }
     }
