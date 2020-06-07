@@ -216,11 +216,10 @@ public class GsonConfigSource implements IConfigSource {
         synchronized (file) {
             try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
-                    cache.clear();
-
                     Map<String, Object> loaded = gson.fromJson(fr, new TypeToken<Map<String, Object>>() {
                     }.getType());
                     if (loaded != null) {
+                        cache.clear();
                         cache.putAll(loaded);
                     }
                 }
