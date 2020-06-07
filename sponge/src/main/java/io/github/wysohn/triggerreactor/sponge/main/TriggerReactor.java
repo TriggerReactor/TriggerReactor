@@ -977,7 +977,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         .fromContainer(container)
                         .build();
             } catch (Exception ex) {
-                throw new RuntimeException("Cannot serialize " + map, ex);
+                throw new RuntimeException("Cannot deserialize " + map, ex);
             }
         });
     }

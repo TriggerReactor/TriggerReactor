@@ -22,7 +22,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
-import io.github.wysohn.gsoncopy.JsonParseException;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
@@ -847,8 +846,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                     map.putAll(subs);
 
                     return ConfigurationSerialization.deserializeObject(map);
-                } catch (IllegalArgumentException ex) {
-                    throw new JsonParseException(ex);
+                } catch (Exception ex) {
+                    throw new RuntimeException("Cannot deserialize " + map, ex);
                 }
             }
         });
