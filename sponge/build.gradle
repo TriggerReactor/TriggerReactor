@@ -23,7 +23,7 @@ dependencies {
     compile project(":core")
     compile fileTree(dir: "libs", includes: ['*.jar'])
 
-    compile 'org.spongepowered:spongeapi:7.+'
+    compile 'org.spongepowered:spongeapi:7.2.+'
     compile "org.bstats:bstats-sponge-lite:1.4"
 
     testCompile project(':core').sourceSets.test.output
