@@ -50,6 +50,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -125,7 +126,12 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                 .append(() -> {
                     if (core.getVariableManager().isMigrationNeeded()) {
                         File file = new File(getDataFolder(), "var.yml");
-                        FileConfiguration conf = Utf8YamlConfiguration.loadConfiguration(file);
+                        FileConfiguration conf = new Utf8YamlConfiguration();
+                        try {
+                            conf.load(file);
+                        } catch (IOException | InvalidConfigurationException e) {
+                            e.printStackTrace();
+                        }
                         core.getVariableManager().migrate(new BukkitMigrationHelper(conf, file));
                     }
                 })
