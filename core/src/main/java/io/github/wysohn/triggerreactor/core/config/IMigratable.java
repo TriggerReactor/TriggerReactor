@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.config;
+package io.github.wysohn.triggerreactor.core.config;
 
 public interface IMigratable {
     boolean isMigrationNeeded();

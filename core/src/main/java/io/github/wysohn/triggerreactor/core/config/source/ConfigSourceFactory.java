@@ -1,6 +1,6 @@
-package io.github.wysohn.triggerreactor.core.manager.config.source;
+package io.github.wysohn.triggerreactor.core.config.source;
 
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 
 import java.io.File;
 import java.util.Optional;
@@ -39,7 +39,7 @@ public class ConfigSourceFactory {
      */
     public static IConfigSource gson(File folder, String fileName) {
         if (!folder.isDirectory())
-            throw new RuntimeException("folder must be a directory.");
+            throw new RuntimeException(folder + " must be a directory.");
 
         if (!fileName.endsWith(".json"))
             throw new RuntimeException(fileName + " does not ends with .json.");
@@ -62,6 +62,11 @@ public class ConfigSourceFactory {
     }
 
     private static class EmptyConfigSource implements IConfigSource {
+        @Override
+        public boolean fileExists() {
+            return true;
+        }
+
         @Override
         public <T> Optional<T> get(String key, Class<T> asType) {
             return Optional.empty();

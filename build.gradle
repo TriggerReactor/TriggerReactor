@@ -90,6 +90,12 @@ subprojects {
         testCompile 'org.javassist:javassist:3.20.0-GA'
     }
 
+    task copyResources(type: Copy) {
+        from project(":core").sourceSets.main.output.resourcesDir
+        into "${buildDir}/resources/main"
+    }
+    jar.dependsOn copyResources
+
     task copyJars(type: Copy) {
         from project.file('build/libs')
         include '*.jar'

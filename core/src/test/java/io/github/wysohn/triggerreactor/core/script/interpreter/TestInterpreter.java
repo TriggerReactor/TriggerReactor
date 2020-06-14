@@ -16,8 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -291,39 +292,8 @@ public class TestInterpreter {
             }
         });
         TriggerReactorCore triggerReactor = Mockito.mock(TriggerReactorCore.class);
-        AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
-            @Override
-            public void remove(String key) {
-                Assert.fail("remove() of actual gvar was called");
-            }
-
-            @Override
-            public boolean has(String key) {
-                Assert.fail("has() of actual gvar was called");
-                return false;
-            }
-
-            @Override
-            public void put(String key, Object value) throws Exception {
-                Assert.fail("put() of actual gvar was called");
-            }
-
-            @Override
-            public Object get(String key) {
-                Assert.fail("get() of actual gvar was called");
-                return null;
-            }
-
-            @Override
-            public void reload() {
-
-            }
-
-            @Override
-            public void saveAll() {
-
-            }
-        };
+        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, (folder, fileName) ->
+                Mockito.mock(IConfigSource.class));
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setGvars(avm.getGlobalVariableAdapter());

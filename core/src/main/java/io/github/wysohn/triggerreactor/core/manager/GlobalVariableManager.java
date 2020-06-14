@@ -16,16 +16,57 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.IMigratable;
+import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
-public abstract class AbstractVariableManager extends Manager {
-    public AbstractVariableManager(TriggerReactorCore plugin) {
+public final class GlobalVariableManager extends Manager implements IMigratable {
+    public static final String TYPE_KEY = "type";
+    public static final String VALUE_KEY = "value";
+
+    private final IConfigSource configSource;
+
+    public GlobalVariableManager(TriggerReactorCore plugin) {
+        this(plugin, ConfigSourceFactory::gson);
+    }
+
+    public GlobalVariableManager(TriggerReactorCore plugin, BiFunction<File, String, IConfigSource> fn) {
         super(plugin);
+        configSource = fn.apply(plugin.getDataFolder(), "var.json");
+    }
+
+    @Override
+    public void reload() {
+        plugin.getLogger().info("Reloading global variables...");
+        configSource.reload();
+        plugin.getLogger().info("Global variables were loaded from " + configSource);
+    }
+
+    @Override
+    public void saveAll() {
+        configSource.saveAll();
+    }
+
+    @Override
+    public boolean isMigrationNeeded() {
+        File oldFile = new File(plugin.getDataFolder(), "var.yml");
+        // after migration, file will be renamed to .yml.bak, and .json file will be created.
+        // otherwise, do not migrate.
+        return oldFile.exists() && !configSource.fileExists();
+    }
+
+    @Override
+    public void migrate(IMigrationHelper migrationHelper) {
+        migrationHelper.migrate(configSource);
     }
 
     /**
@@ -34,7 +75,9 @@ public abstract class AbstractVariableManager extends Manager {
      *
      * @param key the key
      */
-    public abstract void remove(String key);
+    public void remove(String key) {
+        configSource.put(key, null);
+    }
 
     /**
      * Check if the key is set
@@ -42,7 +85,9 @@ public abstract class AbstractVariableManager extends Manager {
      * @param key the key
      * @return true if set; false if nothing is set with 'key'
      */
-    public abstract boolean has(String key);
+    public boolean has(String key) {
+        return configSource.has(key);
+    }
 
     /**
      * Save new value. This should replace the value if already exists.
@@ -51,7 +96,15 @@ public abstract class AbstractVariableManager extends Manager {
      * @param value the value to save
      * @throws Exception
      */
-    public abstract void put(String key, Object value) throws Exception;
+    public void put(String key, Object value) throws Exception {
+        try {
+            configSource.put(key + "." + TYPE_KEY, value.getClass());
+            configSource.put(key + "." + VALUE_KEY, value);
+        } catch (Exception ex) { // delete the entry if either of the operation fails.
+            configSource.put(key, null);
+            ex.printStackTrace();
+        }
+    }
 
     /**
      * get value saved with the 'key'
@@ -59,7 +112,18 @@ public abstract class AbstractVariableManager extends Manager {
      * @param key the key
      * @return the value object if exists; null if nothing found
      */
-    public abstract Object get(String key);
+    public Object get(String key) {
+        String type = configSource.get(key + "." + TYPE_KEY, String.class).orElseThrow(() ->
+                new RuntimeException(key + "." + TYPE_KEY + " is not defined in " + configSource));
+
+        try {
+            Class<?> clazz = Class.forName(type);
+            return configSource.get(key + "." + VALUE_KEY, clazz);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     /**
      * Get global variable adapter that will be used by Triggers. The adapter should extends HashMap and
@@ -72,12 +136,12 @@ public abstract class AbstractVariableManager extends Manager {
     }
 
     private final GlobalVariableAdapter adapter = new GlobalVariableAdapter() {
-        private ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
 
         @Override
         public Object get(Object key) {
             if (key instanceof String) {
-                return AbstractVariableManager.this.get((String) key);
+                return GlobalVariableManager.this.get((String) key);
             } else if (key instanceof TemporaryGlobalVariableKey) {
                 return temp_map.get(key);
             } else {
@@ -88,7 +152,7 @@ public abstract class AbstractVariableManager extends Manager {
         @Override
         public boolean containsKey(Object key) {
             if (key instanceof String) {
-                return AbstractVariableManager.this.has((String) key);
+                return GlobalVariableManager.this.has((String) key);
             } else if (key instanceof TemporaryGlobalVariableKey) {
                 return temp_map.contains(key);
             } else {
@@ -100,7 +164,7 @@ public abstract class AbstractVariableManager extends Manager {
         public Object put(Object key, Object value) {
             if (key instanceof String) {
                 try {
-                    AbstractVariableManager.this.put((String) key, value);
+                    GlobalVariableManager.this.put((String) key, value);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
@@ -115,7 +179,7 @@ public abstract class AbstractVariableManager extends Manager {
         public Object remove(Object key) {
             if (key instanceof String) {
                 try {
-                    AbstractVariableManager.this.remove((String) key);
+                    GlobalVariableManager.this.remove((String) key);
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }

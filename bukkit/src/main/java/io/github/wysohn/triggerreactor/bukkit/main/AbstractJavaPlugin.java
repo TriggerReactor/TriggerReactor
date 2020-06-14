@@ -25,14 +25,15 @@ import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.config.serialize.MapDeserializer;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.config.serialize.MapDeserializer;
-import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -41,6 +42,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -113,22 +115,35 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     }
 
     private void migrateOldConfig() {
-        if (core.getConfigManager().isMigrationNeeded()) {
-            core.getConfigManager().migrate(new BukkitMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
-        }
-
-        Manager.getManagers().stream()
-                .filter(AbstractTriggerManager.class::isInstance)
-                .map(AbstractTriggerManager.class::cast)
-                .map(AbstractTriggerManager::getTriggerInfos)
-                .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                        .filter(TriggerInfo::isMigrationNeeded)
-                        .forEach(triggerInfo -> {
-                            File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                            File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                            FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                            triggerInfo.migrate(new BukkitMigrationHelper(oldFileConfig, oldFile));
-                        }));
+        new ContinuingTasks.Builder()
+                .append(() -> {
+                    if (core.getPluginConfigManager().isMigrationNeeded()) {
+                        core.getPluginConfigManager().migrate(new BukkitMigrationHelper(getConfig(),
+                                new File(getDataFolder(), "config.yml")));
+                    }
+                })
+                .append(() -> {
+                    if (core.getVariableManager().isMigrationNeeded()) {
+                        File file = new File(getDataFolder(), "var.yml");
+                        FileConfiguration conf = Utf8YamlConfiguration.loadConfiguration(file);
+                        core.getVariableManager().migrate(new BukkitMigrationHelper(conf, file));
+                    }
+                })
+                .append(() -> {
+                    Manager.getManagers().stream()
+                            .filter(AbstractTriggerManager.class::isInstance)
+                            .map(AbstractTriggerManager.class::cast)
+                            .map(AbstractTriggerManager::getTriggerInfos)
+                            .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                                    .filter(TriggerInfo::isMigrationNeeded)
+                                    .forEach(triggerInfo -> {
+                                        File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                        File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                        FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                        triggerInfo.migrate(new BukkitMigrationHelper(oldFileConfig, oldFile));
+                                    }));
+                })
+                .run();
     }
 
     protected abstract void registerAPIs();

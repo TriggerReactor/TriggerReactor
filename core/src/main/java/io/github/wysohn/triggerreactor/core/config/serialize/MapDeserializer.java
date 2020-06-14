@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.config.serialize;
+package io.github.wysohn.triggerreactor.core.config.serialize;
 
 import java.util.Map;
 

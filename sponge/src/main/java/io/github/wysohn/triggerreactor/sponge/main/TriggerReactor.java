@@ -22,8 +22,8 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -53,6 +53,8 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFuncti
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
 import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelperVar;
+import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
@@ -136,7 +138,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
-    private AbstractVariableManager variableManager;
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
@@ -170,13 +171,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         try {
             placeholderManager = new PlaceholderManager(this);
         } catch (ScriptException | IOException e) {
-            initFailed(e);
-            return;
-        }
-
-        try {
-            variableManager = new VariableManager(this);
-        } catch (IOException e) {
             initFailed(e);
             return;
         }
@@ -270,32 +264,50 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     private void migrateOldConfig() {
-        // there was no config to start with anyway
-//        if (getConfigManager().isMigrationNeeded()) {
-//            getConfigManager().migrate(new SpongeMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
-//        }
-
-        Manager.getManagers().stream()
-                .filter(AbstractTriggerManager.class::isInstance)
-                .map(AbstractTriggerManager.class::cast)
-                .map(AbstractTriggerManager::getTriggerInfos)
-                .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                        .filter(TriggerInfo::isMigrationNeeded)
-                        .forEach(triggerInfo -> {
-                            File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                            File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                            ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-                                    .setPath(oldFile.toPath())
-                                    .build();
-                            ConfigurationNode oldConfig = null;
-                            try {
-                                oldConfig = loader.load();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                return;
-                            }
-                            triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
-                        }));
+        new ContinuingTasks.Builder()
+//                .append(() -> {
+//                    if (getPluginConfigManager().isMigrationNeeded()) {
+//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(getConfig(),
+//                                new File(getDataFolder(), "config.yml")));
+//                    }
+//                })
+                .append(() -> {
+                    if (getVariableManager().isMigrationNeeded()) {
+                        File file = new File(getDataFolder(), "var.yml");
+                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
+                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+                        ConfigurationNode varFileConfig = null;
+                        try {
+                            varFileConfig = varFileConfigLoader.load();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        getVariableManager().migrate(new SpongeMigrationHelperVar(varFileConfig, file));
+                    }
+                })
+                .append(() -> Manager.getManagers().stream()
+                        .filter(AbstractTriggerManager.class::isInstance)
+                        .map(AbstractTriggerManager.class::cast)
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
+                                })))
+                .run();
     }
 
     @Listener
@@ -404,11 +416,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractPlaceholderManager getPlaceholderManager() {
         return placeholderManager;
-    }
-
-    @Override
-    public AbstractVariableManager getVariableManager() {
-        return variableManager;
     }
 
     @Override

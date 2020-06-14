@@ -17,10 +17,10 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;

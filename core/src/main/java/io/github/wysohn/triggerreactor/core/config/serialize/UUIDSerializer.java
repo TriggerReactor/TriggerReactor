@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.config.serialize;
+package io.github.wysohn.triggerreactor.core.config.serialize;
 
 import io.github.wysohn.gsoncopy.JsonDeserializationContext;
 import io.github.wysohn.gsoncopy.JsonElement;

@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.config.source;
+package io.github.wysohn.triggerreactor.core.config.source;
 
 import io.github.wysohn.gsoncopy.*;
 import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
@@ -6,10 +6,10 @@ import io.github.wysohn.gsoncopy.reflect.TypeToken;
 import io.github.wysohn.gsoncopy.stream.JsonReader;
 import io.github.wysohn.gsoncopy.stream.JsonToken;
 import io.github.wysohn.gsoncopy.stream.JsonWriter;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.serialize.DefaultSerializer;
-import io.github.wysohn.triggerreactor.core.manager.config.serialize.MapDeserializer;
-import io.github.wysohn.triggerreactor.core.manager.config.serialize.UUIDSerializer;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.serialize.DefaultSerializer;
+import io.github.wysohn.triggerreactor.core.config.serialize.MapDeserializer;
+import io.github.wysohn.triggerreactor.core.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
@@ -196,6 +196,12 @@ public class GsonConfigSource implements IConfigSource {
         this.writerFactory = writerFactory;
     }
 
+    @Override
+    public boolean fileExists() {
+        // this is not a perfect way yet can cover most cases.
+        return file.exists() && file.length() > 0;
+    }
+
     private void ensureFile() {
         if (!file.exists()) {
             if (!file.getParentFile().exists())
@@ -300,7 +306,7 @@ public class GsonConfigSource implements IConfigSource {
                     MapDeserializer<?> deserializer = getMapDeserializer(asType);
 
                     if (deserializer == null) {
-                        throw new RuntimeException("Cannot deserialize " + value + ". Deserializer not registered.");
+                        return asType.cast(value);
                     } else {
                         return (T) deserializer.deserialize((Map) value);
                     }

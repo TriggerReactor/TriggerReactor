@@ -23,7 +23,6 @@ import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.config.ConfigManager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -91,7 +90,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         return instance;
     }
 
-    private ConfigManager configManager;
+    private PluginConfigManager pluginConfigManager;
+    private GlobalVariableManager globalVariableManager;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
     protected TriggerReactorCore() {
@@ -107,8 +107,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     public abstract AbstractExecutorManager getExecutorManager();
 
     public abstract AbstractPlaceholderManager getPlaceholderManager();
-
-    public abstract AbstractVariableManager getVariableManager();
 
     public abstract AbstractScriptEditManager getScriptEditManager();
 
@@ -136,8 +134,12 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
 
-    public ConfigManager getConfigManager() {
-        return configManager;
+    public final PluginConfigManager getPluginConfigManager() {
+        return pluginConfigManager;
+    }
+
+    public final GlobalVariableManager getVariableManager() {
+        return globalVariableManager;
     }
 
     private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
@@ -146,7 +148,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     private boolean debugging = false;
 
     public void onCoreEnable() {
-        configManager = new ConfigManager(this, new File(getDataFolder(), "config.json"));
+        pluginConfigManager = new PluginConfigManager(this);
+        globalVariableManager = new GlobalVariableManager(this);
     }
 
     public void onCoreDisable() {
@@ -320,7 +323,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     if (args.length == 3) {
                         if (args[1].equalsIgnoreCase("Item")) {
                             String name = args[2];
-                            if (!AbstractVariableManager.isValidName(name)) {
+                            if (!GlobalVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -340,7 +343,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             sender.sendMessage("&aItem saved!");
                         } else if (args[1].equalsIgnoreCase("Location")) {
                             String name = args[2];
-                            if (!AbstractVariableManager.isValidName(name)) {
+                            if (!GlobalVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }
@@ -357,7 +360,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             String name = args[1];
                             String value = args[2];
 
-                            if (!AbstractVariableManager.isValidName(name)) {
+                            if (!GlobalVariableManager.isValidName(name)) {
                                 sender.sendMessage("&c" + name + " is not a valid key!");
                                 return true;
                             }

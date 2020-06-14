@@ -18,10 +18,10 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;

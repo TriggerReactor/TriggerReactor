@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 
 import java.io.File;
 import java.util.Arrays;

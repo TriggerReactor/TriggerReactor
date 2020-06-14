@@ -50,7 +50,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager implements 
         sem.put("put", new BiFunction<String, Object, Void>() {
             @Override
             public Void apply(String a, Object b) {
-                if (!AbstractVariableManager.isValidName(a))
+                if (!GlobalVariableManager.isValidName(a))
                     throw new RuntimeException("[" + a + "] cannot be used as key");
 
                 if (a != null && b == null) {

@@ -89,7 +89,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
-    private AbstractVariableManager variableManager;
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
@@ -119,11 +118,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public AbstractPlaceholderManager getPlaceholderManager() {
         return placeholderManager;
-    }
-
-    @Override
-    public AbstractVariableManager getVariableManager() {
-        return variableManager;
     }
 
     @Override
@@ -224,13 +218,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         try {
             placeholderManager = new PlaceholderManager(this);
         } catch (ScriptException | IOException e) {
-            initFailed(e);
-            return;
-        }
-
-        try {
-            variableManager = new VariableManager(this);
-        } catch (Exception e) {
             initFailed(e);
             return;
         }

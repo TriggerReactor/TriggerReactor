@@ -17,8 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;

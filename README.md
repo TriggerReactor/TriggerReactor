@@ -1,4 +1,4 @@
-# TriggerReactor ![Java CI](https://github.com/TriggerReactor/TriggerReactor/workflows/Java%20CI/badge.svg)
+# TriggerReactor ![Java CI](https://github.com/TriggerReactor/TriggerReactor/workflows/Java%20CI/badge.svg) [![CodeFactor](https://www.codefactor.io/repository/github/triggerreactor/triggerreactor/badge)](https://www.codefactor.io/repository/github/triggerreactor/triggerreactor)
 
 For easy to use script solution and infinite possibility to expand
 

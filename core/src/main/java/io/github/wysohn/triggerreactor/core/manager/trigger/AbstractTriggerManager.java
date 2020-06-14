@@ -16,10 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
 import io.github.wysohn.triggerreactor.tools.observer.IObserver;

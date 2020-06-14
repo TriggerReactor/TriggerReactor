@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.config;
+package io.github.wysohn.triggerreactor.core.config;
 
 import java.util.LinkedList;
 import java.util.Optional;
@@ -28,6 +28,14 @@ public interface IConfigSource {
 
         return path.toArray(new String[0]);
     }
+
+    /**
+     * Check if valid .json file exists. Here, 'valid' means it's a valid json file.
+     * For example, a valid json file must contain at least object ({}).
+     *
+     * @return
+     */
+    boolean fileExists();
 
     <T> Optional<T> get(String key, Class<T> asType);
 
