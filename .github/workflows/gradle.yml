@@ -22,10 +22,12 @@ jobs:
       run: ./gradlew build
     - name: Show status
       run: |
-        echo tags>> ${{ contains(github.ref, 'tags') }}\nmerge>> github.event.pull_request.merged
+        echo tags>> ${{ contains(github.ref, 'tags') }}
+        echo merge>> ${{ github.event.pull_request.merged }}
+        echo result>> ${{ contains(github.ref, 'tags') || github.event.pull_request.merged == true }}
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
-      if: ${{ contains(github.ref, 'tags') || github.event.pull_request.merged == 'true' }}
+      if: ${{ contains(github.ref, 'tags') || github.event.pull_request.merged == true }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/libs/TriggerReactor-*.jar
