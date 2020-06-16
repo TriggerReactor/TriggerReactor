@@ -22,8 +22,8 @@ jobs:
       run: ./gradlew build
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
-      if: github.event.pull_request.merged == true 
-        || contains(github.ref, 'tags')
+      if: contains(github.ref, 'tags')
+        || github.event.pull_request.merged == true 
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/libs/TriggerReactor-*.jar
