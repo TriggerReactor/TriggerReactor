@@ -35,11 +35,12 @@ import java.io.File;
 import java.io.IOException;
 
 public class VariableManager extends AbstractVariableManager {
-    private File varFile;
+    private final Object saveLock = new Object();
 
-    private ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader;
+    private final File varFile;
+    private final ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader;
+
     private ConfigurationNode varFileConfig;
-
     private Boolean saving = false;
 
     public VariableManager(TriggerReactorCore plugin) throws IOException {
@@ -57,7 +58,7 @@ public class VariableManager extends AbstractVariableManager {
     @Override
     public void reload() {
         plugin.getLogger().info("Waiting for previous saving tasks...");
-        synchronized (saving) {
+        synchronized (saveLock) {
             try {
                 plugin.getLogger().info("Done! now reloading global variables...");
                 varFileConfig = varFileConfigLoader.load();
@@ -74,18 +75,15 @@ public class VariableManager extends AbstractVariableManager {
             return;
 
         saving = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (saving) {
-                    try {
-                        varFileConfigLoader.save(varFileConfig);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        plugin.getLogger().severe("Something went wrong while saving global variable!");
-                    } finally {
-                        saving = false;
-                    }
+        new Thread(() -> {
+            synchronized (saveLock) {
+                try {
+                    varFileConfigLoader.save(varFileConfig);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Something went wrong while saving global variable!");
+                } finally {
+                    saving = false;
                 }
             }
         }).start();
