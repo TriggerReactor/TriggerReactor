@@ -36,9 +36,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class VariableManager extends AbstractVariableManager {
-    private File varFile;
-    private FileConfiguration varFileConfig;
+    private final Object saveLock = new Object();
 
+    private final File varFile;
+
+    private FileConfiguration varFileConfig;
     private Boolean saving = false;
 
     public VariableManager(TriggerReactorCore plugin) throws IOException, InvalidConfigurationException {
@@ -56,7 +58,7 @@ public class VariableManager extends AbstractVariableManager {
     @Override
     public void reload() {
         plugin.getLogger().info("Waiting for previous saving tasks...");
-        synchronized (saving) {
+        synchronized (saveLock) {
             plugin.getLogger().info("Done! now reloading global variables...");
             varFileConfig = new Utf8YamlConfiguration();
             try {
@@ -74,18 +76,15 @@ public class VariableManager extends AbstractVariableManager {
             return;
 
         saving = true;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                synchronized (saving) {
-                    try {
-                        FileUtil.writeToFile(varFile, varFileConfig.saveToString());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        plugin.getLogger().severe("Something went wrong while saving global variable!");
-                    } finally {
-                        saving = false;
-                    }
+        new Thread(() -> {
+            synchronized (saveLock) {
+                try {
+                    FileUtil.writeToFile(varFile, varFileConfig.saveToString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    plugin.getLogger().severe("Something went wrong while saving global variable!");
+                } finally {
+                    saving = false;
                 }
             }
         }).start();
@@ -122,6 +121,7 @@ public class VariableManager extends AbstractVariableManager {
     }
 
     private static void checkConfigurationSerialization() {
+        // happens in older Bukkit versions
         if (!ConfigurationSerializable.class.isAssignableFrom(Location.class)) {
             ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");
         }
