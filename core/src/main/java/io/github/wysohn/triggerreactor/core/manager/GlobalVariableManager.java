@@ -20,6 +20,7 @@ import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.DelegatedConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
@@ -66,7 +67,13 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
 
     @Override
     public void migrate(IMigrationHelper migrationHelper) {
-        migrationHelper.migrate(configSource);
+        DelegatedConfigSource delegatedConfigSource = new DelegatedConfigSource(configSource) {
+            @Override
+            public void put(String key, Object value) {
+                GlobalVariableManager.this.put(key, value);
+            }
+        };
+        migrationHelper.migrate(delegatedConfigSource);
     }
 
     /**
@@ -96,9 +103,9 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
      * @param value the value to save
      * @throws Exception
      */
-    public void put(String key, Object value) throws Exception {
+    public void put(String key, Object value) {
         try {
-            configSource.put(key + "." + TYPE_KEY, value.getClass());
+            configSource.put(key + "." + TYPE_KEY, value.getClass().getName());
             configSource.put(key + "." + VALUE_KEY, value);
         } catch (Exception ex) { // delete the entry if either of the operation fails.
             configSource.put(key, null);
@@ -113,12 +120,14 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
      * @return the value object if exists; null if nothing found
      */
     public Object get(String key) {
-        String type = configSource.get(key + "." + TYPE_KEY, String.class).orElseThrow(() ->
-                new RuntimeException(key + "." + TYPE_KEY + " is not defined in " + configSource));
+        String type = configSource.get(key + "." + TYPE_KEY, String.class).orElse(null);
+        if (type == null) {
+            return configSource.get(key).orElse(null);
+        }
 
         try {
             Class<?> clazz = Class.forName(type);
-            return configSource.get(key + "." + VALUE_KEY, clazz);
+            return configSource.get(key + "." + VALUE_KEY, clazz).orElse(null);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
             return null;

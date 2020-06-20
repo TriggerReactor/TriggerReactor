@@ -147,7 +147,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
     private AbstractCommandTriggerManager cmdManager;
-    private AbstractInventoryTriggerManager invManager;
+    private AbstractInventoryTriggerManager<ItemStack> invManager;
     private AbstractAreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
@@ -158,6 +158,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onConstruct(GameInitializationEvent event) {
+        onCoreEnable();
+
         SYNC_EXECUTOR = Sponge.getScheduler().createSyncExecutor(this);
         WRAPPER = new SpongeWrapper();
 
@@ -193,7 +195,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
         tpsHelper = new Lag();
         Sponge.getScheduler().createTaskBuilder().execute(tpsHelper).delayTicks(100L).intervalTicks(1L).submit(this);
-
     }
 
     private void initFailed(Exception e) {
@@ -265,12 +266,21 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     private void migrateOldConfig() {
         new ContinuingTasks.Builder()
-//                .append(() -> {
+                .append(() -> {
 //                    if (getPluginConfigManager().isMigrationNeeded()) {
-//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(getConfig(),
-//                                new File(getDataFolder(), "config.yml")));
+//                        File file = new File(getDataFolder(), "config.yml");
+//                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
+//                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+//                        ConfigurationNode confFileConfig = null;
+//                        try {
+//                            confFileConfig = varFileConfigLoader.load();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                            return;
+//                        }
+//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(confFileConfig, file));
 //                    }
-//                })
+                })
                 .append(() -> {
                     if (getVariableManager().isMigrationNeeded()) {
                         File file = new File(getDataFolder(), "var.yml");

@@ -354,7 +354,8 @@ public class GsonConfigSource implements IConfigSource {
      * @param aClass
      * @return true if 'aClass' has deserializer registered or if is primitive types; false otherwise.
      */
-    private boolean isDeserializable(Class<?> aClass) {
+    @Override
+    public boolean isDeserializable(Class<?> aClass) {
         // primitive types which does not require deserializer.
         if (Collection.class.isAssignableFrom(aClass)
                 || aClass.isArray()

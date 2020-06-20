@@ -17,19 +17,19 @@ public class SpongeMigrationHelper implements IMigrationHelper {
         this.oldFile = oldFile;
     }
 
-    protected void traversal(Map<Object, ? extends ConfigurationNode> map, BiConsumer<String, ConfigurationNode> consumer) {
+    protected void traversal(Map<Object, ? extends ConfigurationNode> map, BiConsumer<String, Object> consumer) {
         map.forEach(((s, o) -> {
             if (o.hasMapChildren()) {
                 traversal(o.getChildrenMap(), consumer);
             } else {
-                consumer.accept(ConfigurationUtil.asDottedPath(o), o);
+                consumer.accept(ConfigurationUtil.asDottedPath(o), o.getValue());
             }
         }));
     }
 
     @Override
     public void migrate(IConfigSource current) {
-        traversal(oldConfig.getChildrenMap(), (key, node) -> current.put(key, node.getValue()));
+        traversal(oldConfig.getChildrenMap(), current::put);
 
         if (oldFile.exists())
             oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));

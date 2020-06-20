@@ -49,6 +49,8 @@ public interface IConfigSource {
 
     boolean isSection(String key);
 
+    boolean isDeserializable(Class<?> aClass);
+
     void reload();
 
     void saveAll();

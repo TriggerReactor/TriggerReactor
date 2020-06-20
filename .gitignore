@@ -22,3 +22,4 @@ bin/
 .idea
 *.iml
 */.settings
+/core/out/production/classes/META-INF/
