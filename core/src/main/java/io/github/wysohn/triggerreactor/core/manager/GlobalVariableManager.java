@@ -61,7 +61,7 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
     public boolean isMigrationNeeded() {
         File oldFile = new File(plugin.getDataFolder(), "var.yml");
         // after migration, file will be renamed to .yml.bak, and .json file will be created.
-        // otherwise, do not migrate.
+        // so migrate only if old file exist and new file is not yet generated.
         return oldFile.exists() && !configSource.fileExists();
     }
 
