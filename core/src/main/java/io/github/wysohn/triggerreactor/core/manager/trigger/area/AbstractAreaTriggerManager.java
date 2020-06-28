@@ -99,6 +99,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                 File enterFile = null;
                 try {
                     enterFile = getTriggerFile(scriptFolder, "Enter", false);
+                    if (!enterFile.exists())
+                        enterFile.createNewFile();
                     enterScript = FileUtil.readFromFile(enterFile);
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -109,6 +111,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                 File exitFile = null;
                 try {
                     exitFile = getTriggerFile(scriptFolder, "Exit", false);
+                    if (!exitFile.exists())
+                        exitFile.createNewFile();
                     exitScript = FileUtil.readFromFile(exitFile);
                 } catch (IOException ex) {
                     ex.printStackTrace();

@@ -20,7 +20,7 @@ public class AreaTrigger extends Trigger {
     private EnterTrigger enterTrigger;
     private ExitTrigger exitTrigger;
 
-    private Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
+    private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
 
     public AreaTrigger(TriggerInfo info, Area area, File folder) {
         super(info, null); // area trigger has scripts in its folder
@@ -86,7 +86,6 @@ public class AreaTrigger extends Trigger {
 
     public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
         exitTrigger = new ExitTrigger(this.getInfo(), script, this);
-
     }
 
     public EnterTrigger getEnterTrigger() {
