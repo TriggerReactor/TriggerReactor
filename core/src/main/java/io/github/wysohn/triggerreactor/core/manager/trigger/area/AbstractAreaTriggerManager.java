@@ -76,15 +76,15 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
             @Override
             public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
-                return new AreaTriggerInfo(file, configSource);
+                return new AreaTriggerInfo(file, configSource, file.getName());
             }
 
             @Override
             public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 SimpleLocation smallest = info.getConfig().get(SMALLEST, SimpleLocation.class)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find " + SMALLEST, info.getConfig()));
+                        .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
                 SimpleLocation largest = info.getConfig().get(LARGEST, SimpleLocation.class)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find " + LARGEST, info.getConfig()));
+                        .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
                 boolean isSync = info.getConfig().get(SYNC, Boolean.class)
                         .orElse(false);
 
@@ -273,7 +273,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         File areaFolder = new File(folder, name);
         IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
-        AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config), area, areaFolder);
+        AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);
 
         setupArea(trigger);
