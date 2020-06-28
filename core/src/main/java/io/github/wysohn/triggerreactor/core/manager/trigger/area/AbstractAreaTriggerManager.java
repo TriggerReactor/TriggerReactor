@@ -35,6 +35,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -60,8 +61,17 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     public AbstractAreaTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
             @Override
-            public boolean isTriggerFile(File file) {
-                return file.isDirectory();
+            public TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
+                return Optional.ofNullable(folder.listFiles())
+                        .map(files -> Arrays.stream(files)
+                                .filter(File::isDirectory)
+                                .map(file -> {
+                                    String name = file.getName();
+                                    IConfigSource config = fn.apply(folder, name + ".json");
+                                    return toTriggerInfo(file, config);
+                                })
+                                .toArray(TriggerInfo[]::new))
+                        .orElse(new TriggerInfo[0]);
             }
 
             @Override
