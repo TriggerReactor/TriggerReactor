@@ -81,9 +81,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
             @Override
             public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                SimpleLocation smallest = info.getConfig().get(SMALLEST, SimpleLocation.class)
+                SimpleLocation smallest = info.getConfig().get(SMALLEST, String.class)
+                        .map(SimpleLocation::valueOf)
                         .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-                SimpleLocation largest = info.getConfig().get(LARGEST, SimpleLocation.class)
+                SimpleLocation largest = info.getConfig().get(LARGEST, String.class)
+                        .map(SimpleLocation::valueOf)
                         .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
                 boolean isSync = info.getConfig().get(SYNC, Boolean.class)
                         .orElse(false);
