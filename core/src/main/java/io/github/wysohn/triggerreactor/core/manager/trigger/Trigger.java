@@ -53,9 +53,6 @@ public abstract class Trigger implements Cloneable, IObservable {
         this.script = script;
 
         ValidationUtil.notNull(this.info);
-        if (this.script == null) {
-            this.script = "";
-        }
     }
 
     @Override
