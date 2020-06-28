@@ -30,7 +30,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -189,12 +188,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         entityLocationMap.clear();
         entityTrackMap.clear();
 
-        FileFilter filter = new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".yml");
-            }
-        };
+        super.reload();
 
         areaTriggersByLocation.clear();
 
