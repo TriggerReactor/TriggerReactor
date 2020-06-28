@@ -61,6 +61,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     public AbstractAreaTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
             @Override
+            public boolean isTriggerFile(File file) {
+                return file.isDirectory();
+            }
+
+            @Override
             public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
                 return new AreaTriggerInfo(file, configSource);
             }

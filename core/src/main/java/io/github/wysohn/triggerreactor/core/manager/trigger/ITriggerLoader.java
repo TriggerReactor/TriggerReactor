@@ -9,11 +9,21 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 public interface ITriggerLoader<T extends Trigger> {
+    /**
+     * Default filter which includes any 'File' that ends with '.trg'
+     * This may need to be overridden in some cases (such as Area Trigger since Area Trigger use Folder instead of File.)
+     *
+     * @param file
+     * @return
+     */
+    default boolean isTriggerFile(File file) {
+        return file.isFile() && file.getName().endsWith(".trg");
+    }
+
     default TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
         return Optional.ofNullable(folder.listFiles())
                 .map(files -> Arrays.stream(files)
-                        .filter(File::isFile)
-                        .filter(file -> file.getName().endsWith(".trg"))
+                        .filter(this::isTriggerFile)
                         .map(file -> {
                             String name = TriggerInfo.extractName(file);
                             IConfigSource config = fn.apply(folder, name + ".json");
