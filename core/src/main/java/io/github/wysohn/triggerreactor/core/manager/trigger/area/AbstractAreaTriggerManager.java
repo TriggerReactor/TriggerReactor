@@ -133,8 +133,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             @Override
             public void save(AreaTrigger trigger) {
                 Area area = trigger.getArea();
-                trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest());
-                trigger.getInfo().getConfig().put(LARGEST, area.getLargest());
+                trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
+                trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
                 trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
 
                 File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
