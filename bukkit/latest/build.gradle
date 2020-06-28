@@ -12,16 +12,16 @@ import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
 
 task writePluginYml {
-    DumperOptions options = new DumperOptions();
-    options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-    options.setPrettyFlow(true);
+    DumperOptions options = new DumperOptions()
+    options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK)
+    options.setPrettyFlow(true)
 
-    File file = new File("$projectDir/src/main/resources/plugin.yml");
+    File file = new File("$projectDir/src/main/resources/plugin.yml")
 
-    InputStream input = new FileInputStream(file);
-    Yaml yaml = new Yaml(options);
-    Map<String, Object> map = yaml.load(input);
-    input.close();
+    InputStream input = new FileInputStream(file)
+    Yaml yaml = new Yaml(options)
+    Map<String, Object> map = yaml.load(input)
+    input.close()
 
     String id = project.ext.id
     String desc = project.ext.description
@@ -60,11 +60,11 @@ task writePluginYml {
     })
     map.put("api-version", 1.13)
 
-    FileWriter writer = new FileWriter(file);
+    FileWriter writer = new FileWriter(file)
     yaml.dump(map, writer)
-    writer.close();
+    writer.close()
 }
 
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.15-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot-api:1.16.1-R0.1-SNAPSHOT'
 }
