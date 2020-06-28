@@ -86,6 +86,11 @@ public abstract class Trigger implements Cloneable, IObservable {
      */
     public void init() throws TriggerInitFailedException {
         try {
+            if (script == null) {
+                throw new NullPointerException("init() was invoked, yet 'script' was null. Make sure to override " +
+                        "init() method to in order to construct a customized Trigger.");
+            }
+
             Charset charset = StandardCharsets.UTF_8;
 
             Lexer lexer = new Lexer(script, charset);
