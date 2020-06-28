@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -167,8 +166,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             String name = TriggerInfo.extractName(file);
             IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = loader.load(info);
-        } catch (InvalidTrgConfigurationException e1) {
+            trigger = newTrigger(info, script);
+        } catch (Exception e1) {
             p.sendMessage(Text.builder("Encounterd an error!").color(TextColors.RED).build());
             p.sendMessage(Text.builder(e1.getMessage()).color(TextColors.RED).build());
             p.sendMessage(Text.builder("If you are an administrator, check console to see details.").color(TextColors.RED).build());
