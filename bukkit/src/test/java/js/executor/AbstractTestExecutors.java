@@ -4,8 +4,8 @@ package js.executor;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -34,12 +34,11 @@ import static org.mockito.Mockito.times;
 
 /**
  * Test driving class for testing Executors.
- *
  */
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
-    public void testPlayer_SetFlyMode() throws Exception{
+    public void testPlayer_SetFlyMode() throws Exception {
         Player mockPlayer = Mockito.mock(Player.class);
 
         JsTest test = new ExecutorTest(engine, "SETFLYMODE")
@@ -220,14 +219,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testActionBar() throws Exception{
+    public void testActionBar() throws Exception {
         //TODO
     }
 
     @Test
-    public void testBroadcast() throws Exception{
+    public void testBroadcast() throws Exception {
         Collection<Player> players = new ArrayList<>();
-        for(int i = 0; i < 5; i++){
+        for (int i = 0; i < 5; i++) {
             players.add(Mockito.mock(Player.class));
         }
 
@@ -241,14 +240,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
                 .withArgs(message)
                 .test();
 
-        for(Player mockPlayer : players){
+        for (Player mockPlayer : players) {
             Mockito.verify(mockPlayer)
                     .sendMessage(Mockito.argThat((String s) -> colored.equals(s)));
         }
     }
 
     @Test
-    public void testBurn() throws Exception{
+    public void testBurn() throws Exception {
         //happy cases
 
         Player mockPlayer = Mockito.mock(Player.class);
@@ -282,7 +281,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testClearChat() throws Exception{
+    public void testClearChat() throws Exception {
         Player vp = Mockito.mock(Player.class);
         Player vp2 = Mockito.mock(Player.class);
         Player nullP = null;
@@ -345,42 +344,42 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testCmd() throws Exception{
+    public void testCmd() throws Exception {
         // #CMD internally creates Event which cannot be tested
     }
 
     @Test
-    public void testCmdCon() throws Exception{
+    public void testCmdCon() throws Exception {
         // #CMDCON retrieve ConsoleCommandSender by static method
     }
 
     @Test
-    public void testDoorClose() throws Exception{
+    public void testDoorClose() throws Exception {
         //TODO
     }
 
     @Test
-    public void testDoorOpen() throws Exception{
+    public void testDoorOpen() throws Exception {
         //TODO
     }
 
     @Test
-    public void testDoorToggle() throws Exception{
+    public void testDoorToggle() throws Exception {
         //TODO
     }
 
     @Test
-    public void testDropItem() throws Exception{
+    public void testDropItem() throws Exception {
         //TODO
     }
 
     @Test
-    public void testExplosion() throws Exception{
+    public void testExplosion() throws Exception {
         //TODO
     }
 
     @Test
-    public void testFallingBlock() throws Exception{
+    public void testFallingBlock() throws Exception {
         //TODO
     }
 
@@ -407,7 +406,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testGUI() throws Exception {
         IPlayer vip = Mockito.mock(IPlayer.class);
-        TriggerReactor tr = Mockito.mock(TriggerReactor.class);
+        TriggerReactorCore tr = Mockito.mock(TriggerReactorCore.class);
         AbstractInventoryTriggerManager invManager = Mockito.mock(AbstractInventoryTriggerManager.class);
         IInventory iInv = Mockito.mock(IInventory.class);
         JsTest test = new ExecutorTest(engine, "GUI")
@@ -451,7 +450,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testItemFrameSet() throws Exception{
+    public void testItemFrameSet() throws Exception {
         //TODO
     }
 
@@ -545,12 +544,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testLog() throws Exception{
+    public void testLog() throws Exception {
         //no way to test window.print()
     }
 
     @Test
-    public void testMessage() throws Exception{
+    public void testMessage() throws Exception {
         Player mockPlayer = Mockito.mock(Player.class);
 
         new ExecutorTest(engine, "MESSAGE")
@@ -563,97 +562,97 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testModifyHeldItem() throws Exception{
+    public void testModifyHeldItem() throws Exception {
         //TODO
     }
 
     @Test
-    public void testModifyPlayer() throws Exception{
+    public void testModifyPlayer() throws Exception {
         //No longer supported
     }
 
     @Test
-    public void testMoney() throws Exception{
+    public void testMoney() throws Exception {
         //written in each platform's test class.
     }
 
     @Test
-    public void testMysql() throws Exception{
+    public void testMysql() throws Exception {
         //TODO
     }
 
     @Test
-    public void testPermission() throws Exception{
+    public void testPermission() throws Exception {
         //TODO
     }
 
     @Test
-    public void testPotion() throws Exception{
+    public void testPotion() throws Exception {
         //TODO
     }
 
     @Test
-    public void testPush() throws Exception{
+    public void testPush() throws Exception {
         //TODO
     }
 
     @Test
-    public void testRotateBlock() throws Exception{
+    public void testRotateBlock() throws Exception {
         //TODO
     }
 
     @Test
-    public void testScoreboard() throws Exception{
+    public void testScoreboard() throws Exception {
         //TODO
     }
 
     @Test
-    public void testServer() throws Exception{
+    public void testServer() throws Exception {
         //TODO
     }
 
     @Test
-    public void testSetBlock() throws Exception{
+    public void testSetBlock() throws Exception {
         //TODO
     }
 
     @Test
-    public void testSignEdit() throws Exception{
+    public void testSignEdit() throws Exception {
         //TODO        
     }
 
     @Test
-    public void testSound() throws Exception{
+    public void testSound() throws Exception {
         //TODO
     }
 
     @Test
-    public void testSoundAll() throws Exception{
+    public void testSoundAll() throws Exception {
         //TODO
     }
 
     @Test
-    public void testSpawn() throws Exception{
+    public void testSpawn() throws Exception {
         //TODO
     }
 
     @Test
-    public void testTime() throws Exception{
+    public void testTime() throws Exception {
         //TODO
     }
 
     @Test
-    public void testTp() throws Exception{
+    public void testTp() throws Exception {
         //TODO
     }
 
     @Test
-    public void testTppos() throws Exception{
+    public void testTppos() throws Exception {
         //TODO
     }
 
     @Test
-    public void testVelocity() throws Exception{
+    public void testVelocity() throws Exception {
         //TODO
     }
 
@@ -813,5 +812,43 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertInvalid(0);
         test.assertInvalid("NOPE");
         test.assertInvalid(true, 0);
+    }
+
+    @Test
+    public void testSetType() throws Exception {
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        Material newDirt = Material.valueOf("DIRT");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+
+        ExecutorTest test = new ExecutorTest(engine, "SETTYPE");
+
+        test.withArgs("DIRT", vItem).test();
+
+        Mockito.verify(vItem).setType(newDirt);
+
+        test.assertValid("STONE", vItem);
+        test.assertInvalid(1, vItem);
+        test.assertInvalid(1, 3);
+        test.assertInvalid("h", "d");
+        test.assertInvalid(vItem, 2);
+    }
+
+    @Test
+    public void testSetCount() throws Exception {
+        ItemStack vItem = Mockito.mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        PowerMockito.when(vItem, "getType").thenReturn(stone);
+
+        ExecutorTest test = new ExecutorTest(engine, "SETCOUNT");
+
+        test.withArgs(3, vItem).test();
+
+        Mockito.verify(vItem).setAmount(3);
+
+        test.assertValid(1, vItem);
+        test.assertInvalid(1, 3);
+        test.assertInvalid("h", "d");
+        test.assertInvalid(vItem, 2);
     }
 }

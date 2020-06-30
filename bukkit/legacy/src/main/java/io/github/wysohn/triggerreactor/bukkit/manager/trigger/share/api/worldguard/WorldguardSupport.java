@@ -20,7 +20,7 @@ import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,7 +33,7 @@ import java.util.Set;
 public class WorldguardSupport extends APISupport {
     private WorldGuardPlugin wg;
 
-    public WorldguardSupport(TriggerReactor plugin) {
+    public WorldguardSupport(TriggerReactorCore plugin) {
         super(plugin, "WorldGuard");
     }
 

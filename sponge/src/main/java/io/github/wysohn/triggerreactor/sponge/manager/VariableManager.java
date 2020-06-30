@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -43,7 +43,7 @@ public class VariableManager extends AbstractVariableManager {
     private ConfigurationNode varFileConfig;
     private Boolean saving = false;
 
-    public VariableManager(TriggerReactor plugin) throws IOException {
+    public VariableManager(TriggerReactorCore plugin) throws IOException {
         super(plugin);
 
         varFile = new File(plugin.getDataFolder(), "var.yml");

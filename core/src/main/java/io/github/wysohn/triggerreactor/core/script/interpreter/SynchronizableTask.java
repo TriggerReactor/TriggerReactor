@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -57,6 +57,6 @@ public abstract class SynchronizableTask {
     }
 
     public static <T> Future<T> runSyncTaskForFuture(Callable<T> call) {
-        return TriggerReactor.getInstance().callSyncMethod(call);
+        return TriggerReactorCore.getInstance().callSyncMethod(call);
     }
 }

@@ -44,5 +44,4 @@ public interface IPlayer extends IEntity, ICommandSender {
     ILocation getLocation();
 
     void setItemInMainHand(IItemStack iS);
-
 }

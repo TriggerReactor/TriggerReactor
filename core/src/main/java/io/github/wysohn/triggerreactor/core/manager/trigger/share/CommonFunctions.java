@@ -189,10 +189,9 @@ public class CommonFunctions implements SelfReference {
     }
 
     public SimpleLocation slocation(String world, int x, int y, int z) {
-    	if (world == null)
-    	{
-    		throw new IllegalArgumentException("world cannot be null");
-    	}
+        if (world == null) {
+            throw new IllegalArgumentException("world cannot be null");
+        }
         return new SimpleLocation(world, x, y, z);
     }
 
@@ -232,7 +231,7 @@ public class CommonFunctions implements SelfReference {
                     for (int i = parameterTypes.length - 1; i < args.length; i++) {
                         Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
 
-                        matches =  ReflectionUtil.checkMatch(arrayType, args[i]);
+                        matches = ReflectionUtil.checkMatch(arrayType, args[i]);
                         if (!matches)
                             break;
                     }
@@ -244,7 +243,7 @@ public class CommonFunctions implements SelfReference {
                     boolean matches = true;
 
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        matches =  ReflectionUtil.checkMatch(parameterTypes[i], args[i]);
+                        matches = ReflectionUtil.checkMatch(parameterTypes[i], args[i]);
                         if (!matches)
                             break;
                     }
@@ -330,13 +329,13 @@ public class CommonFunctions implements SelfReference {
             }
 
             if (args.length > 0) {
-                StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
+                StringBuilder builder = new StringBuilder(args[0].getClass().getSimpleName());
 
                 for (int i = 1; i < args.length; i++) {
                     builder.append(", " + args[i].getClass().getSimpleName());
                 }
 
-                throw new IllegalArgumentException(className+"(" + builder.toString() + "). " +
+                throw new IllegalArgumentException(className + "(" + builder.toString() + "). " +
                         "Make sure the arguments match.");
             } else {
                 throw new IllegalArgumentException(className + "(). Make sure the arguments match.");
@@ -344,9 +343,9 @@ public class CommonFunctions implements SelfReference {
         } catch (NullPointerException e) {
             StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
             for (int i = 1; i < args.length; i++)
-                builder.append("," + String.valueOf(args[i]));
+                builder.append("," + args[i]);
             throw new NullPointerException("Attempted to instantiate " + className + "(" + builder.toString() + ")");
-        } catch (IllegalAccessException e){
+        } catch (IllegalAccessException e) {
             throw new RuntimeException("Unexpected exception. Please contact the plugin author!", e);
         }
     }
@@ -431,7 +430,7 @@ public class CommonFunctions implements SelfReference {
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
      *
-     * @param args  array to merge
+     * @param args      array to merge
      * @param indexFrom inclusive
      * @return
      */
@@ -443,7 +442,7 @@ public class CommonFunctions implements SelfReference {
      * Merge array of String. This is specifically useful for args variable of
      * Command Trigger but not limited to.
      *
-     * @param args  array to merge
+     * @param args      array to merge
      * @param indexFrom inclusive
      * @param indexTo   inclusive
      * @return

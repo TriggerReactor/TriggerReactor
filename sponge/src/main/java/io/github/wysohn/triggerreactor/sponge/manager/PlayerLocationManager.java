@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.sponge.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.sponge.bridge.event.SpongePlayerBlockLocationEvent;
@@ -20,7 +20,7 @@ import org.spongepowered.api.world.World;
 
 public class PlayerLocationManager extends AbstractPlayerLocationManager {
 
-    public PlayerLocationManager(TriggerReactor plugin) {
+    public PlayerLocationManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 

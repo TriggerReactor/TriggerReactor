@@ -23,7 +23,7 @@ softdepend:
 commands:
   triggerreactor:
     aliases:
-    - trg
+      - trg
     description: Simple script parser with infinite possibility
 permissions:
   triggerreactor.admin:
@@ -31,5 +31,5 @@ permissions:
 command:
   triggerreactor:
     aliases:
-    - trg
+      - trg
     description: Simple script parser with infinite possibility

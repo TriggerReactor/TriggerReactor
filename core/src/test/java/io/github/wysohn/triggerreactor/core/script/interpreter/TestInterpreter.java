@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -290,7 +290,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactor triggerReactor = Mockito.mock(TriggerReactor.class);
+        TriggerReactorCore triggerReactor = Mockito.mock(TriggerReactorCore.class);
         AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
             @Override
             public void remove(String key) {
@@ -585,31 +585,30 @@ public class TestInterpreter {
 
         Node root = parser.parse();
         @SuppressWarnings("serial")
-		Map<String, Executor> executorMap = new HashMap<String, Executor>() {
-		{
-            put("TEST1", new Executor() {
+        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
+            {
+                put("TEST1", new Executor() {
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+                        Assert.assertEquals("work", args[0]);
+                        return null;
+                    }
 
-                    Assert.assertEquals("work", args[0]);
-                    return null;
-                }
+                });
+                put("TEST2", new Executor() {
 
-            });
-            put("TEST2", new Executor() {
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+                        Assert.assertEquals("work2", args[0]);
+                        return null;
+                    }
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
-
-                    Assert.assertEquals("work2", args[0]);
-                    return null;
-                }
-
-            });
-        }};
+                });
+            }
+        };
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -2076,7 +2075,7 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
         interpreter.setSelfReference(new SelfReference() {
             @SuppressWarnings("unused")
-			public Object array(int size) {
+            public Object array(int size) {
                 return new Object[size];
             }
         });

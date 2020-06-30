@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
@@ -33,7 +33,7 @@ import java.util.concurrent.*;
 public abstract class AbstractPlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
     protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
 
-    public AbstractPlaceholderManager(TriggerReactor plugin) throws ScriptException {
+    public AbstractPlaceholderManager(TriggerReactorCore plugin) throws ScriptException {
         super(plugin);
     }
 
@@ -172,7 +172,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 }
             };
 
-            if (TriggerReactor.getInstance().isServerThread()) {
+            if (TriggerReactorCore.getInstance().isServerThread()) {
                 Object result = null;
                 try {
                     result = call.call();
@@ -186,7 +186,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
                 if (future == null) {
                     //probably server is shutting down
-                    if (!TriggerReactor.getInstance().isEnabled()) {
+                    if (!TriggerReactorCore.getInstance().isEnabled()) {
                         return call.call();
                     } else {
                         throw new Exception("$" + placeholderName + " couldn't be finished. The server returned null Future.");

@@ -4,17 +4,15 @@ import io.github.wysohn.triggerreactor.tools.ErrorProneRunnable;
 import org.junit.Assert;
 
 public class TestUtil {
-	//assert that a runnable threw an error
-	public static void assertError(ErrorProneRunnable run)
-	{
-		try {
-			run.run();
-		}
-		catch (Exception e) {
-			return;
-		}
-		Assert.fail("runnable did not throw any exception");
-	}
+    //assert that a runnable threw an error
+    public static void assertError(ErrorProneRunnable run) {
+        try {
+            run.run();
+        } catch (Exception e) {
+            return;
+        }
+        Assert.fail("runnable did not throw any exception");
+    }
 
     //assert that a runnable threw an error message with the content Error: + expectedMessage
     public static void assertJSError(ErrorProneRunnable run, String expectedMessage) {
@@ -30,7 +28,7 @@ public class TestUtil {
                 Assert.fail(e.getCause().getMessage() + ", expected: Error: " + expectedMessage);
             }
         }
-	}
+    }
 
     //assert that a runnable threw an error message that matches the predicate
     public static void assertError(ErrorProneRunnable run, Class<? extends Exception> exceptionType) {
@@ -42,5 +40,5 @@ public class TestUtil {
                     exceptionType.getClass().getSimpleName());
         }
         Assert.fail("runnable did not throw any exception");
-	}
+    }
 }

@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.Bukkit;
@@ -43,7 +43,7 @@ public class VariableManager extends AbstractVariableManager {
     private FileConfiguration varFileConfig;
     private Boolean saving = false;
 
-    public VariableManager(TriggerReactor plugin) throws IOException, InvalidConfigurationException {
+    public VariableManager(TriggerReactorCore plugin) throws IOException, InvalidConfigurationException {
         super(plugin);
 
         varFile = new File(plugin.getDataFolder(), "var.yml");

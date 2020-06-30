@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +34,9 @@ public abstract class Manager {
         return managers;
     }
 
-    protected final TriggerReactor plugin;
+    protected final TriggerReactorCore plugin;
 
-    public Manager(TriggerReactor plugin) {
+    public Manager(TriggerReactorCore plugin) {
         this.plugin = plugin;
 
         managers.add(this);
@@ -53,4 +53,16 @@ public abstract class Manager {
      * Save all triggers
      */
     public abstract void saveAll();
+
+    /**
+     * Empty method to be called when the plugin is about to shutting down.
+     * This method will block main thread so that the managers can finalize whatever it was doing before
+     * the plugin shutting down.
+     * Since this method is empty, the child class must override.
+     */
+    public void disable() {
+
+    }
+
+
 }
