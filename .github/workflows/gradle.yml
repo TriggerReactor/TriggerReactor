@@ -2,9 +2,9 @@ name: Java CI
 
 on:
   push:
-    branches: 
-      - master
-    
+    tags: 
+      - '*'
+
 jobs:
   build:
 
@@ -20,16 +20,14 @@ jobs:
       run: |
         echo event=${{ github.event_name }}
         echo action=${{ github.event.action }}
-        echo tags=${{ contains(github.ref, 'tags') }}
+        echo ref=${{ github.ref }}
         echo merge=${{ github.event.pull_request.merged }}
-        echo result=${{ contains(github.ref, 'tags') || github.event.pull_request.merged == true }}
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
-      #if: ${{ contains(github.ref, 'tags') || github.event.pull_request.merged == true }}
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: build/libs/TriggerReactor-*.jar
