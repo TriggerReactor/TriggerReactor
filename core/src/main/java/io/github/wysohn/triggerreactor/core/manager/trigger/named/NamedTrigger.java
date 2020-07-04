@@ -2,13 +2,11 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-
-import java.io.File;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 public class NamedTrigger extends Trigger {
-
-    public NamedTrigger(String name, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(name, file, script);
+    public NamedTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
 
         init();
     }
@@ -16,7 +14,7 @@ public class NamedTrigger extends Trigger {
     @Override
     public NamedTrigger clone() {
         try {
-            return new NamedTrigger(triggerName, file, getScript());
+            return new NamedTrigger(info, script);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

@@ -16,116 +16,68 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
 
-    public AbstractNamedTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
-        super(plugin, tirggerFolder);
-    }
+    public AbstractNamedTriggerManager(TriggerReactorCore plugin, File folder) {
+        super(plugin, folder, new ITriggerLoader<NamedTrigger>() {
+            private File[] getAllFiles(List<File> list, File file){
+                if(file.isDirectory()){
+                    File[] files = file.listFiles();
+                    if(files != null){
+                        for(File each : files){
+                            getAllFiles(list, each);
+                        }
+                    }
+                } else {
+                    list.add(file);
+                }
 
-    @Override
-    public void reload() {
-        triggers.clear();
-
-        for (File file : folder.listFiles()) {
-            try {
-                load(file);
-            } catch (TriggerInitFailedException | IOException e) {
-                e.printStackTrace();
-                continue;
+                return list.toArray(new File[0]);
             }
-        }
-    }
 
-    @Override
-    public void saveAll() {
-/*        Set<Entry<String, Trigger>> failed = new HashSet<>();
-
-        for(Entry<String, Trigger> entry : triggers.entrySet()){
-            String key = entry.getKey().replaceAll(":", File.separator);
-            Trigger trigger = entry.getValue();
-
-            File file = new File(folder, key);
-            if(!file.getParentFile().exists())
-                file.getParentFile().mkdirs();
-
-            try{
-                FileUtil.writeToFile(file, trigger.getScript());
-            }catch(IOException e){
-                e.printStackTrace();
-                plugin.getLogger().warning("Failed to save file "+key);
-                failed.add(entry);
+            @Override
+            public TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
+                File[] files = getAllFiles(new ArrayList<>(), folder);
+                return Arrays.stream(files)
+                        .filter(file -> file.getName().endsWith(".trg"))
+                        .map(file -> {
+                            String name = TriggerInfo.extractName(file);
+                            IConfigSource config = fn.apply(folder, name + ".json");
+                            return new NamedTriggerInfo(folder, file, config);
+                        }).toArray(NamedTriggerInfo[]::new);
             }
-        }*/
-    }
 
-
-    /**
-     * The naming follows this rule: triggers saved in the NamedTriggers folder will have name exactly same as the file name.
-     * However, if you have another folder under NamedTriggers, and the trigger is saved under that folder,
-     * you need to specify the folder in front of the file name.
-     * For example, if you have your trigger path NamedTriggers/SomeFolder/AnotherFolder/yourtrigger, then the name will be like
-     * this: <b>NamedTriggers:SomeFolder:AnotherFolder:yourtrigger</b>.
-     *
-     * @param name the trigger name including path if any exists
-     * @return the Trigger; null if no such trigger
-     */
-    public Trigger getTriggerForName(String name) {
-        return triggers.get(name);
-    }
-
-    /**
-     * Load script file or folder recursively. If given file is file, it will
-     * just load the trigger, but if it is folder, it will recursively load the
-     * trigger with their path named appended with ':' sign. For example, if
-     * Test is under Hi folder, it will be named Hi:Test.
-     *
-     * @param file the file/folder
-     * @throws IOException
-     * @throws LexerException
-     * @throws ParserException
-     */
-    protected void load(File file) throws TriggerInitFailedException, IOException {
-        load(new Stack<>(), file);
-    }
-
-    private void load(Stack<String> stack, File file)
-            throws TriggerInitFailedException, IOException {
-        if (file.isDirectory()) {
-            stack.push(file.getName());
-            for (File f : file.listFiles()) {
-                load(stack, f);
+            @Override
+            public NamedTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+                try {
+                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
+                    return new NamedTrigger(info, script);
+                } catch (TriggerInitFailedException | IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
-            stack.pop();
-        } else {
-            if (!isTriggerFile(file))
-                return;
 
-            String triggerName = extractName(file);
-
-            StringBuilder builder = new StringBuilder();
-            for (int i = stack.size() - 1; i >= 0; i--) {
-                builder.append(stack.get(i) + ":");
+            @Override
+            public void save(NamedTrigger trigger) {
+                // we don't save NamedTrigger
             }
-            builder.append(triggerName);
-
-            if (triggers.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating Named Trigger?");
-            } else {
-                NamedTrigger trigger = new NamedTrigger(builder.toString(), file, FileUtil.readFromFile(file));
-                triggers.put(builder.toString(), trigger);
-            }
-        }
+        }, ConfigSourceFactory::none);
     }
-
 }

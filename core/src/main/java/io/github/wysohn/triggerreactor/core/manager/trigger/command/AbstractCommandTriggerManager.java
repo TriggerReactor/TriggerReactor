@@ -17,121 +17,81 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
+    private static final String SYNC = "sync";
+    private static final String PERMISSION = "permissions";
+    private static final String ALIASES = "aliases";
+
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
-    @Override
-    public void reload() {
-        triggers.clear();
-        aliasesMap.clear();
+    public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
+        super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
+            @Override
+            public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+                boolean sync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
+                List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
+                List<String> aliases = info.getConfig().get(ALIASES, List.class).orElse(new ArrayList<>());
 
-        for (File file : folder.listFiles()) {
-            if (!isTriggerFile(file))
-                continue;
-
-            String triggerName = extractName(file);
-
-            File triggerConfigFile = new File(folder, triggerName + ".yml");
-
-            Boolean sync = Boolean.FALSE;
-            List<String> permissions = new ArrayList<>();
-            List<String> aliases = new ArrayList<>();
-            if (triggerConfigFile.isFile() && triggerConfigFile.exists()) {
                 try {
-                    sync = getData(triggerConfigFile, "sync", Boolean.FALSE);
-                    permissions = getData(triggerConfigFile, "permissions", new ArrayList<>());
-                    aliases = getData(triggerConfigFile, "aliases", new ArrayList<>());
-                } catch (Exception e) {
+                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
+                    CommandTrigger trigger = new CommandTrigger(info, script);
+                    trigger.setSync(sync);
+                    trigger.setPermissions(permissions.toArray(new String[0]));
+                    trigger.setAliases(aliases.toArray(new String[0]));
+                    return trigger;
+                } catch (TriggerInitFailedException | IOException e) {
                     e.printStackTrace();
-                    continue;
+                    return null;
                 }
             }
 
-            String script = null;
-            try {
-                script = FileUtil.readFromFile(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
+            @Override
+            public void save(CommandTrigger trigger) {
+                try {
+                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+
+                    trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
+                    trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
+                    trigger.getInfo().getConfig().put(ALIASES, trigger.getAliases());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+        });
+    }
 
-            CommandTrigger trigger = null;
-            try {
-                trigger = new CommandTrigger(triggerName, file, script);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-                continue;
-            }
+    @Override
+    public void reload() {
+        super.reload();
 
-            trigger.setSync(sync);
-            trigger.setPermissions(permissions.toArray(new String[0]));
-            trigger.setAliases(aliases.toArray(new String[0]));
+        aliasesMap.clear();
 
-            triggers.put(triggerName, trigger);
+        for (CommandTrigger trigger : getAllTriggers()) {
             registerAliases(trigger);
         }
     }
 
     @Override
-    public void saveAll() {
-        Set<String> failed = new HashSet<>();
-        for (Entry<String, CommandTrigger> entry : triggers.entrySet()) {
-            String triggerName = entry.getKey();
-            CommandTrigger trigger = entry.getValue();
-
-            String script = trigger.getScript();
-
-            File file = getTriggerFile(folder, triggerName, true);
-            try {
-                FileUtil.writeToFile(file, script);
-            } catch (Exception e) {
-                e.printStackTrace();
-                plugin.getLogger().severe("Could not save command trigger for " + triggerName);
-                failed.add(triggerName);
-            }
-
-            File triggerConfigFile = new File(folder, triggerName + ".yml");
-            try {
-                triggerConfigFile.createNewFile();
-                setData(triggerConfigFile, "sync", trigger.isSync());
-                setData(triggerConfigFile, "permissions", trigger.permissions);
-                setData(triggerConfigFile, "aliases", trigger.aliases);
-            } catch (Exception e) {
-                e.printStackTrace();
-                plugin.getLogger().severe("Could not save command trigger for " + triggerName);
-                failed.add(triggerName);
-            }
-        }
-
-        for (String key : failed) {
-            triggers.remove(key);
-        }
-    }
-
-    @Override
-    protected void deleteInfo(CommandTrigger trigger) {
-        if (trigger instanceof CommandTrigger)
-            removeAliases(trigger);
-
-        FileUtil.delete(new File(trigger.getFile().getParent(), trigger.getTriggerName() + ".yml"));
-        super.deleteInfo(trigger);
-    }
-
-    public boolean hasCommandTrigger(String cmd) {
-        return triggers.containsKey(cmd);
-    }
-
-    public CommandTrigger getCommandTrigger(String cmd) {
-        return triggers.get(cmd);
+    public CommandTrigger remove(String name) {
+        CommandTrigger remove = super.remove(name);
+        removeAliases(remove);
+        return remove;
     }
 
     /**
@@ -141,39 +101,34 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      * @return true on success; false if cmd already binded.
      */
     public boolean addCommandTrigger(ICommandSender adding, String cmd, String script) {
-        if (triggers.containsKey(cmd))
+        if (has(cmd))
             return false;
 
-        File triggerFile = getTriggerFile(folder, cmd, true);
+        File file = getTriggerFile(folder, cmd, true);
         CommandTrigger trigger = null;
         try {
-            trigger = new CommandTrigger(cmd, triggerFile, script);
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+            trigger = new CommandTrigger(info, script);
         } catch (TriggerInitFailedException e1) {
             plugin.handleException(adding, e1);
             return false;
         }
 
-        triggers.put(cmd, trigger);
+        put(cmd, trigger);
 
         plugin.saveAsynchronously(this);
         return true;
     }
 
-    /**
-     * @param cmd command to stop intercept
-     * @return true on success; false if cmd does not exist.
-     */
-    public boolean removeCommandTrigger(String cmd) {
-        if (!triggers.containsKey(cmd))
-            return false;
-
-        deleteInfo(triggers.remove(cmd));
-
-        return true;
-    }
-
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger("temp", null, script);
+        return new CommandTrigger(new TriggerInfo(null, null, "temp") {
+            @Override
+            public boolean isValid() {
+                return false;
+            }
+        }, script);
     }
 
     public void removeAliases(CommandTrigger trigger) {
@@ -186,18 +141,14 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         for (String alias : trigger.getAliases()) {
             CommandTrigger prev = aliasesMap.get(alias);
             if (prev != null) {
-                plugin.getLogger().warning("CommandTrigger " + trigger.getTriggerName() + "'s alias "
+                plugin.getLogger().warning("CommandTrigger " + trigger.getInfo() + "'s alias "
                         + alias + " couldn't be registered.");
-                plugin.getLogger().warning(alias + " is already used by " + prev.getTriggerName() + ".");
+                plugin.getLogger().warning(alias + " is already used by " + prev.getInfo() + ".");
                 continue;
             }
 
             aliasesMap.put(alias, trigger);
         }
-    }
-
-    public AbstractCommandTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
-        super(plugin, tirggerFolder);
     }
 
     private static class CommandMap extends HashMap<String, CommandTrigger> {

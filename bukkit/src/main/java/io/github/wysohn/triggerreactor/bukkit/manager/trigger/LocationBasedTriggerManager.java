@@ -21,10 +21,14 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import org.bukkit.ChatColor;
@@ -55,8 +59,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
-    public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName) {
-        super(plugin, new File(plugin.getDataFolder(), folderName));
+    public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName, ITriggerLoader<T> loader) {
+        super(plugin, new File(plugin.getDataFolder(), folderName), loader);
     }
 
     @SuppressWarnings("deprecation")
@@ -145,8 +149,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             return;
         }
 
+        File file = getTriggerFile(folder, LocationUtil.convertToSimpleLocation(loc).toString(), true);
         try {
-            trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+            trigger = newTrigger(info, script);
         } catch (TriggerInitFailedException e1) {
             bukkitPlayer.sendMessage(ChatColor.RED + "Encounterd an error!");
             bukkitPlayer.sendMessage(ChatColor.RED + e1.getMessage());
@@ -169,7 +177,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     private void handleScriptEdit(Player player, T trigger) {
         IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap(player);
 
-        plugin.getScriptEditManager().startEdit(bukkitPlayer, trigger.getTriggerName(), trigger.getScript(),
+        plugin.getScriptEditManager().startEdit(bukkitPlayer, trigger.getInfo().getTriggerName(), trigger.getScript(),
                 new SaveHandler() {
                     @Override
                     public void onSave(String script) {
@@ -277,12 +285,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     protected void setTriggerForLocation(Location loc, T trigger) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        setTriggerForLocation(sloc, trigger);
+        setLocationCache(sloc, trigger);
     }
 
     protected T removeTriggerForLocation(Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return removeTriggerForLocation(sloc);
+        return removeLocationCache(sloc);
     }
 
     protected void showTriggerInfo(ICommandSender sender, Block clicked) {

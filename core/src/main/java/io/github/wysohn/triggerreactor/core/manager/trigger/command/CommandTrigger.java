@@ -2,16 +2,16 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
-import java.io.File;
 import java.util.Arrays;
 
 public class CommandTrigger extends Trigger {
     String[] permissions = new String[0];
     String[] aliases = new String[0];
 
-    public CommandTrigger(String name, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(name, file, script);
+    public CommandTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
 
         init();
     }
@@ -43,7 +43,7 @@ public class CommandTrigger extends Trigger {
     @Override
     public CommandTrigger clone() {
         try {
-            return new CommandTrigger(triggerName, file, getScript());
+            return new CommandTrigger(info, getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

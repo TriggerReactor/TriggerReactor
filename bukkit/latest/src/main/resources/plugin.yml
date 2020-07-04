@@ -1,6 +1,6 @@
 name: TriggerReactor
 main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
-version: 3.0.5
+version: 3.1.0
 author: wysohn
 authors:
 - soliddanii
@@ -23,7 +23,7 @@ softdepend:
 commands:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility
 permissions:
   triggerreactor.admin:
@@ -31,6 +31,6 @@ permissions:
 command:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility
 api-version: 1.13

@@ -1,8 +1,8 @@
 package io.github.wysohn.triggerreactor.bukkit.tools;
 
-import io.github.wysohn.triggerreactor.core.manager.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.config.IMigratable;
-import io.github.wysohn.triggerreactor.core.manager.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.IMigratable;
+import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.Test;

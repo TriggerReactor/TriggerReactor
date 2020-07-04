@@ -63,7 +63,30 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }};
 
     public CustomTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, null, new File(plugin.getDataFolder(), "CustomTrigger"));
+        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
+            @Override
+            public boolean eventExist(String eventStr) {
+                try {
+                    return getEvent(eventStr) != null;
+                } catch (ClassNotFoundException e) {
+                    return false;
+                }
+            }
+
+            @Override
+            public Class<?> getEvent(String eventStr) throws ClassNotFoundException {
+                Class<? extends Event> event;
+                if (ABBREVIATIONS.containsKey(eventStr)) {
+                    event = ABBREVIATIONS.get(eventStr);
+                } else if (EVENTS.containsKey(eventStr)) {
+                    event = EVENTS.get(eventStr);
+                } else {
+                    event = (Class<? extends Event>) Class.forName(eventStr);
+                }
+
+                return event;
+            }
+        });
 
         try {
             initEvents();
@@ -136,19 +159,5 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         if (listener != null) {
             HandlerList.unregisterAll(listener);
         }
-    }
-
-    @Override
-    protected Class<?> getEventFromName(String name) throws ClassNotFoundException {
-        Class<? extends Event> event;
-        if (ABBREVIATIONS.containsKey(name)) {
-            event = ABBREVIATIONS.get(name);
-        } else if (EVENTS.containsKey(name)) {
-            event = EVENTS.get(name);
-        } else {
-            event = (Class<? extends Event>) Class.forName(name);
-        }
-
-        return event;
     }
 }

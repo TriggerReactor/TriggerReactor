@@ -28,7 +28,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CommandTriggerManager extends AbstractCommandTriggerManager implements SpongeConfigurationFileIO {
+public class CommandTriggerManager extends AbstractCommandTriggerManager {
     public CommandTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
     }
@@ -40,7 +40,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         String cmd = e.getCommand();
         String[] args = e.getArguments().split(" ");
 
-        CommandTrigger trigger = triggers.get(cmd);
+        CommandTrigger trigger = get(cmd);
         if (trigger == null)
             trigger = aliasesMap.get(cmd);
         if (trigger == null)

@@ -25,18 +25,24 @@ import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.config.serialize.MapDeserializer;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -44,7 +50,11 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -98,14 +108,48 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         initMysql();
 
         core.onCoreEnable(this);
-
         migrateOldConfig();
+
+        for (Manager manager : Manager.getManagers()) {
+            manager.reload();
+        }
     }
 
     private void migrateOldConfig() {
-        if (core.getConfigManager().isMigrationNeeded()) {
-            core.getConfigManager().migrate(new BukkitMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
-        }
+        new ContinuingTasks.Builder()
+                .append(() -> {
+                    if (core.getPluginConfigManager().isMigrationNeeded()) {
+                        core.getPluginConfigManager().migrate(new BukkitMigrationHelper(getConfig(),
+                                new File(getDataFolder(), "config.yml")));
+                    }
+                })
+                .append(() -> {
+                    if (core.getVariableManager().isMigrationNeeded()) {
+                        File file = new File(getDataFolder(), "var.yml");
+                        FileConfiguration conf = new Utf8YamlConfiguration();
+                        try {
+                            conf.load(file);
+                        } catch (IOException | InvalidConfigurationException e) {
+                            e.printStackTrace();
+                        }
+                        core.getVariableManager().migrate(new BukkitMigrationHelper(conf, file));
+                    }
+                })
+                .append(() -> {
+                    Manager.getManagers().stream()
+                            .filter(AbstractTriggerManager.class::isInstance)
+                            .map(AbstractTriggerManager.class::cast)
+                            .map(AbstractTriggerManager::getTriggerInfos)
+                            .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                                    .filter(TriggerInfo::isMigrationNeeded)
+                                    .forEach(triggerInfo -> {
+                                        File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                        File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                        FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                        triggerInfo.migrate(new BukkitMigrationHelper(oldFileConfig, oldFile));
+                                    }));
+                })
+                .run();
     }
 
     protected abstract void registerAPIs();
@@ -268,7 +312,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -356,7 +400,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = core.getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -797,5 +841,36 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             return null;
         }
 
+    }
+
+    static {
+        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (src, typeOfSrc, context) -> {
+            Map<String, Object> ser = new LinkedHashMap<>();
+            ser.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(src.getClass()));
+            ser.putAll(src.serialize());
+            return context.serialize(ser);
+        });
+
+        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, new MapDeserializer<ConfigurationSerializable>() {
+            @Override
+            public ConfigurationSerializable deserialize(Map<String, Object> map) {
+                // ignore Map without SERIALIZED_TYPE_KEY (they are simple map in such case)
+                if (!map.containsKey(ConfigurationSerialization.SERIALIZED_TYPE_KEY))
+                    return null;
+
+                try {
+                    Map<String, ConfigurationSerializable> subs = new HashMap<>();
+                    map.entrySet().stream()
+                            .filter(entry -> entry.getValue() instanceof Map)
+                            .forEach(entry -> Optional.ofNullable(deserialize((Map<String, Object>) entry.getValue()))
+                                    .ifPresent(serializable -> subs.put(entry.getKey(), serializable)));
+                    map.putAll(subs);
+
+                    return ConfigurationSerialization.deserializeObject(map);
+                } catch (Exception ex) {
+                    throw new RuntimeException("Cannot deserialize " + map, ex);
+                }
+            }
+        });
     }
 }

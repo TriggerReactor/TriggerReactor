@@ -18,17 +18,11 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTrigger;
 
 import java.io.File;
 
-public class NamedTriggerManager extends AbstractNamedTriggerManager implements SpongeConfigurationFileIO {
+public class NamedTriggerManager extends AbstractNamedTriggerManager {
     public NamedTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "NamedTriggers"));
-    }
-
-    @Override
-    protected void deleteInfo(NamedTrigger trigger) {
-        //We don't delete named triggers in-game
     }
 }

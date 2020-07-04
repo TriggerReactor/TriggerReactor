@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -285,11 +286,11 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      */
     public String[] currentAreasAt(Location location) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
+        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
-                .map(Trigger::getTriggerName)
+                .map(Trigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
                 .toArray(String[]::new);
-        return names;
     }
 
     /**
@@ -300,7 +301,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AreaTrigger trigger = areaManager.getArea(areaTriggerName);
+        AreaTrigger trigger = areaManager.get(areaTriggerName);
         if (trigger == null)
             return null;
 

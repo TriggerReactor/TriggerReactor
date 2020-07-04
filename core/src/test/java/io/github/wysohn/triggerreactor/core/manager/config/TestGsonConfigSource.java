@@ -1,8 +1,10 @@
 package io.github.wysohn.triggerreactor.core.manager.config;
 
-import copy.com.google.gson.Gson;
-import copy.com.google.gson.GsonBuilder;
-import copy.com.google.gson.reflect.TypeToken;
+import io.github.wysohn.gsoncopy.Gson;
+import io.github.wysohn.gsoncopy.GsonBuilder;
+import io.github.wysohn.gsoncopy.JsonObject;
+import io.github.wysohn.gsoncopy.reflect.TypeToken;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,7 +34,10 @@ public class TestGsonConfigSource {
             "    \"c\": \"d\",\r\n" +
             "    \"e\": \"f\"\r\n" +
             "  },\r\n" +
-            "  \"string\": \"Hello World\"\r\n" +
+            "  \"string\": \"Hello World\",\r\n" +
+            "  \"ser\": {\r\n" +
+            "      \"someValue\": 39405.22\r\n" +
+            "  }\r\n" +
             "}";
 
     private TriggerReactorCore mockMain;
@@ -173,6 +178,7 @@ public class TestGsonConfigSource {
         expected.add("fnumber");
         expected.add("object");
         expected.add("string");
+        expected.add("ser");
         Assert.assertEquals(expected, manager.keys());
     }
 
@@ -191,5 +197,66 @@ public class TestGsonConfigSource {
         Assert.assertTrue(manager.isSection("object"));
         Assert.assertFalse(manager.isSection("string"));
 
+    }
+
+    static {
+        GsonConfigSource.registerTypeAdapter(TargetInterface.class, (src, typeOfSrc, context) -> {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("val", src.val());
+            return obj;
+        });
+
+        GsonConfigSource.registerTypeAdapter(TargetInterface.class, (map) -> {
+            double val = (double) map.get("someValue");
+            return new BaseClass(val);
+        });
+    }
+
+    @Test
+    public void testGetValidDeserializer() {
+        Mockito.when(mockFile.exists()).thenReturn(true);
+
+        manager.reload();
+
+        Optional<ChildInterface> loaded = manager.get("ser", ChildInterface.class);
+        Assert.assertEquals(39405.22, loaded.get().val(), 0.00001);
+        Optional<TargetInterface> loaded2 = manager.get("ser", TargetInterface.class);
+        Assert.assertEquals(39405.22, loaded2.get().val(), 0.00001);
+    }
+
+    @Test
+    public void testGetValidDeserializer2() {
+        BaseClass temp = new BaseClass(5252.84);
+
+        Mockito.when(mockFile.exists()).thenReturn(true);
+
+        manager.reload();
+
+        manager.put("ser", temp);
+        Optional<ChildInterface> loaded = manager.get("ser", ChildInterface.class);
+        Assert.assertEquals(5252.84, loaded.get().val(), 0.00001);
+        Optional<TargetInterface> loaded2 = manager.get("ser", TargetInterface.class);
+        Assert.assertEquals(5252.84, loaded2.get().val(), 0.00001);
+    }
+
+    public interface TargetInterface {
+        double val();
+    }
+
+    public interface ChildInterface extends TargetInterface {
+
+    }
+
+    public static class BaseClass implements ChildInterface {
+        double someValue;
+
+        public BaseClass(double someValue) {
+            this.someValue = someValue;
+        }
+
+        @Override
+        public double val() {
+            return someValue;
+        }
     }
 }

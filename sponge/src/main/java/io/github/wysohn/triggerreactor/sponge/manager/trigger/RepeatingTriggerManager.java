@@ -18,34 +18,11 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
-import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
 
 import java.io.File;
-import java.io.IOException;
 
-public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements SpongeConfigurationFileIO {
+public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager {
     public RepeatingTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
-    }
-
-    @Override
-    protected void saveInfo(RepeatingTrigger trigger) throws IOException {
-
-        ConfigurationLoader<ConfigurationNode> loader = YAMLConfigurationLoader
-                .builder()
-                .setPath(new File(folder, trigger.getTriggerName()).toPath())
-                .build();
-        ConfigurationNode yaml = loader.load();
-
-        ConfigurationUtil.getNodeByKeyString(yaml, "AutoStart").setValue(false);
-        ConfigurationUtil.getNodeByKeyString(yaml, "Interval").setValue(trigger.getInterval());
-        loader.save(yaml);
-
-        FileUtil.writeToFile(new File(folder, trigger.getTriggerName()), trigger.getScript());
     }
 }

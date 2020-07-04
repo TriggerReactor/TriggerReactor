@@ -16,33 +16,57 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
+import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
+import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 
-import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> {
     public WalkTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, "WalkTrigger");
-    }
+        super(plugin, "WalkTrigger", new ITriggerLoader<WalkTrigger>() {
+            @Override
+            public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+                try {
+                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
+                    WalkTrigger trigger = new WalkTrigger(info, script);
+                    return trigger;
+                } catch (TriggerInitFailedException | IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
 
-    @Override
-    protected WalkTrigger constructTrigger(String slocstr, String script) throws TriggerInitFailedException {
-        File triggerFile = getTriggerFile(folder, slocstr, true);
-        return new WalkTrigger(slocstr, triggerFile, script);
+            @Override
+            public void save(WalkTrigger trigger) {
+                try {
+                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     @Listener(order = Order.POST)
     public void onMove(PlayerBlockLocationEvent e) {
         handleWalk(e, e.getTo());
+    }
+
+    @Override
+    protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return new WalkTrigger(info, script);
     }
 
     private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to) {
