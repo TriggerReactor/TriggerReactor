@@ -30,10 +30,7 @@ import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager {
     private final CommandManager commandManager;
@@ -47,7 +44,10 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
     @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
         commandManager.get(triggerName)
-                .ifPresent(commandMapping -> overridens.put(triggerName, commandMapping));
+                .ifPresent(commandMapping -> {
+                    overridens.put(triggerName, commandMapping);
+                    commandManager.removeMapping(commandMapping);
+                });
 
         commandManager.register(plugin.getMain(), new CommandCallable() {
             @Override
@@ -114,7 +114,22 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
 
     @Override
     protected boolean unregisterCommand(String triggerName) {
-        return false;
+        CommandMapping mapping = commandManager.get(triggerName).orElse(null);
+        if (mapping == null)
+            return false;
+
+        boolean result = commandManager.removeMapping(mapping)
+                .map(Objects::nonNull)
+                .orElse(false);
+
+        if (overridens.containsKey(triggerName)) {
+            CommandMapping prev = overridens.get(triggerName);
+            commandManager.getOwner(prev).ifPresent(pluginContainer -> {
+                // TODO is it even possible?
+            });
+        }
+
+        return result;
     }
 
 //    @Listener(order = Order.EARLY)
