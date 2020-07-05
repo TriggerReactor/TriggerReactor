@@ -1424,9 +1424,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     protected abstract void setItemTitle(IItemStack iS, String title);
 
-    protected abstract IPlayer getPlayer(String string);
+    public abstract IPlayer getPlayer(String string);
 
-    protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
+    public abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
     private void showHelp(ICommandSender sender) {
         showHelp(sender, 1);

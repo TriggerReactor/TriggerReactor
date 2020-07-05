@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -78,12 +79,21 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
     @Override
     public void reload() {
-        super.reload();
-
         aliasesMap.clear();
+
+        getAllTriggers().stream()
+                .map(Trigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .forEach(this::unregisterCommand);
+
+        super.reload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
             registerAliases(trigger);
+        }
+
+        for (CommandTrigger trigger : getAllTriggers()) {
+            registerCommand(trigger.getInfo().getTriggerName(), trigger);
         }
     }
 
@@ -150,6 +160,16 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             aliasesMap.put(alias, trigger);
         }
     }
+
+    protected abstract boolean registerCommand(String triggerName, CommandTrigger trigger);
+
+    /**
+     * Unregister this command from command map.
+     *
+     * @param triggerName name of trigger to remove
+     * @return true if unregistered; false if can't find the registered command.
+     */
+    protected abstract boolean unregisterCommand(String triggerName);
 
     private static class CommandMap extends HashMap<String, CommandTrigger> {
         @Override

@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
@@ -25,7 +24,6 @@ import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -40,7 +38,7 @@ import java.util.concurrent.Callable;
 public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer {
     private static final String JAR_FOLDER_LOCATION = "Executor";
 
-    private File executorFolder;
+    private final File executorFolder;
 
     public ExecutorManager(TriggerReactorCore plugin) throws ScriptException, IOException {
         super(plugin);
@@ -145,15 +143,17 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
             try {
                 player.setOp(true);
 
-                if (plugin.getCmdManager() instanceof CommandTriggerManager) {
-                    CommandTriggerManager manager = (CommandTriggerManager) plugin.getCmdManager();
-                    PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(player, cmd);
-                    manager.onCommand(event);
-                    if (!event.isCancelled())
-                        Bukkit.dispatchCommand(player, cmd);
-                } else {
-                    Bukkit.dispatchCommand(player, cmd);
-                }
+//                if (plugin.getCmdManager() instanceof CommandTriggerManager) {
+//                    CommandTriggerManager manager = (CommandTriggerManager) plugin.getCmdManager();
+//                    PlayerCommandPreprocessEvent event = new PlayerCommandPreprocessEvent(player, cmd);
+//                    manager.onCommand(event);
+//                    if (!event.isCancelled())
+//                        Bukkit.dispatchCommand(player, cmd);
+//                } else {
+//                    Bukkit.dispatchCommand(player, cmd);
+//                }
+
+                Bukkit.dispatchCommand(player, cmd); // now we register CommandTrigger to commandMap
             } catch (Exception e) {
 
             } finally {
