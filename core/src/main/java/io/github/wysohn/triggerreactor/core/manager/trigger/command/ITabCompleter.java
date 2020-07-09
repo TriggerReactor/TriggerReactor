@@ -23,6 +23,19 @@ public interface ITabCompleter {
         }
     };
 
+    ITabCompleter PLAYER = new ITabCompleter() {
+        @Override
+        public List<String> getCandidates(String part) {
+            return null; // returning null signals to list online players instead
+            //TODO not sure if Sponge does the same
+        }
+
+        @Override
+        public List<String> getHint() {
+            return list("<player>");
+        }
+    };
+
     static List<String> list(String... strings) {
         return Arrays.stream(strings).collect(Collectors.toList());
     }
