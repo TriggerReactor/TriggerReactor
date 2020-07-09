@@ -250,7 +250,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         // check if this break event of the block
         // will cause the destruction of sign above it
-        if (above.getType() != Material.SIGN_POST)
+        if (!above.getType().name().equals("SIGN_POST")
+                && !above.getType().name().endsWith("_SIGN"))
             return;
 
         BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
