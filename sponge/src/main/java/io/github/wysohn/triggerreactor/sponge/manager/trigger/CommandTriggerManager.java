@@ -30,11 +30,14 @@ import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager {
     private final CommandManager commandManager;
-    private final Map<String, CommandMapping> overridens = new HashMap<>();
+    private final Map<String, CommandMapping> mappings = new HashMap<>();
 
     public CommandTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
@@ -43,11 +46,10 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
 
     @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
-        commandManager.get(triggerName)
-                .ifPresent(commandMapping -> {
-                    overridens.put(triggerName, commandMapping);
-                    commandManager.removeMapping(commandMapping);
-                });
+        String[] commandArr = new String[1 + trigger.getAliases().length];
+        commandArr[0] = triggerName;
+        for (int i = 1; i < commandArr.length; i++)
+            commandArr[i] = trigger.getAliases()[i - 1];
 
         commandManager.register(plugin.getMain(), new CommandCallable() {
             @Override
@@ -108,28 +110,19 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
             public Text getUsage(CommandSource source) {
                 return null;
             }
-        }, trigger.getAliases());
+        }, commandArr).ifPresent(commandMapping -> mappings.put(triggerName, commandMapping));
         return false;
     }
 
     @Override
     protected boolean unregisterCommand(String triggerName) {
+        // CommandMapping instance seems like an unique entity regardless of the commands being same
         CommandMapping mapping = commandManager.get(triggerName).orElse(null);
         if (mapping == null)
             return false;
 
-        boolean result = commandManager.removeMapping(mapping)
-                .map(Objects::nonNull)
-                .orElse(false);
-
-        if (overridens.containsKey(triggerName)) {
-            CommandMapping prev = overridens.get(triggerName);
-            commandManager.getOwner(prev).ifPresent(pluginContainer -> {
-                // TODO is it even possible?
-            });
-        }
-
-        return result;
+        commandManager.removeMapping(mapping);
+        return true;
     }
 
 //    @Listener(order = Order.EARLY)
