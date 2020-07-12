@@ -274,7 +274,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         super.onCoreDisable();
 
         getLogger().info("Finalizing the scheduled script executions...");
-        cachedThreadPool.shutdown();
+        CACHED_THREAD_POOL.shutdown();
         getLogger().info("Shut down complete!");
     }
 

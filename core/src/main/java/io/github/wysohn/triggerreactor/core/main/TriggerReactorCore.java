@@ -67,33 +67,11 @@ import java.util.regex.Pattern;
  * @author wysohn
  */
 public abstract class TriggerReactorCore implements TaskSupervisor {
-    /**
-     * Cached Pool for thread execution.
-     */
-    protected static final ExecutorService cachedThreadPool = Executors.newCachedThreadPool(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread() {{
-                this.setPriority(MIN_PRIORITY);
-            }};
-        }
-    });
-
     private static TriggerReactorCore instance;
-
-    /**
-     * get instance of this class.
-     *
-     * @return
-     */
-    public static TriggerReactorCore getInstance() {
-        return instance;
-    }
-
+    protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private PluginConfigManager pluginConfigManager;
     private GlobalVariableManager globalVariableManager;
-    protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
-
+    private boolean debugging = false;
     protected TriggerReactorCore() {
         instance = this;
     }
@@ -142,11 +120,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         return globalVariableManager;
     }
 
-    private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");
-    private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
-    private boolean debugging = false;
-
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
@@ -154,205 +127,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public void onCoreDisable() {
         Manager.getManagers().forEach(Manager::disable);
-    }
-
-    @SuppressWarnings("serial")
-    private final List<Paragraph> helpPages = new ArrayList<Paragraph>() {{
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
-            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
-
-            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
-            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
-
-            sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
-            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
-            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
-            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
-            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
-            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
-            sender.sendMessage("  &7/trg i to see more commands...");
-
-            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
-
-            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
-            sender.sendMessage("  &7/trg a to see more commands...");
-
-            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
-            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
-            sender.sendMessage("  &7/trg r to see more commands...");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
-            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
-            sender.sendMessage("&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
-            sender.sendMessage("  &7/trg synccustom Greet");
-
-            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
-            sender.sendMessage("  &7&cWarning - This command will delete the previous data associated with the key if exists.");
-            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
-            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
-            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
-
-            sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
-
-            sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
-
-            sender.sendMessage("&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
-            sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
-            sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" +
-                    " temporary trigger will be made, the codes will run, and then the Named Trigger will be" +
-                    " called, just like how you do with #CALL. This can be useful if you have variables in the Named Trigger" +
-                    " that has to be initialized.");
-        });
-        add((sender -> {
-            sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
-            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
-            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
-            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
-
-            sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
-
-            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
-            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
-
-            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
-
-            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
-        }));
-        add((sender -> {
-            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
-            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
-        }));
-    }};
-
-    //returns all strings in completions that start with prefix.
-    private static List<String> filter(Collection<String> completions, String prefix) {
-        prefix = prefix.trim().toUpperCase();
-        List<String> filtered = new ArrayList<String>();
-        for (String s : completions) {
-            if (s.toUpperCase().startsWith(prefix)) {
-                filtered.add(s);
-            }
-        }
-        return filtered;
-    }
-
-    //get all trigger names for a manager
-    private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
-        List<String> names = new ArrayList<String>();
-        for (Trigger trigger : manager.getAllTriggers()) {
-            names.add(trigger.getInfo().getTriggerName());
-        }
-        return names;
-    }
-
-    private static final List<String> EMPTY = new ArrayList<String>();
-
-    //only for /trg command
-    public static List<String> onTabComplete(String[] args) {
-        switch (args.length) {
-            case 1:
-                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
-                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
-            case 2:
-                switch (args[0].toLowerCase()) {
-                    case "area":
-                    case "a":
-                        List<String> names = triggerNames(getInstance().getAreaManager());
-                        // /trg area toggle
-                        names.add("toggle");
-                        return filter(names, args[1]);
-                    case "cmd":
-                    case "command":
-                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
-                    case "custom":
-                        //event list
-                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
-                    case "delete":
-                    case "del":
-                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
-                    case "inventory":
-                    case "i":
-                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
-                    case "item":
-                        return filter(Arrays.asList("lore", "title"), args[1]);
-                    case "repeat":
-                    case "r":
-                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
-                    case "sudo":
-                        return null; //player selection
-                    case "synccustom":
-                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
-                    case "timings":
-                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
-                }
-            case 3:
-                switch (args[0].toLowerCase()) {
-                    case "area":
-                    case "a":
-                        if (!args[1].equalsIgnoreCase("toggle")) {
-                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
-                        }
-                        return EMPTY;
-                    case "command":
-                    case "cmd":
-                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
-                    case "custom":
-                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
-                    case "delete":
-                    case "del":
-                        AbstractTriggerManager manager;
-                        switch (args[1]) {
-                            case "cmd":
-                            case "command":
-                                manager = getInstance().getCmdManager();
-                                break;
-                            case "custom":
-                                manager = getInstance().getCustomManager();
-                                break;
-                            //"vars" and "variables" also possible, but I won't be offering completions for these
-                            default:
-                                return EMPTY;
-                        }
-                        return filter(triggerNames(manager), args[2]);
-                    case "inventory":
-                    case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
-                    case "item":
-                        if (args[1].equals("lore")) {
-                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
-                        }
-                    case "repeat":
-                    case "r":
-                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
-                }
-            case 4:
-                switch (args[0].toLowerCase()) {
-                    case "inventory":
-                    case "i":
-                        if (args[2].equalsIgnoreCase("open")) {
-                            return null; //player selection
-                        }
-                        if (args[2].equalsIgnoreCase("create")) {
-                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
-                        }
-                }
-        }
-        return EMPTY;
     }
 
     protected abstract boolean removeLore(IItemStack iS, int index);
@@ -372,12 +146,12 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     }
 
     private void showHelp(ICommandSender sender, int page) {
-        page = Math.max(1, Math.min(helpPages.size(), page));
+        page = Math.max(1, Math.min(HELP_PAGES.size(), page));
 
         sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        helpPages.get(page - 1).sendParagraph(sender);
+        HELP_PAGES.get(page - 1).sendParagraph(sender);
         sender.sendMessage("");
-        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size()) + " &8- &6/trg help <page> &7to see other pages.");
+        sender.sendMessage("&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
 
     /**
@@ -671,6 +445,16 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                 }
 
                 @Override
+                public boolean isCancelled() {
+                    return false;
+                }
+
+                @Override
+                public boolean isDone() {
+                    return done;
+                }
+
+                @Override
                 public T get() throws ExecutionException {
                     T out = null;
                     try {
@@ -693,16 +477,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         throw new ExecutionException(e);
                     }
                     return out;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-
-                @Override
-                public boolean isDone() {
-                    return done;
                 }
 
             };
@@ -1902,22 +1676,228 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         return true;
     }
 
-//    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{
-//        add((sender -> {
-//            sender.sendMessage("&d===============================================================");
-//            sender.sendMessage("&6NOTICE: &cSyntax Change Planned!");
-//            sender.sendMessage("");
-//            sender.sendMessage("For version 3.0.0 and above, the Placholder now can be placed inside the 'string.'" +
-//                    " For example, &6\"My name is $playername\" &fis equivalent to &6\"My name is \"+$playername&f." +
-//                    " Therefore, you are hereby warned that the &6dollar sign($) &f used in the string will cause" +
-//                    " the problem in future version. &cPlease fix it accordingly &fto avoid this problem." +
-//                    " If you must use dollar sign, use escape sequence to do so;" +
-//                    " for example, you can do so by &6\"The cost was 5\\$\"");
-//            sender.sendMessage("&d===============================================================");
-//        }));
-//    }};
-
     private interface Paragraph {
         void sendParagraph(ICommandSender sender);
+    }
+
+    /**
+     * Cached Pool for thread execution.
+     */
+    protected static final ExecutorService CACHED_THREAD_POOL = Executors.newCachedThreadPool(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread() {{
+                this.setPriority(MIN_PRIORITY);
+            }};
+        }
+    });
+    @SuppressWarnings("serial")
+    private static final List<Paragraph> HELP_PAGES = new ArrayList<Paragraph>() {{
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
+            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
+            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
+            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
+            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
+            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
+            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
+            sender.sendMessage("  &7/trg i to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
+
+            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
+            sender.sendMessage("  &7/trg a to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
+            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
+            sender.sendMessage("  &7/trg r to see more commands...");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
+            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
+            sender.sendMessage("&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
+            sender.sendMessage("  &7/trg synccustom Greet");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
+            sender.sendMessage("  &7&cWarning - This command will delete the previous data associated with the key if exists.");
+            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
+            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
+            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+
+            sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
+
+            sender.sendMessage("&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
+            sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
+            sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" +
+                    " temporary trigger will be made, the codes will run, and then the Named Trigger will be" +
+                    " called, just like how you do with #CALL. This can be useful if you have variables in the Named Trigger" +
+                    " that has to be initialized.");
+        });
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
+            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
+            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
+            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
+
+            sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+
+            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
+            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
+
+            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
+
+            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
+        }));
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+        }));
+    }};
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
+    private static final List<String> EMPTY = new ArrayList<String>();
+
+    /**
+     * get instance of this class.
+     *
+     * @return
+     */
+    public static TriggerReactorCore getInstance() {
+        return instance;
+    }
+
+    //returns all strings in completions that start with prefix.
+    private static List<String> filter(Collection<String> completions, String prefix) {
+        prefix = prefix.trim().toUpperCase();
+        List<String> filtered = new ArrayList<String>();
+        for (String s : completions) {
+            if (s.toUpperCase().startsWith(prefix)) {
+                filtered.add(s);
+            }
+        }
+        return filtered;
+    }
+
+    //get all trigger names for a manager
+    private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
+        List<String> names = new ArrayList<String>();
+        for (Trigger trigger : manager.getAllTriggers()) {
+            names.add(trigger.getInfo().getTriggerName());
+        }
+        return names;
+    }
+
+    //only for /trg command
+    public static List<String> onTabComplete(String[] args) {
+        switch (args.length) {
+            case 1:
+                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
+                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+            case 2:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        List<String> names = triggerNames(getInstance().getAreaManager());
+                        // /trg area toggle
+                        names.add("toggle");
+                        return filter(names, args[1]);
+                    case "cmd":
+                    case "command":
+                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
+                    case "custom":
+                        //event list
+                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                    case "delete":
+                    case "del":
+                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
+                    case "inventory":
+                    case "i":
+                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
+                    case "item":
+                        return filter(Arrays.asList("lore", "title"), args[1]);
+                    case "repeat":
+                    case "r":
+                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
+                    case "sudo":
+                        return null; //player selection
+                    case "synccustom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
+                    case "timings":
+                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
+                }
+            case 3:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        if (!args[1].equalsIgnoreCase("toggle")) {
+                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+                        }
+                        return EMPTY;
+                    case "command":
+                    case "cmd":
+                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
+                    case "custom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
+                    case "delete":
+                    case "del":
+                        AbstractTriggerManager manager;
+                        switch (args[1]) {
+                            case "cmd":
+                            case "command":
+                                manager = getInstance().getCmdManager();
+                                break;
+                            case "custom":
+                                manager = getInstance().getCustomManager();
+                                break;
+                            //"vars" and "variables" also possible, but I won't be offering completions for these
+                            default:
+                                return EMPTY;
+                        }
+                        return filter(triggerNames(manager), args[2]);
+                    case "inventory":
+                    case "i":
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
+                    case "item":
+                        if (args[1].equals("lore")) {
+                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
+                        }
+                    case "repeat":
+                    case "r":
+                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
+                }
+            case 4:
+                switch (args[0].toLowerCase()) {
+                    case "inventory":
+                    case "i":
+                        if (args[2].equalsIgnoreCase("open")) {
+                            return null; //player selection
+                        }
+                        if (args[2].equalsIgnoreCase("create")) {
+                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
+                        }
+                }
+        }
+        return EMPTY;
     }
 }
