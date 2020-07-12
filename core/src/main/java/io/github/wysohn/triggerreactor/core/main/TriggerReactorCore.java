@@ -156,6 +156,588 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         Manager.getManagers().forEach(Manager::disable);
     }
 
+    @SuppressWarnings("serial")
+    private final List<Paragraph> helpPages = new ArrayList<Paragraph>() {{
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
+            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
+            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
+            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
+            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
+            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
+            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
+            sender.sendMessage("  &7/trg i to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
+
+            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
+            sender.sendMessage("  &7/trg a to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
+            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
+            sender.sendMessage("  &7/trg r to see more commands...");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
+            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
+            sender.sendMessage("&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
+            sender.sendMessage("  &7/trg synccustom Greet");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
+            sender.sendMessage("  &7&cWarning - This command will delete the previous data associated with the key if exists.");
+            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
+            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
+            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+
+            sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
+
+            sender.sendMessage("&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
+            sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
+            sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" +
+                    " temporary trigger will be made, the codes will run, and then the Named Trigger will be" +
+                    " called, just like how you do with #CALL. This can be useful if you have variables in the Named Trigger" +
+                    " that has to be initialized.");
+        });
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
+            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
+            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
+            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
+
+            sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+
+            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
+            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
+
+            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
+
+            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
+        }));
+        add((sender -> {
+            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+        }));
+    }};
+
+    //returns all strings in completions that start with prefix.
+    private static List<String> filter(Collection<String> completions, String prefix) {
+        prefix = prefix.trim().toUpperCase();
+        List<String> filtered = new ArrayList<String>();
+        for (String s : completions) {
+            if (s.toUpperCase().startsWith(prefix)) {
+                filtered.add(s);
+            }
+        }
+        return filtered;
+    }
+
+    //get all trigger names for a manager
+    private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
+        List<String> names = new ArrayList<String>();
+        for (Trigger trigger : manager.getAllTriggers()) {
+            names.add(trigger.getInfo().getTriggerName());
+        }
+        return names;
+    }
+
+    private static final List<String> EMPTY = new ArrayList<String>();
+
+    //only for /trg command
+    public static List<String> onTabComplete(String[] args) {
+        switch (args.length) {
+            case 1:
+                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
+                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+            case 2:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        List<String> names = triggerNames(getInstance().getAreaManager());
+                        // /trg area toggle
+                        names.add("toggle");
+                        return filter(names, args[1]);
+                    case "cmd":
+                    case "command":
+                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
+                    case "custom":
+                        //event list
+                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                    case "delete":
+                    case "del":
+                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
+                    case "inventory":
+                    case "i":
+                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
+                    case "item":
+                        return filter(Arrays.asList("lore", "title"), args[1]);
+                    case "repeat":
+                    case "r":
+                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
+                    case "sudo":
+                        return null; //player selection
+                    case "synccustom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
+                    case "timings":
+                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
+                }
+            case 3:
+                switch (args[0].toLowerCase()) {
+                    case "area":
+                    case "a":
+                        if (!args[1].equalsIgnoreCase("toggle")) {
+                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+                        }
+                        return EMPTY;
+                    case "command":
+                    case "cmd":
+                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
+                    case "custom":
+                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
+                    case "delete":
+                    case "del":
+                        AbstractTriggerManager manager;
+                        switch (args[1]) {
+                            case "cmd":
+                            case "command":
+                                manager = getInstance().getCmdManager();
+                                break;
+                            case "custom":
+                                manager = getInstance().getCustomManager();
+                                break;
+                            //"vars" and "variables" also possible, but I won't be offering completions for these
+                            default:
+                                return EMPTY;
+                        }
+                        return filter(triggerNames(manager), args[2]);
+                    case "inventory":
+                    case "i":
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
+                    case "item":
+                        if (args[1].equals("lore")) {
+                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
+                        }
+                    case "repeat":
+                    case "r":
+                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
+                }
+            case 4:
+                switch (args[0].toLowerCase()) {
+                    case "inventory":
+                    case "i":
+                        if (args[2].equalsIgnoreCase("open")) {
+                            return null; //player selection
+                        }
+                        if (args[2].equalsIgnoreCase("create")) {
+                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
+                        }
+                }
+        }
+        return EMPTY;
+    }
+
+    protected abstract boolean removeLore(IItemStack iS, int index);
+
+    protected abstract boolean setLore(IItemStack iS, int index, String lore);
+
+    protected abstract void addItemLore(IItemStack iS, String lore);
+
+    protected abstract void setItemTitle(IItemStack iS, String title);
+
+    protected abstract IPlayer getPlayer(String string);
+
+    protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
+
+    private void showHelp(ICommandSender sender) {
+        showHelp(sender, 1);
+    }
+
+    private void showHelp(ICommandSender sender, int page) {
+        page = Math.max(1, Math.min(helpPages.size(), page));
+
+        sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
+        helpPages.get(page - 1).sendParagraph(sender);
+        sender.sendMessage("");
+        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size()) + " &8- &6/trg help <page> &7to see other pages.");
+    }
+
+    /**
+     * Send command description.
+     *
+     * @param sender  sender to show description
+     * @param command the command to explain
+     * @param desc    description
+     * @deprecated no longer used
+     */
+    @Deprecated
+    protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
+
+    /**
+     * Send detail under the command. It is usually called after {@link #sendCommandDesc(ICommandSender, String, String)}
+     * to add more information or example about the command.
+     *
+     * @param sender sender to show description
+     * @param detail detail to show
+     * @deprecated no longer used
+     */
+    @Deprecated
+    protected abstract void sendDetails(ICommandSender sender, String detail);
+
+    /**
+     * get Plugin's description.
+     *
+     * @return returns the full name of the plugin and its version.
+     */
+    public abstract String getPluginDescription();
+
+    /**
+     * get Plugin's version as String
+     *
+     * @return version of the plugin as String.
+     */
+    public abstract String getVersion();
+
+    /**
+     * get Author of plugin
+     *
+     * @return author name of the plugin as String.
+     */
+    public abstract String getAuthor();
+
+    /**
+     * @param args
+     * @param indexFrom inclusive
+     * @param indexTo   inclusive
+     * @return
+     */
+    private String mergeArguments(String[] args, int indexFrom, int indexTo) {
+        StringBuilder builder = new StringBuilder(args[indexFrom]);
+        for (int i = indexFrom + 1; i <= indexTo; i++) {
+            builder.append(" " + args[i]);
+        }
+        return builder.toString();
+    }
+
+    public boolean isDebugging() {
+        return debugging;
+    }
+
+    /**
+     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
+     * instead of changing the real block.
+     *
+     * @param sender sender to show the glow stones
+     * @param set    the set contains location of block and its associated trigger.
+     */
+    protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
+
+    /**
+     * Register events for Managers. If it was Bukkit API, we can assume that the 'manager' will implement Listener
+     * interface, yet we need to verify it with instanceof to avoid any problems.
+     *
+     * @param manager the object instance of Manager
+     */
+    public abstract void registerEvents(Manager manager);
+
+    /**
+     * Get folder where the plugin files will be saved.
+     *
+     * @return folder to save plugin files.
+     */
+    public abstract File getDataFolder();
+
+    /**
+     * get Logger.
+     *
+     * @return Logger.
+     */
+    public abstract Logger getLogger();
+
+    /**
+     * Check if this plugin is enabled.
+     *
+     * @return true if enabled; false if disabled.
+     */
+    public abstract boolean isEnabled();
+
+    /**
+     * Disable this plugin.
+     */
+    public abstract void disablePlugin();
+
+    /**
+     * Get the main class instance. JavaPlugin for Bukkit API for example.
+     *
+     * @return
+     */
+    public abstract <T> T getMain();
+
+    /**
+     * Check if the 'key' is set in the config.yml. This might be only case for Bukkit API
+     *
+     * @param key the key
+     * @return true if set; false if not set
+     */
+    public abstract boolean isConfigSet(String key);
+
+    /**
+     * Save the 'value' to the associated 'key' in config.yml. This might be only case for Bukkit API.
+     * The new value should override the value if already exists.
+     * This does not actually save values into config.yml unless you invoke {@link #saveConfig()}
+     *
+     * @param key   the key
+     * @param value the value to set.
+     */
+    public abstract void setConfig(String key, Object value);
+
+    /**
+     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
+     *
+     * @param key the key
+     * @return the value; null if not set.
+     */
+    public abstract Object getConfig(String key);
+
+    /**
+     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
+     *
+     * @param key the key
+     * @param def the default value to return if the 'key' is not set
+     * @return the value; null if not set.
+     */
+    public abstract <T> T getConfig(String key, T def);
+
+    /**
+     * Save all configs to config.yml.
+     */
+    public abstract void saveConfig();
+
+    /**
+     * Save all configs from config.yml.
+     */
+    public abstract void reloadConfig();
+
+    /**
+     * Run task on the server thread. Usually it happens via scheduler.
+     *
+     * @param runnable the Runnable to run
+     */
+    public abstract void runTask(Runnable runnable);
+
+    /**
+     * Call saveAll() on separated thread. It should also check if a saving task is already
+     * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
+     *
+     * @param manager
+     */
+    public abstract void saveAsynchronously(Manager manager);
+
+    /**
+     * Handle the exception caused by Executors or Triggers. The 'e' is the context when the 'event' was
+     * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
+     * related to this Exception and show useful information to the game.
+     *
+     * @param e         the context
+     * @param throwable the exception that was thrown
+     */
+    final public void handleException(Object e, Throwable throwable) {
+        if (isDebugging()) {
+            throwable.printStackTrace();
+        }
+
+        ICommandSender sender = extractPlayerFromContext(e);
+        if (sender == null)
+            sender = getConsoleSender();
+
+        sendExceptionMessage(sender, throwable);
+    }
+
+    /**
+     * Handle the exception caused by Executors or Triggers.
+     *
+     * @param sender    the sender who will receive the message
+     * @param throwable the exception that was thrown
+     */
+    final public void handleException(ICommandSender sender, Throwable throwable) {
+        if (isDebugging()) {
+            throwable.printStackTrace();
+        }
+
+        if (sender == null)
+            sender = getConsoleSender();
+
+        sendExceptionMessage(sender, throwable);
+    }
+
+    private void sendExceptionMessage(ICommandSender sender, Throwable e) {
+        runTask(new Runnable() {
+            @Override
+            public void run() {
+                Throwable ex = e;
+                sender.sendMessage("&cCould not execute this trigger.");
+                while (ex != null) {
+                    sender.sendMessage("&c >> Caused by:");
+                    sender.sendMessage("&c" + ex.getMessage());
+                    ex = ex.getCause();
+                }
+                sender.sendMessage("&cIf you are administrator, see console for details.");
+            }
+        });
+    }
+
+    /**
+     * get sender instance of the console
+     *
+     * @return
+     */
+    public abstract ICommandSender getConsoleSender();
+
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
+     *
+     * @param e           the context
+     * @param interpreter the interpreter
+     * @param cooldowns   list of current cooldowns.
+     * @return the interrupter created.
+     */
+    public abstract ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns);
+
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
+     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
+     * the Inventory was closed, it is the iterrupter's responsibility to do that.
+     *
+     * @param e            the context
+     * @param interpreter  the interpreter
+     * @param cooldowns    list of current cooldowns.
+     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
+     *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
+     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
+     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
+     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
+     * @return
+     */
+    public abstract ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
+                                                               Map<IInventory, InventoryTrigger> inventoryMap);
+
+    /**
+     * try to extract player from context 'e'.
+     *
+     * @param e Event for Bukkit API
+     * @return
+     */
+    public abstract IPlayer extractPlayerFromContext(Object e);
+
+    /**
+     * Run Callable on the server thread.
+     *
+     * @param call the callable
+     * @return the future object.
+     */
+    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
+
+    @Override
+    public <T> Future<T> submitSync(Callable<T> call) {
+        if (this.isServerThread()) {
+            return new Future<T>() {
+                private boolean done = false;
+
+                @Override
+                public boolean cancel(boolean arg0) {
+                    return false;
+                }
+
+                @Override
+                public T get() throws ExecutionException {
+                    T out = null;
+                    try {
+                        out = call.call();
+                        done = true;
+                    } catch (Exception e) {
+                        throw new ExecutionException(e);
+                    }
+                    return out;
+                }
+
+                @Override
+                public T get(long arg0, TimeUnit arg1)
+                        throws ExecutionException {
+                    T out = null;
+                    try {
+                        out = call.call();
+                        done = true;
+                    } catch (Exception e) {
+                        throw new ExecutionException(e);
+                    }
+                    return out;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return false;
+                }
+
+                @Override
+                public boolean isDone() {
+                    return done;
+                }
+
+            };
+        } else {
+            return callSyncMethod(call);
+        }
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        new Thread(run).start();
+    }
+
+    /**
+     * Call event so that it can be heard by listeners
+     *
+     * @param event
+     */
+    public abstract void callEvent(IEvent event);
+
+    /**
+     * Check if the current Thread is the Server
+     *
+     * @return
+     */
+    public abstract boolean isServerThread();
+
+    /**
+     * extract useful custom variables manually from 'context'
+     *
+     * @param context
+     * @return
+     */
+    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
+
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission("triggerreactor.admin"))
@@ -433,6 +1015,26 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     }
 
                     return true;
+                } else if (args.length > 2 && args[0].equalsIgnoreCase("call")) {
+                    String namedTriggerName = args[1];
+                    String script = mergeArguments(args, 2, args.length - 1);
+
+                    try {
+                        Trigger trigger = getCmdManager().createTempCommandTrigger(script);
+                        Trigger targetTrigger = getNamedTriggerManager().get(namedTriggerName);
+                        if (targetTrigger == null) {
+                            sender.sendMessage("&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
+                                    " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
+                            return true;
+                        }
+
+                        Map<String, Object> variables = new HashMap<>(); // shares same variable space
+                        trigger.activate(createEmptyPlayerEvent(sender), variables);
+                        targetTrigger.activate(createEmptyPlayerEvent(sender), variables);
+
+                    } catch (Exception e) {
+                        handleException(sender, e);
+                    }
                 } else if (args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")) {
                     if (args.length > 3 && args[2].equalsIgnoreCase("create")) {
                         String name = args[1];
@@ -1299,580 +1901,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
         return true;
     }
-
-    //returns all strings in completions that start with prefix.
-    private static List<String> filter(Collection<String> completions, String prefix) {
-        prefix = prefix.trim().toUpperCase();
-        List<String> filtered = new ArrayList<String>();
-        for (String s : completions) {
-            if (s.toUpperCase().startsWith(prefix)) {
-                filtered.add(s);
-            }
-        }
-        return filtered;
-    }
-
-    //get all trigger names for a manager
-    private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
-        List<String> names = new ArrayList<String>();
-        for (Trigger trigger : manager.getAllTriggers()) {
-            names.add(trigger.getInfo().getTriggerName());
-        }
-        return names;
-    }
-
-    private static final List<String> EMPTY = new ArrayList<String>();
-
-    //only for /trg command
-    public static List<String> onTabComplete(String[] args) {
-        switch (args.length) {
-            case 1:
-                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
-                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
-            case 2:
-                switch (args[0].toLowerCase()) {
-                    case "area":
-                    case "a":
-                        List<String> names = triggerNames(getInstance().getAreaManager());
-                        // /trg area toggle
-                        names.add("toggle");
-                        return filter(names, args[1]);
-                    case "cmd":
-                    case "command":
-                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
-                    case "custom":
-                        //event list
-                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
-                    case "delete":
-                    case "del":
-                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
-                    case "inventory":
-                    case "i":
-                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
-                    case "item":
-                        return filter(Arrays.asList("lore", "title"), args[1]);
-                    case "repeat":
-                    case "r":
-                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
-                    case "sudo":
-                        return null; //player selection
-                    case "synccustom":
-                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
-                    case "timings":
-                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
-                }
-            case 3:
-                switch (args[0].toLowerCase()) {
-                    case "area":
-                    case "a":
-                        if (!args[1].equalsIgnoreCase("toggle")) {
-                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
-                        }
-                        return EMPTY;
-                    case "command":
-                    case "cmd":
-                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
-                    case "custom":
-                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
-                    case "delete":
-                    case "del":
-                        AbstractTriggerManager manager;
-                        switch (args[1]) {
-                            case "cmd":
-                            case "command":
-                                manager = getInstance().getCmdManager();
-                                break;
-                            case "custom":
-                                manager = getInstance().getCustomManager();
-                                break;
-                            //"vars" and "variables" also possible, but I won't be offering completions for these
-                            default:
-                                return EMPTY;
-                        }
-                        return filter(triggerNames(manager), args[2]);
-                    case "inventory":
-                    case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
-                    case "item":
-                        if (args[1].equals("lore")) {
-                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
-                        }
-                    case "repeat":
-                    case "r":
-                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
-                }
-            case 4:
-                switch (args[0].toLowerCase()) {
-                    case "inventory":
-                    case "i":
-                        if (args[2].equalsIgnoreCase("open")) {
-                            return null; //player selection
-                        }
-                        if (args[2].equalsIgnoreCase("create")) {
-                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
-                        }
-                }
-        }
-        return EMPTY;
-    }
-
-    protected abstract boolean removeLore(IItemStack iS, int index);
-
-    protected abstract boolean setLore(IItemStack iS, int index, String lore);
-
-    protected abstract void addItemLore(IItemStack iS, String lore);
-
-    protected abstract void setItemTitle(IItemStack iS, String title);
-
-    protected abstract IPlayer getPlayer(String string);
-
-    protected abstract Object createEmptyPlayerEvent(ICommandSender sender);
-
-    private void showHelp(ICommandSender sender) {
-        showHelp(sender, 1);
-    }
-
-    private void showHelp(ICommandSender sender, int page) {
-        page = Math.max(1, Math.min(helpPages.size(), page));
-
-        sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        helpPages.get(page - 1).sendParagraph(sender);
-        sender.sendMessage("");
-        sender.sendMessage("&d" + page + "&8/&4" + (helpPages.size()) + " &8- &6/trg help <page> &7to see other pages.");
-    }
-
-    /**
-     * Send command description.
-     *
-     * @param sender  sender to show description
-     * @param command the command to explain
-     * @param desc    description
-     * @deprecated no longer used
-     */
-    @Deprecated
-    protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
-
-    /**
-     * Send detail under the command. It is usually called after {@link #sendCommandDesc(ICommandSender, String, String)}
-     * to add more information or example about the command.
-     *
-     * @param sender sender to show description
-     * @param detail detail to show
-     * @deprecated no longer used
-     */
-    @Deprecated
-    protected abstract void sendDetails(ICommandSender sender, String detail);
-
-    /**
-     * get Plugin's description.
-     *
-     * @return returns the full name of the plugin and its version.
-     */
-    public abstract String getPluginDescription();
-
-    /**
-     * get Plugin's version as String
-     *
-     * @return version of the plugin as String.
-     */
-    public abstract String getVersion();
-
-    /**
-     * get Author of plugin
-     *
-     * @return author name of the plugin as String.
-     */
-    public abstract String getAuthor();
-
-    /**
-     * @param args
-     * @param indexFrom inclusive
-     * @param indexTo   inclusive
-     * @return
-     */
-    private String mergeArguments(String[] args, int indexFrom, int indexTo) {
-        StringBuilder builder = new StringBuilder(args[indexFrom]);
-        for (int i = indexFrom + 1; i <= indexTo; i++) {
-            builder.append(" " + args[i]);
-        }
-        return builder.toString();
-    }
-
-    public boolean isDebugging() {
-        return debugging;
-    }
-
-    /**
-     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
-     * instead of changing the real block.
-     *
-     * @param sender sender to show the glow stones
-     * @param set    the set contains location of block and its associated trigger.
-     */
-    protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
-
-    /**
-     * Register events for Managers. If it was Bukkit API, we can assume that the 'manager' will implement Listener
-     * interface, yet we need to verify it with instanceof to avoid any problems.
-     *
-     * @param manager the object instance of Manager
-     */
-    public abstract void registerEvents(Manager manager);
-
-    /**
-     * Get folder where the plugin files will be saved.
-     *
-     * @return folder to save plugin files.
-     */
-    public abstract File getDataFolder();
-
-    /**
-     * get Logger.
-     *
-     * @return Logger.
-     */
-    public abstract Logger getLogger();
-
-    /**
-     * Check if this plugin is enabled.
-     *
-     * @return true if enabled; false if disabled.
-     */
-    public abstract boolean isEnabled();
-
-    /**
-     * Disable this plugin.
-     */
-    public abstract void disablePlugin();
-
-    /**
-     * Get the main class instance. JavaPlugin for Bukkit API for example.
-     *
-     * @return
-     */
-    public abstract <T> T getMain();
-
-    /**
-     * Check if the 'key' is set in the config.yml. This might be only case for Bukkit API
-     *
-     * @param key the key
-     * @return true if set; false if not set
-     */
-    public abstract boolean isConfigSet(String key);
-
-    /**
-     * Save the 'value' to the associated 'key' in config.yml. This might be only case for Bukkit API.
-     * The new value should override the value if already exists.
-     * This does not actually save values into config.yml unless you invoke {@link #saveConfig()}
-     *
-     * @param key   the key
-     * @param value the value to set.
-     */
-    public abstract void setConfig(String key, Object value);
-
-    /**
-     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
-     *
-     * @param key the key
-     * @return the value; null if not set.
-     */
-    public abstract Object getConfig(String key);
-
-    /**
-     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
-     *
-     * @param key the key
-     * @param def the default value to return if the 'key' is not set
-     * @return the value; null if not set.
-     */
-    public abstract <T> T getConfig(String key, T def);
-
-    /**
-     * Save all configs to config.yml.
-     */
-    public abstract void saveConfig();
-
-    /**
-     * Save all configs from config.yml.
-     */
-    public abstract void reloadConfig();
-
-    /**
-     * Run task on the server thread. Usually it happens via scheduler.
-     *
-     * @param runnable the Runnable to run
-     */
-    public abstract void runTask(Runnable runnable);
-
-    /**
-     * Call saveAll() on separated thread. It should also check if a saving task is already
-     * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
-     *
-     * @param manager
-     */
-    public abstract void saveAsynchronously(Manager manager);
-
-    /**
-     * Handle the exception caused by Executors or Triggers. The 'e' is the context when the 'event' was
-     * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
-     * related to this Exception and show useful information to the game.
-     *
-     * @param e         the context
-     * @param throwable the exception that was thrown
-     */
-    final public void handleException(Object e, Throwable throwable) {
-        if (isDebugging()) {
-            throwable.printStackTrace();
-        }
-
-        ICommandSender sender = extractPlayerFromContext(e);
-        if (sender == null)
-            sender = getConsoleSender();
-
-        sendExceptionMessage(sender, throwable);
-    }
-
-    /**
-     * Handle the exception caused by Executors or Triggers.
-     *
-     * @param sender    the sender who will receive the message
-     * @param throwable the exception that was thrown
-     */
-    final public void handleException(ICommandSender sender, Throwable throwable) {
-        if (isDebugging()) {
-            throwable.printStackTrace();
-        }
-
-        if (sender == null)
-            sender = getConsoleSender();
-
-        sendExceptionMessage(sender, throwable);
-    }
-
-    private void sendExceptionMessage(ICommandSender sender, Throwable e) {
-        runTask(new Runnable() {
-            @Override
-            public void run() {
-                Throwable ex = e;
-                sender.sendMessage("&cCould not execute this trigger.");
-                while (ex != null) {
-                    sender.sendMessage("&c >> Caused by:");
-                    sender.sendMessage("&c" + ex.getMessage());
-                    ex = ex.getCause();
-                }
-                sender.sendMessage("&cIf you are administrator, see console for details.");
-            }
-        });
-    }
-
-    /**
-     * get sender instance of the console
-     *
-     * @return
-     */
-    public abstract ICommandSender getConsoleSender();
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
-     *
-     * @param e           the context
-     * @param interpreter the interpreter
-     * @param cooldowns   list of current cooldowns.
-     * @return the interrupter created.
-     */
-    public abstract ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns);
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
-     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
-     * the Inventory was closed, it is the iterrupter's responsibility to do that.
-     *
-     * @param e            the context
-     * @param interpreter  the interpreter
-     * @param cooldowns    list of current cooldowns.
-     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
-     *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
-     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
-     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
-     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
-     * @return
-     */
-    public abstract ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
-                                                               Map<IInventory, InventoryTrigger> inventoryMap);
-
-    /**
-     * try to extract player from context 'e'.
-     *
-     * @param e Event for Bukkit API
-     * @return
-     */
-    public abstract IPlayer extractPlayerFromContext(Object e);
-
-    /**
-     * Run Callable on the server thread.
-     *
-     * @param call the callable
-     * @return the future object.
-     */
-    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
-
-    @Override
-    public <T> Future<T> submitSync(Callable<T> call) {
-        if (this.isServerThread()) {
-            return new Future<T>() {
-                private boolean done = false;
-
-                @Override
-                public boolean cancel(boolean arg0) {
-                    return false;
-                }
-
-                @Override
-                public T get() throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-                @Override
-                public T get(long arg0, TimeUnit arg1)
-                        throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-
-                @Override
-                public boolean isDone() {
-                    return done;
-                }
-
-            };
-        } else {
-            return callSyncMethod(call);
-        }
-    }
-
-    @Override
-    public void submitAsync(Runnable run) {
-        new Thread(run).start();
-    }
-
-    /**
-     * Call event so that it can be heard by listeners
-     *
-     * @param event
-     */
-    public abstract void callEvent(IEvent event);
-
-    /**
-     * Check if the current Thread is the Server
-     *
-     * @return
-     */
-    public abstract boolean isServerThread();
-
-    /**
-     * extract useful custom variables manually from 'context'
-     *
-     * @param context
-     * @return
-     */
-    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
-
-    @SuppressWarnings("serial")
-    private final List<Paragraph> helpPages = new ArrayList<Paragraph>() {{
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
-            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
-
-            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
-            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
-
-            sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
-            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
-            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
-            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
-            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
-            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
-            sender.sendMessage("  &7/trg i to see more commands...");
-
-            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
-
-            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
-            sender.sendMessage("  &7/trg a to see more commands...");
-
-            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
-            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
-            sender.sendMessage("  &7/trg r to see more commands...");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
-            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
-            sender.sendMessage("&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
-            sender.sendMessage("  &7/trg synccustom Greet");
-
-            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
-            sender.sendMessage("  &7&cWarning - This command will delete the previous data associated with the key if exists.");
-            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
-            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
-            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
-
-            sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
-
-            sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
-
-            sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
-            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
-            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
-            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
-
-            sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
-
-            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
-            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
-
-            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
-
-            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
-        });
-        add((sender -> {
-            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
-            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
-        }));
-    }};
 
 //    private final List<Paragraph> deprecationPages = new ArrayList<Paragraph>(){{
 //        add((sender -> {
