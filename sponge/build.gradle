@@ -20,7 +20,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(":core")
+    compile project(":core")
     implementation fileTree(dir: "libs", includes: ['*.jar'])
 
     implementation 'org.spongepowered:spongeapi:7.2.+'
