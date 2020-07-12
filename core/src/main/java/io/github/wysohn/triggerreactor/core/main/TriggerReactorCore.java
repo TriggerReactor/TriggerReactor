@@ -789,9 +789,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     }
 
                     return true;
-                } else if (args.length > 2 && args[0].equalsIgnoreCase("call")) {
+                } else if (args.length > 1 && args[0].equalsIgnoreCase("call")) {
                     String namedTriggerName = args[1];
-                    String script = mergeArguments(args, 2, args.length - 1);
+                    String script = args.length > 2 ? mergeArguments(args, 2, args.length - 1) : "";
 
                     try {
                         Trigger trigger = getCmdManager().createTempCommandTrigger(script);
@@ -809,6 +809,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     } catch (Exception e) {
                         handleException(sender, e);
                     }
+
+                    return true;
                 } else if (args[0].equalsIgnoreCase("inventory") || args[0].equalsIgnoreCase("i")) {
                     if (args.length > 3 && args[2].equalsIgnoreCase("create")) {
                         String name = args[1];
@@ -1813,7 +1815,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         switch (args.length) {
             case 1:
                 return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
-                        "reload", "repeat", "run", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+                        "reload", "repeat", "run", "call", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
             case 2:
                 switch (args[0].toLowerCase()) {
                     case "area":
@@ -1845,6 +1847,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return filter(triggerNames(getInstance().getCustomManager()), args[1]);
                     case "timings":
                         return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
+                    case "call":
+                        return filter(triggerNames(getInstance().getNamedTriggerManager()), args[1]);
                 }
             case 3:
                 switch (args[0].toLowerCase()) {
