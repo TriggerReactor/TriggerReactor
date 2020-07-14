@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.nucleus;
 
 import io.github.nucleuspowered.nucleus.api.service.*;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import org.spongepowered.api.Sponge;
@@ -25,7 +25,7 @@ public class NucleusSupport extends APISupport {
     private NucleusWarningService warning;
     private NucleusWarpService warp;
 
-    public NucleusSupport(TriggerReactor plugin) {
+    public NucleusSupport(TriggerReactorCore plugin) {
         super(plugin, "nucleus");
     }
 

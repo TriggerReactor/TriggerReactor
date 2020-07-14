@@ -16,11 +16,11 @@ import java.util.Arrays;
  * The test should be written in parent class, AbstractTestCommonFunctions,
  * as the test methods will be inherited to the child class, which is this class,
  * so that the same test can be performed on different platforms.
- *
+ * <p>
  * However, if some test has to be implemented differently for the each platform,
  * write the individual test in this class so that the test can be individually
  * performed.
- *
+ * <p>
  * For example, the takeItem() method still can use numeric value instead of Material enum
  * in legacy bukkit to instantiate an ItemStack, yet it's completely deleted in the latest bukkit.
  */
@@ -31,7 +31,7 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][] { {new CommonFunctions(null)} });
+        return Arrays.asList(new Object[][]{{new CommonFunctions(null)}});
     }
 
     @Override
@@ -48,9 +48,9 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
     }
 
     @SuppressWarnings("deprecation")
-	@Test
-    public void testTakeItem(){
-        ItemStack IS = new ItemStack(Material.STONE,64);
+    @Test
+    public void testTakeItem() {
+        ItemStack IS = new ItemStack(Material.STONE, 64);
         ItemStack IS2 = new ItemStack(Material.STONE, 64, (short) 1);
         FakeInventory inv = fInventory(this, IS, IS2);
 

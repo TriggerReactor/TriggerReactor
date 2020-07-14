@@ -17,12 +17,12 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public abstract class AbstractScriptEditManager extends Manager {
 
-    public AbstractScriptEditManager(TriggerReactor plugin) {
+    public AbstractScriptEditManager(TriggerReactorCore plugin) {
         super(plugin);
     }
 
@@ -45,7 +45,7 @@ public abstract class AbstractScriptEditManager extends Manager {
         while (str.charAt(index++) == ' ') {
             builder.append('^');
         }
-        builder.append(str.substring(index - 1, str.length()));
+        builder.append(str.substring(index - 1));
 
         return builder.toString();
     }

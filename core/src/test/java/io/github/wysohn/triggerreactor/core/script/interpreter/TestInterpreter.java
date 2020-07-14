@@ -16,8 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -290,40 +291,9 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactor triggerReactor = Mockito.mock(TriggerReactor.class);
-        AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
-            @Override
-            public void remove(String key) {
-                Assert.fail("remove() of actual gvar was called");
-            }
-
-            @Override
-            public boolean has(String key) {
-                Assert.fail("has() of actual gvar was called");
-                return false;
-            }
-
-            @Override
-            public void put(String key, Object value) throws Exception {
-                Assert.fail("put() of actual gvar was called");
-            }
-
-            @Override
-            public Object get(String key) {
-                Assert.fail("get() of actual gvar was called");
-                return null;
-            }
-
-            @Override
-            public void reload() {
-
-            }
-
-            @Override
-            public void saveAll() {
-
-            }
-        };
+        TriggerReactorCore triggerReactor = Mockito.mock(TriggerReactorCore.class);
+        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, (folder, fileName) ->
+                Mockito.mock(IConfigSource.class));
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setGvars(avm.getGlobalVariableAdapter());
@@ -585,31 +555,30 @@ public class TestInterpreter {
 
         Node root = parser.parse();
         @SuppressWarnings("serial")
-		Map<String, Executor> executorMap = new HashMap<String, Executor>() {
-		{
-            put("TEST1", new Executor() {
+        Map<String, Executor> executorMap = new HashMap<String, Executor>() {
+            {
+                put("TEST1", new Executor() {
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+                        Assert.assertEquals("work", args[0]);
+                        return null;
+                    }
 
-                    Assert.assertEquals("work", args[0]);
-                    return null;
-                }
+                });
+                put("TEST2", new Executor() {
 
-            });
-            put("TEST2", new Executor() {
+                    @Override
+                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                              Object... args) throws Exception {
+                        Assert.assertEquals("work2", args[0]);
+                        return null;
+                    }
 
-                @Override
-                protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                          Object... args) throws Exception {
-
-                    Assert.assertEquals("work2", args[0]);
-                    return null;
-                }
-
-            });
-        }};
+                });
+            }
+        };
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -2076,7 +2045,7 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
         interpreter.setSelfReference(new SelfReference() {
             @SuppressWarnings("unused")
-			public Object array(int size) {
+            public Object array(int size) {
                 return new Object[size];
             }
         });

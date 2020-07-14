@@ -2,9 +2,11 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -19,9 +21,9 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
-    protected final TriggerReactor plugin;
+    protected final TriggerReactorCore plugin;
 
-    public AbstractCommonFunctions(TriggerReactor plugin) {
+    public AbstractCommonFunctions(TriggerReactorCore plugin) {
         this.plugin = plugin;
     }
 
@@ -119,10 +121,11 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
 
     /**
      * Create Location instance.
+     *
      * @param world the name of world.
-     * @param x x coordinate
-     * @param y y coordinate
-     * @param z z coordinate
+     * @param x     x coordinate
+     * @param y     y coordinate
+     * @param z     z coordinate
      * @return the Location.
      */
     public Location location(String world, double x, double y, double z) {
@@ -131,11 +134,12 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
 
     /**
      * Create Location instance including pitch and yaw
+     *
      * @param world the name of world.
-     * @param x x coordinate
-     * @param y y coordinate
-     * @param z z coordinate
-     * @param yaw yaw
+     * @param x     x coordinate
+     * @param y     y coordinate
+     * @param z     z coordinate
+     * @param yaw   yaw
      * @param pitch pitch
      * @return the Location instance
      */
@@ -150,10 +154,11 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * get Block instance. Be aware that when using the Block instance, it directly
      * interferes with the Server Thread, so it may cause Exception if any action
      * taken to this instance was from asynchronous triggers.
+     *
      * @param world name of the world
-     * @param x x coordinate
-     * @param y y coordinate
-     * @param z z coordinate
+     * @param x     x coordinate
+     * @param y     y coordinate
+     * @param z     z coordinate
      * @return the Block instance
      */
     public Block block(String world, int x, int y, int z) {
@@ -190,7 +195,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return returns a PotionEffect object or null if specified PotionEffectType was not found.
      */
     public abstract PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
-                                         boolean particles, Color color);
+                                                  boolean particles, Color color);
 
     /**
      * try to get a player from name. Mostly online player.
@@ -281,11 +286,11 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      */
     public String[] currentAreasAt(Location location) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
+        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
-                .map(AbstractTriggerManager.Trigger::getTriggerName)
+                .map(Trigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
                 .toArray(String[]::new);
-        return names;
     }
 
     /**
@@ -296,7 +301,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        AbstractAreaTriggerManager.AreaTrigger trigger = areaManager.getArea(areaTriggerName);
+        AreaTrigger trigger = areaManager.get(areaTriggerName);
         if (trigger == null)
             return null;
 
@@ -411,7 +416,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * Example) /trg run myitem = item(1, 1); setItemTitle(myitem, "I'm stone"); #GIVE myitem;
      * </p>
      *
-     * @param IS target ItemStack to change the title
+     * @param IS    target ItemStack to change the title
      * @param title the title
      */
     public void setItemTitle(ItemStack IS, String title) {
@@ -428,7 +433,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * Check if the specified ItemStack contains the 'lore.' At least one is contained
      * in the lore will return true.
      *
-     * @param IS ItemStack to check lores fore
+     * @param IS   ItemStack to check lores fore
      * @param lore the lore
      * @return true if 'lore' is in IS; false if not
      */
@@ -447,7 +452,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
     /**
      * get Lore at the specified index
      *
-     * @param IS the ItemStack to get lore
+     * @param IS    the ItemStack to get lore
      * @param index index of the lore
      * @return String of lore. If you use 'index' out of range or lore not exist, it returns null.
      */
@@ -460,7 +465,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
         if (lores == null)
             return null;
 
-        if(index < 0 || index >= lores.size())
+        if (index < 0 || index >= lores.size())
             return null;
 
         return lores.get(index);
@@ -469,7 +474,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
     /**
      * Append a lore to the specified ItemStack
      *
-     * @param IS the target ItemStack
+     * @param IS   the target ItemStack
      * @param lore the lore to add
      */
     public void addLore(ItemStack IS, String lore) {
@@ -492,9 +497,9 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * 'index' is larger than previous size of lores, it will append empty
      * strings as much as needed.
      *
-     * @param IS the target ItemStack
+     * @param IS    the target ItemStack
      * @param index index to replace the lore
-     * @param lore the lore to set
+     * @param lore  the lore to set
      */
     public void setLore(ItemStack IS, int index, String lore) {
         ItemMeta IM = IS.getItemMeta();
@@ -506,7 +511,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
         if (lores == null)
             lores = new ArrayList<>();
 
-        while(index >= lores.size())
+        while (index >= lores.size())
             lores.add("");
 
         lores.set(index, color(lore));
@@ -518,7 +523,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * Remove lore at the 'index' of the specified ItemStack.
      * if the 'index' is out of range, nothing will happen.
      *
-     * @param IS target ItemStack
+     * @param IS    target ItemStack
      * @param index index of the lore to delete
      */
     public void removeLore(ItemStack IS, int index) {
@@ -531,7 +536,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
         if (lores == null)
             lores = new ArrayList<>();
 
-        if(index < 0 || index >= lores.size())
+        if (index < 0 || index >= lores.size())
             return;
 
         lores.remove(index);
@@ -572,7 +577,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * Translate money into specified country's currency format. You need to provide exact locale provided
      * in http://www.oracle.com/technetwork/java/javase/java8locales-2095355.html
      *
-     * @param money money
+     * @param money   money
      * @param locale1 language code (Ex. en)
      * @param locale2 country code (Ex. US)
      * @return formatted currecy
@@ -601,12 +606,12 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * Example) /trg run #MESSAGE "looking at the block: "+getTargetBlock(player, 30);
      * </p>
      *
-     * @param player Player instance
+     * @param player      Player instance
      * @param maxDistance maximum distance. More distance cause more loads to CPU.
      * @return block
      */
     public Block getTargetBlock(Player player, int maxDistance) {
-        return player.getTargetBlock((HashSet<Material>) null, maxDistance);
+        return player.getTargetBlock(null, maxDistance);
     }
 
     /**
@@ -631,7 +636,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * </p>
      *
      * @param targetName name of the owner of head
-     * @param amount amount
+     * @param amount     amount
      * @return the ItemStack head
      */
     public abstract ItemStack headForName(String targetName, int amount);

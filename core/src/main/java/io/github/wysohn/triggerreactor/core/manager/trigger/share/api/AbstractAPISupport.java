@@ -16,22 +16,22 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
 /**
  * Abstract representation of API support. The child classes must have at least one constructor with one argument,
- * {@link io.github.wysohn.triggerreactor.core.main.TriggerReactor}, to make it work properly.
+ * {@link io.github.wysohn.triggerreactor.core.main.TriggerReactorCore}, to make it work properly.
  *
  * @author wysohn
  */
 public abstract class AbstractAPISupport {
 
-    protected final TriggerReactor plugin;
+    protected final TriggerReactorCore plugin;
 
-    public AbstractAPISupport(TriggerReactor plugin) {
+    public AbstractAPISupport(TriggerReactorCore plugin) {
         super();
         this.plugin = plugin;
     }
@@ -54,7 +54,7 @@ public abstract class AbstractAPISupport {
         if (!sharedVars.containsKey(varName)) {
             Constructor<?> con = null;
             try {
-                con = clazz.getConstructor(TriggerReactor.class);
+                con = clazz.getConstructor(TriggerReactorCore.class);
             } catch (NoSuchMethodException | SecurityException e1) {
                 e1.printStackTrace();
             }
@@ -62,7 +62,7 @@ public abstract class AbstractAPISupport {
             boolean initSuccess = true;
             AbstractAPISupport api = null;
             try {
-                api = (AbstractAPISupport) con.newInstance(TriggerReactor.getInstance());
+                api = (AbstractAPISupport) con.newInstance(TriggerReactorCore.getInstance());
                 api.init();
             } catch (APISupportException e) {
                 initSuccess = false;

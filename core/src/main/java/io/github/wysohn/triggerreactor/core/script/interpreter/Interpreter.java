@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -432,7 +432,7 @@ public class Interpreter {
                 try {
                     copy.startWithContextAndInterrupter(context, interrupter, timing);
                 } catch (InterpreterException e) {
-                    TriggerReactor.getInstance().handleException(context, e);
+                    TriggerReactorCore.getInstance().handleException(context, e);
                 }
             });
             return;

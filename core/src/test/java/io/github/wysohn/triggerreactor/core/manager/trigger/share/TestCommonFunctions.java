@@ -2,7 +2,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -10,12 +9,7 @@ import org.junit.runners.Parameterized;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,17 +20,17 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(Parameterized.class)
 public class TestCommonFunctions<FN extends CommonFunctions> {
-	private static String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
-	
+    private static String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
+
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][] { {null} });
+        return Arrays.asList(new Object[][]{{null}});
     }
 
     protected final FN fn;
     private int trials = 100;
 
-    public TestCommonFunctions(FN fn){
+    public TestCommonFunctions(FN fn) {
         this.fn = fn;
     }
 
@@ -70,51 +64,49 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
             assertTrue(0 <= value2 && value2 < 10);
         }
     }
-    
+
     @Test
     public void testSLocation() throws Exception {
-    	assertEquals(fn.slocation("merp", 1, 2, 3), new SimpleLocation("merp", 1, 2, 3));
+        assertEquals(fn.slocation("merp", 1, 2, 3), new SimpleLocation("merp", 1, 2, 3));
     }
-    
+
     @Test
-    public void testDataStructures()
-    {
-    	Set<Object> set = fn.set();
-    	List<Object> list = fn.list();
-    	Map<Object, Object> map = fn.map();
-    	assertTrue(map.size() == 0 && list.size() == 0 && set.size() == 0);
+    public void testDataStructures() {
+        Set<Object> set = fn.set();
+        List<Object> list = fn.list();
+        Map<Object, Object> map = fn.map();
+        assertTrue(map.size() == 0 && list.size() == 0 && set.size() == 0);
     }
-    
+
     @Test
-    public void testStaticAccess() throws Exception
-    {
-    	ExampleClass.reset();
-    	
-    	assertEquals(42, fn.staticGetFieldValue(example, "foo"));
-    	assertEquals(false, fn.staticGetFieldValue(example, "bar"));
-    	
-    	fn.staticSetFieldValue(example, "bar", true);
-    	fn.staticSetFieldValue(example, "foo", -1);
-    	
-    	assertEquals(-1, ExampleClass.foo);
-    	assertEquals(true, ExampleClass.bar);
-    	
-    	assertEquals(44, fn.staticMethod(example, "baz", 22));
-    	assertEquals("TriggerReactor", fn.staticMethod(example, "add", "Trigger", "Reactor"));
-    	
+    public void testStaticAccess() throws Exception {
+        ExampleClass.reset();
+
+        assertEquals(42, fn.staticGetFieldValue(example, "foo"));
+        assertEquals(false, fn.staticGetFieldValue(example, "bar"));
+
+        fn.staticSetFieldValue(example, "bar", true);
+        fn.staticSetFieldValue(example, "foo", -1);
+
+        assertEquals(-1, ExampleClass.foo);
+        assertEquals(true, ExampleClass.bar);
+
+        assertEquals(44, fn.staticMethod(example, "baz", 22));
+        assertEquals("TriggerReactor", fn.staticMethod(example, "add", "Trigger", "Reactor"));
+
     }
-    
+
     @Test
     public void testConstructor() throws Exception {
         //thx for the test cases
-    	ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
-    	assertEquals(0, e.marker);
+        ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
+        assertEquals(0, e.marker);
 
-    	e = (ExampleClass) fn.newInstance(example, new Double(1.1));
-    	assertEquals(2, e.marker);
+        e = (ExampleClass) fn.newInstance(example, new Double(1.1));
+        assertEquals(2, e.marker);
 
-    	File file = null;
-    	try{
+        File file = null;
+        try {
             file = (File) fn.newInstance("java.io.File", "test.txt");
             FileWriter writer = (FileWriter) fn.newInstance("java.io.FileWriter", file);
             writer.write("Something");
@@ -124,11 +116,11 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
             Scanner sc = new Scanner(reader);
             Assert.assertEquals("Something", sc.nextLine());
             sc.close();
-        }finally {
-            if(file != null)
+        } finally {
+            if (file != null)
                 file.delete();
         }
     }
-    
-    
+
+
 }

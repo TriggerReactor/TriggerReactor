@@ -16,11 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.event.Event;
@@ -38,7 +37,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class CustomTriggerManager extends AbstractCustomTriggerManager implements SpongeConfigurationFileIO {
+public class CustomTriggerManager extends AbstractCustomTriggerManager {
     static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
     static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
@@ -62,8 +61,31 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onStop", TriggerReactorStopEvent.class);
     }};
 
-    public CustomTriggerManager(TriggerReactor plugin) {
-        super(plugin, new CommonFunctions(plugin), new File(plugin.getDataFolder(), "CustomTrigger"));
+    public CustomTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
+            @Override
+            public boolean eventExist(String eventStr) {
+                try {
+                    return getEvent(eventStr) != null;
+                } catch (ClassNotFoundException e) {
+                    return false;
+                }
+            }
+
+            @Override
+            public Class<?> getEvent(String eventStr) throws ClassNotFoundException {
+                Class<? extends Event> event;
+                if (ABBREVIATIONS.containsKey(eventStr)) {
+                    event = ABBREVIATIONS.get(eventStr);
+                } else if (EVENTS.containsKey(eventStr)) {
+                    event = EVENTS.get(eventStr);
+                } else {
+                    event = (Class<? extends Event>) Class.forName(eventStr);
+                }
+
+                return event;
+            }
+        });
 
         try {
             initEvents();
@@ -111,7 +133,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
 
     @SuppressWarnings("unchecked")
     @Override
-    protected void registerEvent(TriggerReactor plugin, Class<?> clazz, EventHook eventHook) {
+    protected void registerEvent(TriggerReactorCore plugin, Class<?> clazz, EventHook eventHook) {
         EventListener listener = new EventListener() {
 
             @Override
@@ -125,24 +147,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     @Override
-    protected void unregisterEvent(TriggerReactor plugin, EventHook eventHook) {
+    protected void unregisterEvent(TriggerReactorCore plugin, EventHook eventHook) {
         EventListener listener = registeredListeners.remove(eventHook);
         if (listener != null) {
             Sponge.getEventManager().unregisterListeners(listener);
         }
-    }
-
-    @Override
-    protected Class<?> getEventFromName(String name) throws ClassNotFoundException {
-        Class<? extends Event> event;
-        if (ABBREVIATIONS.containsKey(name)) {
-            event = ABBREVIATIONS.get(name);
-        } else if (EVENTS.containsKey(name)) {
-            event = EVENTS.get(name);
-        } else {
-            event = (Class<? extends Event>) Class.forName(name);
-        }
-
-        return event;
     }
 }
