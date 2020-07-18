@@ -45,6 +45,7 @@ import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeWrapper;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.main.serialize.SpongeDataSerializer;
 import io.github.wysohn.triggerreactor.sponge.manager.*;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
@@ -69,8 +70,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.config.ConfigDir;
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
@@ -971,31 +971,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     static {
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
-            DataContainer container = src.toContainer();
-            Map<String, Object> map = new HashMap<>();
-            container.getValues(true)
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> !(entry.getValue() instanceof Map))
-                    .forEach(entry -> {
-                        DataQuery dataQuery = entry.getKey();
-                        Object o = entry.getValue();
-                        map.put(dataQuery.toString(), o);
-                    });
-            return context.serialize(map);
-        });
-
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
-            DataContainer container = DataContainer.createNew();
-            map.forEach((s, o) -> container.set(DataQuery.of(s.split("\\.")), o));
-            try {
-                return ItemStack.builder()
-                        .fromContainer(container)
-                        .build();
-            } catch (Exception ex) {
-                throw new RuntimeException("Cannot deserialize " + map, ex);
-            }
-        });
+        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
     }
 }

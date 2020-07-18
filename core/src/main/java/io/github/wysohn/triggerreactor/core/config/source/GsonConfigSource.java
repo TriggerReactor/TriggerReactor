@@ -33,7 +33,7 @@ public class GsonConfigSource implements IConfigSource {
             .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
 
-    public static void registerSerializer(Class<?> type, Serializer<?> serializer) {
+    public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
         builder.registerTypeHierarchyAdapter(type, serializer);
     }
 
