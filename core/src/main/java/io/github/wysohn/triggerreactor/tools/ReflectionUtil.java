@@ -263,7 +263,7 @@ public class ReflectionUtil {
             }
 
             if (args.length > 0) {
-                StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
+                StringBuilder builder = new StringBuilder(args[0].getClass().getSimpleName());
 
                 for (int i = 1; i < args.length; i++) {
                     builder.append(", " + args[i].getClass().getSimpleName());
@@ -276,18 +276,15 @@ public class ReflectionUtil {
         } catch (NullPointerException e) {
             StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
             for (int i = 1; i < args.length; i++)
-                builder.append("," + String.valueOf(args[i]));
+                builder.append("," + args[i]);
             throw new NullPointerException("Call " + methodName + "(" + builder.toString() + ")");
         }
     }
 
     public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
-        if (!(arg instanceof String && parameterType.isEnum())
-                && !ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true)) {
-            return false;
-        }
-        return true;
+        return arg instanceof String && parameterType.isEnum()
+                || ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
     }
 
     private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {
@@ -482,30 +479,20 @@ public class ReflectionUtil {
 
             Constructor<?> target = possibleTarget.get(0);
             if (possibleTarget.size() > 1) {
+                s:
                 for (Constructor<?> con : possibleTarget.subList(1, possibleTarget.size())) {
-                    if (con.isVarArgs()) {
-                        for (int i = 0; i < paramTypes.length; i++) {
-                            Class<?> paramsOther = getParamType(con, i);
-                            Class<?> params = getParamType(target, i);
+                    // compare all parameters before replacing it
+                    for (int i = 0; i < paramTypes.length; i++) {
+                        Class<?> paramsOther = getParamType(con, i);
+                        Class<?> params = getParamType(target, i);
 
-                            if (ClassUtils.isAssignable(paramsOther, params, true)) {
-                                target = con;
-                            }
+                        if (!ClassUtils.isAssignable(paramsOther, params, true)) {
+                            // not a good replacement
+                            continue s;
                         }
-                    } else {
-                        if (con.getParameterCount() != paramTypes.length)
-                            continue;
-
-                        for (int i = 0; i < paramTypes.length; i++) {
-                            Class<?> paramsOther = getParamType(con, i);
-                            Class<?> params = getParamType(target, i);
-
-                            if (ClassUtils.isAssignable(paramsOther, params, true)) {
-                                target = con;
-                            }
-                        }
-                        break;
                     }
+
+                    target = con;
                 }
             }
 
