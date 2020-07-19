@@ -557,7 +557,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected IPlayer getPlayer(String string) {
+    public IPlayer getPlayer(String string) {
         Player player = Sponge.getServer().getPlayer(string).orElse(null);
         if (player == null)
             return null;
@@ -566,7 +566,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(ICommandSender sender) {
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
         Object unwrapped = sender.get();
 
         if (unwrapped instanceof Player) {
