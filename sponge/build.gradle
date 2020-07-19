@@ -21,10 +21,10 @@ repositories {
 
 dependencies {
     compile project(":core")
-    compile fileTree(dir: "libs", includes: ['*.jar'])
-
-    compile 'org.spongepowered:spongeapi:7.2.+'
     compile "org.bstats:bstats-sponge-lite:1.4"
+
+    implementation fileTree(dir: "libs", includes: ['*.jar'])
+    implementation 'org.spongepowered:spongeapi:7.2.+'
 
     testCompile project(':core').sourceSets.test.output
 }
