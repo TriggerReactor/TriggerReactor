@@ -152,6 +152,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     public CommandTrigger remove(String name) {
         CommandTrigger remove = super.remove(name);
         removeAliases(remove);
+        unregisterCommand(name);
         return remove;
     }
 
