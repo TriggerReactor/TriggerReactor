@@ -27,11 +27,39 @@ public class SimpleChunkLocation {
         this.j = j;
     }
 
+    public SimpleChunkLocation(String world, int x, int y, int z) {
+        super();
+        this.world = world;
+        this.i = x >> 4;
+        this.j = z >> 4;
+    }
+
+    public SimpleChunkLocation(String world, double x, double y, double z) {
+        super();
+        this.world = world;
+        this.i = (int) x >> 4;
+        this.j = (int) z >> 4;
+    }
+
     public SimpleChunkLocation(SimpleLocation sloc) {
         super();
         this.world = sloc.world;
         this.i = sloc.x >> 4;
         this.j = sloc.z >> 4;
+    }
+
+    public static SimpleChunkLocation valueOf(String value) {
+        String[] splitw = value.split("@", 2);
+        if (splitw.length != 2)
+            throw new SimpleChunkLocationFormatException(value);
+
+        String world = splitw[0];
+
+        String[] splitc = splitw[1].split(",", 2);
+        if (splitc.length != 2)
+            throw new SimpleChunkLocationFormatException(value);
+
+        return new SimpleChunkLocation(world, Integer.parseInt(splitc[0]), Integer.parseInt(splitc[1]));
     }
 
     public String getWorld() {
@@ -44,6 +72,26 @@ public class SimpleChunkLocation {
 
     public int getJ() {
         return j;
+    }
+
+    /**
+     * SimpleChunkLocation is a consistent class, so this method will return new
+     * instance that added provided value to this instance.
+     *
+     * @param i x axis chunk coordinate to add
+     * @param j z axis chunk coordinate to add
+     * @return
+     */
+    public SimpleChunkLocation add(int i, int j) {
+        return new SimpleChunkLocation(world, this.i + i, this.j + j);
+    }
+
+    public SimpleChunkLocation add(Vector dir) {
+        return add((int) dir.getX(), (int) dir.getZ());
+    }
+
+    public double distance(SimpleChunkLocation other) {
+        return Math.sqrt(i * other.i + j * other.j);
     }
 
     @Override
@@ -70,16 +118,21 @@ public class SimpleChunkLocation {
         if (j != other.j)
             return false;
         if (world == null) {
-            if (other.world != null)
-                return false;
-        } else if (!world.equals(other.world))
-            return false;
-        return true;
+            return other.world == null;
+        } else return world.equals(other.world);
     }
 
     @Override
     public String toString() {
-        return "SimpleChunkLocation [world=" + world + ", i=" + i + ", j=" + j + "]";
+        return world + "@" + i + "," + j;
     }
 
+    @SuppressWarnings("serial")
+    public static class SimpleChunkLocationFormatException extends RuntimeException {
+
+        public SimpleChunkLocationFormatException(String message) {
+            super(message);
+        }
+
+    }
 }

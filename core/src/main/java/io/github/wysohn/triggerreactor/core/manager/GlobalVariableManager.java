@@ -31,9 +31,6 @@ import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 public final class GlobalVariableManager extends Manager implements IMigratable {
-    public static final String TYPE_KEY = "type";
-    public static final String VALUE_KEY = "value";
-
     private final IConfigSource configSource;
 
     public GlobalVariableManager(TriggerReactorCore plugin) {
@@ -104,13 +101,7 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
      * @throws Exception
      */
     public void put(String key, Object value) {
-        try {
-            configSource.put(key + "." + TYPE_KEY, value.getClass().getName());
-            configSource.put(key + "." + VALUE_KEY, value);
-        } catch (Exception ex) { // delete the entry if either of the operation fails.
-            configSource.put(key, null);
-            ex.printStackTrace();
-        }
+        configSource.put(key, value);
     }
 
     /**
@@ -120,18 +111,7 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
      * @return the value object if exists; null if nothing found
      */
     public Object get(String key) {
-        String type = configSource.get(key + "." + TYPE_KEY, String.class).orElse(null);
-        if (type == null) {
-            return configSource.get(key).orElse(null);
-        }
-
-        try {
-            Class<?> clazz = Class.forName(type);
-            return configSource.get(key + "." + VALUE_KEY, clazz).orElse(null);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return configSource.get(key).orElse(null);
     }
 
     /**
