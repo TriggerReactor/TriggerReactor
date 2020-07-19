@@ -103,7 +103,10 @@ public class GsonConfigSource implements IConfigSource {
         synchronized (file) {
             try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
-                    Map<String, Object> loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+                    Map<String, Object> loaded = null;
+                    if (file.exists() && file.length() > 0L)
+                        loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+
                     cache.clear();
                     if (loaded != null)
                         cache.putAll(loaded);

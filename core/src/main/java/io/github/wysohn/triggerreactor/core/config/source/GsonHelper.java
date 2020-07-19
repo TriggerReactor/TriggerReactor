@@ -17,9 +17,13 @@ public class GsonHelper {
     public static Map<String, Object> readJson(JsonReader jsonReader, Gson gson) throws IOException {
         Map<String, Object> map = new LinkedTreeMap<>();
 
+        if (!jsonReader.hasNext())
+            return null;
+
         JsonToken token = jsonReader.peek();
         if (token != JsonToken.BEGIN_OBJECT)
             return null;
+
         jsonReader.beginObject();
         readJson(map, jsonReader, gson);
         jsonReader.endObject();

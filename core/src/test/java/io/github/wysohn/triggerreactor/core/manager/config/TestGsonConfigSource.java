@@ -68,12 +68,13 @@ public class TestGsonConfigSource {
         stringWriter = new StringWriter();
 
         manager = new GsonConfigSource(mockFile, (f) -> new StringReader(jsonString), (f) -> stringWriter);
+
+        Mockito.when(mockFile.exists()).thenReturn(true);
+        Mockito.when(mockFile.length()).thenReturn(Long.MAX_VALUE);
     }
 
     @Test
     public void testReload() {
-        Mockito.when(mockFile.exists()).thenReturn(true);
-
         manager.reload();
 
         Map<String, Object> cache = Whitebox.getInternalState(manager, "cache");
@@ -107,8 +108,6 @@ public class TestGsonConfigSource {
 
     @Test
     public void testSaveAll() {
-        Mockito.when(mockFile.exists()).thenReturn(true);
-
         Map<String, Object> cache = Whitebox.getInternalState(manager, "cache");
         cache.put("string2", "teststring2");
         cache.put("number2", 123);
