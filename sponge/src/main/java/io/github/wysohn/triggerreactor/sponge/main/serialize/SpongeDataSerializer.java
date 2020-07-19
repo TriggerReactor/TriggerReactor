@@ -44,6 +44,7 @@ public class SpongeDataSerializer implements Serializer<DataSerializable> {
                     Object o = entry.getValue();
                     map.put(dataQuery.toString(), o);
                 });
-        return context.serialize(map);
+
+        return Serializer.serialize(DataSerializable.class, map, context);
     }
 }

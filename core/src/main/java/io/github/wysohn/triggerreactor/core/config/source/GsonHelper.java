@@ -40,7 +40,7 @@ public class GsonHelper {
         }
     }
 
-    private static Object convert(JsonReader jsonReader, Gson gson) throws IOException {
+    public static Object convert(JsonReader jsonReader, Gson gson) throws IOException {
         JsonToken token = jsonReader.peek();
         switch (token) {
             case BEGIN_OBJECT:
