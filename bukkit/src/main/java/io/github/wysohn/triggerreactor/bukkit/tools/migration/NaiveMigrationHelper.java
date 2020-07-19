@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.bukkit.tools;
+package io.github.wysohn.triggerreactor.bukkit.tools.migration;
 
 import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
@@ -9,11 +9,11 @@ import java.io.File;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-public class BukkitMigrationHelper implements IMigrationHelper {
+public class NaiveMigrationHelper implements IMigrationHelper {
     protected final FileConfiguration oldConfig;
     protected final File oldFile;
 
-    public BukkitMigrationHelper(FileConfiguration oldConfig, File oldFile) {
+    public NaiveMigrationHelper(FileConfiguration oldConfig, File oldFile) {
         this.oldConfig = oldConfig;
         this.oldFile = oldFile;
     }

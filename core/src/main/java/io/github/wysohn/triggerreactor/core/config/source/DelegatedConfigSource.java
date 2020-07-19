@@ -52,11 +52,6 @@ public class DelegatedConfigSource implements IConfigSource {
     }
 
     @Override
-    public boolean isDeserializable(Class<?> aClass) {
-        return configSource.isDeserializable(aClass);
-    }
-
-    @Override
     public void reload() {
         configSource.reload();
     }

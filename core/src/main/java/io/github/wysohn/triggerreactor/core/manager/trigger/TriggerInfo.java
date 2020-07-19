@@ -29,9 +29,10 @@ public abstract class TriggerInfo implements IMigratable {
     public boolean isMigrationNeeded() {
         File folder = sourceCodeFile.getParentFile();
         File oldFile = new File(folder, triggerName + ".yml");
-        // if migration already happened, it should be renamed to .yml.bak
-        // so migration is needed if .yml file exists
-        return oldFile.exists();
+        File newFile = new File(folder, triggerName + ".json");
+
+        // new file not exist and old file exist
+        return !newFile.exists() && oldFile.exists();
     }
 
     @Override
