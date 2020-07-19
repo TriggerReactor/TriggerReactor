@@ -1,7 +1,8 @@
-package io.github.wysohn.triggerreactor.sponge.tools;
+package io.github.wysohn.triggerreactor.sponge.tools.migration;
 
 import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.data.DataContainer;
@@ -13,11 +14,11 @@ import java.io.File;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-public class SpongeMigrationHelperVar implements IMigrationHelper {
+public class VariableMigrationHelper implements IMigrationHelper {
     protected final ConfigurationNode oldConfig;
     protected final File oldFile;
 
-    public SpongeMigrationHelperVar(ConfigurationNode oldConfig, File oldFile) {
+    public VariableMigrationHelper(ConfigurationNode oldConfig, File oldFile) {
         this.oldConfig = oldConfig;
         this.oldFile = oldFile;
     }

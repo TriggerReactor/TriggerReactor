@@ -53,8 +53,9 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.*;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
-import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelper;
-import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelperVar;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.InvTriggerMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.NaiveMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.VariableMigrationHelper;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -293,9 +294,28 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                             e.printStackTrace();
                             return;
                         }
-                        getVariableManager().migrate(new SpongeMigrationHelperVar(varFileConfig, file));
+                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
                     }
                 })
+                .append(() -> Optional.of(getInvManager())
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
+                                })))
                 .append(() -> Manager.getManagers().stream()
                         .filter(AbstractTriggerManager.class::isInstance)
                         .map(AbstractTriggerManager.class::cast)
@@ -315,7 +335,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                                         e.printStackTrace();
                                         return;
                                     }
-                                    triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
+                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
                                 })))
                 .run();
     }

@@ -24,9 +24,10 @@ import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
+import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
+import io.github.wysohn.triggerreactor.bukkit.tools.migration.NaiveMigrationHelper;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -118,7 +119,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         new ContinuingTasks.Builder()
                 .append(() -> {
                     if (core.getPluginConfigManager().isMigrationNeeded()) {
-                        core.getPluginConfigManager().migrate(new BukkitMigrationHelper(getConfig(),
+                        core.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
                                 new File(getDataFolder(), "config.yml")));
                     }
                 })
@@ -131,8 +132,20 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         } catch (IOException | InvalidConfigurationException e) {
                             e.printStackTrace();
                         }
-                        core.getVariableManager().migrate(new BukkitMigrationHelper(conf, file));
+                        core.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
                     }
+                })
+                .append(() -> {
+                    Optional.of(core.getInvManager())
+                            .map(AbstractTriggerManager::getTriggerInfos)
+                            .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                    .filter(TriggerInfo::isMigrationNeeded)
+                                    .forEach(triggerInfo -> {
+                                        File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                        File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                        FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                        triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldFileConfig));
+                                    }));
                 })
                 .append(() -> {
                     Manager.getManagers().stream()
@@ -145,7 +158,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                                         File folder = triggerInfo.getSourceCodeFile().getParentFile();
                                         File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
                                         FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                                        triggerInfo.migrate(new BukkitMigrationHelper(oldFileConfig, oldFile));
+                                        triggerInfo.migrate(new NaiveMigrationHelper(oldFileConfig, oldFile));
                                     }));
                 })
                 .run();

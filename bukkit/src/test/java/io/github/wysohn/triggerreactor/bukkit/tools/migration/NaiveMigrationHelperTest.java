@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.bukkit.tools;
+package io.github.wysohn.triggerreactor.bukkit.tools.migration;
 
 import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
@@ -13,7 +13,7 @@ import java.io.StringReader;
 
 import static org.mockito.Mockito.mock;
 
-public class BukkitMigrationHelperTest {
+public class NaiveMigrationHelperTest {
 
     @Test
     public void migrate() {
@@ -45,7 +45,7 @@ public class BukkitMigrationHelperTest {
             }
         };
 
-        BukkitMigrationHelper helper = new BukkitMigrationHelper(mockConfig, mockFile);
+        NaiveMigrationHelper helper = new NaiveMigrationHelper(mockConfig, mockFile);
 
         mockMigratable.migrate(helper);
 

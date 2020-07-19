@@ -19,7 +19,7 @@ public class SpongeDataSerializer implements Serializer<DataSerializable> {
         DataContainer container = DataContainer.createNew();
         ser.entrySet().forEach(entry -> {
             String s = entry.getKey();
-            Object o = context.deserialize(entry.getValue(), Map.class);
+            Object o = context.deserialize(entry.getValue(), Object.class);
             container.set(DataQuery.of(s.split("\\.")), o);
         });
         try {

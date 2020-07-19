@@ -39,8 +39,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
-    protected static final String ITEMS = "Items";
-    protected static final String SIZE = "Size";
+    public static final String ITEMS = "Items";
+    public static final String SIZE = "Size";
 
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();

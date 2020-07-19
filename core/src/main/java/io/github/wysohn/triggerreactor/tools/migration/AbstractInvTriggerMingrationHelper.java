@@ -1,0 +1,33 @@
+package io.github.wysohn.triggerreactor.tools.migration;
+
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+
+import java.io.File;
+import java.util.Map;
+import java.util.Optional;
+
+public abstract class AbstractInvTriggerMingrationHelper<ItemStack> implements IMigrationHelper {
+    protected final File oldFile;
+
+    public AbstractInvTriggerMingrationHelper(File oldFile) {
+        this.oldFile = oldFile;
+    }
+
+    protected abstract Optional<Integer> getSize();
+
+    protected abstract Map<Integer, ItemStack> getItems();
+
+    @Override
+    public void migrate(IConfigSource current) {
+        getSize().ifPresent(size -> current.put(AbstractInventoryTriggerManager.SIZE, size));
+        getItems().forEach((index, item) ->
+                current.put(AbstractInventoryTriggerManager.ITEMS + "." + index, item));
+
+        if (oldFile.exists())
+            oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+
+        current.saveAll();
+    }
+}
