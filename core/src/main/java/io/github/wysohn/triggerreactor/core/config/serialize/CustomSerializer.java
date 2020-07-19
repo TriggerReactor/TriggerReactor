@@ -16,25 +16,33 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.config.serialize;
 
-import io.github.wysohn.gsoncopy.JsonDeserializationContext;
-import io.github.wysohn.gsoncopy.JsonElement;
-import io.github.wysohn.gsoncopy.JsonPrimitive;
-import io.github.wysohn.gsoncopy.JsonSerializationContext;
+import io.github.wysohn.gsoncopy.*;
 
-import java.util.UUID;
+import java.lang.reflect.Type;
 
-public class UUIDSerializer extends CustomSerializer<UUID> {
-    public UUIDSerializer() {
-        super(UUID.class);
+public abstract class CustomSerializer<T> implements Serializer<T> {
+    private final Class<?> type;
+
+    public CustomSerializer(Class<?> type) {
+        this.type = type;
     }
+
+    public abstract T deserialize(JsonElement json, JsonDeserializationContext context);
 
     @Override
-    public UUID deserialize(JsonElement json, JsonDeserializationContext context) {
-        return UUID.fromString(json.getAsString());
+    public final T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        return deserialize(json, context);
     }
 
+    public abstract JsonElement serialize(T src, JsonSerializationContext context);
+
     @Override
-    public JsonElement serialize(UUID src, JsonSerializationContext context) {
-        return new JsonPrimitive(src.toString());
+    public final JsonElement serialize(T src, Type typeOfSrc, JsonSerializationContext context) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(SER_KEY, type.getName());
+        jsonObject.add(SER_VALUE, serialize(src, context));
+        return jsonObject;
     }
+
+
 }

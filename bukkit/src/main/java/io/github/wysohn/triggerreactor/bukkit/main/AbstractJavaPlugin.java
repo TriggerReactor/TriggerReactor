@@ -23,15 +23,16 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitMigrationHelper;
+import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
+import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
+import io.github.wysohn.triggerreactor.bukkit.tools.migration.NaiveMigrationHelper;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.core.config.serialize.MapDeserializer;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -54,7 +55,6 @@ import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -119,7 +119,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         new ContinuingTasks.Builder()
                 .append(() -> {
                     if (core.getPluginConfigManager().isMigrationNeeded()) {
-                        core.getPluginConfigManager().migrate(new BukkitMigrationHelper(getConfig(),
+                        core.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
                                 new File(getDataFolder(), "config.yml")));
                     }
                 })
@@ -132,8 +132,20 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                         } catch (IOException | InvalidConfigurationException e) {
                             e.printStackTrace();
                         }
-                        core.getVariableManager().migrate(new BukkitMigrationHelper(conf, file));
+                        core.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
                     }
+                })
+                .append(() -> {
+                    Optional.of(core.getInvManager())
+                            .map(AbstractTriggerManager::getTriggerInfos)
+                            .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                    .filter(TriggerInfo::isMigrationNeeded)
+                                    .forEach(triggerInfo -> {
+                                        File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                        File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                        FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                        triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldFileConfig));
+                                    }));
                 })
                 .append(() -> {
                     Manager.getManagers().stream()
@@ -146,7 +158,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                                         File folder = triggerInfo.getSourceCodeFile().getParentFile();
                                         File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
                                         FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                                        triggerInfo.migrate(new BukkitMigrationHelper(oldFileConfig, oldFile));
+                                        triggerInfo.migrate(new NaiveMigrationHelper(oldFileConfig, oldFile));
                                     }));
                 })
                 .run();
@@ -844,33 +856,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     }
 
     static {
-        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, (src, typeOfSrc, context) -> {
-            Map<String, Object> ser = new LinkedHashMap<>();
-            ser.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY, ConfigurationSerialization.getAlias(src.getClass()));
-            ser.putAll(src.serialize());
-            return context.serialize(ser);
-        });
-
-        GsonConfigSource.registerTypeAdapter(ConfigurationSerializable.class, new MapDeserializer<ConfigurationSerializable>() {
-            @Override
-            public ConfigurationSerializable deserialize(Map<String, Object> map) {
-                // ignore Map without SERIALIZED_TYPE_KEY (they are simple map in such case)
-                if (!map.containsKey(ConfigurationSerialization.SERIALIZED_TYPE_KEY))
-                    return null;
-
-                try {
-                    Map<String, ConfigurationSerializable> subs = new HashMap<>();
-                    map.entrySet().stream()
-                            .filter(entry -> entry.getValue() instanceof Map)
-                            .forEach(entry -> Optional.ofNullable(deserialize((Map<String, Object>) entry.getValue()))
-                                    .ifPresent(serializable -> subs.put(entry.getKey(), serializable)));
-                    map.putAll(subs);
-
-                    return ConfigurationSerialization.deserializeObject(map);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Cannot deserialize " + map, ex);
-                }
-            }
-        });
+        GsonConfigSource.registerSerializer(ConfigurationSerializable.class, new BukkitConfigurationSerializer());
     }
 }

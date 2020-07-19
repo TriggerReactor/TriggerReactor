@@ -45,6 +45,7 @@ import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeWrapper;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.main.serialize.SpongeDataSerializer;
 import io.github.wysohn.triggerreactor.sponge.manager.*;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
@@ -52,8 +53,9 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.*;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
-import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelper;
-import io.github.wysohn.triggerreactor.sponge.tools.SpongeMigrationHelperVar;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.InvTriggerMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.NaiveMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.VariableMigrationHelper;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -69,8 +71,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.config.ConfigDir;
-import org.spongepowered.api.data.DataContainer;
-import org.spongepowered.api.data.DataQuery;
+import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
@@ -293,9 +294,28 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                             e.printStackTrace();
                             return;
                         }
-                        getVariableManager().migrate(new SpongeMigrationHelperVar(varFileConfig, file));
+                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
                     }
                 })
+                .append(() -> Optional.of(getInvManager())
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
+                                })))
                 .append(() -> Manager.getManagers().stream()
                         .filter(AbstractTriggerManager.class::isInstance)
                         .map(AbstractTriggerManager.class::cast)
@@ -315,7 +335,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                                         e.printStackTrace();
                                         return;
                                     }
-                                    triggerInfo.migrate(new SpongeMigrationHelper(oldConfig, oldFile));
+                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
                                 })))
                 .run();
     }
@@ -537,7 +557,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected IPlayer getPlayer(String string) {
+    public IPlayer getPlayer(String string) {
         Player player = Sponge.getServer().getPlayer(string).orElse(null);
         if (player == null)
             return null;
@@ -546,7 +566,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(ICommandSender sender) {
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
         Object unwrapped = sender.get();
 
         if (unwrapped instanceof Player) {
@@ -971,31 +991,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     static {
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, (src, typeOfSrc, context) -> {
-            DataContainer container = src.toContainer();
-            Map<String, Object> map = new HashMap<>();
-            container.getValues(true)
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> !(entry.getValue() instanceof Map))
-                    .forEach(entry -> {
-                        DataQuery dataQuery = entry.getKey();
-                        Object o = entry.getValue();
-                        map.put(dataQuery.toString(), o);
-                    });
-            return context.serialize(map);
-        });
-
-        GsonConfigSource.registerTypeAdapter(ItemStack.class, map -> {
-            DataContainer container = DataContainer.createNew();
-            map.forEach((s, o) -> container.set(DataQuery.of(s.split("\\.")), o));
-            try {
-                return ItemStack.builder()
-                        .fromContainer(container)
-                        .build();
-            } catch (Exception ex) {
-                throw new RuntimeException("Cannot deserialize " + map, ex);
-            }
-        });
+        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
     }
 }

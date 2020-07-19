@@ -23,30 +23,81 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
     private static final String SYNC = "sync";
     private static final String PERMISSION = "permissions";
     private static final String ALIASES = "aliases";
+    private static final String TABS = "tabs";
 
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
+            private final String HINT = "hint";
+            private final String CANDIDATES = "candidates";
+            private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
+
+            {
+                tabCompleterMap.put("$playerlist", ITabCompleter.PLAYER);
+            }
+
+            private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
+                String hint = (String) tabs.get(HINT);
+                String candidates_str = (String) tabs.get(CANDIDATES);
+
+                ITabCompleter tabCompleter;
+                if (candidates_str != null && candidates_str.startsWith("$")) {
+                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.EMPTY);
+                } else if (candidates_str == null && hint != null) {
+                    tabCompleter = ITabCompleter.hint(hint);
+                } else if (candidates_str != null && hint == null) {
+                    tabCompleter = ITabCompleter.simple(candidates_str);
+                } else {
+                    tabCompleter = new ITabCompleter() {
+                        @Override
+                        public List<String> getCandidates(String part) {
+                            return Optional.ofNullable(candidates_str)
+                                    .map(str -> str.split(","))
+                                    .map(ITabCompleter::list)
+                                    .map(list -> list.stream()
+                                            .filter(candidate -> candidate.startsWith(part))
+                                            .collect(Collectors.toList()))
+                                    .orElseGet(() -> ITabCompleter.list(""));
+
+                        }
+
+                        @Override
+                        public List<String> getHint() {
+                            return Optional.ofNullable(hint)
+                                    .map(ITabCompleter::list)
+                                    .orElseGet(() -> ITabCompleter.list(""));
+                        }
+                    };
+                }
+                return tabCompleter;
+            }
+
+            private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
+                return tabs.stream()
+                        .map(this::toTabCompleter)
+                        .toArray(ITabCompleter[]::new);
+            }
+
             @Override
             public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 boolean sync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
                 List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
                 List<String> aliases = info.getConfig().get(ALIASES, List.class).orElse(new ArrayList<>());
+                List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -54,6 +105,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     trigger.setSync(sync);
                     trigger.setPermissions(permissions.toArray(new String[0]));
                     trigger.setAliases(aliases.toArray(new String[0]));
+                    trigger.setTabCompleters(toTabCompleters(tabs));
                     return trigger;
                 } catch (TriggerInitFailedException | IOException e) {
                     e.printStackTrace();
@@ -78,12 +130,21 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
     @Override
     public void reload() {
-        super.reload();
-
         aliasesMap.clear();
+
+        getAllTriggers().stream()
+                .map(Trigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .forEach(this::unregisterCommand);
+
+        super.reload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
             registerAliases(trigger);
+        }
+
+        for (CommandTrigger trigger : getAllTriggers()) {
+            registerCommand(trigger.getInfo().getTriggerName(), trigger);
         }
     }
 
@@ -150,6 +211,16 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             aliasesMap.put(alias, trigger);
         }
     }
+
+    protected abstract boolean registerCommand(String triggerName, CommandTrigger trigger);
+
+    /**
+     * Unregister this command from command map.
+     *
+     * @param triggerName name of trigger to remove
+     * @return true if unregistered; false if can't find the registered command.
+     */
+    protected abstract boolean unregisterCommand(String triggerName);
 
     private static class CommandMap extends HashMap<String, CommandTrigger> {
         @Override

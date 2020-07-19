@@ -98,11 +98,6 @@ public class ConfigSourceFactory {
         }
 
         @Override
-        public boolean isDeserializable(Class<?> aClass) {
-            return false;
-        }
-
-        @Override
         public void reload() {
 
         }

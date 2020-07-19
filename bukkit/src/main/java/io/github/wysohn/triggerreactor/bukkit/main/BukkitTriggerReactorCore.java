@@ -405,12 +405,12 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    protected IPlayer getPlayer(String string) {
+    public IPlayer getPlayer(String string) {
         return bukkit.getPlayer(string);
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(ICommandSender sender) {
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
         return bukkit.createEmptyPlayerEvent(sender);
     }
 

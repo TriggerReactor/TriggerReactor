@@ -9,6 +9,7 @@ import java.util.Arrays;
 public class CommandTrigger extends Trigger {
     String[] permissions = new String[0];
     String[] aliases = new String[0];
+    ITabCompleter[] tabCompleters = new ITabCompleter[0];
 
     public CommandTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
@@ -37,6 +38,18 @@ public class CommandTrigger extends Trigger {
             this.aliases = new String[0];
         } else {
             this.aliases = aliases;
+        }
+    }
+
+    public ITabCompleter[] getTabCompleters() {
+        return tabCompleters;
+    }
+
+    public void setTabCompleters(ITabCompleter[] tabCompleters) {
+        if (tabCompleters == null) {
+            this.tabCompleters = new ITabCompleter[0];
+        } else {
+            this.tabCompleters = tabCompleters;
         }
     }
 
