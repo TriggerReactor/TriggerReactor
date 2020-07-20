@@ -23,6 +23,11 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew javadoc
+    - name: check
+      run: |
+        ls build
+        ls build/docs
+        ls build/docs/javadoc
     - name: Update javadocs
       uses: cpina/github-action-push-to-another-repository@master
       env:
