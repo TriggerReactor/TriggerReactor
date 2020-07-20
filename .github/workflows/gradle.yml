@@ -25,7 +25,7 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew build javadoc
     - name: Upload binaries to release
       uses: svenstaro/upload-release-action@v1-release
       with:
@@ -41,5 +41,5 @@ jobs:
       with:
         source-directory: 'build/docs/javadoc'
         destination-github-username: 'TriggerReactor'
-        destination-repository-name: 'TriggerReactor'
+        destination-repository-name: 'TriggerReactor.github.io'
         user-email: wysohn2002@naver.com
