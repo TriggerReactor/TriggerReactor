@@ -3,7 +3,7 @@ name: Java CI
 on:
   push:
     tags: 
-      - '*-Release'
+      - '*-Beta'
 
 jobs:
   build:
@@ -34,3 +34,4 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
+        prerelease: true
