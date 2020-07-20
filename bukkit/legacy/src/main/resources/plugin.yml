@@ -31,5 +31,5 @@ permissions:
 command:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility

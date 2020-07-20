@@ -86,22 +86,22 @@ subprojects {
     }
 
     build.finalizedBy(copyJars)
+}
 
-    def exportedProjects= [
-            ":core",
-            ":sponge",
-            ":bukkit"
-    ]
+def exportedProjects= [
+        ":core",
+        ":sponge",
+        ":bukkit"
+]
 
-    javadoc {
-        source exportedProjects.collect { project(it).sourceSets.main.allJava }
-        classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
-        failOnError = false
-        options {
-            links "https://docs.oracle.com/javase/8/docs/api/"
-            links "https://hub.spigotmc.org/javadocs/bukkit/"
-            links "https://jd.spongepowered.org/7.0.0/"
-        }
-        destinationDir = file("${buildDir}/docs/javadoc")
+javadoc {
+    source exportedProjects.collect { project(it).sourceSets.main.allJava }
+    classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
+    failOnError false
+    options {
+        links "https://docs.oracle.com/javase/8/docs/api/"
+        links "https://hub.spigotmc.org/javadocs/bukkit/"
+        links "https://jd.spongepowered.org/7.0.0/"
     }
+    destinationDir = file("${buildDir}/docs/javadoc")
 }
