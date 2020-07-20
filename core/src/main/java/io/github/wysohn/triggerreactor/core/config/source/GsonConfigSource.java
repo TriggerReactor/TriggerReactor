@@ -6,7 +6,10 @@ import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
 import io.github.wysohn.gsoncopy.stream.JsonReader;
 import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.NullTypeAdapters;
-import io.github.wysohn.triggerreactor.core.config.serialize.*;
+import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
+import io.github.wysohn.triggerreactor.core.config.serialize.SimpleChunkLocationSerializer;
+import io.github.wysohn.triggerreactor.core.config.serialize.SimpleLocationSerializer;
+import io.github.wysohn.triggerreactor.core.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
@@ -28,7 +31,6 @@ public class GsonConfigSource implements IConfigSource {
             .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class, Long.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
             .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class, Float.class, NullTypeAdapters.NULL_ADOPTER_FLOAT))
             .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class, Double.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeHierarchyAdapter(Set.class, new SetSerializer())
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());

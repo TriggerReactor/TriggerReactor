@@ -166,14 +166,11 @@ public class TestGsonConfigSource {
         uuid2.put(Serializer.SER_VALUE, "12b6df56-1fc0-4d8a-bed4-9469e7798dea");
         assertEquals(uuid2, deser.get("uuid2"));
 
-        Map<String, Object> hashset2raw = new LinkedTreeMap<>();
-        hashset2raw.put(Serializer.SER_KEY, Set.class.getName());
         List<String> hashset22 = new ArrayList<>();
         hashset22.add("j");
         hashset22.add("k");
         hashset22.add("l");
-        hashset2raw.put(Serializer.SER_VALUE, hashset22); // this is expected to be ArrayList since it didn't go through GsonHelper
-        assertEquals(hashset2raw, deser.get("hashset2"));
+        assertEquals(hashset22, deser.get("hashset2"));
 
         Map<String, Object> myobj2raw = new LinkedTreeMap<>();
         myobj2raw.put("s", "some string2");
