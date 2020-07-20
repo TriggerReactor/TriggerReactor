@@ -34,3 +34,12 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
+    - name: Update javadocs
+      uses: cpina/github-action-push-to-another-repository@master
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+      with:
+        source-directory: 'build/docs/javadoc'
+        destination-github-username: 'TriggerReactor'
+        destination-repository-name: 'TriggerReactor'
+        user-email: wysohn2002@naver.com
