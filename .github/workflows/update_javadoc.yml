@@ -25,18 +25,22 @@ jobs:
       run: ./gradlew javadoc --continue
     - name: change folder
       run: cd build/docs/javadoc
+      if: always()
     - uses: actions/checkout@v2
+      if: always()
       with:
         repository: 'TriggerReactor/TriggerReactor.github.io'
         fetch-depth: '0'
         ref: 'master'
     - name: Commit files
       run: |
-        git add /bui
+        git add /build/docs/javadoc/**
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git commit -m "update" -a
+      if: always()
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+      if: always()
