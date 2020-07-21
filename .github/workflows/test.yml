@@ -32,14 +32,12 @@ jobs:
         destination-github-username: 'TriggerReactor'
         destination-repository-name: 'TriggerReactor.github.io'
         user-email: wysohn2002@naver.com
-  
-  upload_log:
-    runs-on: ubuntu-latest
-    steps:
     - name: check
+      if: always()
       run: |
         ls build
-    - name: Upload artifact
+    - name: Upload fail logs
+      if: always()
       uses: actions/upload-artifact@v2
       with:
         path: build/tmp/javadoc/*
