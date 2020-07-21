@@ -97,6 +97,7 @@ def exportedProjects= [
 ]
 
 javadoc {
+    failOnError = false
     source exportedProjects.collect { project(it).sourceSets.main.allJava }
     classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
     options {
@@ -105,5 +106,5 @@ javadoc {
         links "https://jd.spongepowered.org/7.0.0/"
     }
     destinationDir = file("${buildDir}/docs/javadoc")
-    failOnError = false
+    exclude("copy.com.google", "org.apache")
 }
