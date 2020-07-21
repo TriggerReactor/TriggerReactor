@@ -22,12 +22,12 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew javadoc
+      run: ./gradlew javadoc --continue
     - name: Update javadocs
       uses: cpina/github-action-push-to-another-repository@master
       if: always()
       env:
-        API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
+        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
       with:
         source-directory: 'build/docs/javadoc'
         destination-github-username: 'TriggerReactor'
