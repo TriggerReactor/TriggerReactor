@@ -23,13 +23,20 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew javadoc --continue
-    - name: Update javadocs
-      uses: cpina/github-action-push-to-another-repository@master
-      if: always()
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+    - name: change folder
+      run: cd build/docs/javadoc
+    - uses: actions/checkout@v2
       with:
-        source-directory: 'build/docs/javadoc'
-        destination-github-username: 'TriggerReactor'
-        destination-repository-name: 'TriggerReactor.github.io'
-        user-email: wysohn2002@naver.com
+        repository: 'TriggerReactor/TriggerReactor.github.io'
+        fetch-depth: '0'
+        ref: 'master'
+    - name: Commit files
+      run: |
+        git add /bui
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git commit -m "update" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
