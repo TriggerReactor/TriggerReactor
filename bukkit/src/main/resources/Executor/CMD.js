@@ -31,7 +31,7 @@ function CMD(args) {
         command += " " + merged;
 
     var PlayerCommandPreprocessEvent = Java.type('org.bukkit.event.player.PlayerCommandPreprocessEvent');
-    var event = new PlayerCommandPreprocessEvent(player, command);
+    var event = new PlayerCommandPreprocessEvent(player, '/'+command);
     Bukkit.getPluginManager().callEvent(event)
     if (!event.isCancelled()) {
         Bukkit.dispatchCommand(player, command);
