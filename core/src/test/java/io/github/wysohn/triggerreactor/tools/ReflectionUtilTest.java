@@ -62,10 +62,11 @@ public class ReflectionUtilTest {
 //                "method1",
 //                1));
 
-        assertArrayEquals(new int[]{2}, (int[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                (Object) null,
-                "method1",
-                1, 2));
+        // ambiguous call
+//        assertArrayEquals(new int[]{2}, (int[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
+//                (Object) null,
+//                "method1",
+//                1, 2));
 
         // the concrete argument method should have priority in this case
         assertEquals(1, ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
