@@ -28,6 +28,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
@@ -615,7 +616,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         //first, clean up all aliases
                         getCmdManager().removeAliases(trigger);
 
-                        //if no aliases is given, delete all aliases
+                        //if no aliases are given, delete all aliases
                         String[] aliases = null;
                         if (args.length == 3) {
                             trigger.setAliases(null);
@@ -633,6 +634,31 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             sender.sendMessage("&7Set Aliases");
                         }
                         saveAsynchronously(getCmdManager());
+                    } else if (args.length > 2 && getCmdManager().has(args[1])
+                            && (args[2].equals("tab") || args[2].equals("settab"))) {
+                        TriggerInfo info = Optional.of(getCmdManager())
+                                .map(man -> man.get(args[1]))
+                                .map(Trigger::getInfo)
+                                .orElseThrow(() -> new RuntimeException("Missing TriggerInfo"));
+
+                        //trg cmd <name> settab a b c
+                        List<Map<String, Object>> tabs = new ArrayList<>();
+                        for (int i = 4; i < args.length; i++) {
+                            String[] split = args[i].split(":", 2);
+                            String hint = split.length == 2 ? split[0] : null;
+                            String values = split.length == 2 ? split[1] : split[0];
+
+                            Map<String, Object> tab = new LinkedHashMap<>();
+                            if (hint != null)
+                                tab.put(AbstractCommandTriggerManager.HINT, hint);
+                            tab.put(AbstractCommandTriggerManager.CANDIDATES, values);
+                            tabs.add(tab);
+                        }
+
+                        info.getConfig().put(AbstractCommandTriggerManager.TABS, tabs);
+                        getCmdManager().reload();
+
+                        sender.sendMessage("&7Set tab-completer");
                     } else if (getCmdManager().has(args[1])) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
@@ -1703,7 +1729,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
             sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
             sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
             sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
-
+        });
+        add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
             sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
             sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
@@ -1711,6 +1738,15 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
             sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
             sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
             sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
+            sender.sendMessage("  &7- To add tab-completer, type &b/trg cmd <command name> settab[tab] " +
+                    "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
+            sender.sendMessage("    &6*&7The parameter has following format: hint:val1,val2,...");
+            sender.sendMessage("    &6*&7Not providing any tab-completer will remove it instead.");
+            sender.sendMessage("    &7Hint shows up as simple string when a user is about to type something, and values " +
+                    "will start to show up as a form of tab-completers as soon as their first characters matching with " +
+                    "the characters typed by the user.");
+            sender.sendMessage("    &7You may omit the hint, yet you cannot omit the values. To use only hint but no values, " +
+                    "edit the config file manually.");
         });
         add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
@@ -1860,7 +1896,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return EMPTY;
                     case "command":
                     case "cmd":
-                        return filter(Arrays.asList("aliases", "permission", "sync"), args[2]);
+                        return filter(Arrays.asList("aliases", "permission", "sync", "settab"), args[2]);
                     case "custom":
                         return filter(triggerNames(getInstance().getCustomManager()), args[2]);
                     case "delete":

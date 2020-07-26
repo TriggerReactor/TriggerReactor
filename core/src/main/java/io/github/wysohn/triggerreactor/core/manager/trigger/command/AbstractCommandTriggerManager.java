@@ -36,14 +36,15 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     private static final String SYNC = "sync";
     private static final String PERMISSION = "permissions";
     private static final String ALIASES = "aliases";
-    private static final String TABS = "tabs";
+    public static final String TABS = "tabs";
 
     protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
 
+    public static final String HINT = "hint";
+    public static final String CANDIDATES = "candidates";
+
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
-            private final String HINT = "hint";
-            private final String CANDIDATES = "candidates";
             private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
 
             {
