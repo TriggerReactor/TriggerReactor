@@ -38,6 +38,9 @@ public class ConfigSourceFactory {
      * @throws RuntimeException if folder is not directory.
      */
     public static IConfigSource gson(File folder, String fileName) {
+        if (!folder.exists())
+            folder.mkdirs();
+
         if (!folder.isDirectory())
             throw new RuntimeException(folder + " must be a directory.");
 

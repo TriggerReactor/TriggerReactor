@@ -518,6 +518,13 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
             if (!sender.hasPermission("triggerreactor.admin"))
                 return true;
 
+            if (!isEnabled()) {
+                sender.sendMessage("&cTriggerReactor is disabled. Check your latest.log to see why the plugin is not" +
+                        " loaded properly. If there was an error while loading, please report it through github issue" +
+                        " or our discord channel.");
+                return true;
+            }
+
             if (args.length > 0) {
                 if (args[0].equalsIgnoreCase("debug")) {
                     debugging = !debugging;
