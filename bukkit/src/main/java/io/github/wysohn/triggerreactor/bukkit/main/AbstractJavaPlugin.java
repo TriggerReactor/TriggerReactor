@@ -22,7 +22,6 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
@@ -399,7 +398,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
                     Inventory inv = ((InventoryEvent) e).getInventory();
 
                     //it's not GUI so stop execution
-                    return !inventoryMap.containsKey(new BukkitInventory(inv));
+                    return !inventoryMap.containsKey(BukkitTriggerReactorCore.getWrapper().wrap(inv));
                 }
 
                 return false;

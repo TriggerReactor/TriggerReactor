@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -58,7 +59,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
 
         Inventory inv = Bukkit.createInventory(null, items.length, trigger.getInfo().getTriggerName());
         inv.setContents(items);
-        player.openInventory(new BukkitInventory(inv));
+        player.openInventory(BukkitTriggerReactorCore.getWrapper().wrap(inv));
     }
 
     @Override
@@ -112,8 +113,13 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
         }
         Inventory inv = e.getInventory();
 
-        suspended.put(u, new BukkitInventory(inv));
+        suspended.put(u, BukkitTriggerReactorCore.getWrapper().wrap(inv));
         sendMessage((Player) e.getPlayer());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        stopEdit(BukkitTriggerReactorCore.getWrapper().wrap(event.getPlayer()));
     }
 
     private void sendMessage(Player player) {

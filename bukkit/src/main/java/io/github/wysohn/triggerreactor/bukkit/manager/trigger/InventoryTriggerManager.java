@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -62,11 +61,11 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     public void onOpen(InventoryOpenEvent e) {
         Inventory inventory = e.getInventory();
 
-        if (!this.hasInventoryOpen(new BukkitInventory(inventory)))
+        if (!this.hasInventoryOpen(BukkitTriggerReactorCore.getWrapper().wrap(inventory)))
             return;
-        InventoryTrigger trigger = getTriggerForOpenInventory(new BukkitInventory(inventory));
+        InventoryTrigger trigger = getTriggerForOpenInventory(BukkitTriggerReactorCore.getWrapper().wrap(inventory));
 
-        Map<String, Object> varMap = getSharedVarsForInventory(new BukkitInventory(inventory));
+        Map<String, Object> varMap = getSharedVarsForInventory(BukkitTriggerReactorCore.getWrapper().wrap(inventory));
         varMap.put("player", e.getPlayer());
         varMap.put("trigger", "open");
 
@@ -77,7 +76,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     public void onDrag(InventoryDragEvent e) {
         Inventory inventory = e.getInventory();
 
-        if (!this.hasInventoryOpen(new BukkitInventory(inventory)))
+        if (!this.hasInventoryOpen(BukkitTriggerReactorCore.getWrapper().wrap(inventory)))
             return;
         e.setCancelled(true);
     }
@@ -86,9 +85,9 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     public void onClick(InventoryClickEvent e) {
         Inventory inventory = e.getInventory();
 
-        if (!this.hasInventoryOpen(new BukkitInventory(inventory)))
+        if (!this.hasInventoryOpen(BukkitTriggerReactorCore.getWrapper().wrap(inventory)))
             return;
-        InventoryTrigger trigger = getTriggerForOpenInventory(new BukkitInventory(inventory));
+        InventoryTrigger trigger = getTriggerForOpenInventory(BukkitTriggerReactorCore.getWrapper().wrap(inventory));
 
         // just always cancel if it's GUI
         e.setCancelled(true);
@@ -103,7 +102,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         if (clickedItem == null)
             clickedItem = new ItemStack(Material.AIR);
 
-        Map<String, Object> varMap = getSharedVarsForInventory(new BukkitInventory(inventory));
+        Map<String, Object> varMap = getSharedVarsForInventory(BukkitTriggerReactorCore.getWrapper().wrap(inventory));
         varMap.put("item", clickedItem.clone());
         varMap.put("slot", e.getRawSlot());
         varMap.put("click", e.getClick().name());
@@ -116,7 +115,7 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
         IPlayer bukkitPlayer = BukkitTriggerReactorCore.getWrapper().wrap((Player) e.getPlayer());
-        onInventoryClose(e, bukkitPlayer, new BukkitInventory(e.getInventory()));
+        onInventoryClose(e, bukkitPlayer, BukkitTriggerReactorCore.getWrapper().wrap(e.getInventory()));
     }
 
     @Override
@@ -161,6 +160,6 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     protected IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
         name = ChatColor.translateAlternateColorCodes('&', name);
-        return new BukkitInventory(Bukkit.createInventory(null, size, name));
+        return BukkitTriggerReactorCore.getWrapper().wrap(Bukkit.createInventory(null, size, name));
     }
 }

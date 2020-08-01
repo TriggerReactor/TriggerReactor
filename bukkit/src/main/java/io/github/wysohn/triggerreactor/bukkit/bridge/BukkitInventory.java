@@ -22,7 +22,7 @@ import org.bukkit.inventory.Inventory;
 public class BukkitInventory implements IInventory {
     private final Inventory inventory;
 
-    public BukkitInventory(Inventory inventory) {
+    BukkitInventory(Inventory inventory) {
         this.inventory = inventory;
     }
 
@@ -49,11 +49,8 @@ public class BukkitInventory implements IInventory {
             return false;
         BukkitInventory other = (BukkitInventory) obj;
         if (inventory == null) {
-            if (other.inventory != null)
-                return false;
-        } else if (!inventory.equals(other.inventory))
-            return false;
-        return true;
+            return other.inventory == null;
+        } else return inventory.equals(other.inventory);
     }
 
 }
