@@ -139,6 +139,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         for (CommandTrigger trigger : getAllTriggers()) {
             registerCommand(trigger.getInfo().getTriggerName(), trigger);
         }
+
+        synchronizeCommandMap();
     }
 
     @Override
@@ -172,6 +174,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
         put(cmd, trigger);
         registerCommand(cmd, trigger);
+        synchronizeCommandMap();
 
         plugin.saveAsynchronously(this);
         return true;
@@ -196,11 +199,14 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      */
     protected abstract boolean unregisterCommand(String triggerName);
 
+    protected abstract void synchronizeCommandMap();
+
     public void reregisterCommand(String triggerName) {
         Optional.ofNullable(get(triggerName))
                 .ifPresent(trigger -> {
                     unregisterCommand(triggerName);
                     registerCommand(triggerName, trigger);
+                    synchronizeCommandMap();
                 });
     }
 

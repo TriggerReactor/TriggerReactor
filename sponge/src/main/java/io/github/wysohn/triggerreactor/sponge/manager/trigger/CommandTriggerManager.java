@@ -125,6 +125,10 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
         return true;
     }
 
+    @Override
+    protected void synchronizeCommandMap() {
+        //TODO not needed for now but may be needed in API 8 or above
+    }
 //    @Listener(order = Order.EARLY)
 //    public void onCommand(SendCommandEvent e) {
 //        Player player = e.getCause().first(Player.class).orElse(null);
