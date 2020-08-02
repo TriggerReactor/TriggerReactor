@@ -615,6 +615,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         } else {
                             sender.sendMessage("&7Set permissions.");
                         }
+
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
@@ -661,7 +662,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         }
 
                         info.getConfig().put(AbstractCommandTriggerManager.TABS, tabs);
-                        getCmdManager().reload();
+                        getCmdManager().reregisterCommand(args[1]);
 
                         sender.sendMessage("&7Set tab-completer");
                     } else if (getCmdManager().has(args[1])) {

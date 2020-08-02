@@ -147,7 +147,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         try {
             Field f = SimplePluginManager.class.getDeclaredField("commandMap");
             f.setAccessible(true);
-            return (CommandMap) f.get(Bukkit.getPluginManager());
+            return (CommandMap) f.get(Bukkit.getServer());
         } catch (Exception ex) {
             if (core.isDebugging())
                 ex.printStackTrace();
