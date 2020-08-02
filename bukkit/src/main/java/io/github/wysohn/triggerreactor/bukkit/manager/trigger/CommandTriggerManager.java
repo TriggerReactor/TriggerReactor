@@ -23,12 +23,12 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigg
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.SimplePluginManager;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -145,9 +145,11 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
     private static CommandMap getCommandMap(TriggerReactorCore core) {
         try {
-            Field f = SimplePluginManager.class.getDeclaredField("commandMap");
+            Server server = Bukkit.getServer();
+
+            Field f = server.getClass().getDeclaredField("commandMap");
             f.setAccessible(true);
-            return (CommandMap) f.get(Bukkit.getServer());
+            return (CommandMap) f.get(server);
         } catch (Exception ex) {
             if (core.isDebugging())
                 ex.printStackTrace();
