@@ -180,6 +180,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }
 
         put(cmd, trigger);
+        registerCommand(cmd, trigger);
 
         plugin.saveAsynchronously(this);
         return true;
