@@ -620,9 +620,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
                         CommandTrigger trigger = getCmdManager().get(args[1]);
 
-                        //first, clean up all aliases
-                        getCmdManager().removeAliases(trigger);
-
                         //if no aliases are given, delete all aliases
                         String[] aliases = null;
                         if (args.length == 3) {
@@ -633,14 +630,15 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                                 aliases[i - 3] = args[i];
                             }
                             trigger.setAliases(aliases);
-                            getCmdManager().registerAliases(trigger);
                         }
                         if (aliases == null) {
                             sender.sendMessage("&7Cleared aliases");
                         } else {
                             sender.sendMessage("&7Set Aliases");
                         }
+
                         saveAsynchronously(getCmdManager());
+                        getCmdManager().reregisterCommand(args[1]);
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("tab") || args[2].equals("settab"))) {
                         TriggerInfo info = Optional.of(getCmdManager())

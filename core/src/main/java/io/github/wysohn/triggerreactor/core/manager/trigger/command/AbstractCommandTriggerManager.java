@@ -38,8 +38,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     private static final String ALIASES = "aliases";
     public static final String TABS = "tabs";
 
-    protected final Map<String, CommandTrigger> aliasesMap = new CommandMap();
-
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
 
@@ -131,18 +129,12 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
     @Override
     public void reload() {
-        aliasesMap.clear();
-
         getAllTriggers().stream()
                 .map(Trigger::getInfo)
                 .map(TriggerInfo::getTriggerName)
                 .forEach(this::unregisterCommand);
 
         super.reload();
-
-        for (CommandTrigger trigger : getAllTriggers()) {
-            registerAliases(trigger);
-        }
 
         for (CommandTrigger trigger : getAllTriggers()) {
             registerCommand(trigger.getInfo().getTriggerName(), trigger);
@@ -152,7 +144,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     @Override
     public CommandTrigger remove(String name) {
         CommandTrigger remove = super.remove(name);
-        removeAliases(remove);
         unregisterCommand(name);
         return remove;
     }
@@ -195,26 +186,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }, script);
     }
 
-    public void removeAliases(CommandTrigger trigger) {
-        for (String alias : trigger.getAliases()) {
-            aliasesMap.remove(alias);
-        }
-    }
-
-    public void registerAliases(CommandTrigger trigger) {
-        for (String alias : trigger.getAliases()) {
-            CommandTrigger prev = aliasesMap.get(alias);
-            if (prev != null) {
-                plugin.getLogger().warning("CommandTrigger " + trigger.getInfo() + "'s alias "
-                        + alias + " couldn't be registered.");
-                plugin.getLogger().warning(alias + " is already used by " + prev.getInfo() + ".");
-                continue;
-            }
-
-            aliasesMap.put(alias, trigger);
-        }
-    }
-
     protected abstract boolean registerCommand(String triggerName, CommandTrigger trigger);
 
     /**
@@ -224,6 +195,14 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      * @return true if unregistered; false if can't find the registered command.
      */
     protected abstract boolean unregisterCommand(String triggerName);
+
+    public void reregisterCommand(String triggerName) {
+        Optional.ofNullable(get(triggerName))
+                .ifPresent(trigger -> {
+                    unregisterCommand(triggerName);
+                    registerCommand(triggerName, trigger);
+                });
+    }
 
     private static class CommandMap extends HashMap<String, CommandTrigger> {
         @Override
