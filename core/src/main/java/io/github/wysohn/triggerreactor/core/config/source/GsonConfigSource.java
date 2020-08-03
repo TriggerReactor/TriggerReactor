@@ -39,7 +39,7 @@ public class GsonConfigSource implements IConfigSource {
         builder.registerTypeHierarchyAdapter(type, serializer);
     }
 
-    private static final ExecutorService exec = Executors.newSingleThreadExecutor();
+    private final ExecutorService exec = Executors.newSingleThreadExecutor();
 
     //Lock order: file -> cache
     private final File file;
