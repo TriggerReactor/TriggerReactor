@@ -314,7 +314,7 @@ public class ReflectionUtil {
     }
 
     private static String buildFailMessage(Class<?> clazz, String methodName, Object[] args) {
-        StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
+        StringBuilder builder = new StringBuilder(args.length > 0 ? String.valueOf(args[0]) : "");
         for (int i = 1; i < args.length; i++)
             builder.append(",").append(args[i]);
         return "[" + Optional.ofNullable(clazz)
