@@ -88,6 +88,18 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         }
     }
 
+    public void reload(String triggerName) {
+        T trigger = get(triggerName);
+        TriggerInfo info = trigger.info;
+
+        try {
+            trigger = loader.load(info);
+            put(triggerName, trigger);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load " + info, e);
+        }
+    }
+
     @Override
     public void saveAll() {
         for (T trigger : triggers.values()) {

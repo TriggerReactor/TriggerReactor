@@ -41,7 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
-    private final CommandMap commandMap;
+    private final Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
 
     public CommandTriggerManager(TriggerReactorCore plugin) {
@@ -51,12 +51,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
     @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
-        Optional.of(triggerName)
-                .map(commandMap::getCommand)
-                .ifPresent(command -> {
-                    command.unregister(commandMap);
-                    overridens.put(triggerName, command);
-                }); // store whatever command that was registered with the name and unregister it.
+        Optional.ofNullable(commandMap.get(triggerName))
+                .ifPresent(command -> overridens.put(triggerName, command));
 
         PluginCommand command = createCommand(plugin, triggerName);
         command.setAliases(Arrays.asList(trigger.getAliases()));
@@ -84,23 +80,21 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             return true;
         });
 
-        return commandMap.register("trgtriggers", command);
+        commandMap.put(triggerName, command);
+        return true;
     }
 
     @Override
     protected boolean unregisterCommand(String triggerName) {
-        Command command = commandMap.getCommand(triggerName);
+        Command command = commandMap.remove(triggerName);
         if (command == null)
             return false;
 
-        boolean result = command.unregister(commandMap);
-
-        if (overridens.containsKey(triggerName)) { // restore overriden command
-            Command prev = overridens.get(triggerName);
-            commandMap.register(prev.getLabel(), prev.getName(), prev); // can't really do much here, sadly
+        if (overridens.containsKey(triggerName)) {
+            commandMap.put(triggerName, overridens.remove(triggerName));
         }
 
-        return result;
+        return true;
     }
 
     private Method syncMethod = null;
@@ -174,13 +168,17 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         trigger.activate(context, varMap);
     }
 
-    private static CommandMap getCommandMap(TriggerReactorCore core) {
+    private static Map<String, Command> getCommandMap(TriggerReactorCore core) {
         try {
             Server server = Bukkit.getServer();
 
             Field f = server.getClass().getDeclaredField("commandMap");
             f.setAccessible(true);
-            return (CommandMap) f.get(server);
+
+            CommandMap scm = (CommandMap) f.get(server);
+
+            Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
+            return (Map<String, Command>) knownCommands.invoke(scm);
         } catch (Exception ex) {
             if (core.isDebugging())
                 ex.printStackTrace();

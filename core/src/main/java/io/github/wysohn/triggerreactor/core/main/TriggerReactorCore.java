@@ -649,7 +649,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                         //trg cmd <name> settab a b c
                         List<Map<String, Object>> tabs = new ArrayList<>();
-                        for (int i = 4; i < args.length; i++) {
+                        for (int i = 3; i < args.length; i++) {
                             String[] split = args[i].split(":", 2);
                             String hint = split.length == 2 ? split[0] : null;
                             String values = split.length == 2 ? split[1] : split[0];
@@ -662,7 +662,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         }
 
                         info.getConfig().put(AbstractCommandTriggerManager.TABS, tabs);
-                        getCmdManager().reregisterCommand(args[1]);
+                        getCmdManager().reload(args[1]);
 
                         sender.sendMessage("&7Set tab-completer");
                     } else if (getCmdManager().has(args[1])) {

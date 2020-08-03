@@ -144,9 +144,17 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     @Override
+    public void reload(String triggerName) {
+        super.reload(triggerName);
+        reregisterCommand(triggerName);
+    }
+
+    @Override
     public CommandTrigger remove(String name) {
         CommandTrigger remove = super.remove(name);
         unregisterCommand(name);
+
+        synchronizeCommandMap();
         return remove;
     }
 
@@ -174,8 +182,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
         put(cmd, trigger);
         registerCommand(cmd, trigger);
-        synchronizeCommandMap();
 
+        synchronizeCommandMap();
         plugin.saveAsynchronously(this);
         return true;
     }
@@ -206,38 +214,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 .ifPresent(trigger -> {
                     unregisterCommand(triggerName);
                     registerCommand(triggerName, trigger);
+
                     synchronizeCommandMap();
                 });
-    }
-
-    private static class CommandMap extends HashMap<String, CommandTrigger> {
-        @Override
-        public CommandTrigger get(Object o) {
-            if (o instanceof String)
-                return super.get(((String) o).toLowerCase());
-            else
-                return super.get(o);
-        }
-
-        @Override
-        public CommandTrigger put(String s, CommandTrigger commandTrigger) {
-            return super.put(s.toLowerCase(), commandTrigger);
-        }
-
-        @Override
-        public boolean containsKey(Object o) {
-            if (o instanceof String)
-                return super.containsKey(((String) o).toLowerCase());
-            else
-                return super.containsKey(o);
-        }
-
-        @Override
-        public CommandTrigger remove(Object o) {
-            if (o instanceof String)
-                return super.remove(((String) o).toLowerCase());
-            else
-                return super.remove(o);
-        }
     }
 }
