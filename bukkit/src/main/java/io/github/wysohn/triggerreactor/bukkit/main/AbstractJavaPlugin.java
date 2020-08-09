@@ -23,6 +23,8 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
+import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
@@ -112,6 +114,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         for (Manager manager : Manager.getManagers()) {
             manager.reload();
         }
+
+        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
 
     private void migrateOldConfig() {
@@ -213,11 +217,11 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        super.onDisable();
-
-        bungeeConnectionThread.interrupt();
-
-        core.onCoreDisable(this);
+        new ContinuingTasks.Builder()
+                .append(() -> Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent()))
+                .append(() -> bungeeConnectionThread.interrupt())
+                .append(() -> core.onCoreDisable(this))
+                .run(Throwable::printStackTrace);
     }
 
     @Override
