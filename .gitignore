@@ -24,3 +24,5 @@ bin/
 */.settings
 /core/out/production/classes/META-INF/
 */out/production/*
+*/out/*
+/bukkit/legacy/out/test/classes/META-INF/

@@ -117,6 +117,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
                         " version of Bukkit. Please report this to TR team, so we can work on it.");
                 plugin.getLogger().warning("Use /trg debug to see more details.");
                 notFound = true;
+                return;
             }
         }
 
