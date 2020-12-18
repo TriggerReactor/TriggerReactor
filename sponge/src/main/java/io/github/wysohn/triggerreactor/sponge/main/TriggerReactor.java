@@ -423,14 +423,20 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onTabComplete(TabCompleteEvent.Command e) {
-        String cmd = e.getCommand();
-        if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
-            return;
-        }
-        String[] args = e.getArguments().split(" ", -1);
-        List<String> completions = e.getTabCompletions();
-        completions.clear();
-        completions.addAll(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(args));
+        e.getCause().allOf(Player.class).stream()
+                .findFirst()
+                .map(SpongeCommandSender::new)
+                .ifPresent(sender -> {
+                    String cmd = e.getCommand();
+                    if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
+                        return;
+                    }
+                    String[] args = e.getArguments().split(" ", -1);
+                    List<String> completions = e.getTabCompletions();
+                    completions.clear();
+                    Optional.ofNullable(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(sender, args))
+                            .ifPresent(completions::addAll);
+                });
     }
 
     @Override
