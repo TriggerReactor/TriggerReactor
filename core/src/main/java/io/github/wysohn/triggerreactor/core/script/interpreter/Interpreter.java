@@ -48,14 +48,14 @@ public class Interpreter {
 
     private TaskSupervisor task;
 
-    private Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
+    private final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
     private Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     private Map<Object, Object> gvars = new ConcurrentHashMap<>();
     private Map<String, Object> vars = new VarMap();
     private SelfReference selfReference = new SelfReference() {
     };
 
-    private Stack<Token> stack = new Stack<>();
+    private final Stack<Token> stack = new Stack<>();
 
     private Object context = null;
     private ProcessInterrupter interrupter = null;
@@ -810,9 +810,11 @@ public class Interpreter {
                                     throw new InterpreterException("Cannot access " + right + "! " + temp.value + " is null.");
                                 }
 
-                                if (left.isObject()) {
+                                if (left.isObject()) { // method call for target object
                                     callFunction(right, left, args);
-                                } else {
+                                } else if (left.isBoxedPrimitive()) { // special case: numeric class access
+                                    callFunction(right, left, args);
+                                } else if (left.value instanceof Accessor) {
                                     Accessor accessor = (Accessor) left.value;
 
                                     Object var;
@@ -825,6 +827,9 @@ public class Interpreter {
                                     }
 
                                     callFunction(right, new Token(Type.EPS, var, node.getToken()), args);
+                                } else {
+                                    throw new InterpreterException("Unexpected value " + left + " for target of " + right
+                                            + ". " + "Is " + left + "." + right + " what you were trying to do?");
                                 }
                             }
                         }

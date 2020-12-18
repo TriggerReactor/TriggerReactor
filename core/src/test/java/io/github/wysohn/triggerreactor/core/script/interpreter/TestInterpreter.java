@@ -2096,6 +2096,29 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
+    @Test
+    public void testNestedAccessor() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "IMPORT java.lang.Long;" +
+                "id = Long.valueOf(\"123456789123456789\").longValue()";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setSelfReference(new SelfReference() {
+            @SuppressWarnings("unused")
+            public Object array(int size) {
+                return new Object[size];
+            }
+        });
+
+        interpreter.startWithContext(null);
+        assertEquals(123456789123456789L, interpreter.getVars().get("id"));
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
