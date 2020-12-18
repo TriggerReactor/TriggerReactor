@@ -52,9 +52,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
     @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
-        Optional.ofNullable(commandMap.get(triggerName))
-                .ifPresent(command -> overridens.put(triggerName, command));
-
         PluginCommand command = createCommand(plugin, triggerName);
         command.setAliases(Arrays.stream(trigger.getAliases())
                 .collect(Collectors.toList()));
@@ -82,7 +79,15 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             return true;
         });
 
+        Optional.ofNullable(commandMap.get(triggerName))
+                .ifPresent(c -> overridens.put(triggerName, c));
         commandMap.put(triggerName, command);
+        // register aliases manually here
+        for (String alias : trigger.getAliases()) {
+            Optional.ofNullable(commandMap.get(alias))
+                    .ifPresent(c -> overridens.put(alias, c));
+            commandMap.put(alias, command);
+        }
         return true;
     }
 
