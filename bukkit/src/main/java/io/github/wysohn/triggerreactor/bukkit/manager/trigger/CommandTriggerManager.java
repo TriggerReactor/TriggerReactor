@@ -28,7 +28,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import org.bukkit.help.HelpMap;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -93,7 +92,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         if (command == null)
             return false;
 
-        // recover the original command that was overriden by the command trigger
         if (overridens.containsKey(triggerName)) {
             commandMap.put(triggerName, overridens.remove(triggerName));
         }
@@ -110,14 +108,13 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             return; // command still works without synchronization anyway
 
         Server server = Bukkit.getServer();
-        HelpMap helpMap = server.getHelpMap();
         if (syncMethod == null) {
             try {
-                syncMethod = helpMap.getClass().getMethod("initializeCommands");
+                syncMethod = server.getClass().getMethod("syncCommands");
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
 
-                plugin.getLogger().warning("Couldn't find initializeCommands(). This may indicate that you are using very very old" +
+                plugin.getLogger().warning("Couldn't find syncCommands(). This may indicate that you are using very very old" +
                         " version of Bukkit. Please report this to TR team, so we can work on it.");
                 plugin.getLogger().warning("Use /trg debug to see more details.");
                 notFound = true;
@@ -126,7 +123,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         }
 
         try {
-            syncMethod.invoke(helpMap);
+            syncMethod.invoke(server);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
