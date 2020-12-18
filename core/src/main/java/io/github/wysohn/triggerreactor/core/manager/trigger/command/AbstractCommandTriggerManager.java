@@ -143,7 +143,10 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         super.reload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
-            registerCommand(trigger.getInfo().getTriggerName(), trigger);
+            if(!registerCommand(trigger.getInfo().getTriggerName(), trigger)){
+                plugin.getLogger().warning("Attempted to register command trigger "+trigger.getInfo()+" but failed.");
+                plugin.getLogger().warning("Probably, the command is already in use by another command trigger.");
+            }
         }
 
         synchronizeCommandMap();
@@ -187,7 +190,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }
 
         put(cmd, trigger);
-        registerCommand(cmd, trigger);
+        if(!registerCommand(cmd, trigger))
+            return false;
 
         synchronizeCommandMap();
         plugin.saveAsynchronously(this);
@@ -203,6 +207,17 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }, script);
     }
 
+    /**
+     * Register this command to command map. If the command is already in use by another plugin,
+     * the original command will be overriden, and the original command will be recovered when
+     * the trigger is un-registered. However, if the trigger's name is already registered and
+     * also overriden by another command trigger, this method does nothing and return false.
+     *
+     * @param triggerName name of the trigger to register
+     * @param trigger the actual trigger instance
+     * @return true if registered; false if the command is already overriden by another command trigger and
+     * is also already registered trigger, it will return false.
+     */
     protected abstract boolean registerCommand(String triggerName, CommandTrigger trigger);
 
     /**
