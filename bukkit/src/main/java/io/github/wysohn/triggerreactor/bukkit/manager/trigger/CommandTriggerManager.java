@@ -35,10 +35,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
     private final Map<String, Command> commandMap;
@@ -55,7 +53,9 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
                 .ifPresent(command -> overridens.put(triggerName, command));
 
         PluginCommand command = createCommand(plugin, triggerName);
-        command.setAliases(Arrays.asList(trigger.getAliases()));
+        command.setAliases(Arrays.stream(trigger.getAliases())
+                .filter(triggerName::equalsIgnoreCase)
+                .collect(Collectors.toList()));
         command.setTabCompleter((sender, command12, alias, args) -> {
             ITabCompleter tabCompleter = Optional.ofNullable(trigger.getTabCompleters())
                     .filter(iTabCompleters -> iTabCompleters.length >= args.length)
