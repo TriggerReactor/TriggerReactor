@@ -34,6 +34,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.IllegalPluginAccessException;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -71,55 +72,64 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
             @Override
             public void run() {
                 while (plugin.isEnabled() && !Thread.interrupted()) {
-                    //track entity locations
-                    for (World w : Bukkit.getWorlds()) {
-                        Collection<WeakReference<Entity>> entityCollection = getEntitiesSync(w);
-                        for (WeakReference<Entity> wr : entityCollection) {
-                            Entity e = wr.get();
+                    try{
+                        //track entity locations
+                        for (World w : Bukkit.getWorlds()) {
+                            Collection<WeakReference<Entity>> entityCollection = getEntitiesSync(w);
+                            for (WeakReference<Entity> wr : entityCollection) {
+                                Entity e = wr.get();
 
-                            //reference disposed so ignore
-                            if (e == null)
-                                continue;
+                                //reference disposed so ignore
+                                if (e == null)
+                                    continue;
 
-                            UUID uuid = e.getUniqueId();
+                                UUID uuid = e.getUniqueId();
 
-                            if (!plugin.isEnabled())
-                                break;
+                                if (!plugin.isEnabled())
+                                    break;
 
-                            Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
+                                Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
 
-                                @Override
-                                public Boolean call() throws Exception {
-                                    return !e.isDead() && e.isValid();
+                                    @Override
+                                    public Boolean call() throws Exception {
+                                        return !e.isDead() && e.isValid();
+                                    }
+
+                                });
+
+                                boolean valid = false;
+                                try {
+                                    if (future != null)
+                                        valid = future.get();
+                                } catch (InterruptedException | CancellationException e1) {
+                                } catch (ExecutionException e1) {
+                                    e1.printStackTrace();
                                 }
 
-                            });
+                                if (!valid)
+                                    continue;
 
-                            boolean valid = false;
-                            try {
-                                if (future != null)
-                                    valid = future.get();
-                            } catch (InterruptedException | CancellationException e1) {
-                            } catch (ExecutionException e1) {
-                                e1.printStackTrace();
+                                if (!entityLocationMap.containsKey(uuid))
+                                    continue;
+
+                                SimpleLocation previous = entityLocationMap.get(uuid);
+                                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
+
+                                //update location if equal
+                                if (!previous.equals(current)) {
+                                    entityLocationMap.put(uuid, current);
+                                    onEntityBlockMoveAsync(e, previous, current);
+                                }
+
                             }
-
-                            if (!valid)
-                                continue;
-
-                            if (!entityLocationMap.containsKey(uuid))
-                                continue;
-
-                            SimpleLocation previous = entityLocationMap.get(uuid);
-                            SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
-
-                            //update location if equal
-                            if (!previous.equals(current)) {
-                                entityLocationMap.put(uuid, current);
-                                onEntityBlockMoveAsync(e, previous, current);
-                            }
-
                         }
+                    } catch (IllegalPluginAccessException ex){
+                        plugin.getLogger().info("Entity tracking has stopped. Plugin is disabling...");
+                        return;
+                    } catch (Exception ex){
+                        ex.printStackTrace();
+                        // some other unknown issues.
+                        return;
                     }
 
                     try {
