@@ -100,6 +100,43 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
     private Method syncMethod = null;
     private boolean notFound = false;
 
+    private void synchronizeAliases(Server server) throws IllegalAccessException, InvocationTargetException {
+        if (notFound)
+            return;
+
+        Field craftCommandMapField = null;
+        try {
+            craftCommandMapField = server.getClass().getDeclaredField("commandMap");
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+
+            plugin.getLogger().warning("Couldn't locate CraftCommandMap. This may indicate that you are using very very old" +
+                    " version of Bukkit. Please report this to TR team, so we can work on it.");
+            plugin.getLogger().warning("Use /trg debug to see more details.");
+            notFound = true;
+            return;
+        }
+
+        craftCommandMapField.setAccessible(true);
+        Object craftCommandMap = craftCommandMapField.get(server);
+
+        Method registerServerAliasesMethod = null;
+        try {
+            registerServerAliasesMethod = craftCommandMap.getClass().getMethod("registerServerAliases");
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+
+            plugin.getLogger().warning("Couldn't find registerServerAliases(). This may indicate that you are using very very old" +
+                    " version of Bukkit. Please report this to TR team, so we can work on it.");
+            plugin.getLogger().warning("Use /trg debug to see more details.");
+            notFound = true;
+            return;
+        }
+
+        registerServerAliasesMethod.setAccessible(true);
+        registerServerAliasesMethod.invoke(craftCommandMap);
+    }
+
     @Override
     protected void synchronizeCommandMap() {
         if (notFound) // in case of the syncCommands method doesn't exist, just skip it
@@ -112,7 +149,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
 
-
                 plugin.getLogger().warning("Couldn't find syncCommands(). This may indicate that you are using very very old" +
                         " version of Bukkit. Please report this to TR team, so we can work on it.");
                 plugin.getLogger().warning("Use /trg debug to see more details.");
@@ -122,6 +158,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         }
 
         try {
+            synchronizeAliases(server);
             syncMethod.invoke(server);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
