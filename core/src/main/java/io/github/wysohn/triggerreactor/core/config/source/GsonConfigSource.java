@@ -184,7 +184,9 @@ public class GsonConfigSource implements IConfigSource {
             String key = path[i];
 
             if (i == path.length - 1) {
-                if (value.getClass().isArray()) {
+                if (value == null) {
+                    map.remove(key);
+                } else if (value.getClass().isArray()) {
                     List l = new LinkedList();
                     for (int k = 0; k < Array.getLength(value); k++)
                         l.add(Array.get(value, k));
