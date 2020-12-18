@@ -68,6 +68,7 @@ import java.util.regex.Pattern;
  * @author wysohn
  */
 public abstract class TriggerReactorCore implements TaskSupervisor {
+    public static final String PERMISSION = "triggerreactor.admin";
     private static TriggerReactorCore instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private PluginConfigManager pluginConfigManager;
@@ -515,7 +516,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
-            if (!sender.hasPermission("triggerreactor.admin"))
+            if (!sender.hasPermission(PERMISSION))
                 return true;
 
             if (!isEnabled()) {
@@ -1853,7 +1854,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     }
 
     //only for /trg command
-    public static List<String> onTabComplete(String[] args) {
+    public static List<String> onTabComplete(ICommandSender sender, String[] args) {
+        if (!sender.hasPermission(PERMISSION))
+            return Collections.singletonList("permission denied.");
+
         switch (args.length) {
             case 1:
                 return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",

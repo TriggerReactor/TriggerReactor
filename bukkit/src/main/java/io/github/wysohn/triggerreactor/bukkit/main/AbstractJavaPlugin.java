@@ -22,6 +22,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
@@ -291,7 +292,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(args);
+        return io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(new BukkitCommandSender(sender), args);
     }
 
     public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set) {
