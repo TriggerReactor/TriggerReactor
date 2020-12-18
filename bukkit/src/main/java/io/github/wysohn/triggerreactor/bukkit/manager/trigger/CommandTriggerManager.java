@@ -43,21 +43,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
-    private Map<String, Command> commandMap;
+    private final Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
-
-    private CommandMap craftCommandMap;
 
     public CommandTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
-        try{
-            commandMap = getCommandMap(plugin);
-            craftCommandMap = getCraftCommandMap(plugin);
-        } catch (Exception ex){
-            ex.printStackTrace();
-            commandMap = new HashMap<>();
-            craftCommandMap = null;
-        }
+        commandMap = getCommandMap(plugin);
     }
 
     @Override
@@ -93,7 +84,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         });
 
         commandMap.put(triggerName, command);
-        command.register(craftCommandMap);
         return true;
     }
 
@@ -108,7 +98,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             commandMap.put(triggerName, overridens.remove(triggerName));
         }
 
-        command.unregister(craftCommandMap);
         return true;
     }
 
@@ -200,15 +189,18 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         trigger.activate(context, varMap);
     }
 
-    private static CommandMap getCraftCommandMap(TriggerReactorCore core) throws IllegalAccessException {
+    private static Map<String, Command> getCommandMap(TriggerReactorCore core) {
         try {
             Server server = Bukkit.getServer();
 
             Field f = server.getClass().getDeclaredField("commandMap");
             f.setAccessible(true);
 
-            return (CommandMap) f.get(server);
-        } catch (NoSuchFieldException ex) {
+            CommandMap scm = (CommandMap) f.get(server);
+
+            Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
+            return (Map<String, Command>) knownCommands.invoke(scm);
+        } catch (Exception ex) {
             if (core.isDebugging())
                 ex.printStackTrace();
 
@@ -217,26 +209,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             core.getLogger().warning("Use /trg debug to see more details.");
             return null;
         }
-    }
-
-    private static Map<String, Command> getCommandMap(TriggerReactorCore core) throws InvocationTargetException, IllegalAccessException {
-        CommandMap scm = getCraftCommandMap(core);
-
-        Method knownCommands = null;
-        try {
-            knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
-        } catch (NoSuchMethodException e) {
-            if (core.isDebugging())
-                e.printStackTrace();
-
-            core.getLogger().warning("Couldn't find 'getKnownCommands'. This may indicate that you are using very very old" +
-                    " version of Bukkit. Please report this to TR team, so we can work on it.");
-            core.getLogger().warning("Use /trg debug to see more details.");
-            return null;
-        }
-
-        knownCommands.setAccessible(true);
-        return (Map<String, Command>) knownCommands.invoke(scm);
     }
 
     private static PluginCommand createCommand(TriggerReactorCore core, String commandName) {
