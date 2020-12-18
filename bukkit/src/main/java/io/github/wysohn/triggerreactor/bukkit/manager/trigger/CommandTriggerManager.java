@@ -101,6 +101,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         return true;
     }
 
+    private Method topicMethod = null;
     private Method syncMethod = null;
     private boolean notFound = false;
 
@@ -111,9 +112,9 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
         Server server = Bukkit.getServer();
         HelpMap helpMap = server.getHelpMap();
-        if (syncMethod == null) {
+        if(topicMethod == null){
             try {
-                syncMethod = helpMap.getClass().getMethod("initializeCommands");
+                topicMethod = helpMap.getClass().getMethod("initializeCommands");
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
 
@@ -125,8 +126,23 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             }
         }
 
+        if (syncMethod == null) {
+            try {
+                syncMethod = server.getClass().getMethod("syncCommands");
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+
+                plugin.getLogger().warning("Couldn't find syncCommands(). This may indicate that you are using very very old" +
+                        " version of Bukkit. Please report this to TR team, so we can work on it.");
+                plugin.getLogger().warning("Use /trg debug to see more details.");
+                notFound = true;
+                return;
+            }
+        }
+
         try {
-            syncMethod.invoke(helpMap);
+            topicMethod.invoke(helpMap);
+            syncMethod.invoke(server);
         } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
