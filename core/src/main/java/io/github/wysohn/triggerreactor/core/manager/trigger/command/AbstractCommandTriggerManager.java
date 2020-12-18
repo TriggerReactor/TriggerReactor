@@ -95,7 +95,11 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 boolean sync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
                 List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
-                List<String> aliases = info.getConfig().get(ALIASES, List.class).orElse(new ArrayList<>());
+                List<String> aliases = info.getConfig().get(ALIASES, List.class)
+                        .map(aliasList -> (((List<String>)aliasList).stream()
+                                .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
+                                .collect(Collectors.toList())))
+                        .orElse(new ArrayList<>());
                 List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
 
                 try {
@@ -119,7 +123,9 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
                     trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
                     trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
-                    trigger.getInfo().getConfig().put(ALIASES, trigger.getAliases());
+                    trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
+                            .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
+                            .toArray());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
