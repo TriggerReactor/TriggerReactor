@@ -359,7 +359,7 @@ public class Interpreter {
                     initToken = unwrapVariable(initToken);
                 }
 
-                if (initToken.type != Type.INTEGER)
+                if (!initToken.isInteger())
                     throw new InterpreterException("Init value must be an Integer value! -- " + initToken);
 
                 Node limitNode = iterNode.getChildren().get(1);
@@ -372,7 +372,7 @@ public class Interpreter {
                     limitToken = unwrapVariable(limitToken);
                 }
 
-                if (limitToken.type != Type.INTEGER)
+                if (!limitToken.isInteger())
                     throw new InterpreterException("Limit value must be an Integer value! -- " + limitToken);
 
                 for (int i = initToken.toInteger(); !stopFlag && i < limitToken.toInteger(); i++) {

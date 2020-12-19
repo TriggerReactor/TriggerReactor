@@ -41,7 +41,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.*;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 public class TestInterpreter {
     @Test
@@ -510,6 +511,39 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
 
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIteration5() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "FOR i = 0:getPlayers().size()\n"
+                + "    #MESSAGE i\n"
+                + "ENDFOR\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyBoolean(), anyMap(), any(), anyInt())).thenReturn(null);
+        executorMap.put("MESSAGE", executor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setSelfReference(new SelfReference() {
+            public Collection<String> getPlayers(){
+                List<String> names = new ArrayList<>();
+                for(int i = 0; i < 10; i++)
+                    names.add(String.valueOf(i));
+                return names;
+            }
+        });
+
+        interpreter.startWithContext(null);
+
+        verify(executor, times(10)).execute(any(), anyBoolean(), anyMap(), any(), anyInt());
     }
 
     @Test
