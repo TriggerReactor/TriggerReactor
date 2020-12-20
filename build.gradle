@@ -8,17 +8,6 @@ repositories {
     mavenCentral()
 }
 
-javadoc {
-    source = sourceSets.main.allJava
-    classpath = configurations.compile
-    failOnError = false
-    options {
-        links "https://docs.oracle.com/javase/8/docs/api/"
-        links "https://hub.spigotmc.org/javadocs/bukkit/"
-        links "https://jd.spongepowered.org/7.0.0/"
-    }
-}
-
 subprojects {
     apply plugin: 'java'
     test {
@@ -103,4 +92,30 @@ subprojects {
     }
 
     build.finalizedBy(copyJars)
+}
+
+def exportedProjects= [
+        ":core",
+        ":sponge",
+        ":bukkit",
+        ":bukkit:legacy",
+        ":bukkit:latest"
+]
+
+javadoc {
+    failOnError false
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+    options.addStringOption('charSet', 'UTF-8')
+
+    source exportedProjects.collect { project(it).sourceSets.main.allJava }
+    classpath = files(exportedProjects.collect { project(it).sourceSets.main.compileClasspath })
+    options {
+        links "https://docs.oracle.com/javase/8/docs/api/"
+        links "https://hub.spigotmc.org/javadocs/bukkit/"
+        links "https://jd.spongepowered.org/7.0.0/"
+    }
+    destinationDir = file("${buildDir}/docs/javadoc")
+    exclude "**/copy/com/google/**"
+    exclude "org/apache/**"
 }
