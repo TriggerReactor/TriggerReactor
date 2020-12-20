@@ -124,7 +124,9 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         T deleted = triggers.remove(name);
 
         //TODO File I/O need to be done asynchronously
-        deleted.getInfo().delete();
+        Optional.ofNullable(deleted)
+                .map(T::getInfo)
+                .ifPresent(TriggerInfo::delete);
 
         return deleted;
     }
