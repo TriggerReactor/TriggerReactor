@@ -42,7 +42,7 @@ public class Parser {
     final Lexer lexer;
 
     private boolean showWarnings;
-    private List<Warning> warnings = new ArrayList<Warning>();
+    private final List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
 
@@ -523,6 +523,7 @@ public class Parser {
                     && left.getToken().type != Type.PLACEHOLDER
                     && left.getToken().type != Type.ID
                     && left.getToken().type != Type.GID
+                    && left.getToken().type != Type.GID_TEMP
                     && left.getToken().type != Type.INTEGER
                     && left.getToken().type != Type.DECIMAL
 

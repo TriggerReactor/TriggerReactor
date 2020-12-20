@@ -2153,6 +2153,32 @@ public class TestInterpreter {
         assertEquals(123456789123456789L, interpreter.getVars().get("id"));
     }
 
+    @Test
+    public void testGlobalVariableAsFactor() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "result = {\"some.temp.var\"} - 4;"
+                + "result2 = {?\"some.temp.var\"} - 5;";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+
+        Map<Object, Object> temp = new HashMap<>();
+        temp.put("var", 22);
+        Map<Object, Object> some = new HashMap<>();
+        some.put("temp", temp);
+        Map<Object, Object> globalVar = new HashMap<>();
+        globalVar.put("some", some);
+        interpreter.setGvars(globalVar);
+
+        interpreter.startWithContext(null);
+        assertEquals(18, interpreter.getVars().get("result"));
+        assertEquals(17, interpreter.getVars().get("result2"));
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
