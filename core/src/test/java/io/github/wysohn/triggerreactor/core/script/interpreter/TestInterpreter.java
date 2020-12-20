@@ -2166,12 +2166,9 @@ public class TestInterpreter {
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
 
-        Map<Object, Object> temp = new HashMap<>();
-        temp.put("var", 22);
-        Map<Object, Object> some = new HashMap<>();
-        some.put("temp", temp);
         Map<Object, Object> globalVar = new HashMap<>();
-        globalVar.put("some", some);
+        globalVar.put("some.temp.var", 22);
+        globalVar.put(new TemporaryGlobalVariableKey("some.temp.var"), 22);
         interpreter.setGvars(globalVar);
 
         interpreter.startWithContext(null);
