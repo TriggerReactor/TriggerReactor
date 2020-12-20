@@ -25,7 +25,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongeEntity;
 import io.github.wysohn.triggerreactor.sponge.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.event.Listener;
@@ -46,7 +45,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class AreaTriggerManager extends AbstractAreaTriggerManager implements SpongeConfigurationFileIO {
+public class AreaTriggerManager extends AbstractAreaTriggerManager {
 
     public AreaTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
@@ -198,13 +197,5 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Sp
         getAreaForLocation(sloc).stream()
                 .map(Entry::getValue)
                 .forEach((trigger) -> trigger.removeEntity(e.getTargetEntity().getUniqueId()));
-    }
-
-    @Override
-    protected void deleteInfo(AreaTrigger trigger) {
-        File areafile = new File(folder, trigger.getTriggerName() + ".yml");
-        FileUtil.delete(areafile);
-        File areafolder = new File(folder, trigger.getTriggerName());
-        FileUtil.delete(areafolder);
     }
 }

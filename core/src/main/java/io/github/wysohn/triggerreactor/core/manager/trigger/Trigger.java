@@ -14,9 +14,11 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
+import io.github.wysohn.triggerreactor.tools.observer.IObservable;
+import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -25,14 +27,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
 
-public abstract class Trigger implements Cloneable {
+public abstract class Trigger implements Cloneable, IObservable {
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
-    protected final File file;
-    private static final ExecutorService asyncPool = Executors.newCachedThreadPool();
+    protected final TriggerInfo info;
 
-    protected String triggerName;
+    protected IObserver observer;
+
     protected String script;
-
     protected Node root;
     protected Map<String, Executor> executorMap;
     protected Map<String, Placeholder> placeholderMap;
@@ -45,34 +46,26 @@ public abstract class Trigger implements Cloneable {
      * in order to make the Trigger work properly. If you want to create a Trigger with customized
      * behavior, it's not necessary to call {@link #init()} but need to override {@link #initInterpreter(Map)},
      * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as your need
-     *
-     * @param script
      */
-    public Trigger(String triggerName, File file, String script) {
+    public Trigger(TriggerInfo info, String script) {
         super();
-
-        this.file = file;
-
-        this.triggerName = triggerName;
+        this.info = info;
         this.script = script;
+
+        ValidationUtil.notNull(this.info);
     }
 
-    /**
-     * Get File instance pointing to the Trigger file
-     *
-     * @return
-     */
-    public File getFile() {
-        return file;
+    @Override
+    public void notifyObservers() {
+        observer.onUpdate(this);
     }
 
-    /**
-     * Get this trigger's name.
-     *
-     * @return
-     */
-    public String getTriggerName() {
-        return triggerName;
+    public TriggerInfo getInfo() {
+        return info;
+    }
+
+    void setObserver(IObserver observer) {
+        this.observer = observer;
     }
 
     /**
@@ -82,11 +75,7 @@ public abstract class Trigger implements Cloneable {
      * @return the id.
      */
     protected String getTimingId() {
-        return StringUtils.dottedPath(getClass().getSimpleName(), triggerName);
-    }
-
-    public void setTriggerName(String triggerName) {
-        this.triggerName = triggerName;
+        return StringUtils.dottedPath(getClass().getSimpleName(), info.getTriggerName());
     }
 
     /**
@@ -97,6 +86,11 @@ public abstract class Trigger implements Cloneable {
      */
     public void init() throws TriggerInitFailedException {
         try {
+            if (script == null) {
+                throw new NullPointerException("init() was invoked, yet 'script' was null. Make sure to override " +
+                        "init() method to in order to construct a customized Trigger.");
+            }
+
             Charset charset = StandardCharsets.UTF_8;
 
             Lexer lexer = new Lexer(script, charset);
@@ -111,7 +105,7 @@ public abstract class Trigger implements Cloneable {
             gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
-                    + " -- " + triggerName + "]!", ex);
+                    + " -- " + info + "]!", ex);
         }
     }
 
@@ -236,7 +230,7 @@ public abstract class Trigger implements Cloneable {
                     start(t, e, scriptVars, interpreter, sync);
                 } catch (Exception ex) {
                     TriggerReactorCore.getInstance().handleException(e, new Exception(
-                            "Trigger [" + getTriggerName() + "] produced an error!", ex));
+                            "Trigger [" + info + "] produced an error!", ex));
                 }
                 return null;
             }
@@ -257,12 +251,12 @@ public abstract class Trigger implements Cloneable {
 
                 } catch (TimeoutException e1) {
                     TriggerReactorCore.getInstance().handleException(e, new RuntimeException(
-                            "Took too long to process Trigger [" + getTriggerName() + "]! Is the server lagging?",
+                            "Took too long to process Trigger [" + info + "]! Is the server lagging?",
                             e1));
                 }
             }
         } else {
-            asyncPool.submit(call);
+            ASYNC_POOL.submit(call);
         }
     }
 
@@ -283,7 +277,7 @@ public abstract class Trigger implements Cloneable {
                     timing);
         } catch (InterpreterException ex) {
             TriggerReactorCore.getInstance().handleException(e,
-                    new Exception("Could not finish interpretation for [" + getTriggerName() + "]!", ex));
+                    new Exception("Could not finish interpretation for [" + info + "]!", ex));
         }
     }
 
@@ -304,6 +298,8 @@ public abstract class Trigger implements Cloneable {
 
     @Override
     public String toString() {
-        return "[" + getClass().getSimpleName() + "=" + getTriggerName() + " sync=" + sync + "]";
+        return "[" + getClass().getSimpleName() + "=" + info + " sync=" + sync + "]";
     }
+
+    private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();
 }

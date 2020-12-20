@@ -16,6 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Token {
     public final Type type;
     public final Object value;
@@ -81,6 +84,10 @@ public class Token {
         return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
     }
 
+    public boolean isBoxedPrimitive(){
+        return value != null && BOXED_PRIMITIVES.contains(value.getClass());
+    }
+
     public int toInteger() {
         return ((Number) value).intValue();
     }
@@ -131,11 +138,8 @@ public class Token {
         if (type != other.type)
             return false;
         if (value == null) {
-            if (other.value != null)
-                return false;
-        } else if (!value.equals(other.value))
-            return false;
-        return true;
+            return other.value == null;
+        } else return value.equals(other.value);
     }
 
     public enum Type {
@@ -183,17 +187,30 @@ public class Token {
 
         private final boolean literal;
 
-        private Type(boolean literal) {
+        Type(boolean literal) {
             this.literal = literal;
         }
 
-        private Type() {
+        Type() {
             this.literal = false;
         }
 
         public boolean isLiteral() {
             return literal;
         }
+    }
+
+    private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
+    static {
+        BOXED_PRIMITIVES.add(Boolean.class);
+        BOXED_PRIMITIVES.add(Character.class);
+        BOXED_PRIMITIVES.add(Byte.class);
+        BOXED_PRIMITIVES.add(Short.class);
+        BOXED_PRIMITIVES.add(Integer.class);
+        BOXED_PRIMITIVES.add(Long.class);
+        BOXED_PRIMITIVES.add(Float.class);
+        BOXED_PRIMITIVES.add(Double.class);
+        BOXED_PRIMITIVES.add(Void.class);
     }
 
     public static void main(String[] ar) {

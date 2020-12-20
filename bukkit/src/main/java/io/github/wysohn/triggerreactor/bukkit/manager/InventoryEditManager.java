@@ -1,13 +1,14 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,9 +16,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class InventoryEditManager extends AbstractInventoryEditManager implements Listener {
@@ -47,12 +50,16 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
         IItemStack[] iitems = trigger.getItems();
         ItemStack[] items = new ItemStack[iitems.length];
         for (int i = 0; i < items.length; i++) {
-            items[i] = iitems[i].get();
+            items[i] = Optional.ofNullable(iitems[i])
+                    .map(IScriptObject::get)
+                    .filter(ItemStack.class::isInstance)
+                    .map(ItemStack.class::cast)
+                    .orElse(null);
         }
 
-        Inventory inv = Bukkit.createInventory(null, items.length, trigger.getTriggerName());
+        Inventory inv = Bukkit.createInventory(null, items.length, trigger.getInfo().getTriggerName());
         inv.setContents(items);
-        player.openInventory(new BukkitInventory(inv));
+        player.openInventory(BukkitTriggerReactorCore.getWrapper().wrap(inv));
     }
 
     @Override
@@ -106,8 +113,13 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
         }
         Inventory inv = e.getInventory();
 
-        suspended.put(u, new BukkitInventory(inv));
+        suspended.put(u, BukkitTriggerReactorCore.getWrapper().wrap(inv));
         sendMessage((Player) e.getPlayer());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        stopEdit(BukkitTriggerReactorCore.getWrapper().wrap(event.getPlayer()));
     }
 
     private void sendMessage(Player player) {

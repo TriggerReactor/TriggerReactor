@@ -24,7 +24,7 @@ public abstract class Placeholder extends SynchronizableTask {
     /**
      * Replace this placeholder with appropriate value.
      *
-     * @param timing  – the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
+     * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
      * @param context the context where placeholder was used. It's Event for Bukkit API.
      * @param vars    variables that will be used in the Placeholder. Some may can be overridden.
      * @param args    arguments to be used

@@ -22,9 +22,12 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
@@ -42,6 +45,7 @@ import io.github.wysohn.triggerreactor.sponge.bridge.SpongeCommandSender;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeInventory;
 import io.github.wysohn.triggerreactor.sponge.bridge.SpongeWrapper;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
+import io.github.wysohn.triggerreactor.sponge.main.serialize.SpongeDataSerializer;
 import io.github.wysohn.triggerreactor.sponge.manager.*;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.sponge.manager.event.TriggerReactorStopEvent;
@@ -49,7 +53,15 @@ import io.github.wysohn.triggerreactor.sponge.manager.trigger.*;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.sponge.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.sponge.tools.DelegatedPlayer;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.InvTriggerMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.NaiveMigrationHelper;
+import io.github.wysohn.triggerreactor.sponge.tools.migration.VariableMigrationHelper;
+import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
+import ninja.leaping.configurate.ConfigurationNode;
+import ninja.leaping.configurate.commented.CommentedConfigurationNode;
+import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
+import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.bstats.sponge.MetricsLite2;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockTypes;
@@ -59,6 +71,7 @@ import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.data.DataSerializable;
 import org.spongepowered.api.data.key.Keys;
 import org.spongepowered.api.entity.Entity;
 import org.spongepowered.api.entity.living.player.Player;
@@ -126,7 +139,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
-    private AbstractVariableManager variableManager;
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
@@ -136,7 +148,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
     private AbstractCommandTriggerManager cmdManager;
-    private AbstractInventoryTriggerManager invManager;
+    private AbstractInventoryTriggerManager<ItemStack> invManager;
     private AbstractAreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
@@ -147,6 +159,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onConstruct(GameInitializationEvent event) {
+        onCoreEnable();
+
         SYNC_EXECUTOR = Sponge.getScheduler().createSyncExecutor(this);
         WRAPPER = new SpongeWrapper();
 
@@ -160,13 +174,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         try {
             placeholderManager = new PlaceholderManager(this);
         } catch (ScriptException | IOException e) {
-            initFailed(e);
-            return;
-        }
-
-        try {
-            variableManager = new VariableManager(this);
-        } catch (IOException e) {
             initFailed(e);
             return;
         }
@@ -189,7 +196,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
         tpsHelper = new Lag();
         Sponge.getScheduler().createTaskBuilder().execute(tpsHelper).delayTicks(100L).intervalTicks(1L).submit(this);
-
     }
 
     private void initFailed(Exception e) {
@@ -255,19 +261,88 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             }
 
         }, "trg", "trigger");
+
+        migrateOldConfig();
+    }
+
+    private void migrateOldConfig() {
+        new ContinuingTasks.Builder()
+                .append(() -> {
+//                    if (getPluginConfigManager().isMigrationNeeded()) {
+//                        File file = new File(getDataFolder(), "config.yml");
+//                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
+//                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+//                        ConfigurationNode confFileConfig = null;
+//                        try {
+//                            confFileConfig = varFileConfigLoader.load();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                            return;
+//                        }
+//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(confFileConfig, file));
+//                    }
+                })
+                .append(() -> {
+                    if (getVariableManager().isMigrationNeeded()) {
+                        File file = new File(getDataFolder(), "var.yml");
+                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
+                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+                        ConfigurationNode varFileConfig = null;
+                        try {
+                            varFileConfig = varFileConfigLoader.load();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
+                    }
+                })
+                .append(() -> Optional.of(getInvManager())
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
+                                })))
+                .append(() -> Manager.getManagers().stream()
+                        .filter(AbstractTriggerManager.class::isInstance)
+                        .map(AbstractTriggerManager.class::cast)
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
+                                })))
+                .run();
     }
 
     @Listener
     public void onEnable(GameStartedServerEvent e) {
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
-
-        for (Manager manager : Manager.getManagers()) {
-            try {
-                manager.reload();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
 
 //        FileConfiguration config = plugin.getConfig();
 //        if(config.getBoolean("Mysql.Enable", false)) {
@@ -304,6 +379,14 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 //            plugin.saveConfig();
 //        }
 
+        for (Manager manager : Manager.getManagers()) {
+            try {
+                manager.reload();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
         Sponge.getScheduler().createTaskBuilder().execute(new Runnable() {
 
             @Override
@@ -324,7 +407,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             getLogger().info("OK");
 
             getLogger().info("Finalizing the scheduled script executions...");
-            cachedThreadPool.shutdown();
+            CACHED_THREAD_POOL.shutdown();
             getLogger().info("Shut down complete!");
         }
     }
@@ -340,14 +423,20 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onTabComplete(TabCompleteEvent.Command e) {
-        String cmd = e.getCommand();
-        if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
-            return;
-        }
-        String[] args = e.getArguments().split(" ", -1);
-        List<String> completions = e.getTabCompletions();
-        completions.clear();
-        completions.addAll(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(args));
+        e.getCause().allOf(Player.class).stream()
+                .findFirst()
+                .map(SpongeCommandSender::new)
+                .ifPresent(sender -> {
+                    String cmd = e.getCommand();
+                    if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
+                        return;
+                    }
+                    String[] args = e.getArguments().split(" ", -1);
+                    List<String> completions = e.getTabCompletions();
+                    completions.clear();
+                    Optional.ofNullable(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(sender, args))
+                            .ifPresent(completions::addAll);
+                });
     }
 
     @Override
@@ -363,11 +452,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public AbstractPlaceholderManager getPlaceholderManager() {
         return placeholderManager;
-    }
-
-    @Override
-    public AbstractVariableManager getVariableManager() {
-        return variableManager;
     }
 
     @Override
@@ -479,7 +563,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected IPlayer getPlayer(String string) {
+    public IPlayer getPlayer(String string) {
         Player player = Sponge.getServer().getPlayer(string).orElse(null);
         if (player == null)
             return null;
@@ -488,7 +572,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(ICommandSender sender) {
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
         Object unwrapped = sender.get();
 
         if (unwrapped instanceof Player) {
@@ -687,7 +771,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -789,7 +873,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().getTriggerForName((String) args[0]);
+                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -910,5 +994,9 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public ICommandSender getConsoleSender() {
         return new SpongeCommandSender(Sponge.getServer().getConsole());
+    }
+
+    static {
+        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
     }
 }

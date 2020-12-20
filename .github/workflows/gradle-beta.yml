@@ -2,7 +2,7 @@ name: Java CI
 
 on:
   push:
-    tags: 
+    tags:
       - '*-Beta'
 
 jobs:

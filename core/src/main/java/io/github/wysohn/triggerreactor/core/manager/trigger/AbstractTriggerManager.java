@@ -16,39 +16,119 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.observer.IObservable;
+import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractTriggerManager<T extends Trigger> extends Manager implements ConfigurationFileIO {
-    protected Map<String, T> triggers = new ConcurrentHashMap<>();
+public abstract class AbstractTriggerManager<T extends Trigger> extends Manager {
+    private final Observer observer = new Observer();
+    private final Map<String, T> triggers = new ConcurrentHashMap<>();
+
     protected final File folder;
+    protected final ITriggerLoader<T> loader;
+    protected final BiFunction<File, String, IConfigSource> configSourceFactory;
 
-    public AbstractTriggerManager(TriggerReactorCore plugin, File tirggerFolder) {
+    public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin);
+        this.folder = folder;
+        this.loader = loader;
+        this.configSourceFactory = ConfigSourceFactory::gson;
+    }
 
-        folder = tirggerFolder;
+    public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader,
+                                  BiFunction<File, String, IConfigSource> configSourceFactory) {
+        super(plugin);
+        this.folder = folder;
+        this.loader = loader;
+        this.configSourceFactory = configSourceFactory;
+    }
 
+    public File getFolder() {
+        return folder;
+    }
+
+    public TriggerInfo[] getTriggerInfos() {
+        return loader.listTriggers(folder, configSourceFactory);
+    }
+
+    @Override
+    public void reload() {
         if (!folder.exists())
             folder.mkdirs();
+
+        triggers.clear();
+
+        for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
+            try {
+                info.reloadConfig();
+
+                T t = loader.load(info);
+                Optional.ofNullable(t)
+                        .ifPresent(trigger -> {
+                            if (has(info.getTriggerName())) {
+                                plugin.getLogger().warning(info + " is already registered! Duplicated Trigger?");
+                            } else {
+                                put(info.getTriggerName(), trigger);
+                            }
+                        });
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to load " + info, e);
+            }
+        }
     }
 
-    protected <TYPE> TYPE getData(File file, String key) throws Exception {
-        return getData(file, key, null);
+    public void reload(String triggerName) {
+        T trigger = get(triggerName);
+        TriggerInfo info = trigger.info;
+
+        try {
+            trigger = loader.load(info);
+            put(triggerName, trigger);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load " + info, e);
+        }
     }
 
-    /**
-     * Default behavior is delete one file associated with the trigger. Override this method to change this behavior.
-     */
-    protected void deleteInfo(T trigger) {
-        FileUtil.delete(trigger.file);
+    @Override
+    public void saveAll() {
+        for (T trigger : triggers.values()) {
+            loader.save(trigger);
+        }
+    }
+
+    public T get(String name) {
+        return triggers.get(name);
+    }
+
+    public boolean has(String name) {
+        return triggers.containsKey(name);
+    }
+
+    public T put(String name, T t) {
+        t.setObserver(observer);
+        return triggers.put(name, t);
+    }
+
+    public T remove(String name) {
+        T deleted = triggers.remove(name);
+
+        //TODO File I/O need to be done asynchronously
+        Optional.ofNullable(deleted)
+                .map(T::getInfo)
+                .ifPresent(TriggerInfo::delete);
+
+        return deleted;
     }
 
     public Collection<T> getAllTriggers() {
@@ -70,32 +150,6 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     @FunctionalInterface
     public interface TriggerFilter {
         boolean accept(String name);
-    }
-
-    protected static boolean isTriggerFile(File file) {
-        if (!file.isFile())
-            return false;
-
-        String name = file.getName();
-
-        //either ends with .trg or no extension
-        return name.endsWith(".trg") || name.indexOf('.') == -1;
-    }
-
-    /**
-     * extract file name without the extension
-     *
-     * @param file
-     * @return the filename. null if the file is not file
-     */
-    protected static String extractName(File file) {
-        if (!file.isFile())
-            return null;
-
-        if (file.getName().indexOf('.') == -1)
-            return file.getName();
-
-        return file.getName().substring(0, file.getName().indexOf('.'));
     }
 
     public static File getTriggerFile(File folder, String triggerName, boolean write) {
@@ -125,7 +179,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         }
 
         log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
-                trigger.getTriggerName() + " =====");
+                trigger.getInfo() + " =====");
         for (Warning w : warnings) {
             for (String line : w.getMessageLines()) {
                 log.log(L, line);
@@ -133,6 +187,14 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             log.log(Level.WARNING, "");
         }
         log.log(Level.WARNING, "");
+    }
+
+    private class Observer implements IObserver {
+        @Override
+        public void onUpdate(IObservable observable) {
+            //TODO need to be done async (file I/O)
+            loader.save((T) observable);
+        }
     }
 
     @SuppressWarnings("serial")

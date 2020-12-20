@@ -403,8 +403,16 @@ public class CommonFunctions implements SelfReference {
         return new Object[size];
     }
 
+    public Object[] arrayOf(Object... values) {
+        return values;
+    }
+
     public List<Object> list() {
         return new ArrayList<Object>();
+    }
+
+    public List<Object> listOf(Object... values) {
+        return Arrays.asList(values);
     }
 
     public Map<Object, Object> map() {
@@ -413,6 +421,10 @@ public class CommonFunctions implements SelfReference {
 
     public Set<Object> set() {
         return new HashSet<Object>();
+    }
+
+    public Set<Object> set(Collection<?> iterable) {
+        return new HashSet<>(iterable);
     }
 
     /**

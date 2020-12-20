@@ -33,7 +33,7 @@
 			location = args[1];
 		}
 		
-		block = getBlock();
+		block = location.getBlock();
 		
 		var blockData = block.getBlockData();
 		blockData.setFacing(face);

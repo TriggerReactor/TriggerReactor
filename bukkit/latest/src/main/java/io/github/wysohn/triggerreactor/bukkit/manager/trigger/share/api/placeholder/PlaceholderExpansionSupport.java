@@ -1,13 +1,13 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion {
-    private TriggerReactorCore plugin;
+    private final TriggerReactorCore plugin;
 
     /**
      * Since we register the expansion inside our own plugin, we
@@ -100,10 +100,10 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
             return plugin.getVersion();
         }
         //%tr_?<variable name>% - temporary global variable
-        if (identifier.substring(0, 1).equals("?")) {
+        if (identifier.startsWith("?")) {
             String variableName = identifier.substring(1).replace('_', '.');
             TemporaryGlobalVariableKey tempKey = new TemporaryGlobalVariableKey(variableName);
-            AbstractVariableManager.GlobalVariableAdapter adapter = (AbstractVariableManager.GlobalVariableAdapter) plugin.getVariableManager().getGlobalVariableAdapter();
+            GlobalVariableManager.GlobalVariableAdapter adapter = (GlobalVariableManager.GlobalVariableAdapter) plugin.getVariableManager().getGlobalVariableAdapter();
             Object value = adapter.get(tempKey);
             if (value == null) {
                 return "";
@@ -122,7 +122,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
 
         // %tr_<variable name>%
         String variableName = identifier.replace('_', '.');
-        AbstractVariableManager vm = plugin.getVariableManager();
+        GlobalVariableManager vm = plugin.getVariableManager();
         Object value = vm.get(variableName);
         if (value == null) {
             return "";

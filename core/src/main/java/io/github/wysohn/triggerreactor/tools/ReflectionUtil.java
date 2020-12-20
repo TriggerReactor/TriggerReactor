@@ -24,6 +24,9 @@ import java.lang.reflect.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -113,181 +116,216 @@ public class ReflectionUtil {
         return null;
     }
 
+    private static <T extends Executable> List<T> getValidExecutables(Class<?> clazz, String name, Object[] args,
+                                                                      Function<Class<?>, T[]> extractFn) {
+        List<T> validMethods = new ArrayList<>();
+        List<T> validVarargMethods = new ArrayList<>();
+
+        for (T executable : extractFn.apply(clazz)) {
+            // select method with matching name. All if name is null.
+            if (name != null && !executable.getName().equals(name))
+                continue;
+
+            // get the method's argument types
+            Class<?>[] parameterTypes = executable.getParameterTypes();
+            if (executable.isVarArgs()) {
+                // the vararg value will be passed as an Array
+                // so expect args + the Array, or args + no Array (which is when nothing is passed to varargs)
+                // since vararg will handle varying amount of arguments,
+                // check if at least non-varargs parts are filled
+                if (args.length < parameterTypes.length - 1) {
+                    // if non-varargs are not filled, it's not the method we are looking for.
+                    continue;
+                }
+            } else {
+                // regular methods are easy. Just see if the size of arguments both matches
+                if (parameterTypes.length != args.length) {
+                    continue;
+                }
+            }
+
+            boolean matches;
+            if (executable.isVarArgs()) {
+                matches = true;
+
+                // check non-vararg part
+                for (int i = 0; i < parameterTypes.length - 1; i++) {
+                    matches = i < args.length && checkMatch(parameterTypes[i], args[i]);
+                    if (!matches)
+                        break;
+                }
+
+                // check vararg part
+                if (matches) {
+                    Class<?> methodVarargType = parameterTypes[parameterTypes.length - 1].getComponentType();
+                    for (int i = parameterTypes.length - 1; i < args.length; i++) {
+                        matches = checkMatch(methodVarargType, args[i]);
+                        if (!matches)
+                            break;
+                    }
+                }
+
+                if (matches) {
+                    validVarargMethods.add(executable);
+                }
+            } else {
+                matches = true;
+
+                // check one on one.
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    matches = checkMatch(parameterTypes[i], args[i]);
+                    if (!matches)
+                        break;
+                }
+
+                if (matches) {
+                    validMethods.add(executable);
+                }
+            }
+        }
+
+        return Stream.concat(validVarargMethods.stream(), validMethods.stream())
+                .collect(Collectors.toList());
+    }
+
+    private interface ExtractExecutable<T extends Executable> {
+        T apply(Class<?> clazz, String name, Class<?>[] parameters) throws NoSuchMethodException;
+    }
+
+    private static <T extends Executable> T findBestFit(Class<?> clazz, String name, List<T> validMethods,
+                                                        Object[] args,
+                                                        ExtractExecutable<T> extractFn) {
+        // we found all methods that may can be used with the input arguments
+        // yet we still have to find the best fit.
+        // For example, method(1, 1) would be more suitable with method(int, int) than method(double, double)
+        // while both of them can accept the arguments without problem.
+        if (!validMethods.isEmpty()) {
+            // pick one method
+            T executable = validMethods.get(0);
+
+            // compare the current method with other methods
+            // to see if there is a better candidate
+            c:
+            for (int i = 1; i < validMethods.size(); i++) {
+                T targetExecutable = validMethods.get(i);
+
+                Class<?>[] currentParams = executable.getParameterTypes();
+                Class<?>[] compareParams = targetExecutable.getParameterTypes();
+
+                int len = Math.max(currentParams.length, compareParams.length);
+                for (int j = 0; j < len; j++) {
+                    // we already checked that all candidates can handle the arguments
+                    // find at least one argument of other method that is more specific than of the current method
+                    // if found one, don't have to check other arguments as we already know they will work
+
+                    Class<?> currentParam = currentParams[Math.min(currentParams.length - 1, j)];
+                    Class<?> compareParam = compareParams[Math.min(compareParams.length - 1, j)];
+
+                    if (executable.isVarArgs() && j >= currentParams.length - 1)
+                        currentParam = currentParam.getComponentType();
+                    if (targetExecutable.isVarArgs() && j >= compareParams.length - 1)
+                        compareParam = compareParam.getComponentType();
+
+                    if (!ClassUtils.isAssignable(compareParam, currentParam, true))
+                        continue c;
+                }
+
+                executable = targetExecutable;
+            }
+
+            executable.setAccessible(true);
+
+            for (int i = 0; i < args.length; i++) {
+                Class<?>[] parameterTypes = executable.getParameterTypes();
+
+                if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
+                    // Some methods already provide overloaded method to handle String instead of Enum
+                    // So check it first before converting String to Enum manually
+                    Class<?>[] types = new Class<?>[args.length];
+                    for (int k = 0; k < args.length; k++)
+                        types[k] = args[k].getClass();
+
+                    try {
+                        executable = extractFn.apply(clazz, name, types);
+                    } catch (NoSuchMethodException ex2) {
+                        try {
+                            args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
+                        } catch (IllegalArgumentException ex1) {
+                            throw new RuntimeException("Tried to convert value [" + args[i]
+                                    + "] to Enum [" + parameterTypes[i]
+                                    + "] or find appropriate method but found nothing. Make sure"
+                                    + " that the value [" + args[i]
+                                    + "] matches exactly with one of the Enums in [" + parameterTypes[i]
+                                    + "] or the method you are looking exists.");
+                        }
+                    }
+                }
+            }
+
+            return executable;
+        } else {
+            return null;
+        }
+    }
+
     @SuppressWarnings({"unchecked"})
     public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args)
             throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException {
         try {
-            List<Method> validMethods = new ArrayList<>();
+            List<Method> validMethods = getValidExecutables(clazz, methodName, args, Class::getMethods);
+            if (validMethods.isEmpty())
+                throw new NoSuchMethodException(buildFailMessage(clazz, methodName, args));
 
-            for (Method method : clazz.getMethods()) {
-                Class<?>[] parameterTypes = null;
+            // we found all methods that may can be used with the input arguments
+            // yet we still have to find the best fit.
+            // For example, method(1, 1) would be more suitable with method(int, int) than method(double, double)
+            // while both of them can accept the arguments without problem.
+            // pick one method
+            Method method = findBestFit(clazz, methodName, validMethods, args, Class::getMethod);
+            if (method == null)
+                throw new NoSuchMethodException(buildFailMessage(clazz, methodName, args));
 
-                if (!method.getName().equals(methodName)) {
-                    continue;
-                }
-
-                parameterTypes = method.getParameterTypes();
-                if (method.isVarArgs()) {
-                    if (method.isVarArgs() && (parameterTypes.length - args.length >= 2)) {
-                        parameterTypes = null;
-                        continue;
-                    }
-                } else {
-                    if (parameterTypes.length != args.length) {
-                        parameterTypes = null;
-                        continue;
-                    }
-                }
-
-                if (method.isVarArgs()) {
-                    boolean matches = false;
-
-                    // check non vararg part
-                    for (int i = 0; i < parameterTypes.length - 1; i++) {
-                        matches = checkMatch(parameterTypes[i], args[i]);
-                        if (!matches)
-                            break;
-                    }
-
-                    // check rest
-                    for (int i = parameterTypes.length - 1; i < args.length; i++) {
-                        Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
-
-                        matches = checkMatch(arrayType, args[i]);
-                        if (!matches)
-                            break;
-                    }
-
-                    if (matches) {
-                        validMethods.add(method);
-                    }
-                } else {
-                    boolean matches = true;
-
-                    for (int i = 0; i < parameterTypes.length; i++) {
-                        matches = checkMatch(parameterTypes[i], args[i]);
-                        if (!matches)
-                            break;
-                    }
-
-                    if (matches) {
-                        validMethods.add(method);
-                    }
-                }
+            // we need to convert the last part of input arguments as Array
+            if (method.isVarArgs()) {
+                args = mergeVarargs(args, method.getParameterTypes());
             }
 
-            if (!validMethods.isEmpty()) {
-                Method method = validMethods.get(0);
-                for (int i = 1; i < validMethods.size(); i++) {
-                    Method targetMethod = validMethods.get(i);
-
-                    Class<?>[] params = method.getParameterTypes();
-                    Class<?>[] otherParams = targetMethod.getParameterTypes();
-
-                    if (method.isVarArgs() && targetMethod.isVarArgs()) {
-                        for (int j = 0; j < params.length; j++) {
-                            if (params[j].isAssignableFrom(otherParams[j])) {
-                                method = targetMethod;
-                                break;
-                            }
-                        }
-                    } else if (method.isVarArgs()) {
-                        //usually, non-vararg is more specific method. So we use that
-                        method = targetMethod;
-                    } else if (targetMethod.isVarArgs()) {
-                        //do nothing
-                    } else {
-                        for (int j = 0; j < params.length; j++) {
-                            if (otherParams[j].isEnum()) { // enum will be handled later
-                                method = targetMethod;
-                                break;
-                            } else if (ClassUtils.isAssignable(otherParams[j], params[j], true)) { //narrow down to find the most specific method
-                                method = targetMethod;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                method.setAccessible(true);
-
-                for (int i = 0; i < args.length; i++) {
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-
-                    if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
-                        try {
-                            args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
-                        } catch (IllegalArgumentException ex1) {
-                            // Some overloaded methods already has
-                            // String to Enum conversion
-                            // So just lets see if one exists
-                            Class<?>[] types = new Class<?>[args.length];
-                            for (int k = 0; k < args.length; k++)
-                                types[k] = args[k].getClass();
-
-                            try {
-                                Method alternative = clazz.getMethod(methodName, types);
-                                return alternative.invoke(obj, args);
-                            } catch (NoSuchMethodException ex2) {
-                                throw new RuntimeException("Tried to convert value [" + args[i]
-                                        + "] to Enum [" + parameterTypes[i]
-                                        + "] or find appropriate method but found nothing. Make sure"
-                                        + " that the value [" + args[i]
-                                        + "] matches exactly with one of the Enums in [" + parameterTypes[i]
-                                        + "] or the method you are looking exists.");
-                            }
-                        }
-                    }
-                }
-
-                if (method.isVarArgs()) {
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-
-                    Object varargs = Array.newInstance(
-                            parameterTypes[parameterTypes.length - 1].getComponentType(),
-                            args.length - parameterTypes.length + 1);
-                    for (int k = 0; k < Array.getLength(varargs); k++) {
-                        Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
-                    }
-
-                    Object[] newArgs = new Object[parameterTypes.length];
-                    for (int k = 0; k < newArgs.length - 1; k++) {
-                        newArgs[k] = args[k];
-                    }
-                    newArgs[newArgs.length - 1] = varargs;
-
-                    args = newArgs;
-                }
-
-                return method.invoke(obj, args);
-            }
-
-            if (args.length > 0) {
-                StringBuilder builder = new StringBuilder(String.valueOf(args[0].getClass().getSimpleName()));
-
-                for (int i = 1; i < args.length; i++) {
-                    builder.append(", " + args[i].getClass().getSimpleName());
-                }
-
-                throw new NoSuchMethodException(methodName + "(" + builder.toString() + ")");
-            } else {
-                throw new NoSuchMethodException(methodName + "()");
-            }
+            return method.invoke(obj, args);
         } catch (NullPointerException e) {
-            StringBuilder builder = new StringBuilder(String.valueOf(args[0]));
-            for (int i = 1; i < args.length; i++)
-                builder.append("," + String.valueOf(args[i]));
-            throw new NullPointerException("Call " + methodName + "(" + builder.toString() + ")");
+            throw new NullPointerException(buildFailMessage(clazz, methodName, args));
         }
+    }
+
+    private static Object[] mergeVarargs(Object[] args, Class<?>[] parameterTypes) {
+        // build the Array to be used
+        Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
+                args.length - parameterTypes.length + 1);
+        for (int k = 0; k < Array.getLength(varargs); k++)
+            Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
+
+        // copy the non-vararg part
+        Object[] newArgs = new Object[parameterTypes.length];
+        System.arraycopy(args, 0, newArgs, 0, newArgs.length - 1);
+        // and the last argument is the Array we just created
+        newArgs[newArgs.length - 1] = varargs;
+
+        // replace the argument with the vararg merged version
+        return newArgs;
+    }
+
+    private static String buildFailMessage(Class<?> clazz, String methodName, Object[] args) {
+        StringBuilder builder = new StringBuilder(args.length > 0 ? String.valueOf(args[0]) : "");
+        for (int i = 1; i < args.length; i++)
+            builder.append(",").append(args[i]);
+        return "[" + Optional.ofNullable(clazz)
+                .map(Class::getSimpleName)
+                .orElse(null) + "]." + methodName + "(" + builder.toString() + ")";
     }
 
     public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
-        if (!(arg instanceof String && parameterType.isEnum())
-                && !ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true)) {
-            return false;
-        }
-        return true;
+        return arg instanceof String && parameterType.isEnum()
+                || ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
     }
 
     private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {
@@ -441,91 +479,22 @@ public class ReflectionUtil {
         return classes;
     }
 
-    public static Object constructNew(Class<?> clazz, Object[] args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException {
+    public static Object constructNew(Class<?> clazz, Object... args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException {
         if (args.length < 1) {
             return clazz.newInstance();
         } else {
-            Class<?>[] paramTypes = new Class[args.length];
-            for (int i = 0; i < args.length; i++) {
-                paramTypes[i] = args[i] == null ? null : args[i].getClass();
-            }
+            List<Constructor<?>> validConstructors = getValidExecutables(clazz, null, args, Class::getConstructors);
 
-            List<Constructor<?>> possibleTarget = new ArrayList<>();
-            out:
-            for (Constructor<?> con : clazz.getConstructors()) {
-                if (con.isVarArgs()) {
-                    for (int i = 0; i < paramTypes.length; i++) {
-                        Class<?> paramType = getParamType(con, i);
+            if (validConstructors.isEmpty())
+                throw new NoSuchMethodException(buildFailMessage(clazz, "<init>", args));
 
-                        if (!checkMatch(paramType, args[i]))
-                            continue out;
-                    }
-
-                    possibleTarget.add(con);
-                } else {
-                    if (con.getParameterCount() != paramTypes.length)
-                        continue;
-
-                    for (int i = 0; i < paramTypes.length; i++) {
-                        Class<?> paramType = paramTypes[i];
-
-                        if (!checkMatch(paramType, args[i]))
-                            continue out;
-                    }
-
-                    possibleTarget.add(con);
-                }
-            }
-
-            if (possibleTarget.isEmpty())
-                return null;
-
-            Constructor<?> target = possibleTarget.get(0);
-            if (possibleTarget.size() > 1) {
-                for (Constructor<?> con : possibleTarget.subList(1, possibleTarget.size())) {
-                    if (con.isVarArgs()) {
-                        for (int i = 0; i < paramTypes.length; i++) {
-                            Class<?> paramsOther = getParamType(con, i);
-                            Class<?> params = getParamType(target, i);
-
-                            if (ClassUtils.isAssignable(paramsOther, params, true)) {
-                                target = con;
-                            }
-                        }
-                    } else {
-                        if (con.getParameterCount() != paramTypes.length)
-                            continue;
-
-                        for (int i = 0; i < paramTypes.length; i++) {
-                            Class<?> paramsOther = getParamType(con, i);
-                            Class<?> params = getParamType(target, i);
-
-                            if (ClassUtils.isAssignable(paramsOther, params, true)) {
-                                target = con;
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
+            Constructor<?> target = findBestFit(clazz, null, validConstructors, args, (c, name, params) ->
+                    c.getConstructor(params));
+            if (target == null)
+                throw new NoSuchMethodException(buildFailMessage(clazz, "<init>", args));
 
             if (target.isVarArgs()) {
-                Class<?>[] parameterTypes = target.getParameterTypes();
-
-                Object varargs = Array.newInstance(
-                        parameterTypes[parameterTypes.length - 1].getComponentType(),
-                        args.length - parameterTypes.length + 1);
-                for (int k = 0; k < Array.getLength(varargs); k++) {
-                    Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
-                }
-
-                Object[] newArgs = new Object[parameterTypes.length];
-                for (int k = 0; k < newArgs.length - 1; k++) {
-                    newArgs[k] = args[k];
-                }
-                newArgs[newArgs.length - 1] = varargs;
-
-                args = newArgs;
+                args = mergeVarargs(args, target.getParameterTypes());
             }
 
             try {

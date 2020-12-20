@@ -18,10 +18,14 @@ package io.github.wysohn.triggerreactor.sponge.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.sponge.bridge.entity.SpongePlayer;
 import io.github.wysohn.triggerreactor.sponge.tools.LocationUtil;
@@ -53,14 +57,13 @@ import org.spongepowered.api.world.World;
 import java.io.File;
 import java.util.*;
 
-public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
-        implements SpongeConfigurationFileIO {
+public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T> {
     public static final ItemType INSPECTION_TOOL = ItemTypes.BONE;
     public static final ItemType CUT_TOOL = ItemTypes.SHEARS;
     public static final ItemType COPY_TOOL = ItemTypes.PAPER;
 
-    public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName) {
-        super(plugin, new File(plugin.getDataFolder(), folderName));
+    public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName, ITriggerLoader<T> loader) {
+        super(plugin, new File(plugin.getDataFolder(), folderName), loader);
     }
 
     @Listener(order = Order.LATE)
@@ -158,9 +161,13 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             return;
         }
 
+        File file = getTriggerFile(folder, LocationUtil.convertToSimpleLocation(loc).toString(), true);
         try {
-            trigger = constructTrigger(LocationUtil.convertToSimpleLocation(loc), script);
-        } catch (TriggerInitFailedException e1) {
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+            trigger = newTrigger(info, script);
+        } catch (Exception e1) {
             p.sendMessage(Text.builder("Encounterd an error!").color(TextColors.RED).build());
             p.sendMessage(Text.builder(e1.getMessage()).color(TextColors.RED).build());
             p.sendMessage(Text.builder("If you are an administrator, check console to see details.").color(TextColors.RED).build());
@@ -181,7 +188,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     private void handleScriptEdit(Player player, T trigger) {
 
-        plugin.getScriptEditManager().startEdit(new SpongePlayer(player), trigger.getTriggerName(), trigger.getScript(),
+        plugin.getScriptEditManager().startEdit(new SpongePlayer(player), trigger.getInfo().getTriggerName(), trigger.getScript(),
                 new SaveHandler() {
                     @Override
                     public void onSave(String script) {
@@ -288,12 +295,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     protected void setTriggerForLocation(Location<World> loc, T trigger) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        setTriggerForLocation(sloc, trigger);
+        setLocationCache(sloc, trigger);
     }
 
     protected T removeTriggerForLocation(Location<World> loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return removeTriggerForLocation(sloc);
+        return removeLocationCache(sloc);
     }
 
     protected void showTriggerInfo(ICommandSender sender, BlockSnapshot clicked) {

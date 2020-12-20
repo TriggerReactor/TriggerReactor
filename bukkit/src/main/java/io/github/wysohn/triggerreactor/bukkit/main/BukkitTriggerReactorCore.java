@@ -89,7 +89,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
-    private AbstractVariableManager variableManager;
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
@@ -119,11 +118,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public AbstractPlaceholderManager getPlaceholderManager() {
         return placeholderManager;
-    }
-
-    @Override
-    public AbstractVariableManager getVariableManager() {
-        return variableManager;
     }
 
     @Override
@@ -228,13 +222,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             return;
         }
 
-        try {
-            variableManager = new VariableManager(this);
-        } catch (Exception e) {
-            initFailed(e);
-            return;
-        }
-
         scriptEditManager = new ScriptEditManager(this);
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
@@ -250,10 +237,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         repeatManager = new RepeatingTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);
-
-        for (Manager manager : Manager.getManagers()) {
-            manager.reload();
-        }
 
         tpsHelper = new Lag();
         new Thread() {
@@ -291,7 +274,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         super.onCoreDisable();
 
         getLogger().info("Finalizing the scheduled script executions...");
-        cachedThreadPool.shutdown();
+        CACHED_THREAD_POOL.shutdown();
         getLogger().info("Shut down complete!");
     }
 
@@ -422,12 +405,12 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    protected IPlayer getPlayer(String string) {
+    public IPlayer getPlayer(String string) {
         return bukkit.getPlayer(string);
     }
 
     @Override
-    protected Object createEmptyPlayerEvent(ICommandSender sender) {
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
         return bukkit.createEmptyPlayerEvent(sender);
     }
 

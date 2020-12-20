@@ -11,8 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * This test class require static method data().
@@ -20,7 +19,7 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(Parameterized.class)
 public class TestCommonFunctions<FN extends CommonFunctions> {
-    private static String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
+    private static final String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
@@ -28,7 +27,7 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
     }
 
     protected final FN fn;
-    private int trials = 100;
+    private final int trials = 100;
 
     public TestCommonFunctions(FN fn) {
         this.fn = fn;
@@ -122,5 +121,29 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
         }
     }
 
+    @Test
+    public void arrayOf() {
+        Object[] arr = fn.arrayOf("a", 1, false);
+        assertArrayEquals(new Object[]{"a", 1, false}, arr);
+    }
 
+    @Test
+    public void listOf() {
+        List<Object> list = fn.listOf("b", 2, true);
+        List<Object> expect = new ArrayList<>();
+        expect.add("b");
+        expect.add(2);
+        expect.add(true);
+        assertEquals(expect, list);
+    }
+
+    @Test
+    public void setWithCollection() {
+        List<Object> list = fn.listOf("e", "f", "g");
+        Set<String> expect = new HashSet<>();
+        expect.add("e");
+        expect.add("f");
+        expect.add("g");
+        assertEquals(expect, fn.set(list));
+    }
 }

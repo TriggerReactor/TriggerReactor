@@ -4,10 +4,10 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
-import java.io.File;
 import java.util.Map;
 
 public class InventoryTrigger extends Trigger {
@@ -15,15 +15,15 @@ public class InventoryTrigger extends Trigger {
 
     final IItemStack[] items;
 
-    private InventoryTrigger(String name, String script, File file, IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(name, file, script);
+    public InventoryTrigger(TriggerInfo info, String script, IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
         this.items = items;
 
         init();
     }
 
-    public InventoryTrigger(int size, String name, Map<Integer, IItemStack> items, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(name, file, script);
+    public InventoryTrigger(TriggerInfo info, String script, int size, Map<Integer, IItemStack> items) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
         if (size < 9 || size % 9 != 0)
             throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
 
@@ -48,14 +48,14 @@ public class InventoryTrigger extends Trigger {
                     timing);
         } catch (Exception ex) {
             TriggerReactorCore.getInstance().handleException(e,
-                    new Exception("Error occurred while processing Trigger [" + getTriggerName() + "]!", ex));
+                    new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
         }
     }
 
     @Override
     public InventoryTrigger clone() {
         try {
-            return new InventoryTrigger(triggerName, script, file, items);
+            return new InventoryTrigger(getInfo(), getScript(), items.clone());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

@@ -21,16 +21,16 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 public class SpongeWrapper {
-	public IEntity wrap(Entity entity) {
-		return new SpongeEntity(entity);
-	}
+    public IEntity wrap(Entity entity) {
+        return new SpongeEntity(entity);
+    }
 
-	public IPlayer wrap(Player player) {
-		return new SpongePlayer(player);
-	}
+    public IPlayer wrap(Player player) {
+        return new SpongePlayer(player);
+    }
 
-	public IPlayerBlockLocationEvent wrap(PlayerBlockLocationEvent event) {
-		return new SpongePlayerBlockLocationEvent(event);
+    public IPlayerBlockLocationEvent wrap(PlayerBlockLocationEvent event) {
+        return new SpongePlayerBlockLocationEvent(event);
 	}
 
 	public ICommandSender wrap(CommandSource commandSender) {

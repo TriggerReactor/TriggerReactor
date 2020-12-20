@@ -3,38 +3,26 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
-import java.io.File;
 import java.util.Map;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
-    private final AbstractRepeatingTriggerManager.ThrowableHandler throwableHandler = new AbstractRepeatingTriggerManager.ThrowableHandler() {
-        @Override
-        public void onFail(Throwable throwable) {
-            throwable.printStackTrace();
-            TriggerReactorCore.getInstance().getLogger()
-                    .warning("Repeating Trigger [" + triggerName + "] encountered an error!");
-            TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
-            TriggerReactorCore.getInstance().getLogger()
-                    .warning("If you are an administrator, see console for more details.");
-        }
-    };
-
     private long interval = 1000L;
     private boolean autoStart = false;
     Map<String, Object> vars;
 
-    public RepeatingTrigger(String name, File file, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(name, file, script);
+    public RepeatingTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
 
         init();
     }
 
-    public RepeatingTrigger(String name, File file, String script, long interval)
-            throws AbstractTriggerManager.TriggerInitFailedException {
-        this(name, file, script);
-
+    public RepeatingTrigger(TriggerInfo info, String script, long interval) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(info, script);
         this.interval = interval;
+
+        init();
     }
 
     /**
@@ -75,7 +63,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @Override
     public RepeatingTrigger clone() {
         try {
-            return new RepeatingTrigger(this.triggerName, file, this.getScript(), interval);
+            return new RepeatingTrigger(info, script, interval);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }
@@ -142,4 +130,15 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
     }
 
+    private final AbstractRepeatingTriggerManager.ThrowableHandler throwableHandler = new AbstractRepeatingTriggerManager.ThrowableHandler() {
+        @Override
+        public void onFail(Throwable throwable) {
+            throwable.printStackTrace();
+            TriggerReactorCore.getInstance().getLogger()
+                    .warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
+            TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
+            TriggerReactorCore.getInstance().getLogger()
+                    .warning("If you are an administrator, see console for more details.");
+        }
+    };
 }

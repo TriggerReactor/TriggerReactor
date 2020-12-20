@@ -1,0 +1,18 @@
+package io.github.wysohn.triggerreactor.core.config.serialize;
+
+import io.github.wysohn.gsoncopy.*;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
+
+import java.lang.reflect.Type;
+
+public class SimpleChunkLocationSerializer implements Serializer<SimpleChunkLocation> {
+    @Override
+    public SimpleChunkLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+        return SimpleChunkLocation.valueOf(json.getAsString());
+    }
+
+    @Override
+    public JsonElement serialize(SimpleChunkLocation src, Type typeOfSrc, JsonSerializationContext context) {
+        return new JsonPrimitive(src.toString());
+    }
+}

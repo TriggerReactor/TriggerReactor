@@ -16,8 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.AbstractVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -38,6 +39,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 public class TestInterpreter {
     @Test
@@ -112,7 +117,7 @@ public class TestInterpreter {
     public void testMethodWithEnumParameter() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
-                + "{\"temp2\"} = temp.testEnumMethod(\"Something\");"
+                + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");"
                 + "{\"temp3\"} = random(0, 10.0);";
 
         Lexer lexer = new Lexer(text, charset);
@@ -124,6 +129,7 @@ public class TestInterpreter {
         HashMap<String, Object> vars = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
         vars.put("temp", new TheTest());
+        vars.put("temp2", new TheTest2());
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -134,8 +140,10 @@ public class TestInterpreter {
 
         interpreter.startWithContext(null);
 
-        Assert.assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
-        Assert.assertEquals("Something", gvars.get("temp2"));
+        // the only method matching is the one with enum parameter. Expect it to be converted
+        assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
+        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher priority.
+        assertEquals("Something", gvars.get("temp2"));
     }
 
     @Test
@@ -182,7 +190,7 @@ public class TestInterpreter {
 
         interpreter.startWithContext(null);
 
-        Assert.assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
+        assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
     }
 
     @Test
@@ -207,10 +215,10 @@ public class TestInterpreter {
                                    Object... args) {
 
                 Object[] arr = (Object[]) args[0];
-                Assert.assertEquals("beh0.82", arr[0]);
-                Assert.assertEquals("0.82beh", arr[1]);
-                Assert.assertEquals("beh11", arr[2]);
-                Assert.assertEquals("beh2", arr[3]);
+                assertEquals("beh0.82", arr[0]);
+                assertEquals("0.82beh", arr[1]);
+                assertEquals("beh11", arr[2]);
+                assertEquals("beh2", arr[3]);
                 return null;
             }
         });
@@ -242,7 +250,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals(12.54, args[0]);
+                assertEquals(12.54, args[0]);
                 return null;
             }
         });
@@ -255,7 +263,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
 
         Assert.assertTrue(map.containsKey("someplayername.something"));
-        Assert.assertEquals(12.54, map.get("someplayername.something"));
+        assertEquals(12.54, map.get("someplayername.something"));
     }
 
     @Test
@@ -277,7 +285,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals(12.54, args[0]);
+                assertEquals(12.54, args[0]);
                 return null;
             }
         });
@@ -290,40 +298,9 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactorCore triggerReactor = Mockito.mock(TriggerReactorCore.class);
-        AbstractVariableManager avm = new AbstractVariableManager(triggerReactor) {
-            @Override
-            public void remove(String key) {
-                Assert.fail("remove() of actual gvar was called");
-            }
-
-            @Override
-            public boolean has(String key) {
-                Assert.fail("has() of actual gvar was called");
-                return false;
-            }
-
-            @Override
-            public void put(String key, Object value) throws Exception {
-                Assert.fail("put() of actual gvar was called");
-            }
-
-            @Override
-            public Object get(String key) {
-                Assert.fail("get() of actual gvar was called");
-                return null;
-            }
-
-            @Override
-            public void reload() {
-
-            }
-
-            @Override
-            public void saveAll() {
-
-            }
-        };
+        TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
+        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, (folder, fileName) ->
+                mock(IConfigSource.class));
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setGvars(avm.getGlobalVariableAdapter());
@@ -351,7 +328,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(1, args[0]);
+                assertEquals(1, args[0]);
                 return null;
             }
         });
@@ -396,7 +373,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals("arg1, arg2", args[0]);
+                assertEquals("arg1, arg2", args[0]);
                 return null;
             }
         });
@@ -427,7 +404,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals("arg1, arg2", args[0]);
+                assertEquals("arg1, arg2", args[0]);
                 return null;
             }
         });
@@ -458,7 +435,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals(index++, args[0]);
+                assertEquals(index++, args[0]);
                 return null;
             }
         });
@@ -492,7 +469,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals(index++, args[0]);
+                assertEquals(index++, args[0]);
                 return null;
             }
         });
@@ -525,7 +502,7 @@ public class TestInterpreter {
             public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                    Object... args) {
 
-                Assert.assertEquals(index++, args[0]);
+                assertEquals(index++, args[0]);
                 return null;
             }
         });
@@ -534,6 +511,39 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
 
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIteration5() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "FOR i = 0:getPlayers().size()\n"
+                + "    #MESSAGE i\n"
+                + "ENDFOR\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyBoolean(), anyMap(), any(), anyInt())).thenReturn(null);
+        executorMap.put("MESSAGE", executor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setSelfReference(new SelfReference() {
+            public Collection<String> getPlayers(){
+                List<String> names = new ArrayList<>();
+                for(int i = 0; i < 10; i++)
+                    names.add(String.valueOf(i));
+                return names;
+            }
+        });
+
+        interpreter.startWithContext(null);
+
+        verify(executor, times(10)).execute(any(), anyBoolean(), anyMap(), any(), anyInt());
     }
 
     @Test
@@ -592,7 +602,7 @@ public class TestInterpreter {
                     @Override
                     protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                               Object... args) throws Exception {
-                        Assert.assertEquals("work", args[0]);
+                        assertEquals("work", args[0]);
                         return null;
                     }
 
@@ -602,7 +612,7 @@ public class TestInterpreter {
                     @Override
                     protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                               Object... args) throws Exception {
-                        Assert.assertEquals("work2", args[0]);
+                        assertEquals("work2", args[0]);
                         return null;
                     }
 
@@ -642,7 +652,7 @@ public class TestInterpreter {
 
         interpreter.startWithContext(null);
 
-        Assert.assertEquals(3, interpreter.getVars().get("number"));
+        assertEquals(3, interpreter.getVars().get("number"));
     }
 
     @Test
@@ -664,7 +674,7 @@ public class TestInterpreter {
 
         interpreter.startWithContext(null);
 
-        Assert.assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
+        assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
     }
 
     @Test
@@ -689,8 +699,8 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("testplayer", args[0]);
-                Assert.assertEquals("testwithargs", args[1]);
+                assertEquals("testplayer", args[0]);
+                assertEquals("testwithargs", args[1]);
                 return null;
             }
 
@@ -759,10 +769,10 @@ public class TestInterpreter {
             @Override
             public Object parse(Timings.Timing timing, Object context, Map<String, Object> vars,
                                 Object... args) throws Exception {
-                Assert.assertEquals(0, args[0]);
-                Assert.assertEquals(100.0, args[1]);
-                Assert.assertEquals(true, args[2]);
-                Assert.assertEquals("hoho", args[3]);
+                assertEquals(0, args[0]);
+                assertEquals(100.0, args[1]);
+                assertEquals(true, args[2]);
+                assertEquals("hoho", args[3]);
                 return "testwithargs";
             }
 
@@ -815,7 +825,7 @@ public class TestInterpreter {
 
         interpreter.startWithContext(null);
 
-        Assert.assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
+        assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
     }
 
     @Test
@@ -840,7 +850,7 @@ public class TestInterpreter {
         Interpreter interpreter = new Interpreter(root);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.startWithContext(null);
-        Assert.assertEquals(null, interpreter.getVars().get("a"));
+        assertEquals(null, interpreter.getVars().get("a"));
     }
 
     @Test
@@ -863,7 +873,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(-6, args[0]);
+                assertEquals(-6, args[0]);
                 return null;
             }
 
@@ -874,7 +884,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(3.0, args[0]);
+                assertEquals(3.0, args[0]);
                 return null;
             }
 
@@ -885,7 +895,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(-8, args[0]);
+                assertEquals(-8, args[0]);
                 return null;
             }
 
@@ -896,7 +906,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(-9.0, args[0]);
+                assertEquals(-9.0, args[0]);
                 return null;
             }
 
@@ -944,7 +954,7 @@ public class TestInterpreter {
                                       Object... args)
 
                     throws Exception {
-                Assert.assertEquals("pass", args[0]);
+                assertEquals("pass", args[0]);
                 set.add("true");
                 return null;
             }
@@ -955,7 +965,7 @@ public class TestInterpreter {
                                       Object... args)
 
                     throws Exception {
-                Assert.assertEquals("fail", args[0]);
+                assertEquals("fail", args[0]);
                 set.add("false");
                 return null;
             }
@@ -991,7 +1001,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("pass", args[0]);
+                assertEquals("pass", args[0]);
                 return null;
             }
 
@@ -1024,7 +1034,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("pass", args[0]);
+                assertEquals("pass", args[0]);
                 return null;
             }
 
@@ -1057,7 +1067,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("pass", args[0]);
+                assertEquals("pass", args[0]);
                 return null;
             }
 
@@ -1092,7 +1102,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("pass", args[0]);
+                assertEquals("pass", args[0]);
                 return null;
             }
 
@@ -1127,7 +1137,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("pass", args[0]);
+                assertEquals("pass", args[0]);
                 return null;
             }
 
@@ -1183,7 +1193,7 @@ public class TestInterpreter {
 
             interpreter.startWithContext(null);
 
-            Assert.assertEquals(testMap.get(x), localVars.get("result"));
+            assertEquals(testMap.get(x), localVars.get("result"));
         }
     }
 
@@ -1213,7 +1223,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(1, args[0]);
+                assertEquals(1, args[0]);
                 return null;
             }
 
@@ -1255,7 +1265,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(1, args[0]);
+                assertEquals(1, args[0]);
                 return null;
             }
 
@@ -1296,7 +1306,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(2, args[0]);
+                assertEquals(2, args[0]);
                 return null;
             }
 
@@ -1330,7 +1340,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(TheTest.class, args[0]);
+                assertEquals(TheTest.class, args[0]);
                 return null;
             }
 
@@ -1341,7 +1351,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("static", args[0]);
+                assertEquals("static", args[0]);
                 return null;
             }
 
@@ -1352,7 +1362,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("local", args[0]);
+                assertEquals("local", args[0]);
                 return null;
             }
 
@@ -1363,7 +1373,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("staticField", args[0]);
+                assertEquals("staticField", args[0]);
                 return null;
             }
 
@@ -1374,7 +1384,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(TestEnum.IMTEST, args[0]);
+                assertEquals(TestEnum.IMTEST, args[0]);
                 return null;
             }
 
@@ -1407,8 +1417,8 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(true, args[0]);
-                Assert.assertEquals(false, args[1]);
+                assertEquals(true, args[0]);
+                assertEquals(false, args[1]);
                 return null;
             }
 
@@ -1446,7 +1456,7 @@ public class TestInterpreter {
 
         interpreter.startWithContext(null);
 
-        Assert.assertEquals(true, gvars.get("temp"));
+        assertEquals(true, gvars.get("temp"));
     }
 
     @Test
@@ -1464,7 +1474,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals("abcd\nABCD", args[0]);
+                assertEquals("abcd\nABCD", args[0]);
                 return null;
             }
         });
@@ -1489,7 +1499,7 @@ public class TestInterpreter {
                                       Object... args)
 
                     throws Exception {
-                Assert.assertEquals("abcd\rABCD", args[0]);
+                assertEquals("abcd\rABCD", args[0]);
                 return null;
             }
         });
@@ -1560,7 +1570,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(2, args[0]);
+                assertEquals(2, args[0]);
                 return null;
             }
         });
@@ -1569,7 +1579,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(2, args[0]);
+                assertEquals(2, args[0]);
                 return null;
             }
         });
@@ -1595,7 +1605,7 @@ public class TestInterpreter {
         Node root = parser.parse();
 
         Map<String, Executor> executorMap = new HashMap<>();
-        Executor mockExecutor = Mockito.mock(Executor.class);
+        Executor mockExecutor = mock(Executor.class);
         Mockito.when(mockExecutor.execute(Mockito.any(), Mockito.anyBoolean(), Mockito.anyMap(),
                 Mockito.any(), ArgumentMatchers.any())).thenReturn(null);
         executorMap.put("TEST", mockExecutor);
@@ -1640,8 +1650,8 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(2, args[0]);
-                Assert.assertEquals(5, args[1]);
+                assertEquals(2, args[0]);
+                assertEquals(5, args[1]);
                 return null;
             }
         });
@@ -1650,8 +1660,8 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(2, args[0]);
-                Assert.assertEquals(5, args[1]);
+                assertEquals(2, args[0]);
+                assertEquals(5, args[1]);
                 return null;
             }
         });
@@ -1690,7 +1700,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(9, args[0]);
+                assertEquals(9, args[0]);
                 return null;
             }
         });
@@ -1699,7 +1709,7 @@ public class TestInterpreter {
             protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
-                Assert.assertEquals(9, args[0]);
+                assertEquals(9, args[0]);
                 return null;
             }
         });
@@ -1896,12 +1906,12 @@ public class TestInterpreter {
                 set.add("test");
 
                 Object obj = args[0];
-                Assert.assertEquals(ConstTest.class, obj.getClass());
+                assertEquals(ConstTest.class, obj.getClass());
 
                 ConstTest test = (ConstTest) obj;
-                Assert.assertEquals(0, test.val1);
-                Assert.assertEquals(0.0, test.val2, 0.000001);
-                Assert.assertEquals("", test.val3);
+                assertEquals(0, test.val1);
+                assertEquals(0.0, test.val2, 0.000001);
+                assertEquals("", test.val3);
 
                 return null;
             }
@@ -1938,12 +1948,12 @@ public class TestInterpreter {
                 set.add("test");
 
                 Object obj = args[0];
-                Assert.assertEquals(ConstTest.class, obj.getClass());
+                assertEquals(ConstTest.class, obj.getClass());
 
                 ConstTest test = (ConstTest) obj;
-                Assert.assertEquals(1, test.val1);
-                Assert.assertEquals(0.0, test.val2, 0.000001);
-                Assert.assertEquals("", test.val3);
+                assertEquals(1, test.val1);
+                assertEquals(0.0, test.val2, 0.000001);
+                assertEquals("", test.val3);
 
                 return null;
             }
@@ -1980,12 +1990,12 @@ public class TestInterpreter {
                 set.add("test");
 
                 Object obj = args[0];
-                Assert.assertEquals(ConstTest.class, obj.getClass());
+                assertEquals(ConstTest.class, obj.getClass());
 
                 ConstTest test = (ConstTest) obj;
-                Assert.assertEquals(2, test.val1);
-                Assert.assertEquals(5.0, test.val2, 0.000001);
-                Assert.assertEquals("hoho", test.val3);
+                assertEquals(2, test.val1);
+                assertEquals(5.0, test.val2, 0.000001);
+                assertEquals("hoho", test.val3);
 
                 return null;
             }
@@ -2022,12 +2032,12 @@ public class TestInterpreter {
                 set.add("test");
 
                 Object obj = args[0];
-                Assert.assertEquals(ConstTest.class, obj.getClass());
+                assertEquals(ConstTest.class, obj.getClass());
 
                 ConstTest test = (ConstTest) obj;
-                Assert.assertEquals(1, test.val1);
-                Assert.assertEquals(2.0, test.val2, 0.000001);
-                Assert.assertEquals("[1, 2, 3, 4, 5]", test.val3);
+                assertEquals(1, test.val1);
+                assertEquals(2.0, test.val2, 0.000001);
+                assertEquals("[1, 2, 3, 4, 5]", test.val3);
 
                 return null;
             }
@@ -2039,6 +2049,41 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
 
         Assert.assertTrue(set.contains("test"));
+    }
+
+    @Test
+    public void testConstructorCustom() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "IMPORT " + Vector.class.getName() + ";"
+                + "v = Vector();"
+                + "v2 = Vector(4,4,2);"
+                + "v3 = Vector(4.2,4.4,2.3);"
+                + "v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = mock(Executor.class);
+        executorMap.put("TEST", mockExecutor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setSelfReference(new SelfReference() {
+            public float toFloat(Number number) {
+                return number.floatValue();
+            }
+        });
+
+        interpreter.setExecutorMap(executorMap);
+        interpreter.startWithContext(null);
+
+        Map<String, Object> vars = interpreter.getVars();
+
+        assertEquals(new Vector(), vars.get("v"));
+        assertEquals(new Vector(4, 4, 2), vars.get("v2"));
+        assertEquals(new Vector(4.2, 4.4, 2.3), vars.get("v3"));
+        assertEquals(new Vector(3.2f, 4.3f, 5.4f), vars.get("v4"));
     }
 
     @Test
@@ -2065,7 +2110,7 @@ public class TestInterpreter {
                     throws Exception {
                 set.add("test");
 
-                Assert.assertEquals(TestEnum.IMTEST, args[0]);
+                assertEquals(TestEnum.IMTEST, args[0]);
 
                 return null;
             }
@@ -2083,6 +2128,29 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
 
         Assert.assertTrue(set.contains("test"));
+    }
+
+    @Test
+    public void testNestedAccessor() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "IMPORT java.lang.Long;" +
+                "id = Long.valueOf(\"123456789123456789\").longValue()";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setSelfReference(new SelfReference() {
+            @SuppressWarnings("unused")
+            public Object array(int size) {
+                return new Object[size];
+            }
+        });
+
+        interpreter.startWithContext(null);
+        assertEquals(123456789123456789L, interpreter.getVars().get("id"));
     }
 
     public static class TheTest {
@@ -2106,12 +2174,18 @@ public class TestInterpreter {
             return val;
         }
 
+        public static String staticTest() {
+            return "static";
+        }
+    }
+
+    public static class TheTest2 {
         public String testEnumMethod(String val) {
             return val;
         }
 
-        public static String staticTest() {
-            return "static";
+        public TestEnum testEnumMethod(TestEnum val) {
+            return val;
         }
     }
 
@@ -2212,5 +2286,45 @@ public class TestInterpreter {
             return false;
         }
 
+    }
+
+    public static class Vector {
+        final int key;
+
+        public Vector(float x, float y, float z) {
+            key = 2;
+        }
+
+        public Vector(double x, double y, double z) {
+            key = 1;
+        }
+
+        public Vector(int x, int y, int z) {
+            key = 3;
+        }
+
+        public Vector() {
+            key = 0;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Vector vector = (Vector) o;
+            return key == vector.key;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(key);
+        }
+
+        @Override
+        public String toString() {
+            return "Vector{" +
+                    "key=" + key +
+                    '}';
+        }
     }
 }
