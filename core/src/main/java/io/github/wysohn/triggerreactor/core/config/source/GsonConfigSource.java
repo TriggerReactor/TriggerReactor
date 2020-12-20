@@ -74,6 +74,7 @@ public class GsonConfigSource implements IConfigSource {
      * @param writerFactory
      * @deprecated for test. Do not use it directly unless necessary.
      */
+    @Deprecated
     public GsonConfigSource(File file, Function<File, Reader> readerFactory, Function<File, Writer> writerFactory) {
         this.file = file;
         this.readerFactory = readerFactory;
