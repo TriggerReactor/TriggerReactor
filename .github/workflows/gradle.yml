@@ -1,9 +1,9 @@
 name: Java CI
 
-on:
-  push:
-    tags: 
-      - '*-Release'
+on: push
+#   push:
+#     tags: 
+#       - '*-Release'
 
 jobs:
   build:
@@ -25,12 +25,21 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build javadoc
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v1-release
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/libs/TriggerReactor-*.jar
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+      run: ./gradlew javadoc
+#      run: ./gradlew build javadoc
+#     - name: Upload binaries to release
+#       uses: svenstaro/upload-release-action@v1-release
+#       with:
+#         repo_token: ${{ secrets.GITHUB_TOKEN }}
+#         file: build/libs/TriggerReactor-*.jar
+#         tag: ${{ github.ref }}
+#         overwrite: true
+#         file_glob: true
+    - name: update javadoc
+      run: |
+        cd docs/javadocs/
+        git init
+        git add *
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
+        git commit -m auto update from workflow
+        git push origin master
