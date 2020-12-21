@@ -39,6 +39,8 @@ jobs:
       run: |
         mkdir build/docs/tmp
         cd build/docs/tmp
+        git config --global user.email "wysohn2002@naver.com"
+        git config --global user.name "wysohn"
         git init
         git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
         git config pull.rebase true   # rebase
