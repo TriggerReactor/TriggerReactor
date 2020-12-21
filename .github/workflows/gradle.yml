@@ -40,6 +40,6 @@ jobs:
         cd build/docs/javadoc/
         git init
         git add *
-        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
+        git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
         git commit -m auto update from workflow
         git push origin master
