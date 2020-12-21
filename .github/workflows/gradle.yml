@@ -37,6 +37,9 @@ jobs:
 #         file_glob: true
     - name: update javadoc
       run: |
+        ls build
+        ls build/docs
+        ls build/docs/javadocs
         cd build/docs/javadocs/
         git init
         git add *
