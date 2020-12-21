@@ -40,6 +40,7 @@ jobs:
         cd build/docs/javadoc/
         git init
         git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
+        git config pull.rebase true   # rebase
         git pull origin master
         git add *
         git commit -m auto update from workflow
