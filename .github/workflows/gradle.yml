@@ -44,7 +44,7 @@ jobs:
         git config pull.rebase true   # rebase
         git pull origin master
         
-        cp ../javadoc/** ./
+        cp -rf ../javadoc/* ./
         git add *
         git commit -m "auto update from workflow"
         git push origin master
