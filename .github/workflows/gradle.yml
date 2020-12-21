@@ -37,10 +37,7 @@ jobs:
 #         file_glob: true
     - name: update javadoc
       run: |
-        ls build
-        ls build/docs
-        ls build/docs/javadocs
-        cd build/docs/javadocs/
+        cd build/docs/javadoc/
         git init
         git add *
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
