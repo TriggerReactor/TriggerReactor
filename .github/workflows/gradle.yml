@@ -37,11 +37,14 @@ jobs:
 #         file_glob: true
     - name: update javadoc
       run: |
-        cd build/docs/javadoc/
+        mkdir build/docs/tmp
+        cd build/docs/tmp
         git init
-        git add *
         git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/TriggerReactor/TriggerReactor.github.io
         git config pull.rebase true   # rebase
         git pull origin master
-        git commit -m auto update from workflow
+        
+        cp ../javadoc/** ./
+        git add *
+        git commit -m "auto update from workflow"
         git push origin master
