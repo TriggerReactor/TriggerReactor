@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.ICommandMapExtractor;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
