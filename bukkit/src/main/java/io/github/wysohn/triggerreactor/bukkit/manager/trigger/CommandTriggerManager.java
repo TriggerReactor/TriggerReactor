@@ -196,13 +196,14 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 
             CommandMap scm = (CommandMap) f.get(server);
 
-            Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
-            return (Map<String, Command>) knownCommands.invoke(scm);
-        } catch (Exception ex) {
-            if (core.isDebugging())
-                ex.printStackTrace();
+            Field f2 = scm.getClass().getDeclaredField("knownCommands");
+            f2.setAccessible(true);
 
-            core.getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old" +
+            return (Map<String, Command>) f2.get(scm);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+
+            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very old" +
                     " version of Bukkit. Please report this to TR team, so we can work on it.");
             core.getLogger().warning("Use /trg debug to see more details.");
             return null;
