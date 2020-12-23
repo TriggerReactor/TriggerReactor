@@ -5,6 +5,8 @@ import org.bukkit.command.Command;
 
 import java.util.Map;
 
-public interface ICommandMapExtractor {
+public interface ICommandMapHandler {
     Map<String, Command> getCommandMap(TriggerReactorCore plugin);
+
+    void synchronizeCommandMap();
 }

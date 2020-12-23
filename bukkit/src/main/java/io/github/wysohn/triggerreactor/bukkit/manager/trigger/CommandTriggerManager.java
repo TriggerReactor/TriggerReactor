@@ -21,9 +21,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
@@ -31,8 +29,6 @@ import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,12 +36,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
+    private final ICommandMapHandler commandMapHandler;
     private final Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
 
-    public CommandTriggerManager(TriggerReactorCore plugin, ICommandMapExtractor commandMapExtractor) {
+    public CommandTriggerManager(TriggerReactorCore plugin, ICommandMapHandler commandMapHandler) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
-        commandMap = commandMapExtractor.getCommandMap(plugin);
+        this.commandMapHandler = commandMapHandler;
+        this.commandMap = commandMapHandler.getCommandMap(plugin);
     }
 
     @Override
@@ -114,34 +112,9 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         return true;
     }
 
-    private Method syncMethod = null;
-    private boolean notFound = false;
-
     @Override
     protected void synchronizeCommandMap() {
-        if (notFound) // in case of the syncCommands method doesn't exist, just skip it
-            return; // command still works without synchronization anyway
-
-        Server server = Bukkit.getServer();
-        if (syncMethod == null) {
-            try {
-                syncMethod = server.getClass().getMethod("syncCommands");
-            } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-
-                plugin.getLogger().warning("Couldn't find syncCommands(). This may indicate that you are using very very old" +
-                        " version of Bukkit. Please report this to TR team, so we can work on it.");
-                plugin.getLogger().warning("Use /trg debug to see more details.");
-                notFound = true;
-                return;
-            }
-        }
-
-        try {
-            syncMethod.invoke(server);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        commandMapHandler.synchronizeCommandMap();
     }
 //    @EventHandler(priority = EventPriority.HIGHEST)
 //    public void onCommand(PlayerCommandPreprocessEvent e) {

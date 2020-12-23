@@ -33,6 +33,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -81,6 +82,37 @@ public class TriggerReactor extends AbstractJavaPlugin {
                     " version of Bukkit. Please report this to TR team, so we can work on it.");
             core.getLogger().warning("Use /trg debug to see more details.");
             return null;
+        }
+    }
+
+    private Method syncMethod = null;
+    private boolean notFound = false;
+
+    @Override
+    public void synchronizeCommandMap() {
+        if (notFound) // in case of the syncCommands method doesn't exist, just skip it
+            return; // command still works without synchronization anyway
+
+        Server server = Bukkit.getServer();
+        if (syncMethod == null) {
+            try {
+                syncMethod = server.getClass().getMethod("syncCommands");
+            } catch (NoSuchMethodException e) {
+                if (isDebugging())
+                    e.printStackTrace();
+
+                getLogger().warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer" +
+                        " may not work with this error. Report to us if you believe this version has to support it.");
+                getLogger().warning("Use /trg debug to see more details.");
+                notFound = true;
+                return;
+            }
+        }
+
+        try {
+            syncMethod.invoke(server);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -67,4 +67,9 @@ public class TriggerReactor extends AbstractJavaPlugin {
             return null;
         }
     }
+
+    @Override
+    public void synchronizeCommandMap() {
+        // do nothing. Not really necessary atm for legacy versions
+    }
 }
