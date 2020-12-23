@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.ICommandMapExtractor;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
@@ -25,14 +26,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -45,9 +44,9 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
     private final Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
 
-    public CommandTriggerManager(TriggerReactorCore plugin) {
+    public CommandTriggerManager(TriggerReactorCore plugin, ICommandMapExtractor commandMapExtractor) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
-        commandMap = getCommandMap(plugin);
+        commandMap = commandMapExtractor.getCommandMap(plugin);
     }
 
     @Override
@@ -185,29 +184,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         varMap.put("argslength", args.length);
 
         trigger.activate(context, varMap);
-    }
-
-    private static Map<String, Command> getCommandMap(TriggerReactorCore core) {
-        try {
-            Server server = Bukkit.getServer();
-
-            Field f = server.getClass().getDeclaredField("commandMap");
-            f.setAccessible(true);
-
-            CommandMap scm = (CommandMap) f.get(server);
-
-            Field f2 = scm.getClass().getDeclaredField("knownCommands");
-            f2.setAccessible(true);
-
-            return (Map<String, Command>) f2.get(scm);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-
-            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very old" +
-                    " version of Bukkit. Please report this to TR team, so we can work on it.");
-            core.getLogger().warning("Use /trg debug to see more details.");
-            return null;
-        }
     }
 
     private static PluginCommand createCommand(TriggerReactorCore core, String commandName) {
