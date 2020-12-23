@@ -230,7 +230,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
-        cmdManager = new CommandTriggerManager(this);
+        cmdManager = new CommandTriggerManager(this, bukkit);
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this);
         customManager = new CustomTriggerManager(this);

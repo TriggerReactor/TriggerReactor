@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
@@ -87,7 +88,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public abstract class AbstractJavaPlugin extends JavaPlugin {
+public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
     public final BukkitTriggerReactorCore core;
 
     private BungeeCordHelper bungeeHelper;

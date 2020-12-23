@@ -25,7 +25,17 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placehol
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandMap;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 public class TriggerReactor extends AbstractJavaPlugin {
     private SelfReference selfReference;
@@ -50,5 +60,59 @@ public class TriggerReactor extends AbstractJavaPlugin {
     @Override
     public SelfReference getSelfReference() {
         return selfReference;
+    }
+
+    @Override
+    public Map<String, Command> getCommandMap(TriggerReactorCore plugin) {
+        try {
+            Server server = Bukkit.getServer();
+
+            Field f = server.getClass().getDeclaredField("commandMap");
+            f.setAccessible(true);
+
+            CommandMap scm = (CommandMap) f.get(server);
+
+            Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
+            return (Map<String, Command>) knownCommands.invoke(scm);
+        } catch (Exception ex) {
+            if (core.isDebugging())
+                ex.printStackTrace();
+
+            core.getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old" +
+                    " version of Bukkit. Please report this to TR team, so we can work on it.");
+            core.getLogger().warning("Use /trg debug to see more details.");
+            return null;
+        }
+    }
+
+    private Method syncMethod = null;
+    private boolean notFound = false;
+
+    @Override
+    public void synchronizeCommandMap() {
+        if (notFound) // in case of the syncCommands method doesn't exist, just skip it
+            return; // command still works without synchronization anyway
+
+        Server server = Bukkit.getServer();
+        if (syncMethod == null) {
+            try {
+                syncMethod = server.getClass().getMethod("syncCommands");
+            } catch (NoSuchMethodException e) {
+                if (isDebugging())
+                    e.printStackTrace();
+
+                getLogger().warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer" +
+                        " may not work with this error. Report to us if you believe this version has to support it.");
+                getLogger().warning("Use /trg debug to see more details.");
+                notFound = true;
+                return;
+            }
+        }
+
+        try {
+            syncMethod.invoke(server);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 }
