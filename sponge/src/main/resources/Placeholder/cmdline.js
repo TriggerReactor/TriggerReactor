@@ -24,7 +24,7 @@ validation = {
 }
 
 function cmdline(args) {
-    var message = event.getCommand().substring(1); //first character is slash
+    var message = event.getCommand(); //first character is slash
 
     if (overload == 0) {
         return message;
