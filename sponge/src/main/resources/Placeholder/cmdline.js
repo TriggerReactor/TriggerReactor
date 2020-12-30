@@ -24,36 +24,26 @@ validation = {
 }
 
 function cmdline(args) {
-    var message = event.getCommand(); //first character is slash
+    var cmd = event.getCommand();
+    var args = event.getArguments().split(" ");
 
+    var temp = cmd;
     if (overload == 0) {
-        return message;
+        // do nothing
     } else if (overload == 1) {
-        var split = message.split(" ");
-        return merge(split, args[0], split.length - 1);
+        for(int i = args[0]; i < args.length; i++){
+            temp += " " + args[i];
+        }
     } else if (overload == 2) {
         var split = message.split(" ");
         if (args[0] > args[1])
             throw new Error("fromIndex cannot be larger than toIndex!");
 
-        return merge(split, args[0], args[1]);
-    }
-}
-
-function merge(split, indexFrom, indexTo) {
-    indexFrom = Math.max(0, indexFrom)
-    indexTo = Math.min(split.length - 1, indexTo)
-
-    if (indexTo - indexFrom < 1) {
-        if (indexFrom < split.length)
-            return split[indexFrom];
-        else
-            return null;
-    }
-
-    var temp = split[indexFrom];
-    for (var i = indexFrom + 1; i <= indexTo; i++) {
-        temp += " " + split[i];
+        for(int i = args[0]; i <= args[1]; i++){
+            temp += " " + args[i];
+        }
+    } else {
+        throw new Error("Invalid argument size. Usage) $cmdline:[from (inclusive)]:[to (inclusive)]");
     }
 
     return temp;
