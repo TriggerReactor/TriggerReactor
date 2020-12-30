@@ -31,7 +31,7 @@ function cmdline(args) {
     if (overload == 0) {
         // do nothing
     } else if (overload == 1) {
-        for(int i = args[0]; i < args.length; i++){
+        for(var i = args[0]; i < args.length; i++){
             temp += " " + args[i];
         }
     } else if (overload == 2) {
@@ -39,7 +39,7 @@ function cmdline(args) {
         if (args[0] > args[1])
             throw new Error("fromIndex cannot be larger than toIndex!");
 
-        for(int i = args[0]; i <= args[1]; i++){
+        for(var i = args[0]; i <= args[1]; i++){
             temp += " " + args[i];
         }
     } else {
