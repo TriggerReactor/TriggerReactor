@@ -143,6 +143,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
+    public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
+
     private void showHelp(ICommandSender sender) {
         showHelp(sender, 1);
     }

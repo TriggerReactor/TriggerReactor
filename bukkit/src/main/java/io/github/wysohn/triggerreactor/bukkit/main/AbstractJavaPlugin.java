@@ -69,6 +69,7 @@ import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -536,6 +537,23 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
             return new CommandSenderEvent((CommandSender) unwrapped);
         } else {
             throw new RuntimeException("Cannot create empty PlayerEvent for " + sender);
+        }
+    }
+
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        Object unwrapped = sender.get();
+
+        StringBuilder builder = new StringBuilder("/");
+        builder.append(label);
+        for (String arg : args) {
+            builder.append(' ');
+            builder.append(arg);
+        }
+
+        if (unwrapped instanceof Player) {
+            return new PlayerCommandPreprocessEvent((Player) unwrapped, builder.toString());
+        } else {
+            throw new RuntimeException("Cannot create empty PlayerCommandPreprocessEvent for " + sender);
         }
     }
 
