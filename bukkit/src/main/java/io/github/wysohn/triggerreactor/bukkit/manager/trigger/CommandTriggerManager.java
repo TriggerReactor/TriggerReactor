@@ -74,7 +74,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             }
 
             ICommandSender commandSender = plugin.getPlayer(sender.getName());
-            execute(plugin.createEmptyPlayerEvent(commandSender), (Player) sender, triggerName, args, trigger);
+            execute(plugin.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
             return true;
         });
 

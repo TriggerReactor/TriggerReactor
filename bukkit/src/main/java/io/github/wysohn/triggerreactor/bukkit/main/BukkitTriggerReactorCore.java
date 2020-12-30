@@ -415,6 +415,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        return bukkit.createPlayerCommandEvent(sender, label, args);
+    }
+
+    @Override
     protected void setItemTitle(IItemStack iS, String title) {
         bukkit.setItemTitle(iS, title);
     }
