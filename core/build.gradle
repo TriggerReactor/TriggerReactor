@@ -5,5 +5,5 @@ dependencies {
 
 test {
     // these tests should be handled in sub-projects
-    exclude 'io/github/wysohn/triggerreactor/core/manager/trigger/**'
+    exclude 'io/github/wysohn/triggerreactor/core/manager/trigger/share/**'
 }
