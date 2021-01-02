@@ -32,7 +32,7 @@ public class NamedTriggerInfo extends TriggerInfo {
 
     /**
      * get name which includes the path. For example, if the triggerName of this NamedTrigger is `abc` and it's in
-     * the folder `some/folder/`, then the result will be `some:folder:abc`
+     * the folder `../NamedTrigger/some/folder/`, then the result will be `some:folder:abc`
      *
      * @return the named to be used for NamedTrigger convention
      */
