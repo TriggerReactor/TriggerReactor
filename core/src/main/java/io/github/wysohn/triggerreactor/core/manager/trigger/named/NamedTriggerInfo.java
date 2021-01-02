@@ -5,6 +5,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public class NamedTriggerInfo extends TriggerInfo {
     private final File folder;
@@ -26,7 +27,7 @@ public class NamedTriggerInfo extends TriggerInfo {
 
     @Override
     public String getTriggerName() {
-        return toConventionalName();
+        return toConventionalName(folder, getSourceCodeFile());
     }
 
     /**
@@ -35,11 +36,13 @@ public class NamedTriggerInfo extends TriggerInfo {
      *
      * @return the named to be used for NamedTrigger convention
      */
-    public String toConventionalName() {
+    public static String toConventionalName(File folder, File sourceCodeFile) {
         Path folderPath = folder.toPath();
-        Path filePath = getSourceCodeFile().toPath();
+        Path filePath = sourceCodeFile.toPath();
         Path relative = folderPath.relativize(filePath);
 
-        return relative.toString().replaceAll(File.separator, ":").replace(".trg", "");
+        return relative.toString()
+                .replaceAll(Pattern.quote(File.separator), ":")
+                .replace(".trg", "");
     }
 }
