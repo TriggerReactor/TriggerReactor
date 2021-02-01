@@ -659,4 +659,45 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return the ItemStack head
      */
     public abstract ItemStack headForValue(String textureValue);
+
+    /**
+     * Create a new SerializableLocation, which implements ConfigurationSerializable
+     * <p>
+     * Example) /trg run serialized = serializeLocation("wildw", 2, 13, 44)
+     * </p>
+     *
+     * @param world The world instance in which this location resides
+     * @param x The x-coordinate of this location
+     * @param y The y-coordinate of this location
+     * @param z The z-coordinate of this location
+     * @return The SerializableLocation value
+     */
+    public abstract Object serializeLocation(World world, double x, double y, double z);
+
+    /**
+     * Create a new SerializableLocation, which implements ConfigurationSerializable
+     * <p>
+     * Example) /trg run serialized = serializeLocation("wildw", 2, 13, 44.6, 13)
+     * </p>
+     *
+     * @param world The world instance in which this location resides
+     * @param x The x-coordinate of this location
+     * @param y The y-coordinate of this location
+     * @param z The z-coordinate of this location
+     * @param yaw The absolute rotation on the x-plane, in degrees
+     * @param pitch The absolute rotation on the y-plane, in degrees
+     * @return The SerializableLocation value
+     */
+    public abstract Object serializeLocation(World world, double x, double y, double z, double yaw, double pitch);
+
+    /**
+     * Create a new SerializableLocation, which implements ConfigurationSerializable
+     * <p>
+     * Example) /trg run serialized = serializeLocation("wildw", 2, 13, 44.6, 13)
+     * </p>
+     *
+     * @param loc The Location value
+     * @return The SerializableLocation value
+     */
+    public abstract Object serializeLocation(Location loc);
 }

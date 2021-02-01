@@ -17,11 +17,10 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -128,6 +127,33 @@ public class CommonFunctions extends AbstractCommonFunctions {
         }
         head.setItemMeta(SM);
         return head;
+    }
+
+    /**
+     * @deprecated Location itself implements ConfigurationSerializable on latest versions.
+     */
+    @Deprecated
+    @Override
+    public SerializableLocation serializeLocation(World world, double x, double y, double z){
+        return new SerializableLocation(new Location(world, x, y, z));
+    }
+
+    /**
+     * @deprecated Location itself implements @ConfigurationSerializable on latest versions.
+     */
+    @Deprecated
+    @Override
+    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch){
+        return new SerializableLocation(new Location(world, x, y, z, toFloat(yaw), toFloat(pitch)));
+    }
+
+    /**
+     * @deprecated Location itself implements ConfigurationSerializable on latest versions.
+     */
+    @Deprecated
+    @Override
+    public SerializableLocation serializeLocation(Location loc){
+        return new SerializableLocation(loc);
     }
 //Eventually, this has to be created either as Executor or Placeholder
 //    public BossBar makeBossBar(String title, String color, String style) {
