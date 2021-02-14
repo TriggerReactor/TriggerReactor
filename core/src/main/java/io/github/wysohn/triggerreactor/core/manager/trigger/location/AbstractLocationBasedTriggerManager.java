@@ -101,7 +101,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
 
         locationMap.put(sloc, trigger);
-        put(scloc.toString(), trigger);
+        put(sloc.toString(), trigger);
 
         plugin.saveAsynchronously(this);
     }
