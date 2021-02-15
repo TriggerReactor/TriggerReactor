@@ -33,44 +33,39 @@ public class VariablePlaceholder implements IVariablePlaceholder {
         if (identifier.toLowerCase().equals("version")) {
             return plugin.getVersion();
         }
-        //%tr_?<variable name>% - temporary global variable
+
+        Map<Object, Object> adapter = plugin.getVariableManager().getGlobalVariableAdapter();
+
+        Object value = null;
+
         if (identifier.startsWith("?")) {
+            //%tr_?<variable name>% - temporary global variable
             String variableName = identifier.substring(1).replace('_', '.');
             TemporaryGlobalVariableKey tempKey = new TemporaryGlobalVariableKey(variableName);
-            Map<Object, Object> adapter = plugin.getVariableManager().getGlobalVariableAdapter();
-            Object value = adapter.get(tempKey);
-            if (value == null) {
-                return "";
-            }
-            if (value instanceof Number) {
-                value = String.valueOf(value);
-            }
 
-            if (!(value instanceof String)) {
-                return "";
-            } else {
-                String output = (String) value;
-                return output;
-            }
-        }
-
-        // %tr_<variable name>%
-        //if(identifier.contains("")){return "";}
-        String variableName = identifier.replace('_', '.');
-        GlobalVariableManager vm = plugin.getVariableManager();
-        Object value = vm.get(variableName);
-        if (value == null) {
-            return "";
-        }
-        if (value instanceof Number) {
-            value = String.valueOf(value);
-        }
-
-        if (!(value instanceof String)) {
-            return "";
+            value = adapter.get(tempKey);
         } else {
-            String output = (String) value;
-            return output;
+            // %tr_<variable name>%
+            //if(identifier.contains("")){return "";}
+            String variableName = identifier.replace('_', '.');
+            GlobalVariableManager vm = plugin.getVariableManager();
+            value = vm.get(variableName);
         }
+
+//        if (value == null) {
+//            return "";
+//        }
+//        if (value instanceof Number) {
+//            value = String.valueOf(value);
+//        }
+//
+//        if (!(value instanceof String)) {
+//            return "";
+//        } else {
+//            String output = (String) value;
+//            return output;
+//        }
+
+        return String.valueOf(value == null ? "" : value);
     }
 }
