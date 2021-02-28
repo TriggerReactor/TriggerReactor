@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
@@ -27,7 +27,6 @@ import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,17 +36,17 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     protected final File folder;
     protected final ITriggerLoader<T> loader;
-    protected final BiFunction<File, String, IConfigSource> configSourceFactory;
+    protected final IConfigSourceFactory configSourceFactory;
 
     public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin);
         this.folder = folder;
         this.loader = loader;
-        this.configSourceFactory = ConfigSourceFactory::gson;
+        this.configSourceFactory = ConfigSourceFactory.instance();
     }
 
     public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader,
-                                  BiFunction<File, String, IConfigSource> configSourceFactory) {
+                                  IConfigSourceFactory configSourceFactory) {
         super(plugin);
         this.folder = folder;
         this.loader = loader;

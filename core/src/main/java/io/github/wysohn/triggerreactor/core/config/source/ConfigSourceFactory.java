@@ -1,12 +1,21 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
 import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.IConfigSourceFactory;
 
 import java.io.File;
 import java.util.Optional;
 import java.util.Set;
 
-public class ConfigSourceFactory {
+public class ConfigSourceFactory implements IConfigSourceFactory {
+    private static IConfigSourceFactory instance;
+
+    public static IConfigSourceFactory instance() {
+        if (instance == null)
+            instance = new ConfigSourceFactory();
+
+        return instance;
+    }
 
     /**
      * Create empty datasource. This is useful if the Trigger do not have config file.
@@ -15,7 +24,8 @@ public class ConfigSourceFactory {
      * @param fileName
      * @return the datasource which does nothing.
      */
-    public static IConfigSource none(File folder, String fileName) {
+    @Override
+    public IConfigSource none(File folder, String fileName) {
         return new EmptyConfigSource();
     }
 
@@ -25,19 +35,22 @@ public class ConfigSourceFactory {
      * @param file
      * @return the datasource which does nothing.
      */
-    public static IConfigSource none(File file) {
+    @Override
+    public IConfigSource none(File file) {
         return new EmptyConfigSource();
     }
 
     /**
      * Create a Gson based datasource.
      *
-     * @param folder   the folder where json file is located
-     * @param fileName the filename ends with .json
+     * @param folder     the folder where json file is located
+     * @param fileName   the filename ends with .json
+     * @param validators validators to be used to serializable types
      * @return the datasource
      * @throws RuntimeException if folder is not directory.
      */
-    public static IConfigSource gson(File folder, String fileName) {
+    @Override
+    public IConfigSource gson(File folder, String fileName, ITypeValidator... validators) {
         if (!folder.exists())
             folder.mkdirs();
 
@@ -53,11 +66,13 @@ public class ConfigSourceFactory {
     /**
      * Create a Gson based datasource.
      *
-     * @param file the json file
+     * @param file       the json file
+     * @param validators validators to be used to serializable types
      * @return the datasource
      * @throws RuntimeException file is not file
      */
-    public static IConfigSource gson(File file) {
+    @Override
+    public IConfigSource gson(File file, ITypeValidator... validators) {
         if (!file.isFile())
             throw new RuntimeException("it must be a file.");
 

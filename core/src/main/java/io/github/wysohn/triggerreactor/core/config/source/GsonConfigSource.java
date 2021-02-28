@@ -12,6 +12,7 @@ import io.github.wysohn.triggerreactor.core.config.serialize.SimpleLocationSeria
 import io.github.wysohn.triggerreactor.core.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -50,6 +51,8 @@ public class GsonConfigSource implements IConfigSource {
 
     private final Gson gson = builder.create();
 
+    private final ITypeValidator typeValidator;
+
     GsonConfigSource(File file) {
         this(file, f -> {
             try {
@@ -65,6 +68,22 @@ public class GsonConfigSource implements IConfigSource {
                 e.printStackTrace();
                 return null;
             }
+        }, new AbstractTypeValidator() {
+            @Override
+            public boolean isSerializable(Object obj) {
+                if (obj instanceof UUID)
+                    return true;
+
+                return super.isSerializable(obj);
+            }
+        }, new AbstractTypeValidator() {
+            @Override
+            public boolean isSerializable(Object obj) {
+                if (obj instanceof SimpleLocation || obj instanceof SimpleChunkLocation)
+                    return true;
+
+                return super.isSerializable(obj);
+            }
         });
     }
 
@@ -72,12 +91,29 @@ public class GsonConfigSource implements IConfigSource {
      * @param file
      * @param readerFactory
      * @param writerFactory
+     * @param validatorChain
      * @deprecated for test. Do not use it directly unless necessary.
      */
-    public GsonConfigSource(File file, Function<File, Reader> readerFactory, Function<File, Writer> writerFactory) {
+    public GsonConfigSource(File file,
+                            Function<File, Reader> readerFactory,
+                            Function<File, Writer> writerFactory,
+                            ITypeValidator... validatorChain) {
+        ValidationUtil.notNull(file);
+        ValidationUtil.notNull(readerFactory);
+        ValidationUtil.notNull(writerFactory);
+        ValidationUtil.notNull(validatorChain);
+        ValidationUtil.allNotNull(validatorChain);
+
         this.file = file;
         this.readerFactory = readerFactory;
         this.writerFactory = writerFactory;
+        this.typeValidator = ITypeValidator.DEFAULT;
+
+        ITypeValidator next = this.typeValidator;
+        for (ITypeValidator validator : validatorChain) {
+            next.chain(validator);
+            next = validator;
+        }
     }
 
     @Override
