@@ -82,6 +82,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.cause.Cause;
 import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.cause.EventContextKeys;
+import org.spongepowered.api.event.command.SendCommandEvent;
 import org.spongepowered.api.event.command.TabCompleteEvent;
 import org.spongepowered.api.event.game.GameReloadEvent;
 import org.spongepowered.api.event.game.state.GameAboutToStartServerEvent;
@@ -604,6 +605,67 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         } else {
             throw new RuntimeException("Cannot create empty PlayerEvent for " + sender);
         }
+    }
+
+    @Override
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        Object unwrapped = sender.get();
+
+        return new SendCommandEvent() {
+            Cause cause = null;
+
+            {
+                try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+                    frame.pushCause(unwrapped);
+                    cause = frame.getCurrentCause();
+                }
+            }
+
+            @Override
+            public String getCommand() {
+                return label;
+            }
+
+            @Override
+            public void setCommand(String command) {
+
+            }
+
+            @Override
+            public String getArguments() {
+                return String.join(" ", args);
+            }
+
+            @Override
+            public void setArguments(String arguments) {
+
+            }
+
+            @Override
+            public CommandResult getResult() {
+                return CommandResult.success();
+            }
+
+            @Override
+            public void setResult(CommandResult result) {
+
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+
+            @Override
+            public void setCancelled(boolean cancel) {
+
+            }
+
+            @Override
+            public Cause getCause() {
+                return cause;
+            }
+        };
     }
 
     @Override
