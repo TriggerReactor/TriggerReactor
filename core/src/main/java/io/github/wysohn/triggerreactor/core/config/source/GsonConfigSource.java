@@ -143,7 +143,7 @@ public class GsonConfigSource implements IConfigSource {
                 String ser = gson.toJson(cache);
                 fw.write(ser);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
