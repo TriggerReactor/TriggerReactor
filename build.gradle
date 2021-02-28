@@ -16,7 +16,7 @@ subprojects {
 
     ext {
         id = 'TriggerReactor'
-        version = '3.1.6'
+        version = '3.2.0'
         description = 'Simple script parser with infinite possibility'
         author = 'wysohn'
         authors = [
@@ -79,6 +79,11 @@ subprojects {
         testCompile 'org.javassist:javassist:3.20.0-GA'
     }
 
+    java{
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
     task copyResources(type: Copy) {
         from project(":core").sourceSets.main.output.resourcesDir
         into "${buildDir}/resources/main"
@@ -106,7 +111,7 @@ subprojects {
 
 def exportedProjects= [
         ":core",
-        ":sponge",
+        /*":sponge",*/
         ":bukkit",
         ":bukkit:legacy",
         ":bukkit:latest"

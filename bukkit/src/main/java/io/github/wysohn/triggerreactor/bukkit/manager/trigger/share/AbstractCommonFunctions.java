@@ -245,6 +245,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @deprecated this returns only one area among the areas where entity is in. Use {@link #currentAreas(Entity)}
      * instead to get all the areas.
      */
+    @Deprecated
     public String currentArea(Entity entity) {
         String[] areas = currentAreasAt(entity.getLocation());
         return areas.length > 0 ? areas[0] : null;
@@ -260,6 +261,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return name of area; null if there is no area trigger at location
      * @deprecated this only return one AreaTrigger's name, yet there could be more
      */
+    @Deprecated
     public String currentAreaAt(Location location) {
         String[] areaNames = currentAreasAt(location);
         return areaNames.length > 0 ? areaNames[0] : null;
