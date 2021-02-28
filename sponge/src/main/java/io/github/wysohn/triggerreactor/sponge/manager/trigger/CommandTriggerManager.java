@@ -60,10 +60,11 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
                 }
 
                 ICommandSender commandSender = plugin.getPlayer(source.getName());
-                execute(plugin.createEmptyPlayerEvent(commandSender),
+                String[] args = arguments.split(" ");
+                execute(plugin.createPlayerCommandEvent(commandSender, triggerName, args),
                         (Player) source,
                         triggerName,
-                        arguments.split(" "),
+                        args,
                         trigger);
 
                 return CommandResult.success();

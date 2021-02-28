@@ -17,11 +17,14 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -240,6 +243,53 @@ public class CommonFunctions extends AbstractCommonFunctions
         }
         head.setItemMeta(SM);
         return head;
+    }
+
+    /**
+     * Create a new SerializableLocation, which implements ConfigurationSerializable
+     * <p>
+     * Example) /trg run serialized = serializeLocation("wildw", 2, 13, 44)
+     * </p>
+     *
+     * @param world The world instance in which this location resides
+     * @param x The x-coordinate of this location
+     * @param y The y-coordinate of this location
+     * @param z The z-coordinate of this location
+     * @return The SerializableLocation value
+     */
+    public SerializableLocation serializeLocation(World world, double x, double y, double z){
+        return new SerializableLocation(new Location(world, x, y, z));
+    }
+
+    /**
+     * Create a new SerializableLocation, which implements ConfigurationSerializable
+     * <p>
+     * Example) /trg run serialized = serializeLocation("wildw", 2, 13, 44.6, 13)
+     * </p>
+     *
+     * @param world The world instance in which this location resides
+     * @param x The x-coordinate of this location
+     * @param y The y-coordinate of this location
+     * @param z The z-coordinate of this location
+     * @param yaw The absolute rotation on the x-plane, in degrees
+     * @param pitch The absolute rotation on the y-plane, in degrees
+     * @return The SerializableLocation value
+     */
+    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch){
+        return new SerializableLocation(new Location(world, x, y, z, toFloat(yaw), toFloat(pitch)));
+    }
+
+    /**
+     * Create a new SerializableLocation, which implements ConfigurationSerializable
+     * <p>
+     * Example) /trg run serialized = serializeLocation("wildw", 2, 13, 44.6, 13)
+     * </p>
+     *
+     * @param loc The Location value
+     * @return The SerializableLocation value
+     */
+    public SerializableLocation serializeLocation(Location loc){
+        return new SerializableLocation(loc);
     }
 
     //Eventually, this has to be created either as Executor or Placeholder

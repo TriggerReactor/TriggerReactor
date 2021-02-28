@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
@@ -68,6 +69,7 @@ import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -87,7 +89,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public abstract class AbstractJavaPlugin extends JavaPlugin {
+public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
     public final BukkitTriggerReactorCore core;
 
     private BungeeCordHelper bungeeHelper;
@@ -535,6 +537,23 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             return new CommandSenderEvent((CommandSender) unwrapped);
         } else {
             throw new RuntimeException("Cannot create empty PlayerEvent for " + sender);
+        }
+    }
+
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        Object unwrapped = sender.get();
+
+        StringBuilder builder = new StringBuilder("/");
+        builder.append(label);
+        for (String arg : args) {
+            builder.append(' ');
+            builder.append(arg);
+        }
+
+        if (unwrapped instanceof Player) {
+            return new PlayerCommandPreprocessEvent((Player) unwrapped, builder.toString());
+        } else {
+            throw new RuntimeException("Cannot create empty PlayerCommandPreprocessEvent for " + sender);
         }
     }
 

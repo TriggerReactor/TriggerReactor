@@ -1,6 +1,10 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
+import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -102,5 +106,15 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
     @Override
     public void testHeadForValue() {
         //TODO: not testable?
+    }
+
+    @Test
+    public void testSerializeLocation() {
+        World vWorld = Mockito.mock(World.class);
+        Location loc1 = new Location(vWorld, 1, 2, 3);
+        double testX = 3.4;
+        Assert.assertTrue(fn.serializeLocation(vWorld, 1, 2, 3) instanceof ConfigurationSerializable);
+        Assert.assertSame(((ConfigurationSerializable) fn.serializeLocation(vWorld, 1, 2, 3)).serialize().get("world"), vWorld.getName());
+
     }
 }

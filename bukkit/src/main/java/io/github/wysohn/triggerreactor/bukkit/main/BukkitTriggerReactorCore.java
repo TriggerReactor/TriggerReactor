@@ -230,7 +230,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
-        cmdManager = new CommandTriggerManager(this);
+        cmdManager = new CommandTriggerManager(this, bukkit);
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this);
         customManager = new CustomTriggerManager(this);
@@ -412,6 +412,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public Object createEmptyPlayerEvent(ICommandSender sender) {
         return bukkit.createEmptyPlayerEvent(sender);
+    }
+
+    @Override
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        return bukkit.createPlayerCommandEvent(sender, label, args);
     }
 
     @Override
