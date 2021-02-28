@@ -34,6 +34,7 @@ public interface IScriptEngineInitializer {
         sem.put(name, value);
     }
 
+    @SuppressWarnings("removal")
     static ScriptEngine getNashornEngine(ScriptEngineManager sem) {
         return sem.getEngineByName("nashorn");
     }
