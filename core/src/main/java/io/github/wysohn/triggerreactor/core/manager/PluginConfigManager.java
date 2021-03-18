@@ -7,18 +7,17 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.io.File;
-import java.util.function.BiFunction;
 
 public class PluginConfigManager extends Manager implements IMigratable {
     private final IConfigSource configSource;
 
     public PluginConfigManager(TriggerReactorCore plugin) {
-        this(plugin, ConfigSourceFactory::gson);
+        this(plugin, ConfigSourceFactory.instance().gson(plugin.getDataFolder(), "config.json"));
     }
 
-    public PluginConfigManager(TriggerReactorCore plugin, BiFunction<File, String, IConfigSource> fn) {
+    public PluginConfigManager(TriggerReactorCore plugin, IConfigSource configSource) {
         super(plugin);
-        this.configSource = fn.apply(plugin.getDataFolder(), "config.json");
+        this.configSource = configSource;
     }
 
     @Override

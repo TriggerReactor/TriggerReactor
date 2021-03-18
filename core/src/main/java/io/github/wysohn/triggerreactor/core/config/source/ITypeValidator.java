@@ -17,6 +17,8 @@
 
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import java.util.Collection;
+
 public interface ITypeValidator {
 
     ITypeValidator DEFAULT = obj -> {
@@ -25,7 +27,9 @@ public interface ITypeValidator {
 
         return obj instanceof String
                 || obj instanceof Number
-                || obj instanceof Boolean;
+                || obj instanceof Boolean
+                || obj instanceof Collection
+                || obj.getClass().isArray();
     };
 
     /**

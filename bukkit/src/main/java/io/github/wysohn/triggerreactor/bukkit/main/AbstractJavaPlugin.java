@@ -880,5 +880,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
 
     static {
         GsonConfigSource.registerSerializer(ConfigurationSerializable.class, new BukkitConfigurationSerializer());
+        GsonConfigSource.registerValidator(obj -> obj instanceof ConfigurationSerializable);
     }
 }

@@ -43,8 +43,12 @@ public class GsonConfigSource implements IConfigSource {
 
     private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder();
 
-    public static void registerValidator(ITypeValidator validator) {
-        VALIDATOR_BUILDER.addChain(validator);
+    public static void registerValidator(ITypeValidator... validators) {
+        ValidationUtil.notNull(validators);
+        ValidationUtil.allNotNull(validators);
+        for (ITypeValidator validator : validators) {
+            VALIDATOR_BUILDER.addChain(validator);
+        }
     }
 
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -204,10 +208,18 @@ public class GsonConfigSource implements IConfigSource {
                     map.remove(key);
                 } else if (value.getClass().isArray()) {
                     List l = new LinkedList();
-                    for (int k = 0; k < Array.getLength(value); k++)
-                        l.add(Array.get(value, k));
+                    for (int k = 0; k < Array.getLength(value); k++) {
+                        Object elem = Array.get(value, k);
+                        if (!typeValidator.isSerializable(elem))
+                            throw new RuntimeException(Arrays.toString(path) + "< " + elem + " is not serializable.");
+
+                        l.add(elem);
+                    }
                     map.put(key, l);
                 } else {
+                    if (!typeValidator.isSerializable(value))
+                        throw new RuntimeException(Arrays.toString(path) + "< " + value + " is not serializable.");
+
                     map.put(key, value);
                 }
             } else {
