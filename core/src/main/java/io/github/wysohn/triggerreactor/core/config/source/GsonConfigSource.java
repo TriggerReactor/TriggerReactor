@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
-    private static final GsonBuilder builder = new GsonBuilder()
+    private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
             .setPrettyPrinting().serializeNulls()
             .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
@@ -38,7 +38,13 @@ public class GsonConfigSource implements IConfigSource {
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
 
     public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
-        builder.registerTypeHierarchyAdapter(type, serializer);
+        GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);
+    }
+
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder();
+
+    public static void registerValidator(ITypeValidator validator) {
+        VALIDATOR_BUILDER.addChain(validator);
     }
 
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -49,7 +55,7 @@ public class GsonConfigSource implements IConfigSource {
     private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
 
-    private final Gson gson = builder.create();
+    private final Gson gson = GSON_BUILDER.create();
 
     private final ITypeValidator typeValidator;
 
@@ -68,22 +74,6 @@ public class GsonConfigSource implements IConfigSource {
                 e.printStackTrace();
                 return null;
             }
-        }, new AbstractTypeValidator() {
-            @Override
-            public boolean isSerializable(Object obj) {
-                if (obj instanceof UUID)
-                    return true;
-
-                return super.isSerializable(obj);
-            }
-        }, new AbstractTypeValidator() {
-            @Override
-            public boolean isSerializable(Object obj) {
-                if (obj instanceof SimpleLocation || obj instanceof SimpleChunkLocation)
-                    return true;
-
-                return super.isSerializable(obj);
-            }
         });
     }
 
@@ -91,29 +81,19 @@ public class GsonConfigSource implements IConfigSource {
      * @param file
      * @param readerFactory
      * @param writerFactory
-     * @param validatorChain
      * @deprecated for test. Do not use it directly unless necessary.
      */
     public GsonConfigSource(File file,
                             Function<File, Reader> readerFactory,
-                            Function<File, Writer> writerFactory,
-                            ITypeValidator... validatorChain) {
+                            Function<File, Writer> writerFactory) {
         ValidationUtil.notNull(file);
         ValidationUtil.notNull(readerFactory);
         ValidationUtil.notNull(writerFactory);
-        ValidationUtil.notNull(validatorChain);
-        ValidationUtil.allNotNull(validatorChain);
 
         this.file = file;
         this.readerFactory = readerFactory;
         this.writerFactory = writerFactory;
-        this.typeValidator = ITypeValidator.DEFAULT;
-
-        ITypeValidator next = this.typeValidator;
-        for (ITypeValidator validator : validatorChain) {
-            next.chain(validator);
-            next = validator;
-        }
+        this.typeValidator = VALIDATOR_BUILDER.build();
     }
 
     @Override

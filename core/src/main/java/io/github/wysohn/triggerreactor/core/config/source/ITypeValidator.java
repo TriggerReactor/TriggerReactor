@@ -19,28 +19,14 @@ package io.github.wysohn.triggerreactor.core.config.source;
 
 public interface ITypeValidator {
 
-    ITypeValidator DEFAULT = new AbstractTypeValidator() {
-        @Override
-        public boolean isSerializable(Object obj) {
-            if (obj == null)
-                return true;
+    ITypeValidator DEFAULT = obj -> {
+        if (obj == null)
+            return true;
 
-            if (obj instanceof String
-                    || obj instanceof Number
-                    || obj instanceof Boolean)
-                return true;
-
-            return super.isSerializable(obj);
-        }
+        return obj instanceof String
+                || obj instanceof Number
+                || obj instanceof Boolean;
     };
-
-    /**
-     * Add a chain of responsibility and return the input for method chaining.
-     *
-     * @param chain chain to be executed after 'this' instance
-     * @return 'this' instance
-     */
-    ITypeValidator chain(ITypeValidator chain);
 
     /**
      * Validate if the given object is serializable. The parent method isSerializable must be
