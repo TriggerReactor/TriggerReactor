@@ -6,7 +6,6 @@ import io.github.wysohn.gsoncopy.internal.LinkedTreeMap;
 import io.github.wysohn.gsoncopy.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
-import io.github.wysohn.triggerreactor.core.config.source.ITypeValidator;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,9 +69,7 @@ public class TestGsonConfigSource {
 
         manager = new GsonConfigSource(mockFile,
                 (f) -> new StringReader(jsonString),
-                (f) -> stringWriter,
-                new ITypeValidator() {
-                });
+                (f) -> stringWriter);
 
         Mockito.when(mockFile.exists()).thenReturn(true);
         Mockito.when(mockFile.length()).thenReturn(Long.MAX_VALUE);
