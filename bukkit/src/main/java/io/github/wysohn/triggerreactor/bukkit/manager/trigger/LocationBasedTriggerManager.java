@@ -21,8 +21,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -152,7 +151,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         File file = getTriggerFile(folder, LocationUtil.convertToSimpleLocation(loc).toString(), true);
         try {
             String name = TriggerInfo.extractName(file);
-            IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+            IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
             trigger = newTrigger(info, script);
         } catch (TriggerInitFailedException e1) {

@@ -67,7 +67,9 @@ public class TestGsonConfigSource {
         mockFile = Mockito.mock(File.class);
         stringWriter = new StringWriter();
 
-        manager = new GsonConfigSource(mockFile, (f) -> new StringReader(jsonString), (f) -> stringWriter);
+        manager = new GsonConfigSource(mockFile,
+                (f) -> new StringReader(jsonString),
+                (f) -> stringWriter);
 
         Mockito.when(mockFile.exists()).thenReturn(true);
         Mockito.when(mockFile.length()).thenReturn(Long.MAX_VALUE);

@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.tools.migration;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
