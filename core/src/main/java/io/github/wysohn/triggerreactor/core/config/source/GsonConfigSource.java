@@ -4,7 +4,6 @@ import io.github.wysohn.gsoncopy.Gson;
 import io.github.wysohn.gsoncopy.GsonBuilder;
 import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
 import io.github.wysohn.gsoncopy.stream.JsonReader;
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.NullTypeAdapters;
 import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.serialize.SimpleChunkLocationSerializer;

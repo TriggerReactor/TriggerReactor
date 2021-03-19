@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
@@ -36,21 +35,13 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     protected final File folder;
     protected final ITriggerLoader<T> loader;
-    protected final IConfigSourceFactory configSourceFactory;
+    protected final ConfigSourceFactory configSourceFactory;
 
     public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin);
         this.folder = folder;
         this.loader = loader;
         this.configSourceFactory = ConfigSourceFactory.instance();
-    }
-
-    public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader,
-                                  IConfigSourceFactory configSourceFactory) {
-        super(plugin);
-        this.folder = folder;
-        this.loader = loader;
-        this.configSourceFactory = configSourceFactory;
     }
 
     public File getFolder() {

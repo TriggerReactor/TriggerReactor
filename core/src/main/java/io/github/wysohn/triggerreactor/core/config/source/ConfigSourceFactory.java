@@ -1,16 +1,33 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
-import io.github.wysohn.triggerreactor.core.config.IConfigSourceFactory;
-
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class ConfigSourceFactory implements IConfigSourceFactory {
-    private static IConfigSourceFactory instance;
+public class ConfigSourceFactory {
+    private static ConfigSourceFactory instance;
+    static final String DEFAULT_FACTORY = "gson";
+    private static final Map<String, IConfigSourceFactory> factories = new HashMap<>();
 
-    public static IConfigSourceFactory instance() {
+    static {
+        factories.put("none", (type, folder, fileName) -> new EmptyConfigSource());
+        factories.put("gson", (type, folder, fileName) -> new GsonConfigSource(new File(folder, fileName + ".json")));
+    }
+
+    /**
+     * Register new config source factory.
+     *
+     * @param type    the name to be used to represent this factory
+     * @param factory the factory instance
+     * @return null if registered; factory instance of the name already in use
+     */
+    public static IConfigSourceFactory registerFactory(String type, IConfigSourceFactory factory) {
+        return factories.put(type, factory);
+    }
+
+    public static ConfigSourceFactory instance() {
         if (instance == null)
             instance = new ConfigSourceFactory();
 
@@ -18,65 +35,38 @@ public class ConfigSourceFactory implements IConfigSourceFactory {
     }
 
     /**
-     * Create empty datasource. This is useful if the Trigger do not have config file.
+     * Create a ConfigSource using the default factory (gson).
      *
-     * @param folder
-     * @param fileName
-     * @return the datasource which does nothing.
+     * @param folder   the folder where config file will reside
+     * @param fileName name of the file <b>without</b> any dots. The underlying
+     *                 factory will append the extension as needed.
+     * @return the new config source responsible for the given folder and fileName
      */
-    @Override
-    public IConfigSource none(File folder, String fileName) {
-        return new EmptyConfigSource();
+    public IConfigSource create(File folder, String fileName) {
+        return create(DEFAULT_FACTORY, folder, fileName);
     }
 
     /**
-     * Create empty datasource. This is useful if the Trigger do not have config file.
-     *
-     * @param file
-     * @return the datasource which does nothing.
+     * @param type     type of the config source.
+     * @param folder   the folder where config file will reside
+     * @param fileName name of the file <b>without</b> any dots. The underlying
+     *                 factory will append the extension as needed.
+     * @return the new config source responsible for the given folder and fileName
      */
-    @Override
-    public IConfigSource none(File file) {
-        return new EmptyConfigSource();
-    }
-
-    /**
-     * Create a Gson based datasource.
-     *
-     * @param folder     the folder where json file is located
-     * @param fileName   the filename ends with .json
-     * @param validators validators to be used to serializable types
-     * @return the datasource
-     * @throws RuntimeException if folder is not directory.
-     */
-    @Override
-    public IConfigSource gson(File folder, String fileName, ITypeValidator... validators) {
+    public IConfigSource create(String type, File folder, String fileName) {
         if (!folder.exists())
             folder.mkdirs();
 
         if (!folder.isDirectory())
             throw new RuntimeException(folder + " must be a directory.");
 
-        if (!fileName.endsWith(".json"))
-            throw new RuntimeException(fileName + " does not ends with .json.");
+        if (fileName.lastIndexOf('.') != -1)
+            throw new RuntimeException("fileName must not include dot(.).");
 
-        return new GsonConfigSource(new File(folder, fileName));
-    }
+        if (!factories.containsKey(type))
+            throw new RuntimeException(type + " is not a registered type.");
 
-    /**
-     * Create a Gson based datasource.
-     *
-     * @param file       the json file
-     * @param validators validators to be used to serializable types
-     * @return the datasource
-     * @throws RuntimeException file is not file
-     */
-    @Override
-    public IConfigSource gson(File file, ITypeValidator... validators) {
-        if (!file.isFile())
-            throw new RuntimeException("it must be a file.");
-
-        return new GsonConfigSource(file);
+        return factories.get(type).create(type, folder, fileName);
     }
 
     private static class EmptyConfigSource implements IConfigSource {

@@ -17,9 +17,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -35,7 +35,6 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -61,13 +60,13 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     public AbstractAreaTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
             @Override
-            public TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
+            public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
                 return Optional.ofNullable(folder.listFiles())
                         .map(files -> Arrays.stream(files)
                                 .filter(File::isDirectory)
                                 .map(file -> {
                                     String name = file.getName();
-                                    IConfigSource config = fn.apply(folder, name + ".json");
+                                    IConfigSource config = fn.create(folder, name);
                                     return toTriggerInfo(file, config);
                                 })
                                 .toArray(TriggerInfo[]::new))
@@ -278,7 +277,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             return false;
 
         File areaFolder = new File(folder, name);
-        IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+        IConfigSource config = configSourceFactory.create(folder, name);
         AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);
 

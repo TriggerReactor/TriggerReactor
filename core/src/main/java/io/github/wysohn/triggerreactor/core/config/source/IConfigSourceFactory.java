@@ -15,18 +15,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.config;
-
-import io.github.wysohn.triggerreactor.core.config.source.ITypeValidator;
+package io.github.wysohn.triggerreactor.core.config.source;
 
 import java.io.File;
 
 public interface IConfigSourceFactory {
-    IConfigSource none(File folder, String fileName);
-
-    IConfigSource none(File file);
-
-    IConfigSource gson(File folder, String fileName, ITypeValidator... validators);
-
-    IConfigSource gson(File file, ITypeValidator... validators);
+    IConfigSource create(String type, File folder, String fileName);
 }

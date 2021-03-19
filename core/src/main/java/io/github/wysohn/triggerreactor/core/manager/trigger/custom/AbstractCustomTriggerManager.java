@@ -16,9 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -117,7 +116,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
         Class<?> event = registry.getEvent(eventName);
         File file = getTriggerFile(folder, name, true);
-        IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+        IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         CustomTrigger trigger = new CustomTrigger(info, script, event, eventName);
 
