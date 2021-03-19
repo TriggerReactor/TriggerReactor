@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import java.io.File;

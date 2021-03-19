@@ -16,30 +16,29 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.DelegatedConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 public final class GlobalVariableManager extends Manager implements IMigratable {
     private final IConfigSource configSource;
 
     public GlobalVariableManager(TriggerReactorCore plugin) {
-        this(plugin, ConfigSourceFactory::gson);
+        this(plugin, ConfigSourceFactory.instance().create(plugin.getDataFolder(), "var"));
     }
 
-    public GlobalVariableManager(TriggerReactorCore plugin, BiFunction<File, String, IConfigSource> fn) {
+    public GlobalVariableManager(TriggerReactorCore plugin, IConfigSource configSource) {
         super(plugin);
-        configSource = fn.apply(plugin.getDataFolder(), "var.json");
+        this.configSource = configSource;
     }
 
     @Override

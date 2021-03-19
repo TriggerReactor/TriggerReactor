@@ -4,7 +4,6 @@ import io.github.wysohn.gsoncopy.Gson;
 import io.github.wysohn.gsoncopy.GsonBuilder;
 import io.github.wysohn.gsoncopy.internal.bind.TypeAdapters;
 import io.github.wysohn.gsoncopy.stream.JsonReader;
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.NullTypeAdapters;
 import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.serialize.SimpleChunkLocationSerializer;
@@ -12,6 +11,7 @@ import io.github.wysohn.triggerreactor.core.config.serialize.SimpleLocationSeria
 import io.github.wysohn.triggerreactor.core.config.serialize.UUIDSerializer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
-    private static final GsonBuilder builder = new GsonBuilder()
+    private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
             .setPrettyPrinting().serializeNulls()
             .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
@@ -37,7 +37,17 @@ public class GsonConfigSource implements IConfigSource {
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
 
     public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
-        builder.registerTypeHierarchyAdapter(type, serializer);
+        GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);
+    }
+
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder();
+
+    public static void registerValidator(ITypeValidator... validators) {
+        ValidationUtil.notNull(validators);
+        ValidationUtil.allNotNull(validators);
+        for (ITypeValidator validator : validators) {
+            VALIDATOR_BUILDER.addChain(validator);
+        }
     }
 
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -48,7 +58,9 @@ public class GsonConfigSource implements IConfigSource {
     private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
 
-    private final Gson gson = builder.create();
+    private final Gson gson = GSON_BUILDER.create();
+
+    private final ITypeValidator typeValidator;
 
     GsonConfigSource(File file) {
         this(file, f -> {
@@ -74,11 +86,17 @@ public class GsonConfigSource implements IConfigSource {
      * @param writerFactory
      * @deprecated for test. Do not use it directly unless necessary.
      */
-    @Deprecated
-    public GsonConfigSource(File file, Function<File, Reader> readerFactory, Function<File, Writer> writerFactory) {
+    public GsonConfigSource(File file,
+                            Function<File, Reader> readerFactory,
+                            Function<File, Writer> writerFactory) {
+        ValidationUtil.notNull(file);
+        ValidationUtil.notNull(readerFactory);
+        ValidationUtil.notNull(writerFactory);
+
         this.file = file;
         this.readerFactory = readerFactory;
         this.writerFactory = writerFactory;
+        this.typeValidator = VALIDATOR_BUILDER.build();
     }
 
     @Override
@@ -144,7 +162,7 @@ public class GsonConfigSource implements IConfigSource {
                 String ser = gson.toJson(cache);
                 fw.write(ser);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -189,10 +207,18 @@ public class GsonConfigSource implements IConfigSource {
                     map.remove(key);
                 } else if (value.getClass().isArray()) {
                     List l = new LinkedList();
-                    for (int k = 0; k < Array.getLength(value); k++)
-                        l.add(Array.get(value, k));
+                    for (int k = 0; k < Array.getLength(value); k++) {
+                        Object elem = Array.get(value, k);
+                        if (!typeValidator.isSerializable(elem))
+                            throw new RuntimeException(Arrays.toString(path) + "< " + elem + " is not serializable.");
+
+                        l.add(elem);
+                    }
                     map.put(key, l);
                 } else {
+                    if (!typeValidator.isSerializable(value))
+                        throw new RuntimeException(Arrays.toString(path) + "< " + value + " is not serializable.");
+
                     map.put(key, value);
                 }
             } else {
