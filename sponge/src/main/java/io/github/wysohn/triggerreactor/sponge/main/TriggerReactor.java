@@ -1060,5 +1060,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     static {
         GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
+        GsonConfigSource.registerValidator(obj -> obj instanceof DataSerializable);
     }
 }

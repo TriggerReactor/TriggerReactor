@@ -16,9 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
 
 public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
 
@@ -52,13 +51,13 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
             }
 
             @Override
-            public TriggerInfo[] listTriggers(File folder, BiFunction<File, String, IConfigSource> fn) {
+            public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
                 File[] files = getAllFiles(new ArrayList<>(), folder);
                 return Arrays.stream(files)
                         .filter(file -> file.getName().endsWith(".trg"))
                         .map(file -> {
                             String name = TriggerInfo.extractName(file);
-                            IConfigSource config = fn.apply(folder, name + ".json");
+                            IConfigSource config = fn.create(folder, name);
                             return new NamedTriggerInfo(folder, file, config);
                         }).toArray(NamedTriggerInfo[]::new);
             }
@@ -78,6 +77,6 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
             public void save(NamedTrigger trigger) {
                 // we don't save NamedTrigger
             }
-        }, ConfigSourceFactory::none);
+        });
     }
 }

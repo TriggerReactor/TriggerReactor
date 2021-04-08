@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
@@ -299,8 +299,7 @@ public class TestInterpreter {
             }
         });
         TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
-        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, (folder, fileName) ->
-                mock(IConfigSource.class));
+        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, mock(IConfigSource.class));
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setGvars(avm.getGlobalVariableAdapter());

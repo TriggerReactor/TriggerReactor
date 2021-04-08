@@ -19,9 +19,8 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -152,7 +151,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
             return false;
 
         File file = getTriggerFile(folder, name, true);
-        IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+        IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         put(name, new InventoryTrigger(info, script, size, new HashMap<>()));
 
