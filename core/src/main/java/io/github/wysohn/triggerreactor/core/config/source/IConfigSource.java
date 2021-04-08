@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.config;
+package io.github.wysohn.triggerreactor.core.config.source;
 
 import java.util.LinkedList;
 import java.util.Optional;

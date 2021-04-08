@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.sponge.tools.migration;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.sponge.tools.ConfigurationUtil;
 import ninja.leaping.configurate.ConfigurationNode;
 

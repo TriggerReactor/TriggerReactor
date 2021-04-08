@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.tools.migration;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 
 import java.io.File;

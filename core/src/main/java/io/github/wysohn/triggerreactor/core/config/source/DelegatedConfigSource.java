@@ -1,7 +1,5 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
-
 import java.util.Optional;
 import java.util.Set;
 

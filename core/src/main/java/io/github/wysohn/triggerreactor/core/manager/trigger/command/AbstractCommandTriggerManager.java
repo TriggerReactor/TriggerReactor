@@ -17,9 +17,8 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.config.IConfigSource;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -181,7 +180,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         CommandTrigger trigger = null;
         try {
             String name = TriggerInfo.extractName(file);
-            IConfigSource config = ConfigSourceFactory.gson(folder, name + ".json");
+            IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
             trigger = new CommandTrigger(info, script);
         } catch (TriggerInitFailedException e1) {
