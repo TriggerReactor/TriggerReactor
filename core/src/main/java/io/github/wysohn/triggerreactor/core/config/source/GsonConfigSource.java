@@ -9,6 +9,10 @@ import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.serialize.SimpleChunkLocationSerializer;
 import io.github.wysohn.triggerreactor.core.config.serialize.SimpleLocationSerializer;
 import io.github.wysohn.triggerreactor.core.config.serialize.UUIDSerializer;
+import io.github.wysohn.triggerreactor.core.config.validation.DefaultValidator;
+import io.github.wysohn.triggerreactor.core.config.validation.SimpleChunkLocationValidator;
+import io.github.wysohn.triggerreactor.core.config.validation.SimpleLocationValidator;
+import io.github.wysohn.triggerreactor.core.config.validation.UUIDValidator;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
@@ -40,7 +44,11 @@ public class GsonConfigSource implements IConfigSource {
         GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);
     }
 
-    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder();
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder()
+            .addChain(new DefaultValidator())
+            .addChain(new UUIDValidator())
+            .addChain(new SimpleLocationValidator())
+            .addChain(new SimpleChunkLocationValidator());
 
     public static void registerValidator(ITypeValidator... validators) {
         ValidationUtil.notNull(validators);

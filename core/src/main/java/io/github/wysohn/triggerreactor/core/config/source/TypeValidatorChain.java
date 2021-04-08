@@ -14,14 +14,6 @@ public class TypeValidatorChain implements ITypeValidator {
     public static class Builder {
         private final TypeValidatorChain chain = new TypeValidatorChain();
 
-        public Builder() {
-            this(ITypeValidator.DEFAULT);
-        }
-
-        public Builder(ITypeValidator head) {
-            chain.validators.add(head);
-        }
-
         public Builder addChain(ITypeValidator typeValidator) {
             chain.validators.add(typeValidator);
             return this;

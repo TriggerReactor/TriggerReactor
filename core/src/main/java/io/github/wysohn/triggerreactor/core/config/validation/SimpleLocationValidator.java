@@ -15,26 +15,14 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.config.source;
+package io.github.wysohn.triggerreactor.core.config.validation;
 
-public interface ITypeValidator {
-    /**
-     * Validate if the given object is serializable. The parent method isSerializable must be
-     * called after invoking itself to maintain the proper order. Chain will be disconnected
-     * if parent method is not invoked.
-     * <p>
-     * ex)
-     * <p>
-     * if([something])
-     * <p>
-     * return true;
-     * <p>
-     * else
-     * <p>
-     * return super.{@link #isSerializable(Object)}
-     *
-     * @param obj obj to check
-     * @return true if serializable type; false otherwise
-     */
-    boolean isSerializable(Object obj);
+import io.github.wysohn.triggerreactor.core.config.source.ITypeValidator;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+
+public class SimpleLocationValidator implements ITypeValidator {
+    @Override
+    public boolean isSerializable(Object obj) {
+        return obj instanceof SimpleLocation;
+    }
 }
