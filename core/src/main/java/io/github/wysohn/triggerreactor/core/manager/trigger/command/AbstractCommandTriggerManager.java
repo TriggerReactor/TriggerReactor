@@ -64,26 +64,10 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 } else if (candidates_str != null && hint == null) {
                     tabCompleter = (new ITabCompleterBuilder(candidates_str)).build();
                 } else {
-                    tabCompleter = new ITabCompleter() {
-                        @Override
-                        public List<String> getCandidates(String part) {
-                            return Optional.ofNullable(candidates_str)
-                                    .map(str -> str.split(","))
-                                    .map(ITabCompleter::list)
-                                    .map(list -> list.stream()
-                                            .filter(candidate -> candidate.startsWith(part))
-                                            .collect(Collectors.toList()))
-                                    .orElseGet(() -> ITabCompleter.list(""));
-
-                        }
-
-                        @Override
-                        public List<String> getHint() {
-                            return Optional.ofNullable(hint)
-                                    .map(ITabCompleter::list)
-                                    .orElseGet(() -> ITabCompleter.list(""));
-                        }
-                    };
+                    tabCompleter = (new ITabCompleterBuilder())
+                            .setHint(hint)
+                            .setCandidate(Optional.ofNullable(candidates_str).map(str -> ITabCompleter.list(str.split(","))).orElseGet(() -> ITabCompleter.list("")))
+                            .build();
                 }
                 return tabCompleter;
             }

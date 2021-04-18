@@ -141,7 +141,7 @@ public interface ITabCompleter {
     }
 
 
-    private static List<String> list(String... strings) {
+    static List<String> list(String... strings) {
         return Arrays.stream(strings).collect(Collectors.toList());
     }
 
