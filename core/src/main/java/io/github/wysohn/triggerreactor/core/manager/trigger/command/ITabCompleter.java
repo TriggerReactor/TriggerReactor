@@ -15,31 +15,6 @@ import java.util.stream.Collectors;
  */
 public interface ITabCompleter {
 
-    static List<String> list(String... strings) {
-        return Arrays.stream(strings).collect(Collectors.toList());
-    }
-
-    static ITabCompleter hint(String hint) {
-        return (new ITabCompleterBuilder()).setHint(hint).build();
-    }
-/*
-    static ITabCompleter simple(String... arg) {
-        return new ITabCompleter() {
-            @Override
-            public List<String> getCandidates(String part) {
-                return Arrays.stream(arg)
-                        .filter(val -> val.startsWith(part))
-                        .collect(Collectors.toList());
-            }
-
-            @Override
-            public List<String> getHint() {
-                return Arrays.stream(arg)
-                        .collect(Collectors.toList());
-            }
-        };
-    }*/
-
     /**
      * Get possible candidates commands, which can fit into the current argument the player is about to enter.
      * This only works when player enters command at least 1 character, and naturally, the method is expected to return
@@ -64,6 +39,10 @@ public interface ITabCompleter {
      * @return list of String to be shown as hint.
      */
     List<String> getHint();
+
+
+
+
     class ITabCompleterBuilder{
 
         List<String> hint,candidate;
@@ -159,6 +138,11 @@ public interface ITabCompleter {
 
         }
 
+    }
+
+
+    private static List<String> list(String... strings) {
+        return Arrays.stream(strings).collect(Collectors.toList());
     }
 
     enum Template{
