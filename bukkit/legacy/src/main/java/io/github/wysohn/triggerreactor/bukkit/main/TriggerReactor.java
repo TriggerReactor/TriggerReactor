@@ -14,17 +14,24 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.server.TabCompleteEvent;
 
-import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class TriggerReactor extends AbstractJavaPlugin {
     private SelfReference selfReference;
+    private CustomCommandHandle customCommandHandle = new CustomCommandHandle();
 
     @Override
     public void onEnable() {
@@ -33,6 +40,9 @@ public class TriggerReactor extends AbstractJavaPlugin {
         if (!ConfigurationSerializable.class.isAssignableFrom(Location.class)) {
             ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");
         }
+
+        Bukkit.getPluginManager().registerEvents(customCommandHandle, this);
+
         super.onEnable();
     }
 
@@ -53,30 +63,115 @@ public class TriggerReactor extends AbstractJavaPlugin {
 
     @Override
     public Map<String, Command> getCommandMap(TriggerReactorCore plugin) {
-        try {
-            Server server = Bukkit.getServer();
-
-            Field f = server.getClass().getDeclaredField("commandMap");
-            f.setAccessible(true);
-
-            CommandMap scm = (CommandMap) f.get(server);
-
-            Field f2 = scm.getClass().getDeclaredField("knownCommands");
-            f2.setAccessible(true);
-
-            return (Map<String, Command>) f2.get(scm);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-
-            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very old" +
-                    " version of Bukkit. Please report this to TR team, so we can work on it.");
-            core.getLogger().warning("Use /trg debug to see more details.");
-            return null;
-        }
+        return customCommandHandle;
+//        try {
+//            Server server = Bukkit.getServer();
+//
+//            Field f = server.getClass().getDeclaredField("commandMap");
+//            f.setAccessible(true);
+//
+//            CommandMap scm = (CommandMap) f.get(server);
+//
+//            Field f2 = scm.getClass().getDeclaredField("knownCommands");
+//            f2.setAccessible(true);
+//
+//            return (Map<String, Command>) f2.get(scm);
+//        } catch (Exception ex) {
+//            ex.printStackTrace();
+//
+//            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very old" +
+//                    " version of Bukkit. Please report this to TR team, so we can work on it.");
+//            core.getLogger().warning("Use /trg debug to see more details.");
+//            return null;
+//        }
     }
 
     @Override
     public void synchronizeCommandMap() {
         // do nothing. Not really necessary atm for legacy versions
+    }
+
+    private class CustomCommandHandle extends HashMap<String, Command> implements Listener {
+        private final Map<String, String> aliasesMap = new HashMap<>();
+
+        @Override
+        public Command put(String key, Command value) {
+            Command previous = super.put(key, value);
+            Optional.ofNullable(previous)
+                    .ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
+            value.getAliases().forEach(alias -> aliasesMap.put(alias, key));
+            return previous;
+        }
+
+        @Override
+        public void putAll(Map<? extends String, ? extends Command> m) {
+            m.forEach((key, command) -> {
+                Optional.ofNullable(super.get(key))
+                        .ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
+                command.getAliases().forEach(alias -> aliasesMap.put(alias, key));
+            });
+            super.putAll(m);
+        }
+
+        @Override
+        public Command remove(Object key) {
+            Command remove = super.remove(key);
+            Optional.ofNullable(remove)
+                    .ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
+            return remove;
+        }
+
+        @Override
+        public void clear() {
+            super.clear();
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST)
+        public void onCommand(PlayerCommandPreprocessEvent e) {
+            Player player = e.getPlayer();
+            String[] split = e.getMessage().split(" ");
+
+            String cmd = split[0];
+            cmd = cmd.replaceAll("/", "");
+            String[] args = new String[split.length - 1];
+            for (int i = 0; i < args.length; i++)
+                args[i] = split[i + 1];
+
+            Command command = super.get(cmd);
+            if (command == null)
+                command = Optional.of(cmd)
+                        .map(aliasesMap::get)
+                        .map(super::get)
+                        .orElse(null);
+            if (command == null)
+                return;
+            e.setCancelled(true);
+
+            command.execute(player, cmd, args);
+        }
+
+        @EventHandler
+        public void onTabComplete(TabCompleteEvent e) {
+            CommandSender sender = e.getSender();
+            String[] split = e.getBuffer().split(" ");
+
+            String cmd = split[0];
+            //cmd = cmd.replaceAll("/", "");
+            String[] args = new String[split.length - 1];
+            for (int i = 0; i < args.length; i++)
+                args[i] = split[i + 1];
+
+            Command command = super.get(cmd);
+            if (command == null)
+                command = Optional.of(cmd)
+                        .map(aliasesMap::get)
+                        .map(super::get)
+                        .orElse(null);
+            if (command == null)
+                return;
+            e.setCancelled(true);
+
+            e.setCompletions(command.tabComplete(sender, cmd, args));
+        }
     }
 }
