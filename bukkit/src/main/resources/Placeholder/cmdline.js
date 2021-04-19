@@ -24,36 +24,40 @@ validation = {
 }
 
 function cmdline(args) {
+    var splitMsg; //target message array
     var message = event.getMessage().substring(1); //first character is slash
 
-    if (overload == 0) {
+    if (overload === 0) {
         return message;
-    } else if (overload == 1) {
-        var split = message.split(" ");
-        return merge(split, args[0], split.length - 1);
-    } else if (overload == 2) {
-        var split = message.split(" ");
+    } else if (overload === 1) {
+        splitMsg = message.split(" ");
+        return merge(splitMsg, args[0], splitMsg.length - 1);
+    } else if (overload === 2) {
+        splitMsg = message.split(" ");
         if (args[0] > args[1])
-            throw new Error("fromIndex cannot be larger than toIndex!");
+            return merge(splitMsg, args[1], args[0]); //if toIndex is smaller than fromIndex, reversed result can be returned.
 
-        return merge(split, args[0], args[1]);
+        //throw new Error("fromIndex cannot be larger than toIndex!");
+
+
+        return merge(splitMsg, args[0], args[1]);
     }
 }
 
-function merge(split, indexFrom, indexTo) {
+function merge(targetArr, indexFrom, indexTo) {
     indexFrom = Math.max(0, indexFrom)
-    indexTo = Math.min(split.length - 1, indexTo)
+    indexTo = Math.min(targetArr.length - 1, indexTo)
 
     if (indexTo - indexFrom < 1) {
-        if (indexFrom < split.length)
-            return split[indexFrom];
+        if (indexFrom < targetArr.length)
+            return targetArr[indexFrom];
         else
             return null;
     }
 
-    var temp = split[indexFrom];
+    var temp = targetArr[indexFrom];
     for (var i = indexFrom + 1; i <= indexTo; i++) {
-        temp += " " + split[i];
+        temp += " " + targetArr[i];
     }
 
     return temp;
