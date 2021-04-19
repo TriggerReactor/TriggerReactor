@@ -21,10 +21,10 @@ public class BukkitConfigurationSerializer implements Serializer<ConfigurationSe
 
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY,
-                ser.remove(ConfigurationSerialization.SERIALIZED_TYPE_KEY).getAsString());
+                ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY).getAsString());
 
         try {
-            Map<String, ConfigurationSerializable> subs = new HashMap<>();
+            Map<String, Object> subs = new HashMap<>();
             ser.entrySet().forEach(entry -> {
                 String key = entry.getKey();
                 JsonElement value = entry.getValue();
