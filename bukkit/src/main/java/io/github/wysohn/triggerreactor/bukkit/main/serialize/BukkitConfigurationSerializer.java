@@ -21,7 +21,7 @@ public class BukkitConfigurationSerializer implements Serializer<ConfigurationSe
 
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY,
-                ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY).getAsString());
+                ser.remove(ConfigurationSerialization.SERIALIZED_TYPE_KEY).getAsString());
 
         try {
             Map<String, ConfigurationSerializable> subs = new HashMap<>();
