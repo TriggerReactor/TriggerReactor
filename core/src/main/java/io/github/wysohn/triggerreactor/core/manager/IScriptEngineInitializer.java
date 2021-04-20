@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -36,6 +37,8 @@ public interface IScriptEngineInitializer {
 
     @SuppressWarnings("removal")
     static ScriptEngine getNashornEngine(ScriptEngineManager sem) {
-        return sem.getEngineByName("nashorn");
+        return NASHORN_FACTORY.getScriptEngine("--no-deprecation-warning");
     }
+
+    NashornScriptEngineFactory NASHORN_FACTORY = new NashornScriptEngineFactory();
 }
