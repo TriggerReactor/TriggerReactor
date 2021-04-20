@@ -28,7 +28,7 @@ function BROADCAST(args) {
 
 	var players = BukkitUtil.getOnlinePlayers();
 	for (var iter = players.iterator(); iter.hasNext();) {
-		p = iter.next();
+		var p = iter.next();
 		if (PlaceholderAPI) {
 			p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
 		} else {
