@@ -15,15 +15,14 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.server.TabCompleteEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -151,9 +150,9 @@ public class TriggerReactor extends AbstractJavaPlugin {
         }
 
         @EventHandler
-        public void onTabComplete(TabCompleteEvent e) {
-            CommandSender sender = e.getSender();
-            String[] split = e.getBuffer().split(" ");
+        public void onTabComplete(PlayerChatTabCompleteEvent e) {
+            Player sender = e.getPlayer();
+            String[] split = e.getChatMessage().split(" ");
 
             String cmd = split[0];
             //cmd = cmd.replaceAll("/", "");
@@ -169,9 +168,8 @@ public class TriggerReactor extends AbstractJavaPlugin {
                         .orElse(null);
             if (command == null)
                 return;
-            e.setCancelled(true);
 
-            e.setCompletions(command.tabComplete(sender, cmd, args));
+            e.getTabCompletions().addAll(command.tabComplete(sender, cmd, args));
         }
     }
 }
