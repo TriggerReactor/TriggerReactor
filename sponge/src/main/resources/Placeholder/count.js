@@ -22,7 +22,7 @@ validation = {
 }
 
 function count(args) {
-    if (overloads === 0) {
+    if (overload === 0) {
         var item = args[0]
         if (item == null) {
             return 0;
