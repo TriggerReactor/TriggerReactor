@@ -23,7 +23,7 @@ validation = {
 }
 
 function SETTYPE(args) {
-    if (overload == 0) {
+    if (overloads === 0) {
         var typeString = args[0].toUpperCase()
         var item = args[1]
         var Material = Java.type("org.bukkit.Material")

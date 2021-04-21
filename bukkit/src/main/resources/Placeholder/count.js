@@ -23,7 +23,7 @@ validation = {
 }
 
 function count(args) {
-    if (overload == 0) {
+    if (overloads === 0) {
         var item = args[0];
         var Material = Java.type("org.bukkit.Material")
         if (item === null || item.getType() === Material.AIR)

@@ -1,9 +1,9 @@
 package js;
 
+import io.github.wysohn.triggerreactor.bukkit.manager.BukkitScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
@@ -17,29 +17,22 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.util.function.Function;
 
 @PowerMockIgnore("javax.script.*")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({TriggerReactorCore.class, Bukkit.class})
 public abstract class AbstractTestJavaScripts {
+    private static final IScriptEngineInitializer INITIALIZER = new BukkitScriptEngineInitializer() {
+    };
+
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
 
     @Before
     public void init() throws Exception {
         sem = new ScriptEngineManager(null);
+        INITIALIZER.initScriptEngine(sem);
         engine = sem.getEngineByName("nashorn");
-
-        sem.put("Char", new Function<String, Character>() {
-            @Override
-            public Character apply(String t) {
-                return t.charAt(0);
-            }
-        });
-        register(sem, engine, ReflectionUtil.class);
-        register(sem, engine, Bukkit.class);
-        register(sem, engine, ChatColor.class);
 
         TriggerReactorCore mockMain = Mockito.mock(TriggerReactorCore.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);

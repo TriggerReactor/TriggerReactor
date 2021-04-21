@@ -9,7 +9,7 @@ function CLEARPOTION(args){
 	if(player === null)
 		return null;
 
-	if(overload === 0){
+	if(overloads === 0){
 		var list = player.get(Keys.POTION_EFFECTS).orElse(null);
 		if(list === null)
 			return null;
