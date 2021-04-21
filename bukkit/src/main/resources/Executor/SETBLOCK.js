@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2021 soliddanii and contributors
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,23 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
 function SETBLOCK(args) {
-    var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
     if (typeof block !== 'undefined' && (args.length == 1 || args.length == 2)) {
         var blockID = args[0];
         var blockData = args.length  == 2 ? args[1] : 0;
 
-        if (typeof blockID === 'number' && (blockID % 1) === 0) {
-            block.setTypeId(blockID);
-            block.setData(blockData);
-        } else {
-            var Material = Java.type('org.bukkit.Material');
-            var someBlock = Material.valueOf(blockID.toUpperCase());
-            if (someBlock.isBlock()) {
-                block.setType(someBlock);
-                block.setData(blockData);
-            }
-        }
+        setBlock(block, blockID, blockData);
     } else if (args.length == 2 || args.length == 4) {
         var blockID = args[0];
         var location;
@@ -38,21 +28,16 @@ function SETBLOCK(args) {
         if (args.length == 2) {
             location = args[1];
         } else {
+            if(typeof player === 'undefined')
+                throw new Error('cannot use #SETBLOCK in non-player related event. Or use Location instance.')
+
             var world = player.getWorld();
             location = new Location(world, args[1], args[2], args[3]);
         }
 
         block = location.getBlock();
 
-        if (typeof blockID === 'number' && (blockID % 1) === 0) {
-            block.setTypeId(blockID);
-        } else {
-            var Material = Java.type('org.bukkit.Material');
-            var someBlock = Material.valueOf(blockID.toUpperCase());
-            if (someBlock.isBlock()) {
-                block.setType(someBlock);
-            }
-        }
+        setBlock(block, blockID, 0);
     } else if (args.length == 3 || args.length == 5) {
         var blockID = args[0];
         var blockData = args[1];
@@ -67,21 +52,30 @@ function SETBLOCK(args) {
 
         block = location.getBlock();
 
-        if (typeof blockID === 'number' && (blockID % 1) === 0) {
-            block.setTypeId(blockID);
-            block.setData(blockData);
-        } else {
-            var Material = Java.type('org.bukkit.Material');
-            var someBlock = Material.valueOf(blockID.toUpperCase());
-            if (someBlock.isBlock()) {
-                block.setType(someBlock);
-                block.setData(blockData);
-            }
-        }
-
+        setBlock(block, blockID, blockData);
     } else {
         throw new Error(
             'Invalid parameters. Need [Block<string or number>, Location<location or number number number>] or [Block<string or number>, BlockData<number>, Location<location or number number number>]');
     }
     return null;
+}
+
+function setBlock(block, blockId, blockData){
+    var Material = Java.type('org.bukkit.Material');
+    var legacy = typeof block.setData === 'function';
+
+    var mat = null;
+    if(typeof blockId === 'number' && (blockId % 1) === 0){
+        if(!legacy)
+            throw new Error("Cannot use a number as block type after 1.12.2. Use material name directly.");
+
+        mat = Material.getMaterial(blockId);
+    } else {
+        mat = Material.valueOf(blockId.toUpperCase());
+    }
+    block.setType(mat);
+
+    if(legacy){
+        block.setData(blockData);
+    }
 }

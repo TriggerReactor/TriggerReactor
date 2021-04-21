@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
 /**
  * Test driving class for testing Executors.
@@ -613,7 +613,108 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testSetBlock() throws Exception {
-        //TODO
+        // {block id} and is used in Block related event
+        World mockWorld = Mockito.mock(World.class);
+        Block mockBlock = mock(Block.class);
+
+        JsTest test = new ExecutorTest(engine, "SETBLOCK");
+        test.addVariable("block", mockBlock);
+
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        test.withArgs("STONE").test();
+
+        verify(mockBlock).setType(eq(Material.STONE));
+    }
+
+    @Test
+    public void testSetBlock1() throws Exception {
+        // {block id} {x} {y} {z}
+        World mockWorld = Mockito.mock(World.class);
+        Player player = Mockito.mock(Player.class);
+
+        when(player.getWorld()).thenReturn(mockWorld);
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        assertJSError(() -> new ExecutorTest(engine, "SETBLOCK")
+                .withArgs("STONE", 22, 80, 33)
+                .test(), "cannot use #SETBLOCK in non-player related event. Or use Location instance.");
+    }
+
+    @Test
+    public void testSetBlock1_1() throws Exception {
+        // {block id} {x} {y} {z}
+        World mockWorld = Mockito.mock(World.class);
+        Player player = Mockito.mock(Player.class);
+        Block block = mock(Block.class);
+
+        when(player.getWorld()).thenReturn(mockWorld);
+        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        new ExecutorTest(engine, "SETBLOCK")
+                .addVariable("player", player)
+                .withArgs("GLASS", 33, 96, -15)
+                .test();
+
+        verify(block).setType(eq(Material.GLASS));
+    }
+
+    @Test
+    public void testSetBlock1_2() throws Exception {
+        // {block id} {block data} {x} {y} {z}
+        World mockWorld = Mockito.mock(World.class);
+        Player player = Mockito.mock(Player.class);
+        Block block = mock(Block.class);
+
+        when(player.getWorld()).thenReturn(mockWorld);
+        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        new ExecutorTest(engine, "SETBLOCK")
+                .addVariable("player", player)
+                .withArgs("GLASS", 3, 33, 96, -15)
+                .test();
+
+        verify(block).setType(eq(Material.GLASS));
+    }
+
+    @Test
+    public void testSetBlock2() throws Exception {
+        // {block id} {Location instance}
+        World mockWorld = Mockito.mock(World.class);
+        Player player = Mockito.mock(Player.class);
+        Block block = mock(Block.class);
+
+        when(player.getWorld()).thenReturn(mockWorld);
+        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        new ExecutorTest(engine, "SETBLOCK")
+                .addVariable("player", player)
+                .withArgs("GLASS", new Location(mockWorld, 33, 96, -15))
+                .test();
+
+        verify(block).setType(eq(Material.GLASS));
+    }
+
+    @Test
+    public void testSetBlock2_1() throws Exception {
+        // {block id} {block data} {Location instance}
+        World mockWorld = Mockito.mock(World.class);
+        Player player = Mockito.mock(Player.class);
+        Block block = mock(Block.class);
+
+        when(player.getWorld()).thenReturn(mockWorld);
+        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        new ExecutorTest(engine, "SETBLOCK")
+                .addVariable("player", player)
+                .withArgs("GLASS", 2, new Location(mockWorld, 33, 96, -15))
+                .test();
+
+        verify(block).setType(eq(Material.GLASS));
     }
 
     @Test

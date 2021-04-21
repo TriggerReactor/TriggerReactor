@@ -4,11 +4,19 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.Va
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import js.ExecutorTest;
 import js.JsTest;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -42,5 +50,22 @@ public class TestExecutors extends AbstractTestExecutors {
 
         assertJSError(() -> test.withArgs().test(), "Invalid parameter! [Number]");
         assertJSError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");
+    }
+
+    @Test
+    public void testSetBlock1_Legacy() throws Exception {
+        // {block id} {x} {y} {z}
+        World mockWorld = Mockito.mock(World.class);
+        Player player = Mockito.mock(Player.class);
+        Block block = mock(Block.class);
+
+        when(player.getWorld()).thenReturn(mockWorld);
+        when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
+        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+
+        assertJSError(() -> new ExecutorTest(engine, "SETBLOCK")
+                .addVariable("player", player)
+                .withArgs(1, 33, 96, -15)
+                .test(), "Cannot use a number as block type after 1.12.2. Use material name directly.");
     }
 }
