@@ -1,5 +1,5 @@
 function SETGAMEMODE(args) {
-    if (args.length != 1) {
+    if (args.length !== 1) {
         throw new Error("Incorrect number of arguments for executor SETGAMEMODE")
     }
 
