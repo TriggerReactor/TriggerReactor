@@ -28,7 +28,7 @@ function playerinv(args){
     if(player == null)
         return null;
 
-    if(overload == 0){
+    if(overloads === 0){
         var carriedInv = player.getInventory();
         var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
 

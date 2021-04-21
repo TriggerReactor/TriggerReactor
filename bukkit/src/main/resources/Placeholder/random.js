@@ -22,7 +22,7 @@ validation = {
 }
 
 function random(args){
-	if(overload === 0){
+	if(overloads === 0){
 		return Math.floor(Math.random() * args[0])
 			
 	} else {

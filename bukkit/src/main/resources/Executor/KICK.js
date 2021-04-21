@@ -26,7 +26,7 @@ validation = {
 }
 
  function KICK(args) {
-    switch (overload) {
+    switch (overloads) {
     case 0:
     	if(player === null){
             throw new Error("Too few arguments! You should enter at least on argument if you use KICK executor from console.")

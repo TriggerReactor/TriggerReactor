@@ -23,7 +23,7 @@ validation = {
 }
 
 function SETCOUNT(args) {
-    if (overload == 0) {
+    if (overloads === 0) {
         var amount = args[0];
         var item = args[1];
 

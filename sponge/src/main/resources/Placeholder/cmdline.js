@@ -28,7 +28,7 @@ function cmdline(args) {
     var args = event.getArguments().split(" ");
 
     var temp = cmd;
-    if (overload == 0) {
+    if (overloads === 0) {
         // do nothing
     } else if (overload == 1) {
         for(var i = args[0]; i < args.length; i++){
