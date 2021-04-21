@@ -27,7 +27,7 @@ function cmdline(args) {
     var splitMsg; //target message array
     var message = event.getMessage().substring(1); //first character is slash
 
-    if (overloads === 0) {
+    if (overload === 0) {
         return message;
     } else if (overload === 1) {
         splitMsg = message.split(" ");
