@@ -15,5 +15,32 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function emptyslot(args){
-	throw new Error("Not available in Sponge");
+	if(player == null)
+		return null;
+
+	var hotbarIter = player.getInventory().getHotbar().slots().iterator();
+	var inventoryIter = player.getInventory().getMainGrid().slots().iterator();
+	var index = 0;
+	var found = false;
+
+	while(hotbarIter.hasNext()) {
+		if(!hotbarIter.next().peek().isPresent()) {
+			found = true;
+			break;
+		}
+		index++;
+		continue;
+	}
+	if(!found) {
+		while(inventoryIter.hasNext()) {
+			if(!inventoryIter.next().peek().isPresent()) {
+				found = true;
+				break;
+			}
+			index++;
+			continue;
+		}
+	}
+
+	return found ? index : -1;
 }
