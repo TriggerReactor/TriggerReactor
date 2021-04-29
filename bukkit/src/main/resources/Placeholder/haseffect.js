@@ -14,17 +14,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function haseffect(args){
-	if(player == null)
-		return null;
+function haseffect(args) {
+    if(player == null)
+        return null;
 
-	if(args.length != 1 || typeof args[0] !== "string")
-		throw new Error("Invalid parameter! [String]");
-		
-	var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
-	var type = PotionEffectType.getByName(args[0]);
-	if(type == null)
-		throw new Error(args[0]+" is not a valid PotionEffectType!");
-		
-	return player.hasPotionEffect(type);
+    if(args.length != 1 || typeof args[0] !== "string")
+        throw new Error("Invalid parameter! [String]");
+
+    var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
+    var type = PotionEffectType.getByName(args[0]);
+    if(type == null)
+        throw new Error(args[0]+" is not a valid PotionEffectType!");
+
+    return player.hasPotionEffect(type);
 }

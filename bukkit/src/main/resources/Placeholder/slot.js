@@ -19,19 +19,19 @@ validation = {
         [{"name": "index", "type": "int"}]
     ]
 }
-function slot(args){
+function slot(args) {
     var invOpenEvent = Java.type('org.bukkit.event.inventory.InventoryOpenEvent');
     var invClickEvent = Java.type('org.bukkit.event.inventory.InventoryClickEvent');
     var invCloseEvent = Java.type('org.bukkit.event.inventory.InventoryCloseEvent');
-    if(event instanceof invOpenEvent || event instanceof invClickEvent || event instanceof invCloseEvent){
+    if(event instanceof invOpenEvent || event instanceof invClickEvent || event instanceof invCloseEvent) {
 
-            if(args[0] < 0 || args[0] >= event.getInventory().getSize())
-                throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
-            else
-                var item = event.getInventory().getItem(args[0]);
-                return item;
+        if(args[0] < 0 || args[0] >= event.getInventory().getSize())
+            throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
+        else
+            var item = event.getInventory().getItem(args[0]);
+            return item;
 
-    }else {
+    } else {
         throw new Error('$slot Placeholder is available only in InventoryTrigger!');
     }
 }

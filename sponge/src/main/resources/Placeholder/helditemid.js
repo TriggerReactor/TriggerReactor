@@ -14,14 +14,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function helditemid(args){
-	if(player == null)
-		return null;
-		
+function helditemid(args) {
+    if(player == null)
+        return null;
+
     var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
     var inHand = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
     if(inHand == null)
-       return "";
-		
-	return inHand.getType().getId();
+        return "";
+
+    return inHand.getType().getId();
 }

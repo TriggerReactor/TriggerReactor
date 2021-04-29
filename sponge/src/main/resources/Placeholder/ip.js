@@ -14,13 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function ip(args){
-	if(player == null)
-		return null;
-	
-	var connection = player.getConnection();
-	if(connection == null)
-		return null;
-	
-	return player.getConnection().getAddress().getHostString();
+function ip(args) {
+    if(player == null)
+        return null;
+
+    var connection = player.getConnection();
+    if(connection == null)
+        return null;
+
+    return player.getConnection().getAddress().getHostString();
 }

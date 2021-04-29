@@ -14,15 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function playerloc(args){
-	if(player == null)
-		return null;
+function playerloc(args) {
+    if(player == null)
+        return null;
 
-	loc = player.getLocation();
-	world = loc.getWorld().getName();
-	x = loc.getBlockX();
-	y = loc.getBlockY();
-	z = loc.getBlockZ();
-	
-	return world+"@"+x+","+y+","+z;
+    loc = player.getLocation();
+    world = loc.getWorld().getName();
+    x = loc.getBlockX();
+    y = loc.getBlockY();
+    z = loc.getBlockZ();
+
+    return world+"@"+x+","+y+","+z;
 }

@@ -14,25 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function money(args){
-	if(player == null)
-		return null;
+function money(args) {
+    if(player == null)
+        return null;
         
     var EconomyService = Java.type('org.spongepowered.api.service.economy.EconomyService');
     var economyServiceOpt = Sponge.getServiceManager().provide(EconomyService.class);
-    if(economyServiceOpt.isPresent()){
+    if(economyServiceOpt.isPresent()) {
         var BigDecimal = Java.type('java.math.BigDecimal');
         var economyService = economyServiceOpt.get();
         
         var targetOpt = economyService.getOrCreateAccount(player.getUniqueId());
-        if(targetOpt.isPresent()){
+        if(targetOpt.isPresent()) {
             var target = targetOpt.get();
             
             return target.getBalance(economyService.getDefaultCurrency());
         } else {
             throw new Error("Something went wrong. Can't find user.");
         }
-    } else{
+    } else {
         throw new Error("There is no available economy service provider!");
     }
 }
