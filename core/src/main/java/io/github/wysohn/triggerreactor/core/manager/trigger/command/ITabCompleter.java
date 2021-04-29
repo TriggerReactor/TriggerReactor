@@ -43,22 +43,22 @@ public interface ITabCompleter {
 
 
 
-    class ITabCompleterBuilder{
+    class TabCompleterBuilder{
 
         List<String> hint,candidate;
 
-        public ITabCompleterBuilder(){
+        private TabCompleterBuilder(){
             this.hint = new ArrayList<>();
             this.candidate = new ArrayList<>();
         }
 
-        public ITabCompleterBuilder(String... arg){
+        private TabCompleterBuilder(String... arg){
             this.hint = Arrays.stream(arg)
                     .collect(Collectors.toList());
             this.candidate = this.hint;
         }
 
-        public ITabCompleterBuilder(Template template){
+        private TabCompleterBuilder(Template template){
             if(template == Template.EMPTY){
                 this.hint = new ArrayList<>();
                 this.candidate = new ArrayList<>();
@@ -70,42 +70,58 @@ public interface ITabCompleter {
             }
         }
 
-        public ITabCompleterBuilder appendHint(String... hints){
+        public static TabCompleterBuilder self(){
+            return new TabCompleterBuilder();
+        }
+
+        public static TabCompleterBuilder of(String... arg){
+            return new TabCompleterBuilder(arg);
+        }
+
+        public static TabCompleterBuilder of(Template template){
+            return new TabCompleterBuilder(template);
+        }
+
+        public static TabCompleterBuilder withHint(String hint){
+            return TabCompleterBuilder.self().appendHint(hint);
+        }
+
+        public TabCompleterBuilder appendHint(String... hints){
             this.hint.addAll(list(hints));
 
             return this;
         }
-        public ITabCompleterBuilder appendHint(Collection<String> hints){
+        public TabCompleterBuilder appendHint(Collection<String> hints){
             this.hint.addAll(hints);
 
             return this;
         }
-        public ITabCompleterBuilder appendCandidate(String... candidates){
+        public TabCompleterBuilder appendCandidate(String... candidates){
             this.candidate.addAll(list(candidates));
 
             return this;
         }
-        public ITabCompleterBuilder appendCandidate(Collection<String> candidates){
+        public TabCompleterBuilder appendCandidate(Collection<String> candidates){
             this.candidate.addAll(candidates);
 
             return this;
         }
-        public ITabCompleterBuilder setHint(String...hints){
+        public TabCompleterBuilder setHint(String...hints){
             this.hint = list(hints);
 
             return this;
         }
-        public ITabCompleterBuilder setHint(Collection<String> hints){
+        public TabCompleterBuilder setHint(Collection<String> hints){
             this.hint = hints instanceof List ? (List<String>) hints : new ArrayList<>(hints);
 
             return this;
         }
-        public ITabCompleterBuilder setCandidate(String...candidates){
+        public TabCompleterBuilder setCandidate(String...candidates){
             this.candidate = list(candidates);
 
             return this;
         }
-        public ITabCompleterBuilder setCandidate(Collection<String> candidates){
+        public TabCompleterBuilder setCandidate(Collection<String> candidates){
             if(candidates == null)
                 this.candidate = null;
             else
@@ -113,7 +129,7 @@ public interface ITabCompleter {
 
             return this;
         }
-        public ITabCompleterBuilder setAsPlayerList(){
+        public TabCompleterBuilder setAsPlayerList(){
             this.hint = list("<player>");
             this.candidate = null;
 
