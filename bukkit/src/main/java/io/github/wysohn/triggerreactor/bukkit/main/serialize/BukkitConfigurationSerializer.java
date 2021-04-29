@@ -24,7 +24,7 @@ public class BukkitConfigurationSerializer implements Serializer<ConfigurationSe
                 ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY).getAsString());
 
         try {
-            Map<String, ConfigurationSerializable> subs = new HashMap<>();
+            Map<String, Object> subs = new HashMap<>();
             ser.entrySet().forEach(entry -> {
                 String key = entry.getKey();
                 JsonElement value = entry.getValue();

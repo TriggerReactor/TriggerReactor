@@ -1,0 +1,5 @@
+env:
+  nashorn: true
+rules:
+  eqeqeq: [ "error", "smart" ]
+  no-mixed-spaces-and-tabs: "error"

@@ -14,25 +14,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function LEVERTOGGLE(args) {
-	if (args.length == 1 || args.length == 3) {
-		var location;
+function LEVERTOGGLE(args) {
+    if (args.length == 1 || args.length == 3) {
+        var location;
 
-		if(args.length == 1){
-			location = args[0];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
-		}
-		
-		var current = location.get(Keys.POWERED).orElse(null);
-		if(current == null)
-			throw new Error("Block at "+location+" doesn't have POWERED trait!");
-			
-		location.offer(Keys.POWERED, !current);
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
-	}
-	return null;
+        if (args.length == 1) {
+            location = args[0];
+        } else {
+            var world = player.getWorld();
+            location = new Location(world, args[0], args[1], args[2]);
+        }
+
+        var current = location.get(Keys.POWERED).orElse(null);
+        if (current == null)
+            throw new Error("Block at " + location + " doesn't have POWERED trait!");
+
+        location.offer(Keys.POWERED, !current);
+    } else {
+        throw new Error(
+            'Invalid parameters. Need [Location<location or number number number>]');
+    }
+    return null;
 }

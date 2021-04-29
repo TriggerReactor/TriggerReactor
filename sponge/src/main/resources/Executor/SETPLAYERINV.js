@@ -27,7 +27,7 @@ function SETPLAYERINV(args){
     if(player == null)
         return null;
 
-    if(overload == 0){
+    if(overload === 0){
         var itemStack = args[1];
         if(!(itemStack instanceof ItemStack))
             throw new Error("Invalid item: " + itemStack)

@@ -17,9 +17,22 @@
 validation = {
     "overloads": [
         [], // whole line
-        [{"type": "int", "minimum": 0, "name": "fromIndex"}], //initial index to end
-        [{"type": "int", "minimum": 0, "name": "fromIndex"},
-            {"type": "int", "minimum": 0, "name": "toIndex"}] //initial to final
+        [{
+            "type": "int",
+            "minimum": 0,
+            "name": "fromIndex"
+        }], //initial index to end
+        [{
+                "type": "int",
+                "minimum": 0,
+                "name": "fromIndex"
+            },
+            {
+                "type": "int",
+                "minimum": 0,
+                "name": "toIndex"
+            }
+        ] //initial to final
     ]
 }
 
@@ -28,10 +41,10 @@ function cmdline(args) {
     var args = event.getArguments().split(" ");
 
     var temp = cmd;
-    if (overload == 0) {
+    if (overload === 0) {
         // do nothing
     } else if (overload == 1) {
-        for(var i = args[0]; i < args.length; i++){
+        for (var i = args[0]; i < args.length; i++) {
             temp += " " + args[i];
         }
     } else if (overload == 2) {
@@ -39,7 +52,7 @@ function cmdline(args) {
         if (args[0] > args[1])
             throw new Error("fromIndex cannot be larger than toIndex!");
 
-        for(var i = args[0]; i <= args[1]; i++){
+        for (var i = args[0]; i <= args[1]; i++) {
             temp += " " + args[i];
         }
     } else {

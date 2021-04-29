@@ -2,6 +2,7 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -34,8 +35,9 @@ public interface IScriptEngineInitializer {
         sem.put(name, value);
     }
 
-    @SuppressWarnings("removal")
     static ScriptEngine getNashornEngine(ScriptEngineManager sem) {
-        return sem.getEngineByName("nashorn");
+        ScriptEngine scriptEngine = JSEngineProvider.getScriptEngine();
+        scriptEngine.setBindings(sem.getBindings(), ScriptContext.GLOBAL_SCOPE);
+        return scriptEngine;
     }
 }

@@ -33,9 +33,7 @@
 			Lever.setPowered(!Lever.isPowered());
 			BlockState.setData(Lever);
 
-			var Runnable = Java.type('org.bukkit.scheduler.BukkitRunnable');
 			BlockState.update(true);
-
 		}catch(err){
 			throw new Error(
 				'Invalid lever. That block is not a valid lever!');

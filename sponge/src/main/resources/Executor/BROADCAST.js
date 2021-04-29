@@ -27,7 +27,7 @@ function BROADCAST(args) {
             
         var players = Sponge.getServer().getOnlinePlayers();
         for (var iter = players.iterator(); iter.hasNext();) {
-            p = iter.next();
+            var p = iter.next();
             p.sendMessage(t);
         }
 	}

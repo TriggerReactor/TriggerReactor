@@ -73,7 +73,12 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
             @Override
             public List<String> getSuggestions(CommandSource source, String arguments,
                                                @Nullable Location<World> targetPosition) throws CommandException {
-                String[] args = arguments.split(" ");
+                String[] args;
+                if (arguments.length() > 0) {
+                    args = arguments.split(" ");
+                } else {
+                    args = new String[0];
+                }
 
                 ITabCompleter tabCompleter = Optional.ofNullable(trigger.getTabCompleters())
                         .filter(iTabCompleters -> iTabCompleters.length >= args.length)
@@ -155,6 +160,18 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
         varMap.put("argslength", args.length);
 
         trigger.activate(e, varMap);
+    }
+
+    public static void main(String[] ar) {
+        String arguments = "a b";
+        String[] args;
+        if (arguments.length() > 0) {
+            args = arguments.split(" ");
+        } else {
+            args = new String[0];
+        }
+
+        System.out.println(args.length);
     }
 
 }
