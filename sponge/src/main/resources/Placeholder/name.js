@@ -22,11 +22,11 @@ validation = {
 
 }
 
-function name(args){
-	var item = args[0];
-	var dispOpt = item.get(Keys.DISPLAY_NAME);
-	if(!dispOpt.isPresent())
-	   return "";
+function name(args) {
+    var item = args[0];
+    var dispOpt = item.get(Keys.DISPLAY_NAME);
+    if(!dispOpt.isPresent())
+        return "";
 
-	return dispOpt.get().toPlain();
+    return dispOpt.get().toPlain();
 }

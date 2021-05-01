@@ -14,19 +14,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function helditemdisplayname(args){
-	if(player == null)
-		return null;
-		
-	if(player.getItemInHand() == null)
-		return "";
-		
-	var itemMeta = player.getItemInHand().getItemMeta();
-	if(itemMeta == null)
-		return "";
-		
-	if(itemMeta.getDisplayName() == null)
-		return "";
-		
-	return itemMeta.getDisplayName();
+function helditemdisplayname(args) {
+    if(player == null)
+        return null;
+
+    if(player.getItemInHand() == null)
+        return "";
+
+    var itemMeta = player.getItemInHand().getItemMeta();
+    if(itemMeta == null)
+        return "";
+
+    if(itemMeta.getDisplayName() == null)
+        return "";
+
+    return itemMeta.getDisplayName();
 }

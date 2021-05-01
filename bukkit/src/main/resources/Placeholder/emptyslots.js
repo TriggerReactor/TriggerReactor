@@ -14,17 +14,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function emptyslots(args){
-	if(player == null)
-		return null;
-	
-	var contents = player.getInventory().getContents();
-	var count = 0;
-	
-	for(var i = 0; i < contents.length; i++){
-		if(contents[i] == null)
-			count++;
-	}
-	
-	return count;
+function emptyslots(args) {
+    if(player == null)
+        return null;
+
+    var contents = player.getInventory().getContents();
+    var count = 0;
+
+    for(var i = 0; i < contents.length; i++) {
+        if(contents[i] == null)
+            count++;
+    }
+
+    return count;
 }

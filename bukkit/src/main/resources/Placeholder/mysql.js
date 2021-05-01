@@ -14,16 +14,16 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function mysql(args){
-	if(args.length < 1)
-		throw new Error("Invalid parameters. Need [String]");
-	
-	if(typeof args[0] !== "string")
-	    throw new Error("First argument should be String.");
-	
-	var mysqlHelper = plugin.getMysqlHelper();
-	if(mysqlHelper == null)
-		throw new Error("Mysql connection is not available. Check your config.yml");
-		
-	return mysqlHelper.get(args[0]);
+function mysql(args) {
+    if(args.length < 1)
+        throw new Error("Invalid parameters. Need [String]");
+
+    if(typeof args[0] !== "string")
+        throw new Error("First argument should be String.");
+
+    var mysqlHelper = plugin.getMysqlHelper();
+    if(mysqlHelper == null)
+        throw new Error("Mysql connection is not available. Check your config.yml");
+
+    return mysqlHelper.get(args[0]);
 }

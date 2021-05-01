@@ -22,15 +22,14 @@ validation = {
 
 }
 
-function name(args){
+function name(args) {
     var item = args[0];
-    if(item.hasItemMeta()){
-
+    if(item.hasItemMeta()) {
        if(item.getItemMeta().hasDisplayName())
-            return item.getItemMeta().getDisplayName()
-        else
-            return item.getType().name().toLowerCase();
-    }else {
+           return item.getItemMeta().getDisplayName()
+       else
+           return item.getType().name().toLowerCase();
+    } else {
         return item.getType().name().toLowerCase();
     }
 }

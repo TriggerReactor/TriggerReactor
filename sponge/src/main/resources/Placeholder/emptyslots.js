@@ -14,17 +14,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function emptyslots(args){
-	if(player == null)
-		return null;
-	
-	var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory');
-	var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes');
-	
-	var main = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
-	
-	if(main == null)
-	   throw new Error("No MainPlayerInventory found for player inventory?");
-	
-	return main.capacity() - main.size();
+function emptyslots(args) {
+    if(player == null)
+        return null;
+
+    var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory');
+    var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes');
+
+    var main = player.getInventory().query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
+
+    if(main == null)
+        throw new Error("No MainPlayerInventory found for player inventory?");
+
+    return main.capacity() - main.size();
 }

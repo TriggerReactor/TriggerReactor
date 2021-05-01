@@ -19,7 +19,7 @@ validation = {
        [{"name": "slot", "type": "int"}]
     ]
 }
-function playerinv(args){
+function playerinv(args) {
     if(player == null)
         return null;
 
@@ -28,11 +28,11 @@ function playerinv(args){
     else
         var item = player.getInventory().getItem(args[0]);
 
-    if(item == null){
-        var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
-        var Material = Java.type('org.bukkit.Material')
+    if(item == null) {
+        var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+        var Material = Java.type('org.bukkit.Material');
         return new ItemStack(Material.AIR);
-    }else {
+    } else {
         return item;
     }
 }

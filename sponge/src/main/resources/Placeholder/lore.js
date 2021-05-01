@@ -20,17 +20,17 @@ validation = {
         [{"name": "item", "type": itemStackType.class}]
     ]
 }
-function lore(args){
+function lore(args) {
     var item = args[0];
-	var ArrayList = Java.type('java.util.ArrayList');
+    var ArrayList = Java.type('java.util.ArrayList');
     var lores = item.get(Keys.ITEM_LORE).orElse(new ArrayList());
     var loreString = "";
-    for(var k = 0; k < lores.length; k++){
+    for(var k = 0; k < lores.length; k++) {
         lore = lores[k].toPlain();
         if(k == (lores.length - 1))
             loreString = loreString + lore;
         else
             loreString = loreString + lore + "\n";
     }
-	return loreString;
+    return loreString;
 }

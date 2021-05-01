@@ -32,5 +32,4 @@ function count(args) {
 
         return item.getAmount();
     }
-
 }
