@@ -363,13 +363,18 @@ public class Lexer {
             } else {
                 return new Token(Type.OPERATOR, op, row, col);
             }
-        } else {
-            Token token = null;
-            if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
-                token = new Token(Type.OPERATOR_A, String.valueOf(c), row, col);
+        } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
+            String op = String.valueOf(c);
+            read();
+
+            if (c == '=') {
+                read();
+                return new Token(Type.OPERATOR, op + "=", row, col);
             } else {
-                token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
+                return new Token(Type.OPERATOR_A, op, row, col);
             }
+        } else {
+            Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
             read();
             return token;
         }
