@@ -442,33 +442,33 @@ public class Parser {
         Node comparison = parseComparison();
         Node parsedNode = comparison;
 
-        if(level == curLevel)
+        if (level == curLevel)
             return parsedNode;
         curLevel++;
 
         Node bitwiseAnd = parseBitwiseAnd(parsedNode);
-        if(bitwiseAnd != null) {
+        if (bitwiseAnd != null) {
             if (bitwiseAnd.getChildren().size() != 2)
                 throw new ParserException("Operator " + bitwiseAnd.getToken() + " requires number or variable on the left and right of it. " + token);
             parsedNode = bitwiseAnd;
         }
 
-        if(level == curLevel)
+        if (level == curLevel)
             return parsedNode;
         curLevel++;
 
         Node bitwiseXor = parseBitwiseXor(parsedNode);
-        if(bitwiseXor != null) {
+        if (bitwiseXor != null) {
             if (bitwiseXor.getChildren().size() != 2)
                 throw new ParserException("Operator " + bitwiseXor.getToken() + " requires number or variable on the left and right of it. " + token);
             parsedNode = bitwiseXor;
         }
 
-        if(level == curLevel)
+        if (level == curLevel)
             return parsedNode;
 
         Node bitwiseOr = parseBitwiseOr(parsedNode);
-        if(bitwiseOr != null) {
+        if (bitwiseOr != null) {
             if (bitwiseOr.getChildren().size() != 2)
                 throw new ParserException("Operator " + bitwiseOr.getToken() + " requires number or variable on the left and right of it. " + token);
             parsedNode = bitwiseOr;
@@ -478,7 +478,7 @@ public class Parser {
     }
 
     private Node parseBitwiseAnd(Node left) throws IOException, LexerException, ParserException {
-        if(token != null && token.type == Type.OPERATOR_A && ("&".equals(token.value))) {
+        if (token != null && token.type == Type.OPERATOR_A && ("&".equals(token.value))) {
             Node node = new Node(token);
             nextToken();
 
@@ -503,7 +503,7 @@ public class Parser {
     }
 
     private Node parseBitwiseXor(Node left) throws IOException, LexerException, ParserException {
-        if(token != null && token.type == Type.OPERATOR_A && ("^".equals(token.value))) {
+        if (token != null && token.type == Type.OPERATOR_A && ("^".equals(token.value))) {
             Node node = new Node(token);
             nextToken();
 
@@ -528,7 +528,7 @@ public class Parser {
     }
 
     private Node parseBitwiseOr(Node left) throws IOException, LexerException, ParserException {
-        if(token != null && token.type == Type.OPERATOR_A && ("|".equals(token.value))) {
+        if (token != null && token.type == Type.OPERATOR_A && ("|".equals(token.value))) {
             Node node = new Node(token);
             nextToken();
 
@@ -977,7 +977,7 @@ public class Parser {
             throw new ParserException("Expected an assignable value on the right of " + token + ", but found nothing.");
 
         assign.getChildren().add(leftNode);
-        if("=".equals(assignTokenValue)) {
+        if ("=".equals(assignTokenValue)) {
             assign.getChildren().add(right);
         } else {
             String op = assignTokenValue.substring(0, assignTokenValue.length()-1);

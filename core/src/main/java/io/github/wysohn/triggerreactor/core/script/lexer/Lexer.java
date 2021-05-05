@@ -332,15 +332,15 @@ public class Lexer {
                 return new Token(Type.OPERATOR_L, op + "=", row, col);
             } else if (!op.equals("!") && op.equals(String.valueOf(c))) { // <<, >>, >>>, <<=, >>=, >>>=
                 read();
-                if(">".equals(op) && c == '>') { // >>>, >>>=
+                if (">".equals(op) && c == '>') { // >>>, >>>=
                     read();
-                    if(c == '=') { // >>>=
+                    if (c == '=') { // >>>=
                         read();
                         return new Token(Type.OPERATOR, ">>>=", row, col);
                     } else { // >>>
                         return new Token(Type.OPERATOR_A, ">>>", row, col);
                     }
-                } else if(c == '=') { // <<=, >>=
+                } else if (c == '=') { // <<=, >>=
                     read();
                     return new Token(Type.OPERATOR, op + op + "=", row, col);
                 } else { // <<, >>
