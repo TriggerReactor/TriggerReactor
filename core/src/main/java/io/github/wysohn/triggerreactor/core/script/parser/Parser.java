@@ -267,33 +267,7 @@ public class Parser {
                     if (token == null || token.type == Type.ENDL)
                         return left;
 
-                    if (!"+=".equals(token.value) && !"-=".equals(token.value) && !"*=".equals(token.value)
-                            && !"/=".equals(token.value) && !"%=".equals(token.value) && !"=".equals(token.value))
-                        throw new ParserException("Expected '+=', '-=', '*=', '/=', '%=', or '=' after id [" + left.getToken() + "] but found " + token);
-                    Node assign = new Node(new Token(Type.OPERATOR, "=", token.row, token.col));
-                    Object assignTokenValue = token.value;
-                    nextToken();
-
-                    Node right = parseLogic();
-                    if (right == null)
-                        throw new ParserException("Expected an assignable value on the right of " + token + ", but found nothing.");
-
-                    assign.getChildren().add(left);
-                    if("=".equals(assignTokenValue)) {
-                        assign.getChildren().add(right);
-                    } else {
-                        String op = String.valueOf(((String) assignTokenValue).charAt(0));
-                        Node operate = new Node(new Token(Type.OPERATOR_A, op, token.row, token.col));
-                        operate.getChildren().add(left);
-                        operate.getChildren().add(right);
-                        assign.getChildren().add(operate);
-                    }
-
-                    if (token != null && token.type != Type.ENDL)
-                        throw new ParserException("Expected end of line but found " + token);
-                    nextToken();
-
-                    return assign;
+                    return parseAssignment(left);
                 }
             } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
                 Token temp = token;
@@ -316,23 +290,7 @@ public class Parser {
                 nextToken();
                 ///////////////////////////////////////////////////////////////
 
-                if (!"=".equals(token.value))
-                    throw new ParserException("Expected '=' after id [" + left.getToken().value + "] but found " + token);
-                Node assign = new Node(new Token(Type.OPERATOR, "=", token.row, token.col));
-                nextToken();
-
-                Node right = parseLogic();
-                if (right == null)
-                    throw new ParserException("Expected logic but found nothing " + token);
-
-                assign.getChildren().add(left);
-                assign.getChildren().add(right);
-
-                if (token != null && token.type != Type.ENDL)
-                    throw new ParserException("Expected end of line but found " + token);
-                nextToken();
-
-                return assign;
+                return parseAssignment(left);
             } else {
                 throw new ParserException("Unexpected token " + token);
             }
@@ -825,6 +783,36 @@ public class Parser {
         }
 
         return stack.pop();
+    }
+
+    private Node parseAssignment(Node leftNode) throws IOException, LexerException, ParserException {
+        if (!"+=".equals(token.value) && !"-=".equals(token.value) && !"*=".equals(token.value)
+                && !"/=".equals(token.value) && !"%=".equals(token.value) && !"=".equals(token.value))
+            throw new ParserException("Expected '+=', '-=', '*=', '/=', '%=', or '=' after id [" + leftNode.getToken() + "] but found " + token);
+        Node assign = new Node(new Token(Type.OPERATOR, "=", token.row, token.col));
+        Object assignTokenValue = token.value;
+        nextToken();
+
+        Node right = parseLogic();
+        if (right == null)
+            throw new ParserException("Expected an assignable value on the right of " + token + ", but found nothing.");
+
+        assign.getChildren().add(leftNode);
+        if("=".equals(assignTokenValue)) {
+            assign.getChildren().add(right);
+        } else {
+            String op = String.valueOf(((String) assignTokenValue).charAt(0));
+            Node operate = new Node(new Token(Type.OPERATOR_A, op, token.row, token.col));
+            operate.getChildren().add(leftNode);
+            operate.getChildren().add(right);
+            assign.getChildren().add(operate);
+        }
+
+        if (token != null && token.type != Type.ENDL)
+            throw new ParserException("Expected end of line but found " + token);
+        nextToken();
+
+        return assign;
     }
 
     public List<Warning> getWarnings() {
