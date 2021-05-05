@@ -32,7 +32,7 @@ public class Lexer {
     private static final char[] OPERATORS;
 
     static {
-        OPERATORS = new char[]{'+', '-', '*', '/', '%', '=', '!', '?', '<', '>', '&', '|', '(', ')', '{', '}', ',', '.', '[', ']', ':', '\\', '$'};
+        OPERATORS = new char[]{'+', '-', '*', '/', '%', '=', '!', '?', '<', '>', '&', '|', '^', '~', '(', ')', '{', '}', ',', '.', '[', ']', ':', '\\', '$'};
         Arrays.sort(OPERATORS);
     }
 
@@ -327,9 +327,25 @@ public class Lexer {
             String op = String.valueOf(c);
             read();
 
-            if (c == '=') {
+            if (c == '=') { // <=, >=, !=
                 read();
                 return new Token(Type.OPERATOR_L, op + "=", row, col);
+            } else if (!op.equals("!") && op.equals(String.valueOf(c))) { // <<, >>, >>>, <<=, >>=, >>>=
+                read();
+                if(">".equals(op) && c == '>') { // >>>, >>>=
+                    read();
+                    if(c == '=') { // >>>=
+                        read();
+                        return new Token(Type.OPERATOR, ">>>=", row, col);
+                    } else { // >>>
+                        return new Token(Type.OPERATOR_A, ">>>", row, col);
+                    }
+                } else if(c == '=') { // <<=, >>=
+                    read();
+                    return new Token(Type.OPERATOR, op + op + "=", row, col);
+                } else { // <<, >>
+                    return new Token(Type.OPERATOR_A, op + op, row, col);
+                }
             } else {
                 return new Token(Type.OPERATOR_L, op, row, col);
             }
@@ -340,8 +356,11 @@ public class Lexer {
             if (c == '|') {
                 read();
                 return new Token(Type.OPERATOR_L, op + "|", row, col);
+            } else if (c == '=') {
+                read();
+                return new Token(Type.OPERATOR, op + "=", row, col);
             } else {
-                throw new LexerException("Bit operator is not yet implemented", this);
+                return new Token(Type.OPERATOR_A, op, row, col);
             }
         } else if (c == '&') {
             String op = String.valueOf(c);
@@ -350,8 +369,11 @@ public class Lexer {
             if (c == '&') {
                 read();
                 return new Token(Type.OPERATOR_L, op + "&", row, col);
+            } else if (c == '=') {
+                read();
+                return new Token(Type.OPERATOR, op + "=", row, col);
             } else {
-                throw new LexerException("Bit operator is not yet implemented", this);
+                return new Token(Type.OPERATOR_A, op, row, col);
             }
         } else if (c == '=') {
             String op = String.valueOf(c);
@@ -363,11 +385,12 @@ public class Lexer {
             } else {
                 return new Token(Type.OPERATOR, op, row, col);
             }
-        } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
+        } else if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%'
+                    || c == '^' || c == '~') {
             String op = String.valueOf(c);
             read();
 
-            if (c == '=') {
+            if (!"~".equals(op) && c == '=') {
                 read();
                 return new Token(Type.OPERATOR, op + "=", row, col);
             } else {
