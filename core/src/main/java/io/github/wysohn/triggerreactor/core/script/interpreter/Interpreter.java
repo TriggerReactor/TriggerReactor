@@ -625,13 +625,10 @@ public class Interpreter {
                 if ("+".equals(tokenValue)
                         && (left.type == Type.STRING || right.type == Type.STRING)) {
                     stack.push(new Token(Type.STRING, String.valueOf(left.value) + right.value, node.getToken()));
-                } else if ("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue) || "~".equals(tokenValue)
-                            || "<<".equals(tokenValue) || ">>".equals(tokenValue) || ">>>".equals(tokenValue)) {
-                    if(("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue))
-                            && (left.type == Type.BOOLEAN && right.type == Type.BOOLEAN)) {
-
+                } else if ("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue)) {
+                    if (left.type == Type.BOOLEAN && right.type == Type.BOOLEAN) {
                         boolean result;
-                        switch(tokenValue) {
+                        switch (tokenValue) {
                             case "&":
                                 result = left.toBoolean() & right.toBoolean();
                                 break;
@@ -644,11 +641,8 @@ public class Interpreter {
 
                         stack.push(new Token(Type.BOOLEAN, result, node.getToken().row, node.getToken().col));
                     } else {
-                        if (!left.isNumeric() || left.isDecimal())
-                            throw new InterpreterException("Cannot execute arithmetic operation on non-integer value [" + left + "]!");
-
-                        if (right != null && (!right.isNumeric() || right.isDecimal()))
-                            throw new InterpreterException("Cannot execute arithmetic operation on non-integer value [" + right + "]!");
+                        if (!left.isNumeric() || left.isDecimal() || !right.isNumeric() || right.isDecimal())
+                            throw new InterpreterException("Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! Operands should both be boolean or integer.");
 
                         int result;
                         switch (tokenValue) {
@@ -658,24 +652,35 @@ public class Interpreter {
                             case "^":
                                 result = left.toInteger() ^ right.toInteger();
                                 break;
-                            case "|":
+                            default: //case "|"
                                 result = left.toInteger() | right.toInteger();
-                                break;
-                            case "~":
-                                result = ~left.toInteger();
-                                break;
-                            case "<<":
-                                result = left.toInteger() << right.toInteger();
-                                break;
-                            case ">>":
-                                result = left.toInteger() >> right.toInteger();
-                                break;
-                            default: //case ">>>"
-                                result = left.toInteger() >>> right.toInteger();
                                 break;
                         }
                         stack.push(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
                     }
+                } else if ("~".equals(tokenValue) || "<<".equals(tokenValue) || ">>".equals(tokenValue) || ">>>".equals(tokenValue)) {
+                    if (!left.isNumeric() || left.isDecimal())
+                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + left + "]!");
+
+                    if (right != null && (!right.isNumeric() || right.isDecimal()))
+                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + right + "]!");
+
+                    int result;
+                    switch (tokenValue) {
+                        case "~":
+                            result = ~left.toInteger();
+                            break;
+                        case "<<":
+                            result = left.toInteger() << right.toInteger();
+                            break;
+                        case ">>":
+                            result = left.toInteger() >> right.toInteger();
+                            break;
+                        default: //case ">>>"
+                            result = left.toInteger() >>> right.toInteger();
+                            break;
+                    }
+                    stack.push(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
                 } else {
                     if (!left.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
