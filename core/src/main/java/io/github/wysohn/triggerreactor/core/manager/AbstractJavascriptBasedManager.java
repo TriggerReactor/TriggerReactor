@@ -26,7 +26,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class AbstractJavascriptBasedManager extends Manager implements IScriptEngineInitializer {
-
     protected static final ScriptEngineManager sem = new ScriptEngineManager(null);
     public static AbstractJavascriptBasedManager instance;
 

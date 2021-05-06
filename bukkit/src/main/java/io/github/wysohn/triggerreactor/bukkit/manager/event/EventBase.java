@@ -24,6 +24,7 @@ import org.bukkit.event.HandlerList;
  * @author wysohn
  * @deprecated just for copy
  */
+@Deprecated
 public class EventBase extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
