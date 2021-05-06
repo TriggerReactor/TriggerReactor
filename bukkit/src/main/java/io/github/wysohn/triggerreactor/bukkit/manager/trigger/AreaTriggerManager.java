@@ -35,6 +35,7 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -199,6 +200,34 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 .map(Map.Entry::getValue)
                 .forEach((trigger) -> {
                     trigger.addEntity(new BukkitEntity(e.getPlayer()));
+                    trigger.activate(e, varMap, EventType.ENTER);
+                });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onRiding(VehicleMoveEvent e) {
+        List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(new SimpleLocation(e.getFrom().getWorld().toString(),(int)e.getFrom().getX(),(int) e.getFrom().getY(),(int) e.getFrom().getZ(),e.getFrom().getPitch(),e.getFrom().getYaw()));
+        List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(new SimpleLocation(e.getTo().getWorld().toString(),(int)e.getTo().getX(),(int) e.getTo().getY(),(int) e.getTo().getZ(),e.getTo().getPitch(),e.getTo().getYaw()));
+
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", e.getVehicle().getPassengers().get(0));
+        varMap.put("from", e.getFrom());
+        varMap.put("to", e.getTo());
+
+        from.stream()
+                .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getTo().getWorld().toString(),(int)e.getTo().getX(),(int) e.getTo().getY(),(int) e.getTo().getZ(),e.getTo().getPitch(),e.getTo().getYaw())))//only for area leaving
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> {
+                    trigger.removeEntity(e.getVehicle().getPassengers().get(0).getUniqueId());
+                    trigger.activate(e, varMap, EventType.EXIT);
+                });
+
+
+        to.stream()
+                .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getFrom().getWorld().toString(),(int)e.getFrom().getX(),(int) e.getFrom().getY(),(int) e.getFrom().getZ(),e.getFrom().getPitch(),e.getFrom().getYaw())))//only for entering area
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> {
+                    trigger.addEntity(new BukkitEntity(e.getVehicle().getPassengers().get(0)));
                     trigger.activate(e, varMap, EventType.ENTER);
                 });
     }
