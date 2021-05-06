@@ -827,6 +827,7 @@ public class Parser {
                     && !"{".equals(token.value) //gvar
                     && !"$".equals(token.value) //placeholder
                     && !"(".equals(token.value) //factor
+                    && !"~".equals(token.value) //bitwise complement
             )
                 throw new ParserException("Only Number, Variable, or Placeholder are allowed for unary minus operation! " + token);
 
