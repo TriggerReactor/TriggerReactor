@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -623,10 +624,11 @@ public class Interpreter {
                 }
 
                 if ("+".equals(tokenValue)
-                        && (left.type == Type.STRING || right.type == Type.STRING)) {
-                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + right.value, node.getToken()));
+                        && (left.type == Type.STRING || (right != null && right.type == Type.STRING))) {
+                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + Optional.ofNullable(right)
+                            .map(r -> r.value).orElse("null"), node.getToken()));
                 } else if ("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue)) {
-                    if (left.type == Type.BOOLEAN && right.type == Type.BOOLEAN) {
+                    if (left.type == Type.BOOLEAN && right != null && right.type == Type.BOOLEAN) {
                         boolean result;
                         switch (tokenValue) {
                             case "&":
@@ -641,7 +643,7 @@ public class Interpreter {
 
                         stack.push(new Token(Type.BOOLEAN, result, node.getToken().row, node.getToken().col));
                     } else {
-                        if (!left.isNumeric() || left.isDecimal() || !right.isNumeric() || right.isDecimal())
+                        if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric() || right.isDecimal())
                             throw new InterpreterException("Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! Operands should both be boolean or integer.");
 
                         int result;
@@ -671,12 +673,21 @@ public class Interpreter {
                             result = ~left.toInteger();
                             break;
                         case "<<":
+                            if (right == null)
+                                throw new InterpreterException("Bitwise operator encountered null: " + left + " << null");
+
                             result = left.toInteger() << right.toInteger();
                             break;
                         case ">>":
+                            if (right == null)
+                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >> null");
+
                             result = left.toInteger() >> right.toInteger();
                             break;
                         default: //case ">>>"
+                            if (right == null)
+                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >>> null");
+
                             result = left.toInteger() >>> right.toInteger();
                             break;
                     }
@@ -685,7 +696,7 @@ public class Interpreter {
                     if (!left.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
 
-                    if (!right.isNumeric())
+                    if (right == null || !right.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + right + "]!");
 
                     boolean integer = true;
