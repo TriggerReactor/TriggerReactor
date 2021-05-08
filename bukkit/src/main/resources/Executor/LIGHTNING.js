@@ -34,8 +34,7 @@ function LIGHTNING(args){
 		
 	    var world = Bukkit.getWorld(args[0]);
 	    if(world === null)
-	    throw new Error("Unknown world named "+args[0]);
-	
+	    	throw new Error("Unknown world named "+args[0]);
 	    var Location = Java.type('org.bukkit.Location');
 	    world.strikeLightning(new Location(world, args[1], args[2], args[3]));
 	}
