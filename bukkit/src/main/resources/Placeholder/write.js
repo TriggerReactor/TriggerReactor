@@ -13,5 +13,4 @@ function write(args){
 	fe.write("\n"+args[1]);
 	fe.close();
 	    }
-
 }
