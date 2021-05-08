@@ -11,16 +11,16 @@ function LIST(args) {
 	}else{
 	}
 	
-	if(args.length == 0){
+	if(args.length === 0){
 			player.sendMessage('Invalid parameters type $LIST "help"');
 	}else{
-		if(typeof args[0] == 'object'){
+		if(typeof args[0] === 'object'){
 			player.sendMessage('this type is object!!!!! where is "" ?');
 			return null;
 		}else{
 		}
 		
-		if(args[0] == "help"){
+		if(args[0] === "help"){
 			player.sendMessage('$LIST:"add":"<filename>":"value to add"');
 			player.sendMessage('$LIST:"remove":"<filename>":<"value to remove" or line>');
 			player.sendMessage('$LIST:"get":"<filename>":line');
@@ -35,7 +35,7 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == "add"){
+		if(args[0] === "add"){
 			if(args.length < 3){
 				player.sendMessage('Invalid parameters $LIST:"<filename>":"value to add"');
 				return null;
@@ -71,14 +71,14 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == "remove"){
+		if(args[0] === "remove"){
 			if(args.length < 3){
 				player.sendMessage('Invalid parameters $LIST:"remove":"<filename>":<"value to remove" or line>');
 			}else{
 				var userfile = new File('./plugins/TriggerReactor/ListExecutor/'+args[1]+'.yml');
 				var userYml = YamlConfiguration.loadConfiguration(userfile);
 				if(userfile.exists()){
-					if(typeof args[2] == 'number'){
+					if(typeof args[2] === 'number'){
 						var list = userYml.get('list');
 						var size = list.size();
 						if(size < args[2]){
@@ -94,7 +94,7 @@ function LIST(args) {
 					}else{
 					}
 					
-					if(typeof args[2] == 'string'){
+					if(typeof args[2] === 'string'){
 						var list = userYml.get('list');
 						var size = list.size();
 						if(!list.contains(args[2])){
@@ -119,14 +119,14 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == "get"){
+		if(args[0] === "get"){
 			if(args.length < 3){
 				player.sendMessage('Invalid parameters $LIST:"get":"<filename>":line');
 			}else{
 				var userfile = new File('./plugins/TriggerReactor/ListExecutor/'+args[1]+'.yml');
 				var userYml = YamlConfiguration.loadConfiguration(userfile);
 				if(userfile.exists()){
-					if(!typeof args[2] == 'number'){
+					if(!typeof args[2] === 'number'){
 						player.sendMessage('Lines must only be numeric');
 						return null;
 					}else{
@@ -146,14 +146,14 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == 'insert'){
+		if(args[0] === 'insert'){
 			if(args.length < 4){
 				player.sendMessage('Invalid parameters $LIST:"insert":"<filename>":"value to insert":line');
 			}else{
 				var userfile = new File('./plugins/TriggerReactor/ListExecutor/'+args[1]+'.yml');
 				var userYml = YamlConfiguration.loadConfiguration(userfile);
 				if(userfile.exists()){
-					if(!typeof args[3] == 'number'){
+					if(!typeof args[3] === 'number'){
 						player.sendMessage('Lines must only be numeric!!');
 						return null;
 					}else{
@@ -183,7 +183,7 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == 'contains'){
+		if(args[0] === 'contains'){
 			if(args.length < 3){
 				player.sendMessage('Invalid parameters $LIST:"contains":"<filename>":"value to search"')
 			}else{
@@ -202,11 +202,11 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == 'set'){
+		if(args[0] === 'set'){
 			if(args.length < 4){
 				player.sendMessage('Invalid parameters $LIST:"set":"<filename>":"value to set":line');
 			}else{
-				if(!typeof args[3] == 'number'){
+				if(!typeof args[3] === 'number'){
 						player.sendMessage('Lines must only be numeric!!');
 						return null;
 				}else{
@@ -235,7 +235,7 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == 'size'){
+		if(args[0] === 'size'){
 			if(args.length < 2){
 				player.sendMessage('Invalid parameters $LIST:"size":"<filename>"');
 				player.sendMessage('This returns in a string format.');
@@ -256,7 +256,7 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == 'indexof'){
+		if(args[0] === 'indexof'){
 			if(args.length < 3){
 				player.sendMessage('Invalid parameters $LIST:"indexof":"<filename>" value to search');
 				player.sendMessage('This returns in a string format.');
@@ -282,7 +282,7 @@ function LIST(args) {
 		}else{
 		}
 		
-		if(args[0] == 'lineof'){
+		if(args[0] === 'lineof'){
 			if(args.length < 3){
 				player.sendMessage('Invalid parameters $LIST:"lineof":"<filename>" value to search');
 				player.sendMessage('This returns in a string format.');
@@ -310,7 +310,7 @@ function LIST(args) {
 		}
 		
 		
-		if(args[0] == "direct"){
+		if(args[0] === "direct"){
 			if(args.length < 2){
 				player.sendMessage('Invalid parameters $LIST:"direct":"<filename>":"run/return":"list.***"');
 			}else{
@@ -318,7 +318,7 @@ function LIST(args) {
 				var userYml = YamlConfiguration.loadConfiguration(userfile);
 				if(userfile.exists()){
 					var list = userYml.get('list');
-					if(args[2] == "run"){
+					if(args[2] === "run"){
 						skript = args[3].replace("name",player.getName());
 						eval(skript);
 						userYml.save(userfile);
@@ -326,10 +326,10 @@ function LIST(args) {
 					}else{
 					}
 					
-					if(args[2] == "return"){
+					if(args[2] === "return"){
 						res = eval(args[3]);
 						userYml.save(userfile);
-						if(typeof res == "number"){
+						if(typeof res === "number"){
 							res = res.toString();
 							return res;
 						}else{
