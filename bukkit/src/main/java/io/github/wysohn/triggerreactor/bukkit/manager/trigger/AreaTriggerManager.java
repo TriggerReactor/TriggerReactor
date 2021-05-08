@@ -235,14 +235,14 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
                 }
             } else {
-                List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(new SimpleLocation(e.getFrom().getWorld().toString(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ(), e.getFrom().getPitch(), e.getFrom().getYaw()));
-                List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(new SimpleLocation(e.getTo().getWorld().toString(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ(), e.getTo().getPitch(), e.getTo().getYaw()));
+                List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(new SimpleLocation(e.getFrom().getWorld().getName(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ(), e.getFrom().getPitch(), e.getFrom().getYaw()));
+                List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(new SimpleLocation(e.getTo().getWorld().getName(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ(), e.getTo().getPitch(), e.getTo().getYaw()));
                 Map<String, Object> varMap = new HashMap<>();
                 varMap.put("player", e.getVehicle().getPassengers());
                 varMap.put("from", e.getFrom());
                 varMap.put("to", e.getTo());
                 from.stream()
-                        .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getTo().getWorld().toString(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ(), e.getTo().getPitch(), e.getTo().getYaw())))//only for area leaving
+                        .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getTo().getWorld().getName(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ(), e.getTo().getPitch(), e.getTo().getYaw())))//only for area leaving
                         .map(Map.Entry::getValue)
                         .forEach((trigger) -> {
                             for(int i=0;i < e.getVehicle().getPassengers().size();i++) {
@@ -253,7 +253,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
 
                 to.stream()
-                        .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getFrom().getWorld().toString(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ(), e.getFrom().getPitch(), e.getFrom().getYaw())))//only for entering area
+                        .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getFrom().getWorld().getName(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ(), e.getFrom().getPitch(), e.getFrom().getYaw())))//only for entering area
                         .map(Map.Entry::getValue)
                         .forEach((trigger) -> {
                             for(int i=0;i < e.getVehicle().getPassengers().size();i++) {
