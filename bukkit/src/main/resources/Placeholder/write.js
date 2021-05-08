@@ -12,5 +12,5 @@ function write(args){
 	fe = new buf(new fw(file, true));
 	fe.write("\n"+args[1]);
 	fe.close();
-	    }
+	}
 }
