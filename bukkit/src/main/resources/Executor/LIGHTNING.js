@@ -28,9 +28,8 @@ function LIGHTNING(args){
 	    var world = loc.getWorld()
 	    world.strikeLightning(loc)
 	}
-	if(args.length ===
-		4){
-	    if(typeof args[0] !== "string" || typeof args[1] !== "number" || typeof args[2] !== "number" || typeof args[3] !== "number")
+	if(args.length === 4){
+		if(typeof args[0] !== "string" || typeof args[1] !== "number" || typeof args[2] !== "number" || typeof args[3] !== "number")
 	    	throw new Error("Invalid parameters! [String, Number, Number, Number] or [Location]");
 		
 	    var world = Bukkit.getWorld(args[0]);
