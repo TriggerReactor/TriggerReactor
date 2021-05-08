@@ -37,7 +37,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -610,12 +609,10 @@ public class Interpreter {
                     stack.push(new Token(Type.EPS, replaced, node.getToken()));
                 }
             } else if (node.getToken().type == Type.OPERATOR_A) {
-                String tokenValue = (String) node.getToken().value;
-
-                Token right = "~".equals(tokenValue) ? null : stack.pop();
+                Token right = stack.pop();
                 Token left = stack.pop();
 
-                if (right != null && isVariable(right)) {
+                if (isVariable(right)) {
                     right = unwrapVariable(right);
                 }
 
@@ -623,80 +620,14 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                if ("+".equals(tokenValue)
-                        && (left.type == Type.STRING || (right != null && right.type == Type.STRING))) {
-                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + Optional.ofNullable(right)
-                            .map(r -> r.value).orElse("null"), node.getToken()));
-                } else if ("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue)) {
-                    if (left.type == Type.BOOLEAN && right != null && right.type == Type.BOOLEAN) {
-                        boolean result;
-                        switch (tokenValue) {
-                            case "&":
-                                result = left.toBoolean() & right.toBoolean();
-                                break;
-                            case "^":
-                                result = left.toBoolean() ^ right.toBoolean();
-                                break;
-                            default: //case "|"
-                                result = left.toBoolean() | right.toBoolean();
-                        }
-
-                        stack.push(new Token(Type.BOOLEAN, result, node.getToken().row, node.getToken().col));
-                    } else {
-                        if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric() || right.isDecimal())
-                            throw new InterpreterException("Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! Operands should both be boolean or integer.");
-
-                        int result;
-                        switch (tokenValue) {
-                            case "&":
-                                result = left.toInteger() & right.toInteger();
-                                break;
-                            case "^":
-                                result = left.toInteger() ^ right.toInteger();
-                                break;
-                            default: //case "|"
-                                result = left.toInteger() | right.toInteger();
-                                break;
-                        }
-                        stack.push(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
-                    }
-                } else if ("~".equals(tokenValue) || "<<".equals(tokenValue) || ">>".equals(tokenValue) || ">>>".equals(tokenValue)) {
-                    if (!left.isNumeric() || left.isDecimal())
-                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + left + "]!");
-
-                    if (right != null && (!right.isNumeric() || right.isDecimal()))
-                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + right + "]!");
-
-                    int result;
-                    switch (tokenValue) {
-                        case "~":
-                            result = ~left.toInteger();
-                            break;
-                        case "<<":
-                            if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " << null");
-
-                            result = left.toInteger() << right.toInteger();
-                            break;
-                        case ">>":
-                            if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >> null");
-
-                            result = left.toInteger() >> right.toInteger();
-                            break;
-                        default: //case ">>>"
-                            if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >>> null");
-
-                            result = left.toInteger() >>> right.toInteger();
-                            break;
-                    }
-                    stack.push(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
+                if (node.getToken().value.equals("+")
+                        && (left.type == Type.STRING || right.type == Type.STRING)) {
+                    stack.push(new Token(Type.STRING, String.valueOf(left.value) + right.value, node.getToken()));
                 } else {
                     if (!left.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
 
-                    if (right == null || !right.isNumeric())
+                    if (!right.isNumeric())
                         throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + right + "]!");
 
                     boolean integer = true;
@@ -705,7 +636,7 @@ public class Interpreter {
                     }
 
                     Number result;
-                    switch (tokenValue) {
+                    switch ((String) node.getToken().value) {
                         case "+":
                             result = integer ? left.toInteger() + right.toInteger() : left.toDecimal() + right.toDecimal();
                             break;
