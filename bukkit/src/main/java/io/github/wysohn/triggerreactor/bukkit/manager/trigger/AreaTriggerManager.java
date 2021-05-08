@@ -182,7 +182,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     public void onLocationChange(PlayerBlockLocationEvent e) {
         List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(e.getFrom());
         List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(e.getTo());
-
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", e.getPlayer());
         varMap.put("from", e.getFrom());
@@ -209,19 +208,16 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     @EventHandler(priority = EventPriority.MONITOR)
     public void onRiding(VehicleMoveEvent e) {
         if(e.getVehicle().getPassengers().size() >= 1) {
-            plugin.getLogger().info("detect 1");
             if(e.getVehicle().getPassengers().size() == 1) {
-                plugin.getLogger().info("detect 2");
                 if (e.getVehicle().getPassengers().get(0).getType() == EntityType.PLAYER) {
-                    plugin.getLogger().info("detect 3");
-                    List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(new SimpleLocation(e.getFrom().getWorld().toString(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ()));
-                    List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(new SimpleLocation(e.getTo().getWorld().toString(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ()));
+                    List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(new SimpleLocation(e.getFrom().getWorld().getName(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ()));
+                    List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(new SimpleLocation(e.getTo().getWorld().getName(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ()));
                     Map<String, Object> varMap = new HashMap<>();
                     varMap.put("player", e.getVehicle().getPassengers().get(0));
                     varMap.put("from", e.getFrom());
                     varMap.put("to", e.getTo());
                     from.stream()
-                            .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getTo().getWorld().toString(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ())))//only for area leaving
+                            .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getTo().getWorld().getName(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ())))//only for area leaving
                             .map(Map.Entry::getValue)
                             .forEach((trigger) -> {
                                 trigger.removeEntity(e.getVehicle().getPassengers().get(0).getUniqueId());
@@ -230,7 +226,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
 
                     to.stream()
-                            .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getFrom().getWorld().toString(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ())))//only for entering area
+                            .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getFrom().getWorld().getName(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ())))//only for entering area
                             .map(Map.Entry::getValue)
                             .forEach((trigger) -> {
                                 trigger.addEntity(new BukkitEntity(e.getVehicle().getPassengers().get(0)));
