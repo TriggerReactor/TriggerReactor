@@ -32,10 +32,10 @@ function SCOREBOARD(args) {
 
     var Scoreboard = Java.type('org.spongepowered.api.scoreboard.Scoreboard');
     var board = player.getScoreboard();
-    if (board == null)
+    if (board === null)
         board = Scoreboard.builder().build();
 
-    if (args[0] == "TEAM") {
+    if (args[0] === "TEAM") {
         var Team = Java.type('org.spongepowered.api.scoreboard.Team');
 
         var teamname = args[1];
@@ -46,7 +46,7 @@ function SCOREBOARD(args) {
             throw new Error(teamname + " is not String!");
 
         var team = board.getTeam(teamname).orElse(null);
-        if (team == null) {
+        if (team === null) {
             team = Team.builder().name(teamname).build();
             board.registerTeam(team);
         }
@@ -102,7 +102,7 @@ function SCOREBOARD(args) {
         }
 
 
-    } else if (args[0] == "OBJ") {
+    } else if (args[0] === "OBJ") {
         var Objective = Java.type('org.spongepowered.api.scoreboard.objective.Objective');
 
         var objectiveName = args[1];
@@ -113,9 +113,9 @@ function SCOREBOARD(args) {
         var split = objectiveName.split(":", 2);
 
         var objective = board.getObjective(split[0]).orElse(null);
-        if (objective == null) {
+        if (objective === null) {
             var Criteria = Java.type('org.spongepowered.api.scoreboard.critieria.Criteria');
-            if (split.length == 2) {
+            if (split.length === 2) {
                 var crit = ReflectionUtil.getField(Criteria.class, null, split[1].toUpperCase());
                 objective = Objective.builder().name(split[0]).criterion(crit).build();
             } else {
@@ -143,7 +143,7 @@ function SCOREBOARD(args) {
                 if (value != null && typeof value !== "number")
                     throw new Error((typeof value) + " is not a Number");
 
-                if (value == null)
+                if (value === null)
                     objective.removeScore(Text.of(scorename));
                 else
                     objective.getOrCreateScore(Text.of(scorename)).setScore(value);

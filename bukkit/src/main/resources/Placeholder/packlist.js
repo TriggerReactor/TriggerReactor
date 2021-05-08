@@ -22,7 +22,7 @@ function packlist(args) {
         throw new Error("$packlist placeholder should have at least 1 arguments!");
     }
     var arrType = args[0];
-    if(args.length == 1) {
+    if(args.length === 1) {
         var arr = Array();
         if(typeof arrType !== "string") {
             throw new Error("Unknown Type '"+arrType+"' ! You can use either 'String', or 'Int', or 'Double' ! [invalid type]");
@@ -30,18 +30,18 @@ function packlist(args) {
         if(arrType.toLowerCase() !== "string" && arrType.toLowerCase() !== "int"&& arrType.toLowerCase() !== "double") {
             throw new Error("Unknown Type '"+arrType+"' ! You can use either 'String', or 'Int', or 'Double' ! [invalid type]");
         } else {
-            if(arrType.toLowerCase() == "string") {
+            if(arrType.toLowerCase() === "string") {
                 return Java.to(arr,"java.lang.String[]");
             }
-            if(arrType.toLowerCase() == "int") {
+            if(arrType.toLowerCase() === "int") {
                 return Java.to(arr,"int[]");
             }
-            if(arrType.toLowerCase() == "double") {
+            if(arrType.toLowerCase() === "double") {
                 return Java.to(arr,"java.lang.Double[]");
             }
         }
     }
-    if(args.length == 2) {
+    if(args.length === 2) {
         var arr = Array()
         arr.push(args[1]);
     }
@@ -54,18 +54,18 @@ function packlist(args) {
     if(arrType.toLowerCase() !== "string" && arrType.toLowerCase() !== "int"&& arrType.toLowerCase() !== "double") {
         throw new Error("Unknown Type '"+args[0]+"' ! You can use either 'String', or 'Int', or 'Double' ! [invalid type]");
     } else {
-        if(arrType.toLowerCase() == "string") {
+        if(arrType.toLowerCase() === "string") {
             var arrsType = "string";
             var arrType = "java.lang.String";
             var msgType = "String"
         }
-        if(arrType.toLowerCase() == "int") {
+        if(arrType.toLowerCase() === "int") {
             var arrsType = "number";
             var arrType = "java.lang.Integer";
             var checkDouble = true;
             var msgType = "Integer";
         }
-        if(arrType.toLowerCase() == "double") {
+        if(arrType.toLowerCase() === "double") {
             var arrsType = "number";
             var arrType = "java.lang.Double";
             var checkInt = true;
@@ -75,12 +75,12 @@ function packlist(args) {
             if(typeof arr[i] !== arrsType) {
                 throw new Error("Type of '"+arr[i]+"' is not "+msgType+"! Error occured argument index is "+i+".");
             }
-            if(checkDouble == true) {
-                if(isDouble(arr[i]) == true) {
+            if(checkDouble === true) {
+                if(isDouble(arr[i]) === true) {
                     throw new Error("Type of '"+arr[i]+"' is not "+msgType+"! Error occured argument index is "+i+".");
                 }
             }
-            if(checkInt == true) {
+            if(checkInt === true) {
                 if(isDouble(arr[i]) !== true) {
                     throw new Error("Type of '"+arr[i]+"' is not "+msgType+"! Error occured argument index is "+i+".");
                 }

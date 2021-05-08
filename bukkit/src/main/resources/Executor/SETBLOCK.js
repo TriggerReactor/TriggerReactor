@@ -16,19 +16,20 @@
  *******************************************************************************/
 
 function SETBLOCK(args) {
-    if (typeof block !== 'undefined' && (args.length == 1 || args.length == 2)) {
+    if (typeof block !== 'undefined' && (args.length === 1 || args.length === 2)) {
         var blockID = args[0];
-        var blockData = args.length  == 2 ? args[1] : 0;
+        var blockData = args.length  === 2 ? args[1] : 0;
 
         setBlock(block, blockID, blockData);
-    } else if (args.length == 2 || args.length == 4) {
+    } else if (args.length === 2 || args.length === 4) {
         var blockID = args[0];
         var location;
 
-        if (args.length == 2) {
+        if (args.length === 2) {
             location = args[1];
         } else {
-            if(typeof player === 'undefined')
+            if(typeof player ===
+                'undefined')
                 throw new Error('cannot use #SETBLOCK in non-player related event. Or use Location instance.')
 
             var world = player.getWorld();
@@ -38,12 +39,12 @@ function SETBLOCK(args) {
         block = location.getBlock();
 
         setBlock(block, blockID, 0);
-    } else if (args.length == 3 || args.length == 5) {
+    } else if (args.length === 3 || args.length === 5) {
         var blockID = args[0];
         var blockData = args[1];
         var location;
 
-        if (args.length == 3) {
+        if (args.length === 3) {
             location = args[2];
         } else {
             var world = player.getWorld();
@@ -62,10 +63,13 @@ function SETBLOCK(args) {
 
 function setBlock(block, blockId, blockData){
     var Material = Java.type('org.bukkit.Material');
-    var legacy = typeof block.setData === 'function';
+    var legacy = typeof block.setData ===
+        'function';
 
     var mat = null;
-    if(typeof blockId === 'number' && (blockId % 1) === 0){
+    if(typeof blockId ===
+        'number' && (blockId % 1) ===
+        0){
         if(!legacy)
             throw new Error("Cannot use a number as block type after 1.12.2. Use material name directly.");
 

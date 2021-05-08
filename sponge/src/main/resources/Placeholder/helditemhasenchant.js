@@ -15,25 +15,30 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function helditemhasenchant(args) {
-    if(player == null)
+    if(player ===
+        null)
         return null;
 
     var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
     var inHand = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
-    if(inHand == null)
+    if(inHand ===
+        null)
         return false;
 
     if(args.length < 1)
         throw new Error("Invalid parameter! [String]");
 
-    if(typeof args[0] !== "string")
+    if(typeof args[0] !==
+        "string")
         throw new Error("Invalid parameter! helditemhasenchant accepts 'String' as first paramter.");
 
     var ench = ReflectionUtil.getField(EnchantmentTypes.class, null, args[0]);
     var level = 0;
 
-    if(args.length != 1) {
-        if(typeof args[1] !== "number")
+    if(args.length !==
+        1) {
+        if(typeof args[1] !==
+            "number")
             throw new Error("Invalid parameter! helditemhasenchant accepts 'Number' as second paramter.");
 
         level = Math.max(0, args[1]);
@@ -45,11 +50,14 @@ function helditemhasenchant(args) {
     for(var iter = enchs.iterator(); iter.hasNext();) {
         var ench = iter.next();
 
-        if(ench == ench) {
-            if(level == 0) {
+        if(ench ===
+            ench) {
+            if(level ===
+                0) {
                 return true;
             } else{
-                return (level == ench.getLevel());
+                return (level ===
+                    ench.getLevel());
             }
         }
     }

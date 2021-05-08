@@ -15,10 +15,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 function LIGHTNING(args){
-	if(args.length != 1 && args.length != 4)
+	if(args.length !== 1 && args.length !== 4)
 		throw new Error("Invalid parameters! [String, Number, Number, Number] or [Location]");
 
-	if(args.length == 1){
+	if(args.length ===
+		1){
 	    var Location = Java.type('org.bukkit.Location')
 	    if(!(args[0] instanceof Location))
 	        throw new Error("Invalid parameters! [String, Number, Number, Number] or [Location]")
@@ -27,15 +28,21 @@ function LIGHTNING(args){
 	    var world = loc.getWorld()
 	    world.strikeLightning(loc)
 	}
-	if(args.length == 4){
-	    if(typeof args[0] !== "string"
-	    	|| typeof args[1] !== "number"
-	    	|| typeof args[2] !== "number"
-	     	|| typeof args[3] !== "number")
+	if(args.length ===
+		4){
+	    if(typeof args[0] !==
+			"string"
+	    	|| typeof args[1] !==
+				"number"
+	    	|| typeof args[2] !==
+					"number"
+	     	|| typeof args[3] !==
+						"number")
 	    	throw new Error("Invalid parameters! [String, Number, Number, Number] or [Location]");
 		
 	    var world = Bukkit.getWorld(args[0]);
-	    if(world == null)
+	    if(world ===
+			null)
 	    	throw new Error("Unknown world named "+args[0]);
 	
 	    var Location = Java.type('org.bukkit.Location');
