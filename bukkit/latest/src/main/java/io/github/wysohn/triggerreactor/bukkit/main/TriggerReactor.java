@@ -96,7 +96,8 @@ public class TriggerReactor extends AbstractJavaPlugin {
         Server server = Bukkit.getServer();
         if (syncMethod == null) {
             try {
-                syncMethod = server.getClass().getMethod("syncCommands");
+                syncMethod = server.getClass().getDeclaredMethod("syncCommands");
+                syncMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 if (isDebugging())
                     e.printStackTrace();
