@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function round(args){
+function round(args) {
     var Integer = java.lang.Integer; 
     var Double = java.lang.Double;
     var string = java.lang.String;
@@ -41,10 +41,9 @@ function round(args){
         else {
             if(args[0] instanceof Integer) {
                 if(args[1] instanceof Double || args[1] < 0) {
-                throw new Error("Cannot be rounded to the "+args[1]+" digit after the decimal point, becuase it's not exist!"); 
-                }
-                else {
-                return args[0];
+                    throw new Error("Cannot be rounded to the "+args[1]+" digit after the decimal point, becuase it's not exist!");
+                } else {
+                    return args[0];
                 } 
             }
             if(args[1] instanceof Double || args[1] < 0) {
@@ -54,8 +53,7 @@ function round(args){
                 if(args[1] == 0) {
                     var value = Math.round(args[0]); 
                     return value; 
-                }
-                else {
+                } else {
                     var uc = 1;
                     for (var i = 1; i <= args[1]; i++) {
                         uc = uc*10;
@@ -66,9 +64,7 @@ function round(args){
                 }
             }
         }
-    }
-    else {
+    } else {
         throw new Error("There are too many arguments! '$round' placeholder only accepts up to 2 arguments.");
-    } 
-    
+    }
 }

@@ -17,18 +17,18 @@
 
 validation = {
     "overloads": [
-       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 44}]
+        [{"name": "slot", "type": "int", "minimum": 0, "maximum": 44}]
     ]
 }
 var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes')
 var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory')
 var ItemTypes = Java.type('org.spongepowered.api.item.ItemTypes')
 var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
-function playerinv(args){
+function playerinv(args) {
     if(player == null)
         return null;
 
-    if(overload === 0){
+    if(overload === 0) {
         var carriedInv = player.getInventory();
         var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
 

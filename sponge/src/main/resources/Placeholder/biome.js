@@ -14,10 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function biome(args){
-	if(player == null)
-		return null;
-	
-	loc = player.getLocation();
-	return loc.getBiome().getId();
+function biome(args) {
+    if(player == null)
+        return null;
+
+    loc = player.getLocation();
+    return loc.getBiome().getId();
 }

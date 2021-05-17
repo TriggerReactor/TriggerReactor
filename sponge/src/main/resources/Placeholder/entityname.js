@@ -20,20 +20,20 @@ validation = {
     ]
 }
 
-var Keys = Java.type('org.spongepowered.api.data.key.Keys')
-var AffectEntityEvent = Java.type('org.spongepowered.api.event.entity.AffectEntityEvent')
-var TargetEntityEvent = Java.type('org.spongepowered.api.event.entity.TargetEntityEvent')
+var Keys = Java.type('org.spongepowered.api.data.key.Keys');
+var AffectEntityEvent = Java.type('org.spongepowered.api.event.entity.AffectEntityEvent');
+var TargetEntityEvent = Java.type('org.spongepowered.api.event.entity.TargetEntityEvent');
 
 function entityname(args) {
     var entityName = null;
 
-    if(event instanceof AffectEntityEvent){
+    if(event instanceof AffectEntityEvent) {
         var entities = event.getEntities();
         if(entities.size() < 1)
             return null;
 
         entityName = entities.get(0).get(Keys.DISPLAY_NAME).orElse(null);
-    } else if (event instanceof TargetEntityEvent){
+    } else if (event instanceof TargetEntityEvent) {
         entity = event.getTargetEntity();
         if(entity == null)
             return null;

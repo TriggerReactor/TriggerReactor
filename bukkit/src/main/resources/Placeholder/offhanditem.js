@@ -19,16 +19,16 @@ validation = {
         []
     ]
 }
-function offhanditem(args){
+function offhanditem(args) {
     if(player == null)
         return null;
 
     var item = player.getInventory().getItemInOffHand();
-    if(item == null){
-      var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
-      var Material = Java.type('org.bukkit.Material')
-      return ItemStack(Material.AIR);
-    }else {
-      return item;
+    if(item == null) {
+        var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
+        var Material = Java.type('org.bukkit.Material')
+        return ItemStack(Material.AIR);
+    } else {
+        return item;
     }
 }

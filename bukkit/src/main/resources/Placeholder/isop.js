@@ -14,9 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function isop(args){
-	if(player == null)
-		return null;
-		
-	return player.isOp();
+function isop(args) {
+    if(player == null)
+        return null;
+
+    return player.isOp();
 }

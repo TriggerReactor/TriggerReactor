@@ -14,10 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function suffix(args){
-	if(player == null)
-		return null;
+function suffix(args) {
+    if(player == null)
+        return null;
 
-	https://github.com/MilkBowl/VaultAPI/blob/8dc0859cba3eee3263209d88999dce23597f26ad/src/main/java/net/milkbowl/vault/chat/Chat.java#L182
-	return vault.chat().getPlayerSuffix(player);
+    https://github.com/MilkBowl/VaultAPI/blob/8dc0859cba3eee3263209d88999dce23597f26ad/src/main/java/net/milkbowl/vault/chat/Chat.java#L182
+    return vault.chat().getPlayerSuffix(player);
 }

@@ -20,14 +20,14 @@ validation = {
         [{"name": "item", "type": itemStackType.class}]
     ]
 }
-function lore(args){
+function lore(args) {
     var item = args[0];
-    if(item.hasItemMeta()){
+    if(item.hasItemMeta()) {
 
-        if(item.getItemMeta().hasLore()){
+        if(item.getItemMeta().hasLore()) {
             var lores = item.getItemMeta().getLore();
             var loreString = "";
-            for(var k = 0; k < lores.length; k++){
+            for(var k = 0; k < lores.length; k++) {
                 lore = lores[k];
                 if(k == (lores.length - 1))
                     loreString = loreString + lore;
@@ -35,10 +35,10 @@ function lore(args){
                     loreString = loreString + lore + "\n";
             }
             return loreString;
-        }else {
+        } else {
             return null;
         }
-    }else {
+    } else {
         return null;
     }
 }

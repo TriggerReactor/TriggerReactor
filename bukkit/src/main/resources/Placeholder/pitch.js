@@ -14,10 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function pitch(args){
-	if(player == null)
-		return null;
+function pitch(args) {
+    if(player == null)
+        return null;
 
-	var loc = player.getLocation();
-	return loc.getPitch();
+    var loc = player.getLocation();
+    return loc.getPitch();
 }

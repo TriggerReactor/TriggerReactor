@@ -14,9 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function isburning(args){
-	if(player == null)
-		return null;
-		
-	return player.get(Keys.FIRE_TICKS).orElse(-1) > 0;
+function isburning(args) {
+    if(player == null)
+        return null;
+
+    return player.get(Keys.FIRE_TICKS).orElse(-1) > 0;
 }
