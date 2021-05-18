@@ -14,18 +14,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function helditemdisplayname(args){
-	if(player == null)
-		return null;
-	
-	var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
-	var inHand = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
-	if(inHand == null)
-		return "";
-		
-	var dispOpt = inHand.get(Keys.DISPLAY_NAME);
-	if(!dispOpt.isPresent())
-	   return "";
-		
-	return dispOpt.get().toPlain();
+function helditemdisplayname(args) {
+    if(player == null)
+        return null;
+
+    var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
+    var inHand = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
+    if(inHand == null)
+        return "";
+
+    var dispOpt = inHand.get(Keys.DISPLAY_NAME);
+    if(!dispOpt.isPresent())
+       return "";
+
+    return dispOpt.get().toPlain();
 }

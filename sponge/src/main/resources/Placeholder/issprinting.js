@@ -14,9 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function issprinting(args){
-	if(player == null)
-		return null;
-		
-	return player.get(Keys.IS_SPRINTING).orElse(false);
+function issprinting(args) {
+    if(player == null)
+        return null;
+
+    return player.get(Keys.IS_SPRINTING).orElse(false);
 }

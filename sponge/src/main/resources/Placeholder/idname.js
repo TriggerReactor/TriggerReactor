@@ -20,7 +20,7 @@ validation = {
         [{"name": "item", "type": itemStackType.class}]
     ]
 }
-function idname(args){
-    var item = args[0]
+function idname(args) {
+    var item = args[0];
     return item.getType().getName();
 }

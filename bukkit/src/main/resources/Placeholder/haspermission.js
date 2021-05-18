@@ -14,15 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function haspermission(args){
-	if(player == null)
-		return null;
-		
-	if(args.length != 1)
-	    return null;
-		
-	if(typeof args[0] !== "string" && !(args[0] instanceof String))
-		return null;
-	
-	return player.hasPermission(args[0]);
+function haspermission(args) {
+    if(player == null)
+        return null;
+
+    if(args.length != 1)
+        return null;
+
+    if(typeof args[0] !== "string" && !(args[0] instanceof String))
+        return null;
+
+    return player.hasPermission(args[0]);
 }

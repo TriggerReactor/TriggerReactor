@@ -115,6 +115,79 @@ public class TestLexer {
     }
 
     @Test
+    public void testAssignment() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "a = 1\n" +
+                "a += 2\n" +
+                "a -= 3\n" +
+                "a *= 4\n" +
+                "a /= 5\n" +
+                "a %= 6\n";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "=");
+        testToken(lexer, Type.INTEGER, "1");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "+=");
+        testToken(lexer, Type.INTEGER, "2");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "-=");
+        testToken(lexer, Type.INTEGER, "3");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "*=");
+        testToken(lexer, Type.INTEGER, "4");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "/=");
+        testToken(lexer, Type.INTEGER, "5");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "%=");
+        testToken(lexer, Type.INTEGER, "6");
+        testToken(lexer, Type.ENDL, null);
+        testEnd(lexer);
+
+        text = "a &= 1\n" +
+                "a ^= 2\n" +
+                "a |= 3\n" +
+                "a <<= 4\n" +
+                "a >>= 5\n" +
+                "a >>>= 6\n";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "&=");
+        testToken(lexer, Type.INTEGER, "1");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "^=");
+        testToken(lexer, Type.INTEGER, "2");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "|=");
+        testToken(lexer, Type.INTEGER, "3");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "<<=");
+        testToken(lexer, Type.INTEGER, "4");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ">>=");
+        testToken(lexer, Type.INTEGER, "5");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ">>>=");
+        testToken(lexer, Type.INTEGER, "6");
+        testToken(lexer, Type.ENDL, null);
+        testEnd(lexer);
+    }
+
+    @Test
     public void testIncrementAndDecrement() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text;

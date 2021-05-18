@@ -14,13 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function air(args){
-	if(player == null)
-		return null;
-		
-	var remain = player.get(Keys.REMAINING_AIR).orElse(null);
-	if(remain == null)
-	   remain = player.get(Keys.MAX_AIR).orElse(-1);
-	   
-	return remain;
+function air(args) {
+    if(player == null)
+        return null;
+
+    var remain = player.get(Keys.REMAINING_AIR).orElse(null);
+    if(remain == null)
+        remain = player.get(Keys.MAX_AIR).orElse(-1);
+
+    return remain;
 }

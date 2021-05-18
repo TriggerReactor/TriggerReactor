@@ -19,14 +19,14 @@ validation = {
         []
     ]
 }
-function offhanditem(args){
+function offhanditem(args) {
     if(player == null)
         return null;
 
     var HandTypes = Java.type('org.spongepowered.api.data.type.HandTypes');
     var inHand = player.getItemInHand(HandTypes.OFF_HAND).orElse(null);
     if(inHand == null)
-       return "";
+        return "";
 
-	return inHand;
+    return inHand;
 }

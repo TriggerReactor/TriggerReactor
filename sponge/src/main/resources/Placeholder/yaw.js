@@ -14,9 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function yaw(args){
-	if(player == null)
-		return null;
+function yaw(args) {
+    if(player == null)
+        return null;
 
     var v3d = player.getHeadRotation();
     return v3d.getY()

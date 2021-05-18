@@ -19,9 +19,8 @@ validation = {
     "overloads": [
         [{"name": "item", "type": itemStackType.class}]
     ]
-
 }
-function id(args){
+function id(args) {
     var item = args[0];
     return item.getType();
 }

@@ -14,14 +14,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function firstgroup(args){
-	if(player == null)
-		return null;
+function firstgroup(args) {
+    if(player == null)
+        return null;
 
-	var groups = vault.permission().getPlayerGroups(null, player);
+    var groups = vault.permission().getPlayerGroups(null, player);
     if(groups.length < 1) {
         var firstGroup = "null";
-    }else {
+    } else {
         var firstGroup = groups[0];
     }
     return firstGroup;

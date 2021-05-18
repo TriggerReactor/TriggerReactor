@@ -14,9 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function tps(args){
-	if(player == null)
-		return null;
+function tps(args) {
+    if(player == null)
+        return null;
 
-	return plugin.getTpsHelper().getTPS();
+    return plugin.getTpsHelper().getTPS();
 }

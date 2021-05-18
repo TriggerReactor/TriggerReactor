@@ -73,6 +73,73 @@ public class TestParser {
     }
 
     @Test
+    public void testBitwiseAndBitshift() throws Exception {
+        Charset charset = Charset.forName("UTF-8");
+        String text = "#MESSAGE (1>>2/1%-~5|~2+1<<3^4) <= 3 | (3<<4&2) > 1 & (6>>>~-2) > 2 ^ (1|~(3+2<<1*2)) > 3\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "5")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "~")), queue.poll());
+        assertEquals(new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "%")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, ">>")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "~")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "<<")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "^")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "|")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "<=")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "4")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "<<")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "&")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, ">")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "6")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "~")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, ">>>")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, ">")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "&")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "+")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "1")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "*")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "<<")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "~")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "|")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "3")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, ">")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "^")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "|")), queue.poll());
+        assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+
+    @Test
     public void testIncrementAndDecrement() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text = "a = 2\n" +

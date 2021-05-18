@@ -21,18 +21,18 @@ validation = {
 }
 var InteractInventoryEvent = Java.type('org.spongepowered.api.event.item.inventory.InteractInventoryEvent');
 var ClickInventoryEvent = Java.type('org.spongepowered.api.event.item.inventory.ClickInventoryEvent');
-function slot(args){
+function slot(args) {
     if(event instanceof InteractInventoryEvent.Open || event instanceof ClickInventoryEvent
-        || event instanceof InteractInventoryEvent.Close){
+        || event instanceof InteractInventoryEvent.Close) {
             if(args[0] < 0 || args[0] >= inventory.capacity())
                 throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
-            else{
+            else {
                 var y = args[0] / 9;
                 var x = args[0] % 9;
 
                 return inventory.peek(x, y).orElse(ItemStack.builder().itemType(ItemTypes.AIR).build());
             }
-    }else {
+    } else {
         throw new Error('$slot Placeholder is available only in InventoryTrigger!');
     }
 }
