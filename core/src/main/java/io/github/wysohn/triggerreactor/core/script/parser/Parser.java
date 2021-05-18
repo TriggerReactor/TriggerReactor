@@ -153,7 +153,7 @@ public class Parser {
                 Node forNode = new Node(token);
                 nextToken();
 
-                Node varName = parseId();
+                Node varName = parsePostUnary();
                 if (varName == null)
                     throw new ParserException("Could not find variable name for FOR statement! " + forNode.getToken());
                 forNode.getChildren().add(varName);
@@ -527,7 +527,7 @@ public class Parser {
                     && left.getToken().type != Type.INTEGER
                     && left.getToken().type != Type.DECIMAL
 
-                    && left.getToken().type != Type.UNARYMINUS
+                    && left.getToken().type != Type.OPERATOR_UNARY
             )
             ) {
                 //if left node is NOT possible candidate of expression, it can be an unary minus. Just skip to factor
@@ -633,7 +633,7 @@ public class Parser {
             return node;
         }
 
-        Node idNode = parseId();
+        Node idNode = parsePostUnary();
         if (idNode != null) {
             return idNode;
         }
@@ -685,8 +685,9 @@ public class Parser {
             return node;
         }
 
-        //unary minus
-        if (token.type == Type.OPERATOR_A && "-".equals(token.value)) {
+        //unary plus/minus
+        if (token.type == Type.OPERATOR_A && ("+".equals(token.value) || "-".equals(token.value))) {
+            Object tokenValue = token.value;
             nextToken();
             if (token.type != Type.INTEGER && token.type != Type.DECIMAL //number
                     && token.type != Type.ID //variable
@@ -694,9 +695,24 @@ public class Parser {
                     && !"$".equals(token.value) //placeholder
                     && !"(".equals(token.value) //factor
             )
-                throw new ParserException("Only Number, Variable, or Placeholder are allowed for unary minus operation! " + token);
+                throw new ParserException("Only Number, Variable, or Placeholder are allowed for unary plus/minus operation! " + token);
 
-            Node node = new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>", token.row, token.col));
+            Node node = new Node(new Token(Type.OPERATOR_UNARY, tokenValue, token.row, token.col));
+            node.getChildren().add(parseFactor());
+
+            return node;
+        }
+
+        //unary increment/decrement
+        if (token.type == Type.OPERATOR_UNARY) {
+            Object tokenValue = token.value;
+            nextToken();
+            if (token.type != Type.ID //variable
+                    && !"{".equals(token.value) //gvar
+            )
+                throw new ParserException("Only Variable is allowed for unary increment/decrement operation! " + token);
+
+            Node node = new Node(new Token(Type.OPERATOR_UNARY, tokenValue+"expr", token.row, token.col));
             node.getChildren().add(parseFactor());
 
             return node;
@@ -714,6 +730,19 @@ public class Parser {
         }
 
         throw new ParserException("Unexpected token " + token);
+    }
+
+    private Node parsePostUnary() throws IOException, LexerException, ParserException {
+        Node left = parseId();
+
+        if(left != null && token != null && token.type == Type.OPERATOR_UNARY) {
+            Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
+            node.getChildren().add(left);
+            nextToken();
+            return node;
+        }
+
+        return left;
     }
 
     private Node parseId() throws IOException, LexerException, ParserException {

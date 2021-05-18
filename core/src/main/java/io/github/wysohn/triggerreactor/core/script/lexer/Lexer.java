@@ -365,12 +365,22 @@ public class Lexer {
             }
         } else {
             Token token = null;
-            if (c == '+' || c == '-' || c == '*' || c == '/' || c == '%') {
-                token = new Token(Type.OPERATOR_A, String.valueOf(c), row, col);
+            String op = String.valueOf(c);
+            if (c == '+' || c == '-') {
+                read();
+                if(op.equals(String.valueOf(c))) {
+                    token = new Token(Type.OPERATOR_UNARY, op+op, row, col);
+                    read();
+                } else {
+                    token = new Token(Type.OPERATOR_A, op, row, col);
+                }
+            } else if (c == '*' || c == '/' || c == '%') {
+                token = new Token(Type.OPERATOR_A, op, row, col);
+                read();
             } else {
-                token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
+                token = new Token(Type.OPERATOR, op, row, col);
+                read();
             }
-            read();
             return token;
         }
     }

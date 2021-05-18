@@ -662,18 +662,57 @@ public class Interpreter {
                         stack.push(new Token(Type.DECIMAL, result.doubleValue(), node.getToken().row, node.getToken().col));
                     }
                 }
-            } else if (node.getToken().type == Type.UNARYMINUS) {
-                Token value = stack.pop();
+            } else if (node.getToken().type == Type.OPERATOR_UNARY) { //TODO PROCESS THIS
+                if("+".equals(node.getToken().value) ||  "-".equals(node.getToken().value)) {
+                    Token value = stack.pop();
 
-                if (isVariable(value)) {
-                    value = unwrapVariable(value);
+                    if (isVariable(value)) {
+                        value = unwrapVariable(value);
+                    }
+
+                    if (!value.isNumeric())
+                        throw new InterpreterException("Cannot do unary operation for non-numeric value " + value);
+
+                    if("+".equals(node.getToken().value)) {
+                        stack.push(value.isInteger() ? new Token(Type.INTEGER, value.toInteger(), value.row, value.col)
+                                : new Token(Type.DECIMAL, value.toDecimal(), value.row, value.col));
+                    } else {
+                        stack.push(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row, value.col)
+                                : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
+                    }
+                } else {
+                    Token var = stack.pop();
+
+                    if (isVariable(var)) {
+                        Token unwrappedVar = unwrapVariable(var);
+
+                        if (!unwrappedVar.isNumeric())
+                            throw new InterpreterException("Cannot do unary operation for non-numeric value " + var);
+
+                        if("++expr".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()+1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()+1, var.row, var.col));
+                        } else if("--expr".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()-1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()-1, var.row, var.col));
+                        }
+
+                        unwrappedVar = unwrapVariable(var);
+
+                        stack.push(unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger(), var.row, var.col)
+                                : new Token(Type.DECIMAL, unwrappedVar.toDecimal(), var.row, var.col));
+
+                        if("expr++".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()+1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()+1, var.row, var.col));
+                        } else if("expr--".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()-1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()-1, var.row, var.col));
+                        }
+                    } else {
+                        throw new InterpreterException("Cannot do unary increment/decrement operation for non-variable" + var);
+                    }
                 }
-
-                if (!value.isNumeric())
-                    throw new InterpreterException("Cannot do unary minus operation for non-numeric value " + value);
-
-                stack.push(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row, value.col)
-                        : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
             } else if (node.getToken().type == Type.OPERATOR_L) {
                 if ("!".equals(node.getToken().value)) {
                     Token boolval = stack.pop();
