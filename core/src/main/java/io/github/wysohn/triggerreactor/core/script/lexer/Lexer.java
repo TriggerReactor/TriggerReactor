@@ -388,8 +388,9 @@ public class Lexer {
         } else {
             Token token = null;
             String op = String.valueOf(c);
+            read();
+            
             if (c == '+' || c == '-') {
-                read();
                 if (op.equals(String.valueOf(c))) {
                     read();
                     token = new Token(Type.OPERATOR_UNARY, op+op, row, col);
@@ -400,9 +401,6 @@ public class Lexer {
                     token = new Token(Type.OPERATOR_A, op, row, col);
                 }
             } else if (c == '*' || c == '/' || c == '%' || c == '^' || c == '~') {
-                String op = String.valueOf(c);
-                read();
-
                 if (!"~".equals(op) && c == '=') {
                     read();
                     return new Token(Type.OPERATOR, op + "=", row, col);
@@ -411,7 +409,6 @@ public class Lexer {
                 }
             } else {
                 token = new Token(Type.OPERATOR, op, row, col);
-                read();
             }
             return token;
         }
