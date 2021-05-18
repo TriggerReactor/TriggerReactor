@@ -91,7 +91,7 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "5")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "~")), queue.poll());
-        assertEquals(new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "%")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, ">>")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
@@ -114,7 +114,7 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR_L, ">")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "6")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
-        assertEquals(new Node(new Token(Type.UNARYMINUS, "<UNARYMINUS>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "~")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, ">>>")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());

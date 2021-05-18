@@ -731,7 +731,7 @@ public class Interpreter {
                         stack.push(new Token(Type.DECIMAL, result.doubleValue(), node.getToken().row, node.getToken().col));
                     }
                 }
-            } else if (node.getToken().type == Type.OPERATOR_UNARY) { //TODO PROCESS THIS
+            } else if (node.getToken().type == Type.OPERATOR_UNARY) {
                 if("+".equals(node.getToken().value) ||  "-".equals(node.getToken().value)) {
                     Token value = stack.pop();
 
