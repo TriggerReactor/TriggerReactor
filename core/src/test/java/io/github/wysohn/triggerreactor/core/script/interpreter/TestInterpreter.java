@@ -931,6 +931,172 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testIncrementAndDecrement1() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "a = 2;"
+                + "#TEST1 -a;"
+                + "#TEST2 a++;"
+                + "#TEST3 a--;"
+                + "#TEST4 ++a;"
+                + "#TEST5 --a;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(-2, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST2", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST3", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST4", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST5", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2, args[0]);
+                return null;
+            }
+
+        });
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIncrementAndDecrement2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "a = 2.1;"
+                + "#TEST1 +a;"
+                + "#TEST2 -a;"
+                + "#TEST3 a++;"
+                + "#TEST4 a--;"
+                + "#TEST5 ++a;"
+                + "#TEST6 --a;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST2", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(-2.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST3", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST4", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST5", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST6", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2.1, args[0]);
+                return null;
+            }
+
+        });
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
     public void testBitwiseAndBitshift() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = -129;"
