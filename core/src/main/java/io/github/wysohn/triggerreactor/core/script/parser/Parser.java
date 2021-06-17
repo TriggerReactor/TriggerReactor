@@ -45,6 +45,8 @@ public class Parser {
     private final List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
+    private LinkedList<Token> previousTokens = new LinkedList<Token>();
+    private LinkedList<Token> nextTokens = new LinkedList<Token>();
 
     public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
@@ -53,27 +55,45 @@ public class Parser {
     }
 
     private void nextToken() throws IOException, ParserException {
-        try {
-            token = lexer.getToken();
+        if (token != null) {
+           previousTokens.push(token);
+        }
 
-            if (showWarnings && token != null) {
-                int row = lexer.getRow();
+        if(nextTokens.size() > 0) {
+            token = nextTokens.pop();
+        } else {
+            try {
+                token = lexer.getToken();
 
-                Type type = token.type;
-                String value = String.valueOf(token.value);
+                if (showWarnings && token != null) {
+                    int row = lexer.getRow();
 
-                if (type == null || value == null)
-                    return;
+                    Type type = token.type;
+                    String value = String.valueOf(token.value);
 
-                if (deprecationSupervisors.stream()
-                        .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
-                    this.warnings.add(new DeprecationWarning(row, value, lexer.getScriptLines()[row - 1]));
+                    if (type == null || value == null)
+                        return;
+
+                    if (deprecationSupervisors.stream()
+                            .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
+                        this.warnings.add(new DeprecationWarning(row, value, lexer.getScriptLines()[row - 1]));
+                    }
                 }
+            } catch (LexerException lex) {
+                ParserException pex = new ParserException("Error occured while processing a token after " + token);
+                pex.initCause(lex);
+                throw pex;
             }
-        } catch (LexerException lex) {
-            ParserException pex = new ParserException("Error occured while processing a token after " + token);
-            pex.initCause(lex);
-            throw pex;
+        }
+    }
+
+    private void previousToken() {
+        if(token != null)
+            nextTokens.push(token);
+        if (previousTokens.size() > 0) {
+                token = previousTokens.pop();
+        } else {
+            token = null;
         }
     }
 
@@ -153,7 +173,7 @@ public class Parser {
                 Node forNode = new Node(token);
                 nextToken();
 
-                Node varName = parsePostUnary();
+                Node varName = parseId();
                 if (varName == null)
                     throw new ParserException("Could not find variable name for FOR statement! " + forNode.getToken());
                 forNode.getChildren().add(varName);
@@ -637,9 +657,10 @@ public class Parser {
     }
 
     private Node parseTermAndExpression(Node left) throws IOException, LexerException, ParserException {
-        if (token != null && token.type == Type.OPERATOR_A
-                && ("+".equals(token.value) || "-".equals(token.value))) {
-            if ("-".equals(token.value) && left != null //for negative sign only
+        if (token != null
+                && ((token.type == Type.OPERATOR_A && ("+".equals(token.value) || "-".equals(token.value)))
+                    || token.type == Type.OPERATOR_UNARY)) {
+            if (token.type == Type.OPERATOR_A && left != null //for positive/negative sign
                     && (!"*".equals(left.getToken().value)
                     && !"/".equals(left.getToken().value)
                     && !"%".equals(left.getToken().value)
@@ -660,6 +681,7 @@ public class Parser {
                     && left.getToken().type != Type.GID_TEMP
                     && left.getToken().type != Type.INTEGER
                     && left.getToken().type != Type.DECIMAL
+                    && left.getToken().type != Type.STRING
 
                     && left.getToken().type != Type.OPERATOR_UNARY
             )
@@ -668,7 +690,33 @@ public class Parser {
                 return parseFactor();
             }
 
-            Node node = new Node(token);
+            Node node;
+            if (token.type == Type.OPERATOR_UNARY) {
+                //left node is not a variable. the case of left node being a variable is checked on parsePostUnary()
+                Token mainToken = token;
+                String unaryChar = String.valueOf(((String) token.value).charAt(0));
+                nextToken();
+                if(token.type == Type.OPERATOR_A && token.value.equals(unaryChar)) {
+                    //there are three identical characters in a row, so last two characters might be an unary operator.
+                    token = new Token(Type.OPERATOR_UNARY, mainToken.value, mainToken.row, mainToken.col + 1);
+                    previousToken();
+                    token = new Token(Type.OPERATOR_A, unaryChar, token.row, token.col);
+                } else if (token.type == Type.OPERATOR_UNARY) {
+                    if(token.value.equals(mainToken.value)) {
+                        //case of existing four or more identical character
+                        //TODO
+                    } else {
+                        throw new ParserException("Unexpected Token " + token);
+                    }
+                } else {
+                    //left node is not a variable, so this might not be an unary increment/decrement operator.
+                    //the case of left node being a variable is checked on parsePostUnary()
+                    previousToken();
+                    token = new Token(Type.OPERATOR_A, unaryChar, token.row, token.col);
+                    nextTokens.push(new Token(Type.OPERATOR_A, token.value, token.row, token.col + 1));
+                }
+            }
+            node = new Node(token);
             nextToken();
 
             //insert left expression(or term+expression)
@@ -819,8 +867,9 @@ public class Parser {
             return node;
         }
 
-        //unary minus
-        if (token.type == Type.OPERATOR_A && "-".equals(token.value)) {
+        //unary minus/plus
+        if (token.type == Type.OPERATOR_A && ("-".equals(token.value) || "+".equals(token.value))) {
+            Object tokenValue = token.value;
             nextToken();
             if (token.type != Type.INTEGER && token.type != Type.DECIMAL //number
                     && token.type != Type.ID //variable
@@ -829,12 +878,16 @@ public class Parser {
                     && !"(".equals(token.value) //factor
                     && !"~".equals(token.value) //bitwise complement
             )
-                throw new ParserException("Only Number, Variable, or Placeholder are allowed for unary minus operation! " + token);
+                throw new ParserException("Only Number, Variable, or Placeholder are allowed for unary minus/plus operation! " + token);
 
-            Node node = new Node(new Token(Type.OPERATOR_UNARY, "-", token.row, token.col));
-            node.getChildren().add(parseFactor());
+            if("-".equals(tokenValue)) {
+                Node node = new Node(new Token(Type.OPERATOR_UNARY, "-", token.row, token.col));
+                node.getChildren().add(parseFactor());
 
-            return node;
+                return node;
+            } else {
+                return parseFactor();
+            }
         }
 
         //pre-unary increment/decrement
@@ -880,10 +933,45 @@ public class Parser {
         Node left = parseId();
 
         if(left != null && token != null && token.type == Type.OPERATOR_UNARY) {
-            Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
-            node.getChildren().add(left);
+            Token mainToken = token;
+            String unaryChar = String.valueOf(((String) token.value).charAt(0));
             nextToken();
-            return node;
+            if (token == null || token.getType() == Type.OPERATOR_A || token.getType() == Type.ENDL) {
+                //right node is an arithmetic operator, so this is an unary increment/decrement operator.
+                previousToken();
+                Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
+                node.getChildren().add(left);
+                nextToken();
+                return node;
+            } else if (token.getType() == Type.OPERATOR_UNARY && token.value.equals(mainToken.value)) {
+                nextToken();
+                if(token.getType() == Type.OPERATOR_A && token.value.equals(unaryChar)) {
+                    //case of existing five identical characters in a row after id
+                    token = new Token(Type.OPERATOR_UNARY, mainToken.value, mainToken.row, mainToken.col - 1);
+                    previousToken();
+                    token = new Token(Type.OPERATOR_A, unaryChar, token.row, token.col);
+                    previousToken();
+                    Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
+                    node.getChildren().add(left);
+                    nextToken();
+                    return node;
+                } else if (token.getType() == Type.OPERATOR_UNARY) {
+                    //case of existing six or more identical characters in a row after id
+                    throw new ParserException("Unexpected Token " + token);
+                } else {
+                    //case of existing four identical characters in a row after id
+                    previousToken();
+                    token = new Token(Type.OPERATOR_A, unaryChar, token.row, token.col);
+                    nextTokens.push(new Token(Type.OPERATOR_A, unaryChar, token.row, token.col + 1));
+                    previousToken();
+                    Node node = new Node(new Token(Type.OPERATOR_UNARY, "expr" + token.value, token.row, token.col));
+                    node.getChildren().add(left);
+                    nextToken();
+                    return node;
+                }
+            } else {
+                previousToken();
+            }
         }
 
         return left;
@@ -1070,7 +1158,7 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        String text = ""
+        String text = "#MESSAGE args[1--1]";/*
                 + "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" +
                 "    IF args[0] == \"option\"\n" +
                 "        IF {$playername+\".kit\"} != true\n" +
@@ -1084,7 +1172,7 @@ public class Parser {
                 "            #STOP\n" +
                 "        ENDIF\n" +
                 "    ENDIF\n" +
-                "ENDIF";
+                "ENDIF";*/
         System.out.println("original: \n" + text);
 
         Lexer lexer = new Lexer(text, charset);

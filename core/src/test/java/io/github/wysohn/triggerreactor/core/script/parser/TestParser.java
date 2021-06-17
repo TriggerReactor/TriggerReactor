@@ -139,10 +139,10 @@ public class TestParser {
     }
 
     @Test
-    public void testIncrementAndDecrement() throws Exception {
+    public void testIncrementAndDecrement1() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text = "a = 2\n" +
-                "a = ++a * --a - a++ / a--\n";
+                "a = ++a * --a - a++ / a--";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -182,7 +182,52 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
     }
+/*
+    @Test
+    public void testIncrementAndDecrement2() throws Exception {
+        Charset charset = Charset.forName("UTF-8");
+        String text = "a = 2\n" +
+                "a = a--a - a--1 - 1--a - 1--1 + a---a - a---1 - 1---a + a----a - a----1 - 1----a + a-----a";
 
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<Node>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "++expr")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "--expr")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "*")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "expr++")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "expr--")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
+    }
+*/
     @Test
     public void testParam() throws IOException, LexerException, ParserException {
         Charset charset = Charset.forName("UTF-8");
