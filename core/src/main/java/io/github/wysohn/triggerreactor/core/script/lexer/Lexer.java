@@ -477,7 +477,7 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x=1-----1";
+        String text = "";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n" + text);
 
@@ -485,6 +485,6 @@ public class Lexer {
         System.out.println("result: \n");
         Token tok = null;
         while ((tok = lexer.getToken()) != null)
-            System.out.println(tok.type + "(" + tok.row + ", " + tok.col + ")] " + tok.value);
+            System.out.println(tok.type + "] " + tok.value);
     }
 }
