@@ -153,7 +153,7 @@ public class Parser {
                 Node forNode = new Node(token);
                 nextToken();
 
-                Node varName = parsePostUnary();
+                Node varName = parseId();
                 if (varName == null)
                     throw new ParserException("Could not find variable name for FOR statement! " + forNode.getToken());
                 forNode.getChildren().add(varName);
