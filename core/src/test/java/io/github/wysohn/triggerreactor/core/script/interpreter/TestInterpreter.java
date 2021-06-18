@@ -360,7 +360,7 @@ public class TestInterpreter {
         String text = ""
                 + "args[0] = \"arg1\"\n"
                 + "args[1] = \"arg2\"\n"
-                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1--1-1]\n";
+                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -391,7 +391,7 @@ public class TestInterpreter {
                 + "args = array(2)\n"
                 + "args[0] = \"arg1\"\n"
                 + "args[1] = \"arg2\"\n"
-                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1--1-1]\n";
+                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -857,7 +857,7 @@ public class TestInterpreter {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
                 + "#TEST1 -1+-5;"
-                + "#TEST2 -2.0--5;"
+                + "#TEST2 -2.0- -5;"
                 + "#TEST3 -$test3-5;"
                 + "#TEST4 -x-5;";
 
@@ -926,6 +926,160 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIncrementAndDecrement1() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "a = 2;"
+                + "#TEST1 -a;"
+                + "#TEST2 a++;"
+                + "#TEST3 a--;"
+                + "#TEST4 ++a;"
+                + "#TEST5 --a;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(-2, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST2", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST3", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST4", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST5", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2, args[0]);
+                return null;
+            }
+
+        });
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testIncrementAndDecrement2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "a = 2.1;"
+                + "#TEST1 -a;"
+                + "#TEST2 a++;"
+                + "#TEST3 a--;"
+                + "#TEST4 ++a;"
+                + "#TEST5 --a;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("TEST1", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(-2.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST2", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST3", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST4", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(3.1, args[0]);
+                return null;
+            }
+
+        });
+        executorMap.put("TEST5", new Executor() {
+
+            @Override
+            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                                      Object... args) throws Exception {
+
+                assertEquals(2.1, args[0]);
+                return null;
+            }
+
+        });
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
 
         interpreter.startWithContext(null);
     }

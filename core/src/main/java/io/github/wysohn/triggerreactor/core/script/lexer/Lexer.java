@@ -393,6 +393,9 @@ public class Lexer {
             if (!"~".equals(op) && c == '=') {
                 read();
                 return new Token(Type.OPERATOR, op + "=", row, col);
+            } else if (("+".equals(op) || "-".equals(op)) && op.equals(String.valueOf(c))) {
+                read();
+                return new Token(Type.OPERATOR_UNARY, op+op, row, col);
             } else {
                 return new Token(Type.OPERATOR_A, op, row, col);
             }

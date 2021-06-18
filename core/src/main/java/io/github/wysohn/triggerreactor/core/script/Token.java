@@ -167,7 +167,7 @@ public class Token {
         /**
          * Arithmetic
          **/
-        OPERATOR_A, UNARYMINUS,
+        OPERATOR_A, OPERATOR_UNARY,
         /**
          * Logical
          **/
