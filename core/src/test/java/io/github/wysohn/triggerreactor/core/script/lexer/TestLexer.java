@@ -194,7 +194,7 @@ public class TestLexer {
         Lexer lexer;
 
         text = "a = 2\n" +
-                "a = ++a * --a - a++ / a--\n";
+                "a = ++a * --a - a++ / a-- -(--a) -(++a) -(a++) -(a--) - -(--a) - -(++a) - -(a++) - -(a--)\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, "=");
@@ -213,6 +213,59 @@ public class TestLexer {
         testToken(lexer, Type.OPERATOR_A, "/");
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR_UNARY, "--");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.OPERATOR, ")");
+
         testToken(lexer, Type.ENDL, null);
         testEnd(lexer);
     }
