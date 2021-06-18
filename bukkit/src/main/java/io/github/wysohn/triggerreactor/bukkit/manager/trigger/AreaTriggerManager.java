@@ -28,7 +28,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -36,9 +35,7 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.IllegalPluginAccessException;
-import org.bukkit.event.vehicle.VehicleMoveEvent;
 
-import java.awt.image.renderable.ContextualRenderedImageFactory;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -203,40 +200,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                     trigger.addEntity(new BukkitEntity(e.getPlayer()));
                     trigger.activate(e, varMap, EventType.ENTER);
                 });
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onRiding(VehicleMoveEvent e) {
-        if(e.getVehicle().getPassengers().size() >= 1) {
-            if (e.getVehicle().getPassengers().get(0).getType() == EntityType.PLAYER) {
-                List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(new SimpleLocation(e.getFrom().getWorld().getName(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ(), e.getFrom().getPitch(), e.getFrom().getYaw()));
-                List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(new SimpleLocation(e.getTo().getWorld().getName(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ(), e.getTo().getPitch(), e.getTo().getYaw()));
-                Map<String, Object> varMap = new HashMap<>();
-                varMap.put("player", e.getVehicle().getPassengers());
-                varMap.put("from", e.getFrom());
-                varMap.put("to", e.getTo());
-                from.stream()
-                        .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getTo().getWorld().getName(), (int) e.getTo().getX(), (int) e.getTo().getY(), (int) e.getTo().getZ(), e.getTo().getPitch(), e.getTo().getYaw())))//only for area leaving
-                        .map(Map.Entry::getValue)
-                        .forEach((trigger) -> {
-                            for (int i = 0; i < e.getVehicle().getPassengers().size(); i++) {
-                                trigger.removeEntity(e.getVehicle().getPassengers().get(i).getUniqueId());
-                            }
-                            trigger.activate(e, varMap, EventType.EXIT);
-                        });
-
-
-                to.stream()
-                        .filter((entry) -> !entry.getKey().isInThisArea(new SimpleLocation(e.getFrom().getWorld().getName(), (int) e.getFrom().getX(), (int) e.getFrom().getY(), (int) e.getFrom().getZ(), e.getFrom().getPitch(), e.getFrom().getYaw())))//only for entering area
-                        .map(Map.Entry::getValue)
-                        .forEach((trigger) -> {
-                            for (int i = 0; i < e.getVehicle().getPassengers().size(); i++) {
-                                trigger.addEntity(new BukkitEntity(e.getVehicle().getPassengers().get(i)));
-                            }
-                            trigger.activate(e, varMap, EventType.ENTER);
-                        });
-            }
-        }
     }
 
     @EventHandler
