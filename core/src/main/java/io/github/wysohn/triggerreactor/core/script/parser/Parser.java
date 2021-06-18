@@ -1070,7 +1070,7 @@ public class Parser {
                 + "#TEST2 -2.0;"
                 + "#TEST3 -$test3;"
                 + "#TEST4 -x;";*/
-        String text = ""
+/*        String text = ""
                 + "IF args.length == 1 && $haspermission: \"lenz.perms\"\n" +
                 "    IF args[0] == \"option\"\n" +
                 "        IF {$playername+\".kit\"} != true\n" +
@@ -1084,7 +1084,11 @@ public class Parser {
                 "            #STOP\n" +
                 "        ENDIF\n" +
                 "    ENDIF\n" +
-                "ENDIF";
+                "ENDIF";*/
+        String text = "a = 2\n" +
+                "a = ++a * --a - a++ / a--\n" +
+                "a = -(--a) -(++a) -(a++) -(a--)\n" +
+                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
         System.out.println("original: \n" + text);
 
         Lexer lexer = new Lexer(text, charset);

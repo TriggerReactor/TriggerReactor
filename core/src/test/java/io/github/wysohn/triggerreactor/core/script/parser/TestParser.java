@@ -142,7 +142,9 @@ public class TestParser {
     public void testIncrementAndDecrement() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text = "a = 2\n" +
-                "a = ++a * --a - a++ / a--\n";
+                "a = ++a * --a - a++ / a--\n" +
+                "a = -(--a) -(++a) -(a++) -(a--)\n" +
+                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -180,6 +182,60 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR_A, "/")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "--expr")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "++expr")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "expr++")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "expr--")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "--expr")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "++expr")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "expr++")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "expr--")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_UNARY, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "-")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
     }
