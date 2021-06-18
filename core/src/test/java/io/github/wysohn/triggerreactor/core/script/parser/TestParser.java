@@ -156,7 +156,8 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
-        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
         assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
