@@ -92,7 +92,7 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onRiding(VehicleMoveEvent e) {
         if(e.getFrom() == e.getTo())
             return;
