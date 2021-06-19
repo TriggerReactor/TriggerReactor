@@ -1,5 +1,5 @@
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
+    implementation 'org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT'
 }
 
 allprojects {
@@ -16,11 +16,11 @@ allprojects {
     }
 
     dependencies {
-        compile project(":core")
+        api project(":core")
 
-        compile "org.bstats:bstats-bukkit-lite:1.4"
+        implementation "org.bstats:bstats-bukkit-lite:1.4"
 
-        testCompile project(':core').sourceSets.test.output
+        testImplementation project(':core').sourceSets.test.output
     }
 
     jar {
@@ -31,7 +31,7 @@ allprojects {
                     "bukkit.jar"
             ]
 
-            configurations.compile
+            configurations.compileClasspath
                     .findAll { include.contains(it.name) }
                     .collect { it.isDirectory() ? it : zipTree(it) }
         }
@@ -40,10 +40,10 @@ allprojects {
 
 subprojects {
     dependencies {
-        compile fileTree(dir: "libs", includes: ['*.jar'])
-        compile project(":bukkit")
+        implementation fileTree(dir: "libs", includes: ['*.jar'])
+        api project(":bukkit")
 
-        testCompile project(':bukkit').sourceSets.test.output
+        testImplementation project(':bukkit').sourceSets.test.output
     }
 
     task copyTestResources(type: Copy) {
