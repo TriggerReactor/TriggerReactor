@@ -70,9 +70,10 @@ subprojects {
     dependencies {
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
         api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
-
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
         api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
+        // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+        api group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
         // https://mvnrepository.com/artifact/org.graalvm.js/js
         implementation group: 'org.graalvm.js', name: 'js', version: '21.1.0'
