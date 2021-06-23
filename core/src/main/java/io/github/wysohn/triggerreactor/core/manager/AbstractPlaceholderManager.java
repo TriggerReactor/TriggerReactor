@@ -164,7 +164,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                     Object result = null;
 
                     try (Timings.Timing t = time.begin(true)) {
-                        result = jsObject.invokeMethod(jsObject, "call", argObj);
+                        result = ((Invocable) engine).invokeFunction(placeholderName ,argObj);
                     }
 
                     return result;
