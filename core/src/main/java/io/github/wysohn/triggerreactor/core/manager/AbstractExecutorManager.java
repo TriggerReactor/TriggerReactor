@@ -22,7 +22,6 @@ import io.github.wysohn.triggerreactor.core.script.validation.ValidationExceptio
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
-import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
 import java.io.*;
@@ -142,7 +141,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         }
 
         private void registerValidationInfo(ScriptContext context) {
-            JSObject validation = (JSObject) context.getAttribute("validation");
+            Map<String, Object> validation = (Map<String, Object>) context.getAttribute("validation");
             if (validation == null) {
                 return;
             }
@@ -194,7 +193,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
 
-            JSObject jsObject = (JSObject) scriptContext.getAttribute(executorName);
+            Object jsObject = scriptContext.getAttribute(executorName);
             if (jsObject == null)
                 throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
 
@@ -205,7 +204,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                     Object result = null;
 
                     try (Timings.Timing t = time.begin(true)) {
-                        result = jsObject.call(null, argObj);
+                        result = ((Invocable) engine).invokeFunction(executorName ,argObj);
                     }
 
                     if (result instanceof Integer)

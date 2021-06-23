@@ -17,26 +17,39 @@
 
 package io.github.wysohn.triggerreactor.core.manager;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 public class JSEngineProvider {
-    private static final NashornScriptEngineFactory NASHORN_FACTORY = new NashornScriptEngineFactory();
-    private static boolean earlierJava = false;
+    private static int getVersion() {
+        String version = System.getProperty("java.version");
+        if(version.startsWith("1.")) {
+            version = version.substring(2, 3);
+        } else {
+            int dot = version.indexOf(".");
+            if(dot != -1) { version = version.substring(0, dot); }
+        } return Integer.parseInt(version);
+    }
 
     public static ScriptEngine getScriptEngine() {
-        if (earlierJava) {
-            return NASHORN_FACTORY.getScriptEngine();
+        int version = getVersion();
+        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        if(version < 9){
+            return scriptEngineManager.getEngineByName("nashorn");
+        } else if(System.getProperty("org.graalvm.home") != null){
+            return scriptEngineManager.getEngineByName("graal.js");
         } else {
-            ScriptEngine scriptEngine;
-            try {
-                scriptEngine = NASHORN_FACTORY.getScriptEngine("--no-deprecation-warning");
-            } catch (IllegalArgumentException ex) {
-                earlierJava = true;
-                scriptEngine = NASHORN_FACTORY.getScriptEngine();
-            }
-            return scriptEngine;
+            // check if nashorn is installed externally
+            ScriptEngine engine = scriptEngineManager.getEngineByName("nashorn");
+            if(engine != null)
+                return engine;
+
+            throw new RuntimeException("You are using the Java version > 8, yet you are not using" +
+                    " the graalVM. For Java version > 8, you are required to install and run your" +
+                    " server with GraalVM as the stock JVM no longer support Nashorn javascript engine." +
+                    " Or, if you really want to use stock JVM, you have to install the plugin that will" +
+                    " load the Nashorn engine manually. This is one example but not necessarily has to be:" +
+                    " https://www.spigotmc.org/resources/nashornjs-provider-and-cli.91204/");
         }
     }
 }

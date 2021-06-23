@@ -22,7 +22,6 @@ import io.github.wysohn.triggerreactor.core.script.validation.ValidationExceptio
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
-import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
 import java.io.*;
@@ -87,7 +86,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         }
 
         private void registerValidationInfo(ScriptContext context) {
-            JSObject validation = (JSObject) context.getAttribute("validation");
+            Map<String, Object> validation = (Map<String, Object>) context.getAttribute("validation");
             if (validation == null) {
                 return;
             }
@@ -154,7 +153,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
 
-            JSObject jsObject = (JSObject) scriptContext.getAttribute(placeholderName);
+            Invocable jsObject = (Invocable) scriptContext.getAttribute(placeholderName);
             if (jsObject == null)
                 throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
 
@@ -165,7 +164,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                     Object result = null;
 
                     try (Timings.Timing t = time.begin(true)) {
-                        result = jsObject.call(null, argObj);
+                        result = jsObject.invokeMethod(jsObject, "call", argObj);
                     }
 
                     return result;

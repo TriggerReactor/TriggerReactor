@@ -2,10 +2,10 @@ package io.github.wysohn.triggerreactor.core.script.validation;
 
 import io.github.wysohn.triggerreactor.core.script.validation.option.*;
 import io.github.wysohn.triggerreactor.tools.JSArrayIterator;
-import jdk.nashorn.api.scripting.JSObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Validator {
     private final Overload[] overloads;
@@ -63,27 +63,27 @@ public class Validator {
         return new ValidationResult(builder.toString());
     }
 
-    private static Object getOrFail(JSObject js, String slot) {
-        if (!(js.hasMember(slot))) {
+    private static Object getOrFail(Map<String, Object> js, String slot) {
+        if (!(js.containsKey(slot))) {
             throw new ValidationException("Could not find property " + slot + " while processing validation info.");
         }
-        return js.getMember(slot);
+        return js.get(slot);
     }
 
-    public static Validator from(JSObject js) {
+    public static Validator from(Map<String, Object> js) {
         try {
-            JSObject overloads = (JSObject) getOrFail(js, "overloads");
+            Map<String, Object> overloads = (Map<String, Object>) getOrFail(js, "overloads");
             List<Overload> overloadList = new ArrayList<>();
 
             for (Object overload : new JSArrayIterator(overloads)) {
                 List<Arg> argList = new ArrayList<>();
 
-                for (Object argObject : new JSArrayIterator((JSObject) overload)) {
+                for (Object argObject : new JSArrayIterator((Map<String, Object>) overload)) {
                     Arg arg = new Arg(validationOptions);
 
-                    for (String key : ((JSObject) argObject).keySet()) {
+                    for (String key : ((Map<String, Object>) argObject).keySet()) {
                         ValidationOption option = validationOptions.forName(key);
-                        Object value = getOrFail((JSObject) argObject, key);
+                        Object value = getOrFail((Map<String, Object>) argObject, key);
                         if (!(option.canContain(value))) {
                             throw new ValidationException("Invalid value for option " + option.getClass().getSimpleName() +
                                     " : " + value);
