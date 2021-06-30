@@ -7,8 +7,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-
 public class ValidatorTest {
     @Test
     public void testJSRNashorn() throws Exception{
@@ -56,6 +54,9 @@ public class ValidatorTest {
     @Test
     public void testJSR() throws Exception{
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("graal.js");
+        if(engine == null)
+            return;
+
         engine.eval("validation =  {\n" +
                 "\t\"overloads\" : [\n" +
                 "\t\t[],\n" +
