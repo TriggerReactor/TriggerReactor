@@ -7,6 +7,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+
 public class ValidatorTest {
     @Test
     public void testJSRNashorn() throws Exception{
