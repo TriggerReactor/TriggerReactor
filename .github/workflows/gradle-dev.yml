@@ -48,7 +48,7 @@ jobs:
           java-version: '8'
 
       - name: Test in ubuntu environment
-        run: ./gradlew testLegacy
+        run: ./gradlew testLegacy -PLegacy
         
   build:
     needs: [ test_windows, test_ubuntu, test_ubuntu_jdk ]
