@@ -34,8 +34,20 @@ jobs:
       - name: Test in ubuntu environment
         run: ./gradlew test
 
+  test_ubuntu_jdk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: joschi/setup-jdk@v2
+        with:
+          java-version: '16'
+
+      - name: Test in ubuntu environment
+        run: ./gradlew test
+
   build:
-    needs: [ test_windows, test_ubuntu ]
+    needs: [ test_windows, test_ubuntu, test_ubuntu_jdk ]
     runs-on: ubuntu-latest
 
     steps:
