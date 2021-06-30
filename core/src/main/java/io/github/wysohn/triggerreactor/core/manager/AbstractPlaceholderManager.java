@@ -43,7 +43,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         if (jsPlaceholders.containsKey(fileName)) {
             plugin.getLogger().warning(fileName + " already registered! Duplicating placerholders?");
         } else {
-            JSPlaceholder placeholder = new JSPlaceholder(fileName, IScriptEngineInitializer.getNashornEngine(sem), file);
+            JSPlaceholder placeholder = new JSPlaceholder(fileName, IScriptEngineInitializer.getEngine(sem), file);
             jsPlaceholders.put(fileName, placeholder);
         }
     }
@@ -122,7 +122,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             Timings.Timing time = timing.getTiming("Executors").getTiming(placeholderName);
             time.setDisplayName("$" + placeholderName);
 
-            final Bindings bindings = engine.createBindings();
+            final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
             bindings.put("event", context);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -131,7 +131,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 bindings.put(key, value);
             }
 
-            ScriptContext scriptContext = new SimpleScriptContext();
+            ScriptContext scriptContext = engine.getContext();
             try {
                 scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
                 compiled.eval(scriptContext);
@@ -153,7 +153,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
             }
 
-            Invocable jsObject = (Invocable) scriptContext.getAttribute(placeholderName);
+            Object jsObject = scriptContext.getAttribute(placeholderName);
             if (jsObject == null)
                 throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
 
@@ -164,7 +164,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                     Object result = null;
 
                     try (Timings.Timing t = time.begin(true)) {
-                        result = ((Invocable) engine).invokeFunction(placeholderName ,argObj);
+                        result = ((Invocable) engine).invokeFunction(placeholderName, argObj);
                     }
 
                     return result;

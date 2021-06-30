@@ -15,6 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var Location = Java.type('org.bukkit.Location');
 function SETBLOCK(args) {
     if (typeof block !== 'undefined' && (args.length == 1 || args.length == 2)) {
         var blockID = args[0];

@@ -15,6 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
+var ChatColor = Java.type('org.bukkit.ChatColor')
 validation = {
     "overloads": [
         [{"name":"lore", "type": "string"}, {"name": "item", "type": itemStackType.class}]

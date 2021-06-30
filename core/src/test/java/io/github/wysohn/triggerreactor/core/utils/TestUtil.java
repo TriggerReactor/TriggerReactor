@@ -22,7 +22,7 @@ public class TestUtil {
             e.printStackTrace(System.out);
             System.out.println("\n" + expectedMessage);
 
-            if (e.getCause().getMessage().equals("Error: " + expectedMessage)) {
+            if (e.getCause().getMessage().endsWith("Error: " + expectedMessage)) {
                 return;
             } else {
                 Assert.fail(e.getCause().getMessage() + ", expected: Error: " + expectedMessage);

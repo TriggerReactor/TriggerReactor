@@ -24,10 +24,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Lever;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.Mockito.*;
@@ -119,7 +119,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player vp = Mockito.mock(Player.class);
         JsTest test = new ExecutorTest(engine, "SETHEALTH")
                 .addVariable("player", vp);
-        PowerMockito.when(vp, "getMaxHealth").thenReturn(20.0);
+        when(vp.getMaxHealth()).thenReturn(20.0);
 
         //case1
         test.withArgs(2).test();
@@ -233,13 +233,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         String message = "&cHey all";
         String colored = ChatColor.translateAlternateColorCodes('&', message);
 
-        PowerMockito.doReturn(players)
-                .when(Bukkit.class, "getOnlinePlayers");
+        doReturn(players).when(server).getOnlinePlayers();
 
         new ExecutorTest(engine, "BROADCAST")
                 .withArgs(message)
                 .test();
-
         for (Player mockPlayer : players) {
             Mockito.verify(mockPlayer)
                     .sendMessage(Mockito.argThat((String s) -> colored.equals(s)));
@@ -263,12 +261,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.withArgs(mockEntity, 1).test();
         Mockito.verify(mockEntity).setFireTicks(20);
 
-        PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(mockPlayer);
+        when(server.getPlayer("merp")).thenReturn(mockPlayer);
         test.withArgs("merp", 5).test();
         Mockito.verify(mockPlayer).setFireTicks(100);
 
         //sad cases
-        PowerMockito.when(Bukkit.class, "getPlayer", "merp").thenReturn(null);
+        when(server.getPlayer("merp")).thenReturn(null);
         assertJSError(() -> test.withArgs(-1).test(), "The number of seconds to burn should be positive");
         assertJSError(() -> test.withArgs().test(), "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
         assertJSError(() -> test.withArgs(1, 1, 1).test(), "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
@@ -303,13 +301,13 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testClearEntity() throws Exception {
         Player vp = Mockito.mock(Player.class);
-        Collection<Entity> entities = new ArrayList<>();
+        List<Entity> entities = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             entities.add(Mockito.mock(Entity.class));
         }
         JsTest test = new ExecutorTest(engine, "CLEARENTITY")
                 .addVariable("player", vp);
-        PowerMockito.when(vp, "getNearbyEntities", 2d, 2d, 2d).thenReturn(entities);
+        when(vp.getNearbyEntities(2d, 2d, 2d)).thenReturn(entities);
         test.withArgs(2).test();
         for (Entity ve : entities) {
             Mockito.verify(ve).remove();
@@ -391,15 +389,15 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         JsTest test = new ExecutorTest(engine, "GIVE")
                 .addVariable("player", vp);
 
-        PowerMockito.when(vp, "getInventory").thenReturn(vpInv);
-        PowerMockito.when(vpInv, "firstEmpty").thenReturn(4);
+        when(vp.getInventory()).thenReturn(vpInv);
+        when(vpInv.firstEmpty()).thenReturn(4);
         test.withArgs(vItem).test();
         Mockito.verify(vpInv).addItem(vItem);
 
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [ItemStack]");
-        PowerMockito.when(vpInv, "firstEmpty").thenReturn(-1);
+        when(vpInv.firstEmpty()).thenReturn(-1);
         assertJSError(() -> test.withArgs(vItem).test(), "Player has no empty slot.");
-        PowerMockito.when(vpInv, "firstEmpty").thenReturn(7);
+        when(vpInv.firstEmpty()).thenReturn(7);
         assertJSError(() -> test.withArgs("hi").test(), "Invalid ItemStack: hi");
     }
 
@@ -413,13 +411,13 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
                 .addVariable("player", vip)
                 .addVariable("plugin", tr);
 
-        PowerMockito.when(tr, "getInvManager").thenReturn(invManager);
-        PowerMockito.when(invManager, "openGUI", vip, "Hi").thenReturn(iInv);
+        when(tr.getInvManager()).thenReturn(invManager);
+        when(invManager.openGUI(vip, "Hi")).thenReturn(iInv);
         test.withArgs("Hi").test();
         Mockito.verify(invManager).openGUI(vip, "Hi");
 
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [String]");
-        PowerMockito.when(invManager, "openGUI", vip, "hello").thenReturn(null);
+        when(invManager.openGUI(vip, "hello")).thenReturn(null);
         assertJSError(() -> test.withArgs("hello").test(), "No such Inventory Trigger named hello");
     }
 
@@ -429,20 +427,20 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Location vLoc2 = Mockito.mock(Location.class);
         Block vBlock = Mockito.mock(Block.class);
         World vWorld = Mockito.mock(World.class);
-        Collection<ItemFrame> vEntities = new ArrayList<>();
+        List<Entity> vEntities = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
             vEntities.add(Mockito.mock(ItemFrame.class));
         }
         JsTest test = new ExecutorTest(engine, "ITEMFRAMEROTATE");
 
-        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
-        PowerMockito.when(vBlock, "getWorld").thenReturn(vWorld);
-        PowerMockito.when(vBlock, "getLocation").thenReturn(vLoc2);
-        PowerMockito.when(vWorld, "getNearbyEntities", vLoc2, 2.0, 2.0, 2.0).thenReturn(vEntities);
+        when(vLoc.getBlock()).thenReturn(vBlock);
+        when(vBlock.getWorld()).thenReturn(vWorld);
+        when(vBlock.getLocation()).thenReturn(vLoc2);
+        when(vWorld.getNearbyEntities(vLoc2, 2.0, 2.0, 2.0)).thenReturn(vEntities);
 
         test.withArgs("NOne", vLoc).test();
-        for (ItemFrame entity : vEntities) {
-            Mockito.verify(entity).setRotation(Rotation.valueOf("NOne".toUpperCase()));
+        for (Entity entity : vEntities) {
+            Mockito.verify((ItemFrame)entity).setRotation(Rotation.valueOf("NOne".toUpperCase()));
         }
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [Rotation<string>, Location<location or number number number>]");
 
@@ -473,9 +471,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Lever vLever = Mockito.mock(Lever.class);
         JsTest test = new ExecutorTest(engine, "LEVEROFF");
 
-        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
-        PowerMockito.when(vBlock, "getState").thenReturn(vBS);
-        PowerMockito.when(vBS, "getData").thenReturn(vLever);
+        when(vLoc.getBlock()).thenReturn(vBlock);
+        when(vBlock.getState()).thenReturn(vBS);
+        when(vBS.getData()).thenReturn(vLever);
         test.withArgs(vLoc).test();
         Mockito.verify(vLever).setPowered(false);
 
@@ -492,9 +490,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Lever vLever = Mockito.mock(Lever.class);
         JsTest test = new ExecutorTest(engine, "LEVERON");
 
-        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
-        PowerMockito.when(vBlock, "getState").thenReturn(vBS);
-        PowerMockito.when(vBS, "getData").thenReturn(vLever);
+        when(vLoc.getBlock()).thenReturn(vBlock);
+        when(vBlock.getState()).thenReturn(vBS);
+        when(vBS.getData()).thenReturn(vLever);
         test.withArgs(vLoc).test();
         Mockito.verify(vLever).setPowered(true);
 
@@ -511,16 +509,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Lever vLever = Mockito.mock(Lever.class);
         JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
 
-        PowerMockito.when(vLoc, "getBlock").thenReturn(vBlock);
-        PowerMockito.when(vBlock, "getState").thenReturn(vBS);
-        PowerMockito.when(vBS, "getData").thenReturn(vLever);
+        when(vLoc.getBlock()).thenReturn(vBlock);
+        when(vBlock.getState()).thenReturn(vBS);
+        when(vBS.getData()).thenReturn(vLever);
 
         //case1
-        PowerMockito.when(vLever, "isPowered").thenReturn(false);
+        when(vLever.isPowered()).thenReturn(false);
         test.withArgs(vLoc).test();
         Mockito.verify(vLever).setPowered(true);
         //case2
-        PowerMockito.when(vLever, "isPowered").thenReturn(true);
+        when(vLever.isPowered()).thenReturn(true);
         test.withArgs(vLoc).test();
         Mockito.verify(vLever).setPowered(false);
 
@@ -534,7 +532,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         World vWorld = Mockito.mock(World.class);
         JsTest test = new ExecutorTest(engine, "LIGHTNING");
 
-        PowerMockito.when(vLoc, "getWorld").thenReturn(vWorld);
+        when(vLoc.getWorld()).thenReturn(vWorld);
         test.withArgs(vLoc).test();
         Mockito.verify(vWorld).strikeLightning(vLoc);
 
@@ -620,7 +618,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         JsTest test = new ExecutorTest(engine, "SETBLOCK");
         test.addVariable("block", mockBlock);
 
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         test.withArgs("STONE").test();
 
@@ -634,7 +632,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = Mockito.mock(Player.class);
 
         when(player.getWorld()).thenReturn(mockWorld);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         assertJSError(() -> new ExecutorTest(engine, "SETBLOCK")
                 .withArgs("STONE", 22, 80, 33)
@@ -650,7 +648,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -669,7 +667,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -688,7 +686,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -707,7 +705,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -761,12 +759,12 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testWeather() throws Exception {
         JsTest test = new ExecutorTest(engine, "WEATHER");
         World mockWorld = Mockito.mock(World.class);
-        PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(mockWorld);
+        when(server.getWorld("merp")).thenReturn(mockWorld);
 
         test.withArgs("merp", true).test();
         Mockito.verify(mockWorld).setStorm(true);
 
-        PowerMockito.when(Bukkit.class, "getWorld", "merp").thenReturn(null);
+        when(server.getWorld("merp")).thenReturn(null);
         assertJSError(() -> test.withArgs("merp", true, true).test(), "Invalid parameters! [String, Boolean]");
         assertJSError(() -> test.withArgs("merp", 1).test(), "Invalid parameters! [String, Boolean]");
         assertJSError(() -> test.withArgs(mockWorld, false).test(), "Invalid parameters! [String, Boolean]");
@@ -818,7 +816,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         PlayerInventory piv = Mockito.mock(PlayerInventory.class);
         ExecutorTest test = new ExecutorTest(engine, "SETHELDITEM");
         test.addVariable("player", vp);
-        PowerMockito.when(vp, "getInventory").thenReturn(piv);
+        when(vp.getInventory()).thenReturn(piv);
         test.withArgs(vItem).test();
         Mockito.verify(piv).setItemInHand(vItem);
 
@@ -835,7 +833,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
         ExecutorTest test = new ExecutorTest(engine, "SETOFFHAND");
         test.addVariable("player", vp);
-        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
+        when(vp.getInventory()).thenReturn(vInv);
         test.withArgs(vItem).test();
         Mockito.verify(vInv).setItemInOffHand(vItem);
 
@@ -849,8 +847,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player vp = Mockito.mock(Player.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
         PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
-        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv, "getSize").thenReturn(36);
+        when(vp.getInventory()).thenReturn(vInv);
+        when(vInv.getSize()).thenReturn(36);
         ExecutorTest test = new ExecutorTest(engine, "SETPLAYERINV");
         test.addVariable("player", vp);
         test.withArgs(1, vItem).test();
@@ -866,7 +864,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         ItemMeta vIM = Mockito.mock(ItemMeta.class);
         ExecutorTest test = new ExecutorTest(engine, "SETITEMLORE");
-        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
+        when(vItem.getItemMeta()).thenReturn(vIM);
         test.withArgs("NO\nNO", vItem).test();
         Mockito.verify(vItem).setItemMeta(vIM);
 
@@ -883,8 +881,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         ItemMeta vIM = Mockito.mock(ItemMeta.class);
         Material stone = Material.valueOf("STONE");
         ExecutorTest test = new ExecutorTest(engine, "SETITEMNAME");
-        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
-        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        when(vItem.getItemMeta()).thenReturn(vIM);
+        when(vItem.getType()).thenReturn(stone);
         test.withArgs("NO--NO", vItem).test();
         Mockito.verify(vIM).setDisplayName("NO--NO");
         Mockito.verify(vItem).setItemMeta(vIM);
@@ -901,8 +899,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         InventoryClickEvent vEvent = Mockito.mock(InventoryClickEvent.class);
         Inventory vInv = Mockito.mock(Inventory.class);
         ItemStack vItem = Mockito.mock(ItemStack.class);
-        PowerMockito.when(vEvent, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv, "getSize").thenReturn(36);
+        when(vEvent.getInventory()).thenReturn(vInv);
+        when(vInv.getSize()).thenReturn(36);
         ExecutorTest test = new ExecutorTest(engine, "SETSLOT");
         test.addVariable("event", vEvent);
         test.withArgs(1, vItem).test();
@@ -920,7 +918,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
         Material newDirt = Material.valueOf("DIRT");
-        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        when(vItem.getType()).thenReturn(stone);
 
         ExecutorTest test = new ExecutorTest(engine, "SETTYPE");
 
@@ -939,7 +937,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testSetCount() throws Exception {
         ItemStack vItem = Mockito.mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
-        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        when(vItem.getType()).thenReturn(stone);
 
         ExecutorTest test = new ExecutorTest(engine, "SETCOUNT");
 

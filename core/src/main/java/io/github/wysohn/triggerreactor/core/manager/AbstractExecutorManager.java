@@ -69,7 +69,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             if (jsExecutors.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = new JSExecutor(fileName, IScriptEngineInitializer.getNashornEngine(sem), file);
+                JSExecutor exec = new JSExecutor(fileName, IScriptEngineInitializer.getEngine(sem), file);
                 jsExecutors.put(builder.toString(), exec);
             }
         }
@@ -162,7 +162,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             time.setDisplayName("#" + executorName);
 
 
-            final Bindings bindings = engine.createBindings();
+            final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
             bindings.put("event", e);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -171,9 +171,8 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 bindings.put(key, value);
             }
 
-            ScriptContext scriptContext = new SimpleScriptContext();
+            ScriptContext scriptContext = engine.getContext();
             try {
-                scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
                 compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();

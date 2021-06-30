@@ -10,18 +10,21 @@ import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test driving class for testing Placeholders
@@ -29,8 +32,8 @@ import static org.junit.Assert.assertEquals;
 public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testPlayername() throws Exception {
-        Player mockPlayer = Mockito.mock(Player.class);
-        Mockito.when(mockPlayer.getName()).thenReturn("wysohn");
+        Player mockPlayer = mock(Player.class);
+        when(mockPlayer.getName()).thenReturn("wysohn");
 
         Object result = new PlaceholderTest(engine, "playername")
                 .addVariable("player", mockPlayer)
@@ -60,13 +63,13 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testCmdline() throws Exception {
-        PlayerCommandPreprocessEvent mockEvent = Mockito.mock(PlayerCommandPreprocessEvent.class);
+        PlayerCommandPreprocessEvent mockEvent = mock(PlayerCommandPreprocessEvent.class);
 
         JsTest test = new PlaceholderTest(engine, "cmdline");
         test.addVariable("event", mockEvent);
 
 
-        Mockito.when(mockEvent.getMessage()).thenReturn("/mycommand");
+        when(mockEvent.getMessage()).thenReturn("/mycommand");
 
         String line = (String) test.test();
         Mockito.verify(mockEvent).getMessage();
@@ -79,7 +82,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         Assert.assertEquals("mycommand", line);
 
 
-        Mockito.when(mockEvent.getMessage()).thenReturn("/mycommand arg1 arg2");
+        when(mockEvent.getMessage()).thenReturn("/mycommand arg1 arg2");
 
         line = (String) test.test();
         Assert.assertEquals("mycommand arg1 arg2", line);
@@ -99,26 +102,30 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testEntityname() throws Exception {
-        EntityEvent mockEvent = Mockito.mock(EntityEvent.class);
-        Entity mockEntity = Mockito.mock(Entity.class);
+        EntityEvent mockEvent = mock(EntityEvent.class);
+        Entity mockEntity = mock(Entity.class);
 
         JsTest test = new PlaceholderTest(engine, "entityname");
         test.addVariable("event", mockEvent);
 
 
-        Mockito.when(mockEvent.getEntity()).thenReturn(mockEntity);
-        Mockito.when(mockEntity.getName()).thenReturn("SomeEntity");
+        when(mockEvent.getEntity()).thenReturn(mockEntity);
+        when(mockEntity.getName()).thenReturn("SomeEntity");
 
         Assert.assertEquals("SomeEntity", test.test());
     }
 
     @Test
     public void testHeldItem() throws Exception {
-        Player vp = Mockito.mock(Player.class);
-        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
-        ItemStack vItem = Mockito.mock(ItemStack.class);
-        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv, "getItemInHand").thenReturn(vItem);
+        ItemFactory itemFactory = mock(ItemFactory.class);
+        when(server.getItemFactory()).thenReturn(itemFactory);
+        when(itemFactory.equals(any(), any())).thenReturn(true);
+
+        Player vp = mock(Player.class);
+        PlayerInventory vInv = mock(PlayerInventory.class);
+        ItemStack vItem = new ItemStack(Material.AIR);
+        when(vp.getInventory()).thenReturn(vInv);
+        when(vInv.getItemInMainHand()).thenReturn(vItem);
         PlaceholderTest test = new PlaceholderTest(engine, "helditem");
         test.addVariable("player", vp);
         ItemStack result = (ItemStack) test.withArgs().test();
@@ -129,11 +136,11 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testOffHandItem() throws Exception {
-        Player vp = Mockito.mock(Player.class);
-        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
-        ItemStack vItem = Mockito.mock(ItemStack.class);
-        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv, "getItemInOffHand").thenReturn(vItem);
+        Player vp = mock(Player.class);
+        PlayerInventory vInv = mock(PlayerInventory.class);
+        ItemStack vItem = mock(ItemStack.class);
+        when(vp.getInventory()).thenReturn(vInv);
+        when(vInv.getItemInOffHand()).thenReturn(vItem);
         PlaceholderTest test = new PlaceholderTest(engine, "offhanditem");
         test.addVariable("player", vp);
         ItemStack result = (ItemStack) test.withArgs().test();
@@ -144,12 +151,12 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testPlayerInv() throws Exception {
-        Player vp = Mockito.mock(Player.class);
-        PlayerInventory vInv = Mockito.mock(PlayerInventory.class);
-        ItemStack vItem = Mockito.mock(ItemStack.class);
-        PowerMockito.when(vp, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv, "getSize").thenReturn(36);
-        PowerMockito.when(vInv, "getItem", 2).thenReturn(vItem);
+        Player vp = mock(Player.class);
+        PlayerInventory vInv = mock(PlayerInventory.class);
+        ItemStack vItem = mock(ItemStack.class);
+        when(vp.getInventory()).thenReturn(vInv);
+        when(vInv.getSize()).thenReturn(36);
+        when(vInv.getItem(2)).thenReturn(vItem);
         PlaceholderTest test = new PlaceholderTest(engine, "playerinv");
         test.addVariable("player", vp);
         ItemStack result = (ItemStack) test.withArgs(2).test();
@@ -162,9 +169,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testId() throws Exception {
-        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemStack vItem = mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
-        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        when(vItem.getType()).thenReturn(stone);
         PlaceholderTest test = new PlaceholderTest(engine, "id");
         Object result = test.withArgs(vItem).test();
         Assert.assertEquals(result, stone);
@@ -177,9 +184,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testIdName() throws Exception {
-        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemStack vItem = mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
-        PowerMockito.when(vItem, "getType").thenReturn(stone);
+        when(vItem.getType()).thenReturn(stone);
         PlaceholderTest test = new PlaceholderTest(engine, "idname");
         Object result = test.withArgs(vItem).test();
         Assert.assertEquals(result, stone.name());
@@ -192,12 +199,12 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testName() throws Exception {
-        ItemStack vItem = Mockito.mock(ItemStack.class);
-        ItemMeta vIM = Mockito.mock(ItemMeta.class);
-        PowerMockito.when(vItem, "hasItemMeta").thenReturn(true);
-        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
-        PowerMockito.when(vIM, "hasDisplayName").thenReturn(true);
-        PowerMockito.when(vIM, "getDisplayName").thenReturn("awwman");
+        ItemStack vItem = mock(ItemStack.class);
+        ItemMeta vIM = mock(ItemMeta.class);
+        when(vItem.hasItemMeta()).thenReturn(true);
+        when(vItem.getItemMeta()).thenReturn(vIM);
+        when(vIM.hasDisplayName()).thenReturn(true);
+        when(vIM.getDisplayName()).thenReturn("awwman");
 
         PlaceholderTest test = new PlaceholderTest(engine, "name");
         Object result = test.withArgs(vItem).test();
@@ -211,16 +218,16 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testLore() throws Exception {
-        ItemStack vItem = Mockito.mock(ItemStack.class);
-        ItemMeta vIM = Mockito.mock(ItemMeta.class);
+        ItemStack vItem = mock(ItemStack.class);
+        ItemMeta vIM = mock(ItemMeta.class);
         List<String> lores = new ArrayList<>();
         lores.add("creeper");
         lores.add("awwman");
         lores.add("sowebackinthemine");
-        PowerMockito.when(vItem, "hasItemMeta").thenReturn(true);
-        PowerMockito.when(vItem, "getItemMeta").thenReturn(vIM);
-        PowerMockito.when(vIM, "hasLore").thenReturn(true);
-        PowerMockito.when(vIM, "getLore").thenReturn(lores);
+        when(vItem.hasItemMeta()).thenReturn(true);
+        when(vItem.getItemMeta()).thenReturn(vIM);
+        when(vIM.hasLore()).thenReturn(true);
+        when(vIM.getLore()).thenReturn(lores);
         String loreString = "";
         for (int k = 0; k < lores.size(); k++) {
             String lore = lores.get(k);
@@ -242,12 +249,12 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testSlot() throws Exception {
-        InventoryClickEvent vEvent = Mockito.mock(InventoryClickEvent.class);
-        ItemStack vItem = Mockito.mock(ItemStack.class);
-        Inventory vInv = Mockito.mock(Inventory.class);
-        PowerMockito.when(vEvent, "getInventory").thenReturn(vInv);
-        PowerMockito.when(vInv, "getSize").thenReturn(36);
-        PowerMockito.when(vInv, "getItem", 2).thenReturn(vItem);
+        InventoryClickEvent vEvent = mock(InventoryClickEvent.class);
+        ItemStack vItem = mock(ItemStack.class);
+        Inventory vInv = mock(Inventory.class);
+        when(vEvent.getInventory()).thenReturn(vInv);
+        when(vInv.getSize()).thenReturn(36);
+        when(vInv.getItem(2)).thenReturn(vItem);
         PlaceholderTest test = new PlaceholderTest(engine, "slot");
         test.addVariable("event", vEvent);
         ItemStack result = (ItemStack) test.withArgs(2).test();
@@ -259,11 +266,11 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testCount() throws Exception {
-        ItemStack vItem = Mockito.mock(ItemStack.class);
+        ItemStack vItem = mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
         PlaceholderTest test = new PlaceholderTest(engine, "count");
-        PowerMockito.when(vItem, "getType").thenReturn(stone);
-        PowerMockito.when(vItem, "getAmount").thenReturn(34);
+        when(vItem.getType()).thenReturn(stone);
+        when(vItem.getAmount()).thenReturn(34);
 
         Object result = test.withArgs(vItem).test();
 

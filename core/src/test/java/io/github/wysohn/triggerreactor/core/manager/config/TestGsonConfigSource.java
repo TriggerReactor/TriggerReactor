@@ -10,11 +10,11 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.reflect.Whitebox;
 
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
@@ -76,10 +76,12 @@ public class TestGsonConfigSource {
     }
 
     @Test
-    public void testReload() {
+    public void testReload() throws Exception{
         manager.reload();
 
-        Map<String, Object> cache = Whitebox.getInternalState(manager, "cache");
+        Field field = manager.getClass().getDeclaredField("cache");
+        field.setAccessible(true);
+        Map<String, Object> cache = (Map<String, Object>) field.get(manager);
 
         assertEquals("teststring", cache.get("string"));
         assertEquals(8, cache.get("number"));
@@ -109,8 +111,11 @@ public class TestGsonConfigSource {
     }
 
     @Test
-    public void testSaveAll() {
-        Map<String, Object> cache = Whitebox.getInternalState(manager, "cache");
+    public void testSaveAll() throws Exception {
+        Field field = manager.getClass().getDeclaredField("cache");
+        field.setAccessible(true);
+        Map<String, Object> cache = (Map<String, Object>) field.get(manager);
+
         cache.put("string2", "teststring2");
         cache.put("number2", 123);
         cache.put("number2_2", 123.45);

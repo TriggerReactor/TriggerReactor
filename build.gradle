@@ -14,6 +14,9 @@ subprojects {
 
     test {
         reports.html.enabled = false
+        jvmArgs = [
+            '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
+        ]
     }
 
     ext {
@@ -81,10 +84,10 @@ subprojects {
         implementation group: 'org.graalvm.js', name: 'js-scriptengine', version: '21.1.0'
 
         testImplementation 'junit:junit:4.11'
-        testImplementation 'org.mockito:mockito-core:2.8.+'
-        testImplementation 'org.powermock:powermock-core:2.+'
-        testImplementation 'org.powermock:powermock-module-junit4:2.+'
-        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
+        testImplementation 'org.mockito:mockito-core:3.11.2'
+//        testImplementation 'org.powermock:powermock-core:2.+'
+//        testImplementation 'org.powermock:powermock-module-junit4:2.+'
+//        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
     }
 

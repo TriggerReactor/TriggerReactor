@@ -1,3 +1,4 @@
+var Float = Java.type('java.lang.Float')
 function SETWALKSPEED(args)
 {
   if (args.length != 1)
@@ -17,5 +18,5 @@ function SETWALKSPEED(args)
     throw new Error("Argument for Executor SETWALKSPEED is outside of the allowable range -1..1")
   }
   
-  player.setWalkSpeed(arg)
+  player.setWalkSpeed(new Float(arg))
 }

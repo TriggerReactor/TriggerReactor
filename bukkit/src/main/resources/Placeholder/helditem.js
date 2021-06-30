@@ -27,7 +27,7 @@ function helditem(args) {
     if(item == null) {
         var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
         var Material = Java.type('org.bukkit.Material')
-        return ItemStack(Material.AIR);
+        return new ItemStack(Material.AIR);
     } else {
         return item;
     }

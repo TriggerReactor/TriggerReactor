@@ -4,7 +4,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.Va
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import js.ExecutorTest;
 import js.JsTest;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -12,7 +11,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,7 +56,7 @@ public class TestExecutors extends AbstractTestExecutors {
         JsTest test = new ExecutorTest(engine, "SETBLOCK");
         test.addVariable("block", mockBlock);
 
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         test.withArgs(1).test();
 
@@ -75,7 +73,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -95,7 +93,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -115,7 +113,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)

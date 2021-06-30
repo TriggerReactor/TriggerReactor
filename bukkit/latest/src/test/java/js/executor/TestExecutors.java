@@ -1,17 +1,14 @@
 package js.executor;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import js.ExecutorTest;
 import js.JsTest;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,7 +28,7 @@ import static org.mockito.Mockito.when;
  */
 public class TestExecutors extends AbstractTestExecutors {
     protected void before() throws Exception {
-        register(sem, engine, BukkitUtil.class);
+
     }
 
     @Test
@@ -61,7 +58,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         assertJSError(() -> new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)

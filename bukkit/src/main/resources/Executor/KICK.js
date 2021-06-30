@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 var plType = Java.type("org.bukkit.entity.Player")
-
+var ChatColor = Java.type('org.bukkit.ChatColor')
 validation = {
 	overloads: [
 		[],

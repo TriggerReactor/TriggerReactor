@@ -17,19 +17,24 @@
 
 package io.github.wysohn.triggerreactor.core.manager;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
 public class JSEngineProvider {
-    public static ScriptEngine getScriptEngine() {
-        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-        ScriptEngine engine = scriptEngineManager.getEngineByName("graal.js");
-        if(engine != null)
+    public static ScriptEngine getScriptEngine(ScriptEngineManager sem) {
+        ScriptEngine engine = sem.getEngineByName("graal.js");
+        if (engine != null) {
+            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            bindings.put("polyglot.js.allowAllAccess", true);
             return engine;
+        }
 
-        engine = scriptEngineManager.getEngineByName("nashorn");
-        if(engine != null)
+        engine = sem.getEngineByName("nashorn");
+        if (engine != null) {
             return engine;
+        }
 
         throw new RuntimeException("You are using the Java version > 11, yet you are not using" +
                 " the graalVM. For Java version > 11, you are required to install and run your" +

@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCoreTest;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunctions;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -18,15 +19,15 @@ import org.junit.runners.Parameterized;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test driving class for both legacy and latest bukkit.
@@ -36,9 +37,7 @@ import java.util.List;
  * If, however, there are some tests that has to be platform specific,
  * write them in the child class instead.
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(Parameterized.class)
-@PrepareForTest({TriggerReactorCore.class, Bukkit.class})
+@RunWith(Parameterized.class)
 public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<AbstractCommonFunctions> {
     protected TriggerReactorCore mockMain;
     protected PluginManager mockPluginManager;
@@ -53,22 +52,27 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
     @Before
     public void init() throws Exception {
-        mockMain = Mockito.mock(TriggerReactorCore.class);
-        mockItemFactory = Mockito.mock(ItemFactory.class);
-        mockPluginManager = Mockito.mock(PluginManager.class);
-        mockWorld = Mockito.mock(World.class);
-        mockPlayer = Mockito.mock(Player.class);
-        mockItemMeta = Mockito.mock(ItemMeta.class);
+        mockMain = mock(TriggerReactorCore.class);
+        mockItemFactory = mock(ItemFactory.class);
+        mockPluginManager = mock(PluginManager.class);
+        mockWorld = mock(World.class);
+        mockPlayer = mock(Player.class);
+        mockItemMeta = mock(ItemMeta.class);
 
-        PowerMockito.mockStatic(TriggerReactorCore.class);
-        Mockito.when(TriggerReactorCore.getInstance()).thenReturn(mockMain);
+        //PowerMockito.mockStatic(TriggerReactorCore.class);
+        //Mockito.when(TriggerReactorCore.getInstance()).thenReturn(mockMain);
+        TriggerReactorCoreTest.setInstance(mockMain);
 
-        PowerMockito.mockStatic(Bukkit.class);
-        Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
-        Mockito.when(Bukkit.getItemFactory()).thenReturn(mockItemFactory);
+        Server server = mock(Server.class);
+        Field field = Bukkit.class.getDeclaredField("server");
+        field.setAccessible(true);
+        field.set(null, server);
+
+        Mockito.when(server.getPluginManager()).thenReturn(mockPluginManager);
+        Mockito.when(server.getItemFactory()).thenReturn(mockItemFactory);
 
         Mockito.when(mockItemFactory.getItemMeta(Mockito.any(Material.class))).thenReturn(mockItemMeta);
-        Mockito.when(Bukkit.getWorld(Mockito.anyString())).then(
+        Mockito.when(server.getWorld(Mockito.anyString())).then(
                 invocation -> {
                     return mockWorld;
                 });
@@ -76,9 +80,9 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         Collection<? extends Player> players = new ArrayList<Player>() {{
             add(mockPlayer);
         }};
-        PowerMockito.doReturn(players).when(Bukkit.class, "getOnlinePlayers");
-        Mockito.when(Bukkit.getPlayer(Mockito.anyString())).thenReturn(mockPlayer);
-        Mockito.when(Bukkit.getOfflinePlayer(Mockito.anyString())).thenReturn(mockPlayer);
+        doReturn(players).when(server).getOnlinePlayers();
+        Mockito.when(server.getPlayer(Mockito.anyString())).thenReturn(mockPlayer);
+        Mockito.when(server.getOfflinePlayer(Mockito.anyString())).thenReturn(mockPlayer);
     }
 
     protected class FakeInventory {
@@ -116,7 +120,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     protected abstract boolean isEqual(ItemStack IS1, ItemStack IS2);
 
     protected PlayerInventory preparePlayerInventory(Player mockPlayer, FakeInventory inv) {
-        PlayerInventory mockInventory = Mockito.mock(PlayerInventory.class);
+        PlayerInventory mockInventory = mock(PlayerInventory.class);
 
         Mockito.when(mockPlayer.getInventory()).thenReturn(mockInventory);
         Mockito.when(mockInventory.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt()))
@@ -199,7 +203,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
     @Test
     public void testBlock() {
-        Block mockBlock = Mockito.mock(Block.class);
+        Block mockBlock = mock(Block.class);
         Mockito.when(mockWorld.getBlockAt(Mockito.any(Location.class)))
                 .thenReturn(mockBlock);
 
