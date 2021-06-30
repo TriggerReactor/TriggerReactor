@@ -19,12 +19,6 @@ subprojects {
         ]
     }
 
-    task testLegacy{
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    testLegacy.finalizedBy(test)
-
     ext {
         id = 'TriggerReactor'
         version = '3.2.4'
@@ -125,6 +119,14 @@ subprojects {
         exclude "**/copy/com/google/**"
         exclude "org/apache/**"
     }
+}
+
+allprojects {
+    task testLegacy{
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    testLegacy.finalizedBy test
 }
 
 def exportedProjects= [
