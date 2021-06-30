@@ -14,9 +14,11 @@ subprojects {
 
     test {
         reports.html.enabled = false
-        jvmArgs = [
-            '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
-        ]
+        if(!project.hasProperty("Legacy")){
+            jvmArgs = [
+                    '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
+            ]
+        }
     }
 
     ext {
