@@ -126,7 +126,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
             ScriptContext scriptContext;
             synchronized (scriptContext = engine.getContext()){
-                final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+                final Bindings bindings = engine.createBindings();
 
                 bindings.put("event", context);
                 for (Map.Entry<String, Object> entry : variables.entrySet()) {
