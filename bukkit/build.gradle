@@ -34,7 +34,6 @@ allprojects {
                     "commons-lang3-3.12.0.jar"
             ]
 
-            configurations.runtimeClasspath.forEach(f -> System.out.println(f))
             configurations.runtimeClasspath
                     .findAll { include.contains(it.name) }
                     .collect { it.isDirectory() ? it : zipTree(it) }
