@@ -23,8 +23,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Test driving class for testing Placeholders
@@ -41,6 +40,43 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         assertEquals("wysohn", result);
     }
+
+    @Test
+    public void testPlayernameMultiThreaded() throws Exception {
+        Player mockPlayer = mock(Player.class);
+        when(mockPlayer.getName()).thenReturn("wysohn");
+
+        Runnable run = () -> {
+            for(int i = 0; i < 100; i++){
+                Object result = null;
+                try {
+                    result = new PlaceholderTest(engine, "playername")
+                            .addVariable("player", mockPlayer)
+                            .test();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                assertEquals("wysohn", result);
+            }
+        };
+
+        Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
+
+        Thread thread1 = new Thread(run);
+        thread1.setUncaughtExceptionHandler(handler);
+        Thread thread2 = new Thread(run);
+        thread2.setUncaughtExceptionHandler(handler);
+
+        thread1.start();
+        thread2.start();
+
+        thread1.join();
+        thread2.join();
+
+        verify(handler, never()).uncaughtException(any(), any());
+        verify(mockPlayer, times(200)).getName();
+    }
+
     /*
     @Test
     public void testIsNumber() throws Exception{

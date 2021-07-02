@@ -105,8 +105,10 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             reader.close();
             sourceCode = builder.toString();
 
-            Compilable compiler = (Compilable) engine;
-            compiled = compiler.compile(sourceCode);
+            synchronized (engine.getContext()){
+                Compilable compiler = (Compilable) engine;
+                compiled = compiler.compile(sourceCode);
+            }
         }
 
         public ValidationResult validate(Object... args) {
@@ -122,53 +124,54 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             Timings.Timing time = timing.getTiming("Executors").getTiming(placeholderName);
             time.setDisplayName("$" + placeholderName);
 
-            final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            ScriptContext scriptContext;
+            synchronized (scriptContext = engine.getContext()){
+                final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-            bindings.put("event", context);
-            for (Map.Entry<String, Object> entry : variables.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                bindings.put(key, value);
-            }
-
-            ScriptContext scriptContext = engine.getContext();
-            try {
-                scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-                compiled.eval(scriptContext);
-            } catch (ScriptException e2) {
-                e2.printStackTrace();
-            }
-
-            if (firstRun) {
-                registerValidationInfo(scriptContext);
-                firstRun = false;
-            }
-
-            if (validator != null) {
-                ValidationResult result = validator.validate(args);
-                int overload = result.getOverload();
-                if (overload == -1) {
-                    throw new ValidationException(result.getError());
+                bindings.put("event", context);
+                for (Map.Entry<String, Object> entry : variables.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    bindings.put(key, value);
                 }
-                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+
+                try {
+                    scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
+                    compiled.eval(scriptContext);
+                } catch (ScriptException e2) {
+                    e2.printStackTrace();
+                }
+
+                if (firstRun) {
+                    registerValidationInfo(scriptContext);
+                    firstRun = false;
+                }
+
+                if (validator != null) {
+                    ValidationResult result = validator.validate(args);
+                    int overload = result.getOverload();
+                    if (overload == -1) {
+                        throw new ValidationException(result.getError());
+                    }
+                    scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+                }
+
+                Object jsObject = scriptContext.getAttribute(placeholderName);
+                if (jsObject == null)
+                    throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
             }
 
-            Object jsObject = scriptContext.getAttribute(placeholderName);
-            if (jsObject == null)
-                throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
+            Callable<Object> call = () -> {
+                Object argObj = args;
+                Object result = null;
 
-            Callable<Object> call = new Callable<Object>() {
-                @Override
-                public Object call() throws Exception {
-                    Object argObj = args;
-                    Object result = null;
-
+                synchronized (engine.getContext()){
                     try (Timings.Timing t = time.begin(true)) {
                         result = ((Invocable) engine).invokeFunction(placeholderName, argObj);
                     }
-
-                    return result;
                 }
+
+                return result;
             };
 
             if (TriggerReactorCore.getInstance().isServerThread()) {

@@ -136,8 +136,10 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             reader.close();
             sourceCode = builder.toString();
 
-            Compilable compiler = (Compilable) engine;
-            compiled = compiler.compile(sourceCode);
+            synchronized (engine.getContext()){
+                Compilable compiler = (Compilable) engine;
+                compiled = compiler.compile(sourceCode);
+            }
         }
 
         private void registerValidationInfo(ScriptContext context) {
@@ -161,56 +163,56 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             Timings.Timing time = timing.getTiming("Executors").getTiming(executorName);
             time.setDisplayName("#" + executorName);
 
+            ScriptContext scriptContext;
+            synchronized (scriptContext = engine.getContext()){
+                final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-            final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-
-            bindings.put("event", e);
-            for (Map.Entry<String, Object> entry : variables.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                bindings.put(key, value);
-            }
-
-            ScriptContext scriptContext = engine.getContext();
-            try {
-                compiled.eval(scriptContext);
-            } catch (ScriptException e2) {
-                e2.printStackTrace();
-            }
-
-            if (firstRun) {
-                registerValidationInfo(scriptContext);
-                firstRun = false;
-            }
-
-            if (validator != null) {
-                ValidationResult result = validator.validate(args);
-                int overload = result.getOverload();
-                if (overload == -1) {
-                    throw new ValidationException(result.getError());
+                bindings.put("event", e);
+                for (Map.Entry<String, Object> entry : variables.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    bindings.put(key, value);
                 }
-                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+
+                try {
+                    compiled.eval(scriptContext);
+                } catch (ScriptException e2) {
+                    e2.printStackTrace();
+                }
+
+                if (firstRun) {
+                    registerValidationInfo(scriptContext);
+                    firstRun = false;
+                }
+
+                if (validator != null) {
+                    ValidationResult result = validator.validate(args);
+                    int overload = result.getOverload();
+                    if (overload == -1) {
+                        throw new ValidationException(result.getError());
+                    }
+                    scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+                }
+
+                Object jsObject = scriptContext.getAttribute(executorName);
+                if (jsObject == null)
+                    throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
             }
 
-            Object jsObject = scriptContext.getAttribute(executorName);
-            if (jsObject == null)
-                throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
+            Callable<Integer> call = () -> {
+                Object argObj = args;
+                Object result = null;
 
-            Callable<Integer> call = new Callable<Integer>() {
-                @Override
-                public Integer call() throws Exception {
-                    Object argObj = args;
-                    Object result = null;
-
+                synchronized (engine.getContext()){
                     try (Timings.Timing t = time.begin(true)) {
                         result = ((Invocable) engine).invokeFunction(executorName ,argObj);
                     }
-
-                    if (result instanceof Integer)
-                        return (Integer) result;
-
-                    return null;
                 }
+
+                if (result instanceof Integer)
+                    return (Integer) result;
+
+                return null;
             };
 
             if (TriggerReactorCore.getInstance().isServerThread()) {

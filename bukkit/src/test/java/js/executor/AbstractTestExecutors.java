@@ -23,6 +23,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Lever;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -557,6 +558,42 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
         Mockito.verify(mockPlayer).sendMessage(Mockito.argThat((String str) -> expected.equals(str)));
+    }
+
+    @Test
+    public void testMessageMultiThreaded() throws Exception {
+        Player mockPlayer = Mockito.mock(Player.class);
+
+        Runnable run = ()->{
+            for(int i = 0; i < 100; i++){
+                try {
+                    new ExecutorTest(engine, "MESSAGE")
+                            .addVariable("player", mockPlayer)
+                            .withArgs("&cTest Message")
+                            .test();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
+
+        Thread thread1 = new Thread(run);
+        thread1.setUncaughtExceptionHandler(handler);
+        Thread thread2 = new Thread(run);
+        thread2.setUncaughtExceptionHandler(handler);
+
+        thread1.start();
+        thread2.start();
+
+        thread1.join();
+        thread2.join();
+
+        verify(handler, never()).uncaughtException(any(), any());
+
+        String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
+        Mockito.verify(mockPlayer, times(200)).sendMessage(Mockito.argThat((ArgumentMatcher<String>) expected::equals));
     }
 
     @Test
