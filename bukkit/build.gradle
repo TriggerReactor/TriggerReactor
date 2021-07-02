@@ -39,6 +39,7 @@ allprojects {
                     .collect { it.isDirectory() ? it : zipTree(it) }
         }
     }
+    jar.dependsOn project(':core').jar
 }
 
 subprojects {
