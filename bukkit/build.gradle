@@ -30,9 +30,11 @@ allprojects {
             String[] include = [
                     "bstats-bukkit-lite-1.4.jar",
                     "core.jar",
-                    "bukkit.jar"
+                    "bukkit.jar",
+                    "commons-lang3-3.12.0.jar"
             ]
 
+            configurations.runtimeClasspath.forEach(f -> System.out.println(f))
             configurations.runtimeClasspath
                     .findAll { include.contains(it.name) }
                     .collect { it.isDirectory() ? it : zipTree(it) }
