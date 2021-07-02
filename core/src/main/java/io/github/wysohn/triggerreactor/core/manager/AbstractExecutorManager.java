@@ -165,7 +165,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
 
             ScriptContext scriptContext;
             synchronized (scriptContext = engine.getContext()){
-                final Bindings bindings = engine.createBindings();
+                final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
 
                 bindings.put("event", e);
                 for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -197,53 +197,51 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                 Object jsObject = scriptContext.getAttribute(executorName);
                 if (jsObject == null)
                     throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
-            }
 
-            Callable<Integer> call = () -> {
-                Object argObj = args;
-                Object result = null;
+                Callable<Integer> call = () -> {
+                    Object argObj = args;
+                    Object result = null;
 
-                synchronized (engine.getContext()){
                     try (Timings.Timing t = time.begin(true)) {
                         result = ((Invocable) engine).invokeFunction(executorName ,argObj);
                     }
-                }
 
-                if (result instanceof Integer)
-                    return (Integer) result;
+                    if (result instanceof Integer)
+                        return (Integer) result;
 
-                return null;
-            };
+                    return null;
+                };
 
-            if (TriggerReactorCore.getInstance().isServerThread()) {
-                Integer result = null;
-
-                try {
-                    result = call.call();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                    throw new Exception("#" + executorName + " encountered error.", e1);
-                }
-                return result;
-            } else {
-                Future<Integer> future = runSyncTaskForFuture(call);
-                if (future == null) {
-                    //probably server is shutting down
-                    if (!TriggerReactorCore.getInstance().isEnabled()) {
-                        return call.call();
-                    } else {
-                        throw new Exception("#" + executorName + " couldn't be finished. The server returned null Future.");
-                    }
-                } else {
+                if (TriggerReactorCore.getInstance().isServerThread()) {
                     Integer result = null;
+
                     try {
-                        result = future.get(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException | ExecutionException e1) {
+                        result = call.call();
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
                         throw new Exception("#" + executorName + " encountered error.", e1);
-                    } catch (TimeoutException e1) {
-                        throw new Exception("#" + executorName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
                     }
                     return result;
+                } else {
+                    Future<Integer> future = runSyncTaskForFuture(call);
+                    if (future == null) {
+                        //probably server is shutting down
+                        if (!TriggerReactorCore.getInstance().isEnabled()) {
+                            return call.call();
+                        } else {
+                            throw new Exception("#" + executorName + " couldn't be finished. The server returned null Future.");
+                        }
+                    } else {
+                        Integer result = null;
+                        try {
+                            result = future.get(5, TimeUnit.SECONDS);
+                        } catch (InterruptedException | ExecutionException e1) {
+                            throw new Exception("#" + executorName + " encountered error.", e1);
+                        } catch (TimeoutException e1) {
+                            throw new Exception("#" + executorName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                        }
+                        return result;
+                    }
                 }
             }
         }

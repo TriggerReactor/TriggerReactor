@@ -126,7 +126,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
 
             ScriptContext scriptContext;
             synchronized (scriptContext = engine.getContext()){
-                final Bindings bindings = engine.createBindings();
+                final Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
                 bindings.put("event", context);
                 for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -136,7 +136,6 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 }
 
                 try {
-                    scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
                     compiled.eval(scriptContext);
                 } catch (ScriptException e2) {
                     e2.printStackTrace();
@@ -159,50 +158,48 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
                 Object jsObject = scriptContext.getAttribute(placeholderName);
                 if (jsObject == null)
                     throw new Exception(placeholderName + ".js does not have 'function " + placeholderName + "()'.");
-            }
 
-            Callable<Object> call = () -> {
-                Object argObj = args;
-                Object result = null;
+                Callable<Object> call = () -> {
+                    Object argObj = args;
+                    Object result = null;
 
-                synchronized (engine.getContext()){
                     try (Timings.Timing t = time.begin(true)) {
                         result = ((Invocable) engine).invokeFunction(placeholderName, argObj);
                     }
-                }
 
-                return result;
-            };
+                    return result;
+                };
 
-            if (TriggerReactorCore.getInstance().isServerThread()) {
-                Object result = null;
-                try {
-                    result = call.call();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                    throw new Exception("$" + placeholderName + " encountered error.", e1);
-                }
-                return result;
-            } else {
-                Future<Object> future = runSyncTaskForFuture(call);
-
-                if (future == null) {
-                    //probably server is shutting down
-                    if (!TriggerReactorCore.getInstance().isEnabled()) {
-                        return call.call();
-                    } else {
-                        throw new Exception("$" + placeholderName + " couldn't be finished. The server returned null Future.");
-                    }
-                } else {
+                if (TriggerReactorCore.getInstance().isServerThread()) {
                     Object result = null;
                     try {
-                        result = future.get(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException | ExecutionException e1) {
+                        result = call.call();
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
                         throw new Exception("$" + placeholderName + " encountered error.", e1);
-                    } catch (TimeoutException e1) {
-                        throw new Exception("$" + placeholderName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
                     }
                     return result;
+                } else {
+                    Future<Object> future = runSyncTaskForFuture(call);
+
+                    if (future == null) {
+                        //probably server is shutting down
+                        if (!TriggerReactorCore.getInstance().isEnabled()) {
+                            return call.call();
+                        } else {
+                            throw new Exception("$" + placeholderName + " couldn't be finished. The server returned null Future.");
+                        }
+                    } else {
+                        Object result = null;
+                        try {
+                            result = future.get(5, TimeUnit.SECONDS);
+                        } catch (InterruptedException | ExecutionException e1) {
+                            throw new Exception("$" + placeholderName + " encountered error.", e1);
+                        } catch (TimeoutException e1) {
+                            throw new Exception("$" + placeholderName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                        }
+                        return result;
+                    }
                 }
             }
         }
