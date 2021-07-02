@@ -28,8 +28,6 @@ public class JSEngineProvider {
         if (engine != null) {
             Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
             bindings.put("polyglot.js.allowAllAccess", true);
-            bindings.put("polyglot.js.allowIO", true);
-            bindings.put("polyglot.js.allowCreateThread", true);
             return engine;
         }
 
