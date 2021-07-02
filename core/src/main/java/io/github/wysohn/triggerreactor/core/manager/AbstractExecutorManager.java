@@ -166,6 +166,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             ScriptContext scriptContext;
             synchronized (scriptContext = engine.getContext()){
                 final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+                bindings.clear();
 
                 bindings.put("event", e);
                 for (Map.Entry<String, Object> entry : variables.entrySet()) {
