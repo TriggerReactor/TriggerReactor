@@ -24,6 +24,8 @@ allprojects {
     }
 
     jar {
+        duplicatesStrategy DuplicatesStrategy.EXCLUDE
+
         from {
             String[] include = [
                     "bstats-bukkit-lite-1.4.jar",
@@ -31,7 +33,7 @@ allprojects {
                     "bukkit.jar"
             ]
 
-            configurations.compileClasspath
+            configurations.runtimeClasspath
                     .findAll { include.contains(it.name) }
                     .collect { it.isDirectory() ? it : zipTree(it) }
         }
