@@ -1,3 +1,6 @@
+var Bukkit = Java.type('org.bukkit.Bukkit')
+var Location = Java.type('org.bukkit.Location');
+
 function EXPLOSION(args){
 	if(args.length < 4)
 		throw new Error("Invalid parameters! [String, Number, Number, Number]");
@@ -31,7 +34,6 @@ function EXPLOSION(args){
 	var world = Bukkit.getWorld(args[0]);
 	if(world == null)
 		throw new Error("Unknown world named "+args[0]);
-	
-	var Location = Java.type('org.bukkit.Location');
+
 	world.createExplosion(new Location(world, args[1], args[2], args[3]), power, fire);
 }
