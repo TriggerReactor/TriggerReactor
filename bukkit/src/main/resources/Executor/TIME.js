@@ -1,3 +1,5 @@
+var Bukkit = Java.type('org.bukkit.Bukkit')
+
 function TIME(args){
 	if(args.length != 2)
 		throw new Error("Invalid parameters! [String, Number]");

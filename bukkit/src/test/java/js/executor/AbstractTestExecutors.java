@@ -14,6 +14,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -22,6 +23,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Lever;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
@@ -639,13 +643,23 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testRotateBlock() throws Exception {
-        //TODO
-    }
+    public abstract void testRotateBlock() throws Exception;
 
     @Test
     public void testScoreboard() throws Exception {
-        //TODO
+        Player player = mock(Player.class);
+        Scoreboard scoreboard = mock(Scoreboard.class);
+        Team team = mock(Team.class);
+
+        when(player.getScoreboard()).thenReturn(scoreboard);
+        when(scoreboard.getTeam(anyString())).thenReturn(team);
+
+        new ExecutorTest(engine, "SCOREBOARD")
+                .withArgs("TEAM", "someteam", "ADD", "wysohn")
+                .addVariable("player", player)
+                .test();
+
+        verify(team).addEntry("wysohn");
     }
 
     @Test
@@ -760,9 +774,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testSignEdit() throws Exception {
-        //TODO        
-    }
+    public abstract void testSignEdit() throws Exception;
 
     @Test
     public void testSound() throws Exception {
@@ -798,12 +810,31 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testSpawn() throws Exception {
-        //TODO
+        Player player = mock(Player.class);
+        World world = mock(World.class);
+        Location location = new Location(world, 3, 4, 5);
+
+        when(player.getWorld()).thenReturn(world);
+
+        new ExecutorTest(engine, "SPAWN")
+                .addVariable("player", player)
+                .withArgs(location, EntityType.CREEPER.name())
+                .test();
+
+        verify(world).spawnEntity(location, EntityType.CREEPER);
     }
 
     @Test
     public void testTime() throws Exception {
-        //TODO
+        World world = mock(World.class);
+
+        when(server.getWorld(anyString())).thenReturn(world);
+
+        new ExecutorTest(engine, "TIME")
+                .withArgs("world", 12000)
+                .test();
+
+        verify(world).setTime(12000L);
     }
 
     @Test
@@ -840,7 +871,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testVelocity() throws Exception {
-        //TODO
+        Player player = mock(Player.class);
+
+        new ExecutorTest(engine, "VELOCITY")
+                .withArgs(1, -2, 3)
+                .addVariable("player", player)
+                .test();
+
+        verify(player).setVelocity(new Vector(1, -2, 3));
     }
 
     @Test
