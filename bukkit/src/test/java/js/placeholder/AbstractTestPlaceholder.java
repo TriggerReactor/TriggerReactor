@@ -4,6 +4,8 @@ import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityEvent;
@@ -14,11 +16,14 @@ import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -29,6 +34,32 @@ import static org.mockito.Mockito.*;
  * Test driving class for testing Placeholders
  */
 public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
+
+    @BeforeClass
+    public static void begin(){
+        PlaceholderTest.coverage.clear();
+    }
+
+    @AfterClass
+    public static void tearDown(){
+        PlaceholderTest.coverage.forEach((key, b) -> System.out.println(key));
+        PlaceholderTest.coverage.clear();
+    }
+
+    @Test
+    public void testBlockName() throws Exception {
+        World world = mock(World.class);
+        Block block = mock(Block.class);
+
+        when(server.getWorld(anyString())).thenReturn(world);
+        when(world.getBlockAt(0, 1, 5)).thenReturn(block);
+        when(block.getType()).thenReturn(Material.DIAMOND_BLOCK);
+
+        assertEquals("diamond_block", new PlaceholderTest(engine, "blockname")
+                .withArgs("world", 0, 1, 5)
+                .test());
+    }
+
     @Test
     public void testPlayername() throws Exception {
         Player mockPlayer = mock(Player.class);
@@ -314,5 +345,21 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertValid(vItem);
         test.assertInvalid("hi");
         test.assertInvalid(24);
+    }
+
+    @Test
+    public void testOnlinePlayers() throws Exception{
+        Player[] players = new Player[]{
+                mock(Player.class),
+                mock(Player.class),
+                mock(Player.class),
+                mock(Player.class),
+                mock(Player.class),
+        };
+
+        doReturn(Arrays.asList(players)).when(server).getOnlinePlayers();
+
+        assertEquals(5, new PlaceholderTest(engine, "onlineplayers")
+                .test());
     }
 }
