@@ -1,5 +1,6 @@
 var Bukkit = Java.type('org.bukkit.Bukkit')
 var Location = Java.type('org.bukkit.Location');
+var Float = Java.type('java.lang.Float')
 
 function EXPLOSION(args){
 	if(args.length < 4)
@@ -35,5 +36,5 @@ function EXPLOSION(args){
 	if(world == null)
 		throw new Error("Unknown world named "+args[0]);
 
-	world.createExplosion(new Location(world, args[1], args[2], args[3]), power, fire);
+	world.createExplosion(new Location(world, args[1], args[2], args[3]), new Float(power), fire);
 }

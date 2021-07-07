@@ -14,6 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var PotionEffect = Java.type('org.bukkit.potion.PotionEffect');
+var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
+
 function POTION(args){
 	if(player === null)
 		return null;
@@ -25,7 +28,6 @@ function POTION(args){
 		throw new Error("Invalid parameters. First parameter wasn't a String");
 		
 	var typeName = args[0].toUpperCase();
-	var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
 	var type = PotionEffectType.getByName(typeName);
 	
 	if(type == null)
@@ -41,9 +43,7 @@ function POTION(args){
 		else
 			level = args[2];
 	}
-	
 
-	var PotionEffect = Java.type('org.bukkit.potion.PotionEffect');
 	var effect = new PotionEffect(type, args[1], level - 1);
 
 	player.addPotionEffect(effect);

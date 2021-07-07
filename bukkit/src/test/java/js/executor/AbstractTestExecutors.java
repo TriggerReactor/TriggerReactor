@@ -2,6 +2,8 @@ package js.executor;
 
 //import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 
+import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -13,12 +15,14 @@ import junit.framework.Assert;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,6 +30,8 @@ import org.bukkit.material.Lever;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
@@ -41,6 +47,17 @@ import static org.mockito.Mockito.*;
  */
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
+    @BeforeClass
+    public static void begin(){
+        ExecutorTest.coverage.clear();
+    }
+
+    @AfterClass
+    public static void tearDown(){
+        ExecutorTest.coverage.forEach((key, b) -> System.out.println(key));
+        ExecutorTest.coverage.clear();
+    }
+
     @Test
     public void testPlayer_SetFlyMode() throws Exception {
         Player mockPlayer = mock(Player.class);
@@ -360,7 +377,17 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testCmdCon() throws Exception {
-        // this is not JS code
+        Player player = mock(Player.class);
+        ConsoleCommandSender sender = mock(ConsoleCommandSender.class);
+
+        when(player.getServer()).thenReturn(server);
+        when(server.getConsoleSender()).thenReturn(sender);
+
+        new ExecutorTest(engine, "CMDCON")
+                .withArgs("some command line")
+                .test();
+
+        verify(server).dispatchCommand(sender, "some command line");
     }
 
     @Test
@@ -380,17 +407,48 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testDropItem() throws Exception {
-        //TODO
+        ItemFactory factory = mock(ItemFactory.class);
+        Player player = mock(Player.class);
+        World world = mock(World.class);
+
+        when(server.getItemFactory()).thenReturn(factory);
+        when(player.getWorld()).thenReturn(world);
+        when(factory.equals(any(), any())).thenReturn(true);
+
+        new ExecutorTest(engine, "DROPITEM")
+                .addVariable("player", player)
+                .withArgs("STONE", 1, "None", -204, 82, 266)
+                .test();
+
+        verify(world).dropItem(new Location(world, -204, 82, 266), new ItemStack(Material.STONE));
     }
 
     @Test
     public void testExplosion() throws Exception {
-        //TODO
+        World world = mock(World.class);
+
+        when(server.getWorld(anyString())).thenReturn(world);
+
+        new ExecutorTest(engine, "EXPLOSION")
+                .withArgs("world", 101.2, 33.4, 55, 2.9, false)
+                .test();
+
+        verify(world).createExplosion(new Location(world, 101.2, 33.4, 55), 2.9F, false);
     }
 
     @Test
     public void testFallingBlock() throws Exception {
-        //TODO
+        Player player = mock(Player.class);
+        World world = mock(World.class);
+
+        when(player.getWorld()).thenReturn(world);
+
+        new ExecutorTest(engine, "FALLINGBLOCK")
+                .addVariable("player", player)
+                .withArgs("STONE", 44.5, 6, 78.9)
+                .test();
+
+        verify(world).spawnFallingBlock(new Location(world, 44.5, 6, 78.9), Material.STONE, (byte)0);
     }
 
     @Test
@@ -609,7 +667,20 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testModifyHeldItem() throws Exception {
-        //TODO
+        Player player = mock(Player.class);
+        ItemStack held = mock(ItemStack.class);
+        ItemMeta meta = mock(ItemMeta.class);
+
+        when(player.getItemInHand()).thenReturn(held);
+        when(held.getType()).thenReturn(Material.STONE);
+        when(held.getItemMeta()).thenReturn(meta);
+
+        new ExecutorTest(engine, "MODIFYHELDITEM")
+                .addVariable("player", player)
+                .withArgs("TITLE", "some title")
+                .test();
+
+        verify(meta).setDisplayName("some title");
     }
 
     @Test
@@ -618,9 +689,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testMoney() throws Exception {
-        //written in each platform's test class.
-    }
+    public abstract void testMoney() throws Exception;
 
     @Test
     public void testMysql() throws Exception {
@@ -634,7 +703,15 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testPotion() throws Exception {
-        //TODO
+//        Player player = mock(Player.class);
+//
+//        new ExecutorTest(engine, "POTION")
+//                .addVariable("player", player)
+//                .withArgs("LUCK", 100, 1)
+//                .test();
+//
+//        verify(player).addPotionEffect(new PotionEffect(PotionEffectType.LUCK,
+//                100, 1), true);
     }
 
     @Test
@@ -664,7 +741,19 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testServer() throws Exception {
-        //TODO
+        BukkitTriggerReactorCore plugin = mock(BukkitTriggerReactorCore.class);
+        AbstractJavaPlugin.BungeeCordHelper helper = mock(AbstractJavaPlugin.BungeeCordHelper.class);
+        Player player = mock(Player.class);
+
+        when(plugin.getBungeeHelper()).thenReturn(helper);
+
+        new ExecutorTest(engine, "SERVER")
+                .addVariable("player", player)
+                .addVariable("plugin", plugin)
+                .withArgs("someServer")
+                .test();
+
+        verify(helper).sendToServer(player, "someServer");
     }
 
     @Test
@@ -845,11 +934,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getWorld()).thenReturn(world);
 
         new ExecutorTest(engine, "TP")
-                .withArgs(1, 2, 3)
+                .withArgs(1, 2.5, 3)
                 .addVariable("player", player)
                 .test();
 
-        verify(player).teleport(new Location(world, 1,2,3));
+        verify(player).teleport(new Location(world, 1,2.5,3));
     }
 
     @Test

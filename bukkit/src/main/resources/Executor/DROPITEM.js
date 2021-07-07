@@ -14,38 +14,38 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+ var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
+ var Enchantment = Java.type('org.bukkit.enchantments.Enchantment')
+ var Location = Java.type('org.bukkit.Location')
+ var Material = Java.type('org.bukkit.Material')
+ var NamespacedKey = Java.type('org.bukkit.NamespacedKey')
+
  function DROPITEM(args) {
-	if (args.length == 2){
-		var item = args[0];
-		var location = args[1];
+    var item;
+    var location;
 
-		location.getWorld().dropItem(location, item);
+    if (args.length == 2){
+		item = args[0];
+		location = args[1];
+    } else if (args.length == 4) {
+        location = args[3];
+    } else if (args.length == 6) {
+		var world = player.getWorld();
+        location = new Location(world, args[3], args[4], args[5]);
+    }
 
-	}else if (args.length == 4 || args.length == 6) {
+    if(args.length == 4 || args.length == 6){
 		var itemID = args[0];
 		var amount = args[1];
+
+		if(typeof itemID==='number' && (itemID%1)===0){
+			item = new ItemStack(itemID, amount);
+		}else{
+			var someItem = Material.valueOf(itemID.toUpperCase());
+			item = new ItemStack(someItem, amount);
+		}
+
 		var enchan = args[2];
-		var location;
-
-		if(args.length == 4){
-			location = args[3];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[3], args[4], args[5]);
-		}
-
-		var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
-		var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
-		Block = location.getBlock();
-
-		if(typeof itemID==='number' && (itemID%1)===0){
-			ItemStack = new ItemStack(itemID, amount);
-		}else{
-			var Material = Java.type('org.bukkit.Material');
-			var someItem = Material.valueOf(itemID.toUpperCase());
-			ItemStack = new ItemStack(someItem, amount);
-		}
-
 		if(enchan.toUpperCase() !== 'NONE'){
 			var encharg = enchan.split(',');
 			for each (en in encharg){
@@ -55,56 +55,12 @@
 				if(!ench)
 					throw Error(en.split(':')[0]+" is not a valid Enchantment.");
 
-				ItemStack.addUnsafeEnchantment(ench, level);
+				item.addUnsafeEnchantment(ench, level);
 			}
 		}
+    }
 
-		location.getWorld().dropItem(location, ItemStack);
+    location.getWorld().dropItem(location, item);
 
-	}else if(args.length == 5 || args.length == 7){ 
-		var itemID = args[0];
-		var itemData = args[1];
-		var amount = args[2];
-		var enchan = args[3];
-		var location;
-
-		if(args.length == 5){
-			location = args[4];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[4], args[5], args[6]);
-		}
-
-		var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
-		var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
-		Block = location.getBlock();
-
-		if(typeof itemID==='number' && (itemID%1)===0){
-			ItemStack = new ItemStack(itemID, amount, 0, itemData);
-		}else{
-			var Material = Java.type('org.bukkit.Material');
-			var someItem = Material.valueOf(itemID.toUpperCase());
-			ItemStack = new ItemStack(someItem, amount, 0, itemData);
-		}
-
-		if(enchan.toUpperCase() !== 'NONE'){
-			var encharg = enchan.split(',');
-			for each (en in encharg){
-				var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
-				var level = parseInt(en.split(':')[1]);
-
-				if(!ench)
-					throw Error(en.split(':')[0]+" is not a valid Enchantment.");
-
-				ItemStack.addUnsafeEnchantment(ench, level);
-			}
-		}
-
-		location.getWorld().dropItem(location, ItemStack);
-
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Item, Location or Item<string or number>, Quantity<number>, Enchantments<string>, Location<location or number number number>]');
-	}
 	return null;
 }
