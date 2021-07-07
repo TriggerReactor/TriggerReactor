@@ -15,6 +15,7 @@ public class ValidatorTest {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
         if(engine == null)
             return;
+        System.out.println("Nashorn engine available");
 
         engine.eval("validation =  {\n" +
                 "\t\"overloads\" : [\n" +
@@ -58,6 +59,7 @@ public class ValidatorTest {
         ScriptEngine engine = new ScriptEngineManager().getEngineByName("graal.js");
         if(engine == null)
             return;
+        System.out.println("GraalJS available");
 
         engine.eval("validation =  {\n" +
                 "\t\"overloads\" : [\n" +
