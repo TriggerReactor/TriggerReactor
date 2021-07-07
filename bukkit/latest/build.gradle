@@ -38,6 +38,7 @@ task writePluginYml {
             "CoreProtect",
             "ProtocolLib",
             "WorldGuard",
+            "NashornJs",
     ])
     map.put("commands", new HashMap<String, Object>() {
         {

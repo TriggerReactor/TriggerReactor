@@ -1,6 +1,6 @@
 name: TriggerReactor
 main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
-version: 3.2.4
+version: 3.3.0
 author: wysohn
 authors:
 - soliddanii
