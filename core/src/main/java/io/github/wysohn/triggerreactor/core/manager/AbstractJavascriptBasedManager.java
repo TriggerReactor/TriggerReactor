@@ -150,7 +150,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager implements 
                 bindings.put(key, value);
             }
 
-            try {
+            try (Timings.Timing t = time.getTiming("JS <eval>").begin()){
                 compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
