@@ -21,6 +21,7 @@ softdepend:
 - CoreProtect
 - ProtocolLib
 - WorldGuard
+- NashornJs
 commands:
   triggerreactor:
     aliases:

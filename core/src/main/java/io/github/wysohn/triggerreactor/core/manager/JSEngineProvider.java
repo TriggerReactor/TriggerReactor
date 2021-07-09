@@ -38,9 +38,6 @@ public class JSEngineProvider {
 
         throw new RuntimeException("You are using the Java version > 11, yet you are not using" +
                 " the graalVM. For Java version > 11, you are required to install and run your" +
-                " server with GraalVM as the stock JVM no longer support Nashorn javascript engine." +
-                " Or, if you really want to use stock JVM, you have to install the plugin that will" +
-                " load the Nashorn engine manually. This is one example but not necessarily has to be:" +
-                " https://www.spigotmc.org/resources/nashornjs-provider-and-cli.91204/");
+                " server with GraalVM as the stock JVM no longer support Nashorn javascript engine.");
     }
 }
