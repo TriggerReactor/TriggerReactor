@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Vector = Java.type('org.bukkit.util.Vector');
+
 function VELOCITY(args){
 	if(player === null)
 		return null;
@@ -24,9 +26,8 @@ function VELOCITY(args){
 	for (var i in [0, 1, 2]) {
 		if (typeof args[i] == "string") {args[i] = parseFloat(args[i]);}
 	}
-	
-	var Vector = Java.type('org.bukkit.util.Vector');
-	player.setVelocity(new Vector(args[0].doubleValue(), args[1].doubleValue(), args[2].doubleValue()));
+
+	player.setVelocity(new Vector(args[0], args[1], args[2]));
 
 	return null;
 }

@@ -6,8 +6,12 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ExecutorTest extends JsTest {
+    public static final Map<String, Boolean> coverage = new TreeMap<>();
+
     private final JSExecutor executor;
 
     public ExecutorTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
@@ -17,6 +21,7 @@ public class ExecutorTest extends JsTest {
 
     @Override
     public Object test() throws Exception {
+        coverage.put(this.name, true);
         executor.execute(Timings.LIMBO, true, varMap, null, args);
         return null;
     }

@@ -132,15 +132,20 @@ public class CommonFunctions extends AbstractCommonFunctions
 
     @Override
     public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
-                                         boolean particles, Color color) {
+                                         boolean particles) {
         PotionEffectType type = null;
         type = PotionEffectType.getByName(EffectType);
 
         if (type != null) {
-            return new PotionEffect(type, duration, amplifier, ambient, particles, color);
+            return new PotionEffect(type, duration, amplifier, ambient, particles);
         } else {
             return null;
         }
+    }
+
+    @Override
+    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient, boolean particles, Color color) {
+        return makePotionEffect(EffectType, duration, amplifier, ambient, particles);
     }
 
     /**

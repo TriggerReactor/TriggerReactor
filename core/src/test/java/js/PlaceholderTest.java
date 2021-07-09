@@ -6,8 +6,12 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.IOException;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class PlaceholderTest extends JsTest {
+    public static final Map<String, Boolean> coverage = new TreeMap<>();
+
     private final JSPlaceholder placeholder;
 
     public PlaceholderTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
@@ -17,6 +21,8 @@ public class PlaceholderTest extends JsTest {
 
     @Override
     public Object test() throws Exception {
+        coverage.put(this.name, true);
+
         return placeholder.parse(Timings.LIMBO, null, varMap, args);
     }
 

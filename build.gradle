@@ -10,13 +10,25 @@ repositories {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'java-library'
+
     test {
         reports.html.enabled = false
+        testLogging {
+            events "failed"
+            exceptionFormat "full"
+        }
+
+        if(!project.hasProperty("Legacy")){
+            jvmArgs = [
+                    '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
+            ]
+        }
     }
 
     ext {
         id = 'TriggerReactor'
-        version = '3.2.4'
+        version = '3.2.0.5'
         description = 'Simple script parser with infinite possibility'
         author = 'wysohn'
         authors = [
@@ -67,22 +79,28 @@ subprojects {
 
     dependencies {
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-        compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
-
+        api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
         // https://mvnrepository.com/artifact/mysql/mysql-connector-java
-        compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
+        api group: 'mysql', name: 'mysql-connector-java', version: '5.1.13'
+        // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
+        api group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
-        testCompile 'junit:junit:4.11'
-        testCompile 'org.mockito:mockito-core:2.8.+'
-        testCompile 'org.powermock:powermock-core:2.+'
-        testCompile 'org.powermock:powermock-module-junit4:2.+'
-        testCompile 'org.powermock:powermock-api-mockito2:2.+'
-        testCompile 'org.javassist:javassist:3.20.0-GA'
+        // https://mvnrepository.com/artifact/org.graalvm.js/js
+        //implementation group: 'org.graalvm.js', name: 'js', version: '21.1.0'
+        // https://mvnrepository.com/artifact/org.graalvm.js/js-scriptengine
+        //implementation group: 'org.graalvm.js', name: 'js-scriptengine', version: '21.1.0'
+
+        testImplementation 'junit:junit:4.11'
+        testImplementation 'org.mockito:mockito-core:3.11.2'
+//        testImplementation 'org.powermock:powermock-core:2.+'
+//        testImplementation 'org.powermock:powermock-module-junit4:2.+'
+//        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
+        testImplementation 'org.javassist:javassist:3.20.0-GA'
     }
 
     java{
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_16
+        targetCompatibility = JavaVersion.VERSION_16
     }
 
     task copyResources(type: Copy) {
@@ -108,6 +126,14 @@ subprojects {
         exclude "**/copy/com/google/**"
         exclude "org/apache/**"
     }
+}
+
+allprojects {
+    task testLegacy{
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    testLegacy.finalizedBy test
 }
 
 def exportedProjects= [

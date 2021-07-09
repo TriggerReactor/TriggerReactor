@@ -14,6 +14,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var Bukkit = Java.type('org.bukkit.Bukkit')
 function BURN(args){
 	if(args.length === 1){
 		if (typeof args[0] !== "number") {

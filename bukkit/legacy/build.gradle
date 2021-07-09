@@ -38,6 +38,7 @@ task writePluginYml {
             "CoreProtect",
             "ProtocolLib",
             "WorldGuard",
+            "NashornJs",
     ])
     map.put("commands", new HashMap<String, Object>() {
         {
@@ -66,4 +67,6 @@ task writePluginYml {
 
 dependencies {
     implementation 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT'
+
+    testImplementation 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT'
 }

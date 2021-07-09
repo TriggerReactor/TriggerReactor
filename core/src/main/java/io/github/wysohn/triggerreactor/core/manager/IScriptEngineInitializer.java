@@ -1,8 +1,5 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
-
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -22,22 +19,20 @@ public interface IScriptEngineInitializer {
             }
         });
 
-        registerClass(sem, ReflectionUtil.class);
+//        registerClass(sem, ReflectionUtil.class);
     }
 
-    static void registerClass(ScriptEngineManager sem, Class<?> clazz) throws ScriptException {
-        registerClass(sem, clazz.getSimpleName(), clazz);
-    }
+//    static void registerClass(ScriptEngineManager sem, Class<?> clazz) throws ScriptException {
+//        registerClass(sem, clazz.getSimpleName(), clazz);
+//    }
+//
+//    static void registerClass(ScriptEngineManager sem, String name, Class<?> clazz) throws ScriptException {
+//        ScriptEngine engine = getEngine(sem);
+//        Object value = engine.eval("Java.type('" + clazz.getName() + "');");
+//        sem.put(name, value);
+//    }
 
-    static void registerClass(ScriptEngineManager sem, String name, Class<?> clazz) throws ScriptException {
-        ScriptEngine engine = getNashornEngine(sem);
-        Object value = engine.eval("Java.type('" + clazz.getName() + "');");
-        sem.put(name, value);
-    }
-
-    static ScriptEngine getNashornEngine(ScriptEngineManager sem) {
-        ScriptEngine scriptEngine = JSEngineProvider.getScriptEngine();
-        scriptEngine.setBindings(sem.getBindings(), ScriptContext.GLOBAL_SCOPE);
-        return scriptEngine;
+    static ScriptEngine getEngine(ScriptEngineManager sem) {
+        return JSEngineProvider.getScriptEngine(sem);
     }
 }

@@ -22,7 +22,6 @@ import io.github.wysohn.triggerreactor.core.script.validation.ValidationExceptio
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
-import jdk.nashorn.api.scripting.JSObject;
 
 import javax.script.*;
 import java.io.*;
@@ -70,7 +69,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             if (jsExecutors.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = new JSExecutor(fileName, IScriptEngineInitializer.getNashornEngine(sem), file);
+                JSExecutor exec = new JSExecutor(fileName, IScriptEngineInitializer.getEngine(sem), file);
                 jsExecutors.put(builder.toString(), exec);
             }
         }
@@ -137,12 +136,14 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             reader.close();
             sourceCode = builder.toString();
 
-            Compilable compiler = (Compilable) engine;
-            compiled = compiler.compile(sourceCode);
+            synchronized (engine.getContext()){
+                Compilable compiler = (Compilable) engine;
+                compiled = compiler.compile(sourceCode);
+            }
         }
 
         private void registerValidationInfo(ScriptContext context) {
-            JSObject validation = (JSObject) context.getAttribute("validation");
+            Map<String, Object> validation = (Map<String, Object>) context.getAttribute("validation");
             if (validation == null) {
                 return;
             }
@@ -162,88 +163,86 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             Timings.Timing time = timing.getTiming("Executors").getTiming(executorName);
             time.setDisplayName("#" + executorName);
 
+            ScriptContext scriptContext;
+            synchronized (scriptContext = engine.getContext()){
+                final Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+                bindings.clear();
 
-            final Bindings bindings = engine.createBindings();
-
-            bindings.put("event", e);
-            for (Map.Entry<String, Object> entry : variables.entrySet()) {
-                String key = entry.getKey();
-                Object value = entry.getValue();
-                bindings.put(key, value);
-            }
-
-            ScriptContext scriptContext = new SimpleScriptContext();
-            try {
-                scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-                compiled.eval(scriptContext);
-            } catch (ScriptException e2) {
-                e2.printStackTrace();
-            }
-
-            if (firstRun) {
-                registerValidationInfo(scriptContext);
-                firstRun = false;
-            }
-
-            if (validator != null) {
-                ValidationResult result = validator.validate(args);
-                int overload = result.getOverload();
-                if (overload == -1) {
-                    throw new ValidationException(result.getError());
+                bindings.put("event", e);
+                for (Map.Entry<String, Object> entry : variables.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    bindings.put(key, value);
                 }
-                scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
-            }
 
-            JSObject jsObject = (JSObject) scriptContext.getAttribute(executorName);
-            if (jsObject == null)
-                throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
+                try {
+                    compiled.eval(scriptContext);
+                } catch (ScriptException e2) {
+                    e2.printStackTrace();
+                }
 
-            Callable<Integer> call = new Callable<Integer>() {
-                @Override
-                public Integer call() throws Exception {
+                if (firstRun) {
+                    registerValidationInfo(scriptContext);
+                    firstRun = false;
+                }
+
+                if (validator != null) {
+                    ValidationResult result = validator.validate(args);
+                    int overload = result.getOverload();
+                    if (overload == -1) {
+                        throw new ValidationException(result.getError());
+                    }
+                    scriptContext.setAttribute("overload", overload, ScriptContext.ENGINE_SCOPE);
+                }
+
+                Object jsObject = scriptContext.getAttribute(executorName);
+                if (jsObject == null)
+                    throw new Exception(executorName + ".js does not have 'function " + executorName + "()'.");
+
+                Callable<Integer> call = () -> {
                     Object argObj = args;
                     Object result = null;
 
                     try (Timings.Timing t = time.begin(true)) {
-                        result = jsObject.call(null, argObj);
+                        result = ((Invocable) engine).invokeFunction(executorName ,argObj);
                     }
 
                     if (result instanceof Integer)
                         return (Integer) result;
 
                     return null;
-                }
-            };
+                };
 
-            if (TriggerReactorCore.getInstance().isServerThread()) {
-                Integer result = null;
-
-                try {
-                    result = call.call();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                    throw new Exception("#" + executorName + " encountered error.", e1);
-                }
-                return result;
-            } else {
-                Future<Integer> future = runSyncTaskForFuture(call);
-                if (future == null) {
-                    //probably server is shutting down
-                    if (!TriggerReactorCore.getInstance().isEnabled()) {
-                        return call.call();
-                    } else {
-                        throw new Exception("#" + executorName + " couldn't be finished. The server returned null Future.");
-                    }
-                } else {
+                if (TriggerReactorCore.getInstance().isServerThread()) {
                     Integer result = null;
+
                     try {
-                        result = future.get(5, TimeUnit.SECONDS);
-                    } catch (InterruptedException | ExecutionException e1) {
+                        result = call.call();
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
                         throw new Exception("#" + executorName + " encountered error.", e1);
-                    } catch (TimeoutException e1) {
-                        throw new Exception("#" + executorName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
                     }
                     return result;
+                } else {
+                    Future<Integer> future = runSyncTaskForFuture(call);
+                    if (future == null) {
+                        //probably server is shutting down
+                        if (!TriggerReactorCore.getInstance().isEnabled()) {
+                            return call.call();
+                        } else {
+                            throw new Exception("#" + executorName + " couldn't be finished. The server returned null Future.");
+                        }
+                    } else {
+                        Integer result = null;
+                        try {
+                            result = future.get(5, TimeUnit.SECONDS);
+                        } catch (InterruptedException | ExecutionException e1) {
+                            throw new Exception("#" + executorName + " encountered error.", e1);
+                        } catch (TimeoutException e1) {
+                            throw new Exception("#" + executorName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                        }
+                        return result;
+                    }
                 }
             }
         }

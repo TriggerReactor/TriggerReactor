@@ -14,8 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var EntityType = Java.type("org.bukkit.entity.EntityType");
+
 function SPAWN(args){
-	var EntityType = Java.type("org.bukkit.entity.EntityType");
 	var world = player.getWorld();
 	
 	if(args.length == 1){
