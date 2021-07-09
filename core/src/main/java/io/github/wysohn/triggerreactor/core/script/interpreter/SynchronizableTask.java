@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-public abstract class SynchronizableTask {
+public interface SynchronizableTask {
 
     /**
      * This will run in separate thread.

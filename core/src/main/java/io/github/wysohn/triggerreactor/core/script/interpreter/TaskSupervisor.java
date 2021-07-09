@@ -22,4 +22,6 @@ public interface TaskSupervisor {
      * @param run the task to be done on separate thread
      */
     void submitAsync(Runnable run);
+
+    boolean isServerThread();
 }

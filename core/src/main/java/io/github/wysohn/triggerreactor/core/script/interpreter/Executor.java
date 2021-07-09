@@ -20,11 +20,11 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
 
-public abstract class Executor extends SynchronizableTask {
-    public static final int STOP = 0;
-    public static final int WAIT = 1;
-    public static final int BREAK = 2;
-    public static final int CONTINUE = 3;
+public interface Executor extends SynchronizableTask {
+    int STOP = 0;
+    int WAIT = 1;
+    int BREAK = 2;
+    int CONTINUE = 3;
 
     /**
      * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
@@ -34,6 +34,6 @@ public abstract class Executor extends SynchronizableTask {
      * @return usually null; return code to intercept execution
      * @throws Exception
      */
-    protected abstract Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+    Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                        Object... args) throws Exception;
 }

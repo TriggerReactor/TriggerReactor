@@ -324,7 +324,7 @@ public class TestInterpreter {
             @Override
 
 
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
@@ -335,7 +335,7 @@ public class TestInterpreter {
             @Override
 
 
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 Assert.assertNull(args[0]);
@@ -599,7 +599,7 @@ public class TestInterpreter {
                 put("TEST1", new Executor() {
 
                     @Override
-                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                    public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                               Object... args) throws Exception {
                         assertEquals("work", args[0]);
                         return null;
@@ -609,7 +609,7 @@ public class TestInterpreter {
                 put("TEST2", new Executor() {
 
                     @Override
-                    protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+                    public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                               Object... args) throws Exception {
                         assertEquals("work2", args[0]);
                         return null;
@@ -695,7 +695,7 @@ public class TestInterpreter {
         executorMap.put("MESSAGE", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("testplayer", args[0]);
@@ -708,7 +708,7 @@ public class TestInterpreter {
         executorMap.put("TESTSTRING", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof String);
@@ -720,7 +720,7 @@ public class TestInterpreter {
         executorMap.put("TESTINTEGER", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Integer);
@@ -732,7 +732,7 @@ public class TestInterpreter {
         executorMap.put("TESTDOUBLE", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Double);
@@ -744,7 +744,7 @@ public class TestInterpreter {
         executorMap.put("TESTBOOLEAN", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Boolean);
@@ -869,7 +869,7 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-6, args[0]);
@@ -880,7 +880,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(3.0, args[0]);
@@ -891,7 +891,7 @@ public class TestInterpreter {
         executorMap.put("TEST3", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-8, args[0]);
@@ -902,7 +902,7 @@ public class TestInterpreter {
         executorMap.put("TEST4", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-9.0, args[0]);
@@ -948,7 +948,7 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-2, args[0]);
@@ -959,7 +959,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -970,7 +970,7 @@ public class TestInterpreter {
         executorMap.put("TEST3", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(3, args[0]);
@@ -981,7 +981,7 @@ public class TestInterpreter {
         executorMap.put("TEST4", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(3, args[0]);
@@ -992,7 +992,7 @@ public class TestInterpreter {
         executorMap.put("TEST5", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -1025,7 +1025,7 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-2.1, args[0]);
@@ -1036,7 +1036,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2.1, args[0]);
@@ -1047,7 +1047,7 @@ public class TestInterpreter {
         executorMap.put("TEST3", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(3.1, args[0]);
@@ -1058,7 +1058,7 @@ public class TestInterpreter {
         executorMap.put("TEST4", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(3.1, args[0]);
@@ -1069,7 +1069,7 @@ public class TestInterpreter {
         executorMap.put("TEST5", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2.1, args[0]);
@@ -1108,7 +1108,7 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-258, args[0]);
@@ -1119,7 +1119,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-65, args[0]);
@@ -1130,7 +1130,7 @@ public class TestInterpreter {
         executorMap.put("TEST3", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2147483583, args[0]);
@@ -1141,7 +1141,7 @@ public class TestInterpreter {
         executorMap.put("TEST4", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-129, args[0]);
@@ -1152,7 +1152,7 @@ public class TestInterpreter {
         executorMap.put("TEST5", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(67, args[0]);
@@ -1163,7 +1163,7 @@ public class TestInterpreter {
         executorMap.put("TEST6", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(-196, args[0]);
@@ -1174,7 +1174,7 @@ public class TestInterpreter {
         executorMap.put("TEST7", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(128, args[0]);
@@ -1185,7 +1185,7 @@ public class TestInterpreter {
         executorMap.put("TEST8", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
@@ -1196,7 +1196,7 @@ public class TestInterpreter {
         executorMap.put("TEST9", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
@@ -1207,7 +1207,7 @@ public class TestInterpreter {
         executorMap.put("TEST10", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(false, args[0]);
@@ -1289,7 +1289,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST1", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -1300,7 +1300,7 @@ public class TestInterpreter {
         });
         executorMap.put("TEST2", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -1337,7 +1337,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
@@ -1370,7 +1370,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
@@ -1403,7 +1403,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
@@ -1438,7 +1438,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
@@ -1473,7 +1473,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
@@ -1559,7 +1559,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
@@ -1601,7 +1601,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
@@ -1642,7 +1642,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -1676,7 +1676,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(TheTest.class, args[0]);
@@ -1687,7 +1687,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("static", args[0]);
@@ -1698,7 +1698,7 @@ public class TestInterpreter {
         executorMap.put("TEST3", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("local", args[0]);
@@ -1709,7 +1709,7 @@ public class TestInterpreter {
         executorMap.put("TEST4", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("staticField", args[0]);
@@ -1720,7 +1720,7 @@ public class TestInterpreter {
         executorMap.put("TEST5", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(TestEnum.IMTEST, args[0]);
@@ -1753,7 +1753,7 @@ public class TestInterpreter {
         Executor exec = new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
@@ -1810,7 +1810,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals("abcd\nABCD", args[0]);
@@ -1834,7 +1834,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -1863,7 +1863,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 Assert.assertTrue((boolean) args[0]);
@@ -1906,7 +1906,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -1915,7 +1915,7 @@ public class TestInterpreter {
         });
         executorMap.put("TEST2", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -1986,7 +1986,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -1996,7 +1996,7 @@ public class TestInterpreter {
         });
         executorMap.put("TEST2", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
@@ -2036,7 +2036,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(9, args[0]);
@@ -2045,7 +2045,7 @@ public class TestInterpreter {
         });
         executorMap.put("TEST2", new Executor() {
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args) throws Exception {
 
                 assertEquals(9, args[0]);
@@ -2081,7 +2081,7 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2093,7 +2093,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2128,6 +2128,11 @@ public class TestInterpreter {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+            }
+
+            @Override
+            public boolean isServerThread() {
+                return true;
             }
 
         });
@@ -2163,7 +2168,7 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2175,7 +2180,7 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2212,6 +2217,11 @@ public class TestInterpreter {
                 }
             }
 
+            @Override
+            public boolean isServerThread() {
+                return true;
+            }
+
         });
 
         interpreter.startWithContext(null);
@@ -2238,7 +2248,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2280,7 +2290,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2322,7 +2332,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2364,7 +2374,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {
@@ -2443,7 +2453,7 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            protected Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
+            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
                                       Object... args)
 
                     throws Exception {

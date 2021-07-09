@@ -25,6 +25,9 @@ import org.mockito.Mockito;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -75,19 +78,30 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     @Test
     public void testPlayernameMultiThreaded() throws Exception {
         Player mockPlayer = mock(Player.class);
-        when(mockPlayer.getName()).thenReturn("wysohn");
+        ExecutorService pool = Executors.newSingleThreadExecutor();
 
-        Runnable run = () -> {
-            for(int i = 0; i < 100; i++){
-                Object result = null;
-                try {
-                    result = new PlaceholderTest(engine, "playername")
-                            .addVariable("player", mockPlayer)
-                            .test();
-                } catch (Exception e) {
-                    e.printStackTrace();
+        when(mockPlayer.getName()).thenReturn("wysohn");
+        when(mockMain.isServerThread()).thenReturn(false);
+        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
+            Callable call = invocation.getArgument(0);
+            return pool.submit(call);
+        });
+
+        Runnable run = new Runnable() {
+            final JsTest test = new PlaceholderTest(engine, "playername")
+                    .addVariable("player", mockPlayer);
+
+            @Override
+            public void run() {
+                for(int i = 0; i < 1000; i++){
+                    Object result = null;
+                    try {
+                        result = test.test();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    assertEquals("wysohn", result);
                 }
-                assertEquals("wysohn", result);
             }
         };
 
@@ -105,7 +119,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         thread2.join();
 
         verify(handler, never()).uncaughtException(any(), any());
-        verify(mockPlayer, times(200)).getName();
+        verify(mockPlayer, times(2000)).getName();
     }
 
     /*
