@@ -25,6 +25,7 @@ public abstract class AbstractTestJavaScripts {
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
     protected Server server;
+    protected TriggerReactorCore mockMain;
 
     @Before
     public void init() throws Exception {
@@ -32,7 +33,7 @@ public abstract class AbstractTestJavaScripts {
         INITIALIZER.initScriptEngine(sem);
         engine = IScriptEngineInitializer.getEngine(sem);
 
-        TriggerReactorCore mockMain = mock(TriggerReactorCore.class);
+        mockMain = mock(TriggerReactorCore.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
         TriggerReactorCoreTest.setInstance(mockMain);
 

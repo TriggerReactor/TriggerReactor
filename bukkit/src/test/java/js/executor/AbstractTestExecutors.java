@@ -38,6 +38,9 @@ import org.mockito.ArgumentMatcher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.Mockito.*;
@@ -632,16 +635,27 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testMessageMultiThreaded() throws Exception {
         Player mockPlayer = mock(Player.class);
+        ExecutorService pool = Executors.newSingleThreadExecutor();
 
-        Runnable run = () -> {
-            for (int i = 0; i < 100; i++) {
-                try {
-                    new ExecutorTest(engine, "MESSAGE")
-                            .addVariable("player", mockPlayer)
-                            .withArgs("&cTest Message")
-                            .test();
-                } catch (Exception e) {
-                    e.printStackTrace();
+        when(mockMain.isServerThread()).thenReturn(false);
+        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
+            Callable call = invocation.getArgument(0);
+            return pool.submit(call);
+        });
+
+        Runnable run = new Runnable() {
+            final JsTest test = new ExecutorTest(engine, "MESSAGE")
+                    .addVariable("player", mockPlayer)
+                    .withArgs("&cTest Message");
+
+            @Override
+            public void run() {
+                for (int i = 0; i < 1000; i++) {
+                    try {
+                        test.test();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         };
@@ -662,7 +676,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(handler, never()).uncaughtException(any(), any());
 
         String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
-        verify(mockPlayer, times(200)).sendMessage(argThat((ArgumentMatcher<String>) expected::equals));
+        verify(mockPlayer, times(2000)).sendMessage(argThat((ArgumentMatcher<String>) expected::equals));
     }
 
     @Test

@@ -1218,8 +1218,7 @@ public class Interpreter {
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
         public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
-
-            if (sync) {
+            if (task.isServerThread()) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
 
@@ -1231,7 +1230,7 @@ public class Interpreter {
 
             double secs = ((Number) args[0]).doubleValue();
             long later = (long) (secs * 1000);
-            Executor.runTaskLater(new Runnable() {
+            SynchronizableTask.runTaskLater(new Runnable() {
                 @Override
                 public void run() {
                     synchronized (Interpreter.this) {

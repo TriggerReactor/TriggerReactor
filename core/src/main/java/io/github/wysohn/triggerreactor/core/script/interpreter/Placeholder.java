@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
 
-public abstract class Placeholder extends SynchronizableTask {
+public interface Placeholder extends SynchronizableTask {
     /**
      * Replace this placeholder with appropriate value.
      *
@@ -30,6 +30,6 @@ public abstract class Placeholder extends SynchronizableTask {
      * @param args    arguments to be used
      * @return replaced value. Should be always primitive type. Can be null if something went wrong
      */
-    public abstract Object parse(Timings.Timing timing, Object context, Map<String, Object> vars,
-                                 Object... args) throws Exception;
+    Object parse(Timings.Timing timing, Object context, Map<String, Object> vars,
+                 Object... args) throws Exception;
 }
