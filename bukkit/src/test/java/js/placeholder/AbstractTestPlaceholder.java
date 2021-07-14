@@ -298,6 +298,17 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     }
 
     @Test
+    public void testIsNumber() throws Exception{
+        assertEquals(true, new PlaceholderTest(engine, "isnumber")
+                .withArgs("20342.5352")
+                .test());
+
+        assertEquals(false, new PlaceholderTest(engine, "isnumber")
+                .withArgs("20343d.66")
+                .test());
+    }
+
+    @Test
     public void testLore() throws Exception {
         ItemStack vItem = mock(ItemStack.class);
         ItemMeta vIM = mock(ItemMeta.class);
