@@ -28,7 +28,7 @@ subprojects {
 
     ext {
         id = 'TriggerReactor'
-        version = '3.2.0.6'
+        version = '3.2.0.7'
         description = 'Simple script parser with infinite possibility'
         author = 'wysohn'
         authors = [
