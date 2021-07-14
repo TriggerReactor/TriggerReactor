@@ -536,6 +536,30 @@ public class TestLexer {
     }
 
     @Test
+    public void testPlaceholderEscape() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "\"hey \\$playername\"";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "hey $playername");
+        testEnd(lexer);
+    }
+
+    @Test
+    public void testPlaceholderEscape2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "\"hey \\${playername}\"";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "hey ${playername}");
+        testEnd(lexer);
+    }
+
+    @Test
     public void testOperator() throws Exception {
 
     }
