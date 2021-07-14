@@ -32,6 +32,9 @@
     } else if (args.length == 6) {
 		var world = player.getWorld();
         location = new Location(world, args[3], args[4], args[5]);
+    } else {
+        throw new Error(
+            'Invalid parameters. Need [Location<location or number number number>]');
     }
 
     if(args.length == 4 || args.length == 6){
