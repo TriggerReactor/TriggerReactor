@@ -20,9 +20,12 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeho
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class VariablePlaceholder implements IVariablePlaceholder {
     private final TriggerReactorCore plugin;
@@ -55,16 +58,21 @@ public class VariablePlaceholder implements IVariablePlaceholder {
 
         Object value = null;
 
-        if (identifier.startsWith("?")) {
+        String variableName = identifier.replaceAll("<uuid>", Optional.ofNullable(player)
+                .map(Entity::getUniqueId)
+                .map(UUID::toString)
+                .orElse(""));
+
+        if (variableName.startsWith("?")) {
             //%tr_?<variable name>% - temporary global variable
-            String variableName = identifier.substring(1).replace('_', '.');
+            variableName = variableName.substring(1).replace('_', '.');
             TemporaryGlobalVariableKey tempKey = new TemporaryGlobalVariableKey(variableName);
 
             value = adapter.get(tempKey);
         } else {
             // %tr_<variable name>%
             //if(identifier.contains("")){return "";}
-            String variableName = identifier.replace('_', '.');
+            variableName = variableName.replace('_', '.');
             GlobalVariableManager vm = plugin.getVariableManager();
             value = vm.get(variableName);
         }
