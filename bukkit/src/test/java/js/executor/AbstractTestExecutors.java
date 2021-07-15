@@ -633,6 +633,19 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
+    public void testMessageNull() throws Exception {
+        Player mockPlayer = mock(Player.class);
+
+        new ExecutorTest(engine, "MESSAGE")
+                .addVariable("player", mockPlayer)
+                .withArgs(new Object[]{null})
+                .test();
+
+        String expected = "null";
+        verify(mockPlayer).sendMessage(argThat((String str) -> expected.equals(str)));
+    }
+
+    @Test
     public void testMessageMultiThreaded() throws Exception {
         Player mockPlayer = mock(Player.class);
         ExecutorService pool = Executors.newSingleThreadExecutor();

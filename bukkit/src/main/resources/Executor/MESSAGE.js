@@ -16,11 +16,11 @@
  *******************************************************************************/
 var ChatColor = Java.type('org.bukkit.ChatColor')
 var Bukkit = Java.type('org.bukkit.Bukkit')
-var String = Java.type('java.lang.String');
+var Objects = Java.type('java.util.Objects');
 
 function MESSAGE(args){
     for(var i = 0; i < args.length ; i++){
-        var text = String.valueOf(args[i])
+        var text = Objects.toString(args[i])
         if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
             var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
             args[i] = PlaceholderAPI.setPlaceholders(player, text);
