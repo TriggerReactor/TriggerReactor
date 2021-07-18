@@ -39,15 +39,11 @@ function round(args) {
         
         }
         else {
-            if(args[0] instanceof Integer) {
-                if(args[1] instanceof Double || args[1] < 0) {
-                    throw new Error("Cannot be rounded to the "+args[1]+" digit after the decimal point, becuase it's not exist!");
-                } else {
-                    return args[0];
-                } 
+            if(args[1] < 0) {
+                throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It's negative!");
             }
-            if(args[1] instanceof Double || args[1] < 0) {
-                throw new Error("Cannot be rounded to the "+args[1]+" digit after the decimal point, becuase it's not exist!");
+            if(!(args[1] instanceof Integer)) {
+                throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It doesn't make sense to use decimal.");
             }
             else { 
                 if(args[1] == 0) {

@@ -340,6 +340,34 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     }
 
     @Test
+    public void testRound() throws Exception {
+        assertEquals(1.34, new PlaceholderTest(engine, "round")
+                .withArgs(1.3449, 2)
+                .test());
+    }
+
+    @Test
+    public void testRound2() throws Exception {
+        assertEquals(1, new PlaceholderTest(engine, "round")
+                .withArgs(1.3449, 0)
+                .test());
+    }
+
+    @Test(expected = Exception.class)
+    public void testRound3() throws Exception {
+        assertEquals(1.34, new PlaceholderTest(engine, "round")
+                .withArgs(1.3449, 2.3)
+                .test());
+    }
+
+    @Test(expected = Exception.class)
+    public void testRound4() throws Exception {
+        assertEquals(1.34, new PlaceholderTest(engine, "round")
+                .withArgs(1.3449, -2)
+                .test());
+    }
+
+    @Test
     public void testSlot() throws Exception {
         InventoryClickEvent vEvent = mock(InventoryClickEvent.class);
         ItemStack vItem = mock(ItemStack.class);
