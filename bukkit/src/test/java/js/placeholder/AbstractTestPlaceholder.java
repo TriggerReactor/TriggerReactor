@@ -348,8 +348,15 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testRound2() throws Exception {
-        assertEquals(1, new PlaceholderTest(engine, "round")
+        assertEquals(1.0, new PlaceholderTest(engine, "round")
                 .withArgs(1.3449, 0)
+                .test());
+    }
+
+    @Test
+    public void testRound2_2() throws Exception {
+        assertEquals(34, new PlaceholderTest(engine, "round")
+                .withArgs(34, 2)
                 .test());
     }
 

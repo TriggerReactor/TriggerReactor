@@ -14,53 +14,45 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Integer = java.lang.Integer;
+var Double = java.lang.Double;
+var string = java.lang.String;
+
 function round(args) {
-    var Integer = java.lang.Integer; 
-    var Double = java.lang.Double;
-    var string = java.lang.String;
-    if(args.length == 0) {
+    if(args.length <= 0) {
         throw new Error("'$round' placeholder requires at least 1 argument!"); 
     }
-    else if(args.length == 1) {
-        if(typeof args[0] !== "number") {
-            throw new Error("'$round' placeholder should have real number value only!");
-        }
-        else if(args[0] instanceof Integer) {
-            return args[0];
-        }
-        else { 
-            var value = Math.round(args[0]);
-            return value; // 
-        }
+    else if(args[0] instanceof Integer) {
+        // there is no point rounding if input is integer already
+        return args[0];
+    }
+    else if(args.length == 1 && typeof args[0] === "number") {
+        return new Double(Math.round(args[0]));
     }
     else if(args.length == 2) {
         if(typeof args[0] !== "number" || typeof args[1] !== "number") {
-            throw new Error("'$round' placeholder should have real number value only!"); 
-        
+            throw new Error("'$round' placeholder should have real number value only!");
         }
-        else {
-            if(args[1] < 0) {
-                throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It's negative!");
-            }
-            if(!(args[1] instanceof Integer)) {
-                throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It doesn't make sense to use decimal.");
-            }
-            else { 
-                if(args[1] == 0) {
-                    var value = Math.round(args[0]); 
-                    return value; 
-                } else {
-                    var uc = 1;
-                    for (var i = 1; i <= args[1]; i++) {
-                        uc = uc*10;
-                    }
-                    var value = Math.round(args[0] * uc); 
-                    value = value/uc;
-                    return value;
-                }
-            }
+
+        if(!(args[1] instanceof Integer)) {
+            throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It doesn't make sense to use decimal.");
         }
+
+        if(args[1] < 0) {
+            throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It's negative!");
+        } else if(args[1] == 0) {
+            return new Double(Math.round(args[0]));
+        } else {
+            var uc = 1;
+            for (var i = 1; i <= args[1]; i++) {
+                uc = uc*10;
+            }
+            var value = Math.round(args[0] * uc);
+            value = value/uc;
+            return value;
+        }
+
     } else {
-        throw new Error("There are too many arguments! '$round' placeholder only accepts up to 2 arguments.");
+        throw new Error("Invalid use of $round. Either $round:<number> or $round:<number>:<integer>");
     }
 }
