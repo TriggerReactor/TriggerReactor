@@ -109,7 +109,9 @@ public class ReflectionUtil {
         return null;
     }
 
-    private static <T extends Executable> List<T> getValidExecutables(Class<?> clazz, String name, Object[] args,
+    private static <T extends Executable> List<T> getValidExecutables(Class<?> clazz,
+                                                                      String name,
+                                                                      Object[] args,
                                                                       Function<Class<?>, T[]> extractFn) {
         List<T> validMethods = new ArrayList<>();
         List<T> validVarargMethods = new ArrayList<>();
@@ -230,14 +232,21 @@ public class ReflectionUtil {
 
             for (int i = 0; i < args.length; i++) {
                 Class<?>[] parameterTypes = executable.getParameterTypes();
+                Class<?>[] types = new Class<?>[args.length];
+                for (int k = 0; k < args.length; k++)
+                    types[k] = args[k].getClass();
+
+                if (args[i] instanceof InvocationHandler && i < parameterTypes.length && parameterTypes[i].isInterface()) {
+                    // we need to proxy the interface to reroute calls to the InvocationHandler
+                    InvocationHandler handler = (InvocationHandler) args[i];
+                    args[i] = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                            new Class[]{parameterTypes[i]},
+                            handler);
+                }
 
                 if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
                     // Some methods already provide overloaded method to handle String instead of Enum
                     // So check it first before converting String to Enum manually
-                    Class<?>[] types = new Class<?>[args.length];
-                    for (int k = 0; k < args.length; k++)
-                        types[k] = args[k].getClass();
-
                     try {
                         executable = extractFn.apply(clazz, name, types);
                     } catch (NoSuchMethodException ex2) {
@@ -317,8 +326,15 @@ public class ReflectionUtil {
 
     public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
-        return arg instanceof String && parameterType.isEnum()
-                || ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
+        if(arg instanceof String && parameterType.isEnum())
+            return true;
+
+        // if InvocationHandler is provided for the interface parameter, skip it.
+        // will try it later
+        if(arg instanceof InvocationHandler && parameterType.isInterface())
+            return true;
+
+        return ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
     }
 
     private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {

@@ -1150,10 +1150,20 @@ public class Parser {
 //                "a = ++a * --a - a++ / a--\n" +
 //                "a = -(--a) -(++a) -(a++) -(a--)\n" +
 //                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
-        String text = "someThing.execute(LAMBDA x, y, z =>\n" +
-                "result = x + y * z\n" +
-                "result\n" +
-                "ENDLAMBDA\n)";
+        String text = "" +
+                "abc = 33\n" +
+                "instance.noArg(LAMBDA =>\n" +
+                "    abc * 3\n" +
+                "ENDLAMBDA)\n" +
+                "" +
+                "instance.oneArg(LAMBDA str => \n" +
+                "    added = str + \" Hi\"\n" +
+                "    added\n" +
+                "ENDLAMBDA)\n" +
+                "" +
+                "instance.twoArg(LAMBDA a, b => \n" +
+                "    a + b\n" +
+                "ENDLAMBDA)\n";
         System.out.println("original: \n" + text);
 
         Lexer lexer = new Lexer(text, charset);

@@ -39,8 +39,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -2525,6 +2529,61 @@ public class TestInterpreter {
         assertEquals(17, interpreter.getVars().get("result2"));
     }
 
+    @Test
+    public void testLambdaFunction() throws Exception {
+        SomeInterface obj = mock(SomeInterface.class);
+        SomeClass instance = new SomeClass();
+
+        instance.obj = obj;
+
+        doAnswer(invocation -> {
+            Supplier run = invocation.getArgument(0);
+            return run.get();
+        }).when(obj).noArg(any(Supplier.class));
+        doAnswer(invocation -> {
+            Function run = invocation.getArgument(0);
+            return run.apply("Something");
+        }).when(obj).oneArg(any(Function.class));
+        doAnswer(invocation -> {
+            BiFunction run = invocation.getArgument(0);
+            return run.apply(456, 78);
+        }).when(obj).twoArg(any(BiFunction.class));
+
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "" +
+                "abc = 33\n" +
+                "instance.noArg(LAMBDA =>\n" +
+                "    abc * 3\n" +
+                "ENDLAMBDA)\n" +
+                "" +
+                "instance.oneArg(LAMBDA str => \n" +
+                "    added = str + \" Hi\"\n" +
+                "    added\n" +
+                "ENDLAMBDA)\n" +
+                "" +
+                "instance.twoArg(LAMBDA a, b => \n" +
+                "    a + b\n" +
+                "ENDLAMBDA)\n";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.getVars().put("instance", instance);
+
+        interpreter.start();
+        assertEquals(33, interpreter.getVars().get("abc"));
+        assertNull(interpreter.getVars().get("str"));
+        assertNull(interpreter.getVars().get("added"));
+        assertNull(interpreter.getVars().get("a"));
+        assertNull(interpreter.getVars().get("b"));
+
+        assertEquals(99, instance.noArgResult);
+        assertEquals("Something Hi", instance.oneArgResult);
+        assertEquals(456 + 78, instance.twoArgResult);
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
@@ -2697,6 +2756,33 @@ public class TestInterpreter {
             return "Vector{" +
                     "key=" + key +
                     '}';
+        }
+    }
+
+    private interface SomeInterface{
+        Object noArg(Supplier<Object> run);
+
+        Object oneArg(Function<Object, Object> run);
+
+        Object twoArg(BiFunction<Object, Object, Object> run);
+    }
+
+    private class SomeClass{
+        SomeInterface obj;
+        Object noArgResult;
+        Object oneArgResult;
+        Object twoArgResult;
+
+        public void noArg(Supplier<Object> run){
+            noArgResult = obj.noArg(run);
+        }
+
+        public void oneArg(Function<Object, Object> run){
+            oneArgResult = obj.oneArg(run);
+        }
+
+        public void twoArg(BiFunction<Object, Object, Object> run){
+            twoArgResult = obj.twoArg(run);
         }
     }
 }
