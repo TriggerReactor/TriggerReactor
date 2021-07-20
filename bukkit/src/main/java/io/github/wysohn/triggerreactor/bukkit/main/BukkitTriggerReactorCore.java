@@ -39,7 +39,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedT
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;

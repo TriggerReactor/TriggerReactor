@@ -44,6 +44,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
@@ -316,8 +317,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         Bukkit.getScheduler().runTask(this, runnable);
     }
 
-    public Interpreter.ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        return new Interpreter.ProcessInterrupter() {
+    public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
+        return new ProcessInterrupter() {
             @Override
             public boolean onNodeProcess(Node node) {
                 return false;
@@ -393,9 +394,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         };
     }
 
-    public Interpreter.ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns, Map<IInventory,
+    public ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns, Map<IInventory,
             InventoryTrigger> inventoryMap) {
-        return new Interpreter.ProcessInterrupter() {
+        return new ProcessInterrupter() {
             @Override
             public boolean onNodeProcess(Node node) {
                 //safety feature to stop all trigger immediately if executing on 'open' or 'click'
