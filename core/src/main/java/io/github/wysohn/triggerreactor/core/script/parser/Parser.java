@@ -289,7 +289,7 @@ public class Parser {
 
                 return parseAssignmentAndLogic(left);
             } else {
-                throw new ParserException("Unexpected token " + token);
+                return parseLogic();
             }
         } else {
             return null;

@@ -2584,6 +2584,119 @@ public class TestInterpreter {
         assertEquals(456 + 78, instance.twoArgResult);
     }
 
+    @Test
+    public void testLambdaFunctionNullReturn() throws Exception {
+        SomeInterface obj = mock(SomeInterface.class);
+        SomeClass instance = new SomeClass();
+
+        instance.obj = obj;
+
+        doAnswer(invocation -> {
+            Supplier run = invocation.getArgument(0);
+            return run.get();
+        }).when(obj).noArg(any(Supplier.class));
+        doAnswer(invocation -> {
+            Function run = invocation.getArgument(0);
+            return run.apply("Something");
+        }).when(obj).oneArg(any(Function.class));
+        doAnswer(invocation -> {
+            BiFunction run = invocation.getArgument(0);
+            return run.apply(456, 78);
+        }).when(obj).twoArg(any(BiFunction.class));
+
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "" +
+                "instance.twoArg(LAMBDA a, b => \n" +
+                "    a + b\n" +
+                "    null\n" +
+                "ENDLAMBDA)\n";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.getVars().put("instance", instance);
+
+        interpreter.start();
+        assertNull(interpreter.getVars().get("a"));
+        assertNull(interpreter.getVars().get("b"));
+
+        assertNull(instance.twoArgResult);
+    }
+
+    @Test
+    public void testLambdaFunctionComplex() throws Exception {
+        SomeInterface obj = mock(SomeInterface.class);
+        SomeClass instance = new SomeClass();
+
+        instance.obj = obj;
+
+        doAnswer(invocation -> {
+            Function run = invocation.getArgument(0);
+            return run.apply("Something");
+        }).when(obj).oneArg(any(Function.class));
+
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "" +
+                "instance.oneArg(LAMBDA x => \n" +
+                "    IF x == \"Something\"\n" +
+                "        50\n" +
+                "    ELSE\n" +
+                "        100\n" +
+                "    ENDIF\n" +
+                "ENDLAMBDA)\n";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.getVars().put("instance", instance);
+
+        interpreter.start();
+        assertNull(interpreter.getVars().get("a"));
+        assertNull(interpreter.getVars().get("b"));
+
+        assertEquals(50, instance.oneArgResult);
+    }
+
+    @Test
+    public void testLambdaFunctionComplex2() throws Exception {
+        SomeInterface obj = mock(SomeInterface.class);
+        SomeClass instance = new SomeClass();
+
+        instance.obj = obj;
+
+        doAnswer(invocation -> {
+            Function run = invocation.getArgument(0);
+            return run.apply("NotSomething");
+        }).when(obj).oneArg(any(Function.class));
+
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "" +
+                "instance.oneArg(LAMBDA x => \n" +
+                "    IF x == \"Something\"\n" +
+                "        50\n" +
+                "    ELSE\n" +
+                "        100\n" +
+                "    ENDIF\n" +
+                "ENDLAMBDA)\n";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.getVars().put("instance", instance);
+
+        interpreter.start();
+        assertNull(interpreter.getVars().get("a"));
+        assertNull(interpreter.getVars().get("b"));
+
+        assertEquals(100, instance.oneArgResult);
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
