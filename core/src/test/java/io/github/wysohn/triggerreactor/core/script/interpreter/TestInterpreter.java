@@ -2590,15 +2590,8 @@ public class TestInterpreter {
         SomeClass instance = new SomeClass();
 
         instance.obj = obj;
+        instance.twoArgResult = "abc";
 
-        doAnswer(invocation -> {
-            Supplier run = invocation.getArgument(0);
-            return run.get();
-        }).when(obj).noArg(any(Supplier.class));
-        doAnswer(invocation -> {
-            Function run = invocation.getArgument(0);
-            return run.apply("Something");
-        }).when(obj).oneArg(any(Function.class));
         doAnswer(invocation -> {
             BiFunction run = invocation.getArgument(0);
             return run.apply(456, 78);
