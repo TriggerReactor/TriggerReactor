@@ -15,6 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * or there can be race-condition (or concurrent modification exception) occur.
  */
 public class InterpreterGlobalContext {
+    private final Executor EXECUTOR_STOP = (timing, vars, context, args) -> Executor.STOP;
+    private final Executor EXECUTOR_BREAK = (timing, vars, context, args) -> Executor.BREAK;
+    private final Executor EXECUTOR_CONTINUE = (timing, vars, context, args) -> Executor.CONTINUE;
+
     TaskSupervisor task;
     final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<Executor>(){{
         put("STOP", EXECUTOR_STOP);
@@ -26,8 +30,4 @@ public class InterpreterGlobalContext {
     SelfReference selfReference = new SelfReference() {
     };
     ProcessInterrupter interrupter = null;
-
-    private final Executor EXECUTOR_STOP = (timing, vars, context, args) -> Executor.STOP;
-    private final Executor EXECUTOR_BREAK = (timing, vars, context, args) -> Executor.BREAK;
-    private final Executor EXECUTOR_CONTINUE = (timing, vars, context, args) -> Executor.CONTINUE;
 }

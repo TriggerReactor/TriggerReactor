@@ -2112,7 +2112,7 @@ public class TestInterpreter {
         vars.put("arr", new int[]{1, 2, 3, 4, 5});
         vars.put("iter", Arrays.asList(1, 2, 3, 4, 5));
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setVars(vars);
 
