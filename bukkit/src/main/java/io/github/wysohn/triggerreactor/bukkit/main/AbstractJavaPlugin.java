@@ -394,7 +394,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
 
     public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
         return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns)
-                .perNode((context, node) -> true)
                 .build();
     }
 
