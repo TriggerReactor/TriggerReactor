@@ -822,7 +822,6 @@ public class Parser {
             if(body.getChildren().size() < 1)
                 throw new ParserException("LAMBDA body should have at least one statement: "+body);
 
-            skipEndLines();
             return lambda;
         }
 
@@ -1151,19 +1150,10 @@ public class Parser {
 //                "a = -(--a) -(++a) -(a++) -(a--)\n" +
 //                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
         String text = "" +
-                "abc = 33\n" +
-                "instance.noArg(LAMBDA =>\n" +
-                "    abc * 3\n" +
-                "ENDLAMBDA)\n" +
-                "" +
-                "instance.oneArg(LAMBDA str => \n" +
-                "    added = str + \" Hi\"\n" +
-                "    added\n" +
-                "ENDLAMBDA)\n" +
-                "" +
-                "instance.twoArg(LAMBDA a, b => \n" +
-                "    a + b\n" +
-                "ENDLAMBDA)\n";
+                "abc = LAMBDA =>\n" +
+                "    3\n" +
+                "ENDLAMBDA\n" +
+                "cdf = 55";
         System.out.println("original: \n" + text);
 
         Lexer lexer = new Lexer(text, charset);
