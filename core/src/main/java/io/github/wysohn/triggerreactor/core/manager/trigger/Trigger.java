@@ -206,8 +206,6 @@ public abstract class Trigger implements Cloneable, IObservable {
         interpreter.setVars(scriptVars);
         interpreter.setSelfReference(TriggerReactorCore.getInstance().getSelfReference());
 
-        interpreter.setSync(isSync());
-
         return interpreter;
     }
 

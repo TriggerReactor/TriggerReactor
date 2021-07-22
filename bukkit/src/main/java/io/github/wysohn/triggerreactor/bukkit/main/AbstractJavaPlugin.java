@@ -353,9 +353,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                                 + " Make sure to put double quotes, if you provided String literal.");
                     }
                 } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
                     if (context instanceof Cancellable) {
                         ((Cancellable) context).setCancelled(true);
                         return true;
@@ -441,9 +438,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                                 + " Make sure to put double quotes, if you provided String literal.");
                     }
                 } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
                     if (context instanceof Cancellable) {
                         ((Cancellable) context).setCancelled(true);
                         return true;

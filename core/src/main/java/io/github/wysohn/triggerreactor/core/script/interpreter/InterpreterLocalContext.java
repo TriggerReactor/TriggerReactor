@@ -35,7 +35,6 @@ public class InterpreterLocalContext {
     //TODO local context. But later we will refactor the Interpreter
     private Object triggerCause = null;
     private Timings.Timing timing = null;
-    private boolean sync = false;
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
@@ -82,14 +81,6 @@ public class InterpreterLocalContext {
 
     void setTiming(Timings.Timing timing) {
         this.timing = timing;
-    }
-
-    boolean isSync() {
-        return sync;
-    }
-
-    void setSync(boolean sync) {
-        this.sync = sync;
     }
 
     boolean isStopFlag() {
@@ -146,7 +137,6 @@ public class InterpreterLocalContext {
         context.timing = Optional.ofNullable(timing)
                 .map(t -> t.getTiming("LAMBDA"))
                 .orElse(Timings.LIMBO); // attach lambda timings to the caller timings
-        context.sync = sync;
 
         context.stopFlag = stopFlag;
         context.waitFlag = waitFlag;

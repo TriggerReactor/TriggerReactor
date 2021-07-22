@@ -45,7 +45,7 @@ public class Interpreter {
     private final Node root;
     private final InterpreterLocalContext context;
     private final InterpreterGlobalContext globalContext;
-    
+
     private boolean started = false;
     
     /*    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
@@ -150,14 +150,6 @@ public class Interpreter {
         return context.isWaitFlag();
     }
 
-    public boolean isSync() {
-        return context.isSync();
-    }
-
-    public void setSync(boolean sync) {
-        context.setSync(sync);
-    }
-
     /**
      * Map of local variables. Fill this map with necessary pairs depends on the context.
      *
@@ -191,13 +183,16 @@ public class Interpreter {
      * @param interrupter gives the caller to interrupt the execution
      * @throws InterpreterException
      */
-    public void startWithContextAndInterrupter(Object triggerCause, ProcessInterrupter interrupter,
+    public void startWithContextAndInterrupter(Object triggerCause,
+                                               ProcessInterrupter interrupter,
                                                Timings.Timing timing) throws InterpreterException {
         this.context.setTriggerCause(triggerCause);
         this.globalContext.interrupter = interrupter;
         this.context.setTiming(timing);
 
-        try (Timings.Timing t = this.context.getTiming().getTiming("Code Interpretation").begin(this.context.isSync())) {
+        try (Timings.Timing t = this.context.getTiming()
+                .getTiming("Code Interpretation")
+                .begin(globalContext.task.isServerThread())) {
             for (int i = 0; i < root.getChildren().size(); i++)
                 start(root.getChildren().get(i));
         }
@@ -312,7 +307,7 @@ public class Interpreter {
                     break;
                 }
 
-                if (context.isSync()) {
+                if (globalContext.task.isServerThread()) {
                     long timeTook = System.currentTimeMillis() - start;
                     if (timeTook > 3000L)
                         throw new InterpreterException("WHILE loop took more than 3 seconds in Server Thread. This is usually "
@@ -484,7 +479,6 @@ public class Interpreter {
                 copy.setVars(context.getVars());
                 copy.setSelfReference(globalContext.selfReference);
                 copy.setTaskSupervisor(globalContext.task);
-                copy.setSync(false);
 
                 try {
                     copy.startWithContextAndInterrupter(context.getTriggerCause(), globalContext.interrupter, context.getTiming());
@@ -626,7 +620,6 @@ public class Interpreter {
                         throw new InterpreterException("No executor named #" + command + " found!");
 
                     return globalContext.executorMap.get(command).execute(context.getTiming(),
-                            context.isSync(),
                             context.getVars(),
                             context.getTriggerCause(),
                             args);
@@ -1262,26 +1255,26 @@ public class Interpreter {
 
     private final Executor EXECUTOR_STOP = new Executor() {
         @Override
-        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
             return STOP;
         }
     };
     private final Executor EXECUTOR_BREAK = new Executor() {
         @Override
-        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
             return BREAK;
         }
     };
     private final Executor EXECUTOR_CONTINUE = new Executor() {
         @Override
-        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
 
             return CONTINUE;
         }
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
             if (globalContext.task.isServerThread()) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
@@ -1320,7 +1313,7 @@ public class Interpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
+            public Integer execute(Timings.Timing timing, Map<String, Object> variables, Object e,
                                    Object... args) throws Exception {
                 return null;
             }

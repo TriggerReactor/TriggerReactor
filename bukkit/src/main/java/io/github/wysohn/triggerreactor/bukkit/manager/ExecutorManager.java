@@ -73,8 +73,8 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
         this.jsExecutors.put("CMDOP", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object e,
-                                      Object... args) throws Exception {
+            public Integer execute(Timings.Timing timing, Map<String, Object> variables, Object e,
+                                   Object... args) throws Exception {
                 Object player = variables.get("player");
                 if (player == null || !(player instanceof Player))
                     return null;
