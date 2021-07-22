@@ -327,7 +327,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                             if (trigger == null)
                                 throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
-                            boolean sync = false;
+                            boolean sync = true;
                             if (args.length > 1 && args[1] instanceof Boolean) {
                                 sync = (boolean) args[1];
                             }
