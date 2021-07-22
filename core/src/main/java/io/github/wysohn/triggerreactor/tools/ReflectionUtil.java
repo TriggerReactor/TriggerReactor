@@ -294,7 +294,7 @@ public class ReflectionUtil {
 
             return method.invoke(obj, args);
         } catch (NullPointerException e) {
-            throw new NullPointerException(buildFailMessage(clazz, methodName, args));
+            throw new RuntimeException(buildFailMessage(clazz, methodName, args), e);
         }
     }
 
