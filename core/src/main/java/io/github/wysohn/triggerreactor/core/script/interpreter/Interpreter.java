@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaParameter;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -572,7 +573,7 @@ public class Interpreter {
      */
     private Integer interpret(Node node) throws InterpreterException {
         try {
-            if (globalContext.interrupter != null && globalContext.interrupter.onNodeProcess(node)) {
+            if (globalContext.interrupter != null && globalContext.interrupter.onNodeProcess(context, node)) {
                 return Executor.STOP;
             }
 
@@ -613,7 +614,7 @@ public class Interpreter {
                     args[i] = argument.value;
                 }
 
-                if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context.getTriggerCause(), command, args)) {
+                if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context, command, args)) {
                     return null;
                 } else {
                     if (!globalContext.executorMap.containsKey(command))
@@ -640,7 +641,7 @@ public class Interpreter {
 
                 Object replaced = null;
                 if (globalContext.interrupter != null) {
-                    replaced = globalContext.interrupter.onPlaceholder(context.getTriggerCause(), placeholderName, args);
+                    replaced = globalContext.interrupter.onPlaceholder(context, placeholderName, args);
                 }
 
                 if (replaced == null && !globalContext.placeholderMap.containsKey(placeholderName))

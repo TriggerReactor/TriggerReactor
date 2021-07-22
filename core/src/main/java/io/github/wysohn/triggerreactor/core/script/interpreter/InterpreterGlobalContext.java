@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 

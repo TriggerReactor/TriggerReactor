@@ -33,6 +33,7 @@ public class InterpreterLocalContext {
     //TODO but for now, this is not a problem since in Trigger#initInterpreter(), we create
     //TODO new Interpreter every time for each execution, so we don't technically share any
     //TODO local context. But later we will refactor the Interpreter
+
     private Object triggerCause = null;
     private Timings.Timing timing = null;
 
@@ -47,7 +48,7 @@ public class InterpreterLocalContext {
         return importMap;
     }
 
-    Map<String, Object> getVars() {
+    public Map<String, Object> getVars() {
         return vars;
     }
 
@@ -67,7 +68,7 @@ public class InterpreterLocalContext {
         return this.stack.empty();
     }
 
-    Object getTriggerCause() {
+    public Object getTriggerCause() {
         return triggerCause;
     }
 

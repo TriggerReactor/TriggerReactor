@@ -268,7 +268,7 @@ public abstract class Trigger implements Cloneable, IObservable {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupter(e, interpreter, cooldowns),
+                    TriggerReactorCore.getInstance().createInterrupter(cooldowns),
                     timing);
         } catch (InterpreterException ex) {
             TriggerReactorCore.getInstance().handleException(e,
