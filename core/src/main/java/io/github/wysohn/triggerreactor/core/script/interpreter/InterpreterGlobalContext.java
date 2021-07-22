@@ -16,10 +16,18 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class InterpreterGlobalContext {
     TaskSupervisor task;
-    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
+    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<Executor>(){{
+        put("STOP", EXECUTOR_STOP);
+        put("BREAK", EXECUTOR_BREAK);
+        put("CONTINUE", EXECUTOR_CONTINUE);
+    }};
     final Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     Map<Object, Object> gvars = new ConcurrentHashMap<>();
     SelfReference selfReference = new SelfReference() {
     };
     ProcessInterrupter interrupter = null;
+
+    private final Executor EXECUTOR_STOP = (timing, vars, context, args) -> Executor.STOP;
+    private final Executor EXECUTOR_BREAK = (timing, vars, context, args) -> Executor.BREAK;
+    private final Executor EXECUTOR_CONTINUE = (timing, vars, context, args) -> Executor.CONTINUE;
 }

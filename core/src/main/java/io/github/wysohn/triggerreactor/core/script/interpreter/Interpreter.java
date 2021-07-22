@@ -65,11 +65,8 @@ public class Interpreter {
     */
     public Interpreter(Node root, InterpreterLocalContext context, InterpreterGlobalContext globalContext){
         this.root = root;
-        this.context = context.copyState();
+        this.context = context;
         this.globalContext = globalContext;
-
-        initDefaultExecutors();
-        initDefaultPlaceholders();
     }
     
     public Interpreter(Node root) {
@@ -131,17 +128,6 @@ public class Interpreter {
 
     public void setVars(Map<String, Object> vars) {
         context.setVars(vars);
-    }
-
-    private void initDefaultExecutors() {
-        globalContext.executorMap.put("STOP", EXECUTOR_STOP);
-        globalContext.executorMap.put("WAIT", EXECUTOR_WAIT);
-        globalContext.executorMap.put("BREAK", EXECUTOR_BREAK);
-        globalContext.executorMap.put("CONTINUE", EXECUTOR_CONTINUE);
-    }
-
-    private void initDefaultPlaceholders() {
-
     }
 
     public boolean isStopFlag() {
@@ -464,26 +450,15 @@ public class Interpreter {
             }
         } else if (node.getToken().getType() == Type.ASYNC) {
             globalContext.task.submitAsync(() -> {
-                //TODO do the same process by copying the contexts, not manually assigning them
                 Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
                 rootCopy.getChildren().addAll(node.getChildren());
 
-                Interpreter copy = new Interpreter(rootCopy);
-                // ignore whatever returns as it's impossible
-                // to handle it from the caller
-                copy.setExecutorMap(globalContext.executorMap);
-                copy.setPlaceholderMap(globalContext.placeholderMap);
-                
-                //prevents default executors/placeholders from being overwritten by setting the maps
-                copy.initDefaultPlaceholders();
-                copy.initDefaultExecutors();
-                copy.setGvars(globalContext.gvars);
-                copy.setVars(context.getVars());
-                copy.setSelfReference(globalContext.selfReference);
-                copy.setTaskSupervisor(globalContext.task);
+                Interpreter copy = new Interpreter(rootCopy,
+                        context.copyState("ASYNC"),
+                        globalContext);
 
                 try {
-                    copy.startWithContextAndInterrupter(context.getTriggerCause(), globalContext.interrupter, context.getTiming());
+                    copy.start();
                 } catch (InterpreterException e) {
                     TriggerReactorCore.getInstance().handleException(context.getTriggerCause(), e);
                 }
@@ -618,6 +593,13 @@ public class Interpreter {
                 if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context, command, args)) {
                     return null;
                 } else {
+                    if("WAIT".equalsIgnoreCase(command)){
+                        return EXECUTOR_WAIT.execute(context.getTiming(),
+                                context.getVars(),
+                                context.getTriggerCause(),
+                                args);
+                    }
+
                     if (!globalContext.executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
@@ -1255,25 +1237,16 @@ public class Interpreter {
         }
     }
 
-    private final Executor EXECUTOR_STOP = new Executor() {
-        @Override
-        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
-            return STOP;
-        }
-    };
-    private final Executor EXECUTOR_BREAK = new Executor() {
-        @Override
-        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
-            return BREAK;
-        }
-    };
-    private final Executor EXECUTOR_CONTINUE = new Executor() {
-        @Override
-        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
-
-            return CONTINUE;
-        }
-    };
+    /**
+     * Warning) Most of the executors are not depending on the state of the Interpreter,
+     * so most of them can be in the GlobalInterpreterContext and be shared with other
+     * Interpreter executions. But #WAIT is a little bit different.
+     * <p>
+     * Since it holds the monitor of the Interpreter in WAITING state, #WAIT executor has
+     * to be unique instance per each Interpreter. Therefore, #WAIT must be existing
+     * individually per Interpreter and should not be shared with other Interpreter
+     * instances.
+     */
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
         public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object triggerCause, Object... args) {

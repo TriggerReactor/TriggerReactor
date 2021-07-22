@@ -126,9 +126,13 @@ public class InterpreterLocalContext {
 
     /**
      * Copy current state, except for the current stack
-     * @return
+     *
+     * @param timingsName name to be used as the timing. Since the context will be
+     *                    inherited from 'this' context, the timing will be attached
+     *                    as the child of the timing which the original context has.
+     * @return copied context.
      */
-    public InterpreterLocalContext copyState() {
+    public InterpreterLocalContext copyState(String timingsName) {
         InterpreterLocalContext context = new InterpreterLocalContext();
 
         context.importMap.putAll(importMap);
@@ -136,7 +140,7 @@ public class InterpreterLocalContext {
 
         context.triggerCause = triggerCause;
         context.timing = Optional.ofNullable(timing)
-                .map(t -> t.getTiming("LAMBDA"))
+                .map(t -> t.getTiming(timingsName))
                 .orElse(Timings.LIMBO); // attach lambda timings to the caller timings
 
         return context;

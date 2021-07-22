@@ -20,7 +20,7 @@ public class LambdaFunction implements InvocationHandler {
                           InterpreterGlobalContext globalContext){
         this.parameters = parameters;
         this.body = body;
-        this.lambdaBody = new Interpreter(body, localContext.copyState(), globalContext);
+        this.lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
 
         // if duplicated variable name is found, parameter name always has priority
         for (LambdaParameter parameter : parameters) {
