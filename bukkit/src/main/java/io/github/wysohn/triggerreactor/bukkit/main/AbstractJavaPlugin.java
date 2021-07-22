@@ -335,16 +335,15 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
+                        boolean sync = false;
                         if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
+                            sync = (boolean) args[1];
                         }
 
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
+                        if (sync) {
+                            trigger.activate(e, interpreter.getVars(), true);
                         } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()), false);
                         }
 
                         return true;
@@ -420,16 +419,15 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                         if (trigger == null)
                             throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
+                        boolean sync = false;
                         if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
+                            sync = (boolean) args[1];
                         }
 
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
+                        if (sync) {
+                            trigger.activate(e, interpreter.getVars(), true);
                         } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()), false);
                         }
 
                         return true;

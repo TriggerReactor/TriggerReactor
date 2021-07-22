@@ -9,6 +9,7 @@ import java.io.File;
 import java.util.Objects;
 
 public abstract class TriggerInfo implements IMigratable {
+    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -55,6 +56,17 @@ public abstract class TriggerInfo implements IMigratable {
 
     public String getTriggerName() {
         return triggerName;
+    }
+
+    public boolean isSync(){
+        return config.get(KEY_SYNC)
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(false);
+    }
+
+    public void setSync(boolean sync){
+        config.put(KEY_SYNC, sync);
     }
 
     /**
@@ -107,7 +119,10 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public String toString() {
-        return triggerName;
+        return "TriggerInfo{" +
+                "triggerName=" + triggerName +
+                ", config='" + config + '\'' +
+                '}';
     }
 
     @Override
