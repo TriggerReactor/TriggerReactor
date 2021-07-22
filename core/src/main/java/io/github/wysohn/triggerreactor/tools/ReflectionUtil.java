@@ -234,7 +234,9 @@ public class ReflectionUtil {
                 Class<?>[] parameterTypes = executable.getParameterTypes();
                 Class<?>[] types = new Class<?>[args.length];
                 for (int k = 0; k < args.length; k++)
-                    types[k] = args[k].getClass();
+                    types[k] = Optional.ofNullable(args[k])
+                            .map(Object::getClass)
+                            .orElse(null);
 
                 if (args[i] instanceof InvocationHandler && i < parameterTypes.length && parameterTypes[i].isInterface()) {
                     // we need to proxy the interface to reroute calls to the InvocationHandler
