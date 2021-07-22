@@ -139,13 +139,6 @@ public class InterpreterLocalContext {
                 .map(t -> t.getTiming("LAMBDA"))
                 .orElse(Timings.LIMBO); // attach lambda timings to the caller timings
 
-        context.stopFlag = stopFlag;
-        context.waitFlag = waitFlag;
-        context.breakFlag = breakFlag;
-        context.continueFlag = continueFlag;
-
-        context.callArgsSize = callArgsSize;
-
         return context;
     }
 }
