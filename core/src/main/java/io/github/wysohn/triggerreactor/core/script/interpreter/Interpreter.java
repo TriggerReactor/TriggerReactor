@@ -46,6 +46,7 @@ public class Interpreter {
     private final Node root;
     private final InterpreterLocalContext context;
     private final InterpreterGlobalContext globalContext;
+    private final Object waitLock = new Object();
 
     private boolean started = false;
     
@@ -544,10 +545,10 @@ public class Interpreter {
                     return;
                 case Executor.WAIT:
                     context.setWaitFlag(true);
-                    synchronized (this) {
+                    synchronized (waitLock) {
                         while (context.isWaitFlag()) {
                             try {
-                                this.wait();
+                                waitLock.wait();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -1275,7 +1276,7 @@ public class Interpreter {
     };
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object triggerCause, Object... args) {
             if (globalContext.task.isServerThread()) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
@@ -1291,9 +1292,9 @@ public class Interpreter {
             SynchronizableTask.runTaskLater(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized (Interpreter.this) {
-                        Interpreter.this.context.setWaitFlag(false);
-                        Interpreter.this.notify();
+                    synchronized (waitLock) {
+                        context.setWaitFlag(false);
+                        waitLock.notify();
                     }
                 }
             }, later);
