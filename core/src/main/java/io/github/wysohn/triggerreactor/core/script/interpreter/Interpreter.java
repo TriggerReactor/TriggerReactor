@@ -731,18 +731,60 @@ public class Interpreter {
                         stack.push(new Token(Type.DECIMAL, result.doubleValue(), node.getToken().row, node.getToken().col));
                     }
                 }
-            } else if (node.getToken().type == Type.UNARYMINUS) {
-                Token value = stack.pop();
+            } else if (node.getToken().type == Type.OPERATOR_UNARY) {
+                if("-".equals(node.getToken().value)) {
+                    Token value = stack.pop();
 
-                if (isVariable(value)) {
-                    value = unwrapVariable(value);
+                    if (isVariable(value)) {
+                        value = unwrapVariable(value);
+                    }
+
+                    if (!value.isNumeric())
+                        throw new InterpreterException("Cannot do unary minus operation for non-numeric value " + value);
+
+                    stack.push(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row, value.col)
+                            : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
+                } else {
+                    Token var = stack.pop();
+
+                    if (isVariable(var)) {
+                        Token unwrappedVar = unwrapVariable(var);
+
+                        if (!unwrappedVar.isNumeric())
+                            throw new InterpreterException("Cannot do unary operation for non-numeric value " + var);
+
+                        boolean processed = false;
+                        if("++expr".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()+1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()+1, var.row, var.col));
+                            processed = true;
+                        } else if("--expr".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()-1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()-1, var.row, var.col));
+                            processed = true;
+                        }
+
+                        unwrappedVar = unwrapVariable(var);
+                        stack.push(unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger(), var.row, var.col)
+                                : new Token(Type.DECIMAL, unwrappedVar.toDecimal(), var.row, var.col));
+
+                        if("expr++".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()+1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()+1, var.row, var.col));
+                            processed = true;
+                        } else if("expr--".equals(node.getToken().value)) {
+                            assignValue(var, unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger()-1, var.row, var.col)
+                                    : new Token(Type.DECIMAL, unwrappedVar.toDecimal()-1, var.row, var.col));
+                            processed = true;
+                        }
+
+                        if(!processed) {
+                            throw new InterpreterException("Cannot interpret the unknown unary operator " + node.getToken().value);
+                        }
+                    } else {
+                        throw new InterpreterException("Cannot do unary increment/decrement operation for non-variable" + var);
+                    }
                 }
-
-                if (!value.isNumeric())
-                    throw new InterpreterException("Cannot do unary minus operation for non-numeric value " + value);
-
-                stack.push(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row, value.col)
-                        : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
             } else if (node.getToken().type == Type.OPERATOR_L) {
                 if ("!".equals(node.getToken().value)) {
                     Token boolval = stack.pop();
@@ -1176,8 +1218,7 @@ public class Interpreter {
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
         public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context, Object... args) {
-
-            if (sync) {
+            if (task.isServerThread()) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
 
@@ -1189,7 +1230,7 @@ public class Interpreter {
 
             double secs = ((Number) args[0]).doubleValue();
             long later = (long) (secs * 1000);
-            Executor.runTaskLater(new Runnable() {
+            SynchronizableTask.runTaskLater(new Runnable() {
                 @Override
                 public void run() {
                     synchronized (Interpreter.this) {

@@ -179,7 +179,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     public void onLocationChange(PlayerBlockLocationEvent e) {
         List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(e.getFrom());
         List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(e.getTo());
-
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", e.getPlayer());
         varMap.put("from", e.getFrom());

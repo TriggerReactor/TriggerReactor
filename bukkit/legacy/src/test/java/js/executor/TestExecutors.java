@@ -4,15 +4,17 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.Va
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import js.ExecutorTest;
 import js.JsTest;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.material.Stairs;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,6 +53,45 @@ public class TestExecutors extends AbstractTestExecutors {
         assertJSError(() -> test.withArgs("nuu").test(), "Invalid parameter! [Number]");
     }
 
+    @Override
+    public void testRotateBlock() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState state = mock(BlockState.class);
+        Stairs data = mock(Stairs.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(state);
+        when(state.getData()).thenReturn(data);
+
+        new ExecutorTest(engine, "ROTATEBLOCK")
+                .withArgs(BlockFace.NORTH.name(), location)
+                .test();
+
+        verify(data).setFacingDirection(BlockFace.NORTH);
+        verify(state).setData(data);
+    }
+
+    @Override
+    public void testSignEdit() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        Sign sign = mock(Sign.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getType()).thenReturn(Material.SIGN_POST);
+        when(block.getState()).thenReturn(sign);
+
+        new ExecutorTest(engine, "SIGNEDIT")
+                .withArgs(0, "line1", location)
+                .addVariable("player", player)
+                .test();
+
+        verify(sign).setLine(0, "line1");
+        verify(sign).update();
+    }
+
     public void testSetBlockSetData() throws Exception {
         World mockWorld = Mockito.mock(World.class);
         Block mockBlock = mock(Block.class);
@@ -58,7 +99,7 @@ public class TestExecutors extends AbstractTestExecutors {
         JsTest test = new ExecutorTest(engine, "SETBLOCK");
         test.addVariable("block", mockBlock);
 
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         test.withArgs(1).test();
 
@@ -75,7 +116,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -95,7 +136,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)
@@ -115,7 +156,7 @@ public class TestExecutors extends AbstractTestExecutors {
 
         when(player.getWorld()).thenReturn(mockWorld);
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
-        PowerMockito.when(Bukkit.class, "getWorld", "world").thenReturn(mockWorld);
+        when(server.getWorld("world")).thenReturn(mockWorld);
 
         new ExecutorTest(engine, "SETBLOCK")
                 .addVariable("player", player)

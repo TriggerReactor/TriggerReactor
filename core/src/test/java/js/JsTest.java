@@ -10,6 +10,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public abstract class JsTest {
+    protected final String name;
     protected final InputStream stream;
     protected final ScriptEngine engine;
     protected Map<String, Object> varMap;
@@ -22,8 +23,9 @@ public abstract class JsTest {
      * @throws FileNotFoundException
      */
     protected JsTest(ScriptEngine engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
-        StringBuilder builder = new StringBuilder();
+        this.name = name;
 
+        StringBuilder builder = new StringBuilder();
 
         builder.append(firstDirectory);
         builder.append('/');

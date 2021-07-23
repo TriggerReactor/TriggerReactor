@@ -14,6 +14,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Bukkit = Java.type('org.bukkit.Bukkit')
+var Location = Java.type('org.bukkit.Location')
+
 function TP(args){
     if(args.length == 3){
         var world;

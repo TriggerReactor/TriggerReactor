@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2018 wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,24 +14,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
-var ChatColor = Java.type('org.bukkit.ChatColor')
-validation = {
-    "overloads": [
-        [{"name":"lore", "type": "string"}, {"name": "item", "type": itemStackType.class}]
-    ]
+var BlockFace = Java.type('org.bukkit.block.BlockFace');
 
-}
-function SETITEMLORE(args){
+function ROTATEBLOCK(args) {
+    var face = BlockFace.valueOf(args[0]);
 
-    var combinedString = args[0];
-    var item = args[1];
-    var lores = combinedString.split("\n");
-    for(var k = 0; k < lores.length; k++) {
-        lores[k] = ChatColor.translateAlternateColorCodes(Char('&'), lores[k]);
+    if(typeof(block) !== 'undefined' && args.length == 1){
+        // nothing
+    }else if(args.length == 4){
+        location = new Location(player.getWorld(), args[1], args[2], args[3]);
+        block = location.getBlock()
+    }else if(args.length == 2){
+        location = args[1];
+        block = location.getBlock()
+    }else{
+        throw new Error(
+            'Invalid parameters. Need [BlockFace<string>] or [BlockFace<string>, Location<location or number number number>]');
     }
-    var im = item.getItemMeta();
-    im.setLore(lores);
-    item.setItemMeta(im);
+
+    var face = BlockFace.valueOf(args[0]);
+    var blockState = block.getState();
+    var blockData = blockState.getData();
+    blockData.setFacingDirection(face);
+    blockState.setData(blockData);
+
     return null;
 }

@@ -15,6 +15,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
+var ChatColor = Java.type('org.bukkit.ChatColor')
 validation = {
     "overloads": [
         [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType.class}]
@@ -24,7 +25,7 @@ validation = {
 function SETITEMNAME(args){
     var item = args[1];
     var name = ChatColor.translateAlternateColorCodes(Char('&'), args[0]);
-    if(item.getType().name().toLowerCase().equals("air") || item == null){
+    if(item.getType().name().toLowerCase() === "air" || item == null){
         return null;
     } else{
         var im = item.getItemMeta();

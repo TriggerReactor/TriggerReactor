@@ -188,6 +188,89 @@ public class TestLexer {
     }
 
     @Test
+    public void testIncrementAndDecrement() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "a = 2\n" +
+                "a = ++a * --a - a++ / a-- -(--a) -(++a) -(a++) -(a--) - -(--a) - -(++a) - -(a++) - -(a--)\n";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "=");
+        testToken(lexer, Type.INTEGER, "2");
+        testToken(lexer, Type.ENDL, null);
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, "=");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_A, "*");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.OPERATOR_A, "/");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "++");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR_A, "-");
+        testToken(lexer, Type.OPERATOR, "(");
+        testToken(lexer, Type.ID, "a");
+        testToken(lexer, Type.OPERATOR_UNARY, "--");
+        testToken(lexer, Type.OPERATOR, ")");
+
+        testToken(lexer, Type.ENDL, null);
+        testEnd(lexer);
+    }
+
+    @Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "#MESSAGE !true\n";
@@ -449,6 +532,30 @@ public class TestLexer {
         testToken(lexer, Type.OPERATOR_A, "+");
         testToken(lexer, Type.OPERATOR, "$");
         testToken(lexer, Type.ID, "playername");
+        testEnd(lexer);
+    }
+
+    @Test
+    public void testPlaceholderEscape() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "\"hey \\$playername\"";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "hey $playername");
+        testEnd(lexer);
+    }
+
+    @Test
+    public void testPlaceholderEscape2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "\"hey \\${playername}\"";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.STRING, "hey ${playername}");
         testEnd(lexer);
     }
 

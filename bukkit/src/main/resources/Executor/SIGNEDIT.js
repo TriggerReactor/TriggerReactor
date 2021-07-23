@@ -14,33 +14,36 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function SIGNEDIT(args) {
-	if(args.length == 3 || args.length == 5){ 
-		var lineNumber = args[0];
-		var lineText = args[1];
-		var location;
+var Location = Java.type('org.bukkit.Location')
+var ChatColor = Java.type('org.bukkit.ChatColor')
 
-		if(args.length == 3){
-			location = args[2];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[2], args[3], args[4]);
-		}
+function SIGNEDIT(args) {
+    if(args.length == 3 || args.length == 5){
+        var lineNumber = args[0];
+        var lineText = args[1];
+        var location;
 
-		Block = location.getBlock();
+        if(args.length == 3){
+            location = args[2];
+        }else{
+            var world = player.getWorld();
+            location = new Location(world, args[2], args[3], args[4]);
+        }
 
-		if(Block.getType().name().toLowerCase().contains("sign")){
-			Sign = Block.getState();
-			Sign.setLine(parseInt(lineNumber), ChatColor.translateAlternateColorCodes(Char('&'), lineText));
-			Sign.update();
-		}else{
-			throw new Error(
-				'Invalid sign. That block is not a valid sign!');
-		}
+        Block = location.getBlock();
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Line<number>, Text<string>, Location<location or number number number>]');
-	}
-	return null;
+        if(Block.getType().name().toLowerCase().indexOf("sign") !== -1){
+            Sign = Block.getState();
+            Sign.setLine(parseInt(lineNumber), ChatColor.translateAlternateColorCodes(Char('&'), lineText));
+            Sign.update();
+        }else{
+            throw new Error(
+                'Invalid sign. That block is not a valid sign!');
+        }
+
+    }else {
+        throw new Error(
+            'Invalid parameters. Need [Line<number>, Text<string>, Location<location or number number number>]');
+    }
+    return null;
 }

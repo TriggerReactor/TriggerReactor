@@ -193,9 +193,27 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @param particles  if false potion particle effects will not be shown
      * @param color      use bukkitColor() or is no longer available since 1.13
      * @return returns a PotionEffect object or null if specified PotionEffectType was not found.
+     * @deprecated color is no longer official part of PotionEffect
      */
+    @Deprecated
     public abstract PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
                                                   boolean particles, Color color);
+
+    /**
+     * create a PotionEffect for use in entity.addPotionEffect();
+     * <p>
+     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED", 1000000, 5, false, true, bukkitColor(21,2,24) ))
+     * </p>
+     *
+     * @param EffectType the name of the PotionEffectType to use
+     * @param duration   how long the potioneffect should last when applied to an enitity
+     * @param amplifier  how strong the effect should be
+     * @param ambient    if true particle effects will be more transparent
+     * @param particles  if false potion particle effects will not be shown
+     * @return returns a PotionEffect object or null if specified PotionEffectType was not found.
+     */
+    public abstract PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
+                                                  boolean particles);
 
     /**
      * try to get a player from name. Mostly online player.
@@ -245,6 +263,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @deprecated this returns only one area among the areas where entity is in. Use {@link #currentAreas(Entity)}
      * instead to get all the areas.
      */
+    @Deprecated
     public String currentArea(Entity entity) {
         String[] areas = currentAreasAt(entity.getLocation());
         return areas.length > 0 ? areas[0] : null;
@@ -260,6 +279,7 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return name of area; null if there is no area trigger at location
      * @deprecated this only return one AreaTrigger's name, yet there could be more
      */
+    @Deprecated
     public String currentAreaAt(Location location) {
         String[] areaNames = currentAreasAt(location);
         return areaNames.length > 0 ? areaNames[0] : null;

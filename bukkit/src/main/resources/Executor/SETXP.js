@@ -1,3 +1,4 @@
+var Float = Java.type('java.lang.Float')
 function SETXP(args)
 {
   if (args.length !== 1)
@@ -17,5 +18,5 @@ function SETXP(args)
     throw new Error(arg + " is outside of the allowable range of 0..1 for executor SETXP")
   }
   
-  player.setExp(arg)
+  player.setExp(new Float(arg))
 }

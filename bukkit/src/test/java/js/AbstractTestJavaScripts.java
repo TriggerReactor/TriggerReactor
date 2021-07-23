@@ -2,42 +2,42 @@ package js;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.BukkitScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorCoreTest;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.lang.reflect.Field;
 
-@PowerMockIgnore("javax.script.*")
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({TriggerReactorCore.class, Bukkit.class})
+import static org.mockito.Mockito.mock;
+
 public abstract class AbstractTestJavaScripts {
     private static final IScriptEngineInitializer INITIALIZER = new BukkitScriptEngineInitializer() {
     };
 
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
+    protected Server server;
+    protected TriggerReactorCore mockMain;
 
     @Before
     public void init() throws Exception {
-        sem = new ScriptEngineManager(null);
+        sem = new ScriptEngineManager();
         INITIALIZER.initScriptEngine(sem);
-        engine = sem.getEngineByName("nashorn");
+        engine = IScriptEngineInitializer.getEngine(sem);
 
-        TriggerReactorCore mockMain = Mockito.mock(TriggerReactorCore.class);
+        mockMain = mock(TriggerReactorCore.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
+        TriggerReactorCoreTest.setInstance(mockMain);
 
-        PluginManager mockPluginManager = Mockito.mock(PluginManager.class);
+        PluginManager mockPluginManager = mock(PluginManager.class);
         Mockito.when(mockPluginManager.isPluginEnabled(Mockito.anyString())).thenAnswer(
                 invocation -> {
                     String pluginName = invocation.getArgument(0);
@@ -53,12 +53,13 @@ public abstract class AbstractTestJavaScripts {
 
         before();
 
-        PowerMockito.mockStatic(TriggerReactorCore.class);
-        Mockito.when(TriggerReactorCore.getInstance()).thenReturn(mockMain);
+        server = mock(Server.class);
+        Field field = Bukkit.class.getDeclaredField("server");
+        field.setAccessible(true);
+        field.set(null, server);
 
-        PowerMockito.mockStatic(Bukkit.class);
-        Mockito.when(Bukkit.getPluginManager()).thenReturn(mockPluginManager);
-        Mockito.when(Bukkit.dispatchCommand(Mockito.any(CommandSender.class), Mockito.anyString()))
+        Mockito.when(server.getPluginManager()).thenReturn(mockPluginManager);
+        Mockito.when(server.dispatchCommand(Mockito.any(CommandSender.class), Mockito.anyString()))
                 .then(invocation -> {
                     CommandSender sender = invocation.getArgument(0);
                     String command = invocation.getArgument(1);

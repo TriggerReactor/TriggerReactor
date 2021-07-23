@@ -17,26 +17,27 @@
 
 package io.github.wysohn.triggerreactor.core.manager;
 
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 public class JSEngineProvider {
-    private static final NashornScriptEngineFactory NASHORN_FACTORY = new NashornScriptEngineFactory();
-    private static boolean earlierJava = false;
-
-    public static ScriptEngine getScriptEngine() {
-        if (earlierJava) {
-            return NASHORN_FACTORY.getScriptEngine();
-        } else {
-            ScriptEngine scriptEngine;
-            try {
-                scriptEngine = NASHORN_FACTORY.getScriptEngine("--no-deprecation-warning");
-            } catch (IllegalArgumentException ex) {
-                earlierJava = true;
-                scriptEngine = NASHORN_FACTORY.getScriptEngine();
-            }
-            return scriptEngine;
+    public static ScriptEngine getScriptEngine(ScriptEngineManager sem) {
+        ScriptEngine engine = sem.getEngineByName("graal.js");
+        if (engine != null) {
+            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            bindings.put("polyglot.js.allowAllAccess", true);
+            return engine;
         }
+
+        engine = sem.getEngineByName("nashorn");
+        if (engine != null) {
+            return engine;
+        }
+
+        throw new RuntimeException("You are using the Java version > 11, yet you are not using" +
+                " the graalVM. For Java version > 11, you are required to install and run your" +
+                " server with GraalVM as the stock JVM no longer support Nashorn javascript engine.");
     }
 }

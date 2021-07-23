@@ -1,3 +1,5 @@
+var Bukkit = Java.type('org.bukkit.Bukkit')
+
 function blockname(args) {
 
     if ((args.length == 0) || (args.length == 1) || (args.length == 2) || (args.length == 3)) {

@@ -18,18 +18,11 @@ package io.github.wysohn.triggerreactor.tools;
 
 import org.apache.commons.lang3.ClassUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.*;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 public class ReflectionUtil {
     public static void setField(Object obj, String fieldName, Object value) throws NoSuchFieldException, IllegalArgumentException {
@@ -439,42 +432,42 @@ public class ReflectionUtil {
 
         List<String> classes = new ArrayList<>();
 
-        URL[] urls = ((URLClassLoader) cl).getURLs();
-        for (URL url : urls) {
-            //System.out.println(url.getFile());
-            File jar = new File(url.getFile());
-
-            if (jar.isDirectory()) {
-                File subdir = new File(jar, packageName);
-                if (!subdir.exists())
-                    continue;
-                File[] files = subdir.listFiles();
-                for (File file : files) {
-                    if (!file.isFile())
-                        continue;
-                    if (file.getName().endsWith(".class"))
-                        classes.add(file.getName().substring(0, file.getName().length() - 6).replace('/', '.'));
-                }
-            } else {
-                // try to open as ZIP
-                try {
-                    ZipFile zip = new ZipFile(jar);
-                    for (Enumeration<? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
-                        ZipEntry entry = entries.nextElement();
-                        String name = entry.getName();
-                        if (!name.startsWith(packageName))
-                            continue;
-                        if (name.endsWith(".class") && name.indexOf('$') < 0)
-                            classes.add(name.substring(0, name.length() - 6).replace('/', '.'));
-                    }
-                    zip.close();
-                } catch (ZipException e) {
-                    //System.out.println("Not a ZIP: " + e.getMessage());
-                } catch (IOException e) {
-                    System.err.println(e.getMessage());
-                }
-            }
-        }
+//        URL[] urls = ((URLClassLoader) cl).getURLs();
+//        for (URL url : urls) {
+//            //System.out.println(url.getFile());
+//            File jar = new File(url.getFile());
+//
+//            if (jar.isDirectory()) {
+//                File subdir = new File(jar, packageName);
+//                if (!subdir.exists())
+//                    continue;
+//                File[] files = subdir.listFiles();
+//                for (File file : files) {
+//                    if (!file.isFile())
+//                        continue;
+//                    if (file.getName().endsWith(".class"))
+//                        classes.add(file.getName().substring(0, file.getName().length() - 6).replace('/', '.'));
+//                }
+//            } else {
+//                // try to open as ZIP
+//                try {
+//                    ZipFile zip = new ZipFile(jar);
+//                    for (Enumeration<? extends ZipEntry> entries = zip.entries(); entries.hasMoreElements(); ) {
+//                        ZipEntry entry = entries.nextElement();
+//                        String name = entry.getName();
+//                        if (!name.startsWith(packageName))
+//                            continue;
+//                        if (name.endsWith(".class") && name.indexOf('$') < 0)
+//                            classes.add(name.substring(0, name.length() - 6).replace('/', '.'));
+//                    }
+//                    zip.close();
+//                } catch (ZipException e) {
+//                    //System.out.println("Not a ZIP: " + e.getMessage());
+//                } catch (IOException e) {
+//                    System.err.println(e.getMessage());
+//                }
+//            }
+//        }
 
         return classes;
     }

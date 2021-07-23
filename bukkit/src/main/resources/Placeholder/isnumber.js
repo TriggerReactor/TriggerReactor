@@ -27,5 +27,6 @@ function isnumber(args) {
     
     var arg = args[0];
 
-    return arg.matches("[-]{0,1}[0-9]+[.]{0,1}[0-9]{0,1}$");
+    var r = /^[-]{0,1}[0-9]+[.]{0,1}[0-9]+$/
+    return r.test(args[0])
 }

@@ -14,11 +14,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var ChatColor = Java.type('org.bukkit.ChatColor')
+var Bukkit = Java.type('org.bukkit.Bukkit')
+var Objects = Java.type('java.util.Objects');
+
 function MESSAGE(args){
-	var String = Java.type('java.lang.String');
-	
     for(var i = 0; i < args.length ; i++){
-        var text = String.valueOf(args[i])
+        var text = Objects.toString(args[i])
         if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
             var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
             args[i] = PlaceholderAPI.setPlaceholders(player, text);

@@ -27,14 +27,14 @@ function MODIFYHELDITEM(args){
 	var type = args[0].toUpperCase();
 	var helditem = player.getItemInHand();
 		
-	if(type.equals("TITLE")){
+	if(type === "TITLE"){
 		if(helditem == null || helditem.getType().name() == "AIR")
 			return null;
 			
 		var meta = helditem.getItemMeta();
 		meta.setDisplayName(args[1]);
 		helditem.setItemMeta(meta);
-	}else if(type.equals("LORE")){
+	}else if(type === "LORE"){
 		if(args.length < 3)
 			throw new Error("Invalid parameters. Need [String, String, Depends on action]");
 		
@@ -52,7 +52,7 @@ function MODIFYHELDITEM(args){
 			lore = new ArrayList();
 		}
 		
-		if(action.equals("ADD")){
+		if(action === "ADD"){
 			var value = args[2].toString();
 			
 			if(args.length > 3){
@@ -67,7 +67,7 @@ function MODIFYHELDITEM(args){
 			}else{
 				lore.add(value);
 			}
-		}else if(action.equals("SET")){
+		}else if(action=== "SET"){
 			if(args.length < 4)
 				throw new Error("Invalid parameters. Need [String, String, Any, Number]");
 			
@@ -75,7 +75,7 @@ function MODIFYHELDITEM(args){
 				lore.add("");
 			
 			lore.set(args[3], args[2]);
-		}else if(action.equals("REMOVE")){
+		}else if(action ==="REMOVE"){
 			var index = args[2];
 			if(typeof index !== "number")
 				throw new Error("index should be a number!");

@@ -69,7 +69,7 @@ import java.util.regex.Pattern;
  */
 public abstract class TriggerReactorCore implements TaskSupervisor {
     public static final String PERMISSION = "triggerreactor.admin";
-    private static TriggerReactorCore instance;
+    static TriggerReactorCore instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private PluginConfigManager pluginConfigManager;
     private GlobalVariableManager globalVariableManager;
