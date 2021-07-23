@@ -175,9 +175,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         varMap.put("player", player.get());
         varMap.put("trigger", "close");
 
-        trigger.setSync(true);
-        trigger.activate(e, varMap);
-        trigger.setSync(false);
+        trigger.activate(e, varMap, true);
 
         inventoryMap.remove(inventory);
         inventorySharedVars.remove(inventory);

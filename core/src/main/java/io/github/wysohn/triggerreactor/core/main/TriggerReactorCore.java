@@ -42,9 +42,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedT
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
@@ -394,12 +393,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      * interrupter to handle
      * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
      *
-     * @param e           the context
-     * @param interpreter the interpreter
      * @param cooldowns   list of current cooldowns.
      * @return the interrupter created.
      */
-    public abstract ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns);
+    public abstract ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
 
     /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
@@ -408,8 +405,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
      * the Inventory was closed, it is the iterrupter's responsibility to do that.
      *
-     * @param e            the context
-     * @param interpreter  the interpreter
      * @param cooldowns    list of current cooldowns.
      * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
      *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
@@ -418,7 +413,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
      * @return
      */
-    public abstract ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
+    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
                                                                Map<IInventory, InventoryTrigger> inventoryMap);
 
     /**
@@ -594,9 +589,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     if (args.length == 3 && getCmdManager().has(args[1]) && args[2].equals("sync")) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
-                        trigger.setSync(!trigger.isSync());
+                        trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
-                        sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
+                        sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
@@ -1318,11 +1313,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        trigger.setSync(!trigger.isSync());
+                        trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                         saveAsynchronously(getAreaManager());
 
-                        sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
+                        sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
@@ -1549,11 +1544,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return true;
                     }
 
-                    trigger.setSync(!trigger.isSync());
+                    trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                     saveAsynchronously(getCustomManager());
 
-                    sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
+                    sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];

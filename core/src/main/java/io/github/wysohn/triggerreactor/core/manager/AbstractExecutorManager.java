@@ -118,7 +118,9 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         }
 
         @Override
-        public Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> variables, Object event,
+        public Integer execute(Timings.Timing timing,
+                               Map<String, Object> variables,
+                               Object event,
                                Object... args) throws Exception {
             return evaluate(timing, variables, event, args);
         }

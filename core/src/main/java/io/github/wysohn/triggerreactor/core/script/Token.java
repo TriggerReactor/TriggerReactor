@@ -179,6 +179,7 @@ public class Token {
 
         SYNC, ASYNC,
 
+        LAMBDA, PARAMETERS, LAMBDABODY,
         /**
          * Temporary use only
          **/
