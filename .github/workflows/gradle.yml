@@ -61,7 +61,7 @@ jobs:
         run: ./gradlew testLegacy -PLegacy
 
   build:
-    needs: [ test_windows, test_ubuntu, test_ubuntu_jdk8 ]
+    needs: [ test_windows, test_ubuntu, test_ubuntu_jdk8, test_ubuntu_jdk15 ]
     runs-on: ubuntu-latest
 
     steps:
