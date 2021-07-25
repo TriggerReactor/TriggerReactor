@@ -1,5 +1,5 @@
 dependencies {
-    if(project.hasProperty("Legacy")){
+    if(!project.hasProperty("Legacy")){
         api fileTree(dir: "libs", includes: ['jshader.jar'])
     }
 
