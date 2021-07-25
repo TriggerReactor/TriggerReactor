@@ -31,7 +31,7 @@ public class JSEngineProvider {
             return engine;
         }
 
-        engine = sem.getEngineByName("nashorn");
+        engine = sem.getEngineByName("JavaScript");
         if (engine != null) {
             return engine;
         }
