@@ -34,14 +34,31 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
     }
 
     protected void reloadPlaceholders(File file, FileFilter filter) throws ScriptException, IOException {
-        String fileName = file.getName();
-        fileName = fileName.substring(0, fileName.indexOf("."));
+        reloadPlaceholders(new Stack<String>(), file, filter);
+    }
 
-        if (jsPlaceholders.containsKey(fileName)) {
-            plugin.getLogger().warning(fileName + " already registered! Duplicating placerholders?");
+    private void reloadPlaceholders(Stack<String> name, File file, FileFilter filter) throws ScriptException, IOException {
+        if (file.isDirectory()) {
+            name.push(file.getName());
+            for (File f : file.listFiles(filter)) {
+                reloadPlaceholders(name, f, filter);
+            }
+            name.pop();
         } else {
-            JSPlaceholder placeholder = new JSPlaceholder(fileName, IScriptEngineInitializer.getEngine(sem), file);
-            jsPlaceholders.put(fileName, placeholder);
+            StringBuilder builder = new StringBuilder();
+            for (int i = name.size() - 1; i >= 0; i--) {
+                builder.append(name.get(i) + "@");
+            }
+            String fileName = file.getName();
+            fileName = fileName.substring(0, fileName.indexOf("."));
+            builder.append(fileName);
+
+            if (jsPlaceholders.containsKey(builder.toString())) {
+                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating placeholders?");
+            } else {
+                JSPlaceholder placeholder = new JSPlaceholder(fileName, IScriptEngineInitializer.getEngine(sem), file);
+                jsPlaceholders.put(builder.toString(), placeholder);
+            }
         }
     }
 
