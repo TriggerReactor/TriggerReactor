@@ -17,7 +17,6 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.SynchronizableTask;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
@@ -29,65 +28,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
-public abstract class AbstractJavascriptBasedManager extends Manager implements IScriptEngineInitializer {
-    protected static final ScriptEngineManager sem = new ScriptEngineManager();
-    public static AbstractJavascriptBasedManager instance;
+public abstract class AbstractJavascriptBasedManager extends Manager {
+    protected final ScriptEngineManager sem;
 
-    @Override
-    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
-        IScriptEngineInitializer.super.initScriptEngine(sem);
-
-        sem.put("plugin", this.plugin);
-
-        for (Entry<String, AbstractAPISupport> entry : this.plugin.getSharedVars().entrySet()) {
-            sem.put(entry.getKey(), entry.getValue());
-        }
-
-        sem.put("get", new Function<String, Object>() {
-            @Override
-            public Object apply(String t) {
-                return plugin.getVariableManager().get(t);
-            }
-        });
-
-        sem.put("put", new BiFunction<String, Object, Void>() {
-            @Override
-            public Void apply(String a, Object b) {
-                if (!GlobalVariableManager.isValidName(a))
-                    throw new RuntimeException("[" + a + "] cannot be used as key");
-
-                if (a != null && b == null) {
-                    plugin.getVariableManager().remove(a);
-                } else {
-                    try {
-                        plugin.getVariableManager().put(a, b);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Executor -- put(" + a + "," + b + ")", e);
-                    }
-                }
-
-                return null;
-            }
-        });
-
-        sem.put("has", new Function<String, Boolean>() {
-            @Override
-            public Boolean apply(String t) {
-                return plugin.getVariableManager().has(t);
-            }
-        });
+    public AbstractJavascriptBasedManager(TriggerReactorCore plugin, ScriptEngineManager sem) {
+        super(plugin);
+        this.sem = sem;
     }
 
-    public AbstractJavascriptBasedManager(TriggerReactorCore plugin) throws ScriptException {
-        super(plugin);
+    public static ScriptEngine getEngine(ScriptEngineManager sem) {
+        ScriptEngine engine = sem.getEngineByName("graal.js");
+        if (engine != null) {
+            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            bindings.put("polyglot.js.allowAllAccess", true);
+            return engine;
+        }
 
-        instance = this;
-        initScriptEngine(sem);
+        engine = sem.getEngineByName("JavaScript");
+        if (engine != null) {
+            return engine;
+        }
+
+        throw new RuntimeException("You are using the Java version > 11, yet you are not using" +
+                " the graalVM. For Java version > 11, you are required to install and run your" +
+                " server with GraalVM as the stock JVM no longer support Nashorn javascript engine.");
     }
 
     protected static abstract class Evaluable<R>{
@@ -115,6 +81,16 @@ public abstract class AbstractJavascriptBasedManager extends Manager implements 
                 Compilable compiler = (Compilable) this.engine;
                 compiled = compiler.compile(sourceCode);
             }
+        }
+
+        protected static String readSourceCode(InputStream file) throws IOException {
+            StringBuilder builder = new StringBuilder();
+            InputStreamReader reader = new InputStreamReader(file);
+            int read = -1;
+            while ((read = reader.read()) != -1)
+                builder.append((char) read);
+            reader.close();
+            return builder.toString();
         }
 
         private void registerValidationInfo(Bindings bindings) {
@@ -217,16 +193,6 @@ public abstract class AbstractJavascriptBasedManager extends Manager implements 
                     return result;
                 }
             }
-        }
-
-        protected static String readSourceCode(InputStream file) throws IOException {
-            StringBuilder builder = new StringBuilder();
-            InputStreamReader reader = new InputStreamReader(file);
-            int read = -1;
-            while ((read = reader.read()) != -1)
-                builder.append((char) read);
-            reader.close();
-            return builder.toString();
         }
     }
 }

@@ -27,13 +27,13 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 
-public class PlaceholderManager extends AbstractPlaceholderManager implements BukkitScriptEngineInitializer {
+public class PlaceholderManager extends AbstractPlaceholderManager {
     private static final String JAR_FOLDER_LOCATION = "Placeholder";
 
     private File placeholderFolder;
 
-    public PlaceholderManager(TriggerReactorCore plugin) throws ScriptException, IOException {
-        super(plugin);
+    public PlaceholderManager(TriggerReactorCore plugin, ScriptEngineManager sem) throws ScriptException, IOException {
+        super(plugin, sem);
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         this.placeholderFolder = new File(plugin.getDataFolder(), "Placeholder");
@@ -67,11 +67,4 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Bu
         // TODO Auto-generated method stub
 
     }
-
-    @Override
-    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
-        super.initScriptEngine(sem);
-        BukkitScriptEngineInitializer.super.initScriptEngine(sem);
-    }
-
 }

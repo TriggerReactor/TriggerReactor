@@ -77,6 +77,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -92,6 +93,7 @@ import java.util.concurrent.Future;
 public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
     public final BukkitTriggerReactorCore core;
 
+    private ScriptEngineManager scriptEngineManager;
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
 
@@ -652,6 +654,16 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         }
 
         return variables;
+    }
+
+    public ScriptEngineManager getScriptEngineManager() {
+        if(scriptEngineManager == null)
+            scriptEngineManager = Bukkit.getServicesManager().load(ScriptEngineManager.class);
+
+        if(scriptEngineManager == null)
+            scriptEngineManager = new ScriptEngineManager();
+
+        return scriptEngineManager;
     }
 
     public class MysqlSupport {
