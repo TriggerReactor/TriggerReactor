@@ -40,6 +40,7 @@ import java.util.function.Function;
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
+    public static final String TITLE = "Title";
 
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
@@ -88,6 +89,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                     int size = trigger.items.length;
 
                     trigger.getInfo().getConfig().put(SIZE, size);
+                    trigger.getInfo().getConfig().put(TITLE, trigger.getInfo().getTriggerName());
                     for (int i = 0; i < items.length; i++) {
                         IItemStack item = items[i];
                         if (item == null)
@@ -112,7 +114,9 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         if (trigger == null)
             return null;
 
-        IInventory inventory = createInventory(trigger.getItems().length, name);
+        String title = trigger.getInfo().getConfig().get(TITLE, String.class).orElse(name);
+
+        IInventory inventory = createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
 
         Map<String, Object> varMap = new HashMap<>();
