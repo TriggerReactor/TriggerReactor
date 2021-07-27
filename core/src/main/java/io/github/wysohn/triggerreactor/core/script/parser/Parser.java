@@ -754,16 +754,26 @@ public class Parser {
             if (token.type != Type.ID)
                 throw new ParserException("Expected to find name of placeholder after $, but found " + token);
 
-            //probably has to be string at this point.
-            String placeholderName = (String) token.value;
-            Node node = new Node(new Token(Type.PLACEHOLDER, placeholderName, token.row, token.col));
+            int row = token.row;
+            int col = token.col;
+
+            String name = (String) token.value;
+            StringBuilder builder = new StringBuilder(name);
             nextToken();
+
+            while (token != null && "@".equals(token.value)) {
+                nextToken();
+
+                builder.append("@" + token.value);
+                nextToken();
+            }
+
+            Node node = new Node(new Token(Type.PLACEHOLDER, builder.toString(), row, col));
 
             while (token != null && ":".equals(token.value)) {
                 nextToken();
                 node.getChildren().add(parseFactor());
             }
-
             return node;
         }
 
