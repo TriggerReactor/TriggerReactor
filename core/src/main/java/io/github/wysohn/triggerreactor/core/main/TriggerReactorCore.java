@@ -1058,12 +1058,15 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         String name = args[1];
                         String title = mergeArguments(args, 3, args.length-1);
 
-                        TriggerInfo info = Optional.of(getInvManager())
-                                .map(man -> man.get(args[1]))
-                                .map(Trigger::getInfo)
-                                .orElseThrow(() -> new RuntimeException("Missing TriggerInfo"));
+                        InventoryTrigger trigger = getInvManager().get(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
 
+                        TriggerInfo info = trigger.getInfo();
                         info.getConfig().put(AbstractInventoryTriggerManager.TITLE, title);
+
                         getInvManager().reload(name);
 
                         sender.sendMessage("Successfully changed title");
