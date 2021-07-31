@@ -1054,6 +1054,24 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                         getInvEditManager().startEdit((IPlayer) sender, trigger);
                         return true;
+                    } else if (args.length > 3 && args[2].equalsIgnoreCase("settitle")) {
+                        String name = args[1];
+                        String title = mergeArguments(args, 3, args.length-1);
+
+                        InventoryTrigger trigger = getInvManager().get(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        TriggerInfo info = trigger.getInfo();
+                        info.getConfig().put(AbstractInventoryTriggerManager.TITLE, title);
+
+                        getInvManager().reload(name);
+
+                        sender.sendMessage("Successfully changed title");
+
+                        return true;
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
@@ -1069,6 +1087,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Preview the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Send <player name> a preview of the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>", "set title of inventory");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("item")) {
@@ -1924,7 +1943,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return filter(triggerNames(manager), args[2]);
                     case "inventory":
                     case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row", "settitle"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);
