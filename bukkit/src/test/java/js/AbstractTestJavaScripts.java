@@ -1,9 +1,9 @@
 package js;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.BukkitScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCoreTest;
-import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
+import io.github.wysohn.triggerreactor.core.manager.AbstractJavascriptBasedManager;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -19,25 +19,23 @@ import java.lang.reflect.Field;
 import static org.mockito.Mockito.mock;
 
 public abstract class AbstractTestJavaScripts {
-    private static final IScriptEngineInitializer INITIALIZER = new BukkitScriptEngineInitializer() {
-    };
-
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
     protected Server server;
     protected TriggerReactorCore mockMain;
+    protected PluginManager mockPluginManager;
 
     @Before
     public void init() throws Exception {
         sem = new ScriptEngineManager();
-        INITIALIZER.initScriptEngine(sem);
-        engine = IScriptEngineInitializer.getEngine(sem);
+        ScriptEngineInitializer.initScriptEngine(sem);
+        engine = AbstractJavascriptBasedManager.getEngine(sem);
 
         mockMain = mock(TriggerReactorCore.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
         TriggerReactorCoreTest.setInstance(mockMain);
 
-        PluginManager mockPluginManager = mock(PluginManager.class);
+        mockPluginManager = mock(PluginManager.class);
         Mockito.when(mockPluginManager.isPluginEnabled(Mockito.anyString())).thenAnswer(
                 invocation -> {
                     String pluginName = invocation.getArgument(0);

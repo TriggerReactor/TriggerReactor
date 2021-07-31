@@ -35,13 +35,13 @@ import java.util.Stack;
 import java.util.concurrent.Callable;
 
 @SuppressWarnings("serial")
-public class ExecutorManager extends AbstractExecutorManager implements BukkitScriptEngineInitializer {
+public class ExecutorManager extends AbstractExecutorManager {
     private static final String JAR_FOLDER_LOCATION = "Executor";
 
     private final File executorFolder;
 
-    public ExecutorManager(TriggerReactorCore plugin) throws ScriptException, IOException {
-        super(plugin);
+    public ExecutorManager(TriggerReactorCore plugin, ScriptEngineManager sem) throws ScriptException, IOException {
+        super(plugin, sem);
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
@@ -102,12 +102,6 @@ public class ExecutorManager extends AbstractExecutorManager implements BukkitSc
     public void saveAll() {
         // TODO Auto-generated method stub
 
-    }
-
-    @Override
-    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
-        super.initScriptEngine(sem);
-        BukkitScriptEngineInitializer.super.initScriptEngine(sem);
     }
 
     public static void main(String[] ar) {
