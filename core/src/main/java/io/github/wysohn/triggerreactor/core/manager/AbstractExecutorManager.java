@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import java.util.*;
@@ -29,8 +30,8 @@ import java.util.Map.Entry;
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
     protected Map<String, Executor> jsExecutors = new HashMap<>();
 
-    public AbstractExecutorManager(TriggerReactorCore plugin) throws ScriptException {
-        super(plugin);
+    public AbstractExecutorManager(TriggerReactorCore plugin, ScriptEngineManager sem) {
+        super(plugin, sem);
     }
 
     /**
@@ -66,7 +67,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             if (jsExecutors.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = new JSExecutor(fileName, IScriptEngineInitializer.getEngine(sem), file);
+                JSExecutor exec = new JSExecutor(fileName, getEngine(sem), file);
                 jsExecutors.put(builder.toString(), exec);
             }
         }

@@ -52,6 +52,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
 
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +65,8 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -77,15 +80,10 @@ import java.util.logging.Logger;
  * @author wysohn
  */
 public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin {
-    private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
     protected static AbstractBukkitWrapper WRAPPER = null;
-
-    public static AbstractBukkitWrapper getWrapper() {
-        return WRAPPER;
-    }
-
+    private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
+    private ScriptEngineManager sem;
     private Lag tpsHelper;
-
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
     private AbstractScriptEditManager scriptEditManager;
@@ -93,7 +91,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
     private AbstractInventoryEditManager invEditManager;
-
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
     private AbstractCommandTriggerManager cmdManager;
@@ -101,8 +98,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractAreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
-
     private AbstractNamedTriggerManager namedTriggerManager;
+
+    public static AbstractBukkitWrapper getWrapper() {
+        return WRAPPER;
+    }
 
     @Override
     public SelfReference getSelfReference() {
@@ -207,15 +207,24 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
         }
 
+        sem = bukkit.getScriptEngineManager();
         try {
-            executorManager = new ExecutorManager(this);
+            ScriptEngineInitializer.initScriptEngine(sem);
+            initScriptEngine(sem);
+        } catch (ScriptException e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
+            executorManager = new ExecutorManager(this, sem);
         } catch (ScriptException | IOException e) {
             initFailed(e);
             return;
         }
 
         try {
-            placeholderManager = new PlaceholderManager(this);
+            placeholderManager = new PlaceholderManager(this, sem);
         } catch (ScriptException | IOException e) {
             initFailed(e);
             return;
@@ -260,6 +269,48 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         System.setProperty("bstats.relocatecheck", "false");
         MetricsLite metrics = new MetricsLite(this);
+    }
+
+    private void initScriptEngine(ScriptEngineManager sem) {
+        sem.put("plugin", this);
+
+        for (Entry<String, AbstractAPISupport> entry : this.getSharedVars().entrySet()) {
+            sem.put(entry.getKey(), entry.getValue());
+        }
+
+        sem.put("get", new Function<String, Object>() {
+            @Override
+            public Object apply(String t) {
+                return getVariableManager().get(t);
+            }
+        });
+
+        sem.put("put", new BiFunction<String, Object, Void>() {
+            @Override
+            public Void apply(String a, Object b) {
+                if (!GlobalVariableManager.isValidName(a))
+                    throw new RuntimeException("[" + a + "] cannot be used as key");
+
+                if (a != null && b == null) {
+                    getVariableManager().remove(a);
+                } else {
+                    try {
+                        getVariableManager().put(a, b);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Executor -- put(" + a + "," + b + ")", e);
+                    }
+                }
+
+                return null;
+            }
+        });
+
+        sem.put("has", new Function<String, Boolean>() {
+            @Override
+            public Boolean apply(String t) {
+                return getVariableManager().has(t);
+            }
+        });
     }
 
     private void initFailed(Exception e) {

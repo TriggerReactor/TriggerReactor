@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import java.util.*;
@@ -29,8 +30,8 @@ import java.util.Map.Entry;
 public abstract class AbstractPlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
     protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
 
-    public AbstractPlaceholderManager(TriggerReactorCore plugin) throws ScriptException {
-        super(plugin);
+    public AbstractPlaceholderManager(TriggerReactorCore plugin, ScriptEngineManager sem) {
+        super(plugin, sem);
     }
 
     protected void reloadPlaceholders(File file, FileFilter filter) throws ScriptException, IOException {
@@ -57,7 +58,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             if (jsPlaceholders.containsKey(builder.toString())) {
                 plugin.getLogger().warning(builder.toString() + " already registered! Duplicating placeholders?");
             } else {
-                JSPlaceholder placeholder = new JSPlaceholder(fileName, IScriptEngineInitializer.getEngine(sem), file);
+                JSPlaceholder placeholder = new JSPlaceholder(fileName, getEngine(sem), file);
                 jsPlaceholders.put(builder.toString(), placeholder);
             }
         }
