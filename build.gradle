@@ -69,12 +69,6 @@ subprojects {
     repositories {
         jcenter()
         mavenCentral()
-
-        //bstats
-        maven {
-            name = 'CodeMC'
-            url = 'https://repo.codemc.org/repository/maven-public'
-        }
     }
 
     dependencies {
