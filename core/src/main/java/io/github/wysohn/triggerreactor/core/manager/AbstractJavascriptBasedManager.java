@@ -51,9 +51,9 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
             return engine;
         }
 
-        throw new RuntimeException("You are using the Java version > 11, yet you are not using" +
-                " the graalVM. For Java version > 11, you are required to install and run your" +
-                " server with GraalVM as the stock JVM no longer support Nashorn javascript engine.");
+        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " +
+                "the stock Java does not contain the java script engine as it used to be. Install GraalVM instead of " +
+                "the stock Java, or you have to download third-party plugin, such as JShader.");
     }
 
     protected static abstract class Evaluable<R>{

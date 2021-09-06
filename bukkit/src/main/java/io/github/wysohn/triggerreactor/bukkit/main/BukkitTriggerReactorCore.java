@@ -43,7 +43,6 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.Proce
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
-import org.bstats.bukkit.MetricsLite;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -267,9 +266,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
             }
         }.start();
-
-        System.setProperty("bstats.relocatecheck", "false");
-        MetricsLite metrics = new MetricsLite(this);
     }
 
     private void initScriptEngine(ScriptEngineManager sem) {
