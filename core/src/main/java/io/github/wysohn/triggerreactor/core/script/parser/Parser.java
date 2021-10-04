@@ -110,6 +110,23 @@ public class Parser {
                 Node node = new Node(token);
                 nextToken();
                 return node;
+
+            } else if ("TRY".equals(token.value)) {
+                Token tryToken = token;
+                nextToken();
+                return parseTry(tryToken);
+            }  else if ("CATCH".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("FINALLY".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("ENDTRY".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
             } else if ("ENDLAMBDA".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
@@ -347,6 +364,58 @@ public class Parser {
 
         //return
         return ifNode;
+    }
+
+    private Node parseTry(Token tryToken) throws IOException, LexerException, ParserException {
+        Node tryNode = new Node(tryToken);
+
+        Node tryBody = new Node(new Token(Type.BODY, "<TRY BODY>"));
+        Node codes = null;
+        while (token != null
+                && (codes = parseStatement()) != null
+                && !"CATCH".equals(codes.getToken().value)
+                && !"FINALLY".equals(codes.getToken().value)
+                && !"ENDTRY".equals(codes.getToken().value)) {
+            tryBody.getChildren().add(codes);
+        }
+        tryNode.getChildren().add(tryBody);
+
+        if (codes == null) {
+            throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
+        }
+        if ("CATCH".equals(codes.getToken().value)) {
+            Node catchBody = new Node(new Token(Type.BODY, "<CATCH BODY>"));
+            nextToken();
+
+            while (token != null
+                    && (codes = parseStatement()) != null
+                    && !"FINALLY".equals(codes.getToken().value)
+                    && !"ENDTRY".equals(codes.getToken().value)) {
+                catchBody.getChildren().add(codes);
+            }
+
+            tryNode.getChildren().add(catchBody);
+        }
+        if ("FINALLY".equals(codes.getToken().value)) {
+            Node finallyBody = new Node(new Token(Type.BODY, "<FINALLY BODY>"));
+            nextToken();
+
+            while (token != null
+                    && (codes = parseStatement()) != null
+                    && !"ENDTRY".equals(codes.getToken().value)) {
+                finallyBody.getChildren().add(codes);
+            }
+
+            tryNode.getChildren().add(finallyBody);
+        }
+
+        if (!"CATCH".equals(codes.getToken().value) && !"FINALLY".equals(codes.getToken().value)) {
+            if (!"ENDTRY".equals(codes.getToken().value))
+                throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
+            nextToken();
+        }
+
+        return tryNode;
     }
 
     private Node parseAssignment() throws IOException, LexerException, ParserException{
