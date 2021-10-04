@@ -573,6 +573,39 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testTry() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "TRY\n"
+                + "    start = true\n"
+                + "    error.cause()\n"
+                + "    end = true\n"
+                + "CATCH\n"
+                + "    iCatch = true\n"
+                + "FINALLY\n"
+                + "    iFinally = true\n"
+                + "ENDTRY\n";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+
+        Assert.assertTrue((boolean) interpreter.getVars().get("start"));
+        Assert.assertNull(interpreter.getVars().get("end"));
+        Assert.assertTrue((boolean) interpreter.getVars().get("iCatch"));
+        Assert.assertTrue((boolean) interpreter.getVars().get("iFinally"));
+    }
+
+    @Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
