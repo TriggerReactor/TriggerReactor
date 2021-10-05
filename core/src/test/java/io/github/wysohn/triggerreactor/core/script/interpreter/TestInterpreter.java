@@ -578,12 +578,12 @@ public class TestInterpreter {
         String text = ""
                 + "TRY\n"
                 + "    start = true\n"
-                + "    error.cause()\n"
+                + "    raise.cause()\n"
                 + "    end = true\n"
-                + "CATCH\n"
-                + "    iCatch = true\n"
+                + "CATCH err\n"
+                + "    error = err.getCause().getMessage()\n"
                 + "FINALLY\n"
-                + "    iFinally = true\n"
+                + "    out = true\n"
                 + "ENDTRY\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -601,8 +601,8 @@ public class TestInterpreter {
 
         Assert.assertTrue((boolean) interpreter.getVars().get("start"));
         Assert.assertNull(interpreter.getVars().get("end"));
-        Assert.assertTrue((boolean) interpreter.getVars().get("iCatch"));
-        Assert.assertTrue((boolean) interpreter.getVars().get("iFinally"));
+        Assert.assertTrue(String.valueOf(interpreter.getVars().get("error")).contains("raise is null"));
+        Assert.assertTrue((boolean) interpreter.getVars().get("out"));
     }
 
     @Test

@@ -385,6 +385,12 @@ public class Parser {
         }
         if ("CATCH".equals(codes.getToken().value)) {
             Node catchBody = new Node(new Token(Type.BODY, "<CATCH BODY>"));
+
+            Node varName = parseId();
+            if (varName == null)
+                throw new ParserException("Could not find variable name for CATCH statement! " + catchBody.getToken());
+            catchBody.getChildren().add(varName);
+
             nextToken();
 
             while (token != null

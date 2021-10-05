@@ -273,10 +273,18 @@ public class Interpreter {
 
             if (node.getChildren().size() == 2) {
                 if (statements.contains("<CATCH BODY>")) {
+                    String varName = node
+                            .getChildren().get(1)
+                            .getChildren().get(0)
+                            .getChildren().get(1)
+                            .getToken()
+                            .value
+                            .toString();
+
                     try {
                         start(node.getChildren().get(0));
                     } catch (Throwable e) {
-                        getVars().put("e", e);
+                        getVars().put(varName, e);
                         start(node.getChildren().get(1));
                     }
                 } else {
@@ -287,10 +295,18 @@ public class Interpreter {
                     }
                 }
             } else if (node.getChildren().size() == 3) {
+                String varName = node
+                        .getChildren().get(1)
+                        .getChildren().get(0)
+                        .getChildren().get(1)
+                        .getToken()
+                        .value
+                        .toString();
+
                 try {
                     start(node.getChildren().get(0));
                 } catch (Throwable e) {
-                    getVars().put("e", e);
+                    getVars().put(varName, e);
                     start(node.getChildren().get(1));
                 } finally {
                     start(node.getChildren().get(2));
@@ -341,6 +357,7 @@ public class Interpreter {
             } while (!context.isStopFlag());
         } else if ("FOR".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
+
 
             if (context.isStopFlag())
                 return;
