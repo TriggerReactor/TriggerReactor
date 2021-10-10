@@ -6,6 +6,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.Map;
+import java.io.File;
 
 import static org.junit.Assert.assertEquals;
 
@@ -96,5 +97,40 @@ public class ValidatorTest {
         Validator validator = Validator.from(attribute);
         assertEquals(0, validator.validate().getOverload());
         assertEquals(1, validator.validate("MyPotionType").getOverload());
+    }
+
+    @Test
+    public void testClassValidate() throws Exception{
+        ScriptEngine engine = new ScriptEngineManager().getEngineByName("graal.js");
+        if(engine == null)
+            return;
+
+        engine.eval("const File = Java.type('java.io.File')\n" +
+                "\n" +
+                "validation = {\n" +
+                "\t'overloads' : [\n" +
+                "\t\t[],\n" +
+                "\t\t[\n" +
+                "\t\t\t{\n" +
+                "\t\t\t\t'type': File,\n" +
+                "\t\t\t\t'name': 'File'\n" +
+                "\t\t\t}\n" +
+                "\t\t]\n" +
+                "\t]\n" +
+                "}\n" +
+                "\n" +
+                "function READFILE(args) {\n" +
+                "\tif (overload == 0) {\n" +
+                "\t\tvar file = args[0]\n" +
+                "\n" +
+                "\t\tfile.foo()\n" +
+                "\t}\n" +
+                "}\n");
+
+        ScriptContext context = engine.getContext();
+        Map<String, Object> attribute = (Map<String, Object>) context.getAttribute("validation");
+        Validator validator = Validator.from(attribute);
+        assertEquals(0, validator.validate().getOverload());
+        assertEquals(1, validator.validate(new File("")).getOverload());
     }
 }

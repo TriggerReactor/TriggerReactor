@@ -3,6 +3,8 @@ package io.github.wysohn.triggerreactor.core.script.validation;
 import io.github.wysohn.triggerreactor.core.script.validation.option.*;
 import org.junit.Before;
 import org.junit.Test;
+import jdk.dynalink.beans.StaticClass;
+import java.io.File;
 
 import static org.junit.Assert.*;
 
@@ -55,6 +57,7 @@ public class TestOptions {
         assertTrue(type.canContain("int"));
         assertTrue(type.canContain("string"));
         assertTrue(type.canContain("boolean"));
+        assertTrue(type.canContain(StaticClass.forClass(File.class)));
         assertFalse(type.canContain("oOoOoOof"));
 
         assertEquals(type.validate("int", 6), null);
@@ -67,6 +70,7 @@ public class TestOptions {
         assertEquals(type.validate("string", "j"), null);
         assertNull(type.validate("boolean", true));
         assertNull(type.validate("boolean", false));
+        assertNull(type.validate(StaticClass.forClass(File.class), new File("")));
 
 
         assertNotEquals(type.validate("int", 7.1), null);
