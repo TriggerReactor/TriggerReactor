@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.core.script.validation.option;
 
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
+import jdk.dynalink.beans.StaticClass;
 
 public class TypeOption extends ValidationOption {
     private static final String[] types = {"int", "number", "boolean", "string"};
@@ -8,6 +9,10 @@ public class TypeOption extends ValidationOption {
     @Override
     public boolean canContain(Object arg) {
         if (arg instanceof Class<?>) {
+            return true;
+        }
+
+        if (arg instanceof StaticClass) {
             return true;
         }
 
@@ -34,6 +39,20 @@ public class TypeOption extends ValidationOption {
                 return null;
             } else {
                 return "%name% must be a " + ((Class<?>) arg).getSimpleName();
+            }
+        }
+
+        if (arg instanceof StaticClass) {
+            if (value == null) {
+                return "%name% must not be null";
+            }
+
+            Class<?> argClass = ((StaticClass) arg).getRepresentedClass();
+
+            if (argClass.isAssignableFrom(value.getClass())) {
+                return null;
+            } else {
+                return "%name% must be a " + (argClass.getSimpleName());
             }
         }
 
