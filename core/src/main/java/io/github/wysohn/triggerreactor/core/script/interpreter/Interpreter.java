@@ -36,13 +36,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class Interpreter {
     private final Node root;
@@ -266,55 +264,31 @@ public class Interpreter {
                 }
             }
         } else if ("TRY".equals(node.getToken().value)) {
-            List<Object> statements = node.getChildren()
-                    .stream()
-                    .map(s -> s.getToken().value)
-                    .collect(Collectors.toList());
-
-            if (node.getChildren().size() == 2) {
-                if (statements.contains("<CATCH BODY>")) {
-                    String varName = node
-                            .getChildren().get(1)
-                            .getChildren().get(0)
-                            .getChildren().get(1)
-                            .getToken()
-                            .value
-                            .toString();
-
-                    try {
-                        start(node.getChildren().get(0));
-                    } catch (Throwable e) {
-                        getVars().put(varName, e);
-                        start(node.getChildren().get(1));
-                    }
-                } else {
-                    try {
-                        start(node.getChildren().get(0));
-                    } finally {
-                        start(node.getChildren().get(1));
-                    }
-                }
-            } else if (node.getChildren().size() == 3) {
-                String varName = node
-                        .getChildren().get(1)
-                        .getChildren().get(0)
-                        .getChildren().get(1)
-                        .getToken()
-                        .value
-                        .toString();
-
+            if (node.getChildren().size() == 2 || node.getChildren().size() == 3) {
                 try {
                     start(node.getChildren().get(0));
                 } catch (Throwable e) {
-                    getVars().put(varName, e);
-                    start(node.getChildren().get(1));
+                    if (node.getChildren().get(1).getToken().type == Type.CATCHBODY || node.getChildren().size() == 3) {
+                        start(node.getChildren().get(1).getChildren().get(0));
+
+                        Token idToken = context.popToken();
+                        Token valueToken = new Token(Type.OBJECT, e);
+
+                        assignValue(idToken, valueToken);
+
+                        start(node.getChildren().get(1).getChildren().get(1));
+                    } else {
+                        throw e;
+                    }
                 } finally {
-                    start(node.getChildren().get(2));
+                    if (node.getChildren().get(1).getToken().type == Type.FINALLYBODY || node.getChildren().size() == 3) {
+                        start(node.getChildren().get(node.getChildren().size() - 1));
+                    }
                 }
             } else if (node.getChildren().size() == 1) {
-                throw new InterpreterException("Expected CATCH or FINALLY statement! -- "+node.getToken());
+                throw new InterpreterException("Expected CATCH or FINALLY statement! -- " + node.getToken());
             } else {
-                throw new InterpreterException("Unexpected token for TRY statement! -- "+node.getToken());
+                throw new InterpreterException("Unexpected token for TRY statement! -- " + node.getToken());
             }
         } else if ("WHILE".equals(node.getToken().value)) {
             long start = System.currentTimeMillis();
@@ -608,6 +582,8 @@ public class Interpreter {
             }
 
             if (node.getToken().type == Type.BODY
+                    || node.getToken().type == Type.CATCHBODY
+                    || node.getToken().type == Type.FINALLYBODY
                     || node.getToken().type == Type.LAMBDA
                     || "IF".equals(node.getToken().value)
                     || "ELSEIF".equals(node.getToken().value)
