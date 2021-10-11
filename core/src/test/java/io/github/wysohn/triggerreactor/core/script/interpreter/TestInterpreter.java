@@ -589,7 +589,7 @@ public class TestInterpreter {
                 + "TRY" + "\n"
                 + "    #TEST true" + "\n"
                 + "CATCH e" + "\n"
-                + "    #CHECK e null" + "\n"
+                + "    #TEST false" + "\n"
                 + "ENDTRY" + "\n";
 
         String case3 = ""
@@ -597,7 +597,7 @@ public class TestInterpreter {
                 + "    #ERROR" + "\n"
                 + "    #TEST false" + "\n"
                 + "CATCH e" + "\n"
-                + "    #CHECK e \"ERR\"" + "\n"
+                + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
 
         String case4 = ""
@@ -609,14 +609,14 @@ public class TestInterpreter {
                 + "        #TEST true" + "\n"
                 + "    ENDTRY" + "\n"
                 + "CATCH e" + "\n"
-                + "    #CHECK e \"ERR\"" + "\n"
+                + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
 
         String case5 = ""
                 + "TRY" + "\n"
                 + "    #TEST true" + "\n"
                 + "CATCH e" + "\n"
-                + "    #CHECK e null" + "\n"
+                + "    #CHECK false" + "\n"
                 + "FINALLY" + "\n"
                 + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
@@ -627,7 +627,7 @@ public class TestInterpreter {
                 + "    #ERROR" + "\n"
                 + "    #TEST false" + "\n"
                 + "CATCH e" + "\n"
-                + "    #CHECK e \"ERR\"" + "\n"
+                + "    #TEST true" + "\n"
                 + "FINALLY" + "\n"
                 + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
