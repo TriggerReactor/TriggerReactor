@@ -582,14 +582,14 @@ public class TestInterpreter {
                 + "        #TEST false" + "\n"
                 + "    ENDTRY" + "\n"
                 + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
+                + "    #CHECK e \"Expected CATCH or FINALLY statement!\"" + "\n"
                 + "ENDTRY" + "\n";
 
         String case2 = ""
                 + "TRY" + "\n"
                 + "    #TEST true" + "\n"
                 + "CATCH e" + "\n"
-                + "    #TEST false" + "\n"
+                + "    #CHECK e null" + "\n"
                 + "ENDTRY" + "\n";
 
         String case3 = ""
@@ -597,7 +597,7 @@ public class TestInterpreter {
                 + "    #ERROR" + "\n"
                 + "    #TEST false" + "\n"
                 + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
+                + "    #CHECK e \"ERR\"" + "\n"
                 + "ENDTRY" + "\n";
 
         String case4 = ""
@@ -609,14 +609,14 @@ public class TestInterpreter {
                 + "        #TEST true" + "\n"
                 + "    ENDTRY" + "\n"
                 + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
+                + "    #CHECK e \"ERR\"" + "\n"
                 + "ENDTRY" + "\n";
 
         String case5 = ""
                 + "TRY" + "\n"
                 + "    #TEST true" + "\n"
                 + "CATCH e" + "\n"
-                + "    #TEST false" + "\n"
+                + "    #CHECK e null" + "\n"
                 + "FINALLY" + "\n"
                 + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
@@ -627,7 +627,7 @@ public class TestInterpreter {
                 + "    #ERROR" + "\n"
                 + "    #TEST false" + "\n"
                 + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
+                + "    #CHECK e \"ERR\"" + "\n"
                 + "FINALLY" + "\n"
                 + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
@@ -651,6 +651,14 @@ public class TestInterpreter {
                 @Override
                 public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception {
                     throw new Error();
+                }
+            });
+
+            put("CHECK", new Executor() {
+                @Override
+                public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception {
+                    Assert.assertTrue(args[0].toString().contains(args[1].toString()));
+                    return null;
                 }
             });
         }};
