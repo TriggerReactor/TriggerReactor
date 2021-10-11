@@ -384,7 +384,7 @@ public class Parser {
             throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
         }
         if ("CATCH".equals(codes.getToken().value)) {
-            Node catchBody = new Node(new Token(Type.BODY, "<CATCH BODY>"));
+            Node catchBody = new Node(new Token(Type.CATCHBODY, "<CATCHBODY>"));
 
             Node varName = parseId();
             if (varName == null)
@@ -403,7 +403,7 @@ public class Parser {
             tryNode.getChildren().add(catchBody);
         }
         if ("FINALLY".equals(codes.getToken().value)) {
-            Node finallyBody = new Node(new Token(Type.BODY, "<FINALLY BODY>"));
+            Node finallyBody = new Node(new Token(Type.FINALLYBODY, "<FINALLYBODY>"));
             nextToken();
 
             while (token != null
