@@ -283,8 +283,6 @@ public class Interpreter {
                         throw e;
                     }
                 } finally {
-                    Node finallyBody;
-
                     if (node.getChildren().get(1).getToken().type == Type.FINALLYBODY) {
                         start(node.getChildren().get(1));
                     } else if (node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
