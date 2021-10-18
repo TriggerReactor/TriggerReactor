@@ -283,9 +283,9 @@ public class Interpreter {
                         throw e;
                     }
                 } finally {
-                    if (node.getChildren().get(1).getToken().type == Type.FINALLYBODY) {
+                    if ((node.getChildren().size() == 2 && node.getChildren().get(1).getToken().type == Type.FINALLYBODY)) {
                         start(node.getChildren().get(1));
-                    } else if (node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
+                    } else if (node.getChildren().size() == 3 && node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
                         start(node.getChildren().get(2));
                     }
                 }
