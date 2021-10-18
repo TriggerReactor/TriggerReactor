@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class Interpreter {
     private final Node root;
@@ -268,21 +269,26 @@ public class Interpreter {
                 try {
                     start(node.getChildren().get(0));
                 } catch (Throwable e) {
-                    if (node.getChildren().get(1).getToken().type == Type.CATCHBODY || node.getChildren().size() == 3) {
-                        start(node.getChildren().get(1).getChildren().get(0));
+                    if (node.getChildren().get(1).getToken().type == Type.CATCHBODY) {
+                        Node catchBody = node.getChildren().get(1);
+
+                        start(catchBody.getChildren().get(0));
 
                         Token idToken = context.popToken();
                         Token valueToken = new Token(Type.OBJECT, e);
-
                         assignValue(idToken, valueToken);
 
-                        start(node.getChildren().get(1).getChildren().get(1));
+                        start(catchBody.getChildren().get(1));
                     } else {
                         throw e;
                     }
                 } finally {
-                    if (node.getChildren().get(1).getToken().type == Type.FINALLYBODY || node.getChildren().size() == 3) {
-                        start(node.getChildren().get(node.getChildren().size() - 1));
+                    Node finallyBody;
+
+                    if (node.getChildren().get(1).getToken().type == Type.FINALLYBODY) {
+                        start(node.getChildren().get(1));
+                    } else if (node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
+                        start(node.getChildren().get(2));
                     }
                 }
             } else if (node.getChildren().size() == 1) {
