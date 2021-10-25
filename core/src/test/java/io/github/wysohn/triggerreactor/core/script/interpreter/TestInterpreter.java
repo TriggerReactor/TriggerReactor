@@ -671,6 +671,71 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
+    @Test(expected = InterpreterException.class)
+    public void testTryFinally() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "TRY;"
+                + "    #ERROR;"
+                + "FINALLY;"
+                + "    #TEST;"
+                + "ENDTRY;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        @SuppressWarnings("serial")
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = mock(Executor.class);
+        Executor mockExecutor2 = mock(Executor.class);
+        executorMap.put("TEST", mockExecutor);
+        executorMap.put("ERROR", mockExecutor2);
+
+        when(mockExecutor2.execute(any(), anyMap(), any(), any())).thenThrow(new RuntimeException());
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+
+        verify(mockExecutor).execute(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTryFinally2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+                + "TRY;"
+                + "    #ERROR;"
+                + "FINALLY;"
+                + "    #TEST;"
+                + "ENDTRY;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        @SuppressWarnings("serial")
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = mock(Executor.class);
+        Executor mockExecutor2 = mock(Executor.class);
+        executorMap.put("TEST", mockExecutor);
+        executorMap.put("ERROR", mockExecutor2);
+
+        when(mockExecutor2.execute(any(), anyMap(), any(), any())).thenReturn(null);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+
+        verify(mockExecutor2).execute(any(), anyMap(), any(), any());
+        verify(mockExecutor).execute(any(), anyMap(), any(), any());
+    }
+
     @Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
