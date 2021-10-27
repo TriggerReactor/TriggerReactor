@@ -28,12 +28,12 @@ public interface Executor extends SynchronizableTask {
 
     /**
      * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
-     * @param context the context where the Executor was started
      * @param vars    variables to be used in the Executor script
+     * @param context the context where the Executor was started
      * @param args    arguments passed from the interpreted code
      * @return usually null; return code to intercept execution
      * @throws Exception
      */
-    Integer execute(Timings.Timing timing, boolean sync, Map<String, Object> vars, Object context,
-                                       Object... args) throws Exception;
+    Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
+                    Object... args) throws Exception;
 }

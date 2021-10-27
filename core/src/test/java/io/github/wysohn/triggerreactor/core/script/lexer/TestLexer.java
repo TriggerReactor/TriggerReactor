@@ -536,6 +536,25 @@ public class TestLexer {
     }
 
     @Test
+    public void testPlaceholderSubFolder() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "$Refactoring@GAMEMODE:\"TestPlayer\":1";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.OPERATOR, "$");
+        testToken(lexer, Type.ID, "Refactoring");
+        testToken(lexer, Type.OPERATOR, "@");
+        testToken(lexer, Type.ID, "GAMEMODE");
+        testToken(lexer, Type.OPERATOR, ":");
+        testToken(lexer, Type.STRING, "TestPlayer");
+        testToken(lexer, Type.OPERATOR, ":");
+        testToken(lexer, Type.INTEGER, "1");
+        testEnd(lexer);
+    }
+
+    @Test
     public void testPlaceholderEscape() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text;

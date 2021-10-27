@@ -32,7 +32,7 @@ public class Lexer {
     private static final char[] OPERATORS;
 
     static {
-        OPERATORS = new char[]{'+', '-', '*', '/', '%', '=', '!', '?', '<', '>', '&', '|', '^', '~', '(', ')', '{', '}', ',', '.', '[', ']', ':', '\\', '$'};
+        OPERATORS = new char[]{'+', '-', '*', '/', '%', '=', '!', '?', '<', '>', '&', '|', '^', '~', '(', ')', '{', '}', ',', '.', '[', ']', ':', '\\', '$', '@'};
         Arrays.sort(OPERATORS);
     }
 
@@ -382,6 +382,9 @@ public class Lexer {
             if (c == '=') {
                 read();
                 return new Token(Type.OPERATOR_L, op + "=", row, col);
+            } else if(c == '>'){
+                read();
+                return new Token(Type.OPERATOR, op + ">", row, col);
             } else {
                 return new Token(Type.OPERATOR, op, row, col);
             }

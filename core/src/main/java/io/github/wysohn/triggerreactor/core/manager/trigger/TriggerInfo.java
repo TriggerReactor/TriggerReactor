@@ -3,12 +3,14 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
+    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -27,6 +29,9 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
+        if(sourceCodeFile == null)
+            return false;
+
         File folder = sourceCodeFile.getParentFile();
         File oldFile = new File(folder, triggerName + ".yml");
         File newFile = new File(folder, triggerName + ".json");
@@ -37,8 +42,9 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public void migrate(IMigrationHelper migrationHelper) {
-        migrationHelper.migrate(config);
-        config.reload();
+        Optional.ofNullable(config)
+                .ifPresent(migrationHelper::migrate);
+        reloadConfig();
     }
 
     public File getSourceCodeFile() {
@@ -46,15 +52,32 @@ public abstract class TriggerInfo implements IMigratable {
     }
 
     public IConfigSource getConfig() {
+        ValidationUtil.notNull(config);
+
         return config;
     }
 
     public void reloadConfig() {
-        config.reload();
+        Optional.ofNullable(config)
+                .ifPresent(IConfigSource::reload);
     }
 
     public String getTriggerName() {
         return triggerName;
+    }
+
+    public boolean isSync(){
+        return Optional.ofNullable(config)
+                .flatMap(c -> c.get(KEY_SYNC))
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(false);
+    }
+
+    public void setSync(boolean sync){
+        ValidationUtil.notNull(config);
+
+        config.put(KEY_SYNC, sync);
     }
 
     /**
@@ -68,8 +91,10 @@ public abstract class TriggerInfo implements IMigratable {
      * Default behavior is delete one file associated with the trigger. Override this method to change this behavior.
      */
     public void delete() {
-        FileUtil.delete(sourceCodeFile);
-        config.delete();
+        Optional.ofNullable(sourceCodeFile)
+                .ifPresent(File::delete);
+        Optional.ofNullable(config)
+                .ifPresent(IConfigSource::delete);
     }
 
     /**
@@ -107,7 +132,10 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public String toString() {
-        return triggerName;
+        return "TriggerInfo{" +
+                "triggerName=" + triggerName +
+                ", config='" + config + '\'' +
+                '}';
     }
 
     @Override

@@ -347,7 +347,7 @@ public class TestParser {
         Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "x = 10;"
-                + "#MESSAGE $placeholdertest:0:x:5:true;";
+                + "#MESSAGE $placeholdertest@main:0:x:5:true;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -368,7 +368,7 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "5")), queue.poll());
         assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
-        assertEquals(new Node(new Token(Type.PLACEHOLDER, "placeholdertest")), queue.poll());
+        assertEquals(new Node(new Token(Type.PLACEHOLDER, "placeholdertest@main")), queue.poll());
         assertEquals(new Node(new Token(Type.EXECUTOR, "MESSAGE")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());

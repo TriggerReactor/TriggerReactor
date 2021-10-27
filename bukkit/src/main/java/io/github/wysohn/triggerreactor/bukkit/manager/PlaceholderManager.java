@@ -46,7 +46,7 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
         FileFilter filter = new FileFilter() {
             @Override
             public boolean accept(File pathname) {
-                return pathname.getName().endsWith(".js");
+                return pathname.isDirectory() || pathname.getName().endsWith(".js");
             }
         };
 
