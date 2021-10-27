@@ -22,8 +22,6 @@ allprojects {
     dependencies {
         api project(":core")
 
-        implementation "org.bstats:bstats-bukkit-lite:1.4"
-
         testImplementation project(':core').sourceSets.test.output
     }
 
@@ -34,7 +32,6 @@ allprojects {
             String[] include = [
                     "core.jar",
                     "bukkit.jar",
-                    "bstats-bukkit-lite-1.4.jar",
                     "commons-lang3-3.12.0.jar"
             ]
 
