@@ -180,6 +180,8 @@ public class Token {
         SYNC, ASYNC,
 
         LAMBDA, PARAMETERS, LAMBDABODY,
+
+        CATCHBODY, FINALLYBODY,
         /**
          * Temporary use only
          **/

@@ -41,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class Interpreter {
     private final Node root;
@@ -49,7 +50,7 @@ public class Interpreter {
     private final Object waitLock = new Object();
 
     private boolean started = false;
-    
+
     /*    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
                 SelfReference selfReference, InterpretCondition condition) {
             this.root = root;
@@ -68,7 +69,7 @@ public class Interpreter {
         this.context = context;
         this.globalContext = globalContext;
     }
-    
+
     public Interpreter(Node root) {
         this(root, new InterpreterLocalContext(), new InterpreterGlobalContext());
     }
@@ -263,6 +264,36 @@ public class Interpreter {
                     throw new InterpreterException("Unexpected token for IF statement! -- " + resultToken);
                 }
             }
+        } else if ("TRY".equals(node.getToken().value)) {
+            if (node.getChildren().size() == 2 || node.getChildren().size() == 3) {
+                try {
+                    start(node.getChildren().get(0));
+                } catch (Throwable e) {
+                    if (node.getChildren().get(1).getToken().type == Type.CATCHBODY) {
+                        Node catchBody = node.getChildren().get(1);
+
+                        start(catchBody.getChildren().get(0));
+
+                        Token idToken = context.popToken();
+                        Token valueToken = new Token(Type.OBJECT, e);
+                        assignValue(idToken, valueToken);
+
+                        start(catchBody.getChildren().get(1));
+                    } else {
+                        throw e;
+                    }
+                } finally {
+                    if ((node.getChildren().size() == 2 && node.getChildren().get(1).getToken().type == Type.FINALLYBODY)) {
+                        start(node.getChildren().get(1));
+                    } else if (node.getChildren().size() == 3 && node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
+                        start(node.getChildren().get(2));
+                    }
+                }
+            } else if (node.getChildren().size() == 1) {
+                throw new InterpreterException("Expected CATCH or FINALLY statement! -- " + node.getToken());
+            } else {
+                throw new InterpreterException("Unexpected token for TRY statement! -- " + node.getToken());
+            }
         } else if ("WHILE".equals(node.getToken().value)) {
             long start = System.currentTimeMillis();
 
@@ -304,6 +335,7 @@ public class Interpreter {
             } while (!context.isStopFlag());
         } else if ("FOR".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
+
 
             if (context.isStopFlag())
                 return;
@@ -412,20 +444,20 @@ public class Interpreter {
             Node parameters = node.getChildren().get(0);
             if(parameters.getToken().getType() != Type.PARAMETERS)
                 throw new InterpreterException("Expected parameters but found "+node);
-            
+
             Node lambdaBody = node.getChildren().get(1);
             if(lambdaBody.getToken().getType() != Type.LAMBDABODY)
                 throw new InterpreterException("Expected lambda expression body but found "+node);
-            
+
             LambdaParameter[] lambdaParameters = new LambdaParameter[parameters.getChildren().size()];
             for (int i = 0; i < lambdaParameters.length; i++) {
                 Node idNode = parameters.getChildren().get(i);
                 if(idNode.getToken().getType() != Type.ID)
                     throw new InterpreterException("Expected lambda parameter to be an id but found "+idNode);
-                
+
                 lambdaParameters[i] = new LambdaParameter(idNode);
             }
-            
+
              context.pushToken(new Token(Type.EPS,
                     new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
                     node.getToken()));
@@ -554,6 +586,8 @@ public class Interpreter {
             }
 
             if (node.getToken().type == Type.BODY
+                    || node.getToken().type == Type.CATCHBODY
+                    || node.getToken().type == Type.FINALLYBODY
                     || node.getToken().type == Type.LAMBDA
                     || "IF".equals(node.getToken().value)
                     || "ELSEIF".equals(node.getToken().value)
