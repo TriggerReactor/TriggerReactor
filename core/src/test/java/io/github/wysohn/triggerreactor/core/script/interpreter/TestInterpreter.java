@@ -91,7 +91,7 @@ public class TestInterpreter {
         executorMap.put("MESSAGE", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.getVars().put("common", new CommonFunctions());
@@ -115,7 +115,7 @@ public class TestInterpreter {
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setGvars(gvars);
@@ -147,7 +147,7 @@ public class TestInterpreter {
         vars.put("temp2", new TheTest2());
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setVars(vars);
@@ -199,7 +199,7 @@ public class TestInterpreter {
         });
         TheTest reference = new TheTest();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.getVars().put("player", reference);
@@ -241,7 +241,7 @@ public class TestInterpreter {
         });
         TheTest reference = new TheTest();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new CommonFunctions());
 
@@ -274,7 +274,7 @@ public class TestInterpreter {
         });
         Map<Object, Object> map = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setGvars(map);
 
@@ -320,7 +320,7 @@ public class TestInterpreter {
         TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
         GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, mock(IConfigSource.class));
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setGvars(avm.getGlobalVariableAdapter());
 
@@ -365,7 +365,7 @@ public class TestInterpreter {
         Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setGvars(gvars);
@@ -398,7 +398,7 @@ public class TestInterpreter {
             }
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         String[] args = new String[]{"item1", "item2"};
@@ -430,7 +430,7 @@ public class TestInterpreter {
             }
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new CommonFunctions());
 
@@ -463,7 +463,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new CommonFunctions());
 
@@ -498,7 +498,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -532,7 +532,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -556,7 +556,7 @@ public class TestInterpreter {
         executorMap.put("MESSAGE", executor);
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new SelfReference() {
             public Collection<String> getPlayers(){
@@ -572,110 +572,24 @@ public class TestInterpreter {
         verify(executor, times(10)).execute(any(), anyMap(), any(), anyInt());
     }
 
-    @Test
-    public void testTry() throws Exception {
+    @Test(expected = InterpreterException.class)
+    public void testOnlyTry() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String case1 = ""
-                + "TRY" + "\n"
-                + "    TRY" + "\n"
-                + "        #TEST false" + "\n"
-                + "    ENDTRY" + "\n"
-                + "CATCH e" + "\n"
-                + "    #CHECK e \"Expected CATCH or FINALLY statement!\"" + "\n"
-                + "ENDTRY" + "\n";
+        String text = "" +
+                "TRY;" +
+                "   #TEST;" +
+                "ENDTRY;";
 
-        String case2 = ""
-                + "TRY" + "\n"
-                + "    #TEST true" + "\n"
-                + "CATCH e" + "\n"
-                + "    #TEST false" + "\n"
-                + "ENDTRY" + "\n";
-
-        String case3 = ""
-                + "TRY" + "\n"
-                + "    #ERROR" + "\n"
-                + "    #TEST false" + "\n"
-                + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
-                + "ENDTRY" + "\n";
-
-        String case4 = ""
-                + "TRY" + "\n"
-                + "    TRY" + "\n"
-                + "        #ERROR" + "\n"
-                + "        #TEST false" + "\n"
-                + "    FINALLY"  + "\n"
-                + "        #TEST true" + "\n"
-                + "    ENDTRY" + "\n"
-                + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
-                + "ENDTRY" + "\n";
-
-        String case5 = ""
-                + "TRY" + "\n"
-                + "    #TEST true" + "\n"
-                + "CATCH e" + "\n"
-                + "    #CHECK false" + "\n"
-                + "FINALLY" + "\n"
-                + "    #TEST true" + "\n"
-                + "ENDTRY" + "\n";
-
-        String case6 = ""
-                + "TRY" + "\n"
-                + "    #TEST true" + "\n"
-                + "    #ERROR" + "\n"
-                + "    #TEST false" + "\n"
-                + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
-                + "FINALLY" + "\n"
-                + "    #TEST true" + "\n"
-                + "ENDTRY" + "\n";
-
-        String case7 = ""
-                + "isExecuteSecondLine = false\n"
-                + "TRY" + "\n"
-                + "    #TEST true" + "\n"
-                + "    #ERROR" + "\n"
-                + "    #TEST false" + "\n"
-                + "CATCH e" + "\n"
-                + "    #TEST true" + "\n"
-                + "    isExecuteSecondLine = true" + "\n"
-                + "FINALLY" + "\n"
-                + "    #TEST true" + "\n"
-                + "ENDTRY" + "\n"
-                + "#TEST isExecuteSecondLine";
-
-        String totalCase = case1 + case2 + case3 + case4 + case5 + case6 + case7;
-
-        Lexer lexer = new Lexer(totalCase, charset);
+        Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<String, Executor>() {{
-            put("TEST", new Executor() {
-                @Override
-                public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                    Assert.assertTrue((boolean) args[0]);
-                    return null;
-                }
-            });
 
-            put("ERROR", new Executor() {
-                @Override
-                public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                    throw new Error();
-                }
-            });
-
-            put("CHECK", new Executor() {
-                @Override
-                public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception {
-                    Assert.assertTrue(args[0].toString().contains(args[1].toString()));
-                    return null;
-                }
-            });
-        }};
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -683,71 +597,176 @@ public class TestInterpreter {
         interpreter.setSelfReference(new CommonFunctions());
 
         interpreter.startWithContext(null);
-    }
 
-    @Test(expected = InterpreterException.class)
-    public void testTryFinally() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = ""
-                + "TRY;"
-                + "    #ERROR;"
-                + "FINALLY;"
-                + "    #TEST;"
-                + "ENDTRY;";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        @SuppressWarnings("serial")
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor mockExecutor = mock(Executor.class);
-        Executor mockExecutor2 = mock(Executor.class);
-        executorMap.put("TEST", mockExecutor);
-        executorMap.put("ERROR", mockExecutor2);
-
-        when(mockExecutor2.execute(any(), anyMap(), any(), any())).thenThrow(new RuntimeException());
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-
-        interpreter.startWithContext(null);
-
-        verify(mockExecutor).execute(any(), anyMap(), any(), any());
+        verify(executor, times(0)).execute(any(), anyMap(), any(), any());
     }
 
     @Test
-    public void testTryFinally2() throws Exception {
+    public void testTryCatch1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = ""
-                + "TRY;"
-                + "    #ERROR;"
-                + "FINALLY;"
-                + "    #TEST;"
-                + "ENDTRY;";
+
+        String text = "" +
+                "TRY;" +
+                "   #TEST;" +
+                "   #TEST;" +
+                "   #TEST;" +
+                "CATCH e;" +
+                "   #TEST;" +
+                "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
-        @SuppressWarnings("serial")
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor mockExecutor = mock(Executor.class);
-        Executor mockExecutor2 = mock(Executor.class);
-        executorMap.put("TEST", mockExecutor);
-        executorMap.put("ERROR", mockExecutor2);
 
-        when(mockExecutor2.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
 
         interpreter.startWithContext(null);
 
-        verify(mockExecutor2).execute(any(), anyMap(), any(), any());
-        verify(mockExecutor).execute(any(), anyMap(), any(), any());
+        verify(executor, times(3)).execute(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTryCatch2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+
+        String text = "" +
+                "TRY;" +
+                "   #TEST;" +
+                "   error.cause();" +
+                "   #TEST;" +
+                "   #TEST;" +
+                "CATCH e;" +
+                "   #TEST;" +
+                "   #TEST;" +
+                "   #TEST;" +
+                "ENDTRY;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", executor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+
+        verify(executor, times(4)).execute(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTryFinally1() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+
+        String text = "" +
+                "TRY;" +
+                "   #TEST;" +
+                "FINALLY;" +
+                "   #TEST;" +
+                "ENDTRY;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", executor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+
+        verify(executor, times(2)).execute(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTryCatchFinally1() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+
+        String text = "" +
+                "TRY;" +
+                "   #TEST;" +
+                "CATCH e;" +
+                "   #TEST;" +
+                "FINALLY;" +
+                "   #TEST;" +
+                "ENDTRY;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", executor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+
+        verify(executor, times(2)).execute(any(), anyMap(), any(), any());
+    }
+
+    @Test
+    public void testTryCatchFinally2() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+
+        String text = "" +
+                "TRY;" +
+                "   #TEST;" +
+                "   error.cause();" +
+                "   #TEST;" +
+                "CATCH e;" +
+                "   #TEST;" +
+                "FINALLY;" +
+                "   #TEST;" +
+                "ENDTRY;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", executor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+
+        verify(executor, times(3)).execute(any(), anyMap(), any(), any());
     }
 
     @Test
@@ -769,7 +788,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new CommonFunctions());
 
@@ -826,7 +845,7 @@ public class TestInterpreter {
         };
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.getVars().put("player", new InTest());
         interpreter.getVars().put("player2", new InTest());
@@ -854,7 +873,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -876,7 +895,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new CommonFunctions());
 
@@ -1027,7 +1046,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setSelfReference(new CommonFunctions());
@@ -1134,7 +1153,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setSelfReference(new CommonFunctions());
@@ -1214,7 +1233,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1292,7 +1311,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1431,7 +1450,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1526,7 +1545,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1563,7 +1582,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1597,7 +1616,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1631,7 +1650,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1667,7 +1686,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1703,7 +1722,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1748,8 +1767,8 @@ public class TestInterpreter {
             localVars.put("x", x);
 
             Interpreter interpreter = new Interpreter(root);
-                    interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+            interpreter.setExecutorMap(executorMap);
+            interpreter.setTaskSupervisor(mockTask);
             interpreter.setVars(localVars);
 
             interpreter.startWithContext(null);
@@ -1791,7 +1810,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1834,7 +1853,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1876,7 +1895,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1955,7 +1974,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -1996,7 +2015,7 @@ public class TestInterpreter {
         executorMap.put("TEST6", exec);
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2017,7 +2036,7 @@ public class TestInterpreter {
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setGvars(gvars);
 
@@ -2047,7 +2066,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2073,7 +2092,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2106,7 +2125,7 @@ public class TestInterpreter {
         vars.put("test", new TheTest());
         vars.put("test2", new InTest());
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setVars(vars);
 
@@ -2155,7 +2174,7 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2182,7 +2201,7 @@ public class TestInterpreter {
         executorMap.put("TEST", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2238,7 +2257,7 @@ public class TestInterpreter {
             }
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2338,7 +2357,7 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(new TaskSupervisor() {
 
             /* (non-Javadoc)
@@ -2502,7 +2521,7 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2545,7 +2564,7 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2588,7 +2607,7 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2631,7 +2650,7 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
@@ -2663,7 +2682,7 @@ public class TestInterpreter {
             }
         });
 
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.startWithContext(null);
 
@@ -2706,7 +2725,7 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.setSelfReference(new SelfReference() {
             @SuppressWarnings("unused")
@@ -2755,7 +2774,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         Map<Object, Object> globalVar = new HashMap<>();
@@ -2808,7 +2827,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.getVars().put("instance", instance);
 
@@ -2848,7 +2867,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.getVars().put("instance", instance);
 
@@ -2885,7 +2904,7 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-                interpreter.setExecutorMap(executorMap);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
         interpreter.getVars().put("instance", instance);
 
