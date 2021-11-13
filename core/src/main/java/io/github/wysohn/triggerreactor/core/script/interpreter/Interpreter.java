@@ -274,8 +274,15 @@ public class Interpreter {
 
                         start(catchBody.getChildren().get(0));
 
+                        Throwable throwable = e;
+
                         Token idToken = context.popToken();
-                        Token valueToken = new Token(Type.OBJECT, e);
+                        Token valueToken = new Token(Type.OBJECT, throwable);
+
+                        while ((throwable = throwable.getCause()) != null) {
+                            valueToken = new Token(Type.OBJECT, throwable);
+                        }
+
                         assignValue(idToken, valueToken);
 
                         start(catchBody.getChildren().get(1));
