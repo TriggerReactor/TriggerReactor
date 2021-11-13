@@ -369,7 +369,7 @@ public class Parser {
     private Node parseTry(Token tryToken) throws IOException, LexerException, ParserException {
         Node tryNode = new Node(tryToken);
 
-        Node tryBody = new Node(new Token(Type.BODY, "<TRY BODY>"));
+        Node tryBody = new Node(new Token(Type.BODY, "<TRYBODY>"));
         Node codes = null;
         while (token != null
                 && (codes = parseStatement()) != null
@@ -393,13 +393,15 @@ public class Parser {
 
             nextToken();
 
+            Node catchCodeBody = new Node(new Token(Type.BODY, "<BODY>"));
             while (token != null
                     && (codes = parseStatement()) != null
                     && !"FINALLY".equals(codes.getToken().value)
                     && !"ENDTRY".equals(codes.getToken().value)) {
-                catchBody.getChildren().add(codes);
+                catchCodeBody.getChildren().add(codes);
             }
 
+            catchBody.getChildren().add(catchCodeBody);
             tryNode.getChildren().add(catchBody);
         }
         if ("FINALLY".equals(codes.getToken().value)) {
