@@ -632,7 +632,21 @@ public class TestInterpreter {
                 + "    #TEST true" + "\n"
                 + "ENDTRY" + "\n";
 
-        String totalCase = case1 + case2 + case3 + case4 + case5 + case6;
+        String case7 = ""
+                + "isExecuteSecondLine = false\n"
+                + "TRY" + "\n"
+                + "    #TEST true" + "\n"
+                + "    #ERROR" + "\n"
+                + "    #TEST false" + "\n"
+                + "CATCH e" + "\n"
+                + "    #TEST true" + "\n"
+                + "    isExecuteSecondLine = true" + "\n"
+                + "FINALLY" + "\n"
+                + "    #TEST true" + "\n"
+                + "ENDTRY" + "\n"
+                + "#TEST isExecuteSecondLine";
+
+        String totalCase = case1 + case2 + case3 + case4 + case5 + case6 + case7;
 
         Lexer lexer = new Lexer(totalCase, charset);
         Parser parser = new Parser(lexer);
