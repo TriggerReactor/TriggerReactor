@@ -21,7 +21,6 @@ import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationExcept
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.TabCompleterBuilder;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -49,7 +48,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
 
             {
-                tabCompleterMap.put("$playerlist", TabCompleterBuilder.of(Template.PLAYER).build());
+                tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
             }
 
             private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
@@ -58,13 +57,13 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
                 ITabCompleter tabCompleter;
                 if (candidates_str != null && candidates_str.startsWith("$")) {
-                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, TabCompleterBuilder.self().build());
+                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
                 } else if (candidates_str == null && hint != null) {
-                    tabCompleter = TabCompleterBuilder.withHint(hint).build();
+                    tabCompleter = ITabCompleter.Builder.withHint(hint).build();
                 } else if (candidates_str != null && hint == null) {
-                    tabCompleter = TabCompleterBuilder.of(candidates_str).build();
+                    tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
                 } else {
-                    tabCompleter = TabCompleterBuilder.withHint(hint)
+                    tabCompleter = ITabCompleter.Builder.withHint(hint)
                             .setCandidate(
                                     Optional.ofNullable(candidates_str)
                                                 .map(str -> ITabCompleter.list(str.split(",")))
