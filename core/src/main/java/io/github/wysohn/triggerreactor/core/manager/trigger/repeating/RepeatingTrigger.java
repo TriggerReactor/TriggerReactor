@@ -4,13 +4,14 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Map;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
     private long interval = 1000L;
     private boolean autoStart = false;
-    Map<String, Object> vars;
+    private Map<String, Object> vars;
 
     public RepeatingTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
@@ -31,6 +32,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
      */
     @Override
     public boolean activate(Object e, Map<String, Object> scriptVars) {
+        ValidationUtil.notNull(scriptVars);
         vars = scriptVars;
 
         return super.activate(e, scriptVars);
