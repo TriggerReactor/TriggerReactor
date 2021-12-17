@@ -51,8 +51,20 @@ public interface IConfigSource {
 
     void reload();
 
+    /**
+     * Save all contents in memory to the permanent storage. This is usually
+     * a blocking operation, so try not to call this from the main thread.
+     */
     void saveAll();
 
+    /**
+     * Prepare to shutdown the config source. This doesn't really do anything
+     * unless the underlying child class has multi-thread implementation to
+     * reduce the I/O delays, etc. If the child class is using multi-thread
+     * implementation, this method must be called before the server shutdown,
+     * so the shutdown procedure can wait for the non-main threads to gracefully
+     * shutdown without losing the necessary information.
+     */
     void disable();
 
     /**
