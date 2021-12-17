@@ -38,8 +38,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLoc
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
@@ -421,14 +420,14 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        return bukkit.createInterrupter(e, interpreter, cooldowns);
+    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
+        return bukkit.createInterrupter(cooldowns);
     }
 
     @Override
-    public ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
+    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
                                                       Map<IInventory, InventoryTrigger> inventoryMap) {
-        return bukkit.createInterrupterForInv(e, interpreter, cooldowns, inventoryMap);
+        return bukkit.createInterrupterForInv(cooldowns, inventoryMap);
     }
 
     @Override
