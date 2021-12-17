@@ -28,7 +28,7 @@ task writePluginYml {
 
     map.put("name", id)
     map.put("main", "io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor")
-    map.put("version", project.ext.version)
+    map.put("version", project.version)
     map.put("author", project.ext.author)
     map.put("authors", project.ext.authors)
     map.put("softdepend", [

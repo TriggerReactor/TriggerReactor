@@ -27,13 +27,26 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v1-release
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: build/libs/TriggerReactor-*.jar
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
-        prerelease: true
+      run: ./gradlew build -Pversion=${GITHUB_REF#refs/*/}
+
+  to_release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        file_name:
+          - bukkit-latest
+          - bukkit-legacy
+          - sponge
+
+    steps:
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        continue-on-error: true
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/libs/TriggerReactor-{{matrix.file_name}}-*.jar
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+          prerelease: true
