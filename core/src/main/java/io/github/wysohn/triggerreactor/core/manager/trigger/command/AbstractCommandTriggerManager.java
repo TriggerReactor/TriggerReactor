@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationExcept
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -30,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
     private static final String SYNC = "sync";
@@ -45,7 +48,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
 
             {
-                tabCompleterMap.put("$playerlist", ITabCompleter.PLAYER);
+                tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
             }
 
             private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
@@ -54,32 +57,19 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
                 ITabCompleter tabCompleter;
                 if (candidates_str != null && candidates_str.startsWith("$")) {
-                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.EMPTY);
+                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
                 } else if (candidates_str == null && hint != null) {
-                    tabCompleter = ITabCompleter.hint(hint);
+                    tabCompleter = ITabCompleter.Builder.withHint(hint).build();
                 } else if (candidates_str != null && hint == null) {
-                    tabCompleter = ITabCompleter.simple(candidates_str);
+                    tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
                 } else {
-                    tabCompleter = new ITabCompleter() {
-                        @Override
-                        public List<String> getCandidates(String part) {
-                            return Optional.ofNullable(candidates_str)
-                                    .map(str -> str.split(","))
-                                    .map(ITabCompleter::list)
-                                    .map(list -> list.stream()
-                                            .filter(candidate -> candidate.startsWith(part))
-                                            .collect(Collectors.toList()))
-                                    .orElseGet(() -> ITabCompleter.list(""));
-
-                        }
-
-                        @Override
-                        public List<String> getHint() {
-                            return Optional.ofNullable(hint)
-                                    .map(ITabCompleter::list)
-                                    .orElseGet(() -> ITabCompleter.list(""));
-                        }
-                    };
+                    tabCompleter = ITabCompleter.Builder.withHint(hint)
+                            .setCandidate(
+                                    Optional.ofNullable(candidates_str)
+                                                .map(str -> ITabCompleter.list(str.split(",")))
+                                                .orElseGet(() -> ITabCompleter.list(""))
+                            )
+                            .build();
                 }
                 return tabCompleter;
             }
@@ -92,7 +82,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             @Override
             public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                boolean sync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
                 List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
                 List<String> aliases = info.getConfig().get(ALIASES, List.class)
                         .map(aliasList -> (((List<String>)aliasList).stream()
@@ -104,7 +93,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     CommandTrigger trigger = new CommandTrigger(info, script);
-                    trigger.setSync(sync);
                     trigger.setPermissions(permissions.toArray(new String[0]));
                     trigger.setAliases(aliases.toArray(new String[0]));
                     trigger.setTabCompleters(toTabCompleters(tabs));
@@ -120,7 +108,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                    trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
                     trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
                     trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
                             .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))

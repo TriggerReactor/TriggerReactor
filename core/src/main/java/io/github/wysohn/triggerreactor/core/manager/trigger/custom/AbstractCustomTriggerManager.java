@@ -48,7 +48,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     CustomTrigger trigger = new CustomTrigger(info, script, registry.getEvent(eventName), eventName);
-                    trigger.setSync(isSync);
                     return trigger;
                 } catch (Exception ex) {
                     ex.printStackTrace();
@@ -62,7 +61,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
                     trigger.getInfo().getConfig().put(EVENT, trigger.getEventName());
-                    trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

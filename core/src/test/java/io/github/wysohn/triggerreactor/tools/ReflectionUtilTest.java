@@ -1,12 +1,17 @@
 package io.github.wysohn.triggerreactor.tools;
 
+import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class ReflectionUtilTest {
 
@@ -149,6 +154,93 @@ public class ReflectionUtilTest {
         ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method88", 1, 4, 5);
     }
 
+    @Test
+    public void invocationHandlerTest() throws Throwable{
+        SomeInterface obj = mock(SomeInterface.class);
+        LambdaFunction lambdaFunction = mock(LambdaFunction.class);
+
+        SomeStaticClass.obj = obj;
+
+        doAnswer(invocation -> {
+            Runnable run = invocation.getArgument(0);
+            run.run();
+            return null;
+        }).when(obj).noArg(any(Runnable.class));
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                lambdaFunction);
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                1, lambdaFunction);
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                1, lambdaFunction, "a");
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                "a", lambdaFunction, 1);
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                "a", lambdaFunction, "a");
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                lambdaFunction, "a");
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "noArg",
+                lambdaFunction, "1");
+
+        verify(obj, times(7)).noArg(any(Runnable.class));
+        verify(lambdaFunction, times(7)).invoke(any(), any(), any());
+    }
+
+    @Test
+    public void invocationHandlerTest2() throws Throwable{
+        SomeInterface obj = mock(SomeInterface.class);
+        LambdaFunction lambdaFunction = mock(LambdaFunction.class);
+
+        SomeStaticClass.obj = obj;
+
+        doAnswer(invocation -> {
+            Consumer run = invocation.getArgument(0);
+            run.accept("abc");
+            return null;
+        }).when(obj).oneArg(any(Consumer.class));
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "oneArg",
+                lambdaFunction);
+
+        verify(obj).oneArg(any(Consumer.class));
+        verify(lambdaFunction).invoke(any(), any(), eq(new Object[]{"abc"}));
+    }
+
+    @Test
+    public void invocationHandlerTest3() throws Throwable{
+        SomeInterface obj = mock(SomeInterface.class);
+        LambdaFunction lambdaFunction = mock(LambdaFunction.class);
+
+        SomeStaticClass.obj = obj;
+
+        doAnswer(invocation -> {
+            BiConsumer run = invocation.getArgument(0);
+            run.accept(false, 44.5);
+            return null;
+        }).when(obj).twoArg(any(BiConsumer.class));
+
+        ReflectionUtil.invokeMethod(SomeStaticClass.class, (Object) null,
+                "twoArg",
+                lambdaFunction);
+
+        verify(obj).twoArg(any(BiConsumer.class));
+        verify(lambdaFunction).invoke(any(), any(), eq(new Object[]{false, 44.5}));
+    }
+
     public static int method1(int a, int b, int c) {
         return 1;
     }
@@ -278,6 +370,54 @@ public class ReflectionUtilTest {
         @Override
         public int hashCode() {
             return Objects.hash(a, b, c, d);
+        }
+    }
+
+    private interface SomeInterface{
+        void noArg(Runnable run);
+
+        void oneArg(Consumer<Object> run);
+
+        void twoArg(BiConsumer<Object, Object> run);
+    }
+
+    private static class SomeStaticClass{
+        static SomeInterface obj;
+
+        public static void noArg(Runnable run){
+            obj.noArg(run);
+        }
+
+        public static void noArg(int b, Runnable run){
+            obj.noArg(run);
+        }
+
+        public static void noArg(int b, Runnable run, String a){
+            obj.noArg(run);
+        }
+
+        public static void noArg(String c, Runnable run, int a){
+            obj.noArg(run);
+        }
+
+        public static void noArg(String c, Runnable run, String a){
+            obj.noArg(run);
+        }
+
+        public static void noArg(Runnable run, String a){
+            obj.noArg(run);
+        }
+
+        public static void noArg(Runnable run, int a){
+            obj.noArg(run);
+        }
+
+        public static void oneArg(Consumer<Object> run){
+            obj.oneArg(run);
+        }
+
+        public static void twoArg(BiConsumer<Object, Object> run){
+            obj.twoArg(run);
         }
     }
 }
