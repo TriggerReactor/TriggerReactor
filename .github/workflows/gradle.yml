@@ -82,6 +82,11 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build javadoc -x test -Pversion=${GITHUB_REF#refs/*/}
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: build
+          key: build
 
   to_release:
     needs: [build]
@@ -94,6 +99,11 @@ jobs:
           - sponge
 
     steps:
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: build
+          key: build
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         continue-on-error: true
@@ -109,6 +119,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: build
+          key: build
       - name: update javadoc
         continue-on-error: true
         run: |
