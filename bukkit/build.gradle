@@ -30,8 +30,8 @@ allprojects {
 
         from {
             String[] include = [
-                    "core.jar",
-                    "bukkit.jar",
+                    "${project(':core').archivesBaseName}-${project.version}.jar",
+                    "${project(':bukkit').archivesBaseName}-${project.version}.jar",
                     "commons-lang3-3.12.0.jar"
             ]
 
@@ -39,8 +39,9 @@ allprojects {
                     .findAll { include.contains(it.name) }
                     .collect { it.isDirectory() ? it : zipTree(it) }
         }
+
+        dependsOn project(':core').jar
     }
-    jar.dependsOn project(':core').jar
 }
 
 subprojects {
@@ -56,8 +57,6 @@ subprojects {
         into "${buildDir}/classes/test"
     }
     processTestResources.dependsOn copyTestResources
-
-    jar.baseName = "${rootProject.name}-bukkit-${project.name}-${project.ext.version}"
 }
 
 test {

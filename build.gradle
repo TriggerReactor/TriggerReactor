@@ -28,7 +28,6 @@ subprojects {
 
     ext {
         id = 'TriggerReactor'
-        version = '3.3.0.2'
         description = 'Simple script parser with infinite possibility'
         author = 'wysohn'
         authors = [
@@ -97,6 +96,8 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_16
         targetCompatibility = JavaVersion.VERSION_16
     }
+
+    archivesBaseName = parent.archivesBaseName + "-" + archivesBaseName
 
     task copyResources(type: Copy) {
         from project(":core").sourceSets.main.output.resourcesDir

@@ -81,16 +81,51 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew build javadoc -x test
+        run: ./gradlew build javadoc -x test -Pversion=${GITHUB_REF#refs/*/}
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: build
+          key: build
+
+  to_release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        file_name:
+          - bukkit-latest
+          - bukkit-legacy
+          - sponge
+
+    steps:
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: build
+          key: build
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
+        continue-on-error: true
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/TriggerReactor-*.jar
+          file: build/libs/TriggerReactor-${{matrix.file_name}}-*.jar
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
+
+  javadocs:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cache Build
+        uses: actions/cache@v2
+        with:
+          path: build
+          key: build
       - name: update javadoc
+        continue-on-error: true
         run: |
           mkdir build/docs/tmp
           cd build/docs/tmp
