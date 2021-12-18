@@ -84,6 +84,10 @@ subprojects {
         // https://mvnrepository.com/artifact/org.graalvm.js/js-scriptengine
         //implementation group: 'org.graalvm.js', name: 'js-scriptengine', version: '21.1.0'
 
+        // dagger 2
+        api 'com.google.dagger:dagger:2.40.5'
+        annotationProcessor 'com.google.dagger:dagger-compiler:2.40.5'
+
         testImplementation 'junit:junit:4.11'
         testImplementation 'org.mockito:mockito-core:3.11.2'
 //        testImplementation 'org.powermock:powermock-core:2.+'
