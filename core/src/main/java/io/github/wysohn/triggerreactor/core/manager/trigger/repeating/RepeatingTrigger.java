@@ -39,6 +39,18 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     /**
+     * This should be called at least once on start up so variables can be
+     * initialized.
+     */
+    @Override
+    public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
+        ValidationUtil.notNull(scriptVars);
+        vars = scriptVars;
+
+        return super.activate(e, scriptVars, sync);
+    }
+
+    /**
      * We don't use cooldown for this trigger. Just return false always
      */
     @Override
