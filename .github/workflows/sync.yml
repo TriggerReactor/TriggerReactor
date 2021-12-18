@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+    - master
+    
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    name: Sync Dev branch with Release
+
+    steps:
+    - name: Checkout Dev
+      uses: actions/checkout@v2
+      with:
+        ref: development
+        
+    - name: Pull upstream changes
+      id: sync
+      uses: aormsby/Fork-Sync-With-Upstream-action@v2.2
+      with:
+        upstream_repository: TriggerReactor/TriggerReactor
+        upstream_branch: master
+        target_branch: development
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Timestamp
+      run: date
