@@ -55,7 +55,7 @@ jobs:
         continue-on-error: true
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: build/libs/TriggerReactor-{{matrix.file_name}}-*.jar
+          file: build/libs/TriggerReactor-${{matrix.file_name}}-*.jar
           tag: ${{ github.ref }}
           overwrite: true
           file_glob: true
