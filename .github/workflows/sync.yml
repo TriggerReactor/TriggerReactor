@@ -6,7 +6,7 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    name: Sync Dev branch with Release
+    name: Sync development branch with master
 
     steps:
     - name: Checkout Dev
@@ -14,13 +14,12 @@ jobs:
       with:
         ref: development
         
-    - name: Pull upstream changes
-      id: sync
-      uses: aormsby/Fork-Sync-With-Upstream-action@v2.2
+    - name: Merge master -> development
+      uses: devmasx/merge-branch@master
       with:
-        upstream_repository: TriggerReactor/TriggerReactor
-        upstream_branch: master
-        target_branch: development
+        type: now
+        from_branch: development
+        target_branch: staging
         github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Timestamp
