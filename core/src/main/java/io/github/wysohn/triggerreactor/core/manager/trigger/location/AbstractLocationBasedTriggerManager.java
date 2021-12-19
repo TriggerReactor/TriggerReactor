@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
@@ -38,7 +38,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
-    public AbstractLocationBasedTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
+    public AbstractLocationBasedTriggerManager(TriggerReactorMain plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin, folder, loader);
     }
 

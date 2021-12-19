@@ -16,13 +16,13 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
 
 import java.io.File;
 
 public class NamedTriggerManager extends AbstractNamedTriggerManager implements BukkitTriggerManager {
-    public NamedTriggerManager(TriggerReactorCore plugin) {
+    public NamedTriggerManager(TriggerReactorMain plugin) {
         super(plugin, new File(plugin.getDataFolder(), "NamedTriggers"));
     }
 }

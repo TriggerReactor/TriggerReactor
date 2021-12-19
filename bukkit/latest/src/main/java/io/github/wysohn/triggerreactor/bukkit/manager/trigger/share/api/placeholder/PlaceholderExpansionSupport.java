@@ -17,12 +17,12 @@
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion {
-    private final TriggerReactorCore plugin;
+    private final TriggerReactorMain plugin;
     private final IVariablePlaceholder variablePlaceholder;
 
     /**
@@ -32,7 +32,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      *
      * @param plugin The instance of our plugin.
      */
-    public PlaceholderExpansionSupport(TriggerReactorCore plugin) {
+    public PlaceholderExpansionSupport(TriggerReactorMain plugin) {
         this.plugin = plugin;
         this.variablePlaceholder = new VariablePlaceholder(plugin);
     }

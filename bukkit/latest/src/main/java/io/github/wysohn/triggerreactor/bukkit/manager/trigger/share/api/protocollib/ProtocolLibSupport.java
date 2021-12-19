@@ -22,7 +22,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import org.bukkit.Location;
@@ -39,7 +39,7 @@ public class ProtocolLibSupport extends APISupport {
 
     private ProtocolManager protocolManager;
 
-    public ProtocolLibSupport(TriggerReactorCore plugin) {
+    public ProtocolLibSupport(TriggerReactorMain plugin) {
         super(plugin, "ProtocolLib");
 
         Plugin bukkitPlugin = plugin.getMain();

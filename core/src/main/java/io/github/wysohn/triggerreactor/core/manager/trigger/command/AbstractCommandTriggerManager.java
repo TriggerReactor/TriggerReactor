@@ -19,12 +19,12 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -43,7 +43,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
 
-    public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
+    public AbstractCommandTriggerManager(TriggerReactorMain plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
             private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
 

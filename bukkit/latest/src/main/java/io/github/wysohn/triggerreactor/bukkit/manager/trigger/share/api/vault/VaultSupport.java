@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
@@ -35,7 +35,7 @@ public class VaultSupport extends APISupport {
     public Economy economy = null;
     public Chat chat = null;
 
-    public VaultSupport(TriggerReactorCore plugin) {
+    public VaultSupport(TriggerReactorMain plugin) {
         super(plugin, "Vault");
     }
 

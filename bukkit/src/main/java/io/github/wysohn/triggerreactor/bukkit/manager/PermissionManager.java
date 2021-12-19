@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEventAsync;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
@@ -40,7 +40,7 @@ import java.util.Set;
 public class PermissionManager extends AbstractPermissionManager implements Listener {
     private boolean inject = true;
 
-    public PermissionManager(TriggerReactorCore plugin) {
+    public PermissionManager(TriggerReactorMain plugin) {
         super(plugin);
 
         if (!plugin.isConfigSet("PermissionManager.Intercept"))

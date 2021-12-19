@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -57,7 +57,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AbstractAreaTriggerManager(TriggerReactorCore plugin, File folder) {
+    public AbstractAreaTriggerManager(TriggerReactorMain plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
             @Override
             public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {

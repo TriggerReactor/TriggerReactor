@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 
 /**
  * This class is responsible for firing IPlayerPermissionCheckEvent. This might be
@@ -26,7 +26,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
  */
 public abstract class AbstractPermissionManager extends Manager {
 
-    public AbstractPermissionManager(TriggerReactorCore plugin) {
+    public AbstractPermissionManager(TriggerReactorMain plugin) {
         super(plugin);
     }
 

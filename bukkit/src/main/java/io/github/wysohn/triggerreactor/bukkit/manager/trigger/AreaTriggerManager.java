@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitEntity;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
@@ -46,7 +46,7 @@ import java.util.concurrent.Future;
 
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements BukkitTriggerManager {
 
-    public AreaTriggerManager(TriggerReactorCore plugin) {
+    public AreaTriggerManager(TriggerReactorMain plugin) {
         super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
 
         Thread entityTrackingThread = new Thread(new Runnable() {

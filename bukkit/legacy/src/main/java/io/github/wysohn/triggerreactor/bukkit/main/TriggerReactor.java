@@ -10,7 +10,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocol
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -61,7 +61,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
     }
 
     @Override
-    public Map<String, Command> getCommandMap(TriggerReactorCore plugin) {
+    public Map<String, Command> getCommandMap(TriggerReactorMain plugin) {
         return customCommandHandle;
 //        try {
 //            Server server = Bukkit.getServer();

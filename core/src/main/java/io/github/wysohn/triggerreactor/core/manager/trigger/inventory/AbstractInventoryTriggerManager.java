@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -45,7 +45,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<ItemStack> itemClass,
+    public AbstractInventoryTriggerManager(TriggerReactorMain plugin, File folder, Class<ItemStack> itemClass,
                                            Function<ItemStack, IItemStack> itemWrapper) {
         super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override

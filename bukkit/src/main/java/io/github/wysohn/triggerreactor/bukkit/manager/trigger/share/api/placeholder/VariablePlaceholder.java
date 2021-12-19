@@ -17,7 +17,7 @@
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import org.bukkit.entity.Entity;
@@ -28,9 +28,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class VariablePlaceholder implements IVariablePlaceholder {
-    private final TriggerReactorCore plugin;
+    private final TriggerReactorMain plugin;
 
-    public VariablePlaceholder(TriggerReactorCore plugin) {
+    public VariablePlaceholder(TriggerReactorMain plugin) {
         this.plugin = plugin;
     }
 

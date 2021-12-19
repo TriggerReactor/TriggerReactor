@@ -25,7 +25,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -78,7 +78,7 @@ import java.util.logging.Logger;
  *
  * @author wysohn
  */
-public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin {
+public class BukkitTriggerReactorCore extends TriggerReactorMain implements Plugin {
     protected static AbstractBukkitWrapper WRAPPER = null;
     private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
     private ScriptEngineManager sem;

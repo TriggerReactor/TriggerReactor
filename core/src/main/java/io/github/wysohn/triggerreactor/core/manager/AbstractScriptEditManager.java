@@ -17,12 +17,12 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 
 public abstract class AbstractScriptEditManager extends Manager {
 
-    public AbstractScriptEditManager(TriggerReactorCore plugin) {
+    public AbstractScriptEditManager(TriggerReactorMain plugin) {
         super(plugin);
     }
 

@@ -17,13 +17,13 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 
 public class PlaceHolderSupport extends APISupport {
-    public PlaceHolderSupport(TriggerReactorCore plugin) {
+    public PlaceHolderSupport(TriggerReactorMain plugin) {
         super(plugin, "PlaceholderAPI");
     }
 

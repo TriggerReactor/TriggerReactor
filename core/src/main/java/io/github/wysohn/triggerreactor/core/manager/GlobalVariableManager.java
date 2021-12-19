@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.DelegatedConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 import java.io.File;
@@ -32,11 +32,11 @@ import java.util.regex.Pattern;
 public final class GlobalVariableManager extends Manager implements IMigratable {
     private final IConfigSource configSource;
 
-    public GlobalVariableManager(TriggerReactorCore plugin) {
+    public GlobalVariableManager(TriggerReactorMain plugin) {
         this(plugin, ConfigSourceFactory.instance().create(plugin.getDataFolder(), "var"));
     }
 
-    public GlobalVariableManager(TriggerReactorCore plugin, IConfigSource configSource) {
+    public GlobalVariableManager(TriggerReactorMain plugin, IConfigSource configSource) {
         super(plugin);
         this.configSource = configSource;
     }

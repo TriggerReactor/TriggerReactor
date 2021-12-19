@@ -4,18 +4,18 @@ import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 
 import java.io.File;
 
 public class PluginConfigManager extends Manager implements IMigratable {
     private final IConfigSource configSource;
 
-    public PluginConfigManager(TriggerReactorCore plugin) {
+    public PluginConfigManager(TriggerReactorMain plugin) {
         this(plugin, ConfigSourceFactory.instance().create(plugin.getDataFolder(), "config"));
     }
 
-    public PluginConfigManager(TriggerReactorCore plugin, IConfigSource configSource) {
+    public PluginConfigManager(TriggerReactorMain plugin, IConfigSource configSource) {
         super(plugin);
         this.configSource = configSource;
     }

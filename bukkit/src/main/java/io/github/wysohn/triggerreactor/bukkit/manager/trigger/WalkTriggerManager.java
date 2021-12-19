@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> {
-    public WalkTriggerManager(TriggerReactorCore plugin) {
+    public WalkTriggerManager(TriggerReactorMain plugin) {
         super(plugin, "WalkTrigger", new ITriggerLoader<WalkTrigger>() {
             @Override
             public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {

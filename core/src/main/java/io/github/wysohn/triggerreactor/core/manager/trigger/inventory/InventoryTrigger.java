@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -44,10 +44,10 @@ public class InventoryTrigger extends Trigger {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupterForInv(cooldowns, AbstractInventoryTriggerManager.inventoryMap),
+                    TriggerReactorMain.getInstance().createInterrupterForInv(cooldowns, AbstractInventoryTriggerManager.inventoryMap),
                     timing);
         } catch (Exception ex) {
-            TriggerReactorCore.getInstance().handleException(e,
+            TriggerReactorMain.getInstance().handleException(e,
                     new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
         }
     }

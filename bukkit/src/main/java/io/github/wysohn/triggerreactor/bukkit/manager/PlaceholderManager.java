@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
@@ -32,7 +32,7 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
 
     private File placeholderFolder;
 
-    public PlaceholderManager(TriggerReactorCore plugin, ScriptEngineManager sem) throws ScriptException, IOException {
+    public PlaceholderManager(TriggerReactorMain plugin, ScriptEngineManager sem) throws ScriptException, IOException {
         super(plugin, sem);
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
 

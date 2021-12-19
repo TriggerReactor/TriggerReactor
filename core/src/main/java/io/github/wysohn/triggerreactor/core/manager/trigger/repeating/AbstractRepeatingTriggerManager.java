@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -44,7 +44,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    public AbstractRepeatingTriggerManager(TriggerReactorCore plugin, File folder) {
+    public AbstractRepeatingTriggerManager(TriggerReactorMain plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<RepeatingTrigger>() {
             @Override
             public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {

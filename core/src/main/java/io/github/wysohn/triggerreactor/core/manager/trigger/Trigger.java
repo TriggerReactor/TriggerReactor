@@ -1,7 +1,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -99,9 +99,9 @@ public abstract class Trigger implements Cloneable, IObservable {
             List<Warning> warnings = parser.getWarnings();
 
             AbstractTriggerManager.reportWarnings(warnings, this);
-            executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
-            placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();
-            gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();
+            executorMap = TriggerReactorMain.getInstance().getExecutorManager().getBackedMap();
+            placeholderMap = TriggerReactorMain.getInstance().getPlaceholderManager().getBackedMap();
+            gvarMap = TriggerReactorMain.getInstance().getVariableManager().getGlobalVariableAdapter();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
                     + " -- " + info + "]!", ex);
@@ -145,8 +145,8 @@ public abstract class Trigger implements Cloneable, IObservable {
         }
 
         scriptVars.put("event", e);
-        scriptVars.putAll(TriggerReactorCore.getInstance().getSharedVars());
-        Map<String, Object> customVars = TriggerReactorCore.getInstance().getCustomVarsForTrigger(e);
+        scriptVars.putAll(TriggerReactorMain.getInstance().getSharedVars());
+        Map<String, Object> customVars = TriggerReactorMain.getInstance().getCustomVarsForTrigger(e);
         if (customVars != null)
             scriptVars.putAll(customVars);
 
@@ -175,7 +175,7 @@ public abstract class Trigger implements Cloneable, IObservable {
      * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
      */
     protected boolean checkCooldown(Object e) {
-        IPlayer iPlayer = TriggerReactorCore.getInstance().extractPlayerFromContext(e);
+        IPlayer iPlayer = TriggerReactorMain.getInstance().extractPlayerFromContext(e);
 
         if (iPlayer != null) {
             UUID uuid = iPlayer.getUniqueId();
@@ -196,12 +196,12 @@ public abstract class Trigger implements Cloneable, IObservable {
      */
     protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setTaskSupervisor(TriggerReactorCore.getInstance());
+        interpreter.setTaskSupervisor(TriggerReactorMain.getInstance());
         interpreter.setExecutorMap(executorMap);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setGvars(gvarMap);
         interpreter.setVars(scriptVars);
-        interpreter.setSelfReference(TriggerReactorCore.getInstance().getSelfReference());
+        interpreter.setSelfReference(TriggerReactorMain.getInstance().getSelfReference());
 
         return interpreter;
     }
@@ -224,7 +224,7 @@ public abstract class Trigger implements Cloneable, IObservable {
                 try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
                     start(t, e, scriptVars, interpreter, sync);
                 } catch (Exception ex) {
-                    TriggerReactorCore.getInstance().handleException(e, new Exception(
+                    TriggerReactorMain.getInstance().handleException(e, new Exception(
                             "Trigger [" + info + "] produced an error!", ex));
                 }
                 return null;
@@ -232,20 +232,20 @@ public abstract class Trigger implements Cloneable, IObservable {
         };
 
         if (sync) {
-            if (TriggerReactorCore.getInstance().isServerThread()) {
+            if (TriggerReactorMain.getInstance().isServerThread()) {
                 try {
                     call.call();
                 } catch (Exception e1) {
 
                 }
             } else {
-                Future<Void> future = TriggerReactorCore.getInstance().callSyncMethod(call);
+                Future<Void> future = TriggerReactorMain.getInstance().callSyncMethod(call);
                 try {
                     future.get(3, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e1) {
 
                 } catch (TimeoutException e1) {
-                    TriggerReactorCore.getInstance().handleException(e, new RuntimeException(
+                    TriggerReactorMain.getInstance().handleException(e, new RuntimeException(
                             "Took too long to process Trigger [" + info + "]! Is the server lagging?",
                             e1));
                 }
@@ -268,10 +268,10 @@ public abstract class Trigger implements Cloneable, IObservable {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupter(cooldowns),
+                    TriggerReactorMain.getInstance().createInterrupter(cooldowns),
                     timing);
         } catch (InterpreterException ex) {
-            TriggerReactorCore.getInstance().handleException(e,
+            TriggerReactorMain.getInstance().handleException(e,
                     new Exception("Could not finish interpretation for [" + info + "]!", ex));
         }
     }

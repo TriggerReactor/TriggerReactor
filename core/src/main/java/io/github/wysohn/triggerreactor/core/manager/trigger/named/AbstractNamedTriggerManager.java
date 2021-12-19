@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -33,13 +33,13 @@ import java.util.List;
 
 public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
 
-    public AbstractNamedTriggerManager(TriggerReactorCore plugin, File folder) {
+    public AbstractNamedTriggerManager(TriggerReactorMain plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<NamedTrigger>() {
-            private File[] getAllFiles(List<File> list, File file){
-                if(file.isDirectory()){
+            private File[] getAllFiles(List<File> list, File file) {
+                if (file.isDirectory()) {
                     File[] files = file.listFiles();
-                    if(files != null){
-                        for(File each : files){
+                    if (files != null) {
+                        for (File each : files) {
                             getAllFiles(list, each);
                         }
                     }

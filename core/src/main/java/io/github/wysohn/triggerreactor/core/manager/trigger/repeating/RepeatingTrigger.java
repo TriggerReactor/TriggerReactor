@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -148,10 +148,10 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         @Override
         public void onFail(Throwable throwable) {
             throwable.printStackTrace();
-            TriggerReactorCore.getInstance().getLogger()
+            TriggerReactorMain.getInstance().getLogger()
                     .warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
-            TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
-            TriggerReactorCore.getInstance().getLogger()
+            TriggerReactorMain.getInstance().getLogger().warning(throwable.getMessage());
+            TriggerReactorMain.getInstance().getLogger()
                     .warning("If you are an administrator, see console for more details.");
         }
     };

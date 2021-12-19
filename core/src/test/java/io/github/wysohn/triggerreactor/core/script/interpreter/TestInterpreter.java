@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -317,7 +317,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
+        TriggerReactorMain triggerReactor = mock(TriggerReactorMain.class);
         GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, mock(IConfigSource.class));
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);

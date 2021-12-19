@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLoca
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.bukkit.Location;
@@ -37,7 +37,7 @@ import org.bukkit.util.Vector;
 public class PlayerLocationManager extends AbstractPlayerLocationManager implements Listener {
 
 
-    public PlayerLocationManager(TriggerReactorCore plugin) {
+    public PlayerLocationManager(TriggerReactorMain plugin) {
         super(plugin);
     }
 

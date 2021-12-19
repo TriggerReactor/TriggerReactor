@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.interpreter.SynchronizableTask;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
@@ -33,7 +33,7 @@ import java.util.concurrent.*;
 public abstract class AbstractJavascriptBasedManager extends Manager {
     protected final ScriptEngineManager sem;
 
-    public AbstractJavascriptBasedManager(TriggerReactorCore plugin, ScriptEngineManager sem) {
+    public AbstractJavascriptBasedManager(TriggerReactorMain plugin, ScriptEngineManager sem) {
         super(plugin);
         this.sem = sem;
     }
@@ -162,7 +162,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 return (R) result;
             };
 
-            if (TriggerReactorCore.getInstance().isServerThread()) {
+            if (TriggerReactorMain.getInstance().isServerThread()) {
                 R result = null;
 
                 try {
@@ -176,7 +176,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 Future<R> future = SynchronizableTask.runSyncTaskForFuture(call);
                 if (future == null) {
                     //probably server is shutting down
-                    if (!TriggerReactorCore.getInstance().isEnabled()) {
+                    if (!TriggerReactorMain.getInstance().isEnabled()) {
                         return call.call();
                     } else {
                         throw new Exception(indentifier + functionName + " couldn't be finished. The server returned null Future.");

@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import org.apache.commons.lang.Validate;
@@ -31,7 +31,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
     protected Plugin target;
 
-    public APISupport(TriggerReactorCore plugin, String targetPluginName) {
+    public APISupport(TriggerReactorMain plugin, String targetPluginName) {
         super(plugin);
         Validate.notNull(plugin);
         Validate.notNull(targetPluginName);

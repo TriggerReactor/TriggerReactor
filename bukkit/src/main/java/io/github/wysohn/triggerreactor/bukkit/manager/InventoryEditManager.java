@@ -5,7 +5,7 @@ import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
@@ -27,7 +27,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
 
     private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
 
-    public InventoryEditManager(TriggerReactorCore plugin) {
+    public InventoryEditManager(TriggerReactorMain plugin) {
         super(plugin);
     }
 

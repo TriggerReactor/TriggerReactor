@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
@@ -29,7 +29,7 @@ public class CoreprotectSupport extends APISupport {
      */
     protected CoreProtectAPI api;
 
-    public CoreprotectSupport(TriggerReactorCore plugin) {
+    public CoreprotectSupport(TriggerReactorMain plugin) {
         super(plugin, "CoreProtect");
     }
 

@@ -3,7 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public abstract class AbstractInventoryEditManager extends Manager {
     //inventories currently awaiting a save/discard/continue command
     protected Map<UUID, IInventory> suspended = new HashMap<>();
 
-    public AbstractInventoryEditManager(TriggerReactorCore plugin) {
+    public AbstractInventoryEditManager(TriggerReactorMain plugin) {
         super(plugin);
     }
 
@@ -49,6 +49,6 @@ public abstract class AbstractInventoryEditManager extends Manager {
         for (int i = 0; i < triggerItems.length; i++) {
             triggerItems[i] = items[i];
         }
-        TriggerReactorCore.getInstance().saveAsynchronously(TriggerReactorCore.getInstance().getInvManager());
+        TriggerReactorMain.getInstance().saveAsynchronously(TriggerReactorMain.getInstance().getInvManager());
     }
 }

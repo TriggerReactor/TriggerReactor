@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
@@ -37,7 +37,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     protected final ITriggerLoader<T> loader;
     protected final ConfigSourceFactory configSourceFactory;
 
-    public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
+    public AbstractTriggerManager(TriggerReactorMain plugin, File folder, ITriggerLoader<T> loader) {
         super(plugin);
         this.folder = folder;
         this.loader = loader;
@@ -159,7 +159,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         }
 
         Level L = Level.WARNING;
-        Logger log = TriggerReactorCore.getInstance().getLogger();
+        Logger log = TriggerReactorMain.getInstance().getLogger();
         int numWarnings = warnings.size();
         String ww;
         if (numWarnings > 1) {

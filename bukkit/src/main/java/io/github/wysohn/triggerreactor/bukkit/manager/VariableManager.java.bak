@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.Bukkit;

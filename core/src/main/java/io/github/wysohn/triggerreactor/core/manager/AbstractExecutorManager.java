@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
@@ -30,7 +30,7 @@ import java.util.Map.Entry;
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
     protected Map<String, Executor> jsExecutors = new HashMap<>();
 
-    public AbstractExecutorManager(TriggerReactorCore plugin, ScriptEngineManager sem) {
+    public AbstractExecutorManager(TriggerReactorMain plugin, ScriptEngineManager sem) {
         super(plugin, sem);
     }
 

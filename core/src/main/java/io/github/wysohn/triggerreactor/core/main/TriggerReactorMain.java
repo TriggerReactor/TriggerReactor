@@ -66,14 +66,15 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-public abstract class TriggerReactorCore implements TaskSupervisor {
+public abstract class TriggerReactorMain implements TaskSupervisor {
     public static final String PERMISSION = "triggerreactor.admin";
-    static TriggerReactorCore instance;
+    static TriggerReactorMain instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private PluginConfigManager pluginConfigManager;
     private GlobalVariableManager globalVariableManager;
     private boolean debugging = false;
-    protected TriggerReactorCore() {
+
+    protected TriggerReactorMain() {
         instance = this;
     }
 
@@ -1844,7 +1845,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      *
      * @return
      */
-    public static TriggerReactorCore getInstance() {
+    public static TriggerReactorMain getInstance() {
         return instance;
     }
 

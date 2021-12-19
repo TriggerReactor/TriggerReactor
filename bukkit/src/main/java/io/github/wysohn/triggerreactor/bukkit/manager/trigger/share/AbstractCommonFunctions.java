@@ -2,7 +2,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
@@ -21,9 +21,9 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
-    protected final TriggerReactorCore plugin;
+    protected final TriggerReactorMain plugin;
 
-    public AbstractCommonFunctions(TriggerReactorCore plugin) {
+    public AbstractCommonFunctions(TriggerReactorMain plugin) {
         this.plugin = plugin;
     }
 

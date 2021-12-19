@@ -16,13 +16,13 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 
 import java.io.File;
 
 public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements BukkitTriggerManager {
-    public RepeatingTriggerManager(TriggerReactorCore plugin) {
+    public RepeatingTriggerManager(TriggerReactorMain plugin) {
         super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
     }
 }

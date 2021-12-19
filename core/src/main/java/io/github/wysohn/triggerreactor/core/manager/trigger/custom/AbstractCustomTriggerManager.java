@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -36,7 +36,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     protected final EventRegistry registry;
 
-    public AbstractCustomTriggerManager(TriggerReactorCore plugin, File folder, EventRegistry registry) {
+    public AbstractCustomTriggerManager(TriggerReactorMain plugin, File folder, EventRegistry registry) {
         super(plugin, folder, new ITriggerLoader<CustomTrigger>() {
             @Override
             public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
@@ -86,9 +86,9 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      * @param clazz
      * @param eventHook
      */
-    protected abstract void registerEvent(TriggerReactorCore plugin, Class<?> clazz, EventHook eventHook);
+    protected abstract void registerEvent(TriggerReactorMain plugin, Class<?> clazz, EventHook eventHook);
 
-    protected abstract void unregisterEvent(TriggerReactorCore plugin, EventHook eventHook);
+    protected abstract void unregisterEvent(TriggerReactorMain plugin, EventHook eventHook);
 
     public abstract Collection<String> getAbbreviations();
 

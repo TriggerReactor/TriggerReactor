@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import org.bukkit.Bukkit;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements BukkitTriggerManager {
-    public InventoryTriggerManager(TriggerReactorCore plugin) {
+    public InventoryTriggerManager(TriggerReactorMain plugin) {
         super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class,
                 BukkitTriggerReactorCore.getWrapper()::wrap);
     }

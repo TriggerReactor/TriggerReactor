@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
@@ -62,7 +62,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         put("onStop", TriggerReactorStopEvent.class);
     }};
 
-    public CustomTriggerManager(TriggerReactorCore plugin) {
+    public CustomTriggerManager(TriggerReactorMain plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
             @Override
             public boolean eventExist(String eventStr) {
@@ -133,7 +133,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
 
     @Override
-    protected void registerEvent(TriggerReactorCore plugin, Class<?> clazz, EventHook eventHook) {
+    protected void registerEvent(TriggerReactorMain plugin, Class<?> clazz, EventHook eventHook) {
         Listener listener = new Listener() {
         };
         try {
@@ -154,7 +154,7 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     @Override
-    protected void unregisterEvent(TriggerReactorCore plugin, EventHook eventHook) {
+    protected void unregisterEvent(TriggerReactorMain plugin, EventHook eventHook) {
         Listener listener = registeredListerners.remove(eventHook);
         if (listener != null) {
             HandlerList.unregisterAll(listener);

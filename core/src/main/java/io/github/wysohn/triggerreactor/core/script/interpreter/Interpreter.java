@@ -16,7 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
@@ -41,7 +41,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class Interpreter {
     private final Node root;
@@ -499,7 +498,7 @@ public class Interpreter {
                 try {
                     copy.start();
                 } catch (InterpreterException e) {
-                    TriggerReactorCore.getInstance().handleException(context.getTriggerCause(), e);
+                    TriggerReactorMain.getInstance().handleException(context.getTriggerCause(), e);
                 }
             });
             return;

@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
@@ -40,7 +40,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
     private final Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
 
-    public CommandTriggerManager(TriggerReactorCore plugin, ICommandMapHandler commandMapHandler) {
+    public CommandTriggerManager(TriggerReactorMain plugin, ICommandMapHandler commandMapHandler) {
         super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
         this.commandMapHandler = commandMapHandler;
         this.commandMap = commandMapHandler.getCommandMap(plugin);
@@ -158,7 +158,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         trigger.activate(context, varMap);
     }
 
-    private static PluginCommand createCommand(TriggerReactorCore core, String commandName) {
+    private static PluginCommand createCommand(TriggerReactorMain core, String commandName) {
         try {
             Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
             c.setAccessible(true);
