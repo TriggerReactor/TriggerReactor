@@ -20,62 +20,61 @@ import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationExcept
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
+    @Inject
+    protected EventRegistry registry;
+
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
 
-    protected final EventRegistry registry;
-
-    public AbstractCustomTriggerManager(TriggerReactorMain plugin, File folder, EventRegistry registry) {
-        super(plugin, folder, new ITriggerLoader<CustomTrigger>() {
-            @Override
-            public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                String eventName = info.getConfig().get(EVENT, String.class)
-                        .filter(registry::eventExist)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));
-                boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
-
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    CustomTrigger trigger = new CustomTrigger(info, script, registry.getEvent(eventName), eventName);
-                    return trigger;
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void save(CustomTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    trigger.getInfo().getConfig().put(EVENT, trigger.getEventName());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        this.registry = registry;
+    public AbstractCustomTriggerManager(String folderName) {
+        super(folderName);
     }
 
     @Override
-    public void reload() {
-        super.reload();
+    public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+        String eventName = info.getConfig().get(EVENT, String.class)
+                .filter(registry::eventExist)
+                .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));
+        boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
+
+        try {
+            String script = FileUtil.readFromFile(info.getSourceCodeFile());
+            return new CustomTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                    info, script, registry.getEvent(eventName), eventName);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void save(CustomTrigger trigger) {
+        try {
+            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+
+            trigger.getInfo().getConfig().put(EVENT, trigger.getEventName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onReload() {
+        super.onReload();
 
         for (CustomTrigger trigger : getAllTriggers()) {
-            registerEvent(plugin, trigger.event, trigger);
+            registerEvent(main, trigger.event, trigger);
         }
     }
 
@@ -90,7 +89,9 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     protected abstract void unregisterEvent(TriggerReactorMain plugin, EventHook eventHook);
 
-    public abstract Collection<String> getAbbreviations();
+    public Collection<String> getAbbreviations(){
+        return registry.getAbbreviations();
+    }
 
     /**
      * Create a new CustomTrigger.
@@ -114,13 +115,14 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
         Class<?> event = registry.getEvent(eventName);
         File file = getTriggerFile(folder, name, true);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        CustomTrigger trigger = new CustomTrigger(info, script, event, eventName);
+        CustomTrigger trigger = new CustomTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                info, script, event, eventName);
 
         put(name, trigger);
 
-        this.registerEvent(plugin, event, trigger);
+        this.registerEvent(main, event, trigger);
 
         return true;
     }
@@ -141,7 +143,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     @Override
     public CustomTrigger remove(String name) {
         CustomTrigger remove = super.remove(name);
-        unregisterEvent(plugin, remove);
+        unregisterEvent(main, remove);
         return remove;
     }
 
@@ -165,5 +167,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
          *                                a event that cannot receive events (abstract events).
          */
         Class<?> getEvent(String eventStr) throws ClassNotFoundException;
+
+        Collection<String> getAbbreviations();
     }
 }

@@ -16,13 +16,20 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 
-import java.io.File;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton
 public class RepeatingTriggerManager extends AbstractRepeatingTriggerManager implements BukkitTriggerManager {
-    public RepeatingTriggerManager(TriggerReactorMain plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"));
+    @Inject
+    public RepeatingTriggerManager() {
+        super("RepeatTrigger");
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 }

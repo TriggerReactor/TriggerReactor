@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
@@ -495,10 +494,11 @@ public class Interpreter {
                         context.copyState("ASYNC"),
                         globalContext);
 
+
                 try {
                     copy.start();
                 } catch (InterpreterException e) {
-                    TriggerReactorMain.getInstance().handleException(context.getTriggerCause(), e);
+                    throw new RuntimeException(e);
                 }
             });
             return;
@@ -1302,13 +1302,10 @@ public class Interpreter {
 
             double secs = ((Number) args[0]).doubleValue();
             long later = (long) (secs * 1000);
-            SynchronizableTask.runTaskLater(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (waitLock) {
-                        context.setWaitFlag(false);
-                        waitLock.notify();
-                    }
+            TaskSupervisor.runTaskLater(() -> {
+                synchronized (waitLock) {
+                    context.setWaitFlag(false);
+                    waitLock.notify();
                 }
             }, later);
             return WAIT;

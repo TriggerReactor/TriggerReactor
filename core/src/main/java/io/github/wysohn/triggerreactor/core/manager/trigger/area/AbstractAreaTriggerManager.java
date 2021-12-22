@@ -18,17 +18,17 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -39,6 +39,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+    @Inject
+    IPluginLifecycleController pluginLifecycleController;
+
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
@@ -57,117 +60,14 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AbstractAreaTriggerManager(TriggerReactorMain plugin, File folder) {
-        super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
-            @Override
-            public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
-                return Optional.ofNullable(folder.listFiles())
-                        .map(files -> Arrays.stream(files)
-                                .filter(File::isDirectory)
-                                .map(file -> {
-                                    String name = file.getName();
-                                    IConfigSource config = fn.create(folder, name);
-                                    return toTriggerInfo(file, config);
-                                })
-                                .toArray(TriggerInfo[]::new))
-                        .orElse(new TriggerInfo[0]);
-            }
-
-            @Override
-            public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
-                return new AreaTriggerInfo(file, configSource, file.getName());
-            }
-
-            @Override
-            public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                SimpleLocation smallest = info.getConfig().get(SMALLEST, String.class)
-                        .map(SimpleLocation::valueOf)
-                        .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-                SimpleLocation largest = info.getConfig().get(LARGEST, String.class)
-                        .map(SimpleLocation::valueOf)
-                        .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-                boolean isSync = info.getConfig().get(SYNC, Boolean.class)
-                        .orElse(false);
-
-                File scriptFolder = new File(folder, info.getTriggerName());
-                if (!scriptFolder.exists()) {
-                    scriptFolder.mkdirs();
-                }
-
-                String enterScript = null;
-                File enterFile = null;
-                try {
-                    enterFile = getTriggerFile(scriptFolder, "Enter", false);
-                    if (!enterFile.exists())
-                        enterFile.createNewFile();
-                    enterScript = FileUtil.readFromFile(enterFile);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    return null;
-                }
-
-                String exitScript = null;
-                File exitFile = null;
-                try {
-                    exitFile = getTriggerFile(scriptFolder, "Exit", false);
-                    if (!exitFile.exists())
-                        exitFile.createNewFile();
-                    exitScript = FileUtil.readFromFile(exitFile);
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    return null;
-                }
-
-                Area area = new Area(smallest, largest);
-                AreaTrigger trigger = new AreaTrigger(info, area, scriptFolder);
-
-                try {
-                    trigger.setEnterTrigger(enterScript);
-                    trigger.setExitTrigger(exitScript);
-                } catch (TriggerInitFailedException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-
-                return trigger;
-            }
-
-            @Override
-            public void save(AreaTrigger trigger) {
-                Area area = trigger.getArea();
-                trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
-                trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
-
-                File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
-                if (!triggerFolder.exists()) {
-                    triggerFolder.mkdirs();
-                }
-
-                if (trigger.getEnterTrigger() != null) {
-                    try {
-                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        plugin.getLogger().warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
-                    }
-                }
-
-                if (trigger.getExitTrigger() != null) {
-                    try {
-                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        plugin.getLogger().warning("Could not save Area Trigger [Exit] " + trigger.getInfo());
-                    }
-                }
-            }
-        });
+    public AbstractAreaTriggerManager(String folderName) {
+        super(folderName);
 
         Thread referenceCleaningThread = new Thread() {
 
             @Override
             public void run() {
-                while (plugin.isEnabled() && !Thread.interrupted()) {
+                while (pluginLifecycleController.isEnabled() && !Thread.interrupted()) {
                     //clean up the reference map
                     Set<UUID> deletes = new HashSet<>();
                     for (Entry<UUID, WeakReference<IEntity>> entry : entityTrackMap.entrySet()) {
@@ -197,11 +97,115 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     @Override
-    public void reload() {
+    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactories fn) {
+        return Optional.ofNullable(folder.listFiles())
+                .map(files -> Arrays.stream(files)
+                        .filter(File::isDirectory)
+                        .map(file -> {
+                            String name = file.getName();
+                            IConfigSource config = fn.create(folder, name);
+                            return toTriggerInfo(file, config);
+                        })
+                        .toArray(TriggerInfo[]::new))
+                .orElse(new TriggerInfo[0]);
+    }
+
+    @Override
+    public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
+        return new AreaTriggerInfo(file, configSource, file.getName());
+    }
+
+    @Override
+    public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+        SimpleLocation smallest = info.getConfig().get(SMALLEST, String.class)
+                .map(SimpleLocation::valueOf)
+                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+        SimpleLocation largest = info.getConfig().get(LARGEST, String.class)
+                .map(SimpleLocation::valueOf)
+                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+        boolean isSync = info.getConfig().get(SYNC, Boolean.class)
+                .orElse(false);
+
+        File scriptFolder = new File(folder, info.getTriggerName());
+        if (!scriptFolder.exists()) {
+            scriptFolder.mkdirs();
+        }
+
+        String enterScript = null;
+        File enterFile = null;
+        try {
+            enterFile = getTriggerFile(scriptFolder, "Enter", false);
+            if (!enterFile.exists())
+                enterFile.createNewFile();
+            enterScript = FileUtil.readFromFile(enterFile);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
+        String exitScript = null;
+        File exitFile = null;
+        try {
+            exitFile = getTriggerFile(scriptFolder, "Exit", false);
+            if (!exitFile.exists())
+                exitFile.createNewFile();
+            exitScript = FileUtil.readFromFile(exitFile);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
+        Area area = new Area(smallest, largest);
+        AreaTrigger trigger = new AreaTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                info, area, scriptFolder);
+
+        try {
+            trigger.setEnterTrigger(enterScript);
+            trigger.setExitTrigger(exitScript);
+        } catch (TriggerInitFailedException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return trigger;
+    }
+
+    @Override
+    public void save(AreaTrigger trigger) {
+        Area area = trigger.getArea();
+        trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
+        trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
+
+        File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
+        if (!triggerFolder.exists()) {
+            triggerFolder.mkdirs();
+        }
+
+        if (trigger.getEnterTrigger() != null) {
+            try {
+                FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
+            }
+        }
+
+        if (trigger.getExitTrigger() != null) {
+            try {
+                FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
+            } catch (IOException e) {
+                e.printStackTrace();
+                logger.warning("Could not save Area Trigger [Exit] " + trigger.getInfo());
+            }
+        }
+    }
+
+    @Override
+    public void onReload() {
         entityLocationMap.clear();
         entityTrackMap.clear();
 
-        super.reload();
+        super.onReload();
 
         areaTriggersByLocation.clear();
 
@@ -275,8 +279,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             return false;
 
         File areaFolder = new File(folder, name);
-        IConfigSource config = configSourceFactory.create(folder, name);
-        AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
+        IConfigSource config = configSourceFactories.create(folder, name);
+        AreaTrigger trigger = new AreaTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);
 
         setupArea(trigger);

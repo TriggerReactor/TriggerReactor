@@ -16,7 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
@@ -26,10 +25,6 @@ public abstract class AbstractAreaSelectionManager extends Manager {
     protected final Set<UUID> selecting = new HashSet<>();
     protected final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();
     protected final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
-
-    public AbstractAreaSelectionManager(TriggerReactorMain plugin) {
-        super(plugin);
-    }
 
     /**
      * get the smallest point between two coordinates. Smallest means that the x, y, and z are all

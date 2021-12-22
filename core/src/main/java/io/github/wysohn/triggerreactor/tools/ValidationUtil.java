@@ -16,6 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.tools;
 
+import java.util.function.Predicate;
+
 public class ValidationUtil {
     public static <T> void notNull(T obj) {
         if (obj == null)
@@ -27,5 +29,14 @@ public class ValidationUtil {
             if (obj == null)
                 throw new RuntimeException("At least one of the element in array is null.");
         }
+    }
+
+    public static <T> void assertTrue(T obj, Predicate<T> predicate, String message){
+        if(!predicate.test(obj))
+            throw new RuntimeException(message);
+    }
+
+    public static <T> void assertTrue(T obj, Predicate<T> predicate){
+        assertTrue(obj, predicate, "Test fail.");
     }
 }

@@ -50,8 +50,13 @@ public class DelegatedConfigSource implements IConfigSource {
     }
 
     @Override
-    public void reload() {
-        configSource.reload();
+    public void onEnable() throws Exception{
+        configSource.onEnable();
+    }
+
+    @Override
+    public void onReload() {
+        configSource.onReload();
     }
 
     @Override
@@ -60,8 +65,8 @@ public class DelegatedConfigSource implements IConfigSource {
     }
 
     @Override
-    public void disable() {
-        configSource.disable();
+    public void onDisable() {
+        configSource.onDisable();
     }
 
     @Override

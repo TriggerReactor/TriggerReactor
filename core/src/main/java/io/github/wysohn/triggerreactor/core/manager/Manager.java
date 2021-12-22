@@ -16,10 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-
-import java.util.ArrayList;
-import java.util.List;
+import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
 
 /**
  * The base class represents Manager. Child classes are responsible for only one objective per manager.
@@ -27,42 +24,9 @@ import java.util.List;
  *
  * @author wysohn
  */
-public abstract class Manager {
-    private static final List<Manager> managers = new ArrayList<Manager>();
-
-    public static List<Manager> getManagers() {
-        return managers;
-    }
-
-    protected final TriggerReactorMain plugin;
-
-    public Manager(TriggerReactorMain plugin) {
-        this.plugin = plugin;
-
-        managers.add(this);
-
-        plugin.registerEvents(this);
-    }
-
-    /**
-     * Reload all triggers
-     */
-    public abstract void reload();
-
+public abstract class Manager implements IPluginProcedure {
     /**
      * Save all triggers
      */
     public abstract void saveAll();
-
-    /**
-     * Empty method to be called when the plugin is about to shutting down.
-     * This method will block main thread so that the managers can finalize whatever it was doing before
-     * the plugin shutting down.
-     * Since this method is empty, the child class must override.
-     */
-    public void disable() {
-
-    }
-
-
 }

@@ -20,7 +20,6 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.event.BukkitPlayerBlockLoca
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlayerLocationManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.bukkit.Location;
@@ -34,11 +33,15 @@ import org.bukkit.event.player.*;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.util.Vector;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class PlayerLocationManager extends AbstractPlayerLocationManager implements Listener {
 
+    @Inject
+    public PlayerLocationManager() {
 
-    public PlayerLocationManager(TriggerReactorMain plugin) {
-        super(plugin);
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -82,7 +85,7 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
         SimpleLocation to = LocationUtil.convertToSimpleLocation(e.getTo());
 
         PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player, from, to);
-        onMove(new BukkitPlayerBlockLocationEvent(pble));
+        onMove(new BukkitPlayerBlockLocationEvent(main.getWrapper(), pble));
         if (pble.isCancelled()) {
             Location loc = LocationUtil.convertToBukkitLocation(from);
             loc.setPitch(e.getPlayer().getLocation().getPitch());
@@ -110,7 +113,7 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
         SimpleLocation to = LocationUtil.convertToSimpleLocation(e.getTo());
 
         PlayerBlockLocationEvent pble = new PlayerBlockLocationEvent(player, from, to);
-        onMove(new BukkitPlayerBlockLocationEvent(pble));
+        onMove(new BukkitPlayerBlockLocationEvent(main.getWrapper(), pble));
         if (pble.isCancelled()) {
             Location loc = LocationUtil.convertToBukkitLocation(from);
             vehicle.setVelocity(new Vector());
@@ -119,12 +122,22 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager impleme
     }
 
     @Override
-    public void reload() {
+    public void onEnable() throws Exception {
+
+    }
+
+    @Override
+    public void onReload() {
         for (Player player : BukkitUtil.getOnlinePlayers()) {
             Location loc = player.getLocation();
             SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
             setCurrentBlockLocation(player.getUniqueId(), sloc);
         }
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @Override

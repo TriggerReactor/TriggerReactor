@@ -70,7 +70,7 @@ public class GsonConfigSource implements IConfigSource {
 
     private final ITypeValidator typeValidator;
 
-    GsonConfigSource(File file) {
+    public GsonConfigSource(File file) {
         this(file, f -> {
             try {
                 return new FileReader(f);
@@ -127,7 +127,12 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     @Override
-    public void reload() {
+    public void onEnable() {
+        ensureFile();
+    }
+
+    @Override
+    public void onReload() {
         ensureFile();
 
         synchronized (file) {
@@ -148,7 +153,7 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     @Override
-    public void disable() {
+    public void onDisable() {
         shutdown();
     }
 

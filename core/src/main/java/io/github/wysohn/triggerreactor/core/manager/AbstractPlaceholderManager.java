@@ -16,12 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import java.util.*;
@@ -30,12 +28,8 @@ import java.util.Map.Entry;
 public abstract class AbstractPlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
     protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
 
-    public AbstractPlaceholderManager(TriggerReactorMain plugin, ScriptEngineManager sem) {
-        super(plugin, sem);
-    }
-
     protected void reloadPlaceholders(File file, FileFilter filter) throws ScriptException, IOException {
-        reloadPlaceholders(new Stack<String>(), file, filter);
+        reloadPlaceholders(new Stack<>(), file, filter);
     }
 
     private void reloadPlaceholders(Stack<String> name, File file, FileFilter filter) throws ScriptException, IOException {
@@ -56,7 +50,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
             builder.append(fileName);
 
             if (jsPlaceholders.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating placeholders?");
+                logger.warning(builder.toString() + " already registered! Duplicating placeholders?");
             } else {
                 JSPlaceholder placeholder = new JSPlaceholder(fileName, getEngine(sem), file);
                 jsPlaceholders.put(builder.toString(), placeholder);
@@ -88,7 +82,7 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         return jsPlaceholders;
     }
 
-    public static class JSPlaceholder extends Evaluable<Object> implements Placeholder {
+    public class JSPlaceholder extends Evaluable<Object> implements Placeholder {
         public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(placeholderName, engine, new FileInputStream(file));
         }

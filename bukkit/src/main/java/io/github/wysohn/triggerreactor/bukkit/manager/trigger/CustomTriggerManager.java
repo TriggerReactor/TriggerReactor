@@ -16,118 +16,44 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
-import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.event.*;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockMultiPlaceEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.*;
-import org.bukkit.plugin.EventExecutor;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.IllegalPluginAccessException;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
+@Singleton
 public class CustomTriggerManager extends AbstractCustomTriggerManager implements BukkitTriggerManager {
-    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
-    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
+    private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
-    @SuppressWarnings("serial")
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
-        put("onJoin", PlayerJoinEvent.class);
-        put("onQuit", PlayerQuitEvent.class);
-        put("onPlayerDeath", PlayerDeathEvent.class);
-        put("onInteract", PlayerInteractEvent.class);
-        put("onInteractEntity", PlayerInteractEntityEvent.class);
-        put("onChat", AsyncPlayerChatEvent.class);
-        put("onCommand", PlayerCommandPreprocessEvent.class);
-
-        //put("onEntitySpawn", EntitySpawnEvent.class);
-        put("onEntityDeath", EntityDeathEvent.class);
-
-        put("onBlockPlace", BlockPlaceEvent.class);
-        put("onBlockMultiPlace", BlockMultiPlaceEvent.class);
-        put("onBlockBreak", BlockBreakEvent.class);
-
-        put("onStart", TriggerReactorStartEvent.class);
-        put("onStop", TriggerReactorStopEvent.class);
-    }};
-
-    public CustomTriggerManager(TriggerReactorMain plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
-            @Override
-            public boolean eventExist(String eventStr) {
-                try {
-                    return getEvent(eventStr) != null;
-                } catch (ClassNotFoundException e) {
-                    return false;
-                }
-            }
-
-            @Override
-            public Class<?> getEvent(String eventStr) throws ClassNotFoundException {
-                Class<? extends Event> event;
-                if (ABBREVIATIONS.containsKey(eventStr)) {
-                    event = ABBREVIATIONS.get(eventStr);
-                } else if (EVENTS.containsKey(eventStr)) {
-                    event = EVENTS.get(eventStr);
-                } else {
-                    event = (Class<? extends Event>) Class.forName(eventStr);
-                }
-
-                return event;
-            }
-        });
-
-        try {
-            initEvents();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Inject
+    public CustomTriggerManager() {
+        super("CustomTrigger");
     }
 
     @Override
-    public void reload() {
+    public void onReload() {
         for (Entry<EventHook, Listener> entry : registeredListerners.entrySet()) {
             HandlerList.unregisterAll(entry.getValue());
         }
         registeredListerners.clear();
-        super.reload();
+        super.onReload();
     }
 
-    private static final String basePackageName = "org.bukkit.event";
+    @Override
+    public void onDisable() {
 
-    public Collection<String> getAbbreviations() {
-        return ABBREVIATIONS.keySet();
-    }
-
-    protected void initEvents() throws IOException {
-        for (String clazzName : ReflectionUtil.getAllClasses(Bukkit.class.getClassLoader(), basePackageName)) {
-            Class<?> test = null;
-            try {
-                test = Class.forName(clazzName);
-            } catch (ClassNotFoundException e1) {
-                e1.printStackTrace();
-            }
-
-            if (!Event.class.isAssignableFrom(test))
-                continue;
-
-            Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if (clazz.equals(Event.class))
-                continue;
-
-            EVENTS.put(clazz.getSimpleName(), clazz);
-        }
     }
 
     private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
@@ -137,12 +63,8 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         Listener listener = new Listener() {
         };
         try {
-            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST, new EventExecutor() {
-                @Override
-                public void execute(Listener arg0, Event arg1) throws EventException {
-                    eventHook.onEvent(arg1);
-                }
-            }, plugin.getMain());
+            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST,
+                    (arg0, arg1) -> eventHook.onEvent(arg1), plugin.getMain());
 
             registeredListerners.put(eventHook, listener);
         } catch (IllegalPluginAccessException e) {

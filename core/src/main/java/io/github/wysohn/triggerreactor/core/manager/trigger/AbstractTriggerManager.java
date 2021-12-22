@@ -16,32 +16,52 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
 import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractTriggerManager<T extends Trigger> extends Manager {
+public abstract class AbstractTriggerManager<T extends Trigger> extends Manager implements ITriggerLoader<T> {
+    @Inject
+    protected TriggerReactorMain main;
+    @Inject
+    protected IThrowableHandler throwableHandler;
+    @Inject
+    protected IGameController gameController;
+    @Inject
+    protected SelfReference selfReference;
+    @Inject
+    protected TaskSupervisor taskSupervisor;
+    @Inject
+    protected ConfigSourceFactories configSourceFactories;
+    @Inject
+    protected Logger logger;
+    @Inject
+    @Named("DataFolder")
+    protected File dataFolder;
+
+    private final String folderName;
     private final Observer observer = new Observer();
     private final Map<String, T> triggers = new ConcurrentHashMap<>();
 
-    protected final File folder;
-    protected final ITriggerLoader<T> loader;
-    protected final ConfigSourceFactory configSourceFactory;
+    protected File folder;
 
-    public AbstractTriggerManager(TriggerReactorMain plugin, File folder, ITriggerLoader<T> loader) {
-        super(plugin);
-        this.folder = folder;
-        this.loader = loader;
-        this.configSourceFactory = ConfigSourceFactory.instance();
+    public AbstractTriggerManager(String folderName) {
+        this.folderName = folderName;
     }
 
     public File getFolder() {
@@ -49,25 +69,30 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     public TriggerInfo[] getTriggerInfos() {
-        return loader.listTriggers(folder, configSourceFactory);
+        return listTriggers(folder, configSourceFactories);
     }
 
     @Override
-    public void reload() {
+    public void onEnable() throws Exception {
+        folder = new File(dataFolder, folderName);
+    }
+
+    @Override
+    public void onReload() {
         if (!folder.exists())
             folder.mkdirs();
 
         triggers.clear();
 
-        for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
+        for (TriggerInfo info : listTriggers(folder, configSourceFactories)) {
             try {
                 info.reloadConfig();
 
-                T t = loader.load(info);
+                T t = load(info);
                 Optional.ofNullable(t)
                         .ifPresent(trigger -> {
                             if (has(info.getTriggerName())) {
-                                plugin.getLogger().warning(info + " is already registered! Duplicated Trigger?");
+                                logger.warning(info + " is already registered! Duplicated Trigger?");
                             } else {
                                 put(info.getTriggerName(), trigger);
                             }
@@ -83,7 +108,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         TriggerInfo info = trigger.info;
 
         try {
-            trigger = loader.load(info);
+            trigger = load(info);
             put(triggerName, trigger);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load " + info, e);
@@ -93,7 +118,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     @Override
     public void saveAll() {
         for (T trigger : triggers.values()) {
-            loader.save(trigger);
+            save(trigger);
         }
     }
 
@@ -153,13 +178,12 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return triggerFile;
     }
 
-    protected static void reportWarnings(List<Warning> warnings, Trigger trigger) {
+    void reportWarnings(List<Warning> warnings, Trigger trigger) {
         if (warnings == null || warnings.isEmpty()) {
             return;
         }
 
         Level L = Level.WARNING;
-        Logger log = TriggerReactorMain.getInstance().getLogger();
         int numWarnings = warnings.size();
         String ww;
         if (numWarnings > 1) {
@@ -168,22 +192,22 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             ww = "warning was";
         }
 
-        log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
+        logger.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
                 trigger.getInfo() + " =====");
         for (Warning w : warnings) {
             for (String line : w.getMessageLines()) {
-                log.log(L, line);
+                logger.log(L, line);
             }
-            log.log(Level.WARNING, "");
+            logger.log(Level.WARNING, "");
         }
-        log.log(Level.WARNING, "");
+        logger.log(Level.WARNING, "");
     }
 
     private class Observer implements IObserver {
         @Override
         public void onUpdate(IObservable observable) {
             //TODO need to be done async (file I/O)
-            loader.save((T) observable);
+            save((T) observable);
         }
     }
 

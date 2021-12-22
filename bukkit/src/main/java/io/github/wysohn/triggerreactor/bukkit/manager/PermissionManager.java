@@ -19,8 +19,8 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerPermissionCheckEventAsync;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPermissionManager;
+import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -34,27 +34,38 @@ import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.Plugin;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
+@Singleton
 public class PermissionManager extends AbstractPermissionManager implements Listener {
+    @Inject
+    PluginConfigManager plugin;
+    @Inject
+    Logger logger;
+
     private boolean inject = true;
 
-    public PermissionManager(TriggerReactorMain plugin) {
-        super(plugin);
+    @Inject
+    public PermissionManager() {
 
-        if (!plugin.isConfigSet("PermissionManager.Intercept"))
-            plugin.setConfig("PermissionManager.Intercept", true);
-        plugin.saveConfig();
-
-        reload();
     }
 
     @Override
-    public void reload() {
-        plugin.reloadConfig();
+    public void onEnable() throws Exception {
+        if (!plugin.has("PermissionManager.Intercept"))
+            plugin.put("PermissionManager.Intercept", true);
 
-        inject = plugin.getConfig("PermissionManager.Intercept", false);
+        onReload();
+    }
+
+    @Override
+    public void onReload() {
+        inject = plugin.get("PermissionManager.Intercept", Boolean.class)
+                .orElse(false);
 
         for (Player p : BukkitUtil.getOnlinePlayers()) {
             PermissibleBase original = getPermissible(p);
@@ -73,8 +84,13 @@ public class PermissionManager extends AbstractPermissionManager implements List
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void saveAll() {
-        plugin.saveConfig();
+
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -112,8 +128,8 @@ public class PermissionManager extends AbstractPermissionManager implements List
         } catch (NoSuchFieldException | IllegalArgumentException e) {
             e.printStackTrace();
             failed = true;
-            plugin.getLogger().severe("Could not inject permission interceptor.");
-            plugin.getLogger().severe("PlayerPermissionCheckEvent will no longer fired.");
+            logger.severe("Could not inject permission interceptor.");
+            logger.severe("PlayerPermissionCheckEvent will no longer fired.");
         }
     }
 

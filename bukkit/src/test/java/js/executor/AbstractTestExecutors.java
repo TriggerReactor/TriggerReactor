@@ -3,10 +3,13 @@ package js.executor;
 //import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.main.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.manager.DaggerManagerComponent;
+import io.github.wysohn.triggerreactor.core.manager.ManagerComponent;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
@@ -31,6 +34,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -59,6 +63,18 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public static void tearDown(){
         ExecutorTest.coverage.forEach((key, b) -> System.out.println(key));
         ExecutorTest.coverage.clear();
+    }
+
+    PluginMainComponent pluginMainComponent;
+    ManagerComponent managerComponent;
+
+    @Before
+    public void init(){
+        pluginMainComponent = DaggerPluginMainComponent.builder()
+                .build();
+        managerComponent = DaggerManagerComponent.builder()
+                .pluginMainComponent(pluginMainComponent)
+                .build();
     }
 
     @Test
@@ -477,14 +493,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testGUI() throws Exception {
         IPlayer vip = mock(IPlayer.class);
-        TriggerReactorMain tr = mock(TriggerReactorMain.class);
+        TriggerReactorMain main = mock(TriggerReactorMain.class);
         AbstractInventoryTriggerManager invManager = mock(AbstractInventoryTriggerManager.class);
         IInventory iInv = mock(IInventory.class);
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("player", vip)
-                .addVariable("plugin", tr);
+                .addVariable("main", main);
 
-        when(tr.getInvManager()).thenReturn(invManager);
+        when(main.invManager()).thenReturn(invManager);
         when(invManager.openGUI(vip, "Hi")).thenReturn(iInv);
         test.withArgs("Hi").test();
         verify(invManager).openGUI(vip, "Hi");
@@ -768,7 +784,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testServer() throws Exception {
-        BukkitTriggerReactorCore plugin = mock(BukkitTriggerReactorCore.class);
+        AbstractJavaPlugin plugin = mock(AbstractJavaPlugin.class);
         AbstractJavaPlugin.BungeeCordHelper helper = mock(AbstractJavaPlugin.BungeeCordHelper.class);
         Player player = mock(Player.class);
 

@@ -1,18 +1,19 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
+import io.github.wysohn.triggerreactor.core.script.interpreter.*;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
@@ -29,6 +30,10 @@ import java.util.UUID;
 import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
+    protected final IThrowableHandler throwableHandler;
+    protected final IGameController gameController;
+    protected final TaskSupervisor taskSupervisor;
+    protected final SelfReference selfReference;
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     protected final TriggerInfo info;
 
@@ -46,8 +51,16 @@ public abstract class Trigger implements Cloneable, IObservable {
      * behavior, it's not necessary to call {@link #init()} but need to override {@link #initInterpreter(Map)},
      * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as your need
      */
-    public Trigger(TriggerInfo info, String script) {
-        super();
+    public Trigger(IThrowableHandler throwableHandler,
+                   IGameController gameController,
+                   TaskSupervisor taskSupervisor,
+                   SelfReference selfReference,
+                   TriggerInfo info,
+                   String script) {
+        this.throwableHandler = throwableHandler;
+        this.gameController = gameController;
+        this.taskSupervisor = taskSupervisor;
+        this.selfReference = selfReference;
         this.info = info;
         this.script = script;
 
@@ -98,7 +111,6 @@ public abstract class Trigger implements Cloneable, IObservable {
             root = parser.parse(true);
             List<Warning> warnings = parser.getWarnings();
 
-            AbstractTriggerManager.reportWarnings(warnings, this);
             executorMap = TriggerReactorMain.getInstance().getExecutorManager().getBackedMap();
             placeholderMap = TriggerReactorMain.getInstance().getPlaceholderManager().getBackedMap();
             gvarMap = TriggerReactorMain.getInstance().getVariableManager().getGlobalVariableAdapter();
@@ -146,7 +158,7 @@ public abstract class Trigger implements Cloneable, IObservable {
 
         scriptVars.put("event", e);
         scriptVars.putAll(TriggerReactorMain.getInstance().getSharedVars());
-        Map<String, Object> customVars = TriggerReactorMain.getInstance().getCustomVarsForTrigger(e);
+        Map<String, Object> customVars = gameController.getCustomVarsForTrigger(e);
         if (customVars != null)
             scriptVars.putAll(customVars);
 
@@ -175,7 +187,7 @@ public abstract class Trigger implements Cloneable, IObservable {
      * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
      */
     protected boolean checkCooldown(Object e) {
-        IPlayer iPlayer = TriggerReactorMain.getInstance().extractPlayerFromContext(e);
+        IPlayer iPlayer = gameController.extractPlayerFromContext(e);
 
         if (iPlayer != null) {
             UUID uuid = iPlayer.getUniqueId();
@@ -196,12 +208,12 @@ public abstract class Trigger implements Cloneable, IObservable {
      */
     protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setTaskSupervisor(TriggerReactorMain.getInstance());
+        interpreter.setTaskSupervisor(taskSupervisor);
         interpreter.setExecutorMap(executorMap);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setGvars(gvarMap);
         interpreter.setVars(scriptVars);
-        interpreter.setSelfReference(TriggerReactorMain.getInstance().getSelfReference());
+        interpreter.setSelfReference(selfReference);
 
         return interpreter;
     }
@@ -224,7 +236,7 @@ public abstract class Trigger implements Cloneable, IObservable {
                 try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
                     start(t, e, scriptVars, interpreter, sync);
                 } catch (Exception ex) {
-                    TriggerReactorMain.getInstance().handleException(e, new Exception(
+                    throwableHandler.handleException(e, new Exception(
                             "Trigger [" + info + "] produced an error!", ex));
                 }
                 return null;
@@ -232,20 +244,20 @@ public abstract class Trigger implements Cloneable, IObservable {
         };
 
         if (sync) {
-            if (TriggerReactorMain.getInstance().isServerThread()) {
+            if (gameController.isServerThread()) {
                 try {
                     call.call();
                 } catch (Exception e1) {
 
                 }
             } else {
-                Future<Void> future = TriggerReactorMain.getInstance().callSyncMethod(call);
+                Future<Void> future = gameController.callSyncMethod(call);
                 try {
                     future.get(3, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e1) {
 
                 } catch (TimeoutException e1) {
-                    TriggerReactorMain.getInstance().handleException(e, new RuntimeException(
+                    throwableHandler.handleException(e, new RuntimeException(
                             "Took too long to process Trigger [" + info + "]! Is the server lagging?",
                             e1));
                 }
@@ -268,10 +280,10 @@ public abstract class Trigger implements Cloneable, IObservable {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorMain.getInstance().createInterrupter(cooldowns),
+                    gameController.createInterrupter(cooldowns),
                     timing);
         } catch (InterpreterException ex) {
-            TriggerReactorMain.getInstance().handleException(e,
+            throwableHandler.handleException(e,
                     new Exception("Could not finish interpretation for [" + info + "]!", ex));
         }
     }

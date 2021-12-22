@@ -21,9 +21,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -35,73 +33,75 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";
 
+    private final Class<ItemStack> itemClass;
+
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public AbstractInventoryTriggerManager(TriggerReactorMain plugin, File folder, Class<ItemStack> itemClass,
-                                           Function<ItemStack, IItemStack> itemWrapper) {
-        super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
-            @Override
-            public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                int size = info.getConfig().get(SIZE, Integer.class)
-                        .filter(s -> s != 0 && s % 9 == 0)
-                        .filter(s -> s <= InventoryTrigger.MAXSIZE)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
-                Map<Integer, IItemStack> items = new HashMap<>();
+    public AbstractInventoryTriggerManager(String folderName,
+                                           Class<ItemStack> itemClass) {
+        super(folderName);
+        this.itemClass = itemClass;
+    }
 
-                if (info.getConfig().has(ITEMS)) {
-                    if (!info.getConfig().isSection(ITEMS)) {
-                        throw new InvalidTrgConfigurationException("Items should be an object", info.getConfig());
-                    }
+    @Override
+    public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+        int size = info.getConfig().get(SIZE, Integer.class)
+                .filter(s -> s != 0 && s % 9 == 0)
+                .filter(s -> s <= InventoryTrigger.MAXSIZE)
+                .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
+        Map<Integer, IItemStack> items = new HashMap<>();
 
-                    for (int i = 0; i < size; i++) {
-                        final int itemIndex = i;
-                        info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item ->
-                                items.put(itemIndex, itemWrapper.apply(item)));
-                    }
-                }
-
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    IItemStack[] itemArray = new IItemStack[size];
-                    for (int i = 0; i < size; i++)
-                        itemArray[i] = items.getOrDefault(i, null);
-                    return new InventoryTrigger(info, script, itemArray);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
+        if (info.getConfig().has(ITEMS)) {
+            if (!info.getConfig().isSection(ITEMS)) {
+                throw new InvalidTrgConfigurationException("Items should be an object", info.getConfig());
             }
 
-            @Override
-            public void save(InventoryTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    IItemStack[] items = trigger.items;
-                    int size = trigger.items.length;
-
-                    trigger.getInfo().getConfig().put(SIZE, size);
-                    trigger.getInfo().getConfig().put(TITLE, trigger.getInfo().getTriggerName());
-                    for (int i = 0; i < items.length; i++) {
-                        IItemStack item = items[i];
-                        if (item == null)
-                            continue;
-
-                        trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            for (int i = 0; i < size; i++) {
+                final int itemIndex = i;
+                info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item ->
+                        items.put(itemIndex, main.getWrapper().wrap(item)));
             }
-        });
+        }
+
+        try {
+            String script = FileUtil.readFromFile(info.getSourceCodeFile());
+            IItemStack[] itemArray = new IItemStack[size];
+            for (int i = 0; i < size; i++)
+                itemArray[i] = items.getOrDefault(i, null);
+            return new InventoryTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script, itemArray);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void save(InventoryTrigger trigger) {
+        try {
+            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+
+            IItemStack[] items = trigger.items;
+            int size = trigger.items.length;
+
+            trigger.getInfo().getConfig().put(SIZE, size);
+            trigger.getInfo().getConfig().put(TITLE, trigger.getInfo().getTriggerName());
+            for (int i = 0; i < items.length; i++) {
+                IItemStack item = items[i];
+                if (item == null)
+                    continue;
+
+                trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -155,9 +155,10 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
             return false;
 
         File file = getTriggerFile(folder, name, true);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        put(name, new InventoryTrigger(info, script, size, new HashMap<>()));
+        put(name, new InventoryTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                info, script, size, new HashMap<>()));
 
         return true;
     }

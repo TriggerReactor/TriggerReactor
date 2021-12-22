@@ -23,6 +23,8 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
+import io.github.wysohn.triggerreactor.bukkit.components.BukkitPluginMainComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
@@ -37,6 +39,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
+import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -47,6 +52,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
+import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -77,7 +83,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
-import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -90,21 +95,27 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
-    public final BukkitTriggerReactorCore core;
+public abstract class AbstractJavaPlugin
+        extends JavaPlugin
+        implements ICommandMapHandler, IGameController, IPluginLifecycleController {
+    private BukkitPluginMainComponent component;
+    private TriggerReactorMain main;
 
-    private ScriptEngineManager scriptEngineManager;
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
 
-    public AbstractJavaPlugin() {
-        core = new BukkitTriggerReactorCore();
-    }
+    private final Lag tpsHelper = new Lag();
 
     @Override
     public void onEnable() {
         super.onEnable();
         Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+
+        component = DaggerBukkitPluginMainComponent.builder()
+                .pluginMainComponent(DaggerPluginMainComponent.create())
+                .build();
+        component.inject(this);
+        main = component.main();
 
         PluginCommand trg = this.getCommand("triggerreactor");
         trg.setExecutor(this);
@@ -113,26 +124,36 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         initBungeeHelper();
         initMysql();
 
-        core.onCoreEnable(this);
-        migrateOldConfig();
+        try {
+            main.onEnable();
 
-        for (Manager manager : Manager.getManagers()) {
-            manager.reload();
+            migrateOldConfig();
+
+            main.onReload();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            setEnabled(false);
+            return;
         }
 
+        component.managers().stream()
+                .filter(Listener.class::isInstance)
+                .map(Listener.class::cast)
+                .forEach(manager -> Bukkit.getPluginManager().registerEvents(manager, this));
+        Bukkit.getScheduler().runTaskTimer(this, tpsHelper, 0L, 20L);
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
 
     private void migrateOldConfig() {
         new ContinuingTasks.Builder()
                 .append(() -> {
-                    if (core.getPluginConfigManager().isMigrationNeeded()) {
-                        core.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
+                    if (main.getPluginConfigManager().isMigrationNeeded()) {
+                        main.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
                                 new File(getDataFolder(), "config.yml")));
                     }
                 })
                 .append(() -> {
-                    if (core.getVariableManager().isMigrationNeeded()) {
+                    if (main.getVariableManager().isMigrationNeeded()) {
                         File file = new File(getDataFolder(), "var.yml");
                         FileConfiguration conf = new Utf8YamlConfiguration();
                         try {
@@ -140,11 +161,11 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                         } catch (IOException | InvalidConfigurationException e) {
                             e.printStackTrace();
                         }
-                        core.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
+                        main.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
                     }
                 })
                 .append(() -> {
-                    Optional.of(core.getInvManager())
+                    Optional.of(main.invManager())
                             .map(AbstractTriggerManager::getTriggerInfos)
                             .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
                                     .filter(TriggerInfo::isMigrationNeeded)
@@ -156,7 +177,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                                     }));
                 })
                 .append(() -> {
-                    Manager.getManagers().stream()
+                    component.managers().stream()
                             .filter(AbstractTriggerManager.class::isInstance)
                             .map(AbstractTriggerManager.class::cast)
                             .map(AbstractTriggerManager::getTriggerInfos)
@@ -225,23 +246,16 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         new ContinuingTasks.Builder()
                 .append(() -> Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent()))
                 .append(() -> bungeeConnectionThread.interrupt())
-                .append(() -> core.onCoreDisable(this))
+                .append(() -> main.onDisable())
                 .run(Throwable::printStackTrace);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            return this.core.onCommand(
-                    BukkitTriggerReactorCore.WRAPPER.wrap((Player) sender),
-                    command.getName(),
-                    args);
-        } else {
-            return this.core.onCommand(
-                    BukkitTriggerReactorCore.WRAPPER.wrap(sender),
-                    command.getName(),
-                    args);
-        }
+        return this.main.onCommand(
+                main.getWrapper().wrap(sender),
+                command.getName(),
+                args);
     }
 
     public File getJarFile() {
@@ -258,40 +272,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
 
     public abstract SelfReference getSelfReference();
 
-    private final Set<Class<? extends Manager>> savings = new HashSet<>();
-
-    public boolean saveAsynchronously(final Manager manager) {
-        if (savings.contains(manager.getClass()))
-            return false;
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    synchronized (savings) {
-                        savings.add(manager.getClass());
-                    }
-
-                    getLogger().info("Saving " + manager.getClass().getSimpleName());
-                    manager.saveAll();
-                    getLogger().info("Saving Done!");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    getLogger().warning("Failed to save " + manager.getClass().getSimpleName());
-                } finally {
-                    synchronized (savings) {
-                        savings.remove(manager.getClass());
-                    }
-                }
-            }
-        }) {{
-            this.setPriority(MIN_PRIORITY);
-        }}.start();
-        return true;
-    }
 
     public boolean isDebugging() {
-        return this.core.isDebugging();
+        return this.main.isDebugging();
     }
 
     @Override
@@ -326,7 +309,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                             throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                         if (args[0] instanceof String) {
-                            Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
+                            Trigger trigger = main.getNamedTriggerManager().get((String) args[0]);
                             if (trigger == null)
                                 throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
@@ -352,7 +335,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                 })
                 .perExecutor((context, command, args) -> {
                     if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                        if(!core.isServerThread())
+                        if(!getServer().isPrimaryThread())
                             throw new RuntimeException("Trying to cancel event in async trigger.");
 
                         if (context.getTriggerCause() instanceof Cancellable) {
@@ -411,7 +394,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                         Inventory inv = ((InventoryEvent) context.getTriggerCause()).getInventory();
 
                         //it's not GUI so stop execution
-                        return !inventoryMap.containsKey(BukkitTriggerReactorCore.getWrapper().wrap(inv));
+                        return !inventoryMap.containsKey(main.getWrapper().wrap(inv));
                     }
 
                     return false;
@@ -422,11 +405,11 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
     public IPlayer extractPlayerFromContext(Object e) {
         if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
-            return BukkitTriggerReactorCore.WRAPPER.wrap(player);
+            return main.getWrapper().wrap(player);
         } else if (e instanceof InventoryInteractEvent) {
             HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
             if (he instanceof Player)
-                return BukkitTriggerReactorCore.WRAPPER.wrap((Player) he);
+                return main.getWrapper().wrap(he);
         }
 
         return null;
@@ -451,13 +434,13 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
     public IPlayer getPlayer(String string) {
         Player player = Bukkit.getPlayer(string);
         if (player != null)
-            return BukkitTriggerReactorCore.WRAPPER.wrap(player);
+            return main.getWrapper().wrap(player);
         else
             return null;
     }
 
     public ICommandSender getConsoleSender() {
-        return BukkitTriggerReactorCore.WRAPPER.wrap(Bukkit.getConsoleSender());
+        return main.getWrapper().wrap(Bukkit.getConsoleSender());
     }
 
     public Object createEmptyPlayerEvent(ICommandSender sender) {
@@ -589,16 +572,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         }
 
         return variables;
-    }
-
-    public ScriptEngineManager getScriptEngineManager() {
-        if(scriptEngineManager == null)
-            scriptEngineManager = Bukkit.getServicesManager().load(ScriptEngineManager.class);
-
-        if(scriptEngineManager == null)
-            scriptEngineManager = new ScriptEngineManager();
-
-        return scriptEngineManager;
     }
 
     public class MysqlSupport {

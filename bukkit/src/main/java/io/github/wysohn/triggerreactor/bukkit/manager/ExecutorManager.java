@@ -25,7 +25,9 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import javax.script.ScriptEngineManager;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
@@ -33,30 +35,33 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.Callable;
+import java.util.logging.Logger;
 
-@SuppressWarnings("serial")
+@Singleton
 public class ExecutorManager extends AbstractExecutorManager {
+    @Inject
+    TriggerReactorMain main;
+    @Inject
+    @Named("DataFolder")
+    File dataFolder;
+    @Inject
+    Logger logger;
+
     private static final String JAR_FOLDER_LOCATION = "Executor";
 
-    private final File executorFolder;
+    private File executorFolder;
 
-    public ExecutorManager(TriggerReactorMain plugin, ScriptEngineManager sem) throws ScriptException, IOException {
-        super(plugin, sem);
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
+    @Override
+    public void onEnable() throws Exception{
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, CopyOption.REPLACE_IF_EXIST);
+        this.executorFolder = new File(dataFolder, "Executor");
 
-        this.executorFolder = new File(plugin.getDataFolder(), "Executor");
-
-        reload();
+        onReload();
     }
 
     @Override
-    public void reload() {
-        FileFilter filter = new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isDirectory() || pathname.getName().endsWith(".js");
-            }
-        };
+    public void onReload() {
+        FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         jsExecutors.clear();
         for (File file : executorFolder.listFiles(filter)) {
@@ -64,7 +69,7 @@ public class ExecutorManager extends AbstractExecutorManager {
                 reloadExecutors(file, filter);
             } catch (ScriptException | IOException e) {
                 e.printStackTrace();
-                plugin.getLogger().warning("Could not load executor " + file.getName());
+                logger.warning("Could not load executor " + file.getName());
                 continue;
             }
         }
@@ -76,15 +81,15 @@ public class ExecutorManager extends AbstractExecutorManager {
             public Integer execute(Timings.Timing timing, Map<String, Object> variables, Object e,
                                    Object... args) throws Exception {
                 Object player = variables.get("player");
-                if (player == null || !(player instanceof Player))
+                if (!(player instanceof Player))
                     return null;
 
                 DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
-                if (plugin.isServerThread()) {
+                if (main.isServerThread()) {
                     call.call();
                 } else {
                     try {
-                        plugin.callSyncMethod(call).get();
+                        main.callSyncMethod(call).get();
                     } catch (Exception ex) {
                         //to double check
                         call.deOpIfWasNotOp();
@@ -95,6 +100,11 @@ public class ExecutorManager extends AbstractExecutorManager {
             }
 
         });
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
 

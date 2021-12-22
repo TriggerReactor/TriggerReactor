@@ -1,11 +1,14 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
@@ -15,15 +18,28 @@ public class InventoryTrigger extends Trigger {
 
     final IItemStack[] items;
 
-    public InventoryTrigger(TriggerInfo info, String script, IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
+    public InventoryTrigger(IThrowableHandler throwableHandler,
+                            IGameController gameController,
+                            TaskSupervisor taskSupervisor,
+                            SelfReference selfReference,
+                            TriggerInfo info,
+                            String script,
+                            IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
         this.items = items;
 
         init();
     }
 
-    public InventoryTrigger(TriggerInfo info, String script, int size, Map<Integer, IItemStack> items) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
+    public InventoryTrigger(IThrowableHandler throwableHandler,
+IGameController gameController,
+                            TaskSupervisor taskSupervisor,
+                            SelfReference selfReference,
+                            TriggerInfo info,
+                            String script,
+                            int size,
+                            Map<Integer, IItemStack> items) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
         if (size < 9 || size % 9 != 0)
             throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
 
@@ -44,10 +60,10 @@ public class InventoryTrigger extends Trigger {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorMain.getInstance().createInterrupterForInv(cooldowns, AbstractInventoryTriggerManager.inventoryMap),
+                    gameController.createInterrupterForInv(cooldowns, AbstractInventoryTriggerManager.inventoryMap),
                     timing);
         } catch (Exception ex) {
-            TriggerReactorMain.getInstance().handleException(e,
+            throwableHandler.handleException(e,
                     new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
         }
     }
@@ -55,7 +71,8 @@ public class InventoryTrigger extends Trigger {
     @Override
     public InventoryTrigger clone() {
         try {
-            return new InventoryTrigger(getInfo(), getScript(), items.clone());
+            return new InventoryTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                    getInfo(), getScript(), items.clone());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

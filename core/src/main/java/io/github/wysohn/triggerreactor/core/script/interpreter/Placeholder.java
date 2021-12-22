@@ -20,7 +20,7 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
 
-public interface Placeholder extends SynchronizableTask {
+public interface Placeholder {
     /**
      * Replace this placeholder with appropriate value.
      *

@@ -17,33 +17,29 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractPlayerLocationManager extends Manager {
-    private transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
+    @Inject
+    protected IGameController gameController;
 
-    public AbstractPlayerLocationManager(TriggerReactorMain plugin) {
-        super(plugin);
-    }
+    private final transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
 
     /**
      * Called when a player moved from one block to another.
      * <b>The child class should call this method manually when a player moved from a block to another block.</b>
-     *
-     * @param player the player moved
-     * @param from   block from
-     * @param to     block to
      */
     protected void onMove(IPlayerBlockLocationEvent event) {
         if (event.getFrom().equals(event.getTo()))
             return;
 
-        plugin.callEvent(event);
+        gameController.callEvent(event);
         if (event.isCancelled()) {
             event.setCancelled(true);
         } else {

@@ -18,33 +18,32 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
-import java.io.File;
+import javax.inject.Singleton;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
     protected final Map<SimpleChunkLocation, Map<SimpleLocation, T>> chunkMap = new ConcurrentHashMap<>();
     private final Map<UUID, String> settingLocation = new HashMap<>();
 
     private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
-    public AbstractLocationBasedTriggerManager(TriggerReactorMain plugin, File folder, ITriggerLoader<T> loader) {
-        super(plugin, folder, loader);
+    public AbstractLocationBasedTriggerManager(String folderName) {
+        super(folderName);
     }
 
     @Override
-    public void reload() {
-        super.reload();
+    public void onReload() {
+        super.onReload();
 
         chunkMap.clear();
 
@@ -67,9 +66,9 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
             if (locationMap.containsKey(sloc)) {
                 Trigger previous = locationMap.get(sloc);
-                plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
-                plugin.getLogger().warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
-                plugin.getLogger().warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
+                logger.warning("Found a duplicating " + trigger.getClass().getSimpleName());
+                logger.warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
+                logger.warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
             } else {
                 locationMap.put(sloc, trigger);
             }
@@ -103,7 +102,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         locationMap.put(sloc, trigger);
         put(sloc.toString(), trigger);
 
-        plugin.saveAsynchronously(this);
+        main.saveAsynchronously(this);
     }
 
     protected T removeLocationCache(SimpleLocation sloc) {
@@ -117,7 +116,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         T result = locationMap.remove(sloc);
         remove(sloc.toString());
 
-        plugin.saveAsynchronously(this);
+        main.saveAsynchronously(this);
         return result;
     }
 
@@ -253,55 +252,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
         enum BoardType {
             CUT, COPY
-        }
-    }
-
-    public static class WalkTrigger extends Trigger {
-        public WalkTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-            super(info, script);
-
-            init();
-
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new WalkTrigger(info, script);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public static class ClickTrigger extends Trigger {
-        private final ClickHandler handler;
-
-        public ClickTrigger(TriggerInfo info, String script, ClickHandler handler) throws TriggerInitFailedException {
-            super(info, script);
-            this.handler = handler;
-
-            init();
-        }
-
-        @Override
-        public boolean activate(Object e, Map<String, Object> scriptVars) {
-            if (!handler.allow(e))
-                return true;
-
-            return super.activate(e, scriptVars);
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                //TODO: using same handler will be safe?
-                return new ClickTrigger(info, script, handler);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
         }
     }
 

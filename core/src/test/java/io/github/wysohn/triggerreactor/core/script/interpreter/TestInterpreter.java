@@ -16,9 +16,11 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.config.DaggerConfigurationComponent;
+import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.manager.DaggerManagerComponent;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.ManagerComponent;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -52,10 +54,15 @@ import static org.mockito.Mockito.*;
 public class TestInterpreter {
 
     private TaskSupervisor mockTask;
+    private ManagerComponent managerComponent;
 
     @Before
     public void init(){
         mockTask = mock(TaskSupervisor.class);
+        managerComponent = DaggerManagerComponent.builder()
+                .pluginMainComponent(DaggerPluginMainComponent.create())
+                .configurationComponent(DaggerConfigurationComponent.create())
+                .build();
     }
 
     @Test
@@ -317,8 +324,7 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactorMain triggerReactor = mock(TriggerReactorMain.class);
-        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, mock(IConfigSource.class));
+        GlobalVariableManager avm = managerComponent.globalVariable();
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);

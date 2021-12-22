@@ -19,25 +19,35 @@ package io.github.wysohn.triggerreactor.bukkit.manager;
 import io.github.wysohn.triggerreactor.bukkit.tools.prompts.EditingPrompt;
 import io.github.wysohn.triggerreactor.bukkit.tools.prompts.UsagePrompt;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
-import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationAbandonedEvent;
 import org.bukkit.conversations.ConversationAbandonedListener;
 import org.bukkit.conversations.ConversationFactory;
+import org.bukkit.plugin.Plugin;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import java.util.function.Consumer;
+
+@Singleton
 public class ScriptEditManager extends AbstractScriptEditManager implements ConversationAbandonedListener {
-    public ScriptEditManager(TriggerReactorMain plugin) {
-        super(plugin);
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
+
+    @Inject
+    public ScriptEditManager() {
+
     }
 
     @Override
-    public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler) {
-        ConversationFactory factory = new ConversationFactory(plugin.getMain());
+    public void startEdit(ICommandSender sender, String title, String script, Consumer<String> consumer) {
+        ConversationFactory factory = new ConversationFactory((Plugin) pluginInstance);
 
-        EditingPrompt prompt = new EditingPrompt(plugin.getMain(), sender.get(), new ScriptEditor(title, script, saveHandler));
+        EditingPrompt prompt = new EditingPrompt((Plugin) pluginInstance, sender.get(), new ScriptEditor(title, script, consumer));
         Conversation conv = factory.thatExcludesNonPlayersWithMessage("Sorry, this is in-game only feature!")
                 .withFirstPrompt(new UsagePrompt(prompt))
                 .addConversationAbandonedListener(this)
@@ -53,7 +63,17 @@ public class ScriptEditManager extends AbstractScriptEditManager implements Conv
     }
 
     @Override
-    public void reload() {
+    public void onEnable() throws Exception {
+
+    }
+
+    @Override
+    public void onReload() {
+
+    }
+
+    @Override
+    public void onDisable() {
 
     }
 

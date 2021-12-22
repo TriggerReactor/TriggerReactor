@@ -16,27 +16,39 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.script.interpreter.SynchronizableTask;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.script.*;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 public abstract class AbstractJavascriptBasedManager extends Manager {
-    protected final ScriptEngineManager sem;
-
-    public AbstractJavascriptBasedManager(TriggerReactorMain plugin, ScriptEngineManager sem) {
-        super(plugin);
-        this.sem = sem;
-    }
+    @Inject
+    protected IGameController gameController;
+    @Inject
+    protected IPluginLifecycleController pluginLifecycleController;
+    @Inject
+    protected TaskSupervisor taskSupervisor;
+    @Inject
+    protected ScriptEngineManager sem;
+    @Inject
+    protected Logger logger;
+    @Inject
+    @Named("DataFolder")
+    protected File dataFolder;
 
     public static ScriptEngine getEngine(ScriptEngineManager sem) {
         ScriptEngine engine = sem.getEngineByName("graal.js");
@@ -56,7 +68,17 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 "the stock Java, or you have to download third-party plugin, such as JShader.");
     }
 
-    protected static abstract class Evaluable<R>{
+    protected static String readSourceCode(InputStream file) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        InputStreamReader reader = new InputStreamReader(file);
+        int read = -1;
+        while ((read = reader.read()) != -1)
+            builder.append((char) read);
+        reader.close();
+        return builder.toString();
+    }
+
+    protected abstract class Evaluable<R>{
         private final String indentifier;
         private final String timingsGroup;
         private final String functionName;
@@ -81,16 +103,6 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 Compilable compiler = (Compilable) this.engine;
                 compiled = compiler.compile(sourceCode);
             }
-        }
-
-        protected static String readSourceCode(InputStream file) throws IOException {
-            StringBuilder builder = new StringBuilder();
-            InputStreamReader reader = new InputStreamReader(file);
-            int read = -1;
-            while ((read = reader.read()) != -1)
-                builder.append((char) read);
-            reader.close();
-            return builder.toString();
         }
 
         private void registerValidationInfo(Bindings bindings) {
@@ -162,7 +174,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 return (R) result;
             };
 
-            if (TriggerReactorMain.getInstance().isServerThread()) {
+            if (gameController.isServerThread()) {
                 R result = null;
 
                 try {
@@ -173,10 +185,10 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 }
                 return result;
             } else {
-                Future<R> future = SynchronizableTask.runSyncTaskForFuture(call);
+                Future<R> future = taskSupervisor.submitSync(call);
                 if (future == null) {
                     //probably server is shutting down
-                    if (!TriggerReactorMain.getInstance().isEnabled()) {
+                    if (!pluginLifecycleController.isEnabled()) {
                         return call.call();
                     } else {
                         throw new Exception(indentifier + functionName + " couldn't be finished. The server returned null Future.");

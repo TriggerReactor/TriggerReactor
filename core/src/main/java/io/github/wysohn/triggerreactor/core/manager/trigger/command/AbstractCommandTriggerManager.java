@@ -16,12 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
@@ -43,95 +40,94 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
 
-    public AbstractCommandTriggerManager(TriggerReactorMain plugin, File folder) {
-        super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
-            private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
+    private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
+    {
+        tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
+    }
 
-            {
-                tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
-            }
+    public AbstractCommandTriggerManager(String folderName) {
+        super(folderName);
+    }
 
-            private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
-                String hint = (String) tabs.get(HINT);
-                String candidates_str = (String) tabs.get(CANDIDATES);
+    private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
+        String hint = (String) tabs.get(HINT);
+        String candidates_str = (String) tabs.get(CANDIDATES);
 
-                ITabCompleter tabCompleter;
-                if (candidates_str != null && candidates_str.startsWith("$")) {
-                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
-                } else if (candidates_str == null && hint != null) {
-                    tabCompleter = ITabCompleter.Builder.withHint(hint).build();
-                } else if (candidates_str != null && hint == null) {
-                    tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
-                } else {
-                    tabCompleter = ITabCompleter.Builder.withHint(hint)
-                            .setCandidate(
-                                    Optional.ofNullable(candidates_str)
-                                                .map(str -> ITabCompleter.list(str.split(",")))
-                                                .orElseGet(() -> ITabCompleter.list(""))
-                            )
-                            .build();
-                }
-                return tabCompleter;
-            }
+        ITabCompleter tabCompleter;
+        if (candidates_str != null && candidates_str.startsWith("$")) {
+            tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
+        } else if (candidates_str == null && hint != null) {
+            tabCompleter = ITabCompleter.Builder.withHint(hint).build();
+        } else if (candidates_str != null && hint == null) {
+            tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
+        } else {
+            tabCompleter = ITabCompleter.Builder.withHint(hint)
+                    .setCandidate(
+                            Optional.ofNullable(candidates_str)
+                                    .map(str -> ITabCompleter.list(str.split(",")))
+                                    .orElseGet(() -> ITabCompleter.list(""))
+                    )
+                    .build();
+        }
+        return tabCompleter;
+    }
 
-            private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
-                return tabs.stream()
-                        .map(this::toTabCompleter)
-                        .toArray(ITabCompleter[]::new);
-            }
-
-            @Override
-            public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
-                List<String> aliases = info.getConfig().get(ALIASES, List.class)
-                        .map(aliasList -> (((List<String>)aliasList).stream()
-                                .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
-                                .collect(Collectors.toList())))
-                        .orElse(new ArrayList<>());
-                List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
-
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    CommandTrigger trigger = new CommandTrigger(info, script);
-                    trigger.setPermissions(permissions.toArray(new String[0]));
-                    trigger.setAliases(aliases.toArray(new String[0]));
-                    trigger.setTabCompleters(toTabCompleters(tabs));
-                    return trigger;
-                } catch (TriggerInitFailedException | IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void save(CommandTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
-                    trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
-                            .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
-                            .toArray());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
+        return tabs.stream()
+                .map(this::toTabCompleter)
+                .toArray(ITabCompleter[]::new);
     }
 
     @Override
-    public void reload() {
+    public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+        List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
+        List<String> aliases = info.getConfig().get(ALIASES, List.class)
+                .map(aliasList -> (((List<String>)aliasList).stream()
+                        .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
+                        .collect(Collectors.toList())))
+                .orElse(new ArrayList<>());
+        List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
+
+        try {
+            String script = FileUtil.readFromFile(info.getSourceCodeFile());
+            CommandTrigger trigger = new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+            trigger.setPermissions(permissions.toArray(new String[0]));
+            trigger.setAliases(aliases.toArray(new String[0]));
+            trigger.setTabCompleters(toTabCompleters(tabs));
+            return trigger;
+        } catch (TriggerInitFailedException | IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void save(CommandTrigger trigger) {
+        try {
+            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+
+            trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
+            trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
+                    .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
+                    .toArray());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onReload() {
         getAllTriggers().stream()
                 .map(Trigger::getInfo)
                 .map(TriggerInfo::getTriggerName)
                 .forEach(this::unregisterCommand);
 
-        super.reload();
+        super.onReload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
             if(!registerCommand(trigger.getInfo().getTriggerName(), trigger)){
-                plugin.getLogger().warning("Attempted to register command trigger "+trigger.getInfo()+" but failed.");
-                plugin.getLogger().warning("Probably, the command is already in use by another command trigger.");
+                logger.warning("Attempted to register command trigger "+trigger.getInfo()+" but failed.");
+                logger.warning("Probably, the command is already in use by another command trigger.");
             }
         }
 
@@ -154,43 +150,38 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     /**
-     * @param adding CommandSender to send error message on script error
      * @param cmd    command to intercept
      * @param script script to be executed
      * @return true on success; false if cmd already binded.
      */
-    public boolean addCommandTrigger(ICommandSender adding, String cmd, String script) {
+    public boolean addCommandTrigger(String cmd, String script) throws TriggerInitFailedException {
         if (has(cmd))
             return false;
 
         File file = getTriggerFile(folder, cmd, true);
-        CommandTrigger trigger = null;
-        try {
-            String name = TriggerInfo.extractName(file);
-            IConfigSource config = configSourceFactory.create(folder, name);
-            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = new CommandTrigger(info, script);
-        } catch (TriggerInitFailedException e1) {
-            plugin.handleException(adding, e1);
-            return false;
-        }
+        String name = TriggerInfo.extractName(file);
+        IConfigSource config = configSourceFactories.create(folder, name);
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+        CommandTrigger trigger = new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                info, script);
 
         put(cmd, trigger);
         if(!registerCommand(cmd, trigger))
             return false;
 
         synchronizeCommandMap();
-        plugin.saveAsynchronously(this);
+        main.saveAsynchronously(this);
         return true;
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger(new TriggerInfo(null, null, "temp") {
-            @Override
-            public boolean isValid() {
-                return false;
-            }
-        }, script);
+        return new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                new TriggerInfo(null, null, "temp") {
+                    @Override
+                    public boolean isValid() {
+                        return false;
+                    }
+                }, script);
     }
 
     /**

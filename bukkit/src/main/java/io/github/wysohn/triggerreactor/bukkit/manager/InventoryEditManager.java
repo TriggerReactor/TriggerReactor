@@ -1,10 +1,10 @@
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
@@ -20,19 +20,35 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Optional;
 import java.util.UUID;
 
+@Singleton
 public class InventoryEditManager extends AbstractInventoryEditManager implements Listener {
+    @Inject
+    IWrapper wrapper;
 
     private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
 
-    public InventoryEditManager(TriggerReactorMain plugin) {
-        super(plugin);
+    @Inject
+    InventoryEditManager(TriggerReactorMain plugin) {
+
     }
 
     @Override
-    public void reload() {
+    public void onEnable() throws Exception {
+
+    }
+
+    @Override
+    public void onReload() {
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @Override
@@ -59,7 +75,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
 
         Inventory inv = Bukkit.createInventory(null, items.length, trigger.getInfo().getTriggerName());
         inv.setContents(items);
-        player.openInventory(BukkitTriggerReactorCore.getWrapper().wrap(inv));
+        player.openInventory(wrapper.wrap(inv));
     }
 
     @Override
@@ -113,13 +129,13 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
         }
         Inventory inv = e.getInventory();
 
-        suspended.put(u, BukkitTriggerReactorCore.getWrapper().wrap(inv));
+        suspended.put(u, wrapper.wrap(inv));
         sendMessage((Player) e.getPlayer());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        stopEdit(BukkitTriggerReactorCore.getWrapper().wrap(event.getPlayer()));
+        stopEdit(wrapper.wrap(event.getPlayer()));
     }
 
     private void sendMessage(Player player) {

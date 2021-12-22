@@ -1,9 +1,12 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Map;
@@ -13,14 +16,25 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private boolean autoStart = false;
     private Map<String, Object> vars;
 
-    public RepeatingTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
+    public RepeatingTrigger(IThrowableHandler throwableHandler,
+IGameController gameController,
+                            TaskSupervisor taskSupervisor,
+                            SelfReference selfReference,
+                            TriggerInfo info,
+                            String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        this(throwableHandler, gameController, taskSupervisor, selfReference, info, script, 1000L);
 
         init();
     }
 
-    public RepeatingTrigger(TriggerInfo info, String script, long interval) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
+    public RepeatingTrigger(IThrowableHandler throwableHandler,
+IGameController gameController,
+                            TaskSupervisor taskSupervisor,
+                            SelfReference selfReference,
+                            TriggerInfo info,
+                            String script,
+                            long interval) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
         this.interval = interval;
 
         init();
@@ -77,7 +91,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @Override
     public RepeatingTrigger clone() {
         try {
-            return new RepeatingTrigger(info, script, interval);
+            return new RepeatingTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script,
+                    interval);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }
@@ -133,26 +148,14 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 }
             }
         } catch (Exception e) {
-            throwableHandler.onFail(e);
+            throwableHandler.handleException(null, e);
         }
 
         try {
             vars.put(AbstractRepeatingTriggerManager.TRIGGER, "stop");
             activate(new Object(), vars);
         } catch (Exception e) {
-            throwableHandler.onFail(e);
+            throwableHandler.handleException(null, e);
         }
     }
-
-    private final AbstractRepeatingTriggerManager.ThrowableHandler throwableHandler = new AbstractRepeatingTriggerManager.ThrowableHandler() {
-        @Override
-        public void onFail(Throwable throwable) {
-            throwable.printStackTrace();
-            TriggerReactorMain.getInstance().getLogger()
-                    .warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
-            TriggerReactorMain.getInstance().getLogger().warning(throwable.getMessage());
-            TriggerReactorMain.getInstance().getLogger()
-                    .warning("If you are an administrator, see console for more details.");
-        }
-    };
 }

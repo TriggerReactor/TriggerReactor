@@ -27,7 +27,8 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,15 +36,28 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Singleton
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
-    private final ICommandMapHandler commandMapHandler;
-    private final Map<String, Command> commandMap;
+    @Inject
+    ICommandMapHandler commandMapHandler;
+
+    private Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
 
-    public CommandTriggerManager(TriggerReactorMain plugin, ICommandMapHandler commandMapHandler) {
-        super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"));
-        this.commandMapHandler = commandMapHandler;
-        this.commandMap = commandMapHandler.getCommandMap(plugin);
+    @Inject
+    public CommandTriggerManager() {
+        super("CommandTrigger");
+
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+        super.onEnable();
+    }
+
+    @Override
+    public void onDisable() {
+        this.commandMap = commandMapHandler.getCommandMap(main);
     }
 
     @Override
@@ -51,7 +65,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         if(commandMap.containsKey(triggerName) && overridens.containsKey(triggerName))
             return false;
 
-        PluginCommand command = createCommand(plugin, triggerName);
+        PluginCommand command = createCommand(main, triggerName);
         command.setAliases(Arrays.stream(trigger.getAliases())
                 .collect(Collectors.toList()));
         command.setTabCompleter((sender, command12, alias, args) -> {
@@ -73,8 +87,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
                 return true;
             }
 
-            ICommandSender commandSender = plugin.getPlayer(sender.getName());
-            execute(plugin.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
+            ICommandSender commandSender = main.getPlayer(sender.getName());
+            execute(main.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
             return true;
         });
 
@@ -141,8 +155,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         for (String permission : trigger.getPermissions()) {
             if (!player.hasPermission(permission)) {
                 player.sendMessage(ChatColor.RED + "[TR] You don't have permission!");
-                if (plugin.isDebugging()) {
-                    plugin.getLogger().info("Player " + player.getName() + " executed command " + cmd
+                if (main.isDebugging()) {
+                    logger.info("Player " + player.getName() + " executed command " + cmd
                             + " but didn't have permission " + permission + "");
                 }
                 return;

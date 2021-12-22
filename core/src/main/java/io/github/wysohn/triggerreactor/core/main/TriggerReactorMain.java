@@ -21,11 +21,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -38,25 +36,33 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -66,53 +72,151 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-public abstract class TriggerReactorMain implements TaskSupervisor {
+@Singleton
+public class TriggerReactorMain implements IPluginProcedure {
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
+    @Inject
+    Logger logger;
+    @Inject
+    @Named("DataFolder")
+    File dataFolder;
+    @Inject
+    IPluginLifecycleController pluginLifecycleController;
+    @Inject
+    IGameController gameController;
+    @Inject
+    TaskSupervisor task;
+    @Inject
+    IThrowableHandler throwableHandler;
+
+    @Inject
+    Set<Manager> managers;
+    @Inject
+    GlobalVariableManager globalVariableManager;
+    @Inject
+    PluginConfigManager pluginConfigManager;
+    @Inject
+    IWrapper wrapper;
+
+    @Inject
+    ScriptEngineManager scriptEngineManager;
+    @Inject
+    Set<IScriptEngineInitializer> scriptEngineInitializers;
+
+    @Inject
+    AbstractExecutorManager executorManager;
+    @Inject
+    AbstractPlaceholderManager placeholderManager;
+    @Inject
+    AbstractScriptEditManager scriptEditManager;
+    @Inject
+    AbstractPlayerLocationManager locationManager;
+    @Inject
+    AbstractPermissionManager permissionManager;
+    @Inject
+    AbstractAreaSelectionManager selectionManager;
+    @Inject
+    AbstractInventoryEditManager invEditManager;
+    @Inject
+    AbstractLocationBasedTriggerManager<ClickTrigger> clickManager;
+    @Inject
+    AbstractLocationBasedTriggerManager<WalkTrigger> walkManager;
+    @Inject
+    AbstractCommandTriggerManager cmdManager;
+    @Inject
+    AbstractInventoryTriggerManager<?> invManager;
+    @Inject
+    AbstractAreaTriggerManager areaManager;
+    @Inject
+    AbstractCustomTriggerManager customManager;
+    @Inject
+    AbstractRepeatingTriggerManager repeatManager;
+    @Inject
+    AbstractNamedTriggerManager namedTriggerManager;
+
+    @Inject
+    Map<String, Class<? extends AbstractAPISupport>> sharedVarProtos;
+
     public static final String PERMISSION = "triggerreactor.admin";
     static TriggerReactorMain instance;
-    protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
-    private PluginConfigManager pluginConfigManager;
-    private GlobalVariableManager globalVariableManager;
     private boolean debugging = false;
+    protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
+    private final Set<Class<? extends Manager>> savings = new HashSet<>();
+    
+    @Inject
     protected TriggerReactorMain() {
         instance = this;
+    }
+
+    public IWrapper getWrapper(){
+        return wrapper;
     }
 
     public Map<String, AbstractAPISupport> getSharedVars() {
         return sharedVars;
     }
 
-    public abstract SelfReference getSelfReference();
+    public AbstractExecutorManager getExecutorManager() {
+        return executorManager;
+    }
 
-    public abstract AbstractExecutorManager getExecutorManager();
+    public AbstractPlaceholderManager getPlaceholderManager() {
+        return placeholderManager;
+    }
+    public AbstractScriptEditManager getScriptEditManager() {
+        return scriptEditManager;
+    }
 
-    public abstract AbstractPlaceholderManager getPlaceholderManager();
+    public AbstractPlayerLocationManager getLocationManager() {
+        return locationManager;
+    }
 
-    public abstract AbstractScriptEditManager getScriptEditManager();
+    public AbstractPermissionManager getPermissionManager() {
+        return permissionManager;
+    }
 
-    public abstract AbstractPlayerLocationManager getLocationManager();
+    public AbstractAreaSelectionManager getSelectionManager() {
+        return selectionManager;
+    }
 
-    public abstract AbstractPermissionManager getPermissionManager();
+    public AbstractInventoryEditManager getInvEditManager() {
+        return invEditManager;
+    }
 
-    public abstract AbstractAreaSelectionManager getSelectionManager();
+    public AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
+        return clickManager;
+    }
 
-    public abstract AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager();
+    public AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager() {
+        return walkManager;
+    }
 
-    public abstract AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager();
+    public AbstractCommandTriggerManager getCmdManager() {
+        return cmdManager;
+    }
 
-    public abstract AbstractCommandTriggerManager getCmdManager();
+    public AbstractInventoryTriggerManager<?> invManager() {
+        return invManager;
+    }
 
-    public abstract AbstractInventoryTriggerManager<? extends IInventory> getInvManager();
+    public AbstractAreaTriggerManager getAreaManager() {
+        return areaManager;
+    }
 
-    public abstract AbstractInventoryEditManager getInvEditManager();
+    public AbstractCustomTriggerManager getCustomManager() {
+        return customManager;
+    }
 
-    public abstract AbstractAreaTriggerManager getAreaManager();
+    public AbstractRepeatingTriggerManager getRepeatManager() {
+        return repeatManager;
+    }
 
-    public abstract AbstractCustomTriggerManager getCustomManager();
-
-    public abstract AbstractRepeatingTriggerManager getRepeatManager();
-
-    public abstract AbstractNamedTriggerManager getNamedTriggerManager();
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
+    }
 
     public final PluginConfigManager getPluginConfigManager() {
         return pluginConfigManager;
@@ -122,28 +226,35 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
         return globalVariableManager;
     }
 
-    public void onCoreEnable() {
-        pluginConfigManager = new PluginConfigManager(this);
-        globalVariableManager = new GlobalVariableManager(this);
+    @Override
+    public void onEnable() throws Exception{
+        Thread.currentThread().setContextClassLoader(pluginInstance.getClass().getClassLoader());
+
+        // theoretically, it is perfectly fine to be 0, but we assume that we have at least 1 API support
+        ValidationUtil.assertTrue(sharedVars.size(), v -> v > 0);
+
+        for (Entry<String, Class<? extends AbstractAPISupport>> entry : sharedVarProtos.entrySet()) {
+            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
+        }
+
+        for (IScriptEngineInitializer init : scriptEngineInitializers){
+            init.initScriptEngine(scriptEngineManager);
+        }
     }
 
-    public void onCoreDisable() {
-        Manager.getManagers().forEach(Manager::disable);
+    @Override
+    public void onReload() throws RuntimeException{
+        managers.forEach(IPluginProcedure::onReload);
     }
 
-    protected abstract boolean removeLore(IItemStack iS, int index);
+    @Override
+    public void onDisable() {
+        managers.forEach(Manager::onDisable);
 
-    protected abstract boolean setLore(IItemStack iS, int index, String lore);
-
-    protected abstract void addItemLore(IItemStack iS, String lore);
-
-    protected abstract void setItemTitle(IItemStack iS, String title);
-
-    public abstract IPlayer getPlayer(String string);
-
-    public abstract Object createEmptyPlayerEvent(ICommandSender sender);
-
-    public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
+        logger.info("Finalizing the scheduled script executions...");
+        CACHED_THREAD_POOL.shutdown();
+        logger.info("Shut down complete!");
+    }
 
     private void showHelp(ICommandSender sender) {
         showHelp(sender, 1);
@@ -152,7 +263,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
     private void showHelp(ICommandSender sender, int page) {
         page = Math.max(1, Math.min(HELP_PAGES.size(), page));
 
-        sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
+        sender.sendMessage("&7-----     &6" + pluginLifecycleController.getPluginDescription() + "&7    ----");
         HELP_PAGES.get(page - 1).sendParagraph(sender);
         sender.sendMessage("");
         sender.sendMessage("&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
@@ -164,10 +275,10 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
      * @param sender  sender to show description
      * @param command the command to explain
      * @param desc    description
-     * @deprecated no longer used
      */
-    @Deprecated
-    protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
+    protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
+        sender.sendMessage("&b" + command + " &8- &7" + desc);
+    }
 
     /**
      * Send detail under the command. It is usually called after {@link #sendCommandDesc(ICommandSender, String, String)}
@@ -175,31 +286,10 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
      *
      * @param sender sender to show description
      * @param detail detail to show
-     * @deprecated no longer used
      */
-    @Deprecated
-    protected abstract void sendDetails(ICommandSender sender, String detail);
-
-    /**
-     * get Plugin's description.
-     *
-     * @return returns the full name of the plugin and its version.
-     */
-    public abstract String getPluginDescription();
-
-    /**
-     * get Plugin's version as String
-     *
-     * @return version of the plugin as String.
-     */
-    public abstract String getVersion();
-
-    /**
-     * get Author of plugin
-     *
-     * @return author name of the plugin as String.
-     */
-    public abstract String getAuthor();
+    protected void sendDetails(ICommandSender sender, String detail) {
+        sender.sendMessage("  &7" + detail);
+    }
 
     /**
      * @param args
@@ -220,304 +310,44 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
     }
 
     /**
-     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
-     * instead of changing the real block.
-     *
-     * @param sender sender to show the glow stones
-     * @param set    the set contains location of block and its associated trigger.
-     */
-    protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
-
-    /**
-     * Register events for Managers. If it was Bukkit API, we can assume that the 'manager' will implement Listener
-     * interface, yet we need to verify it with instanceof to avoid any problems.
-     *
-     * @param manager the object instance of Manager
-     */
-    public abstract void registerEvents(Manager manager);
-
-    /**
-     * Get folder where the plugin files will be saved.
-     *
-     * @return folder to save plugin files.
-     */
-    public abstract File getDataFolder();
-
-    /**
-     * get Logger.
-     *
-     * @return Logger.
-     */
-    public abstract Logger getLogger();
-
-    /**
-     * Check if this plugin is enabled.
-     *
-     * @return true if enabled; false if disabled.
-     */
-    public abstract boolean isEnabled();
-
-    /**
-     * Disable this plugin.
-     */
-    public abstract void disablePlugin();
-
-    /**
-     * Get the main class instance. JavaPlugin for Bukkit API for example.
-     *
-     * @return
-     */
-    public abstract <T> T getMain();
-
-    /**
-     * Check if the 'key' is set in the config.yml. This might be only case for Bukkit API
-     *
-     * @param key the key
-     * @return true if set; false if not set
-     */
-    public abstract boolean isConfigSet(String key);
-
-    /**
-     * Save the 'value' to the associated 'key' in config.yml. This might be only case for Bukkit API.
-     * The new value should override the value if already exists.
-     * This does not actually save values into config.yml unless you invoke {@link #saveConfig()}
-     *
-     * @param key   the key
-     * @param value the value to set.
-     */
-    public abstract void setConfig(String key, Object value);
-
-    /**
-     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
-     *
-     * @param key the key
-     * @return the value; null if not set.
-     */
-    public abstract Object getConfig(String key);
-
-    /**
-     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
-     *
-     * @param key the key
-     * @param def the default value to return if the 'key' is not set
-     * @return the value; null if not set.
-     */
-    public abstract <T> T getConfig(String key, T def);
-
-    /**
-     * Save all configs to config.yml.
-     */
-    public abstract void saveConfig();
-
-    /**
-     * Save all configs from config.yml.
-     */
-    public abstract void reloadConfig();
-
-    /**
-     * Run task on the server thread. Usually it happens via scheduler.
-     *
-     * @param runnable the Runnable to run
-     */
-    public abstract void runTask(Runnable runnable);
-
-    /**
      * Call saveAll() on separated thread. It should also check if a saving task is already
      * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
      *
      * @param manager
      */
-    public abstract void saveAsynchronously(Manager manager);
+    public boolean saveAsynchronously(final Manager manager) {
+        if (savings.contains(manager.getClass()))
+            return false;
 
-    /**
-     * Handle the exception caused by Executors or Triggers. The 'e' is the context when the 'event' was
-     * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
-     * related to this Exception and show useful information to the game.
-     *
-     * @param e         the context
-     * @param throwable the exception that was thrown
-     */
-    final public void handleException(Object e, Throwable throwable) {
-        if (isDebugging()) {
-            throwable.printStackTrace();
-        }
-
-        ICommandSender sender = extractPlayerFromContext(e);
-        if (sender == null)
-            sender = getConsoleSender();
-
-        sendExceptionMessage(sender, throwable);
-    }
-
-    /**
-     * Handle the exception caused by Executors or Triggers.
-     *
-     * @param sender    the sender who will receive the message
-     * @param throwable the exception that was thrown
-     */
-    final public void handleException(ICommandSender sender, Throwable throwable) {
-        if (isDebugging()) {
-            throwable.printStackTrace();
-        }
-
-        if (sender == null)
-            sender = getConsoleSender();
-
-        sendExceptionMessage(sender, throwable);
-    }
-
-    private void sendExceptionMessage(ICommandSender sender, Throwable e) {
-        runTask(new Runnable() {
-            @Override
-            public void run() {
-                Throwable ex = e;
-                sender.sendMessage("&cCould not execute this trigger.");
-                while (ex != null) {
-                    sender.sendMessage("&c >> Caused by:");
-                    sender.sendMessage("&c" + ex.getMessage());
-                    ex = ex.getCause();
+        new Thread(() -> {
+            try {
+                synchronized (savings) {
+                    savings.add(manager.getClass());
                 }
-                sender.sendMessage("&cIf you are administrator, see console for details.");
+
+                logger.info("Saving " + manager.getClass().getSimpleName());
+                manager.saveAll();
+                logger.info("Saving Done!");
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.warning("Failed to save " + manager.getClass().getSimpleName());
+            } finally {
+                synchronized (savings) {
+                    savings.remove(manager.getClass());
+                }
             }
-        });
+        }) {{
+            this.setPriority(MIN_PRIORITY);
+        }}.start();
+        return true;
     }
-
-    /**
-     * get sender instance of the console
-     *
-     * @return
-     */
-    public abstract ICommandSender getConsoleSender();
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
-     *
-     * @param cooldowns   list of current cooldowns.
-     * @return the interrupter created.
-     */
-    public abstract ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
-     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
-     * the Inventory was closed, it is the iterrupter's responsibility to do that.
-     *
-     * @param cooldowns    list of current cooldowns.
-     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
-     *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
-     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
-     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
-     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
-     * @return
-     */
-    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
-                                                               Map<IInventory, InventoryTrigger> inventoryMap);
-
-    /**
-     * try to extract player from context 'e'.
-     *
-     * @param e Event for Bukkit API
-     * @return
-     */
-    public abstract IPlayer extractPlayerFromContext(Object e);
-
-    /**
-     * Run Callable on the server thread.
-     *
-     * @param call the callable
-     * @return the future object.
-     */
-    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
-
-    @Override
-    public <T> Future<T> submitSync(Callable<T> call) {
-        if (this.isServerThread()) {
-            return new Future<T>() {
-                private boolean done = false;
-
-                @Override
-                public boolean cancel(boolean arg0) {
-                    return false;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-
-                @Override
-                public boolean isDone() {
-                    return done;
-                }
-
-                @Override
-                public T get() throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-                @Override
-                public T get(long arg0, TimeUnit arg1)
-                        throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-            };
-        } else {
-            return callSyncMethod(call);
-        }
-    }
-
-    @Override
-    public void submitAsync(Runnable run) {
-        new Thread(run).start();
-    }
-
-    /**
-     * Call event so that it can be heard by listeners
-     *
-     * @param event
-     */
-    public abstract void callEvent(IEvent event);
-
-    /**
-     * Check if the current Thread is the Server
-     *
-     * @return
-     */
-    public abstract boolean isServerThread();
-
-    /**
-     * extract useful custom variables manually from 'context'
-     *
-     * @param context
-     * @return
-     */
-    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission(PERMISSION))
                 return true;
 
-            if (!isEnabled()) {
+            if (!pluginLifecycleController.isEnabled()) {
                 sender.sendMessage("&cTriggerReactor is disabled. Check your latest.log to see why the plugin is not" +
                         " loaded properly. If there was an error while loading, please report it through github issue" +
                         " or our discord channel.");
@@ -535,21 +365,18 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     }
                     sender.sendMessage("Debugging is set to &" + color + debugging);
 
-                    getLogger().info("Debugging state: " + debugging);
+                    logger.info("Debugging state: " + debugging);
                     return true;
                 } else if (args[0].equalsIgnoreCase("version")) {
-                    sender.sendMessage("Current version: " + getVersion());
+                    sender.sendMessage("Current version: " + pluginLifecycleController.getVersion());
                     return true;
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
-                        getScriptEditManager().startEdit(sender, "Click Trigger", "", new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                if (getClickManager().startLocationSet((IPlayer) sender, script)) {
-                                    sender.sendMessage("&7Now click the block to set click trigger.");
-                                } else {
-                                    sender.sendMessage("&7Already on progress.");
-                                }
+                        getScriptEditManager().startEdit(sender, "Click Trigger", "", (SaveHandler) script -> {
+                            if (getClickManager().startLocationSet((IPlayer) sender, script)) {
+                                sender.sendMessage("&7Now click the block to set click trigger.");
+                            } else {
+                                sender.sendMessage("&7Already on progress.");
                             }
                         });
                     } else {
@@ -565,14 +392,11 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("walk") || args[0].equalsIgnoreCase("w")) {
                     if (args.length == 1) {
-                        getScriptEditManager().startEdit(sender, "Walk Trigger", "", new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                if (getWalkManager().startLocationSet((IPlayer) sender, script)) {
-                                    sender.sendMessage("&7Now click the block to set walk trigger.");
-                                } else {
-                                    sender.sendMessage("&7Already on progress.");
-                                }
+                        getScriptEditManager().startEdit(sender, "Walk Trigger", "", script -> {
+                            if (getWalkManager().startLocationSet((IPlayer) sender, script)) {
+                                sender.sendMessage("&7Now click the block to set walk trigger.");
+                            } else {
+                                sender.sendMessage("&7Already on progress.");
                             }
                         });
                     } else {
@@ -667,42 +491,41 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     } else if (getCmdManager().has(args[1])) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                try {
-                                    trigger.setScript(script);
-                                } catch (Exception e) {
-                                    handleException(sender, e);
-                                }
-
-                                sender.sendMessage("&aScript is updated!");
-
-                                saveAsynchronously(getCmdManager());
+                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), script -> {
+                            try {
+                                trigger.setScript(script);
+                            } catch (Exception e) {
+                                throwableHandler.handleException(sender, e);
                             }
+
+                            sender.sendMessage("&aScript is updated!");
+
+                            saveAsynchronously(getCmdManager());
                         });
                     } else {
-                        if (args.length == 2) {
-                            getScriptEditManager().startEdit(sender, "Command Trigger", "", new SaveHandler() {
-                                @Override
-                                public void onSave(String script) {
-                                    getCmdManager().addCommandTrigger(sender, args[1], script);
-
+                        final Consumer<String> scriptConsumer = script -> {
+                            try {
+                                if(getCmdManager().addCommandTrigger(args[1], script)){
                                     sender.sendMessage("&aCommand trigger is binded!");
-
-                                    saveAsynchronously(getCmdManager());
+                                } else {
+                                    sender.sendMessage("&cCommand is already binded.");
                                 }
-                            });
+                            } catch (AbstractTriggerManager.TriggerInitFailedException e) {
+                                throwableHandler.handleException(sender, e);
+                                return;
+                            }
+
+                            saveAsynchronously(getCmdManager());
+                        };
+
+                        if (args.length == 2) {
+                            getScriptEditManager().startEdit(sender, "Command Trigger", "", scriptConsumer);
                         } else {
                             StringBuilder builder = new StringBuilder();
                             for (int i = 2; i < args.length; i++)
                                 builder.append(args[i] + " ");
 
-                            getCmdManager().addCommandTrigger(sender, args[1], builder.toString());
-
-                            sender.sendMessage("&aCommand trigger is binded!");
-
-                            saveAsynchronously(getCmdManager());
+                            scriptConsumer.accept(builder.toString());
                         }
                     }
                     return true;
@@ -724,7 +547,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             try {
                                 getVariableManager().put(name, IS.get());
                             } catch (Exception e) {
-                                this.handleException(sender, e);
+                                throwableHandler.handleException(sender, e);
                             }
 
                             sender.sendMessage("&aItem saved!");
@@ -739,7 +562,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             try {
                                 getVariableManager().put(name, loc.get());
                             } catch (Exception e) {
-                                this.handleException(sender, e);
+                                throwableHandler.handleException(sender, e);
                             }
 
                             sender.sendMessage("&aLocation saved!");
@@ -756,25 +579,25 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                                 try {
                                     getVariableManager().put(name, Integer.parseInt(value));
                                 } catch (Exception e) {
-                                    this.handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
                             } else if (DECIMAL_PATTERN.matcher(value).matches()) {
                                 try {
                                     getVariableManager().put(name, Double.parseDouble(value));
                                 } catch (Exception e) {
-                                    this.handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
                             } else if (value.equals("true") || value.equals("false")) {
                                 try {
                                     getVariableManager().put(name, Boolean.parseBoolean(value));
                                 } catch (Exception e) {
-                                    this.handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
                             } else {
                                 try {
                                     getVariableManager().put(name, value);
                                 } catch (Exception e) {
-                                    this.handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
                             }
 
@@ -793,10 +616,10 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     try {
                         Trigger trigger = getCmdManager().createTempCommandTrigger(script);
 
-                        trigger.activate(createEmptyPlayerEvent(sender), new HashMap<>());
+                        trigger.activate(gameController.createEmptyPlayerEvent(sender), new HashMap<>());
 
                     } catch (Exception e) {
-                        handleException(sender, e);
+                        throwableHandler.handleException(sender, e);
                     }
 
                     return true;
@@ -804,7 +627,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     String playerName = args[1];
                     String script = mergeArguments(args, 2, args.length - 1);
 
-                    IPlayer targetPlayer = getPlayer(playerName);
+                    IPlayer targetPlayer = gameController.getPlayer(playerName);
                     if (targetPlayer == null) {
                         sender.sendMessage("&cNo such player named &6" + playerName + "&c!");
                         return true;
@@ -813,10 +636,10 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     try {
                         Trigger trigger = getCmdManager().createTempCommandTrigger(script);
 
-                        trigger.activate(createEmptyPlayerEvent(targetPlayer), new HashMap<>());
+                        trigger.activate(gameController.createEmptyPlayerEvent(targetPlayer), new HashMap<>());
 
                     } catch (Exception e) {
-                        handleException(sender, e);
+                        throwableHandler.handleException(sender, e);
                     }
 
                     return true;
@@ -834,11 +657,11 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         }
 
                         Map<String, Object> variables = new HashMap<>(); // shares same variable space
-                        trigger.activate(createEmptyPlayerEvent(sender), variables);
-                        targetTrigger.activate(createEmptyPlayerEvent(sender), variables);
+                        trigger.activate(gameController.createEmptyPlayerEvent(sender), variables);
+                        targetTrigger.activate(gameController.createEmptyPlayerEvent(sender), variables);
 
                     } catch (Exception e) {
-                        handleException(sender, e);
+                        throwableHandler.handleException(sender, e);
                     }
 
                     return true;
@@ -865,17 +688,17 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             final int sizeCopy = size;
                             getScriptEditManager().startEdit(sender, "Inventory Trigger", "", new SaveHandler() {
                                 @Override
-                                public void onSave(String script) {
+                                public void accept(String script) {
                                     try {
-                                        if (getInvManager().createTrigger(sizeCopy, name, script)) {
+                                        if (invManager.createTrigger(sizeCopy, name, script)) {
                                             sender.sendMessage("&aInventory Trigger created!");
 
-                                            saveAsynchronously(getInvManager());
+                                            saveAsynchronously(invManager);
                                         } else {
                                             sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                         }
                                     } catch (Exception e) {
-                                        handleException(sender, e);
+                                        throwableHandler.handleException(sender, e);
                                     }
                                 }
                             });
@@ -883,24 +706,24 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             String script = mergeArguments(args, 4, args.length - 1);
 
                             try {
-                                if (getInvManager().createTrigger(size, name, script)) {
+                                if (invManager.createTrigger(size, name, script)) {
                                     sender.sendMessage("&aInventory Trigger created!");
 
-                                    saveAsynchronously(getInvManager());
+                                    saveAsynchronously(invManager);
                                 } else {
                                     sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                 }
                             } catch (Exception e) {
-                                handleException(sender, e);
+                                throwableHandler.handleException(sender, e);
                             }
                         }
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("delete")) {
                         String name = args[1];
 
-                        if (getInvManager().remove(name) != null) {
+                        if (invManager.remove(name) != null) {
                             sender.sendMessage("&aDeleted!");
 
-                            saveAsynchronously(getInvManager());
+                            saveAsynchronously(invManager);
                         } else {
                             sender.sendMessage("&7No such inventory trigger found.");
                         }
@@ -918,7 +741,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = getInvManager().get(name);
+                        InventoryTrigger trigger = invManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -930,7 +753,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         }
 
                         trigger.getItems()[index - 1] = IS;
-                        saveAsynchronously(getInvManager());
+                        saveAsynchronously(invManager);
 
                         sender.sendMessage("Successfully set item " + index);
 
@@ -940,7 +763,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         if (args.length == 3) {
                             forWhom = (IPlayer) sender;
                         } else {
-                            IPlayer p = getPlayer(args[3]);
+                            IPlayer p = gameController.getPlayer(args[3]);
                             if (p != null)
                                 forWhom = p;
                         }
@@ -950,7 +773,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             return true;
                         }
 
-                        IInventory opened = getInvManager().openGUI(forWhom, name);
+                        IInventory opened = invManager.openGUI(forWhom, name);
                         if (opened == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -958,7 +781,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edit")) {
                         String name = args[1];
 
-                        InventoryTrigger trigger = getInvManager().get(name);
+                        InventoryTrigger trigger = invManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -966,16 +789,16 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                         getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                             @Override
-                            public void onSave(String script) {
+                            public void accept(String script) {
                                 try {
                                     trigger.setScript(script);
                                 } catch (Exception e) {
-                                    handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
 
                                 sender.sendMessage("&aScript is updated!");
 
-                                saveAsynchronously(getInvManager());
+                                saveAsynchronously(invManager);
                             }
                         });
                     } else if (args.length == 4 && args[2].equals("row")) {
@@ -992,7 +815,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = getInvManager().get(name);
+                        InventoryTrigger trigger = invManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -1008,7 +831,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             trigger.getItems()[(index - 1) * 9 + i] = IS;
                         }
 
-                        saveAsynchronously(getInvManager());
+                        saveAsynchronously(invManager);
                         sender.sendMessage("Successfully filled row " + index);
 
                     } else if (args.length == 4 && args[2].equals("column")) {
@@ -1025,7 +848,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             return true;
                         }
 
-                        InventoryTrigger trigger = getInvManager().get(name);
+                        InventoryTrigger trigger = invManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -1041,13 +864,13 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             trigger.getItems()[index - 1 + i * 9] = IS;
                         }
 
-                        saveAsynchronously(getInvManager());
+                        saveAsynchronously(invManager);
                         sender.sendMessage("Successfully filled column " + index);
 
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
                         String name = args[1];
 
-                        InventoryTrigger trigger = getInvManager().get(name);
+                        InventoryTrigger trigger = invManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -1059,7 +882,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         String name = args[1];
                         String title = mergeArguments(args, 3, args.length-1);
 
-                        InventoryTrigger trigger = getInvManager().get(name);
+                        InventoryTrigger trigger = invManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
@@ -1068,7 +891,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         TriggerInfo info = trigger.getInfo();
                         info.getConfig().put(AbstractInventoryTriggerManager.TITLE, title);
 
-                        getInvManager().reload(name);
+                        invManager.reload(name);
 
                         sender.sendMessage("Successfully changed title");
 
@@ -1100,7 +923,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         }
 
                         String title = mergeArguments(args, 2, args.length - 1);
-                        setItemTitle(IS, title);
+                        gameController.setItemTitle(IS, title);
 
                         ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
@@ -1112,7 +935,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         }
 
                         String lore = mergeArguments(args, 3, args.length - 1);
-                        addItemLore(IS, lore);
+                        gameController.addItemLore(IS, lore);
 
                         ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
@@ -1133,7 +956,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                         String lore = mergeArguments(args, 4, args.length - 1);
 
-                        if (!setLore(IS, index - 1, lore)) {
+                        if (!gameController.setLore(IS, index - 1, lore)) {
                             sender.sendMessage("&c" + "" + index + " is out of bounds.");
                             return true;
                         }
@@ -1155,7 +978,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             return true;
                         }
 
-                        if (!removeLore(IS, index - 1)) {
+                        if (!gameController.removeLore(IS, index - 1)) {
                             sender.sendMessage("&7No lore at index " + index);
                             return true;
                         }
@@ -1240,7 +1063,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         if (trigger.getEnterTrigger() != null) {
                             getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler() {
                                 @Override
-                                public void onSave(String script) {
+                                public void accept(String script) {
                                     try {
                                         trigger.setEnterTrigger(script);
 
@@ -1248,7 +1071,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                                         sender.sendMessage("&aScript is updated!");
                                     } catch (Exception e) {
-                                        handleException(sender, e);
+                                        throwableHandler.handleException(sender, e);
                                     }
                                 }
                             });
@@ -1256,13 +1079,13 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                             if (args.length == 3) {
                                 getScriptEditManager().startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler() {
                                     @Override
-                                    public void onSave(String script) {
+                                    public void accept(String script) {
                                         try {
                                             trigger.setEnterTrigger(script);
 
                                             saveAsynchronously(getAreaManager());
                                         } catch (Exception e) {
-                                            handleException(sender, e);
+                                            throwableHandler.handleException(sender, e);
                                         }
                                     }
                                 });
@@ -1272,7 +1095,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                                     saveAsynchronously(getAreaManager());
                                 } catch (Exception e) {
-                                    handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
                             }
                         }
@@ -1286,31 +1109,28 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         }
 
                         if (trigger.getExitTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getExitTrigger().getScript(), new SaveHandler() {
-                                @Override
-                                public void onSave(String script) {
-                                    try {
-                                        trigger.setExitTrigger(script);
+                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getExitTrigger().getScript(), script -> {
+                                try {
+                                    trigger.setExitTrigger(script);
 
-                                        saveAsynchronously(getAreaManager());
+                                    saveAsynchronously(getAreaManager());
 
-                                        sender.sendMessage("&aScript is updated!");
-                                    } catch (Exception e) {
-                                        handleException(sender, e);
-                                    }
+                                    sender.sendMessage("&aScript is updated!");
+                                } catch (Exception e) {
+                                    throwableHandler.handleException(sender, e);
                                 }
                             });
                         } else {
                             if (args.length == 3) {
                                 getScriptEditManager().startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler() {
                                     @Override
-                                    public void onSave(String script) {
+                                    public void accept(String script) {
                                         try {
                                             trigger.setExitTrigger(script);
 
                                             saveAsynchronously(getAreaManager());
                                         } catch (Exception e) {
-                                            handleException(sender, e);
+                                            throwableHandler.handleException(sender, e);
                                         }
                                     }
                                 });
@@ -1320,7 +1140,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                                     saveAsynchronously(getAreaManager());
                                 } catch (Exception e) {
-                                    handleException(sender, e);
+                                    throwableHandler.handleException(sender, e);
                                 }
                             }
                         }
@@ -1359,38 +1179,32 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                     CustomTrigger trigger = getCustomManager().get(name);
                     if (trigger != null) {
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                try {
-                                    trigger.setScript(script);
-                                } catch (Exception e) {
-                                    handleException(sender, e);
-                                }
-
-                                sender.sendMessage("&aScript is updated!");
-
-                                saveAsynchronously(getCustomManager());
+                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), script -> {
+                            try {
+                                trigger.setScript(script);
+                            } catch (Exception e) {
+                                throwableHandler.handleException(sender, e);
                             }
+
+                            sender.sendMessage("&aScript is updated!");
+
+                            saveAsynchronously(getCustomManager());
                         });
                     } else {
                         if (args.length == 3) {
                             getScriptEditManager().startEdit(sender,
                                     "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
-                                    new SaveHandler() {
-                                        @Override
-                                        public void onSave(String script) {
-                                            try {
-                                                getCustomManager().createCustomTrigger(eventName, name, script);
+                                    script -> {
+                                        try {
+                                            getCustomManager().createCustomTrigger(eventName, name, script);
 
-                                                saveAsynchronously(getCustomManager());
+                                            saveAsynchronously(getCustomManager());
 
-                                                sender.sendMessage("&aCustom Trigger created!");
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                                sender.sendMessage("&c" + "Could not save! " + e.getMessage());
-                                                sender.sendMessage("&c" + "See console for detailed messages.");
-                                            }
+                                            sender.sendMessage("&aCustom Trigger created!");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            sender.sendMessage("&c" + "Could not save! " + e.getMessage());
+                                            sender.sendMessage("&c" + "See console for detailed messages.");
                                         }
                                     });
                         } else {
@@ -1406,7 +1220,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                                 sender.sendMessage("&c" + "Could not save! " + e2.getMessage());
                                 sender.sendMessage("&c" + "Provided event name is not valid.");
                             } catch (Exception e) {
-                                handleException(sender, e);
+                                throwableHandler.handleException(sender, e);
                             }
                         }
                     }
@@ -1419,11 +1233,11 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         if (trigger != null) {
                             getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                                 @Override
-                                public void onSave(String script) {
+                                public void accept(String script) {
                                     try {
                                         trigger.setScript(script);
                                     } catch (Exception e) {
-                                        handleException(sender, e);
+                                        throwableHandler.handleException(sender, e);
                                     }
 
                                     sender.sendMessage("&aScript is updated!");
@@ -1434,11 +1248,11 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         } else {
                             this.getScriptEditManager().startEdit(sender, "Repeating Trigger", "", new SaveHandler() {
                                 @Override
-                                public void onSave(String script) {
+                                public void accept(String script) {
                                     try {
                                         getRepeatManager().createTrigger(name, script);
                                     } catch (Exception e) {
-                                        handleException(sender, e);
+                                        throwableHandler.handleException(sender, e);
                                     }
 
                                     saveAsynchronously(getRepeatManager());
@@ -1605,13 +1419,13 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     return true;
                 } else if (args[0].equalsIgnoreCase("search")) {
                     SimpleChunkLocation scloc = ((IPlayer) sender).getChunk();
-                    showGlowStones(sender, getClickManager().getTriggersInChunk(scloc));
-                    showGlowStones(sender, getWalkManager().getTriggersInChunk(scloc));
+                    gameController.showGlowStones(sender, getClickManager().getTriggersInChunk(scloc));
+                    gameController.showGlowStones(sender, getWalkManager().getTriggersInChunk(scloc));
                     sender.sendMessage("&7Now trigger blocks will be shown as &6" + "glowstone");
                     return true;
                 } else if (args[0].equalsIgnoreCase("list")) {
                     sender.sendMessage("- - - - - Result - - - - ");
-                    for (Manager manager : Manager.getManagers()) {
+                    for (Manager manager : managers) {
                         if (!(manager instanceof AbstractTriggerManager<?>))
                             continue;
 
@@ -1645,7 +1459,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
 
                         if (args.length > 2) {
                             String fileName = args[2];
-                            File folder = new File(getDataFolder(), "timings");
+                            File folder = new File(dataFolder, "timings");
                             if (!folder.exists())
                                 folder.mkdirs();
                             File file = new File(folder, fileName + ".timings");
@@ -1676,16 +1490,16 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
-                    for (Manager manager : Manager.getManagers())
+                    for (Manager manager : managers)
                         manager.saveAll();
                     sender.sendMessage("Save complete!");
                     return true;
                 } else if (args[0].equalsIgnoreCase("reload")) {
-                    for (Manager manager : Manager.getManagers())
-                        manager.reload();
+                    for (Manager manager : managers)
+                        manager.onReload();
 
-                    getExecutorManager().reload();
-                    getPlaceholderManager().reload();
+                    getExecutorManager().onReload();
+                    getPlaceholderManager().onReload();
 
                     sender.sendMessage("Reload Complete!");
                     return true;
@@ -1898,7 +1712,7 @@ public abstract class TriggerReactorMain implements TaskSupervisor {
                         return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
                     case "inventory":
                     case "i":
-                        return filter(triggerNames(getInstance().getInvManager()), args[1]);
+                        return filter(triggerNames(getInstance().invManager), args[1]);
                     case "item":
                         return filter(Arrays.asList("lore", "title"), args[1]);
                     case "repeat":

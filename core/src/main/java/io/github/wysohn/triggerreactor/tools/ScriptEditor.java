@@ -20,19 +20,20 @@ import javax.script.ScriptException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ScriptEditor {
     private static final String separater = System.lineSeparator();
 
     private final String title;
     private final String script;
-    private final SaveHandler handler;
+    private final Consumer<String> handler;
 
     private int currentIndex = 0;
     private int currentCursor = 0;
     private List<String> lines = new ArrayList<String>();
 
-    public ScriptEditor(String title, String script, SaveHandler handler) {
+    public ScriptEditor(String title, String script, Consumer<String> handler) {
         this.title = title;
         this.script = script;
         this.handler = handler;
@@ -97,7 +98,7 @@ public class ScriptEditor {
         for (int i = 0; i < lines.size(); i++) {
             builder.append((i != 0 ? separater : "") + lines.get(i));
         }
-        handler.onSave(builder.toString());
+        handler.accept(builder.toString());
     }
 
     public void up(int lines) {
@@ -147,8 +148,8 @@ public class ScriptEditor {
         return lines.get(currentCursor);
     }
 
-    public interface SaveHandler {
-        void onSave(String script);
+    public interface SaveHandler extends Consumer<String>{
+        void accept(String script);
     }
 
     private static String width(String str, int length) {

@@ -20,7 +20,6 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitEntity;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
@@ -35,8 +34,11 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.Plugin;
 
-import java.io.File;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -44,23 +46,30 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+@Singleton
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements BukkitTriggerManager {
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
 
-    public AreaTriggerManager(TriggerReactorMain plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
+    @Inject
+    public AreaTriggerManager() {
+        super("AreaTrigger");
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+        super.onEnable();
 
         Thread entityTrackingThread = new Thread(new Runnable() {
 
             private Collection<WeakReference<Entity>> getEntitiesSync(World w) {
                 Collection<WeakReference<Entity>> entities = new LinkedList<>();
                 try {
-                    Bukkit.getScheduler().callSyncMethod(plugin.getMain(), new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            for (Entity e : w.getEntities())
-                                entities.add(new WeakReference<>(e));
-                            return null;
-                        }
+                    Bukkit.getScheduler().callSyncMethod((Plugin) pluginInstance, (Callable<Void>) () -> {
+                        for (Entity e : w.getEntities())
+                            entities.add(new WeakReference<>(e));
+                        return null;
                     }).get();
                 } catch (InterruptedException | CancellationException e1) {
                 } catch (ExecutionException e1) {
@@ -71,7 +80,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
             @Override
             public void run() {
-                while (plugin.isEnabled() && !Thread.interrupted()) {
+                while (main.isEnabled() && !Thread.interrupted()) {
                     try{
                         //track entity locations
                         for (World w : Bukkit.getWorlds()) {
@@ -85,17 +94,10 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
                                 UUID uuid = e.getUniqueId();
 
-                                if (!plugin.isEnabled())
+                                if (!main.isEnabled())
                                     break;
 
-                                Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
-
-                                    @Override
-                                    public Boolean call() throws Exception {
-                                        return !e.isDead() && e.isValid();
-                                    }
-
-                                });
+                                Future<Boolean> future = main.callSyncMethod(() -> !e.isDead() && e.isValid());
 
                                 boolean valid = false;
                                 try {
@@ -124,7 +126,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                             }
                         }
                     } catch (IllegalPluginAccessException ex){
-                        plugin.getLogger().info("Entity tracking has stopped. Plugin is disabling...");
+                        logger.info("Entity tracking has stopped. Plugin is disabling...");
                         return;
                     } catch (Exception ex){
                         ex.printStackTrace();
@@ -146,8 +148,8 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     }
 
     @Override
-    public void reload() {
-        super.reload();
+    public void onReload() {
+        super.onReload();
 
         //re-register entities
         for (World w : Bukkit.getWorlds()) {
@@ -165,6 +167,11 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 onEntityBlockMoveAsync(e, previous, current);
             }
         }
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

@@ -16,23 +16,22 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
+import javax.inject.Inject;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
-    protected Map<String, Executor> jsExecutors = new HashMap<>();
+    @Inject
+    Logger logger;
 
-    public AbstractExecutorManager(TriggerReactorMain plugin, ScriptEngineManager sem) {
-        super(plugin, sem);
-    }
+    protected Map<String, Executor> jsExecutors = new HashMap<>();
 
     /**
      * Loads all the Executor files and files under the folders. If Executors are inside the folder, the folder
@@ -65,7 +64,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             builder.append(fileName);
 
             if (jsExecutors.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
+                logger.warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
                 JSExecutor exec = new JSExecutor(fileName, getEngine(sem), file);
                 jsExecutors.put(builder.toString(), exec);
@@ -109,7 +108,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         return this.jsExecutors;
     }
 
-    public static class JSExecutor extends Evaluable<Integer> implements Executor {
+    public class JSExecutor extends Evaluable<Integer> implements Executor {
         public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(executorName, engine, new FileInputStream(file));
         }

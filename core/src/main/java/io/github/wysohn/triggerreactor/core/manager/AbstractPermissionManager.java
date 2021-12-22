@@ -16,8 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-
 /**
  * This class is responsible for firing IPlayerPermissionCheckEvent. This might be
  * only for Bukkit API.
@@ -25,9 +23,5 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
  * @author wysohn
  */
 public abstract class AbstractPermissionManager extends Manager {
-
-    public AbstractPermissionManager(TriggerReactorMain plugin) {
-        super(plugin);
-    }
 
 }

@@ -59,7 +59,7 @@ public abstract class TriggerInfo implements IMigratable {
 
     public void reloadConfig() {
         Optional.ofNullable(config)
-                .ifPresent(IConfigSource::reload);
+                .ifPresent(IConfigSource::onReload);
     }
 
     public String getTriggerName() {

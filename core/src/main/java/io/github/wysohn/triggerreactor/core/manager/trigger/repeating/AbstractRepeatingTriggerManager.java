@@ -19,9 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -44,42 +42,43 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    public AbstractRepeatingTriggerManager(TriggerReactorMain plugin, File folder) {
-        super(plugin, folder, new ITriggerLoader<RepeatingTrigger>() {
-            @Override
-            public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                boolean autoStart = info.getConfig().get(AUTOSTART, Boolean.class).orElse(false);
-                int interval = info.getConfig().get(INTERVAL, Integer.class).orElse(1000);
-
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    RepeatingTrigger trigger = new RepeatingTrigger(info, script);
-                    trigger.setAutoStart(autoStart);
-                    trigger.setInterval(interval);
-                    return trigger;
-                } catch (TriggerInitFailedException | IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void save(RepeatingTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    trigger.getInfo().getConfig().put(AUTOSTART, trigger.isAutoStart());
-                    trigger.getInfo().getConfig().put(INTERVAL, trigger.getInterval());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public AbstractRepeatingTriggerManager(String folderName) {
+        super(folderName);
     }
 
     @Override
-    public void reload() {
-        super.reload();
+    public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+        boolean autoStart = info.getConfig().get(AUTOSTART, Boolean.class).orElse(false);
+        int interval = info.getConfig().get(INTERVAL, Integer.class).orElse(1000);
+
+        try {
+            String script = FileUtil.readFromFile(info.getSourceCodeFile());
+            RepeatingTrigger trigger = new RepeatingTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                    info, script);
+            trigger.setAutoStart(autoStart);
+            trigger.setInterval(interval);
+            return trigger;
+        } catch (TriggerInitFailedException | IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void save(RepeatingTrigger trigger) {
+        try {
+            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+
+            trigger.getInfo().getConfig().put(AUTOSTART, trigger.isAutoStart());
+            trigger.getInfo().getConfig().put(INTERVAL, trigger.getInterval());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onReload() {
+        super.onReload();
 
         for (Entry<String, Thread> entry : runningThreads.entrySet()) {
             entry.getValue().interrupt();
@@ -89,7 +88,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         for (RepeatingTrigger trigger : getAllTriggers()) {
             final RepeatingTrigger triggerCopy = trigger;
             //start 1 tick later so other managers can be initialized.
-            plugin.runTask(() -> {
+            taskSupervisor.runTask(() -> {
                 if (triggerCopy.isAutoStart()) {
                     startTrigger(trigger.getInfo().getTriggerName());
                 }
@@ -115,9 +114,10 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         }
 
         String name = TriggerInfo.extractName(file);
-        IConfigSource config = configSourceFactory.create(folder, name);
+        IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger trigger = new RepeatingTrigger(info, script, interval);
+        RepeatingTrigger trigger = new RepeatingTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+                info, script, interval);
         put(triggerName, trigger);
 
         return true;

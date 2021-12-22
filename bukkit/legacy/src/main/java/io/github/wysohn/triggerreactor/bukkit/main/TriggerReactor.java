@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
+import io.github.wysohn.triggerreactor.bukkit.components.LegacyBukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
@@ -29,12 +30,17 @@ import java.util.Map;
 import java.util.Optional;
 
 public class TriggerReactor extends AbstractJavaPlugin {
+    private LegacyBukkitPluginMainComponent component;
+    private TriggerReactorMain main;
+
     private SelfReference selfReference;
     private CustomCommandHandle customCommandHandle = new CustomCommandHandle();
 
     @Override
     public void onEnable() {
-        selfReference = new CommonFunctions(core);
+        component = DaggerLegacyBukkitPluginMainComponent.builder().build();
+
+        selfReference = new CommonFunctions(main);
         BukkitTriggerReactorCore.WRAPPER = new BukkitWrapper();
         if (!ConfigurationSerializable.class.isAssignableFrom(Location.class)) {
             ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");

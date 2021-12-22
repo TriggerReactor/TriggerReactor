@@ -16,50 +16,61 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
-import javax.script.ScriptEngineManager;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.util.Objects;
 
+@Singleton
 public class PlaceholderManager extends AbstractPlaceholderManager {
     private static final String JAR_FOLDER_LOCATION = "Placeholder";
 
     private File placeholderFolder;
 
-    public PlaceholderManager(TriggerReactorMain plugin, ScriptEngineManager sem) throws ScriptException, IOException {
-        super(plugin, sem);
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST);
+    @Inject
+    public PlaceholderManager() {
 
-        this.placeholderFolder = new File(plugin.getDataFolder(), "Placeholder");
-
-        reload();
     }
 
     @Override
-    public void reload() {
-        FileFilter filter = new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isDirectory() || pathname.getName().endsWith(".js");
-            }
-        };
+    public void onEnable() throws Exception {
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, CopyOption.REPLACE_IF_EXIST);
+
+        this.placeholderFolder = new File(dataFolder, "Placeholder");
+
+        onReload();
+    }
+
+    @Override
+    public void onReload() {
+        FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         jsPlaceholders.clear();
-        for (File file : placeholderFolder.listFiles(filter)) {
+        File[] folder = placeholderFolder.listFiles(filter);
+        ValidationUtil.assertTrue(folder, Objects::nonNull, placeholderFolder+" is not a folder.");
+
+        for (File file : Objects.requireNonNull(folder)) {
             try {
                 reloadPlaceholders(file, filter);
             } catch (ScriptException | IOException e) {
                 e.printStackTrace();
-                plugin.getLogger().warning("Could not load placeholder " + file.getName());
+                logger.warning("Could not load placeholder " + file.getName());
                 continue;
             }
         }
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @Override

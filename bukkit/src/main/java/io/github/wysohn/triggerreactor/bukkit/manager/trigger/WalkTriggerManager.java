@@ -21,42 +21,45 @@ import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> {
+@Singleton
+public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger> {
+    @Inject
     public WalkTriggerManager(TriggerReactorMain plugin) {
-        super(plugin, "WalkTrigger", new ITriggerLoader<WalkTrigger>() {
-            @Override
-            public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    WalkTrigger trigger = new WalkTrigger(info, script);
-                    return trigger;
-                } catch (TriggerInitFailedException | IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
+        super("WalkTrigger");
+    }
 
-            @Override
-            public void save(WalkTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    @Override
+    public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
+        try {
+            String script = FileUtil.readFromFile(info.getSourceCodeFile());
+            WalkTrigger trigger = new WalkTrigger(info, script);
+            return trigger;
+        } catch (TriggerInitFailedException | IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    @Override
+    public void save(WalkTrigger trigger) {
+        try {
+            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

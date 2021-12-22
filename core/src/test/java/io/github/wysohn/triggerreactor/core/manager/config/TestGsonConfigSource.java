@@ -77,7 +77,7 @@ public class TestGsonConfigSource {
 
     @Test
     public void testReload() throws Exception{
-        manager.reload();
+        manager.onReload();
 
         Field field = manager.getClass().getDeclaredField("cache");
         field.setAccessible(true);
