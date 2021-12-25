@@ -397,22 +397,6 @@ public class MiniConnectionPoolManager {
         assertInnerState();
     }
 
-    /**
-     * Thrown in {@link #getConnection()} or {@link #getValidConnection()} when
-     * no free connection becomes available within <code>timeout</code> seconds.
-     */
-    public static class TimeoutException extends RuntimeException {
-        private static final long serialVersionUID = 1;
-
-        public TimeoutException() {
-            super("Timeout while waiting for a free database connection.");
-        }
-
-        public TimeoutException(String msg) {
-            super(msg);
-        }
-    }
-
     private class PoolConnectionEventListener implements ConnectionEventListener {
         public void connectionClosed(ConnectionEvent event) {
             PooledConnection pconn = (PooledConnection) event.getSource();
@@ -423,6 +407,21 @@ public class MiniConnectionPoolManager {
             PooledConnection pconn = (PooledConnection) event.getSource();
             disposeConnection(pconn);
         }
+    }
+
+    /**
+     * Thrown in {@link #getConnection()} or {@link #getValidConnection()} when
+     * no free connection becomes available within <code>timeout</code> seconds.
+     */
+    public static class TimeoutException extends RuntimeException {
+        public TimeoutException() {
+            super("Timeout while waiting for a free database connection.");
+        }
+
+        public TimeoutException(String msg) {
+            super(msg);
+        }
+        private static final long serialVersionUID = 1;
     }
 
 } // end class MiniConnectionPoolManager

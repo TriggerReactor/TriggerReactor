@@ -32,13 +32,10 @@ import java.io.IOException;
 import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
-    private static final String EVENT = "Event";
-    private static final String SYNC = "Sync";
     @Inject
     protected EventRegistry registry;
     @Inject
     ITriggerReactorAPI api;
-
     public AbstractCustomTriggerManager(String folderName) {
         super(folderName);
     }
@@ -133,6 +130,11 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         return true;
     }
 
+    public Collection<String> getAbbreviations() {
+        return registry.getAbbreviations();
+    }
+    private static final String EVENT = "Event";
+
 //    /**
 //     * get set of triggers associated with 'className' Event
 //     * @param eventName the abbreviation, simple event name, or full event name. See {@link #getEventFromName(String)}
@@ -144,10 +146,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 //
 //        return triggerMap.get(clazz);
 //    }
-
-    public Collection<String> getAbbreviations() {
-        return registry.getAbbreviations();
-    }
+    private static final String SYNC = "Sync";
 
     @FunctionalInterface
     public interface EventHook {

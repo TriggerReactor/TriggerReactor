@@ -10,11 +10,9 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
-    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
-
     public TriggerInfo(File sourceCodeFile, IConfigSource config) {
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
@@ -111,6 +109,7 @@ public abstract class TriggerInfo implements IMigratable {
     public void reloadConfig() {
         Optional.ofNullable(config).ifPresent(IConfigSource::onReload);
     }
+    public static final String KEY_SYNC = "sync";
 
     /**
      * Check if the file has valid extension (.trg) or no extension.

@@ -179,6 +179,14 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         logger.log(Level.WARNING, "");
     }
 
+    private class Observer implements IObserver {
+        @Override
+        public void onUpdate(IObservable observable) {
+            //TODO need to be done async (file I/O)
+            save((T) observable);
+        }
+    }
+
     public static File getTriggerFile(File folder, String triggerName, boolean write) {
         File triggerFile = new File(folder, triggerName + ".trg");
 
@@ -201,13 +209,5 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             super(message, cause);
         }
 
-    }
-
-    private class Observer implements IObserver {
-        @Override
-        public void onUpdate(IObservable observable) {
-            //TODO need to be done async (file I/O)
-            save((T) observable);
-        }
     }
 }

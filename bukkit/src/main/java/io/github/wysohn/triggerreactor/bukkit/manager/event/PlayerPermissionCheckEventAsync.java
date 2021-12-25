@@ -31,12 +31,10 @@ import org.bukkit.event.HandlerList;
  * @author wysohn
  */
 public class PlayerPermissionCheckEventAsync extends Event implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
     private final String requestedPermission;
     protected Player player;
     private boolean cancelled;
     private boolean allowed = false;
-
     public PlayerPermissionCheckEventAsync(Player player, String requestedPermission) {
         super(true);
         this.player = player;
@@ -69,6 +67,7 @@ public class PlayerPermissionCheckEventAsync extends Event implements Cancellabl
     public void setAllowed(boolean allowed) {
         this.allowed = allowed;
     }
+    private static final HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {
         return handlers;

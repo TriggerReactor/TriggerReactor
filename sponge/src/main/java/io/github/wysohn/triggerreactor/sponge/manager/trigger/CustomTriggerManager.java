@@ -38,30 +38,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class CustomTriggerManager extends AbstractCustomTriggerManager {
-    @SuppressWarnings("serial")
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
-        put("onJoin", ClientConnectionEvent.Join.class);
-        put("onQuit", ClientConnectionEvent.Disconnect.class);
-        //put("onPlayerDeath", DestructEntityEvent.Death.class); same as entity death event
-        put("onInteract", InteractBlockEvent.class);
-        put("onInteractEntity", InteractEntityEvent.class);
-        put("onChat", MessageEvent.class);
-        put("onCommand", SendCommandEvent.class);
-
-        //put("onEntitySpawn", EntitySpawnEvent.class);
-        put("onEntityDeath", DestructEntityEvent.Death.class);
-
-        put("onBlockPlace", ChangeBlockEvent.Place.class);
-        put("onBlockBreak", ChangeBlockEvent.Break.class);
-
-        put("onStart", TriggerReactorStartEvent.class);
-        put("onStop", TriggerReactorStopEvent.class);
-    }};
-    private static final String basePackageName = "org.spongepowered.api.event";
-    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
-    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
     private Map<EventHook, EventListener> registeredListeners = new HashMap<>();
-
     public CustomTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
             @Override
@@ -148,4 +125,26 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
             Sponge.getEventManager().unregisterListeners(listener);
         }
     }
+    @SuppressWarnings("serial")
+    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
+        put("onJoin", ClientConnectionEvent.Join.class);
+        put("onQuit", ClientConnectionEvent.Disconnect.class);
+        //put("onPlayerDeath", DestructEntityEvent.Death.class); same as entity death event
+        put("onInteract", InteractBlockEvent.class);
+        put("onInteractEntity", InteractEntityEvent.class);
+        put("onChat", MessageEvent.class);
+        put("onCommand", SendCommandEvent.class);
+
+        //put("onEntitySpawn", EntitySpawnEvent.class);
+        put("onEntityDeath", DestructEntityEvent.Death.class);
+
+        put("onBlockPlace", ChangeBlockEvent.Place.class);
+        put("onBlockBreak", ChangeBlockEvent.Break.class);
+
+        put("onStart", TriggerReactorStartEvent.class);
+        put("onStop", TriggerReactorStopEvent.class);
+    }};
+    private static final String basePackageName = "org.spongepowered.api.event";
+    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
+    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 }

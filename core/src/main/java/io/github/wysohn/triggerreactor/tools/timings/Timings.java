@@ -19,15 +19,11 @@ import java.util.function.Supplier;
  * and 'timing' would be the child of 'my' and 'name' would be child of 'timing.'
  */
 public class Timings {
-    static {
-        root.displayName = "Root";
-    }
-
-    private static final Timing root = new Timing(null, "<ROOT>");
+    public static boolean on = false;
+    private static final Timing root = new Timing(null, "<ROOT>", "Root");
     private static final int SPACES = 2;
     private static final DecimalFormat df = new DecimalFormat("#.##");
     public static final Timing LIMBO = new LimboTiming();
-    public static boolean on = false;
 
     /**
      * Reset the root Timing to initial state.
@@ -96,6 +92,11 @@ public class Timings {
 
         private Timing(Timing parent, String fullName) {
             this(parent, fullName, System::currentTimeMillis);
+        }
+
+        private Timing(Timing parent, String fullName, String displayName) {
+            this(parent, fullName, System::currentTimeMillis);
+            this.displayName = displayName;
         }
 
         /**

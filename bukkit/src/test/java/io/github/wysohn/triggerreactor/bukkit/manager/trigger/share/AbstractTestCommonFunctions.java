@@ -380,16 +380,6 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         Assert.assertEquals("ffee", lores.get(5));
     }
 
-    public static FakeInventory fInventory(AbstractTestCommonFunctions test, ItemStack... items) {
-        FakeInventory inv = test.new FakeInventory();
-
-        for (int i = 0; i < Math.min(inv.contents.length, items.length); i++) {
-            inv.contents[i] = items[i];
-        }
-
-        return inv;
-    }
-
     protected class FakeInventory {
         protected ItemStack[] contents = new ItemStack[54];
 
@@ -408,5 +398,15 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
             }
             return -1;
         }
+    }
+
+    public static FakeInventory fInventory(AbstractTestCommonFunctions test, ItemStack... items) {
+        FakeInventory inv = test.new FakeInventory();
+
+        for (int i = 0; i < Math.min(inv.contents.length, items.length); i++) {
+            inv.contents[i] = items[i];
+        }
+
+        return inv;
     }
 }

@@ -42,11 +42,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class Interpreter {
-    static {
-        Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && "MODIFYPLAYER".equals(value)));
-        Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && value.contains("$")));
-    }
-
     private final Node root;
     private final InterpreterLocalContext context;
     private final InterpreterGlobalContext globalContext;
@@ -1351,6 +1346,11 @@ public class Interpreter {
         } else {
             throw new InterpreterException("Unresolved id " + varToken);
         }
+    }
+
+    static {
+        Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && "MODIFYPLAYER".equals(value)));
+        Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && value.contains("$")));
     }
 
     public static void main(String[] ar) throws Exception {

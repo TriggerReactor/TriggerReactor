@@ -41,29 +41,6 @@ import java.util.TreeMap;
 
 @Singleton
 public class BukkitEventRegistryManager extends Manager implements AbstractCustomTriggerManager.EventRegistry {
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
-        put("onJoin", PlayerJoinEvent.class);
-        put("onQuit", PlayerQuitEvent.class);
-        put("onPlayerDeath", PlayerDeathEvent.class);
-        put("onInteract", PlayerInteractEvent.class);
-        put("onInteractEntity", PlayerInteractEntityEvent.class);
-        put("onChat", AsyncPlayerChatEvent.class);
-        put("onCommand", PlayerCommandPreprocessEvent.class);
-
-        //put("onEntitySpawn", EntitySpawnEvent.class);
-        put("onEntityDeath", EntityDeathEvent.class);
-
-        put("onBlockPlace", BlockPlaceEvent.class);
-        put("onBlockMultiPlace", BlockMultiPlaceEvent.class);
-        put("onBlockBreak", BlockBreakEvent.class);
-
-        put("onStart", TriggerReactorStartEvent.class);
-        put("onStop", TriggerReactorStopEvent.class);
-    }};
-    private static final String basePackageName = "org.bukkit.event";
-
-    private static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
-
     @Inject
     public BukkitEventRegistryManager() {
 
@@ -133,4 +110,25 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
             EVENTS.put(clazz.getSimpleName(), clazz);
         }
     }
+    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
+        put("onJoin", PlayerJoinEvent.class);
+        put("onQuit", PlayerQuitEvent.class);
+        put("onPlayerDeath", PlayerDeathEvent.class);
+        put("onInteract", PlayerInteractEvent.class);
+        put("onInteractEntity", PlayerInteractEntityEvent.class);
+        put("onChat", AsyncPlayerChatEvent.class);
+        put("onCommand", PlayerCommandPreprocessEvent.class);
+
+        //put("onEntitySpawn", EntitySpawnEvent.class);
+        put("onEntityDeath", EntityDeathEvent.class);
+
+        put("onBlockPlace", BlockPlaceEvent.class);
+        put("onBlockMultiPlace", BlockMultiPlaceEvent.class);
+        put("onBlockBreak", BlockBreakEvent.class);
+
+        put("onStart", TriggerReactorStartEvent.class);
+        put("onStop", TriggerReactorStopEvent.class);
+    }};
+    private static final String basePackageName = "org.bukkit.event";
+    private static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
 }

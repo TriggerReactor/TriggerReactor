@@ -40,9 +40,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
-    protected static final String SMALLEST = "Smallest";
-    protected static final String LARGEST = "Largest";
-    protected static final String SYNC = "Sync";
     /**
      * The child class should update this map with its own way. Though, the entity which garbage-corrected will
      * be also deleted from this map automatically.
@@ -59,7 +56,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     ITriggerReactorAPI api;
     @Inject
     IPluginLifecycleController pluginLifecycleController;
-
     public AbstractAreaTriggerManager(String folderName) {
         super(folderName);
 
@@ -347,6 +343,9 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             map.put(area, trigger);
         }
     }
+    protected static final String SMALLEST = "Smallest";
+    protected static final String LARGEST = "Largest";
+    protected static final String SYNC = "Sync";
 
     public enum EventType {
         ENTER,

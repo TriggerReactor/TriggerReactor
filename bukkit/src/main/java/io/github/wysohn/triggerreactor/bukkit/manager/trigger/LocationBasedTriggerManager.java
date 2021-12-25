@@ -53,12 +53,8 @@ import java.util.function.Predicate;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
         implements BukkitTriggerManager {
-    public static final Material INSPECTION_TOOL = Material.BONE;
-    public static final Material CUT_TOOL = Material.SHEARS;
-    public static final Material COPY_TOOL = Material.PAPER;
     @Inject
     AbstractScriptEditManager scriptEditManager;
-
     public LocationBasedTriggerManager(String folderName) {
         super(folderName);
     }
@@ -367,4 +363,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage(trigger.getScript());
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
+    public static final Material INSPECTION_TOOL = Material.BONE;
+    public static final Material CUT_TOOL = Material.SHEARS;
+    public static final Material COPY_TOOL = Material.PAPER;
 }

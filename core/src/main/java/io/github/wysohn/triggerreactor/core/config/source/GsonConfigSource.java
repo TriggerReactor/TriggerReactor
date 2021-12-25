@@ -27,34 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
-    private static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT,
-                                                                                                 Modifier.STATIC)
-            .enableComplexMapKeySerialization()
-            .setPrettyPrinting()
-            .serializeNulls()
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class,
-                                                                Boolean.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class,
-                                                                Integer.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class,
-                                                                Long.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class,
-                                                                Float.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_FLOAT))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class,
-                                                                Double.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapter(UUID.class, new UUIDSerializer())
-            .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
-            .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
-    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder().addChain(new DefaultValidator())
-            .addChain(new UUIDValidator())
-            .addChain(new SimpleLocationValidator())
-            .addChain(new SimpleChunkLocationValidator());
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
     //Lock order: file -> cache
     private final File file;
@@ -63,7 +35,6 @@ public class GsonConfigSource implements IConfigSource {
     private final Map<String, Object> cache = new HashMap<>();
     private final Gson gson = GSON_BUILDER.create();
     private final ITypeValidator typeValidator;
-
     public GsonConfigSource(File file) {
         this(file, f -> {
             try {
@@ -81,7 +52,6 @@ public class GsonConfigSource implements IConfigSource {
             }
         });
     }
-
     /**
      * @param file
      * @param readerFactory
@@ -288,6 +258,34 @@ public class GsonConfigSource implements IConfigSource {
             e.printStackTrace();
         }
     }
+    private static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT,
+                                                                                                 Modifier.STATIC)
+            .enableComplexMapKeySerialization()
+            .setPrettyPrinting()
+            .serializeNulls()
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class,
+                                                                Boolean.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class,
+                                                                Integer.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class,
+                                                                Long.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class,
+                                                                Float.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_FLOAT))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class,
+                                                                Double.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapter(UUID.class, new UUIDSerializer())
+            .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
+            .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder().addChain(new DefaultValidator())
+            .addChain(new UUIDValidator())
+            .addChain(new SimpleLocationValidator())
+            .addChain(new SimpleChunkLocationValidator());
 
     public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
         GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);

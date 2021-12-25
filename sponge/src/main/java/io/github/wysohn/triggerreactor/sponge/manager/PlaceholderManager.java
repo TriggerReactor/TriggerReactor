@@ -12,8 +12,6 @@ import java.io.FileFilter;
 import java.io.IOException;
 
 public class PlaceholderManager extends AbstractPlaceholderManager implements SpongeScriptEngineInitializer {
-    private static final String JAR_FOLDER_LOCATION = "Placeholder";
-
     private File placeholderFolder;
 
     public PlaceholderManager(TriggerReactorCore plugin) throws ScriptException, IOException {
@@ -63,5 +61,6 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Sp
         // TODO Auto-generated method stub
 
     }
+    private static final String JAR_FOLDER_LOCATION = "Placeholder";
 
 }

@@ -13,11 +13,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ExecutorTest extends JsTest {
-    private static final ExecutorTestComponent component = DaggerExecutorTestComponent.create();
-    public static final Map<String, Boolean> coverage = new TreeMap<>();
     private final AbstractExecutorManager manager;
     private final JSExecutor executor;
-
     public ExecutorTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
         super(engine, name, "Executor", directories);
         manager = component.executorManager();
@@ -35,4 +32,6 @@ public class ExecutorTest extends JsTest {
         executor.execute(Timings.LIMBO, varMap, null, args);
         return null;
     }
+    private static final ExecutorTestComponent component = DaggerExecutorTestComponent.create();
+    public static final Map<String, Boolean> coverage = new TreeMap<>();
 }

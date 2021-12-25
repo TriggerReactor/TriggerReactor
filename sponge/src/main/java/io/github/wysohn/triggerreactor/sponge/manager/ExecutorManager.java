@@ -19,8 +19,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 public class ExecutorManager extends AbstractExecutorManager implements SpongeScriptEngineInitializer {
-    private static final String JAR_FOLDER_LOCATION = "Executor";
-
     private File executorFolder;
 
     public ExecutorManager(TriggerReactorCore plugin) throws ScriptException, IOException {
@@ -115,5 +113,6 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         }
 
     }
+    private static final String JAR_FOLDER_LOCATION = "Executor";
 
 }

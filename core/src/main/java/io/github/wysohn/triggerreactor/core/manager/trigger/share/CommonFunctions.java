@@ -14,8 +14,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class CommonFunctions implements SelfReference {
-    private static final Random rand = new Random();
-
     /**
      * create an empty array
      * <p>
@@ -545,5 +543,6 @@ public class CommonFunctions implements SelfReference {
             return value.getClass().getCanonicalName();
         }
     }
+    private static final Random rand = new Random();
 
 }

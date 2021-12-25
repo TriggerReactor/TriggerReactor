@@ -35,32 +35,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class InventoryEditManager extends AbstractInventoryEditManager {
-    static {
-        TextStyle bold = TextStyles.of().bold(true);
-        Text newline = Text.of("\n");
-        Text save = Text.builder()
-                .append(Text.of(CHECK + " Save"))
-                .color(TextColors.GREEN)
-                .style(bold)
-                .onClick(TextActions.runCommand("/trg links inveditsave"))
-                .build();
-        Text continue_ = Text.builder()
-                .append(Text.of(PENCIL + " Continue editing"))
-                .color(TextColors.YELLOW)
-                .style(bold)
-                .onClick(TextActions.runCommand("/trg links inveditcontinue"))
-                .build();
-        Text cancel = Text.builder()
-                .append(Text.of(X + " Cancel"))
-                .color(TextColors.RED)
-                .style(bold)
-                .onClick(TextActions.runCommand("/trg links inveditdiscard"))
-                .build();
-        savePrompt = Text.builder().append(save, newline, continue_, newline, cancel).build();
-    }
-
-    private static Text savePrompt;
-
     public InventoryEditManager(TriggerReactorCore plugin) {
         super(plugin);
     }
@@ -214,5 +188,30 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         Inventory inv = createInventory(size, trigger.getInfo().getTriggerName());
         fillInventory(trigger, size, inv);
         player.openInventory(new SpongeInventory(inv, null));
+    }
+    private static Text savePrompt;
+
+    static {
+        TextStyle bold = TextStyles.of().bold(true);
+        Text newline = Text.of("\n");
+        Text save = Text.builder()
+                .append(Text.of(CHECK + " Save"))
+                .color(TextColors.GREEN)
+                .style(bold)
+                .onClick(TextActions.runCommand("/trg links inveditsave"))
+                .build();
+        Text continue_ = Text.builder()
+                .append(Text.of(PENCIL + " Continue editing"))
+                .color(TextColors.YELLOW)
+                .style(bold)
+                .onClick(TextActions.runCommand("/trg links inveditcontinue"))
+                .build();
+        Text cancel = Text.builder()
+                .append(Text.of(X + " Cancel"))
+                .color(TextColors.RED)
+                .style(bold)
+                .onClick(TextActions.runCommand("/trg links inveditdiscard"))
+                .build();
+        savePrompt = Text.builder().append(save, newline, continue_, newline, cancel).build();
     }
 }

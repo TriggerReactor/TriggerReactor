@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ScriptEditor {
-    private static final String separater = System.lineSeparator();
-    public static final String USAGE = "&dIn edit mode, you cannot receieve any message from the other users. You can type &6save &dor &6exit " + "&dany time to escape from the edit mode. If the code is more than one line, you can go up or down by typing &6u " + "&dor &6d. &dWhen you are doing so, you can provide number of lines to skip. (for example, &6d 10 &dwill move down 10 lines). " + "If you don't provide the number, the default value 1 will be used instead. &6il &dto insert a new line and " + "&6dl &dto delete current line. Look for &c<< &d sign to see where you are currently at. You can also " + "&6type anything and press Tab key &dto copy the code where the cursor is pointing. Because of how minecraft client is made," + " you need to specify space with &6^ to insert spaces. For example, you might can add four spaces before the code like this: " + "&6^^^^#MESSAGE \"HI\" &dAlso, if you want to copy current line to the command prompt, &6type anything on the prompt " + "and press tab&d.    &aNow enter anything to continue...";
     private final String title;
     private final String script;
     private final Consumer<String> handler;
@@ -32,7 +30,6 @@ public class ScriptEditor {
     private int currentIndex = 0;
     private int currentCursor = 0;
     private List<String> lines = new ArrayList<String>();
-
     public ScriptEditor(String title, String script, Consumer<String> handler) {
         this.title = title;
         this.script = script;
@@ -141,6 +138,8 @@ public class ScriptEditor {
             currentIndex = currentCursor;
         }
     }
+    private static final String separater = System.lineSeparator();
+    public static final String USAGE = "&dIn edit mode, you cannot receieve any message from the other users. You can type &6save &dor &6exit " + "&dany time to escape from the edit mode. If the code is more than one line, you can go up or down by typing &6u " + "&dor &6d. &dWhen you are doing so, you can provide number of lines to skip. (for example, &6d 10 &dwill move down 10 lines). " + "If you don't provide the number, the default value 1 will be used instead. &6il &dto insert a new line and " + "&6dl &dto delete current line. Look for &c<< &d sign to see where you are currently at. You can also " + "&6type anything and press Tab key &dto copy the code where the cursor is pointing. Because of how minecraft client is made," + " you need to specify space with &6^ to insert spaces. For example, you might can add four spaces before the code like this: " + "&6^^^^#MESSAGE \"HI\" &dAlso, if you want to copy current line to the command prompt, &6type anything on the prompt " + "and press tab&d.    &aNow enter anything to continue...";
 
     private static String width(String str, int length) {
         int d = length - str.length();

@@ -29,49 +29,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Lexer {
-    static {
-        OPERATORS = new char[]{'+',
-                               '-',
-                               '*',
-                               '/',
-                               '%',
-                               '=',
-                               '!',
-                               '?',
-                               '<',
-                               '>',
-                               '&',
-                               '|',
-                               '^',
-                               '~',
-                               '(',
-                               ')',
-                               '{',
-                               '}',
-                               ',',
-                               '.',
-                               '[',
-                               ']',
-                               ':',
-                               '\\',
-                               '$',
-                               '@'};
-        Arrays.sort(OPERATORS);
-    }
-
-    private static final char[] OPERATORS;
     private final String[] scriptLines;
     private InputStream stream;
     private PushbackReader reader;
     private boolean eos = false;
     private char c = 0;
     private boolean showWarnings = false;
-
     private List<Warning> warnings = new ArrayList<Warning>();
-
     private int row = 1;
     private int col = 1;
-
     public Lexer(String str, Charset charset) throws IOException {
         this.stream = new ByteArrayInputStream(str.getBytes(charset));
         this.scriptLines = str.split("\n");
@@ -477,6 +443,36 @@ public class Lexer {
     private void unread() throws IOException {
         col--;
         reader.unread(c);
+    }
+    private static final char[] OPERATORS = new char[]{'+',
+                                                       '-',
+                                                       '*',
+                                                       '/',
+                                                       '%',
+                                                       '=',
+                                                       '!',
+                                                       '?',
+                                                       '<',
+                                                       '>',
+                                                       '&',
+                                                       '|',
+                                                       '^',
+                                                       '~',
+                                                       '(',
+                                                       ')',
+                                                       '{',
+                                                       '}',
+                                                       ',',
+                                                       '.',
+                                                       '[',
+                                                       ']',
+                                                       ':',
+                                                       '\\',
+                                                       '$',
+                                                       '@'};
+
+    static {
+        Arrays.sort(OPERATORS);
     }
 
     private static boolean isClassNameCharacter(char c) {

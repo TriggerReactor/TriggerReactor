@@ -11,8 +11,6 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import java.util.Map;
 
 public class InventoryTrigger extends Trigger {
-    public static final int MAXSIZE = 6 * 9;
-
     final IItemStack[] items;
 
     public InventoryTrigger(ITriggerReactorAPI api,
@@ -77,4 +75,5 @@ public class InventoryTrigger extends Trigger {
     public IItemStack[] getItems() {
         return items;
     }
+    public static final int MAXSIZE = 6 * 9;
 }

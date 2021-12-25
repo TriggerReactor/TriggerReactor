@@ -29,11 +29,6 @@ import java.util.logging.Logger;
 
 public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager
         implements KeyValueManager<Executor> {
-    static {
-        DEPRECATED_EXECUTORS.add("MODIFYPLAYER");
-    }
-
-    private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
     protected Map<String, Executor> jsExecutors = new HashMap<>();
     @Inject
     Logger logger;
@@ -132,4 +127,7 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
             return evaluate(timing, variables, event, args);
         }
     }
+    private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<String>() {{
+        add("MODIFYPLAYER");
+    }};
 }

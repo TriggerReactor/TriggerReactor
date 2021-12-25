@@ -41,8 +41,6 @@ import java.util.logging.Level;
  * Note that this implementation is not synchronized.
  */
 public class CopyYamlConfiguration extends YamlConfiguration {
-    protected static final String COMMENT_PREFIX = "# ";
-    protected static final String BLANK_CONFIG = "{}\n";
     private final DumperOptions yamlOptions = new DumperOptions();
     private final Representer yamlRepresenter = new YamlRepresenter();
     private final Yaml yaml = new Yaml(new YamlConstructor(), yamlRepresenter, yamlOptions);
@@ -136,6 +134,8 @@ public class CopyYamlConfiguration extends YamlConfiguration {
 
         return result.toString();
     }
+    protected static final String COMMENT_PREFIX = "# ";
+    protected static final String BLANK_CONFIG = "{}\n";
 
     /**
      * Creates a new {@link YamlConfiguration}, loading from the given file.

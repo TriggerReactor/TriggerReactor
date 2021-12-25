@@ -4,8 +4,6 @@ import java.util.HashMap;
 
 public class CaseInsensitiveStringMap<T> extends HashMap<String, T> {
 
-    private static final long serialVersionUID = 1L;
-
     @Override
     public T get(Object key) {
         if (!(key instanceof String)) {
@@ -44,4 +42,5 @@ public class CaseInsensitiveStringMap<T> extends HashMap<String, T> {
 
         return null;
     }
+    private static final long serialVersionUID = 1L;
 }

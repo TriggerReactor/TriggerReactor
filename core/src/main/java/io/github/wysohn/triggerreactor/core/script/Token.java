@@ -20,24 +20,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Token {
-    static {
-        BOXED_PRIMITIVES.add(Boolean.class);
-        BOXED_PRIMITIVES.add(Character.class);
-        BOXED_PRIMITIVES.add(Byte.class);
-        BOXED_PRIMITIVES.add(Short.class);
-        BOXED_PRIMITIVES.add(Integer.class);
-        BOXED_PRIMITIVES.add(Long.class);
-        BOXED_PRIMITIVES.add(Float.class);
-        BOXED_PRIMITIVES.add(Double.class);
-        BOXED_PRIMITIVES.add(Void.class);
-    }
-
-    private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
     public final Type type;
     public final Object value;
     public final int row;
     public final int col;
-
     public Token(Type type, Object value, int row, int col) {
         this.type = type;
         this.value = value;
@@ -145,6 +131,17 @@ public class Token {
     public String toStringRowColOnly() {
         return "at row[" + row + "], col[" + col + "]";
     }
+    private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<Class<?>>() {{
+        add(Boolean.class);
+        add(Character.class);
+        add(Byte.class);
+        add(Short.class);
+        add(Integer.class);
+        add(Long.class);
+        add(Float.class);
+        add(Double.class);
+        add(Void.class);
+    }};
 
     public static void main(String[] ar) {
         Object bool = true;

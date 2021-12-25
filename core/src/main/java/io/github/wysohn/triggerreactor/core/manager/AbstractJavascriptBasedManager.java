@@ -50,31 +50,6 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
     @Named("DataFolder")
     protected File dataFolder;
 
-    public static ScriptEngine getEngine(ScriptEngineManager sem) {
-        ScriptEngine engine = sem.getEngineByName("graal.js");
-        if (engine != null) {
-            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-            bindings.put("polyglot.js.allowAllAccess", true);
-            return engine;
-        }
-
-        engine = sem.getEngineByName("JavaScript");
-        if (engine != null) {
-            return engine;
-        }
-
-        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " + "the stock Java does not contain the java script engine as it used to be. Install GraalVM instead of " + "the stock Java, or you have to download third-party plugin, such as JShader.");
-    }
-
-    protected static String readSourceCode(InputStream file) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        InputStreamReader reader = new InputStreamReader(file);
-        int read = -1;
-        while ((read = reader.read()) != -1) builder.append((char) read);
-        reader.close();
-        return builder.toString();
-    }
-
     protected abstract class Evaluable<R> {
         private final String indentifier;
         private final String timingsGroup;
@@ -206,5 +181,30 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
         public ValidationResult validate(Object... args) {
             return validator.validate(args);
         }
+    }
+
+    public static ScriptEngine getEngine(ScriptEngineManager sem) {
+        ScriptEngine engine = sem.getEngineByName("graal.js");
+        if (engine != null) {
+            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+            bindings.put("polyglot.js.allowAllAccess", true);
+            return engine;
+        }
+
+        engine = sem.getEngineByName("JavaScript");
+        if (engine != null) {
+            return engine;
+        }
+
+        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " + "the stock Java does not contain the java script engine as it used to be. Install GraalVM instead of " + "the stock Java, or you have to download third-party plugin, such as JShader.");
+    }
+
+    protected static String readSourceCode(InputStream file) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        InputStreamReader reader = new InputStreamReader(file);
+        int read = -1;
+        while ((read = reader.read()) != -1) builder.append((char) read);
+        reader.close();
+        return builder.toString();
     }
 }

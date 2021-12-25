@@ -73,124 +73,6 @@ import java.util.regex.Pattern;
  */
 @PluginScope
 public class TriggerReactorMain implements IPluginProcedure {
-    @SuppressWarnings("serial")
-    private static final List<Paragraph> HELP_PAGES = new ArrayList<Paragraph>() {{
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
-            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
-
-            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
-            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
-        });
-        add((sender) -> {
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
-            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
-            sender.sendMessage(
-                    "  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
-            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
-            sender.sendMessage(
-                    "  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
-            sender.sendMessage(
-                    "  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
-            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
-            sender.sendMessage("  &7- To add tab-completer, type &b/trg cmd <command name> settab[tab] " + "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
-            sender.sendMessage("    &6*&7The parameter has following format: hint:val1,val2,...");
-            sender.sendMessage("    &6*&7Not providing any tab-completer will remove it instead.");
-            sender.sendMessage(
-                    "    &7Hint shows up as simple string when a user is about to type something, and values " + "will start to show up as a form of tab-completers as soon as their first characters matching with " + "the characters typed by the user.");
-            sender.sendMessage(
-                    "    &7You may omit the hint, yet you cannot omit the values. To use only hint but no values, " + "edit the config file manually.");
-        });
-        add((sender) -> {
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
-            sender.sendMessage("  &7/trg i to see more commands...");
-
-            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
-
-            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
-            sender.sendMessage("  &7/trg a to see more commands...");
-
-            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
-            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
-            sender.sendMessage("  &7/trg r to see more commands...");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
-            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
-            sender.sendMessage("  &7/trg synccustom Greet");
-
-            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
-            sender.sendMessage(
-                    "  &7&cWarning - This command will delete the previous data associated with the key if exists.");
-            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
-            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
-            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
-
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
-        });
-        add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
-
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
-            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
-
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
-            sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
-            sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" + " temporary trigger will be made, the codes will run, and then the Named Trigger will be" + " called, just like how you do with #CALL. This can be useful if you have variables in the Named Trigger" + " that has to be initialized.");
-        });
-        add((sender -> {
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
-            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
-            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
-            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
-
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
-
-            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
-            sender.sendMessage(
-                    "  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
-
-            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
-
-            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
-        }));
-        add((sender -> {
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage(
-                    "&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
-            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
-        }));
-    }};
-    private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");
-    private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
-    private static final List<String> EMPTY = new ArrayList<String>();
-    /**
-     * Cached Pool for thread execution.
-     */
-    protected static final ExecutorService CACHED_THREAD_POOL = Executors.newCachedThreadPool(new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            return new Thread() {{
-                this.setPriority(MIN_PRIORITY);
-            }};
-        }
-    });
-    public static final String PERMISSION = "triggerreactor.admin";
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     @Inject
@@ -258,7 +140,6 @@ public class TriggerReactorMain implements IPluginProcedure {
     @Inject
     Map<String, Class<? extends AbstractAPISupport>> sharedVarProtos;
     private boolean debugging = false;
-
     @Inject
     protected TriggerReactorMain() {
 
@@ -1787,6 +1668,124 @@ public class TriggerReactorMain implements IPluginProcedure {
         }
         return names;
     }
+    @SuppressWarnings("serial")
+    private static final List<Paragraph> HELP_PAGES = new ArrayList<Paragraph>() {{
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] walk[w] [...] &8- &7create a walk trigger.");
+            sender.sendMessage("  &7/trg w #MESSAGE \"HEY YOU WALKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg w &7without extra parameters.");
+
+            sender.sendMessage("&b/triggerreactor[trg] click[c] [...] &8- &7create a click trigger.");
+            sender.sendMessage("  &7/trg c #MESSAGE \"HEY YOU CLICKED!\"");
+            sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
+        });
+        add((sender) -> {
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
+            sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
+            sender.sendMessage(
+                    "  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+            sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
+            sender.sendMessage(
+                    "  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
+            sender.sendMessage(
+                    "  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
+            sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
+            sender.sendMessage("  &7- To add tab-completer, type &b/trg cmd <command name> settab[tab] " + "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
+            sender.sendMessage("    &6*&7The parameter has following format: hint:val1,val2,...");
+            sender.sendMessage("    &6*&7Not providing any tab-completer will remove it instead.");
+            sender.sendMessage(
+                    "    &7Hint shows up as simple string when a user is about to type something, and values " + "will start to show up as a form of tab-completers as soon as their first characters matching with " + "the characters typed by the user.");
+            sender.sendMessage(
+                    "    &7You may omit the hint, yet you cannot omit the values. To use only hint but no values, " + "edit the config file manually.");
+        });
+        add((sender) -> {
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
+            sender.sendMessage("  &7/trg i to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
+
+            sender.sendMessage("&b/triggerreactor[trg] area[a] &8- &7Create an area trigger.");
+            sender.sendMessage("  &7/trg a to see more commands...");
+
+            sender.sendMessage("&b/triggerreactor[trg] repeat[r] &8- &7Create an repeating trigger.");
+            sender.sendMessage("&b/triggerreactor[trg] version &8- &7Show the plugin version.");
+            sender.sendMessage("  &7/trg r to see more commands...");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
+            sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
+            sender.sendMessage("  &7/trg synccustom Greet");
+
+            sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
+            sender.sendMessage(
+                    "  &7&cWarning - This command will delete the previous data associated with the key if exists.");
+            sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
+            sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
+            sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
+
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
+        });
+        add((sender) -> {
+            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
+
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
+
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
+            sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
+            sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" + " temporary trigger will be made, the codes will run, and then the Named Trigger will be" + " called, just like how you do with #CALL. This can be useful if you have variables in the Named Trigger" + " that has to be initialized.");
+        });
+        add((sender -> {
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
+            sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
+            sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
+            sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
+
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+
+            sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
+            sender.sendMessage(
+                    "  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
+
+            sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
+
+            sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
+        }));
+        add((sender -> {
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+        }));
+    }};
+    private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");
+    private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
+    private static final List<String> EMPTY = new ArrayList<String>();
+    /**
+     * Cached Pool for thread execution.
+     */
+    protected static final ExecutorService CACHED_THREAD_POOL = Executors.newCachedThreadPool(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread() {{
+                this.setPriority(MIN_PRIORITY);
+            }};
+        }
+    });
+    public static final String PERMISSION = "triggerreactor.admin";
 
     //returns all strings in completions that start with prefix.
     private static List<String> filter(Collection<String> completions, String prefix) {

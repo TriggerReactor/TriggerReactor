@@ -29,11 +29,9 @@ import org.bukkit.event.player.PlayerEvent;
  * @author wysohn
  */
 public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
     private final SimpleLocation from;
     private final SimpleLocation to;
     private boolean cancelled;
-
     public PlayerBlockLocationEvent(Player who, SimpleLocation from, SimpleLocation to) {
         super(who);
         this.from = from;
@@ -62,6 +60,7 @@ public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable
     public SimpleLocation getTo() {
         return to;
     }
+    private static final HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {
         return handlers;

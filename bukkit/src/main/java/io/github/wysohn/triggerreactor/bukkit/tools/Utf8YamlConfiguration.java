@@ -25,7 +25,23 @@ import java.nio.charset.Charset;
 
 public class Utf8YamlConfiguration extends CopyYamlConfiguration {
 
-    public static Charset UTF8_CHARSET = Charset.forName("UTF-8");
+    @Override
+    public void save(File file) throws IOException {
+        Validate.notNull(file, "File cannot be null");
+
+        Files.createParentDirs(file);
+
+        String data = saveToString();
+
+        FileOutputStream stream = new FileOutputStream(file);
+        OutputStreamWriter writer = new OutputStreamWriter(stream, UTF8_CHARSET);
+
+        try {
+            writer.write(data);
+        } finally {
+            writer.close();
+        }
+    }
 
 /*    @Override
     public void load(InputStream stream) throws IOException, InvalidConfigurationException {
@@ -50,24 +66,6 @@ public class Utf8YamlConfiguration extends CopyYamlConfiguration {
     }*/
 
     @Override
-    public void save(File file) throws IOException {
-        Validate.notNull(file, "File cannot be null");
-
-        Files.createParentDirs(file);
-
-        String data = saveToString();
-
-        FileOutputStream stream = new FileOutputStream(file);
-        OutputStreamWriter writer = new OutputStreamWriter(stream, UTF8_CHARSET);
-
-        try {
-            writer.write(data);
-        } finally {
-            writer.close();
-        }
-    }
-
-    @Override
     public void load(File file) throws IOException, InvalidConfigurationException {
         Validate.notNull(file, "File cannot be null");
 
@@ -85,4 +83,5 @@ public class Utf8YamlConfiguration extends CopyYamlConfiguration {
 
         loadFromString(builder.toString());
     }
+    public static Charset UTF8_CHARSET = Charset.forName("UTF-8");
 }

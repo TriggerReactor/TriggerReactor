@@ -33,12 +33,6 @@ import java.util.stream.Collectors;
 
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
-    private static final String SYNC = "sync";
-    private static final String PERMISSION = "permissions";
-    private static final String ALIASES = "aliases";
-    public static final String TABS = "tabs";
-    public static final String HINT = "hint";
-    public static final String CANDIDATES = "candidates";
     private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
     @Inject
     ITriggerReactorAPI api;
@@ -46,7 +40,6 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     {
         tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
     }
-
     public AbstractCommandTriggerManager(String folderName) {
         super(folderName);
     }
@@ -213,4 +206,10 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
         return tabs.stream().map(this::toTabCompleter).toArray(ITabCompleter[]::new);
     }
+    private static final String SYNC = "sync";
+    private static final String PERMISSION = "permissions";
+    private static final String ALIASES = "aliases";
+    public static final String TABS = "tabs";
+    public static final String HINT = "hint";
+    public static final String CANDIDATES = "candidates";
 }

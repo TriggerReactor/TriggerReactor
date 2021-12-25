@@ -26,7 +26,6 @@ import org.bukkit.event.HandlerList;
  */
 @Deprecated
 public class EventBase extends Event implements Cancellable {
-    private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
 
     public HandlerList getHandlers() {
@@ -40,6 +39,7 @@ public class EventBase extends Event implements Cancellable {
     public void setCancelled(boolean cancel) {
         cancelled = cancel;
     }
+    private static final HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {
         return handlers;

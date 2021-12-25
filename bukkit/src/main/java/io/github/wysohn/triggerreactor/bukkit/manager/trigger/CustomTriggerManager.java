@@ -37,12 +37,10 @@ import java.util.Map.Entry;
 
 @Singleton
 public class CustomTriggerManager extends AbstractCustomTriggerManager implements BukkitTriggerManager {
-    private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
     private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
     @Inject
     @Named("PluginInstance")
     Object pluginInstance;
-
     @Inject
     public CustomTriggerManager() {
         super("CustomTrigger");
@@ -89,4 +87,5 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
             HandlerList.unregisterAll(listener);
         }
     }
+    private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 }

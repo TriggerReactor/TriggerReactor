@@ -28,13 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class APISupport extends AbstractAPISupport {
-    @SuppressWarnings("serial")
-    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>() {{
-        put("nucleus", NucleusSupport.class);
-    }};
     private final String targetPluginName;
     protected PluginContainer target;
-
     public APISupport(TriggerReactorCore plugin, String targetPluginName) {
         super(plugin);
         ValidationUtil.notNull(plugin);
@@ -54,6 +49,10 @@ public abstract class APISupport extends AbstractAPISupport {
                 .info("Enabled support for " + targetPluginName + " " + target.getDescription()
                         .orElse("No description") + " " + target.getVersion().orElse("v. ?"));
     }
+    @SuppressWarnings("serial")
+    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>() {{
+        put("nucleus", NucleusSupport.class);
+    }};
 
     public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
         return sharedVars;

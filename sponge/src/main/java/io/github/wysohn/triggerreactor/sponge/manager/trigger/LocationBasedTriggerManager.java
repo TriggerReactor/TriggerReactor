@@ -57,10 +57,6 @@ import java.io.File;
 import java.util.*;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T> {
-    public static final ItemType INSPECTION_TOOL = ItemTypes.BONE;
-    public static final ItemType CUT_TOOL = ItemTypes.SHEARS;
-    public static final ItemType COPY_TOOL = ItemTypes.PAPER;
-
     public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName, ITriggerLoader<T> loader) {
         super(plugin, new File(plugin.getDataFolder(), folderName), loader);
     }
@@ -378,4 +374,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage(trigger.getScript());
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
+    public static final ItemType INSPECTION_TOOL = ItemTypes.BONE;
+    public static final ItemType CUT_TOOL = ItemTypes.SHEARS;
+    public static final ItemType COPY_TOOL = ItemTypes.PAPER;
 }

@@ -2689,6 +2689,25 @@ public class TestInterpreter {
         assertEquals(3, interpreter.getVars().get("number"));
     }
 
+    private class SomeClass {
+        SomeInterface obj;
+        Object noArgResult;
+        Object oneArgResult;
+        Object twoArgResult;
+
+        public void noArg(Supplier<Object> run) {
+            noArgResult = obj.noArg(run);
+        }
+
+        public void oneArg(Function<Object, Object> run) {
+            oneArgResult = obj.oneArg(run);
+        }
+
+        public void twoArg(BiFunction<Object, Object, Object> run) {
+            twoArgResult = obj.twoArg(run);
+        }
+    }
+
     public enum TestEnum {
         IMTEST
     }
@@ -2702,8 +2721,6 @@ public class TestInterpreter {
     }
 
     public static class TheTest {
-        public static String staticField = "staticField";
-
         public InTest in = new InTest();
 
         public TheTest() {
@@ -2721,6 +2738,7 @@ public class TestInterpreter {
         public TestEnum testEnumMethod(TestEnum val) {
             return val;
         }
+        public static String staticField = "staticField";
 
         public static String staticTest() {
             return "static";
@@ -2867,25 +2885,6 @@ public class TestInterpreter {
         @Override
         public String toString() {
             return "Vector{" + "key=" + key + '}';
-        }
-    }
-
-    private class SomeClass {
-        SomeInterface obj;
-        Object noArgResult;
-        Object oneArgResult;
-        Object twoArgResult;
-
-        public void noArg(Supplier<Object> run) {
-            noArgResult = obj.noArg(run);
-        }
-
-        public void oneArg(Function<Object, Object> run) {
-            oneArgResult = obj.oneArg(run);
-        }
-
-        public void twoArg(BiFunction<Object, Object, Object> run) {
-            twoArgResult = obj.twoArg(run);
         }
     }
 }

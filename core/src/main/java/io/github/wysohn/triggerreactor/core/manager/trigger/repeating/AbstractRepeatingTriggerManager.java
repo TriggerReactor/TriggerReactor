@@ -37,13 +37,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
-    private static final String AUTOSTART = "AutoStart";
-    private static final String INTERVAL = "Interval";
-    protected static final String TRIGGER = "trigger";
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
     @Inject
     ITriggerReactorAPI api;
-
     public AbstractRepeatingTriggerManager(String folderName) {
         super(folderName);
     }
@@ -227,6 +223,9 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         thread.interrupt();
         return true;
     }
+    private static final String AUTOSTART = "AutoStart";
+    private static final String INTERVAL = "Interval";
+    protected static final String TRIGGER = "trigger";
 
     protected interface ThrowableHandler {
         void onFail(Throwable throwable);

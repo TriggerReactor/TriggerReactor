@@ -37,15 +37,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
-    final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
-    public static final String ITEMS = "Items";
-    public static final String SIZE = "Size";
-    public static final String TITLE = "Title";
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
     private final Class<ItemStack> itemClass;
     @Inject
     ITriggerReactorAPI api;
-
     public AbstractInventoryTriggerManager(String folderName, Class<ItemStack> itemClass) {
         super(folderName);
         this.itemClass = itemClass;
@@ -151,8 +146,6 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         return inventoryMap.containsKey(inventory);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
-
     protected void onInventoryClose(Object e, IPlayer player, IInventory inventory) {
         if (!inventoryMap.containsKey(inventory)) return;
         InventoryTrigger trigger = inventoryMap.get(inventory);
@@ -210,5 +203,11 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
             trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
         }
     }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
+    public static final String ITEMS = "Items";
+    public static final String SIZE = "Size";
+    public static final String TITLE = "Title";
 
 }

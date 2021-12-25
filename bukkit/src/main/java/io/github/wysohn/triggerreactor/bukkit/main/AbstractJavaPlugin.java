@@ -94,11 +94,6 @@ import java.util.concurrent.Future;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin
         implements ICommandMapHandler, IGameController, IPluginLifecycleController {
-    static {
-        GsonConfigSource.registerSerializer(ConfigurationSerializable.class, new BukkitConfigurationSerializer());
-        GsonConfigSource.registerValidator(obj -> obj instanceof ConfigurationSerializable);
-    }
-
     private final Lag tpsHelper = new Lag();
     private TriggerReactorMain main;
     private ITriggerReactorAPI api;
@@ -791,5 +786,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
             return null;
         }
 
+    }
+
+    static {
+        GsonConfigSource.registerSerializer(ConfigurationSerializable.class, new BukkitConfigurationSerializer());
+        GsonConfigSource.registerValidator(obj -> obj instanceof ConfigurationSerializable);
     }
 }

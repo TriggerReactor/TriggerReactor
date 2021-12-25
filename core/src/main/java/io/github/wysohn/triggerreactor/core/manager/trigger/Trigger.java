@@ -29,7 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
-    private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();
     protected final ITriggerReactorAPI api;
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     protected final TriggerInfo info;
@@ -39,7 +38,6 @@ public abstract class Trigger implements Cloneable, IObservable {
     protected Map<String, Executor> executorMap;
     protected Map<String, Placeholder> placeholderMap;
     protected Map<Object, Object> gvarMap;
-
     /**
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
      * in order to make the Trigger work properly. If you want to create a Trigger with customized
@@ -295,4 +293,5 @@ public abstract class Trigger implements Cloneable, IObservable {
             ASYNC_POOL.submit(call);
         }
     }
+    private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();
 }

@@ -8,14 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Validator {
-    private static final ValidationOptions validationOptions = new ValidationOptionsBuilder().addOption(new MinimumOption(),
-                                                                                                        "minimum")
-            .addOption(new MaximumOption(), "maximum")
-            .addOption(new NameOption(), "name")
-            .addOption(new TypeOption(), "type")
-            .build();
     private final Overload[] overloads;
-
     private Validator() {
         overloads = null;
     }
@@ -68,6 +61,12 @@ public class Validator {
         }
         return new ValidationResult(builder.toString());
     }
+    private static final ValidationOptions validationOptions = new ValidationOptionsBuilder().addOption(new MinimumOption(),
+                                                                                                        "minimum")
+            .addOption(new MaximumOption(), "maximum")
+            .addOption(new NameOption(), "name")
+            .addOption(new TypeOption(), "type")
+            .build();
 
     private static Object getOrFail(Map<String, Object> js, String slot) {
         if (!(js.containsKey(slot))) {

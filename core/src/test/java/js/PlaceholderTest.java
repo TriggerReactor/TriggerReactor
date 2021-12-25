@@ -13,11 +13,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class PlaceholderTest extends JsTest {
-    private static final PlaceholderTestComponent component = DaggerPlaceholderTestComponent.create();
-    public static final Map<String, Boolean> coverage = new TreeMap<>();
     private final AbstractPlaceholderManager manager = component.manager();
     private final JSPlaceholder placeholder;
-
     public PlaceholderTest(ScriptEngine engine,
                            String name,
                            String... directories) throws ScriptException, IOException {
@@ -36,4 +33,6 @@ public class PlaceholderTest extends JsTest {
 
         return placeholder.parse(Timings.LIMBO, null, varMap, args);
     }
+    private static final PlaceholderTestComponent component = DaggerPlaceholderTestComponent.create();
+    public static final Map<String, Boolean> coverage = new TreeMap<>();
 }

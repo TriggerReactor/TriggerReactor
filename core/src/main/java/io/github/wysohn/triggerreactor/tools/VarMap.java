@@ -6,9 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * A concurrent hash map that supports null for get() and put()
  */
 public class VarMap extends ConcurrentHashMap<String, Object> {
-    private static final long serialVersionUID = 1L;
-    private static final NullObject NULL = new NullObject();
-
     public VarMap() {
     }
 
@@ -28,6 +25,8 @@ public class VarMap extends ConcurrentHashMap<String, Object> {
         }
         return super.put(key, value);
     }
+    private static final long serialVersionUID = 1L;
+    private static final NullObject NULL = new NullObject();
 
     private static final class NullObject {
     }

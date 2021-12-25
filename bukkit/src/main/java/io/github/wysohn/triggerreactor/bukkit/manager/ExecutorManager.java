@@ -39,7 +39,6 @@ import java.util.logging.Logger;
 
 @Singleton
 public class ExecutorManager extends AbstractExecutorManager {
-    private static final String JAR_FOLDER_LOCATION = "Executor";
     @Inject
     TaskSupervisor task;
     @Inject
@@ -112,15 +111,6 @@ public class ExecutorManager extends AbstractExecutorManager {
 
     }
 
-    public static void main(String[] ar) {
-        Stack<Integer> stack = new Stack<Integer>();
-        stack.push(1);
-        stack.push(2);
-        stack.push(3);
-        for (int i = 0; i < stack.size(); i++)
-            System.out.println(i + ". " + stack.get(i));
-    }
-
     private class DispatchCommandAsOP implements Callable<Void> {
         private final Player player;
         private final String cmd;
@@ -163,5 +153,15 @@ public class ExecutorManager extends AbstractExecutorManager {
             if (!wasOp) player.setOp(false);
         }
 
+    }
+    private static final String JAR_FOLDER_LOCATION = "Executor";
+
+    public static void main(String[] ar) {
+        Stack<Integer> stack = new Stack<Integer>();
+        stack.push(1);
+        stack.push(2);
+        stack.push(3);
+        for (int i = 0; i < stack.size(); i++)
+            System.out.println(i + ". " + stack.get(i));
     }
 }

@@ -113,18 +113,6 @@ import java.util.logging.Logger;
 
 @Plugin(id = TriggerReactor.ID)
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactorCore {
-    static {
-        System.setProperty("bstats.relocatecheck", "false");
-    }
-
-    static {
-        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
-        GsonConfigSource.registerValidator(obj -> obj instanceof DataSerializable);
-    }
-
-    protected static final String ID = "triggerreactor";
-    private static SpongeExecutorService SYNC_EXECUTOR = null;
-    private static SpongeWrapper WRAPPER = null;
     private final SelfReference selfReference = new CommonFunctions(this);
     private final Set<Class<? extends Manager>> savings = new HashSet<>();
     @Inject
@@ -1026,6 +1014,18 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                 player.sendBlockChange(sloc.getX(), sloc.getY(), sloc.getZ(), BlockTypes.GLOWSTONE.getDefaultState());
             }
         }
+    }
+    protected static final String ID = "triggerreactor";
+    private static SpongeExecutorService SYNC_EXECUTOR = null;
+    private static SpongeWrapper WRAPPER = null;
+
+    static {
+        System.setProperty("bstats.relocatecheck", "false");
+    }
+
+    static {
+        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
+        GsonConfigSource.registerValidator(obj -> obj instanceof DataSerializable);
     }
 
     public static SpongeWrapper getWrapper() {

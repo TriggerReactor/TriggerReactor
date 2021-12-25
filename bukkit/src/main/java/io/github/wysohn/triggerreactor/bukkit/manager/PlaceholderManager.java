@@ -31,8 +31,6 @@ import java.util.Objects;
 
 @Singleton
 public class PlaceholderManager extends AbstractPlaceholderManager {
-    private static final String JAR_FOLDER_LOCATION = "Placeholder";
-
     private File placeholderFolder;
 
     @Inject
@@ -78,4 +76,5 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
         // TODO Auto-generated method stub
 
     }
+    private static final String JAR_FOLDER_LOCATION = "Placeholder";
 }

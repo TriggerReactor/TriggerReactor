@@ -3,8 +3,6 @@ package io.github.wysohn.triggerreactor.core.script.validation.option;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 
 public class TypeOption extends ValidationOption {
-    private static final String[] types = {"int", "number", "boolean", "string"};
-
     @Override
     public boolean canContain(Object arg) {
         if (arg instanceof Class<?>) {
@@ -68,4 +66,5 @@ public class TypeOption extends ValidationOption {
         }
 
     }
+    private static final String[] types = {"int", "number", "boolean", "string"};
 }

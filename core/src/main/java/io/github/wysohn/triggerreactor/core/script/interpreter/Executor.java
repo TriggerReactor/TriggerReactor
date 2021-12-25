@@ -21,11 +21,6 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import java.util.Map;
 
 public interface Executor {
-    int STOP = 0;
-    int WAIT = 1;
-    int BREAK = 2;
-    int CONTINUE = 3;
-
     /**
      * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
      * @param vars    variables to be used in the Executor script
@@ -35,4 +30,8 @@ public interface Executor {
      * @throws Exception
      */
     Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception;
+    int STOP = 0;
+    int WAIT = 1;
+    int BREAK = 2;
+    int CONTINUE = 3;
 }

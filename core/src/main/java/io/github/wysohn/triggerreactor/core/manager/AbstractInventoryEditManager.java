@@ -9,13 +9,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public abstract class AbstractInventoryEditManager extends Manager {
-    protected static final char X = '\u2718';
-    protected static final char CHECK = '\u2713';
-    protected static final char PENCIL = '\u270E';
-
     //map of player uuids to inventories representing the inventories currently being edited
     protected Map<UUID, InventoryTrigger> sessions = new HashMap<>();
-
     //inventories currently awaiting a save/discard/continue command
     protected Map<UUID, IInventory> suspended = new HashMap<>();
 
@@ -36,4 +31,7 @@ public abstract class AbstractInventoryEditManager extends Manager {
         sessions.remove(u);
         suspended.remove(u);
     }
+    protected static final char X = '\u2718';
+    protected static final char CHECK = '\u2713';
+    protected static final char PENCIL = '\u270E';
 }

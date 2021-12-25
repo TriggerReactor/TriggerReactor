@@ -28,12 +28,10 @@ import java.util.UUID;
 
 @Singleton
 public class InventoryEditManager extends AbstractInventoryEditManager implements Listener {
-    private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
     @Inject
     AbstractInventoryTriggerManager<?> invManager;
     @Inject
     IWrapper wrapper;
-
     @Inject
     InventoryEditManager(TriggerReactorMain plugin) {
 
@@ -143,4 +141,5 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
     private void sendMessage(Player player) {
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), message.replace("@p", player.getName()));
     }
+    private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
 }

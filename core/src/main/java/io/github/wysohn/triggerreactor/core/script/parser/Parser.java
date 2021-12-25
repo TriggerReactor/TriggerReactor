@@ -33,12 +33,10 @@ import java.util.List;
 import java.util.*;
 
 public class Parser {
-    private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
     final Lexer lexer;
     private final List<Warning> warnings = new ArrayList<Warning>();
     private boolean showWarnings;
     private Token token;
-
     public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
 
@@ -221,6 +219,31 @@ public class Parser {
         return parsedNode;
     }
 
+    private Node parseBitwiseAnd(Node left) throws IOException, LexerException, ParserException {
+        if (token != null && token.type == Type.OPERATOR_A && ("&".equals(token.value))) {
+            Node node = new Node(token);
+            nextToken();
+
+            node.getChildren().add(left);
+
+            Node comparison = parseBitwise(0);
+            if (comparison != null) {
+                node.getChildren().add(comparison);
+            } else {
+                throw new ParserException("Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+            }
+
+            Node bitwiseAnd = parseBitwiseAnd(node);
+            if (bitwiseAnd != null) {
+                return bitwiseAnd;
+            } else {
+                return node;
+            }
+        } else {
+            return null;
+        }
+    }
+
 /*
     private Node parseAssignment() throws IOException, LexerException, ParserException{
         Node id = parseFactor();
@@ -259,31 +282,6 @@ public class Parser {
             throw new ParserException("Unexpected token "+token);
         }
     }*/
-
-    private Node parseBitwiseAnd(Node left) throws IOException, LexerException, ParserException {
-        if (token != null && token.type == Type.OPERATOR_A && ("&".equals(token.value))) {
-            Node node = new Node(token);
-            nextToken();
-
-            node.getChildren().add(left);
-
-            Node comparison = parseBitwise(0);
-            if (comparison != null) {
-                node.getChildren().add(comparison);
-            } else {
-                throw new ParserException("Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
-            }
-
-            Node bitwiseAnd = parseBitwiseAnd(node);
-            if (bitwiseAnd != null) {
-                return bitwiseAnd;
-            } else {
-                return node;
-            }
-        } else {
-            return null;
-        }
-    }
 
     private Node parseBitwiseOr(Node left) throws IOException, LexerException, ParserException {
         if (token != null && token.type == Type.OPERATOR_A && ("|".equals(token.value))) {
@@ -1115,6 +1113,7 @@ public class Parser {
     private void skipEndLines() throws IOException, LexerException, ParserException {
         while (token != null && token.type == Type.ENDL) nextToken();
     }
+    private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
 
     public static void addDeprecationSupervisor(DeprecationSupervisor ds) {
         deprecationSupervisors.add(ds);
