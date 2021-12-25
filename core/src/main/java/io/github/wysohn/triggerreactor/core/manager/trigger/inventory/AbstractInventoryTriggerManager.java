@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -28,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,6 +37,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
+    @Inject
+    ITriggerReactorAPI api;
+
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";
@@ -75,7 +80,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
             IItemStack[] itemArray = new IItemStack[size];
             for (int i = 0; i < size; i++)
                 itemArray[i] = items.getOrDefault(i, null);
-            return new InventoryTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script, itemArray);
+            return new InventoryTrigger(api, info, script, itemArray);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -92,15 +97,19 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
 
             trigger.getInfo().getConfig().put(SIZE, size);
             trigger.getInfo().getConfig().put(TITLE, trigger.getInfo().getTriggerName());
-            for (int i = 0; i < items.length; i++) {
-                IItemStack item = items[i];
-                if (item == null)
-                    continue;
-
-                trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
-            }
+            updateItemConfig(trigger, items);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void updateItemConfig(InventoryTrigger trigger, IItemStack[] items) {
+        for (int i = 0; i < items.length; i++) {
+            IItemStack item = items[i];
+            if (item == null)
+                continue;
+
+            trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
         }
     }
 
@@ -157,8 +166,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        put(name, new InventoryTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                info, script, size, new HashMap<>()));
+        put(name, new InventoryTrigger(api, info, script, size, new HashMap<>()));
 
         return true;
     }
@@ -169,6 +177,17 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
      * @param inventory
      */
     protected abstract void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
+
+    //helper method to replace all the items in an inventory trigger
+    public void replaceItems(InventoryTrigger trigger, IItemStack[] items) {
+        IItemStack[] triggerItems = trigger.getItems();
+        for (int i = 0; i < triggerItems.length; i++) {
+            triggerItems[i] = items[i];
+        }
+
+        updateItemConfig(trigger, items);
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     protected void onInventoryClose(Object e, IPlayer player, IInventory inventory) {

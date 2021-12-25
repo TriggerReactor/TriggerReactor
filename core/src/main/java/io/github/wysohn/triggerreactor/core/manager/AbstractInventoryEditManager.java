@@ -1,20 +1,14 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 
-import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 public abstract class AbstractInventoryEditManager extends Manager {
-    @Inject
-    TriggerReactorMain main;
-
     protected static final char X = '\u2718';
     protected static final char CHECK = '\u2713';
     protected static final char PENCIL = '\u270E';
@@ -41,14 +35,5 @@ public abstract class AbstractInventoryEditManager extends Manager {
         UUID u = player.getUniqueId();
         sessions.remove(u);
         suspended.remove(u);
-    }
-
-    //helper method to replace all the items in an inventory trigger
-    protected void replaceItems(InventoryTrigger trigger, IItemStack[] items) {
-        IItemStack[] triggerItems = trigger.getItems();
-        for (int i = 0; i < triggerItems.length; i++) {
-            triggerItems[i] = items[i];
-        }
-        main.saveAsynchronously(main.invManager());
     }
 }

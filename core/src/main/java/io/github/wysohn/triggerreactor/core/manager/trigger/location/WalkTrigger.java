@@ -17,22 +17,16 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public class WalkTrigger extends Trigger {
-    public WalkTrigger(IThrowableHandler throwableHandler,
-                       IGameController gameController,
-                       TaskSupervisor taskSupervisor,
-                       SelfReference selfReference,
+    public WalkTrigger(ITriggerReactorAPI api,
                        TriggerInfo info,
                        String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+        super(api, info, script);
 
         init();
 
@@ -41,7 +35,7 @@ public class WalkTrigger extends Trigger {
     @Override
     public Trigger clone() {
         try {
-            return new WalkTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+            return new WalkTrigger(api, info, script);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

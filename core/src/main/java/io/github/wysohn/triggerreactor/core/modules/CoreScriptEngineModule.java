@@ -17,11 +17,10 @@
 
 package io.github.wysohn.triggerreactor.core.modules;
 
-import dagger.Lazy;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 
 import javax.script.ScriptEngineManager;
@@ -30,16 +29,19 @@ import java.util.function.Function;
 @Module
 public abstract class CoreScriptEngineModule {
     @Provides
-    static ScriptEngineManager provideManager(){
+    static ScriptEngineManager provideManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
 
     @Provides
     @IntoSet
-    static IScriptEngineInitializer provideBasicInitializer(Lazy<TriggerReactorMain> main){
-        return (sem) -> {
-            sem.put("Char", (Function<String, Character>) t -> t.charAt(0));
-            sem.put("main", main.get());
-        };
+    static IScriptEngineInitializer provideAPI(ITriggerReactorAPI api) {
+        return (sem) -> sem.put("api", api);
+    }
+
+    @Provides
+    @IntoSet
+    static IScriptEngineInitializer provideCharFn() {
+        return (sem) -> sem.put("Char", (Function<String, Character>) t -> t.charAt(0));
     }
 }

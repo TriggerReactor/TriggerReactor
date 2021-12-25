@@ -6,10 +6,8 @@ import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.main.PluginMainComponent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.DaggerManagerComponent;
-import io.github.wysohn.triggerreactor.core.manager.ManagerComponent;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
@@ -66,14 +64,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     PluginMainComponent pluginMainComponent;
-    ManagerComponent managerComponent;
 
     @Before
     public void init(){
         pluginMainComponent = DaggerPluginMainComponent.builder()
-                .build();
-        managerComponent = DaggerManagerComponent.builder()
-                .pluginMainComponent(pluginMainComponent)
                 .build();
     }
 
@@ -493,14 +487,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testGUI() throws Exception {
         IPlayer vip = mock(IPlayer.class);
-        TriggerReactorMain main = mock(TriggerReactorMain.class);
+        ITriggerReactorAPI api = mock(ITriggerReactorAPI.class);
         AbstractInventoryTriggerManager invManager = mock(AbstractInventoryTriggerManager.class);
         IInventory iInv = mock(IInventory.class);
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("player", vip)
-                .addVariable("main", main);
+                .addVariable("api", api);
 
-        when(main.invManager()).thenReturn(invManager);
+        when(api.invManager()).thenReturn(invManager);
         when(invManager.openGUI(vip, "Hi")).thenReturn(iInv);
         test.withArgs("Hi").test();
         verify(invManager).openGUI(vip, "Hi");

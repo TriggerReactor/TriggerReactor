@@ -48,8 +48,8 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
+    public void onEnable() throws APISupportException {
+        super.onEnable();
 
         protocolManager = ProtocolLibrary.getProtocolManager();
     }

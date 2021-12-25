@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -42,6 +43,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +53,9 @@ import java.util.function.Predicate;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
         implements BukkitTriggerManager {
+    @Inject
+    AbstractScriptEditManager scriptEditManager;
+
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
@@ -183,19 +188,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     private void handleScriptEdit(Player player, T trigger) {
         IPlayer bukkitPlayer = main.getWrapper().wrap(player);
 
-        main.getScriptEditManager().startEdit(bukkitPlayer, trigger.getInfo().getTriggerName(), trigger.getScript(),
-                new SaveHandler() {
-                    @Override
-                    public void accept(String script) {
-                        try {
-                            trigger.setScript(script);
-                        } catch (TriggerInitFailedException e) {
-                            throwableHandler.handleException(bukkitPlayer, e);
-                        }
-
-                        main.saveAsynchronously(LocationBasedTriggerManager.this);
+        scriptEditManager.startEdit(bukkitPlayer, trigger.getInfo().getTriggerName(), trigger.getScript(),
+                (SaveHandler) script -> {
+                    try {
+                        trigger.setScript(script);
+                    } catch (TriggerInitFailedException e) {
+                        throwableHandler.handleException(bukkitPlayer, e);
                     }
 
+                    main.saveAsynchronously(LocationBasedTriggerManager.this);
                 });
     }
 

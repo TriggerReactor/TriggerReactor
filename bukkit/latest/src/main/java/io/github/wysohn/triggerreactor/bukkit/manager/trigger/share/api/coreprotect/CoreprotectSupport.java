@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
@@ -27,28 +27,41 @@ public class CoreprotectSupport extends APISupport {
      * I'm just too lazy to add all those methods. Please use this to access directly with api.
      * http://minerealm.com/community/viewtopic.php?f=32&t=16534
      */
-    protected CoreProtectAPI api;
+    protected CoreProtectAPI coreprotect;
 
-    public CoreprotectSupport(TriggerReactorMain plugin) {
-        super(plugin, "CoreProtect");
+    public CoreprotectSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
-
-        api = CoreProtect.getInstance().getAPI();
+    public void onEnable() throws Exception {
+        coreprotect = CoreProtect.getInstance().getAPI();
 
         try {
-            api.getClass().getMethod("APIVersion");
+            coreprotect.getClass().getMethod("APIVersion");
         } catch (NoSuchMethodException e) {
-            plugin.getLogger().warning("Found CoreProtect, but the version is too low.");
+            api.logger().warning("Found CoreProtect, but the version is too low.");
             throw new APISupportException("API version too low.");
         }
 
-        if (api.APIVersion() < 4) {
-            plugin.getLogger().warning("Found CoreProtect, but the version is too low.");
+        if (coreprotect.APIVersion() < 4) {
+            api.logger().warning("Found CoreProtect, but the version is too low.");
             throw new APISupportException("API version too low.");
         }
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+
+    }
+
+    @Override
+    public void onDisable() {
+
+    }
+
+    @Override
+    public String getVariableName() {
+        return "coreprotect";
     }
 }

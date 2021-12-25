@@ -16,54 +16,20 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
-import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public abstract class APISupport extends AbstractAPISupport {
-    private final String targetPluginName;
+    private final Plugin target;
 
-    protected Plugin target;
-
-    public APISupport(TriggerReactorMain plugin, String targetPluginName) {
-        super(plugin);
-        Validate.notNull(plugin);
-        Validate.notNull(targetPluginName);
-
-        this.targetPluginName = targetPluginName;
+    public APISupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
+        target = (Plugin) targetPluginInstance;
     }
 
-    /**
-     * Initialize this API. It may throw APISupportException if the plugin is not found.
-     *
-     * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
-     */
     @Override
-    public void init() throws APISupportException {
-        Plugin plugin = Bukkit.getPluginManager().getPlugin(targetPluginName);
-        if (plugin == null || !plugin.isEnabled())
-            throw new APISupportException(targetPluginName);
-
-        target = plugin;
-
-        this.plugin.getLogger().info("Enabled support for " + targetPluginName + " " + target.getDescription().getFullName());
-    }
-
-    @SuppressWarnings("serial")
-    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars
-            = new HashMap<String, Class<? extends AbstractAPISupport>>();
-
-    public static boolean addSharedVars(String name, Class<? extends AbstractAPISupport> clazz) {
-        return sharedVars.put(name, clazz) == null;
-    }
-
-    public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
-        return sharedVars;
+    public String toString() {
+        return target.getDescription().getFullName();
     }
 }

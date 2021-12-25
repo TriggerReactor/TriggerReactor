@@ -38,7 +38,7 @@ public class WorldguardSupport extends APISupport {
     }
 
     @Override
-    public void init() throws APISupportException {
+    public void onEnable() throws APISupportException {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("WorldGuard");
 
         if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {

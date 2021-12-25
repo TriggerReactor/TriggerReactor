@@ -1,12 +1,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Map;
@@ -16,25 +13,19 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private boolean autoStart = false;
     private Map<String, Object> vars;
 
-    public RepeatingTrigger(IThrowableHandler throwableHandler,
-IGameController gameController,
-                            TaskSupervisor taskSupervisor,
-                            SelfReference selfReference,
+    public RepeatingTrigger(ITriggerReactorAPI api,
                             TriggerInfo info,
                             String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        this(throwableHandler, gameController, taskSupervisor, selfReference, info, script, 1000L);
+        this(api, info, script, 1000L);
 
         init();
     }
 
-    public RepeatingTrigger(IThrowableHandler throwableHandler,
-IGameController gameController,
-                            TaskSupervisor taskSupervisor,
-                            SelfReference selfReference,
+    public RepeatingTrigger(ITriggerReactorAPI api,
                             TriggerInfo info,
                             String script,
                             long interval) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+        super(api, info, script);
         this.interval = interval;
 
         init();
@@ -91,7 +82,7 @@ IGameController gameController,
     @Override
     public RepeatingTrigger clone() {
         try {
-            return new RepeatingTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script,
+            return new RepeatingTrigger(api, info, script,
                     interval);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
@@ -148,14 +139,14 @@ IGameController gameController,
                 }
             }
         } catch (Exception e) {
-            throwableHandler.handleException(null, e);
+            api.getThrowableHandler().handleException(null, e);
         }
 
         try {
             vars.put(AbstractRepeatingTriggerManager.TRIGGER, "stop");
             activate(new Object(), vars);
         } catch (Exception e) {
-            throwableHandler.handleException(null, e);
+            api.getThrowableHandler().handleException(null, e);
         }
     }
 }

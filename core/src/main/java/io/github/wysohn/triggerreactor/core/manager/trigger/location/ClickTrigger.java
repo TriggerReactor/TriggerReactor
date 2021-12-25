@@ -17,27 +17,21 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 import java.util.Map;
 
 public class ClickTrigger extends Trigger {
     private final AbstractLocationBasedTriggerManager.ClickHandler handler;
 
-    public ClickTrigger(IThrowableHandler throwableHandler,
-                        IGameController gameController,
-                        TaskSupervisor taskSupervisor,
-                        SelfReference selfReference,
+    public ClickTrigger(ITriggerReactorAPI api,
                         TriggerInfo info,
                         String script,
                         AbstractLocationBasedTriggerManager.ClickHandler handler) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+        super(api, info, script);
         this.handler = handler;
 
         init();
@@ -55,7 +49,7 @@ public class ClickTrigger extends Trigger {
     public Trigger clone() {
         try {
             //TODO: using same handler will be safe?
-            return new ClickTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script,
+            return new ClickTrigger(api, info, script,
                     handler);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();

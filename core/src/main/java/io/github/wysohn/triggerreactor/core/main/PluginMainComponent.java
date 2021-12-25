@@ -18,11 +18,14 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import dagger.Component;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.modules.*;
+import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 import javax.inject.Named;
 import java.io.File;
+import java.util.Set;
 import java.util.logging.Logger;
 
 @Component(modules = {
@@ -35,7 +38,10 @@ import java.util.logging.Logger;
         CoreGameControllerModule.class,
         CoreUtilModule.class,
 })
+@PluginScope
 public interface PluginMainComponent {
+    ITriggerReactorAPI api();
+
     @Named("PluginInstance")
     Object pluginInstance();
 
@@ -51,4 +57,6 @@ public interface PluginMainComponent {
     IPluginLifecycleController pluginLifecycleController();
 
     SelfReference selfReference();
+
+    Set<Manager> managers();
 }

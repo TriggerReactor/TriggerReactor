@@ -20,7 +20,7 @@ function GUI(args){
 	
 	var guiName = args[0];
 	
-	var inventory = main.invManager().openGUI(player, guiName);
+	var inventory = api.invManager().openGUI(player, guiName);
 	if(inventory == null)
 		throw new Error("No such Inventory Trigger named "+guiName);
 }

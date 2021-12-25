@@ -22,19 +22,19 @@ import dagger.Module;
 import dagger.Provides;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.main.ThrowableHandler;
+import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 
-import javax.inject.Singleton;
 import java.util.logging.Logger;
 
 @Module
 public abstract class CoreUtilModule {
     @Provides
-    @Singleton
+    @PluginScope
     static Logger provideLogger(){
         throw new RuntimeException("Dependent must provide it");
     }
 
     @Binds
-    @Singleton
+    @PluginScope
     abstract IThrowableHandler provideThrowableHandler(ThrowableHandler throwableHandler);
 }

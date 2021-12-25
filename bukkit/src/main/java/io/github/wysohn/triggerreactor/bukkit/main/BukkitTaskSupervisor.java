@@ -22,8 +22,10 @@ import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.bukkit.Server;
+import org.bukkit.plugin.Plugin;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -32,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 public class BukkitTaskSupervisor implements TaskSupervisor {
     @Inject
     Lazy<Server> server;
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
     @Inject
     IGameController gameController;
     @Inject
@@ -97,6 +102,11 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
         } else {
             return gameController.callSyncMethod(call);
         }
+    }
+
+    @Override
+    public void runTask(Runnable runnable) {
+        server.get().getScheduler().runTask((Plugin) pluginInstance, runnable);
     }
 
     @Override

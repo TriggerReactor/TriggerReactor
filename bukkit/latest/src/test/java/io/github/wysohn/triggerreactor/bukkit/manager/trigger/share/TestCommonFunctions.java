@@ -31,7 +31,7 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{new CommonFunctions(null)}});
+        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
     }
 
     @Override

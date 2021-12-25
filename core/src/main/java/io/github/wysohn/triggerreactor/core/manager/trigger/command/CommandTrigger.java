@@ -1,12 +1,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 import java.util.Arrays;
 
@@ -15,14 +12,10 @@ public class CommandTrigger extends Trigger {
     String[] aliases = new String[0];
     ITabCompleter[] tabCompleters = new ITabCompleter[0];
 
-    public CommandTrigger(
-            IThrowableHandler throwableHandler,
-            IGameController gameController,
-            TaskSupervisor taskSupervisor,
-            SelfReference selfReference,
-            TriggerInfo info,
-            String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+    public CommandTrigger(ITriggerReactorAPI api,
+                          TriggerInfo info,
+                          String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        super(api, info, script);
 
         init();
     }
@@ -66,7 +59,7 @@ public class CommandTrigger extends Trigger {
     @Override
     public CommandTrigger clone() {
         try {
-            return new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, getScript());
+            return new CommandTrigger(api, info, getScript());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

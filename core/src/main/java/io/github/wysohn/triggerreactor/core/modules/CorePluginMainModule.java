@@ -17,10 +17,13 @@
 
 package io.github.wysohn.triggerreactor.core.modules;
 
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 import javax.inject.Named;
@@ -28,6 +31,9 @@ import java.io.File;
 
 @Module
 public abstract class CorePluginMainModule {
+    @Binds
+    abstract ITriggerReactorAPI bindAPI(TriggerReactorAPI api);
+
     @Provides
     @Named("PluginInstance")
     static Object providePluginInstance(){

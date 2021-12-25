@@ -46,6 +46,23 @@ public interface IPluginLifecycleController {
      */
     boolean isEnabled();
 
+    /**
+     * Check if the target plugin is available and enabled.
+     * @param pluginName
+     * @return
+     */
+    boolean isEnabled(String pluginName);
+
+    /**
+     * Get plugin instance of name 'pluginName'
+     *
+     * @param pluginName
+     * @param <T>        type to be cast into. 'Plugin' in Bukkit API for e.g.
+     * @return null if target is not available; instance otherwise. Note that
+     * it still returns the plugin instance even if the target plugin is not enabled.
+     */
+    <T> T getPlugin(String pluginName);
+
     boolean isDebugging();
 
     /**

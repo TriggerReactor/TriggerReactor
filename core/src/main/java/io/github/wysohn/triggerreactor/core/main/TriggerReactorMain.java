@@ -42,6 +42,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedT
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
@@ -51,14 +52,12 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -72,7 +71,7 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-@Singleton
+@PluginScope
 public class TriggerReactorMain implements IPluginProcedure {
     @Inject
     @Named("PluginInstance")
@@ -98,13 +97,12 @@ public class TriggerReactorMain implements IPluginProcedure {
     @Inject
     PluginConfigManager pluginConfigManager;
     @Inject
+    AbstractExternalAPIManager externalAPIManager;
+    @Inject
     IWrapper wrapper;
-
     @Inject
-    ScriptEngineManager scriptEngineManager;
-    @Inject
-    Set<IScriptEngineInitializer> scriptEngineInitializers;
-
+    ITriggerReactorAPI api;
+    
     @Inject
     AbstractExecutorManager executorManager;
     @Inject
@@ -137,10 +135,14 @@ public class TriggerReactorMain implements IPluginProcedure {
     AbstractNamedTriggerManager namedTriggerManager;
 
     @Inject
+    ScriptEngineManager scriptEngineManager;
+    @Inject
+    Set<IScriptEngineInitializer> scriptEngineInitializers;
+
+    @Inject
     Map<String, Class<? extends AbstractAPISupport>> sharedVarProtos;
 
     public static final String PERMISSION = "triggerreactor.admin";
-    static TriggerReactorMain instance;
     private boolean debugging = false;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
@@ -148,84 +150,21 @@ public class TriggerReactorMain implements IPluginProcedure {
     
     @Inject
     protected TriggerReactorMain() {
-        instance = this;
+
     }
 
     public IWrapper getWrapper(){
         return wrapper;
     }
 
+    public ITriggerReactorAPI api(){
+        return api;
+    }
+
     public Map<String, AbstractAPISupport> getSharedVars() {
         return sharedVars;
     }
-
-    public AbstractExecutorManager getExecutorManager() {
-        return executorManager;
-    }
-
-    public AbstractPlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
-    }
-    public AbstractScriptEditManager getScriptEditManager() {
-        return scriptEditManager;
-    }
-
-    public AbstractPlayerLocationManager getLocationManager() {
-        return locationManager;
-    }
-
-    public AbstractPermissionManager getPermissionManager() {
-        return permissionManager;
-    }
-
-    public AbstractAreaSelectionManager getSelectionManager() {
-        return selectionManager;
-    }
-
-    public AbstractInventoryEditManager getInvEditManager() {
-        return invEditManager;
-    }
-
-    public AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
-        return clickManager;
-    }
-
-    public AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager() {
-        return walkManager;
-    }
-
-    public AbstractCommandTriggerManager getCmdManager() {
-        return cmdManager;
-    }
-
-    public AbstractInventoryTriggerManager<?> invManager() {
-        return invManager;
-    }
-
-    public AbstractAreaTriggerManager getAreaManager() {
-        return areaManager;
-    }
-
-    public AbstractCustomTriggerManager getCustomManager() {
-        return customManager;
-    }
-
-    public AbstractRepeatingTriggerManager getRepeatManager() {
-        return repeatManager;
-    }
-
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        return namedTriggerManager;
-    }
-
-    public final PluginConfigManager getPluginConfigManager() {
-        return pluginConfigManager;
-    }
-
-    public final GlobalVariableManager getVariableManager() {
-        return globalVariableManager;
-    }
-
+    
     @Override
     public void onEnable() throws Exception{
         Thread.currentThread().setContextClassLoader(pluginInstance.getClass().getClassLoader());
@@ -233,12 +172,12 @@ public class TriggerReactorMain implements IPluginProcedure {
         // theoretically, it is perfectly fine to be 0, but we assume that we have at least 1 API support
         ValidationUtil.assertTrue(sharedVars.size(), v -> v > 0);
 
-        for (Entry<String, Class<? extends AbstractAPISupport>> entry : sharedVarProtos.entrySet()) {
-            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
-        }
-
         for (IScriptEngineInitializer init : scriptEngineInitializers){
             init.initScriptEngine(scriptEngineManager);
+        }
+
+        for (Manager manager : managers) {
+            manager.onEnable();
         }
     }
 
@@ -372,8 +311,8 @@ public class TriggerReactorMain implements IPluginProcedure {
                     return true;
                 } else if (args[0].equalsIgnoreCase("click") || args[0].equalsIgnoreCase("c")) {
                     if (args.length == 1) {
-                        getScriptEditManager().startEdit(sender, "Click Trigger", "", (SaveHandler) script -> {
-                            if (getClickManager().startLocationSet((IPlayer) sender, script)) {
+                        scriptEditManager.startEdit(sender, "Click Trigger", "", (SaveHandler) script -> {
+                            if (clickManager.startLocationSet((IPlayer) sender, script)) {
                                 sender.sendMessage("&7Now click the block to set click trigger.");
                             } else {
                                 sender.sendMessage("&7Already on progress.");
@@ -383,7 +322,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                         StringBuilder builder = new StringBuilder();
                         for (int i = 1; i < args.length; i++)
                             builder.append(args[i]).append(" ");
-                        if (getClickManager().startLocationSet((IPlayer) sender, builder.toString())) {
+                        if (clickManager.startLocationSet((IPlayer) sender, builder.toString())) {
                             sender.sendMessage("&7Now click the block to set click trigger.");
                         } else {
                             sender.sendMessage("&7Already on progress.");
@@ -392,8 +331,8 @@ public class TriggerReactorMain implements IPluginProcedure {
                     return true;
                 } else if (args[0].equalsIgnoreCase("walk") || args[0].equalsIgnoreCase("w")) {
                     if (args.length == 1) {
-                        getScriptEditManager().startEdit(sender, "Walk Trigger", "", script -> {
-                            if (getWalkManager().startLocationSet((IPlayer) sender, script)) {
+                        scriptEditManager.startEdit(sender, "Walk Trigger", "", script -> {
+                            if (walkManager.startLocationSet((IPlayer) sender, script)) {
                                 sender.sendMessage("&7Now click the block to set walk trigger.");
                             } else {
                                 sender.sendMessage("&7Already on progress.");
@@ -403,7 +342,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                         StringBuilder builder = new StringBuilder();
                         for (int i = 1; i < args.length; i++)
                             builder.append(args[i]).append(" ");
-                        if (getWalkManager().startLocationSet((IPlayer) sender, builder.toString())) {
+                        if (walkManager.startLocationSet((IPlayer) sender, builder.toString())) {
                             sender.sendMessage("&7Now click the block to set walk trigger.");
                         } else {
                             sender.sendMessage("&7Already on progress.");
@@ -411,16 +350,16 @@ public class TriggerReactorMain implements IPluginProcedure {
                     }
                     return true;
                 } else if (args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))) {
-                    if (args.length == 3 && getCmdManager().has(args[1]) && args[2].equals("sync")) {
-                        Trigger trigger = getCmdManager().get(args[1]);
+                    if (args.length == 3 && cmdManager.has(args[1]) && args[2].equals("sync")) {
+                        Trigger trigger = cmdManager.get(args[1]);
 
                         trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                         sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
-                        saveAsynchronously(getCmdManager());
-                    } else if (args.length > 2 && getCmdManager().has(args[1])
+                        saveAsynchronously(cmdManager);
+                    } else if (args.length > 2 && cmdManager.has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
-                        CommandTrigger trigger = getCmdManager().get(args[1]);
+                        CommandTrigger trigger = cmdManager.get(args[1]);
 
                         //if no permission is given, delete all permission required
                         String[] permissions = null;
@@ -439,10 +378,10 @@ public class TriggerReactorMain implements IPluginProcedure {
                             sender.sendMessage("&7Set permissions.");
                         }
 
-                        saveAsynchronously(getCmdManager());
-                    } else if (args.length > 2 && getCmdManager().has(args[1])
+                        saveAsynchronously(cmdManager);
+                    } else if (args.length > 2 && cmdManager.has(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
-                        CommandTrigger trigger = getCmdManager().get(args[1]);
+                        CommandTrigger trigger = cmdManager.get(args[1]);
 
                         //if no aliases are given, delete all aliases
                         String[] aliases = null;
@@ -461,11 +400,11 @@ public class TriggerReactorMain implements IPluginProcedure {
                             sender.sendMessage("&7Set Aliases");
                         }
 
-                        saveAsynchronously(getCmdManager());
-                        getCmdManager().reregisterCommand(args[1]);
-                    } else if (args.length > 2 && getCmdManager().has(args[1])
+                        saveAsynchronously(cmdManager);
+                        cmdManager.reregisterCommand(args[1]);
+                    } else if (args.length > 2 && cmdManager.has(args[1])
                             && (args[2].equals("tab") || args[2].equals("settab"))) {
-                        TriggerInfo info = Optional.of(getCmdManager())
+                        TriggerInfo info = Optional.of(cmdManager)
                                 .map(man -> man.get(args[1]))
                                 .map(Trigger::getInfo)
                                 .orElseThrow(() -> new RuntimeException("Missing TriggerInfo"));
@@ -485,13 +424,13 @@ public class TriggerReactorMain implements IPluginProcedure {
                         }
 
                         info.getConfig().put(AbstractCommandTriggerManager.TABS, tabs);
-                        getCmdManager().reload(args[1]);
+                        cmdManager.reload(args[1]);
 
                         sender.sendMessage("&7Set tab-completer");
-                    } else if (getCmdManager().has(args[1])) {
-                        Trigger trigger = getCmdManager().get(args[1]);
+                    } else if (cmdManager.has(args[1])) {
+                        Trigger trigger = cmdManager.get(args[1]);
 
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), script -> {
+                        scriptEditManager.startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), script -> {
                             try {
                                 trigger.setScript(script);
                             } catch (Exception e) {
@@ -500,12 +439,12 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                             sender.sendMessage("&aScript is updated!");
 
-                            saveAsynchronously(getCmdManager());
+                            saveAsynchronously(cmdManager);
                         });
                     } else {
                         final Consumer<String> scriptConsumer = script -> {
                             try {
-                                if(getCmdManager().addCommandTrigger(args[1], script)){
+                                if(cmdManager.addCommandTrigger(args[1], script)){
                                     sender.sendMessage("&aCommand trigger is binded!");
                                 } else {
                                     sender.sendMessage("&cCommand is already binded.");
@@ -515,11 +454,11 @@ public class TriggerReactorMain implements IPluginProcedure {
                                 return;
                             }
 
-                            saveAsynchronously(getCmdManager());
+                            saveAsynchronously(cmdManager);
                         };
 
                         if (args.length == 2) {
-                            getScriptEditManager().startEdit(sender, "Command Trigger", "", scriptConsumer);
+                            scriptEditManager.startEdit(sender, "Command Trigger", "", scriptConsumer);
                         } else {
                             StringBuilder builder = new StringBuilder();
                             for (int i = 2; i < args.length; i++)
@@ -545,7 +484,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                             }
 
                             try {
-                                getVariableManager().put(name, IS.get());
+                                globalVariableManager.put(name, IS.get());
                             } catch (Exception e) {
                                 throwableHandler.handleException(sender, e);
                             }
@@ -560,7 +499,7 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                             ILocation loc = ((IPlayer) sender).getLocation();
                             try {
-                                getVariableManager().put(name, loc.get());
+                                globalVariableManager.put(name, loc.get());
                             } catch (Exception e) {
                                 throwableHandler.handleException(sender, e);
                             }
@@ -577,25 +516,25 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                             if (INTEGER_PATTERN.matcher(value).matches()) {
                                 try {
-                                    getVariableManager().put(name, Integer.parseInt(value));
+                                    globalVariableManager.put(name, Integer.parseInt(value));
                                 } catch (Exception e) {
                                     throwableHandler.handleException(sender, e);
                                 }
                             } else if (DECIMAL_PATTERN.matcher(value).matches()) {
                                 try {
-                                    getVariableManager().put(name, Double.parseDouble(value));
+                                    globalVariableManager.put(name, Double.parseDouble(value));
                                 } catch (Exception e) {
                                     throwableHandler.handleException(sender, e);
                                 }
                             } else if (value.equals("true") || value.equals("false")) {
                                 try {
-                                    getVariableManager().put(name, Boolean.parseBoolean(value));
+                                    globalVariableManager.put(name, Boolean.parseBoolean(value));
                                 } catch (Exception e) {
                                     throwableHandler.handleException(sender, e);
                                 }
                             } else {
                                 try {
-                                    getVariableManager().put(name, value);
+                                    globalVariableManager.put(name, value);
                                 } catch (Exception e) {
                                     throwableHandler.handleException(sender, e);
                                 }
@@ -606,7 +545,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                         return true;
                     } else if (args.length == 2) {
                         String name = args[1];
-                        sender.sendMessage("&7Value of " + name + ": " + getVariableManager().get(name));
+                        sender.sendMessage("&7Value of " + name + ": " + globalVariableManager.get(name));
 
                         return true;
                     }
@@ -614,7 +553,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     String script = mergeArguments(args, 1, args.length - 1);
 
                     try {
-                        Trigger trigger = getCmdManager().createTempCommandTrigger(script);
+                        Trigger trigger = cmdManager.createTempCommandTrigger(script);
 
                         trigger.activate(gameController.createEmptyPlayerEvent(sender), new HashMap<>());
 
@@ -634,7 +573,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     }
 
                     try {
-                        Trigger trigger = getCmdManager().createTempCommandTrigger(script);
+                        Trigger trigger = cmdManager.createTempCommandTrigger(script);
 
                         trigger.activate(gameController.createEmptyPlayerEvent(targetPlayer), new HashMap<>());
 
@@ -648,8 +587,8 @@ public class TriggerReactorMain implements IPluginProcedure {
                     String script = args.length > 2 ? mergeArguments(args, 2, args.length - 1) : "";
 
                     try {
-                        Trigger trigger = getCmdManager().createTempCommandTrigger(script);
-                        Trigger targetTrigger = getNamedTriggerManager().get(namedTriggerName);
+                        Trigger trigger = cmdManager.createTempCommandTrigger(script);
+                        Trigger targetTrigger = namedTriggerManager.get(namedTriggerName);
                         if (targetTrigger == null) {
                             sender.sendMessage("&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
                                     " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
@@ -686,7 +625,7 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                         if (args.length == 4) {
                             final int sizeCopy = size;
-                            getScriptEditManager().startEdit(sender, "Inventory Trigger", "", new SaveHandler() {
+                            scriptEditManager.startEdit(sender, "Inventory Trigger", "", new SaveHandler() {
                                 @Override
                                 public void accept(String script) {
                                     try {
@@ -787,7 +726,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                             return true;
                         }
 
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
+                        scriptEditManager.startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                             @Override
                             public void accept(String script) {
                                 try {
@@ -876,7 +815,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                             return true;
                         }
 
-                        getInvEditManager().startEdit((IPlayer) sender, trigger);
+                        invEditManager.startEdit((IPlayer) sender, trigger);
                         return true;
                     } else if (args.length > 3 && args[2].equalsIgnoreCase("settitle")) {
                         String name = args[1];
@@ -996,7 +935,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     return true;
                 } else if (args.length > 0 && (args[0].equalsIgnoreCase("area") || args[0].equalsIgnoreCase("a"))) {
                     if (args.length == 2 && args[1].equalsIgnoreCase("toggle")) {
-                        boolean result = getSelectionManager().toggleSelection(((IPlayer) sender).getUniqueId());
+                        boolean result = selectionManager.toggleSelection(((IPlayer) sender).getUniqueId());
 
                         sender.sendMessage("&7Area selection mode enabled: &6" + result);
                     } else if (args.length == 3 && args[2].equals("create")) {
@@ -1009,19 +948,19 @@ public class TriggerReactorMain implements IPluginProcedure {
                             return true;
                         }
 
-                        AreaTrigger trigger = getAreaManager().get(name);
+                        AreaTrigger trigger = areaManager.get(name);
                         if (trigger != null) {
                             sender.sendMessage("&c" + "Area Trigger " + name + " is already exists!");
                             return true;
                         }
 
-                        Area selected = getSelectionManager().getSelection(((IPlayer) sender).getUniqueId());
+                        Area selected = selectionManager.getSelection(((IPlayer) sender).getUniqueId());
                         if (selected == null) {
                             sender.sendMessage("&7Invalid or incomplete area selection.");
                             return true;
                         }
 
-                        Set<Area> conflicts = getAreaManager().getConflictingAreas(selected, selected::equals);
+                        Set<Area> conflicts = areaManager.getConflictingAreas(selected, selected::equals);
                         if (!conflicts.isEmpty()) {
                             sender.sendMessage("&7Found [" + conflicts.size() + "] conflicting areas:");
                             for (Area conflict : conflicts) {
@@ -1030,44 +969,44 @@ public class TriggerReactorMain implements IPluginProcedure {
                             return true;
                         }
 
-                        if (getAreaManager().createArea(name, selected.getSmallest(), selected.getLargest())) {
+                        if (areaManager.createArea(name, selected.getSmallest(), selected.getLargest())) {
                             sender.sendMessage("&aCreated area trigger: " + name);
 
-                            saveAsynchronously(getAreaManager());
+                            saveAsynchronously(areaManager);
 
-                            getSelectionManager().resetSelections(((IPlayer) sender).getUniqueId());
+                            selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                         } else {
                             sender.sendMessage("&7Area Trigger " + name + " already exists.");
                         }
                     } else if (args.length == 3 && args[2].equals("delete")) {
                         String name = args[1];
 
-                        if (getAreaManager().remove(name) != null) {
+                        if (areaManager.remove(name) != null) {
                             sender.sendMessage("&aArea Trigger deleted");
 
-                            saveAsynchronously(getAreaManager());
+                            saveAsynchronously(areaManager);
 
-                            getSelectionManager().resetSelections(((IPlayer) sender).getUniqueId());
+                            selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                         } else {
                             sender.sendMessage("&7Area Trigger " + name + " does not exist.");
                         }
                     } else if (args.length > 2 && args[2].equals("enter")) {
                         String name = args[1];
 
-                        AreaTrigger trigger = getAreaManager().get(name);
+                        AreaTrigger trigger = areaManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
                         if (trigger.getEnterTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler() {
+                            scriptEditManager.startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler() {
                                 @Override
                                 public void accept(String script) {
                                     try {
                                         trigger.setEnterTrigger(script);
 
-                                        saveAsynchronously(getAreaManager());
+                                        saveAsynchronously(areaManager);
 
                                         sender.sendMessage("&aScript is updated!");
                                     } catch (Exception e) {
@@ -1077,13 +1016,13 @@ public class TriggerReactorMain implements IPluginProcedure {
                             });
                         } else {
                             if (args.length == 3) {
-                                getScriptEditManager().startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler() {
+                                scriptEditManager.startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler() {
                                     @Override
                                     public void accept(String script) {
                                         try {
                                             trigger.setEnterTrigger(script);
 
-                                            saveAsynchronously(getAreaManager());
+                                            saveAsynchronously(areaManager);
                                         } catch (Exception e) {
                                             throwableHandler.handleException(sender, e);
                                         }
@@ -1093,7 +1032,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                                 try {
                                     trigger.setEnterTrigger(mergeArguments(args, 3, args.length - 1));
 
-                                    saveAsynchronously(getAreaManager());
+                                    saveAsynchronously(areaManager);
                                 } catch (Exception e) {
                                     throwableHandler.handleException(sender, e);
                                 }
@@ -1102,18 +1041,18 @@ public class TriggerReactorMain implements IPluginProcedure {
                     } else if (args.length > 2 && args[2].equals("exit")) {
                         String name = args[1];
 
-                        AreaTrigger trigger = getAreaManager().get(name);
+                        AreaTrigger trigger = areaManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
                         }
 
                         if (trigger.getExitTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getExitTrigger().getScript(), script -> {
+                            scriptEditManager.startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getExitTrigger().getScript(), script -> {
                                 try {
                                     trigger.setExitTrigger(script);
 
-                                    saveAsynchronously(getAreaManager());
+                                    saveAsynchronously(areaManager);
 
                                     sender.sendMessage("&aScript is updated!");
                                 } catch (Exception e) {
@@ -1122,13 +1061,13 @@ public class TriggerReactorMain implements IPluginProcedure {
                             });
                         } else {
                             if (args.length == 3) {
-                                getScriptEditManager().startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler() {
+                                scriptEditManager.startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler() {
                                     @Override
                                     public void accept(String script) {
                                         try {
                                             trigger.setExitTrigger(script);
 
-                                            saveAsynchronously(getAreaManager());
+                                            saveAsynchronously(areaManager);
                                         } catch (Exception e) {
                                             throwableHandler.handleException(sender, e);
                                         }
@@ -1138,7 +1077,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                                 try {
                                     trigger.setExitTrigger(mergeArguments(args, 3, args.length - 1));
 
-                                    saveAsynchronously(getAreaManager());
+                                    saveAsynchronously(areaManager);
                                 } catch (Exception e) {
                                     throwableHandler.handleException(sender, e);
                                 }
@@ -1147,7 +1086,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     } else if (args.length == 3 && args[2].equals("sync")) {
                         String name = args[1];
 
-                        AreaTrigger trigger = getAreaManager().get(name);
+                        AreaTrigger trigger = areaManager.get(name);
                         if (trigger == null) {
                             sender.sendMessage("&7No Area Trigger found with that name.");
                             return true;
@@ -1155,7 +1094,7 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                         trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
-                        saveAsynchronously(getAreaManager());
+                        saveAsynchronously(areaManager);
 
                         sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     } else {
@@ -1177,9 +1116,9 @@ public class TriggerReactorMain implements IPluginProcedure {
                     String eventName = args[1];
                     String name = args[2];
 
-                    CustomTrigger trigger = getCustomManager().get(name);
+                    CustomTrigger trigger = customManager.get(name);
                     if (trigger != null) {
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), script -> {
+                        scriptEditManager.startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), script -> {
                             try {
                                 trigger.setScript(script);
                             } catch (Exception e) {
@@ -1188,17 +1127,17 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                             sender.sendMessage("&aScript is updated!");
 
-                            saveAsynchronously(getCustomManager());
+                            saveAsynchronously(customManager);
                         });
                     } else {
                         if (args.length == 3) {
-                            getScriptEditManager().startEdit(sender,
+                            scriptEditManager.startEdit(sender,
                                     "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
                                     script -> {
                                         try {
-                                            getCustomManager().createCustomTrigger(eventName, name, script);
+                                            customManager.createCustomTrigger(eventName, name, script);
 
-                                            saveAsynchronously(getCustomManager());
+                                            saveAsynchronously(customManager);
 
                                             sender.sendMessage("&aCustom Trigger created!");
                                         } catch (Exception e) {
@@ -1211,9 +1150,9 @@ public class TriggerReactorMain implements IPluginProcedure {
                             String script = mergeArguments(args, 3, args.length - 1);
 
                             try {
-                                getCustomManager().createCustomTrigger(eventName, name, script);
+                                customManager.createCustomTrigger(eventName, name, script);
 
-                                saveAsynchronously(getCustomManager());
+                                saveAsynchronously(customManager);
 
                                 sender.sendMessage("&aCustom Trigger created!");
                             } catch (ClassNotFoundException e2) {
@@ -1229,9 +1168,9 @@ public class TriggerReactorMain implements IPluginProcedure {
                     if (args.length == 2) {
                         String name = args[1];
 
-                        Trigger trigger = getRepeatManager().get(name);
+                        Trigger trigger = repeatManager.get(name);
                         if (trigger != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
+                            scriptEditManager.startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
                                 @Override
                                 public void accept(String script) {
                                     try {
@@ -1242,27 +1181,27 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                                     sender.sendMessage("&aScript is updated!");
 
-                                    saveAsynchronously(getRepeatManager());
+                                    saveAsynchronously(repeatManager);
                                 }
                             });
                         } else {
-                            this.getScriptEditManager().startEdit(sender, "Repeating Trigger", "", new SaveHandler() {
+                            this.scriptEditManager.startEdit(sender, "Repeating Trigger", "", new SaveHandler() {
                                 @Override
                                 public void accept(String script) {
                                     try {
-                                        getRepeatManager().createTrigger(name, script);
+                                        repeatManager.createTrigger(name, script);
                                     } catch (Exception e) {
                                         throwableHandler.handleException(sender, e);
                                     }
 
-                                    saveAsynchronously(getRepeatManager());
+                                    saveAsynchronously(repeatManager);
                                 }
                             });
                         }
                     } else if (args.length == 4 && args[2].equalsIgnoreCase("interval")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().get(name);
+                        RepeatingTrigger trigger = repeatManager.get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1274,7 +1213,7 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                         trigger.setInterval(interval);
 
-                        saveAsynchronously(getRepeatManager());
+                        saveAsynchronously(repeatManager);
 
                         sender.sendMessage("&aNow " +
                                 "&6[" + name + "]" +
@@ -1283,7 +1222,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().get(name);
+                        RepeatingTrigger trigger = repeatManager.get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1292,30 +1231,30 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                         trigger.setAutoStart(!trigger.isAutoStart());
 
-                        saveAsynchronously(getRepeatManager());
+                        saveAsynchronously(repeatManager);
 
                         sender.sendMessage("Auto start: " + (trigger.isAutoStart() ? "&a" : "&c") + trigger.isAutoStart());
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("toggle")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().get(name);
+                        RepeatingTrigger trigger = repeatManager.get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
                             return true;
                         }
 
-                        if (getRepeatManager().isRunning(name)) {
-                            getRepeatManager().stopTrigger(name);
+                        if (repeatManager.isRunning(name)) {
+                            repeatManager.stopTrigger(name);
                             sender.sendMessage("&aScheduled stop. It may take some time depends on CPU usage.");
                         } else {
-                            getRepeatManager().startTrigger(name);
+                            repeatManager.startTrigger(name);
                             sender.sendMessage("&aScheduled start up. It may take some time depends on CPU usage.");
                         }
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("pause")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().get(name);
+                        RepeatingTrigger trigger = repeatManager.get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
@@ -1328,25 +1267,25 @@ public class TriggerReactorMain implements IPluginProcedure {
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("status")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().get(name);
+                        RepeatingTrigger trigger = repeatManager.get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
                             return true;
                         }
 
-                        getRepeatManager().showTriggerInfo(sender, trigger);
+                        repeatManager.showTriggerInfo(sender, trigger);
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("delete")) {
                         String name = args[1];
 
-                        RepeatingTrigger trigger = getRepeatManager().get(name);
+                        RepeatingTrigger trigger = repeatManager.get(name);
 
                         if (trigger == null) {
                             sender.sendMessage("&7No Repeating Trigger with name " + name);
                             return true;
                         }
 
-                        getRepeatManager().remove(name);
+                        repeatManager.remove(name);
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
                         sendDetails(sender, "&4Quick create is not supported.");
@@ -1372,7 +1311,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                 } else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
                     String name = args[1];
 
-                    CustomTrigger trigger = getCustomManager().get(name);
+                    CustomTrigger trigger = customManager.get(name);
                     if (trigger == null) {
                         sender.sendMessage("&7No Custom Trigger found with that name.");
                         return true;
@@ -1380,7 +1319,7 @@ public class TriggerReactorMain implements IPluginProcedure {
 
                     trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
-                    saveAsynchronously(getCustomManager());
+                    saveAsynchronously(customManager);
 
                     sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     return true;
@@ -1389,24 +1328,24 @@ public class TriggerReactorMain implements IPluginProcedure {
                     switch (args[1]) {
                         case "vars":
                         case "variables":
-                            getVariableManager().remove(key);
+                            globalVariableManager.remove(key);
                             sender.sendMessage("&aRemoved the variable &6" + key);
                             break;
                         case "cmd":
                         case "command":
-                            if (getCmdManager().remove(key) != null) {
+                            if (cmdManager.remove(key) != null) {
                                 sender.sendMessage("&aRemoved the command trigger &6" + key);
 
-                                saveAsynchronously(getCmdManager());
+                                saveAsynchronously(cmdManager);
                             } else {
                                 sender.sendMessage("&7Command trigger &6" + key + "&7 does not exist");
                             }
                             break;
                         case "custom":
-                            if (getCustomManager().remove(key) != null) {
+                            if (customManager.remove(key) != null) {
                                 sender.sendMessage("&aRemoved the custom trigger &6" + key);
 
-                                saveAsynchronously(getCustomManager());
+                                saveAsynchronously(customManager);
                             } else {
                                 sender.sendMessage("&7Custom Trigger &6" + key + "&7 does not exist");
                             }
@@ -1419,8 +1358,8 @@ public class TriggerReactorMain implements IPluginProcedure {
                     return true;
                 } else if (args[0].equalsIgnoreCase("search")) {
                     SimpleChunkLocation scloc = ((IPlayer) sender).getChunk();
-                    gameController.showGlowStones(sender, getClickManager().getTriggersInChunk(scloc));
-                    gameController.showGlowStones(sender, getWalkManager().getTriggersInChunk(scloc));
+                    gameController.showGlowStones(sender, clickManager.getTriggersInChunk(scloc));
+                    gameController.showGlowStones(sender, walkManager.getTriggersInChunk(scloc));
                     sender.sendMessage("&7Now trigger blocks will be shown as &6" + "glowstone");
                     return true;
                 } else if (args[0].equalsIgnoreCase("list")) {
@@ -1498,8 +1437,8 @@ public class TriggerReactorMain implements IPluginProcedure {
                     for (Manager manager : managers)
                         manager.onReload();
 
-                    getExecutorManager().onReload();
-                    getPlaceholderManager().onReload();
+                    executorManager.onReload();
+                    placeholderManager.onReload();
 
                     sender.sendMessage("Reload Complete!");
                     return true;
@@ -1520,7 +1459,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     if (args.length < 2) {
                         return true;
                     }
-                    AbstractInventoryEditManager manager = getInvEditManager();
+                    AbstractInventoryEditManager manager = invEditManager;
                     IPlayer player = (IPlayer) sender;
                     switch (args[1]) {
                         case "inveditsave":
@@ -1654,15 +1593,6 @@ public class TriggerReactorMain implements IPluginProcedure {
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     private static final List<String> EMPTY = new ArrayList<String>();
 
-    /**
-     * get instance of this class.
-     *
-     * @return
-     */
-    public static TriggerReactorMain getInstance() {
-        return instance;
-    }
-
     //returns all strings in completions that start with prefix.
     private static List<String> filter(Collection<String> completions, String prefix) {
         prefix = prefix.trim().toUpperCase();
@@ -1676,7 +1606,7 @@ public class TriggerReactorMain implements IPluginProcedure {
     }
 
     //get all trigger names for a manager
-    private static List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
+    private List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
         List<String> names = new ArrayList<String>();
         for (Trigger trigger : manager.getAllTriggers()) {
             names.add(trigger.getInfo().getTriggerName());
@@ -1685,7 +1615,7 @@ public class TriggerReactorMain implements IPluginProcedure {
     }
 
     //only for /trg command
-    public static List<String> onTabComplete(ICommandSender sender, String[] args) {
+    public List<String> onTabComplete(ICommandSender sender, String[] args) {
         if (!sender.hasPermission(PERMISSION))
             return Collections.singletonList("permission denied.");
 
@@ -1697,35 +1627,35 @@ public class TriggerReactorMain implements IPluginProcedure {
                 switch (args[0].toLowerCase()) {
                     case "area":
                     case "a":
-                        List<String> names = triggerNames(getInstance().getAreaManager());
+                        List<String> names = triggerNames(areaManager);
                         // /trg area toggle
                         names.add("toggle");
                         return filter(names, args[1]);
                     case "cmd":
                     case "command":
-                        return filter(triggerNames(getInstance().getCmdManager()), args[1]);
+                        return filter(triggerNames(cmdManager), args[1]);
                     case "custom":
                         //event list
-                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                        return filter(new ArrayList<String>(customManager.getAbbreviations()), args[1]);
                     case "delete":
                     case "del":
                         return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
                     case "inventory":
                     case "i":
-                        return filter(triggerNames(getInstance().invManager), args[1]);
+                        return filter(triggerNames(invManager), args[1]);
                     case "item":
                         return filter(Arrays.asList("lore", "title"), args[1]);
                     case "repeat":
                     case "r":
-                        return filter(triggerNames(getInstance().getRepeatManager()), args[1]);
+                        return filter(triggerNames(repeatManager), args[1]);
                     case "sudo":
                         return null; //player selection
                     case "synccustom":
-                        return filter(triggerNames(getInstance().getCustomManager()), args[1]);
+                        return filter(triggerNames(customManager), args[1]);
                     case "timings":
                         return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
                     case "call":
-                        return filter(triggerNames(getInstance().getNamedTriggerManager()), args[1]);
+                        return filter(triggerNames(namedTriggerManager), args[1]);
                 }
             case 3:
                 switch (args[0].toLowerCase()) {
@@ -1739,17 +1669,17 @@ public class TriggerReactorMain implements IPluginProcedure {
                     case "cmd":
                         return filter(Arrays.asList("aliases", "permission", "sync", "settab"), args[2]);
                     case "custom":
-                        return filter(triggerNames(getInstance().getCustomManager()), args[2]);
+                        return filter(triggerNames(customManager), args[2]);
                     case "delete":
                     case "del":
                         AbstractTriggerManager manager;
                         switch (args[1]) {
                             case "cmd":
                             case "command":
-                                manager = getInstance().getCmdManager();
+                                manager = cmdManager;
                                 break;
                             case "custom":
-                                manager = getInstance().getCustomManager();
+                                manager = customManager;
                                 break;
                             //"vars" and "variables" also possible, but I won't be offering completions for these
                             default:

@@ -28,11 +28,11 @@ public class PlaceHolderSupport extends APISupport {
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
+    public void onEnable() throws APISupportException {
+        super.onEnable();
 
         //init() is called only when PlaceholderAPI is enabled.
-        new PlaceholderExpansionSupport(plugin).register();
+        new PlaceholderExpansionSupport(main).register();
     }
 
     /**

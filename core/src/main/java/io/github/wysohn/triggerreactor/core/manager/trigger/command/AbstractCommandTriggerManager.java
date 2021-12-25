@@ -18,12 +18,14 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -32,6 +34,9 @@ import java.util.stream.Collectors;
 
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
+    @Inject
+    ITriggerReactorAPI api;
+
     private static final String SYNC = "sync";
     private static final String PERMISSION = "permissions";
     private static final String ALIASES = "aliases";
@@ -90,7 +95,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            CommandTrigger trigger = new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+            CommandTrigger trigger = new CommandTrigger(api, info, script);
             trigger.setPermissions(permissions.toArray(new String[0]));
             trigger.setAliases(aliases.toArray(new String[0]));
             trigger.setTabCompleters(toTabCompleters(tabs));
@@ -162,8 +167,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         String name = TriggerInfo.extractName(file);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        CommandTrigger trigger = new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                info, script);
+        CommandTrigger trigger = new CommandTrigger(api, info, script);
 
         put(cmd, trigger);
         if(!registerCommand(cmd, trigger))
@@ -175,7 +179,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+        return new CommandTrigger(api,
                 new TriggerInfo(null, null, "temp") {
                     @Override
                     public boolean isValid() {

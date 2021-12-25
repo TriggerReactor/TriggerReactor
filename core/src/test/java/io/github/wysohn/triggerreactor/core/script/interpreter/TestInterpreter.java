@@ -16,11 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.config.DaggerConfigurationComponent;
 import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
-import io.github.wysohn.triggerreactor.core.manager.DaggerManagerComponent;
+import io.github.wysohn.triggerreactor.core.main.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.ManagerComponent;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -54,14 +52,13 @@ import static org.mockito.Mockito.*;
 public class TestInterpreter {
 
     private TaskSupervisor mockTask;
-    private ManagerComponent managerComponent;
+    private PluginMainComponent pluginMainComponent;
 
     @Before
     public void init(){
         mockTask = mock(TaskSupervisor.class);
-        managerComponent = DaggerManagerComponent.builder()
-                .pluginMainComponent(DaggerPluginMainComponent.create())
-                .configurationComponent(DaggerConfigurationComponent.create())
+        pluginMainComponent = DaggerPluginMainComponent.builder()
+
                 .build();
     }
 
@@ -324,7 +321,8 @@ public class TestInterpreter {
                 return null;
             }
         });
-        GlobalVariableManager avm = managerComponent.globalVariable();
+        GlobalVariableManager avm = DaggerGlobalVariableManagerComponent.create()
+                .globalVariableManager();
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
@@ -2381,6 +2379,16 @@ public class TestInterpreter {
             }
 
             @Override
+            public void runTask(Runnable run) {
+                try {
+                    run.run();
+                    set.add("sync");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
             public void submitAsync(Runnable run) {
                 try {
                     run.run();
@@ -2465,6 +2473,16 @@ public class TestInterpreter {
                     e.printStackTrace();
                 }
                 return new EmptyFuture<T>();
+            }
+
+            @Override
+            public void runTask(Runnable run) {
+                try {
+                    run.run();
+                    set.add("sync");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override

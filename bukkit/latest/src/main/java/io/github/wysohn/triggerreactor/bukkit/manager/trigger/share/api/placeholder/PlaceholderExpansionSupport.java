@@ -17,12 +17,12 @@
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion {
-    private final TriggerReactorMain plugin;
+    private final ITriggerReactorAPI api;
     private final IVariablePlaceholder variablePlaceholder;
 
     /**
@@ -30,11 +30,11 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      * can simply use this method here to get an instance of our
      * plugin.
      *
-     * @param plugin The instance of our plugin.
+     * @param api The instance of our plugin's api.
      */
-    public PlaceholderExpansionSupport(TriggerReactorMain plugin) {
-        this.plugin = plugin;
-        this.variablePlaceholder = new VariablePlaceholder(plugin);
+    public PlaceholderExpansionSupport(ITriggerReactorAPI api) {
+        this.api = api;
+        this.variablePlaceholder = new VariablePlaceholder(api);
     }
 
     /**
@@ -68,7 +68,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      */
     @Override
     public String getAuthor() {
-        return plugin.getAuthor();
+        return api.pluginLifecycleController().getAuthor();
     }
 
     /**
@@ -95,7 +95,7 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      */
     @Override
     public String getVersion() {
-        return plugin.getVersion();
+        return api.pluginLifecycleController().getVersion();
     }
 
     @Override

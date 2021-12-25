@@ -16,10 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
+import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-
-import java.lang.reflect.Constructor;
-import java.util.Map;
 
 /**
  * Abstract representation of API support. The child classes must have at least one constructor with one argument,
@@ -27,52 +26,20 @@ import java.util.Map;
  *
  * @author wysohn
  */
-public abstract class AbstractAPISupport {
+public abstract class AbstractAPISupport implements IPluginProcedure {
+    protected final Object targetPluginInstance;
+    protected final ITriggerReactorAPI api;
 
-    protected final TriggerReactorMain plugin;
-
-    public AbstractAPISupport(TriggerReactorMain plugin) {
-        super();
-        this.plugin = plugin;
+    public AbstractAPISupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        this.targetPluginInstance = targetPluginInstance;
+        this.api = api;
     }
 
     /**
-     * Initialize this API. It may throw APISupportException if the plugin is not found.
-     *
-     * @throws APISupportException throw this exception when the supporting API is not loaded or not found.
+     * Get variable name to be used to access this api support from the
+     * trigger scripts. For example, we can access Vault support using
+     * 'vault' variable.
+     * @return
      */
-    public abstract void init() throws APISupportException;
-
-    /**
-     * Try to add a new instance of type 'clazz' to 'varName' if the 'varName' doesn't exist already.
-     *
-     * @param sharedVars the map to save variables
-     * @param varName    the name of the variable
-     * @param clazz      the class that will be instanciated.
-     */
-    public static void addSharedVar(Map<String, AbstractAPISupport> sharedVars, String varName, Class<? extends AbstractAPISupport> clazz) {
-        if (!sharedVars.containsKey(varName)) {
-            Constructor<?> con = null;
-            try {
-                con = clazz.getConstructor(TriggerReactorMain.class);
-            } catch (NoSuchMethodException | SecurityException e1) {
-                e1.printStackTrace();
-            }
-
-            boolean initSuccess = true;
-            AbstractAPISupport api = null;
-            try {
-                api = (AbstractAPISupport) con.newInstance(TriggerReactorMain.getInstance());
-                api.init();
-            } catch (APISupportException e) {
-                initSuccess = false;
-            } catch (Exception e) {
-                initSuccess = false;
-                e.printStackTrace();
-            } finally {
-                if (api != null && initSuccess)
-                    sharedVars.put(varName, api);
-            }
-        }
-    }
+    public abstract String getVariableName();
 }

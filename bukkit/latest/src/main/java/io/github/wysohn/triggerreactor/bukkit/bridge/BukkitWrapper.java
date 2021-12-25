@@ -14,6 +14,6 @@ public class BukkitWrapper extends AbstractBukkitWrapper {
 
     @Override
     public IPlayer wrap(Player player) {
-        return new BukkitPlayer(player);
+        return new BukkitPlayer(this, player);
     }
 }

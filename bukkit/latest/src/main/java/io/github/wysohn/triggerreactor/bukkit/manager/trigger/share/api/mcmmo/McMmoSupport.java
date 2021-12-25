@@ -21,12 +21,12 @@ import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
 import com.gmail.nossr50.util.player.UserManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import org.bukkit.entity.Player;
 
 public class McMmoSupport extends APISupport {
-    public McMmoSupport(TriggerReactorMain plugin) {
-        super(plugin, "mcMMO");
+    public McMmoSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
     }
 
     /**
@@ -173,6 +173,26 @@ public class McMmoSupport extends APISupport {
         SuperAbilityType type = SuperAbilityType.valueOf(abilityType);
 
         return mmoPlayer.calculateTimeRemaining(type);
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+
+    }
+
+    @Override
+    public void onDisable() {
+
+    }
+
+    @Override
+    public String getVariableName() {
+        return "mcmmo";
     }
 
 /*    public void setCooldown(Player player, String abilityType, int cd) {

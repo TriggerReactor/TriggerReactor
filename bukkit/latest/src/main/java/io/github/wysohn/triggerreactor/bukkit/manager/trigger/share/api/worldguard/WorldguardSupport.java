@@ -23,8 +23,7 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -34,25 +33,31 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class WorldguardSupport extends APISupport {
-    static {
-        addSharedVars("worldguard", WorldguardSupport.class);
-    }
-
     private WorldGuard wg;
 
-    public WorldguardSupport(TriggerReactorMain plugin) {
-        super(plugin, "WorldGuard");
+    public WorldguardSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
     }
 
     @Override
-    public void init() throws APISupportException {
+    public void onEnable() throws Exception {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("WorldGuard");
 
-        if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
+        if (!(plugin instanceof WorldGuardPlugin)) {
             return;
         }
 
         wg = WorldGuard.getInstance();
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     private BlockVector3 toVector3(Location loc) {
@@ -103,5 +108,10 @@ public class WorldguardSupport extends APISupport {
         locs[1] = new Location(world, max.getX(), max.getY(), max.getZ());
 
         return locs;
+    }
+
+    @Override
+    public String getVariableName() {
+        return "worldguard";
     }
 }

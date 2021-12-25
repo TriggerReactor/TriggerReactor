@@ -34,6 +34,15 @@ public abstract class CoreManagerModule {
     abstract Manager bindPluginConfigManagerIntoSet(PluginConfigManager manager);
 
     @Provides
+    static AbstractExternalAPIManager bindExternalAPIManager(){
+        throw new RuntimeException("Must be provided by dependant.");
+    }
+
+    @Binds
+    @IntoSet
+    abstract Manager bindExternalAPIManagerIntoSet(AbstractExternalAPIManager manager);
+
+    @Provides
     static AbstractScriptEditManager bindScriptEditManager(){
         throw new RuntimeException("Must be provided by dependant.");
     }

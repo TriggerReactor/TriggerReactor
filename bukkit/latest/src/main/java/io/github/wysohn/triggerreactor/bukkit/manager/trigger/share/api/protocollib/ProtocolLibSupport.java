@@ -22,8 +22,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -35,23 +34,31 @@ import java.util.Collection;
 import java.util.UUID;
 
 public class ProtocolLibSupport extends APISupport {
-    private String nmsVersion;
+    private final String nmsVersion;
 
     private ProtocolManager protocolManager;
 
-    public ProtocolLibSupport(TriggerReactorMain plugin) {
-        super(plugin, "ProtocolLib");
+    public ProtocolLibSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
 
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
         String packageName = bukkitPlugin.getServer().getClass().getPackage().getName();
         nmsVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
-
+    public void onEnable() throws Exception {
         protocolManager = ProtocolLibrary.getProtocolManager();
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     /**
@@ -390,6 +397,11 @@ public class ProtocolLibSupport extends APISupport {
         container.getItemModifier().write(0, item);
 
         this.sendPacket(p, container);
+    }
+
+    @Override
+    public String getVariableName() {
+        return "protocollib";
     }
 
     public enum EnumItemSlot {

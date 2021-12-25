@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -27,6 +28,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,6 +37,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
+    @Inject
+    ITriggerReactorAPI api;
+
     private static final String AUTOSTART = "AutoStart";
     private static final String INTERVAL = "Interval";
 
@@ -53,7 +58,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            RepeatingTrigger trigger = new RepeatingTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+            RepeatingTrigger trigger = new RepeatingTrigger(api,
                     info, script);
             trigger.setAutoStart(autoStart);
             trigger.setInterval(interval);
@@ -116,7 +121,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         String name = TriggerInfo.extractName(file);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger trigger = new RepeatingTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
+        RepeatingTrigger trigger = new RepeatingTrigger(api,
                 info, script, interval);
         put(triggerName, trigger);
 

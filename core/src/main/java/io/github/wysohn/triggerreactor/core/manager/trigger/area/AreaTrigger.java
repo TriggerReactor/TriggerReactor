@@ -1,15 +1,12 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import java.io.File;
@@ -25,13 +22,10 @@ public class AreaTrigger extends Trigger {
     private ExitTrigger exitTrigger;
     private AbstractAreaTriggerManager.EventType type = null;
 
-    public AreaTrigger(IThrowableHandler throwableHandler,
-                       IGameController gameController,
-                       TaskSupervisor taskSupervisor,
-                       SelfReference selfReference,
+    public AreaTrigger(ITriggerReactorAPI api,
                        TriggerInfo info,
                        Area area, File folder) {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, null); // area trigger has scripts in its folder
+        super(api, info, null); // area trigger has scripts in its folder
         this.area = area;
         this.folder = folder;
     }
@@ -91,7 +85,7 @@ public class AreaTrigger extends Trigger {
     }
 
     public void setEnterTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        enterTrigger = new EnterTrigger(throwableHandler, gameController, taskSupervisor, selfReference, getInfo(), script, this);
+        enterTrigger = new EnterTrigger(api, getInfo(), script, this);
     }
 
     public void setEnterTrigger(EnterTrigger enterTrigger) {
@@ -103,7 +97,7 @@ public class AreaTrigger extends Trigger {
     }
 
     public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        exitTrigger = new ExitTrigger(throwableHandler, gameController, taskSupervisor, selfReference, getInfo(), script, this);
+        exitTrigger = new ExitTrigger(api, getInfo(), script, this);
     }
 
     public void setExitTrigger(ExitTrigger exitTrigger) {
@@ -157,14 +151,11 @@ public class AreaTrigger extends Trigger {
     public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
-        public EnterTrigger(IThrowableHandler throwableHandler,
-                            IGameController gameController,
-                            TaskSupervisor taskSupervisor,
-                            SelfReference selfReference,
+        public EnterTrigger(ITriggerReactorAPI api,
                             TriggerInfo info,
                             String script,
                             AreaTrigger areaTrigger) throws AbstractTriggerManager.TriggerInitFailedException {
-            super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+            super(api, info, script);
             this.areaTrigger = areaTrigger;
 
             init();
@@ -178,7 +169,7 @@ public class AreaTrigger extends Trigger {
         @Override
         public Trigger clone() {
             try {
-                return new EnterTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script, areaTrigger);
+                return new EnterTrigger(api, info, script, areaTrigger);
             } catch (AbstractTriggerManager.TriggerInitFailedException e) {
                 e.printStackTrace();
             }
@@ -190,14 +181,11 @@ public class AreaTrigger extends Trigger {
     public static class ExitTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
-        public ExitTrigger(IThrowableHandler throwableHandler,
-                IGameController gameController,
-                           TaskSupervisor taskSupervisor,
-                           SelfReference selfReference,
+        public ExitTrigger(ITriggerReactorAPI api,
                            TriggerInfo info,
                            String script,
                            AreaTrigger areaTrigger) throws AbstractTriggerManager.TriggerInitFailedException {
-            super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+            super(api, info, script);
             this.areaTrigger = areaTrigger;
 
             init();
@@ -211,7 +199,7 @@ public class AreaTrigger extends Trigger {
         @Override
         public Trigger clone() {
             try {
-                return new ExitTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script, areaTrigger);
+                return new ExitTrigger(api, info, script, areaTrigger);
             } catch (AbstractTriggerManager.TriggerInitFailedException e) {
                 e.printStackTrace();
             }

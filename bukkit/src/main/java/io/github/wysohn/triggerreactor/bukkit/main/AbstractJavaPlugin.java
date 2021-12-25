@@ -23,8 +23,6 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
-import io.github.wysohn.triggerreactor.bukkit.components.BukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
@@ -39,9 +37,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
-import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -50,7 +48,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
@@ -98,8 +95,8 @@ import java.util.concurrent.Future;
 public abstract class AbstractJavaPlugin
         extends JavaPlugin
         implements ICommandMapHandler, IGameController, IPluginLifecycleController {
-    private BukkitPluginMainComponent component;
     private TriggerReactorMain main;
+    private ITriggerReactorAPI api;
 
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
@@ -107,20 +104,54 @@ public abstract class AbstractJavaPlugin
     private final Lag tpsHelper = new Lag();
 
     @Override
+    public String getPluginDescription() {
+        return getDescription().getFullName();
+    }
+
+    @Override
+    public String getVersion() {
+        return getDescription().getVersion();
+    }
+
+    @Override
+    public String getAuthor() {
+        return String.join(", ", getDescription().getAuthors());
+    }
+
+    @Override
+    public boolean isEnabled(String pluginName) {
+        return getServer().getPluginManager().isPluginEnabled(pluginName);
+    }
+
+    @Override
+    public <T> T getPlugin(String pluginName) {
+        return (T) getServer().getPluginManager().getPlugin(pluginName);
+    }
+
+    @Override
+    public <T> Future<T> submitSync(Callable<T> call) {
+        return getServer().getScheduler().callSyncMethod(this, call);
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        getServer().getScheduler().runTaskAsynchronously(this, run);
+    }
+
+    protected abstract TriggerReactorMain getMain();
+
+    protected abstract Set<Manager> getManagers();
+
+    @Override
     public void onEnable() {
         super.onEnable();
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
-        component = DaggerBukkitPluginMainComponent.builder()
-                .pluginMainComponent(DaggerPluginMainComponent.create())
-                .build();
-        component.inject(this);
-        main = component.main();
+        main = getMain();
+        api = main.api();
 
         PluginCommand trg = this.getCommand("triggerreactor");
         trg.setExecutor(this);
 
-        registerAPIs();
         initBungeeHelper();
         initMysql();
 
@@ -136,7 +167,7 @@ public abstract class AbstractJavaPlugin
             return;
         }
 
-        component.managers().stream()
+        getManagers().stream()
                 .filter(Listener.class::isInstance)
                 .map(Listener.class::cast)
                 .forEach(manager -> Bukkit.getPluginManager().registerEvents(manager, this));
@@ -147,13 +178,13 @@ public abstract class AbstractJavaPlugin
     private void migrateOldConfig() {
         new ContinuingTasks.Builder()
                 .append(() -> {
-                    if (main.getPluginConfigManager().isMigrationNeeded()) {
-                        main.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
+                    if (api.getPluginConfigManager().isMigrationNeeded()) {
+                        api.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
                                 new File(getDataFolder(), "config.yml")));
                     }
                 })
                 .append(() -> {
-                    if (main.getVariableManager().isMigrationNeeded()) {
+                    if (api.getVariableManager().isMigrationNeeded()) {
                         File file = new File(getDataFolder(), "var.yml");
                         FileConfiguration conf = new Utf8YamlConfiguration();
                         try {
@@ -161,11 +192,11 @@ public abstract class AbstractJavaPlugin
                         } catch (IOException | InvalidConfigurationException e) {
                             e.printStackTrace();
                         }
-                        main.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
+                        api.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
                     }
                 })
                 .append(() -> {
-                    Optional.of(main.invManager())
+                    Optional.of(api.invManager())
                             .map(AbstractTriggerManager::getTriggerInfos)
                             .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
                                     .filter(TriggerInfo::isMigrationNeeded)
@@ -177,7 +208,7 @@ public abstract class AbstractJavaPlugin
                                     }));
                 })
                 .append(() -> {
-                    component.managers().stream()
+                    getManagers().stream()
                             .filter(AbstractTriggerManager.class::isInstance)
                             .map(AbstractTriggerManager.class::cast)
                             .map(AbstractTriggerManager::getTriggerInfos)
@@ -192,8 +223,6 @@ public abstract class AbstractJavaPlugin
                 })
                 .run();
     }
-
-    protected abstract void registerAPIs();
 
     private Thread bungeeConnectionThread;
 
@@ -270,16 +299,13 @@ public abstract class AbstractJavaPlugin
         return mysqlHelper;
     }
 
-    public abstract SelfReference getSelfReference();
-
-
     public boolean isDebugging() {
         return this.main.isDebugging();
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return TriggerReactorMain.onTabComplete(new BukkitCommandSender(sender), args);
+        return main.onTabComplete(new BukkitCommandSender(sender), args);
     }
 
     public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set) {
@@ -309,7 +335,7 @@ public abstract class AbstractJavaPlugin
                             throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                         if (args[0] instanceof String) {
-                            Trigger trigger = main.getNamedTriggerManager().get((String) args[0]);
+                            Trigger trigger = api.getNamedTriggerManager().get((String) args[0]);
                             if (trigger == null)
                                 throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 

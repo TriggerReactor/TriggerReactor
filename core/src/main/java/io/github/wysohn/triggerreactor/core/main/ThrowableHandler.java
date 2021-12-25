@@ -18,11 +18,11 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-@Singleton
+@PluginScope
 public class ThrowableHandler implements IThrowableHandler{
     @Inject
     IPluginLifecycleController pluginLifecycleController;

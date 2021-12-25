@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -37,6 +38,9 @@ import java.util.Map;
 @Singleton
 public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger> {
     @Inject
+    ITriggerReactorAPI api;
+
+    @Inject
     public WalkTriggerManager(TriggerReactorMain plugin) {
         super("WalkTrigger");
     }
@@ -45,7 +49,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger>
     public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            WalkTrigger trigger = new WalkTrigger(info, script);
+            WalkTrigger trigger = new WalkTrigger(api, info, script);
             return trigger;
         } catch (TriggerInitFailedException | IOException e) {
             e.printStackTrace();
@@ -69,7 +73,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger>
 
     @Override
     protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return new WalkTrigger(info, script);
+        return new WalkTrigger(api, info, script);
     }
 
     private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to) {

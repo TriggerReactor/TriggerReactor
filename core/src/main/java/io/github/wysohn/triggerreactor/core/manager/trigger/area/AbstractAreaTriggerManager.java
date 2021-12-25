@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationExcept
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -39,6 +40,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+    @Inject
+    ITriggerReactorAPI api;
     @Inject
     IPluginLifecycleController pluginLifecycleController;
 
@@ -156,8 +159,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         }
 
         Area area = new Area(smallest, largest);
-        AreaTrigger trigger = new AreaTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                info, area, scriptFolder);
+        AreaTrigger trigger = new AreaTrigger(api, info, area, scriptFolder);
 
         try {
             trigger.setEnterTrigger(enterScript);
@@ -280,8 +282,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         File areaFolder = new File(folder, name);
         IConfigSource config = configSourceFactories.create(folder, name);
-        AreaTrigger trigger = new AreaTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
+        AreaTrigger trigger = new AreaTrigger(api, new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);
 
         setupArea(trigger);

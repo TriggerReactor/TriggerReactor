@@ -16,17 +16,12 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerLatestBukkitPluginMainComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.LatestBukkitPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -36,30 +31,25 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Set;
 
 public class TriggerReactor extends AbstractJavaPlugin {
-    private SelfReference selfReference;
+    private LatestBukkitPluginMainComponent component;
 
     @Override
-    public void onEnable() {
-        selfReference = new CommonFunctions(core);
-        BukkitTriggerReactorCore.WRAPPER = new BukkitWrapper();
-        super.onEnable();
+    protected TriggerReactorMain getMain() {
+        component = DaggerLatestBukkitPluginMainComponent.builder()
+                .bukkitPluginMainComponent(DaggerBukkitPluginMainComponent.builder()
+                        .pluginMainComponent(DaggerPluginMainComponent.create())
+                        .build())
+                .build();
+        component.inject(this);
+        return component.main();
     }
 
     @Override
-    protected void registerAPIs() {
-        APISupport.addSharedVars("coreprotect", CoreprotectSupport.class);
-        APISupport.addSharedVars("mcmmo", McMmoSupport.class);
-        APISupport.addSharedVars("placeholder", PlaceHolderSupport.class);
-        APISupport.addSharedVars("protocollib", ProtocolLibSupport.class);
-        APISupport.addSharedVars("vault", VaultSupport.class);
-        APISupport.addSharedVars("worldguard", WorldguardSupport.class);
-    }
-
-    @Override
-    public SelfReference getSelfReference() {
-        return selfReference;
+    protected Set<Manager> getManagers() {
+        return component.managers();
     }
 
     @Override
@@ -75,12 +65,12 @@ public class TriggerReactor extends AbstractJavaPlugin {
             Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
             return (Map<String, Command>) knownCommands.invoke(scm);
         } catch (Exception ex) {
-            if (core.isDebugging())
+            if (component.pluginLifecycle().isDebugging())
                 ex.printStackTrace();
 
-            core.getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old" +
+            getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old" +
                     " version of Bukkit. Please report this to TR team, so we can work on it.");
-            core.getLogger().warning("Use /trg debug to see more details.");
+            getLogger().warning("Use /trg debug to see more details.");
             return null;
         }
     }

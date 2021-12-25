@@ -17,7 +17,8 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
@@ -28,18 +29,29 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Singleton
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
     @Inject
+    Logger logger;
+    @Inject
     ICommandMapHandler commandMapHandler;
+    @Inject
+    IGameController gameController;
+    @Inject
+    IPluginLifecycleController pluginLifecycleController;
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
 
     private Map<String, Command> commandMap;
     private final Map<String, Command> overridens = new HashMap<>();
@@ -65,7 +77,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         if(commandMap.containsKey(triggerName) && overridens.containsKey(triggerName))
             return false;
 
-        PluginCommand command = createCommand(main, triggerName);
+        PluginCommand command = createCommand(triggerName);
         command.setAliases(Arrays.stream(trigger.getAliases())
                 .collect(Collectors.toList()));
         command.setTabCompleter((sender, command12, alias, args) -> {
@@ -87,8 +99,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
                 return true;
             }
 
-            ICommandSender commandSender = main.getPlayer(sender.getName());
-            execute(main.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
+            ICommandSender commandSender = gameController.getPlayer(sender.getName());
+            execute(gameController.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
             return true;
         });
 
@@ -172,18 +184,18 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         trigger.activate(context, varMap);
     }
 
-    private static PluginCommand createCommand(TriggerReactorMain core, String commandName) {
+    private PluginCommand createCommand(String commandName) {
         try {
             Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
             c.setAccessible(true);
-            return c.newInstance(commandName, core.getMain());
+            return c.newInstance(commandName, pluginInstance);
         } catch (Exception ex) {
-            if (core.isDebugging())
+            if (pluginLifecycleController.isDebugging())
                 ex.printStackTrace();
 
-            core.getLogger().warning("Couldn't construct 'PluginCommand'. This may indicate that you are using very very old" +
+            logger.warning("Couldn't construct 'PluginCommand'. This may indicate that you are using very very old" +
                     " version of Bukkit. Please report this to TR team, so we can work on it.");
-            core.getLogger().warning("Use /trg debug to see more details.");
+            logger.warning("Use /trg debug to see more details.");
             return null;
         }
     }

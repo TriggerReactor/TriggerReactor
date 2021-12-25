@@ -1,7 +1,6 @@
 package js;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCoreTest;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.manager.AbstractJavascriptBasedManager;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
 import org.bukkit.Bukkit;
@@ -22,7 +21,7 @@ public abstract class AbstractTestJavaScripts {
     protected ScriptEngineManager sem;
     protected ScriptEngine engine;
     protected Server server;
-    protected TriggerReactorMain mockMain;
+    protected IGameController mockMain;
     protected PluginManager mockPluginManager;
 
     @Before
@@ -31,9 +30,8 @@ public abstract class AbstractTestJavaScripts {
         ScriptEngineInitializer.initScriptEngine(sem);
         engine = AbstractJavascriptBasedManager.getEngine(sem);
 
-        mockMain = mock(TriggerReactorMain.class);
+        mockMain = mock(IGameController.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
-        TriggerReactorCoreTest.setInstance(mockMain);
 
         mockPluginManager = mock(PluginManager.class);
         Mockito.when(mockPluginManager.isPluginEnabled(Mockito.anyString())).thenAnswer(

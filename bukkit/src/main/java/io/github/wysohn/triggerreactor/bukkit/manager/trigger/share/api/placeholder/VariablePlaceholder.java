@@ -17,8 +17,7 @@
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -28,10 +27,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class VariablePlaceholder implements IVariablePlaceholder {
-    private final TriggerReactorMain plugin;
+    private final ITriggerReactorAPI api;
 
-    public VariablePlaceholder(TriggerReactorMain plugin) {
-        this.plugin = plugin;
+    public VariablePlaceholder(ITriggerReactorAPI api) {
+        this.api = api;
     }
 
     /**
@@ -51,10 +50,10 @@ public class VariablePlaceholder implements IVariablePlaceholder {
             return "";
 
         if (identifier.toLowerCase().equals("version")) {
-            return plugin.getVersion();
+            return api.pluginLifecycleController().getVersion();
         }
 
-        Map<Object, Object> adapter = plugin.getVariableManager().getGlobalVariableAdapter();
+        Map<Object, Object> adapter = api.getVariableManager().getGlobalVariableAdapter();
 
         Object value = null;
 
@@ -73,8 +72,7 @@ public class VariablePlaceholder implements IVariablePlaceholder {
             // %tr_<variable name>%
             //if(identifier.contains("")){return "";}
             variableName = variableName.replace('_', '.');
-            GlobalVariableManager vm = plugin.getVariableManager();
-            value = vm.get(variableName);
+            value = api.getVariableManager().get(variableName);
         }
 
 //        if (value == null) {

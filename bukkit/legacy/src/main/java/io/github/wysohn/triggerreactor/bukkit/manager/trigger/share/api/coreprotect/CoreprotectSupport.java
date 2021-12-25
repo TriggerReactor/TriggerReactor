@@ -34,20 +34,20 @@ public class CoreprotectSupport extends APISupport {
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
+    public void onEnable() throws APISupportException {
+        super.onEnable();
 
         api = CoreProtect.getInstance().getAPI();
 
         try {
             api.getClass().getMethod("APIVersion");
         } catch (NoSuchMethodException e) {
-            plugin.getLogger().warning("Found CoreProtect, but the version is too low.");
+            main.getLogger().warning("Found CoreProtect, but the version is too low.");
             throw new APISupportException("API version too low.");
         }
 
         if (api.APIVersion() < 4) {
-            plugin.getLogger().warning("Found CoreProtect, but the version is too low.");
+            main.getLogger().warning("Found CoreProtect, but the version is too low.");
             throw new APISupportException("API version too low.");
         }
     }

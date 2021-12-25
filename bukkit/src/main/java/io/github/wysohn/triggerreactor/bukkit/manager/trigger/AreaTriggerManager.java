@@ -20,10 +20,13 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitEntity;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -51,6 +54,12 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     @Inject
     @Named("PluginInstance")
     Object pluginInstance;
+    @Inject
+    IPluginLifecycleController pluginLifecycleController;
+    @Inject
+    TaskSupervisor task;
+    @Inject
+    IWrapper wrapper;
 
     @Inject
     public AreaTriggerManager() {
@@ -80,7 +89,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
             @Override
             public void run() {
-                while (main.isEnabled() && !Thread.interrupted()) {
+                while (pluginLifecycleController.isEnabled() && !Thread.interrupted()) {
                     try{
                         //track entity locations
                         for (World w : Bukkit.getWorlds()) {
@@ -94,10 +103,10 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
 
                                 UUID uuid = e.getUniqueId();
 
-                                if (!main.isEnabled())
+                                if (!pluginLifecycleController.isEnabled())
                                     break;
 
-                                Future<Boolean> future = main.callSyncMethod(() -> !e.isDead() && e.isValid());
+                                Future<Boolean> future = task.submitSync(() -> !e.isDead() && e.isValid());
 
                                 boolean valid = false;
                                 try {
@@ -163,7 +172,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
 
                 entityLocationMap.put(uuid, current);
-                entityTrackMap.put(uuid, new WeakReference<IEntity>(new BukkitEntity(e)));
+                entityTrackMap.put(uuid, new WeakReference<>(new BukkitEntity(wrapper, e)));
                 onEntityBlockMoveAsync(e, previous, current);
             }
         }
@@ -179,7 +188,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         SimpleLocation currentSloc = LocationUtil.convertToSimpleLocation(e.getPlayer().getLocation());
         getAreaForLocation(currentSloc).stream()
                 .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(e.getPlayer())));
+                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(wrapper, e.getPlayer())));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -204,7 +213,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 .filter((entry) -> !entry.getKey().isInThisArea(e.getFrom()))//only for entering area
                 .map(Map.Entry::getValue)
                 .forEach((trigger) -> {
-                    trigger.addEntity(new BukkitEntity(e.getPlayer()));
+                    trigger.addEntity(new BukkitEntity(wrapper, e.getPlayer()));
                     trigger.activate(e, varMap, EventType.ENTER);
                 });
     }
@@ -213,12 +222,12 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     public void onSpawn(EntitySpawnEvent e) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getLocation());
 
-        entityTrackMap.put(e.getEntity().getUniqueId(), new WeakReference<IEntity>(new BukkitEntity(e.getEntity())));
+        entityTrackMap.put(e.getEntity().getUniqueId(), new WeakReference<IEntity>(new BukkitEntity(wrapper, e.getEntity())));
         entityLocationMap.put(e.getEntity().getUniqueId(), sloc);
 
         getAreaForLocation(sloc).stream()
                 .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(e.getEntity())));
+                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(wrapper, e.getEntity())));
     }
 
     protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
@@ -227,7 +236,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                 .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
         getAreaForLocation(current).stream()
                 .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(entity)));
+                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(wrapper, entity)));
     }
 
     @EventHandler

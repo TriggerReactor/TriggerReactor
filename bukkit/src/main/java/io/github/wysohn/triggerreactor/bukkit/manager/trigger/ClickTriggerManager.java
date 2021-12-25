@@ -18,7 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -38,7 +38,10 @@ import java.util.Map;
 @Singleton
 public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigger> {
     @Inject
-    public ClickTriggerManager(TriggerReactorMain plugin) {
+    ITriggerReactorAPI api;
+
+    @Inject
+    public ClickTriggerManager() {
         super("ClickTrigger");
     }
 
@@ -46,8 +49,9 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
     public ClickTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            ClickTrigger trigger = getTrigger(info, script);
-            return trigger;
+            return getTrigger(api,
+                    info,
+                    script);
         } catch (TriggerInitFailedException | IOException e) {
             e.printStackTrace();
             return null;
@@ -63,15 +67,20 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         }
     }
 
-    private static ClickTrigger getTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return new ClickTrigger(info, script, context -> {
-            if (context instanceof PlayerInteractEvent) {
-                Action action = ((PlayerInteractEvent) context).getAction();
-                return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
-            }
+    private static ClickTrigger getTrigger(ITriggerReactorAPI api,
+                                           TriggerInfo info,
+                                           String script) throws TriggerInitFailedException {
+        return new ClickTrigger(api,
+                info,
+                script,
+                context -> {
+                    if (context instanceof PlayerInteractEvent) {
+                        Action action = ((PlayerInteractEvent) context).getAction();
+                        return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
+                    }
 
-            return true;
-        });
+                    return true;
+                });
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -84,7 +93,9 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
 
     @Override
     protected ClickTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return getTrigger(info, script);
+        return getTrigger(api,
+                info,
+                script);
     }
 
     private void handleClick(PlayerInteractEvent e) {

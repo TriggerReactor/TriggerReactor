@@ -24,8 +24,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.Plugin;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +37,10 @@ import java.util.Map.Entry;
 
 @Singleton
 public class CustomTriggerManager extends AbstractCustomTriggerManager implements BukkitTriggerManager {
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
+
     private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 
     @Inject
@@ -63,8 +69,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
         Listener listener = new Listener() {
         };
         try {
-            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST,
-                    (arg0, arg1) -> eventHook.onEvent(arg1), plugin.getMain());
+            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz,
+                    listener,
+                    EventPriority.HIGHEST,
+                    (l, event) -> eventHook.onEvent(event), (Plugin) pluginInstance);
 
             registeredListerners.put(eventHook, listener);
         } catch (IllegalPluginAccessException e) {

@@ -1,6 +1,5 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCoreTest;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunctions;
 import org.bukkit.*;
@@ -61,7 +60,6 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
         //PowerMockito.mockStatic(TriggerReactorCore.class);
         //Mockito.when(TriggerReactorCore.getInstance()).thenReturn(mockMain);
-        TriggerReactorCoreTest.setInstance(mockMain);
 
         Server server = mock(Server.class);
         Field field = Bukkit.class.getDeclaredField("server");

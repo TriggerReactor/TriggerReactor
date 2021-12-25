@@ -1,21 +1,15 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public class NamedTrigger extends Trigger {
-    public NamedTrigger(IThrowableHandler throwableHandler,
-                        IGameController gameController,
-                        TaskSupervisor taskSupervisor,
-                        SelfReference selfReference,
+    public NamedTrigger(ITriggerReactorAPI api,
                         TriggerInfo info,
                         String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+        super(api, info, script);
 
         init();
     }
@@ -23,7 +17,7 @@ public class NamedTrigger extends Trigger {
     @Override
     public NamedTrigger clone() {
         try {
-            return new NamedTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+            return new NamedTrigger(api, info, script);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

@@ -7,6 +7,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractInventoryEditManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import org.bukkit.Bukkit;
@@ -27,6 +28,8 @@ import java.util.UUID;
 
 @Singleton
 public class InventoryEditManager extends AbstractInventoryEditManager implements Listener {
+    @Inject
+    AbstractInventoryTriggerManager<?> invManager;
     @Inject
     IWrapper wrapper;
 
@@ -112,7 +115,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
             iitems[i] = new BukkitItemStack(items[i] == null ? new ItemStack(Material.AIR) : items[i]);
         }
 
-        replaceItems(trigger, iitems);
+        invManager.replaceItems(trigger, iitems);
         stopEdit(player);
         player.sendMessage("Saved edits");
     }

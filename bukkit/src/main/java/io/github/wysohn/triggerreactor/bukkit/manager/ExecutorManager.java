@@ -16,9 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil.CopyOption;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
@@ -40,7 +40,7 @@ import java.util.logging.Logger;
 @Singleton
 public class ExecutorManager extends AbstractExecutorManager {
     @Inject
-    TriggerReactorMain main;
+    TaskSupervisor task;
     @Inject
     @Named("DataFolder")
     File dataFolder;
@@ -85,11 +85,11 @@ public class ExecutorManager extends AbstractExecutorManager {
                     return null;
 
                 DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
-                if (main.isServerThread()) {
+                if (task.isServerThread()) {
                     call.call();
                 } else {
                     try {
-                        main.callSyncMethod(call).get();
+                        task.submitSync(call).get();
                     } catch (Exception ex) {
                         //to double check
                         call.deOpIfWasNotOp();

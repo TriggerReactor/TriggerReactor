@@ -2,7 +2,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
@@ -17,15 +16,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 
+import javax.inject.Inject;
 import java.text.NumberFormat;
 import java.util.*;
 
 public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
-    protected final TriggerReactorMain plugin;
-
-    public AbstractCommonFunctions(TriggerReactorMain plugin) {
-        this.plugin = plugin;
-    }
+    @Inject
+    AbstractAreaTriggerManager areaManager;
 
     /**
      * Simply try to get plugin object directly. *
@@ -305,7 +302,6 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return array of AreaTrigger names. The array can be empty but never null.
      */
     public String[] currentAreasAt(Location location) {
-        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
                 .map(Map.Entry::getValue)
                 .map(Trigger::getInfo)
@@ -320,7 +316,6 @@ public abstract class AbstractCommonFunctions extends io.github.wysohn.triggerre
      * @return List of entities. null if the AreaTrigger with specified name doesn't exist.
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
-        AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         AreaTrigger trigger = areaManager.get(areaTriggerName);
         if (trigger == null)
             return null;

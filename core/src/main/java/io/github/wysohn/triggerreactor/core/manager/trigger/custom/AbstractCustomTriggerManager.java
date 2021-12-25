@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -31,6 +32,8 @@ import java.io.IOException;
 import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
+    @Inject
+    ITriggerReactorAPI api;
     @Inject
     protected EventRegistry registry;
 
@@ -50,8 +53,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return new CustomTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                    info, script, registry.getEvent(eventName), eventName);
+            return new CustomTrigger(api, info, script, registry.getEvent(eventName), eventName);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
@@ -117,8 +119,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        CustomTrigger trigger = new CustomTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                info, script, event, eventName);
+        CustomTrigger trigger = new CustomTrigger(api, info, script, event, eventName);
 
         put(name, trigger);
 

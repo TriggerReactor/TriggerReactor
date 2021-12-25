@@ -19,10 +19,12 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
+    @Inject
+    ITriggerReactorAPI api;
 
     public AbstractNamedTriggerManager(String folderName) {
         super(folderName);
@@ -66,8 +70,7 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
     public NamedTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return new NamedTrigger(throwableHandler, gameController, taskSupervisor, selfReference,
-                    info, script);
+            return new NamedTrigger(api, info, script);
         } catch (TriggerInitFailedException | IOException e) {
             e.printStackTrace();
             return null;

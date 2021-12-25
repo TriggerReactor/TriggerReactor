@@ -36,22 +36,22 @@ public class VaultSupport extends APISupport {
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
+    public void onEnable() throws APISupportException {
+        super.onEnable();
 
         if (setupPermissions()) {
-            plugin.getLogger().info("Vault permission hooked.");
+            main.getLogger().info("Vault permission hooked.");
         }
         if (setupChat()) {
-            plugin.getLogger().info("Vault chat hooked.");
+            main.getLogger().info("Vault chat hooked.");
         }
         if (setupEconomy()) {
-            plugin.getLogger().info("Vault economy hooked.");
+            main.getLogger().info("Vault economy hooked.");
         }
     }
 
     private boolean setupPermissions() {
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = main.getMain();
         RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
@@ -60,7 +60,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupChat() {
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = main.getMain();
         RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (chatProvider != null) {
             chat = chatProvider.getProvider();
@@ -70,7 +70,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupEconomy() {
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = main.getMain();
         RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             economy = economyProvider.getProvider();

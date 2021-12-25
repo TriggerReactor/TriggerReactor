@@ -1,12 +1,9 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
-import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,15 +12,12 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
     final Class<?> event;
     final String eventName;
 
-    public CustomTrigger(IThrowableHandler throwableHandler,
-                         IGameController gameController,
-                         TaskSupervisor taskSupervisor,
-                         SelfReference selfReference,
+    public CustomTrigger(ITriggerReactorAPI api,
                          TriggerInfo info,
                          String script,
                          Class<?> event,
                          String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(throwableHandler, gameController, taskSupervisor, selfReference, info, script);
+        super(api, info, script);
         this.event = event;
         this.eventName = eventName;
 
@@ -33,7 +27,7 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
     @Override
     public CustomTrigger clone() {
         try {
-            return new CustomTrigger(throwableHandler, gameController, taskSupervisor, selfReference, info, script, event, eventName);
+            return new CustomTrigger(api, info, script, event, eventName);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }

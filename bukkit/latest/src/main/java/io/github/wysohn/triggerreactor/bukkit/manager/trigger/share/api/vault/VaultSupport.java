@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
@@ -27,35 +27,39 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class VaultSupport extends APISupport {
-    static {
-        addSharedVars("vault", VaultSupport.class);
-    }
-
     public Permission permission = null;
     public Economy economy = null;
     public Chat chat = null;
 
-    public VaultSupport(TriggerReactorMain plugin) {
-        super(plugin, "Vault");
+    public VaultSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
     }
 
     @Override
-    public void init() throws APISupportException {
-        super.init();
-
+    public void onEnable() throws APISupportException {
         if (setupPermissions()) {
-            plugin.getLogger().info("Vault permission hooked.");
+            api.logger().info("Vault permission hooked.");
         }
         if (setupChat()) {
-            plugin.getLogger().info("Vault chat hooked.");
+            api.logger().info("Vault chat hooked.");
         }
         if (setupEconomy()) {
-            plugin.getLogger().info("Vault economy hooked.");
+            api.logger().info("Vault economy hooked.");
         }
     }
 
+    @Override
+    public void onReload() throws RuntimeException {
+
+    }
+
+    @Override
+    public void onDisable() {
+
+    }
+
     private boolean setupPermissions() {
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
         RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
@@ -64,7 +68,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupChat() {
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
         RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (chatProvider != null) {
             chat = chatProvider.getProvider();
@@ -74,7 +78,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupEconomy() {
-        Plugin bukkitPlugin = plugin.getMain();
+        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
         RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
@@ -216,5 +220,10 @@ public class VaultSupport extends APISupport {
             throw new APISupportException("Vault", "Permission");
 
         permission.playerRemove(null, player, perm);
+    }
+
+    @Override
+    public String getVariableName() {
+        return "vault";
     }
 }
