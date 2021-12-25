@@ -18,6 +18,15 @@ public class NaiveMigrationHelper implements IMigrationHelper {
         this.oldFile = oldFile;
     }
 
+    @Override
+    public void migrate(IConfigSource current) {
+        traversal(oldConfig.getChildrenMap(), current::put);
+
+        if (oldFile.exists()) oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+
+        current.saveAll();
+    }
+
     protected void traversal(Map<Object, ? extends ConfigurationNode> map, BiConsumer<String, Object> consumer) {
         map.forEach(((s, o) -> {
             if (o.hasMapChildren()) {
@@ -26,15 +35,5 @@ public class NaiveMigrationHelper implements IMigrationHelper {
                 consumer.accept(ConfigurationUtil.asDottedPath(o), o.getValue());
             }
         }));
-    }
-
-    @Override
-    public void migrate(IConfigSource current) {
-        traversal(oldConfig.getChildrenMap(), current::put);
-
-        if (oldFile.exists())
-            oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
-
-        current.saveAll();
     }
 }

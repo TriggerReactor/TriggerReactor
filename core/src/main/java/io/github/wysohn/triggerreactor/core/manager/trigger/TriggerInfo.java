@@ -29,8 +29,7 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
-        if(sourceCodeFile == null)
-            return false;
+        if (sourceCodeFile == null) return false;
 
         File folder = sourceCodeFile.getParentFile();
         File oldFile = new File(folder, triggerName + ".yml");
@@ -42,42 +41,28 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public void migrate(IMigrationHelper migrationHelper) {
-        Optional.ofNullable(config)
-                .ifPresent(migrationHelper::migrate);
+        Optional.ofNullable(config).ifPresent(migrationHelper::migrate);
         reloadConfig();
     }
 
-    public File getSourceCodeFile() {
-        return sourceCodeFile;
+    @Override
+    public int hashCode() {
+        return triggerName != null ? triggerName.hashCode() : 0;
     }
 
-    public IConfigSource getConfig() {
-        ValidationUtil.notNull(config);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-        return config;
+        TriggerInfo that = (TriggerInfo) o;
+
+        return Objects.equals(triggerName, that.triggerName);
     }
 
-    public void reloadConfig() {
-        Optional.ofNullable(config)
-                .ifPresent(IConfigSource::onReload);
-    }
-
-    public String getTriggerName() {
-        return triggerName;
-    }
-
-    public boolean isSync(){
-        return Optional.ofNullable(config)
-                .flatMap(c -> c.get(KEY_SYNC))
-                .filter(Boolean.class::isInstance)
-                .map(Boolean.class::cast)
-                .orElse(false);
-    }
-
-    public void setSync(boolean sync){
-        ValidationUtil.notNull(config);
-
-        config.put(KEY_SYNC, sync);
+    @Override
+    public String toString() {
+        return "TriggerInfo{" + "triggerName=" + triggerName + ", config='" + config + '\'' + '}';
     }
 
     /**
@@ -91,10 +76,40 @@ public abstract class TriggerInfo implements IMigratable {
      * Default behavior is delete one file associated with the trigger. Override this method to change this behavior.
      */
     public void delete() {
-        Optional.ofNullable(sourceCodeFile)
-                .ifPresent(File::delete);
-        Optional.ofNullable(config)
-                .ifPresent(IConfigSource::delete);
+        Optional.ofNullable(sourceCodeFile).ifPresent(File::delete);
+        Optional.ofNullable(config).ifPresent(IConfigSource::delete);
+    }
+
+    public IConfigSource getConfig() {
+        ValidationUtil.notNull(config);
+
+        return config;
+    }
+
+    public File getSourceCodeFile() {
+        return sourceCodeFile;
+    }
+
+    public String getTriggerName() {
+        return triggerName;
+    }
+
+    public boolean isSync() {
+        return Optional.ofNullable(config)
+                .flatMap(c -> c.get(KEY_SYNC))
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(false);
+    }
+
+    public void setSync(boolean sync) {
+        ValidationUtil.notNull(config);
+
+        config.put(KEY_SYNC, sync);
+    }
+
+    public void reloadConfig() {
+        Optional.ofNullable(config).ifPresent(IConfigSource::onReload);
     }
 
     /**
@@ -105,8 +120,7 @@ public abstract class TriggerInfo implements IMigratable {
      * @return true if has valid extension; false if not file or extension is not valid
      */
     public static boolean isTriggerFile(File file) {
-        if (!file.isFile())
-            return false;
+        if (!file.isFile()) return false;
 
         String name = file.getName();
 
@@ -121,36 +135,11 @@ public abstract class TriggerInfo implements IMigratable {
      * @return the filename. null if the file is not file
      */
     public static String extractName(File file) {
-        if (file.isDirectory())
-            return null;
+        if (file.isDirectory()) return null;
 
-        if (file.getName().indexOf('.') == -1)
-            return file.getName();
+        if (file.getName().indexOf('.') == -1) return file.getName();
 
         return file.getName().substring(0, file.getName().indexOf('.'));
-    }
-
-    @Override
-    public String toString() {
-        return "TriggerInfo{" +
-                "triggerName=" + triggerName +
-                ", config='" + config + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        TriggerInfo that = (TriggerInfo) o;
-
-        return Objects.equals(triggerName, that.triggerName);
-    }
-
-    @Override
-    public int hashCode() {
-        return triggerName != null ? triggerName.hashCode() : 0;
     }
 
     /**

@@ -12,12 +12,13 @@ import java.util.Map;
 
 public class BukkitConfigurationSerializer implements Serializer<ConfigurationSerializable> {
     @Override
-    public ConfigurationSerializable deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public ConfigurationSerializable deserialize(JsonElement json,
+                                                 Type typeOfT,
+                                                 JsonDeserializationContext context) throws JsonParseException {
         JsonObject ser = (JsonObject) json;
 
         // ignore Map without SERIALIZED_TYPE_KEY (they are simple map in such case)
-        if (ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY) == null)
-            return null;
+        if (ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY) == null) return null;
 
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY,
@@ -48,6 +49,11 @@ public class BukkitConfigurationSerializer implements Serializer<ConfigurationSe
         }
     }
 
+    @Override
+    public JsonElement serialize(ConfigurationSerializable src, Type typeOfSrc, JsonSerializationContext context) {
+        return Serializer.serialize(ConfigurationSerializable.class, flatConfiguration(src), context);
+    }
+
     private Map<String, Object> flatConfiguration(ConfigurationSerializable serializable) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY,
@@ -60,11 +66,6 @@ public class BukkitConfigurationSerializer implements Serializer<ConfigurationSe
             }
         });
         return map;
-    }
-
-    @Override
-    public JsonElement serialize(ConfigurationSerializable src, Type typeOfSrc, JsonSerializationContext context) {
-        return Serializer.serialize(ConfigurationSerializable.class, flatConfiguration(src), context);
     }
 
 }

@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class InventoryEditManager extends AbstractInventoryEditManager {
-    private static Text savePrompt;
-
     static {
         TextStyle bold = TextStyles.of().bold(true);
         Text newline = Text.of("\n");
@@ -61,8 +59,21 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         savePrompt = Text.builder().append(save, newline, continue_, newline, cancel).build();
     }
 
+    private static Text savePrompt;
+
     public InventoryEditManager(TriggerReactorCore plugin) {
         super(plugin);
+    }
+
+    @Override
+    public void continueEdit(IPlayer player) {
+        UUID u = player.getUniqueId();
+        if (!suspended.containsKey(u)) {
+            return;
+        }
+
+        IInventory inv = suspended.remove(u);
+        player.openInventory(inv);
     }
 
     //adapted from InventoryTriggerManager
@@ -72,6 +83,17 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
                 .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
                 .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(name)))
                 .build(plugin);
+    }
+
+    @Override
+    public void discardEdit(IPlayer player) {
+        UUID u = player.getUniqueId();
+        if (!suspended.containsKey(u)) {
+            return;
+        }
+
+        stopEdit(player);
+        player.sendMessage("Discarded Edits");
     }
 
     //adapted from InventoryTriggerManager
@@ -92,8 +114,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         item = item.copy();
 
         Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
-        if (displayName != null)
-            item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
+        if (displayName != null) item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
 
         List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
         if (lores != null) {
@@ -104,71 +125,6 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         }
 
         return item;
-    }
-
-    @Override
-    public void startEdit(IPlayer player, InventoryTrigger trigger) {
-        UUID u = player.getUniqueId();
-        if (sessions.containsKey(u)) {
-            return;
-        }
-        sessions.put(u, trigger);
-        int size = trigger.getItems().length;
-        Inventory inv = createInventory(size, trigger.getInfo().getTriggerName());
-        fillInventory(trigger, size, inv);
-        player.openInventory(new SpongeInventory(inv, null));
-    }
-
-    @Override
-    public void continueEdit(IPlayer player) {
-        UUID u = player.getUniqueId();
-        if (!suspended.containsKey(u)) {
-            return;
-        }
-
-        IInventory inv = suspended.remove(u);
-        player.openInventory(inv);
-    }
-
-    @Override
-    public void discardEdit(IPlayer player) {
-        UUID u = player.getUniqueId();
-        if (!suspended.containsKey(u)) {
-            return;
-        }
-
-        stopEdit(player);
-        player.sendMessage("Discarded Edits");
-    }
-
-    @Override
-    public void saveEdit(IPlayer player) {
-        UUID u = player.getUniqueId();
-        if (!suspended.containsKey(u)) {
-            return;
-        }
-
-        Inventory inv = suspended.get(u).get();
-        InventoryTrigger trigger = sessions.get(u);
-        int size = inv.capacity();
-
-        IItemStack[] iitems = new IItemStack[size];
-
-        for (Inventory slot : inv.slots()) {
-            slot.getInventoryProperty(SlotIndex.class).ifPresent(slotIndex ->
-                    slot.peek().ifPresent(itemStack ->
-                            iitems[slotIndex.getValue()] = new SpongeItemStack(itemStack)));
-        }
-
-        //TODO this causes an error waaay down the call chain.  replaceItems also saves the inventory trigger manager
-        //but while trying to write the new data, NPE is thrown.  Starting a new edit shows that the new data at least
-        //gets written to the trigger, but reloading will throw away the edits.
-        //None of the items I want to save are null, so that isn't the source of the NPE.
-        //I know this because item.createSnapshot() in the sponge InventoryTriggerManager.writeItemsList() succeeds.
-        //please investigate this wysohn, because I have no idea at all why it can't save.
-        replaceItems(trigger, iitems);
-        stopEdit(player);
-        player.sendMessage("Saved edits");
     }
 
     @Listener
@@ -195,7 +151,8 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
         for (int i = 0; i < size; i++) {
             SlotIndex index = new SlotIndex(i);
-            gridInv.getSlot(index).ifPresent(slot -> newGrid.set(index, slot.peek().orElse(ItemStack.of(ItemTypes.AIR))));
+            gridInv.getSlot(index)
+                    .ifPresent(slot -> newGrid.set(index, slot.peek().orElse(ItemStack.of(ItemTypes.AIR))));
         }
 
         suspended.put(u, new SpongeInventory(newGrid, null));
@@ -214,5 +171,48 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
     @Override
     public void saveAll() {
+    }
+
+    @Override
+    public void saveEdit(IPlayer player) {
+        UUID u = player.getUniqueId();
+        if (!suspended.containsKey(u)) {
+            return;
+        }
+
+        Inventory inv = suspended.get(u).get();
+        InventoryTrigger trigger = sessions.get(u);
+        int size = inv.capacity();
+
+        IItemStack[] iitems = new IItemStack[size];
+
+        for (Inventory slot : inv.slots()) {
+            slot.getInventoryProperty(SlotIndex.class)
+                    .ifPresent(slotIndex -> slot.peek()
+                            .ifPresent(itemStack -> iitems[slotIndex.getValue()] = new SpongeItemStack(itemStack)));
+        }
+
+        //TODO this causes an error waaay down the call chain.  replaceItems also saves the inventory trigger manager
+        //but while trying to write the new data, NPE is thrown.  Starting a new edit shows that the new data at least
+        //gets written to the trigger, but reloading will throw away the edits.
+        //None of the items I want to save are null, so that isn't the source of the NPE.
+        //I know this because item.createSnapshot() in the sponge InventoryTriggerManager.writeItemsList() succeeds.
+        //please investigate this wysohn, because I have no idea at all why it can't save.
+        replaceItems(trigger, iitems);
+        stopEdit(player);
+        player.sendMessage("Saved edits");
+    }
+
+    @Override
+    public void startEdit(IPlayer player, InventoryTrigger trigger) {
+        UUID u = player.getUniqueId();
+        if (sessions.containsKey(u)) {
+            return;
+        }
+        sessions.put(u, trigger);
+        int size = trigger.getItems().length;
+        Inventory inv = createInventory(size, trigger.getInfo().getTriggerName());
+        fillInventory(trigger, size, inv);
+        player.openInventory(new SpongeInventory(inv, null));
     }
 }

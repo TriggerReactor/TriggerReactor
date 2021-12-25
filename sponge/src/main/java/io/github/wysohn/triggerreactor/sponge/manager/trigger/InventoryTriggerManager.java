@@ -51,65 +51,73 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), ItemStack.class, SpongeItemStack::new);
     }
 
-    /**
-     * @param player
-     * @param name
-     * @return the opened Inventory's reference; null if no Inventory Trigger found
-     */
-    public IInventory openGUI(Player player, String name) {
-        Sponge.getCauseStackManager().pushCause(player);
-        return openGUI(new SpongePlayer(player), name);
+    @Override
+    protected IInventory createInventory(int size, String name) {
+        name = name.replaceAll("_", " ");
+        Text text = TextUtil.colorStringToText(name);
+        Carrier dummy = new DummyCarrier();
+        Inventory inv = Inventory.builder()
+                .of(InventoryArchetypes.CHEST)
+                .withCarrier(dummy)
+                .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
+                .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(text))
+                .build(plugin);
+        return new SpongeInventory(inv, dummy);
     }
 
-    @Listener
-    public void onOpen(InteractInventoryEvent.Open e) {
-        Inventory inv = e.getTargetInventory();
-        if (!(inv instanceof CarriedInventory))
-            return;
+    @Override
+    protected void fillInventory(InventoryTrigger trigger, int size, IInventory inventory) {
+        Inventory inv = inventory.get();
+        GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
 
-        CarriedInventory inventory = (CarriedInventory) inv;
-        Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+        for (int i = 0; i < size; i++) {
+            IItemStack item = trigger.getItems()[i];
+            if (item != null) {
+                Slot slot = gridInv.getSlot(SlotIndex.of(i)).orElse(null);
+                slot.set(getColoredItem(item.get()));
+            }
+        }
+    }
 
-        if (carrier == null)
-            return;
+    /**
+     * @param item
+     * @return copy of colored item
+     */
+    private ItemStack getColoredItem(ItemStack item) {
+        item = item.copy();
 
-        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier)))
-            return;
+        Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
+        if (displayName != null) item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
 
-        InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
+        List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
+        if (lores != null) {
+            for (int i = 0; i < lores.size(); i++) {
+                lores.set(i, TextUtil.colorStringToText(lores.get(i).toPlain()));
+            }
+            item.offer(Keys.ITEM_LORE, lores);
+        }
 
-        Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
-        varMap.put("player", e.getCause().first(Player.class).orElse(null));
-        varMap.put("trigger", "open");
-
-        Inventory grids = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
-        varMap.put("inventory", grids.first());
-
-        trigger.activate(e, varMap);
+        return item;
     }
 
     @Listener
     public void onClick(ClickInventoryEvent e) {
         Inventory inv = e.getTargetInventory();
-        if (!(inv instanceof CarriedInventory))
-            return;
+        if (!(inv instanceof CarriedInventory)) return;
 
         CarriedInventory inventory = (CarriedInventory) inv;
         Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
 
-        if (carrier == null)
-            return;
+        if (carrier == null) return;
 
-        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier)))
-            return;
+        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier))) return;
         InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
 
         // just always cancel if it's GUI
         e.setCancelled(true);
 
         Player player = e.getCause().first(Player.class).orElse(null);
-        if (player == null)
-            return;
+        if (player == null) return;
 
         int rawSlot = -1;
         SlotTransaction slotTransaction = null;
@@ -137,74 +145,62 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
 
     @Listener
     public void onClose(InteractInventoryEvent.Close e, @First Player player) {
-        if (player == null)
-            return;
+        if (player == null) return;
 
         Inventory inv = e.getTargetInventory();
-        if (!(inv instanceof CarriedInventory))
-            return;
+        if (!(inv instanceof CarriedInventory)) return;
 
         CarriedInventory inventory = (CarriedInventory) inv;
         Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
 
-        if (carrier == null)
-            return;
+        if (carrier == null) return;
 
         onInventoryClose(e, new SpongePlayer(player), new SpongeInventory(inv, carrier));
     }
 
-    @Override
-    protected void fillInventory(InventoryTrigger trigger, int size, IInventory inventory) {
-        Inventory inv = inventory.get();
-        GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
+    @Listener
+    public void onOpen(InteractInventoryEvent.Open e) {
+        Inventory inv = e.getTargetInventory();
+        if (!(inv instanceof CarriedInventory)) return;
 
-        for (int i = 0; i < size; i++) {
-            IItemStack item = trigger.getItems()[i];
-            if (item != null) {
-                Slot slot = gridInv.getSlot(SlotIndex.of(i)).orElse(null);
-                slot.set(getColoredItem(item.get()));
-            }
-        }
+        CarriedInventory inventory = (CarriedInventory) inv;
+        Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+
+        if (carrier == null) return;
+
+        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier))) return;
+
+        InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
+
+        Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
+        varMap.put("player", e.getCause().first(Player.class).orElse(null));
+        varMap.put("trigger", "open");
+
+        Inventory grids = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
+        varMap.put("inventory", grids.first());
+
+        trigger.activate(e, varMap);
     }
 
     /**
-     * @param item
-     * @return copy of colored item
+     * @param player
+     * @param name
+     * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
-    private ItemStack getColoredItem(ItemStack item) {
-        item = item.copy();
-
-        Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
-        if (displayName != null)
-            item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
-
-        List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
-        if (lores != null) {
-            for (int i = 0; i < lores.size(); i++) {
-                lores.set(i, TextUtil.colorStringToText(lores.get(i).toPlain()));
-            }
-            item.offer(Keys.ITEM_LORE, lores);
-        }
-
-        return item;
-    }
-
-    @Override
-    protected IInventory createInventory(int size, String name) {
-        name = name.replaceAll("_", " ");
-        Text text = TextUtil.colorStringToText(name);
-        Carrier dummy = new DummyCarrier();
-        Inventory inv = Inventory.builder()
-                .of(InventoryArchetypes.CHEST)
-                .withCarrier(dummy)
-                .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
-                .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(text))
-                .build(plugin);
-        return new SpongeInventory(inv, dummy);
+    public IInventory openGUI(Player player, String name) {
+        Sponge.getCauseStackManager().pushCause(player);
+        return openGUI(new SpongePlayer(player), name);
     }
 
     private class DummyCarrier implements Carrier {
         private final Object uniqueObject = new Object();
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof DummyCarrier)) return false;
+
+            return uniqueObject.equals(((DummyCarrier) obj).uniqueObject);
+        }
 
         @Override
         public CarriedInventory<? extends Carrier> getInventory() {
@@ -215,14 +211,6 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         @Override
         public int hashCode() {
             return uniqueObject.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (!(obj instanceof DummyCarrier))
-                return false;
-
-            return uniqueObject.equals(((DummyCarrier) obj).uniqueObject);
         }
     }
 }

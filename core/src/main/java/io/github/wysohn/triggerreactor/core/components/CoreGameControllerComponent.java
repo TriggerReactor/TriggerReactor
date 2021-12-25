@@ -15,9 +15,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.main;
+package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Component;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.modules.CoreGameControllerModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 

@@ -29,16 +29,16 @@ public class EventBase extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
 
+    public HandlerList getHandlers() {
+        return handlers;
+    }
+
     public boolean isCancelled() {
         return cancelled;
     }
 
     public void setCancelled(boolean cancel) {
         cancelled = cancel;
-    }
-
-    public HandlerList getHandlers() {
-        return handlers;
     }
 
     public static HandlerList getHandlerList() {

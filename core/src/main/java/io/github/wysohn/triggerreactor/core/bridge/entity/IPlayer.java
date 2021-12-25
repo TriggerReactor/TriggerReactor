@@ -28,11 +28,9 @@ public interface IPlayer extends IEntity, ICommandSender {
 
     UUID getUniqueId();
 
-    IInventory getInventory();
-
-    void openInventory(IInventory inventory);
-
     SimpleChunkLocation getChunk();
+
+    IInventory getInventory();
 
     /**
      * Get item in this player's main hand.
@@ -41,7 +39,9 @@ public interface IPlayer extends IEntity, ICommandSender {
      */
     IItemStack getItemInMainHand();
 
+    void setItemInMainHand(IItemStack iS);
+
     ILocation getLocation();
 
-    void setItemInMainHand(IItemStack iS);
+    void openInventory(IInventory inventory);
 }

@@ -33,17 +33,22 @@ public class PlayerBlockLocationEvent extends AbstractEvent implements TargetPla
         this.to = to;
     }
 
+    @Override
+    public Cause getCause() {
+        return cause;
+    }
+
     public SimpleLocation getFrom() {
         return from;
     }
 
-    public SimpleLocation getTo() {
-        return to;
+    @Override
+    public Player getTargetEntity() {
+        return player;
     }
 
-    @Override
-    public Cause getCause() {
-        return cause;
+    public SimpleLocation getTo() {
+        return to;
     }
 
     @Override
@@ -54,11 +59,6 @@ public class PlayerBlockLocationEvent extends AbstractEvent implements TargetPla
     @Override
     public void setCancelled(boolean cancel) {
         this.cancelled = cancel;
-    }
-
-    @Override
-    public Player getTargetEntity() {
-        return player;
     }
 
 }

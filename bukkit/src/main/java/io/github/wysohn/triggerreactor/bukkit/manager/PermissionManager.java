@@ -48,6 +48,7 @@ public class PermissionManager extends AbstractPermissionManager implements List
     Logger logger;
 
     private boolean inject = true;
+    private boolean failed = false;
 
     @Inject
     public PermissionManager() {
@@ -55,17 +56,20 @@ public class PermissionManager extends AbstractPermissionManager implements List
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
-        if (!plugin.has("PermissionManager.Intercept"))
-            plugin.put("PermissionManager.Intercept", true);
+        if (!plugin.has("PermissionManager.Intercept")) plugin.put("PermissionManager.Intercept", true);
 
         onReload();
     }
 
     @Override
     public void onReload() {
-        inject = plugin.get("PermissionManager.Intercept", Boolean.class)
-                .orElse(false);
+        inject = plugin.get("PermissionManager.Intercept", Boolean.class).orElse(false);
 
         for (Player p : BukkitUtil.getOnlinePlayers()) {
             PermissibleBase original = getPermissible(p);
@@ -84,53 +88,8 @@ public class PermissionManager extends AbstractPermissionManager implements List
     }
 
     @Override
-    public void onDisable() {
-
-    }
-
-    @Override
     public void saveAll() {
 
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onJoin(PlayerJoinEvent e) {
-        if (!inject)
-            return;
-
-        injectPermissible(e.getPlayer(), new PermissibleInterceptor(e.getPlayer()));
-    }
-
-    private boolean failed = false;
-
-    private void injectPermissible(Player player, PermissibleBase newPermissible) {
-        //So it doesn't spam
-        if (failed)
-            return;
-
-        Class<?> clazz = player.getClass();
-        while (clazz.getSuperclass() != null && !clazz.getSimpleName().equals("CraftHumanEntity")) {
-            clazz = clazz.getSuperclass();
-        }
-
-        try {
-            PermissibleBase original = (PermissibleBase) ReflectionUtil.getField(clazz, player, "perm");
-            List<PermissionAttachment> attachments = (List<PermissionAttachment>) ReflectionUtil.getField(PermissibleBase.class, original, "attachments");
-
-            ReflectionUtil.setFinalField(PermissibleBase.class, newPermissible, "attachments", attachments);
-
-            ReflectionUtil.setFinalField(clazz, player, "perm", newPermissible);
-            newPermissible.recalculatePermissions();
-
-            if (newPermissible instanceof PermissibleInterceptor) {
-                ((PermissibleInterceptor) newPermissible).setOriginal(original);
-            }
-        } catch (NoSuchFieldException | IllegalArgumentException e) {
-            e.printStackTrace();
-            failed = true;
-            logger.severe("Could not inject permission interceptor.");
-            logger.severe("PlayerPermissionCheckEvent will no longer fired.");
-        }
     }
 
     private PermissibleBase getPermissible(Player player) {
@@ -150,6 +109,45 @@ public class PermissionManager extends AbstractPermissionManager implements List
         return null;
     }
 
+    private void injectPermissible(Player player, PermissibleBase newPermissible) {
+        //So it doesn't spam
+        if (failed) return;
+
+        Class<?> clazz = player.getClass();
+        while (clazz.getSuperclass() != null && !clazz.getSimpleName().equals("CraftHumanEntity")) {
+            clazz = clazz.getSuperclass();
+        }
+
+        try {
+            PermissibleBase original = (PermissibleBase) ReflectionUtil.getField(clazz, player, "perm");
+            List<PermissionAttachment> attachments = (List<PermissionAttachment>) ReflectionUtil.getField(
+                    PermissibleBase.class,
+                    original,
+                    "attachments");
+
+            ReflectionUtil.setFinalField(PermissibleBase.class, newPermissible, "attachments", attachments);
+
+            ReflectionUtil.setFinalField(clazz, player, "perm", newPermissible);
+            newPermissible.recalculatePermissions();
+
+            if (newPermissible instanceof PermissibleInterceptor) {
+                ((PermissibleInterceptor) newPermissible).setOriginal(original);
+            }
+        } catch (NoSuchFieldException | IllegalArgumentException e) {
+            e.printStackTrace();
+            failed = true;
+            logger.severe("Could not inject permission interceptor.");
+            logger.severe("PlayerPermissionCheckEvent will no longer fired.");
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onJoin(PlayerJoinEvent e) {
+        if (!inject) return;
+
+        injectPermissible(e.getPlayer(), new PermissibleInterceptor(e.getPlayer()));
+    }
+
     private static class PermissibleInterceptor extends PermissibleBase {
         private final Player player;
         private PermissibleBase original;
@@ -159,12 +157,35 @@ public class PermissionManager extends AbstractPermissionManager implements List
             this.player = opable;
         }
 
-        public PermissibleBase getOriginal() {
-            return original;
+        @Override
+        public boolean isOp() {
+            if (original != null) return original.isOp();
+
+            return super.isOp();
         }
 
-        public void setOriginal(PermissibleBase original) {
-            this.original = original;
+        @Override
+        public void setOp(boolean value) {
+            if (original != null) {
+                original.setOp(value);
+                return;
+            }
+
+            super.setOp(value);
+        }
+
+        @Override
+        public boolean isPermissionSet(String name) {
+            if (original != null) return original.isPermissionSet(name);
+
+            return super.isPermissionSet(name);
+        }
+
+        @Override
+        public boolean isPermissionSet(Permission perm) {
+            if (original != null) original.isPermissionSet(perm);
+
+            return super.isPermissionSet(perm);
         }
 
         @Override
@@ -197,68 +218,16 @@ public class PermissionManager extends AbstractPermissionManager implements List
 
         @Override
         public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value) {
-            if (original != null)
-                return original.addAttachment(plugin, name, value);
+            if (original != null) return original.addAttachment(plugin, name, value);
 
             return super.addAttachment(plugin, name, value);
         }
 
         @Override
         public PermissionAttachment addAttachment(Plugin plugin) {
-            if (original != null)
-                return original.addAttachment(plugin);
+            if (original != null) return original.addAttachment(plugin);
 
             return super.addAttachment(plugin);
-        }
-
-        @Override
-        public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value, int ticks) {
-            if (original != null)
-                return original.addAttachment(plugin, name, value, ticks);
-
-            return super.addAttachment(plugin, name, value, ticks);
-        }
-
-        @Override
-        public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
-            if (original != null)
-                return original.addAttachment(plugin, ticks);
-
-            return super.addAttachment(plugin, ticks);
-        }
-
-        @Override
-        public boolean isOp() {
-            if (original != null)
-                return original.isOp();
-
-            return super.isOp();
-        }
-
-        @Override
-        public void setOp(boolean value) {
-            if (original != null) {
-                original.setOp(value);
-                return;
-            }
-
-            super.setOp(value);
-        }
-
-        @Override
-        public boolean isPermissionSet(String name) {
-            if (original != null)
-                return original.isPermissionSet(name);
-
-            return super.isPermissionSet(name);
-        }
-
-        @Override
-        public boolean isPermissionSet(Permission perm) {
-            if (original != null)
-                original.isPermissionSet(perm);
-
-            return super.isPermissionSet(perm);
         }
 
         @Override
@@ -272,6 +241,16 @@ public class PermissionManager extends AbstractPermissionManager implements List
         }
 
         @Override
+        public void recalculatePermissions() {
+            if (original != null) {
+                original.recalculatePermissions();
+                return;
+            }
+
+            super.recalculatePermissions();
+        }
+
+        @Override
         public void clearPermissions() {
             if (original != null) {
                 original.clearPermissions();
@@ -282,21 +261,32 @@ public class PermissionManager extends AbstractPermissionManager implements List
         }
 
         @Override
+        public PermissionAttachment addAttachment(Plugin plugin, String name, boolean value, int ticks) {
+            if (original != null) return original.addAttachment(plugin, name, value, ticks);
+
+            return super.addAttachment(plugin, name, value, ticks);
+        }
+
+        @Override
+        public PermissionAttachment addAttachment(Plugin plugin, int ticks) {
+            if (original != null) return original.addAttachment(plugin, ticks);
+
+            return super.addAttachment(plugin, ticks);
+        }
+
+        @Override
         public Set<PermissionAttachmentInfo> getEffectivePermissions() {
-            if (original != null)
-                return original.getEffectivePermissions();
+            if (original != null) return original.getEffectivePermissions();
 
             return super.getEffectivePermissions();
         }
 
-        @Override
-        public void recalculatePermissions() {
-            if (original != null) {
-                original.recalculatePermissions();
-                return;
-            }
+        public PermissibleBase getOriginal() {
+            return original;
+        }
 
-            super.recalculatePermissions();
+        public void setOriginal(PermissibleBase original) {
+            this.original = original;
         }
 
 

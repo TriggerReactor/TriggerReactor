@@ -32,13 +32,12 @@ import java.io.IOException;
 import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
-    @Inject
-    ITriggerReactorAPI api;
-    @Inject
-    protected EventRegistry registry;
-
     private static final String EVENT = "Event";
     private static final String SYNC = "Sync";
+    @Inject
+    protected EventRegistry registry;
+    @Inject
+    ITriggerReactorAPI api;
 
     public AbstractCustomTriggerManager(String folderName) {
         super(folderName);
@@ -46,9 +45,12 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     @Override
     public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-        String eventName = info.getConfig().get(EVENT, String.class)
+        String eventName = info.getConfig()
+                .get(EVENT, String.class)
                 .filter(registry::eventExist)
-                .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));
+                .orElseThrow(() -> new InvalidTrgConfigurationException(
+                        "Couldn't find target Event or is not a valid Event",
+                        info.getConfig()));
         boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
 
         try {
@@ -80,6 +82,13 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
         }
     }
 
+    @Override
+    public CustomTrigger remove(String name) {
+        CustomTrigger remove = super.remove(name);
+        unregisterEvent(main, remove);
+        return remove;
+    }
+
     /**
      * Hook event to handle it manually.
      *
@@ -90,10 +99,6 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     protected abstract void registerEvent(TriggerReactorMain plugin, Class<?> clazz, EventHook eventHook);
 
     protected abstract void unregisterEvent(TriggerReactorMain plugin, EventHook eventHook);
-
-    public Collection<String> getAbbreviations(){
-        return registry.getAbbreviations();
-    }
 
     /**
      * Create a new CustomTrigger.
@@ -110,10 +115,10 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
      * @throws LexerException
      * @throws IOException
      */
-    public boolean createCustomTrigger(String eventName, String name, String script)
-            throws ClassNotFoundException, TriggerInitFailedException {
-        if (has(name))
-            return false;
+    public boolean createCustomTrigger(String eventName,
+                                       String name,
+                                       String script) throws ClassNotFoundException, TriggerInitFailedException {
+        if (has(name)) return false;
 
         Class<?> event = registry.getEvent(eventName);
         File file = getTriggerFile(folder, name, true);
@@ -140,12 +145,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 //        return triggerMap.get(clazz);
 //    }
 
-
-    @Override
-    public CustomTrigger remove(String name) {
-        CustomTrigger remove = super.remove(name);
-        unregisterEvent(main, remove);
-        return remove;
+    public Collection<String> getAbbreviations() {
+        return registry.getAbbreviations();
     }
 
     @FunctionalInterface
@@ -156,6 +157,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     public interface EventRegistry {
 
         boolean eventExist(String eventStr);
+
+        Collection<String> getAbbreviations();
 
         /**
          * First it tries to return Event in ABBREVIATIONS if such name exists. If it wasn't found, then it simply
@@ -168,7 +171,5 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
          *                                a event that cannot receive events (abstract events).
          */
         Class<?> getEvent(String eventStr) throws ClassNotFoundException;
-
-        Collection<String> getAbbreviations();
     }
 }

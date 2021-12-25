@@ -1,6 +1,5 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -33,22 +32,58 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         super(fn);
     }
 
-    @Parameterized.Parameters
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{new CommonFunctions(null)}});
+    @Override
+    protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
+        return IS1.getType() == IS2.getType() && IS1.getDurability() == IS2.getDurability() && IS1.getAmount() == IS2.getAmount();
     }
 
     @Override
     protected boolean isSimilar(ItemStack IS1, ItemStack IS2) {
-        return IS1.getType() == IS2.getType()
-                && IS1.getDurability() == IS2.getDurability();
+        return IS1.getType() == IS2.getType() && IS1.getDurability() == IS2.getDurability();
     }
 
     @Override
-    protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
-        return IS1.getType() == IS2.getType()
-                && IS1.getDurability() == IS2.getDurability()
-                && IS1.getAmount() == IS2.getAmount();
+    public void testGetPlayers() {
+        Assert.assertTrue(fn.getPlayers().contains(mockPlayer));
+    }
+
+    @Override
+    public void testHeadForName() {
+        //TODO: not testable?
+    }
+
+    @Override
+    public void testHeadForValue() {
+        //TODO: not testable?
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test
+    public void testItem() {
+        ItemStack IS = new ItemStack(Material.STONE, 64);
+        ItemStack IS2 = new ItemStack(Material.STONE, 63, (short) 1);
+
+        Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item("STONE", 63, 1)));
+
+        Assert.assertTrue(isEqual(IS, fn.item(1, 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item(1, 63, 1)));
+    }
+
+    @Override
+    public void testMakePotionEffect() {
+        //TODO: not testable?
+    }
+
+    @Test
+    public void testSerializeLocation() {
+        World vWorld = Mockito.mock(World.class);
+        Location loc1 = new Location(vWorld, 1, 2, 3);
+        double testX = 3.4;
+        Assert.assertTrue(fn.serializeLocation(vWorld, 1, 2, 3) instanceof ConfigurationSerializable);
+        Assert.assertSame(((ConfigurationSerializable) fn.serializeLocation(vWorld, 1, 2, 3)).serialize().get("world"),
+                          vWorld.getName());
+
     }
 
     @SuppressWarnings("deprecation")
@@ -75,46 +110,8 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         Assert.assertEquals(56, IS2.getAmount());
     }
 
-    @Override
-    public void testGetPlayers() {
-        Assert.assertTrue(fn.getPlayers().contains(mockPlayer));
-    }
-
-    @Override
-    public void testMakePotionEffect() {
-        //TODO: not testable?
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testItem() {
-        ItemStack IS = new ItemStack(Material.STONE, 64);
-        ItemStack IS2 = new ItemStack(Material.STONE, 63, (short) 1);
-
-        Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));
-        Assert.assertTrue(isEqual(IS2, fn.item("STONE", 63, 1)));
-
-        Assert.assertTrue(isEqual(IS, fn.item(1, 64)));
-        Assert.assertTrue(isEqual(IS2, fn.item(1, 63, 1)));
-    }
-
-    @Override
-    public void testHeadForName() {
-        //TODO: not testable?
-    }
-
-    @Override
-    public void testHeadForValue() {
-        //TODO: not testable?
-    }
-
-    @Test
-    public void testSerializeLocation() {
-        World vWorld = Mockito.mock(World.class);
-        Location loc1 = new Location(vWorld, 1, 2, 3);
-        double testX = 3.4;
-        Assert.assertTrue(fn.serializeLocation(vWorld, 1, 2, 3) instanceof ConfigurationSerializable);
-        Assert.assertSame(((ConfigurationSerializable) fn.serializeLocation(vWorld, 1, 2, 3)).serialize().get("world"), vWorld.getName());
-
+    @Parameterized.Parameters
+    public static Iterable<Object[]> data() {
+        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
     }
 }

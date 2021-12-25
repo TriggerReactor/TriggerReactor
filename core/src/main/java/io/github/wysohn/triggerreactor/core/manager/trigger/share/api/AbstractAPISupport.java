@@ -39,6 +39,7 @@ public abstract class AbstractAPISupport implements IPluginProcedure {
      * Get variable name to be used to access this api support from the
      * trigger scripts. For example, we can access Vault support using
      * 'vault' variable.
+     *
      * @return
      */
     public abstract String getVariableName();

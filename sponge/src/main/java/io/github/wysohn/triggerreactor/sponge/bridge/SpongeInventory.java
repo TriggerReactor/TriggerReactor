@@ -31,6 +31,13 @@ public class SpongeInventory implements IInventory {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SpongeInventory)) return false;
+
+        return carrier.equals(((SpongeInventory) obj).carrier);
+    }
+
+    @Override
     public <T> T get() {
         return (T) inventory;
     }
@@ -38,15 +45,6 @@ public class SpongeInventory implements IInventory {
     @Override
     public int hashCode() {
         return carrier.hashCode();
-    }
-
-
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof SpongeInventory))
-            return false;
-
-        return carrier.equals(((SpongeInventory) obj).carrier);
     }
 
 }

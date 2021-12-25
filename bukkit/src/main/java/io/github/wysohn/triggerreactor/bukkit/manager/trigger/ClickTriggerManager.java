@@ -46,12 +46,20 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
     }
 
     @Override
+    protected String getTriggerTypeName() {
+        return "Click";
+    }
+
+    @Override
+    protected ClickTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return getTrigger(api, info, script);
+    }
+
+    @Override
     public ClickTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return getTrigger(api,
-                    info,
-                    script);
+            return getTrigger(api, info, script);
         } catch (TriggerInitFailedException | IOException e) {
             e.printStackTrace();
             return null;
@@ -67,48 +75,15 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         }
     }
 
-    private static ClickTrigger getTrigger(ITriggerReactorAPI api,
-                                           TriggerInfo info,
-                                           String script) throws TriggerInitFailedException {
-        return new ClickTrigger(api,
-                info,
-                script,
-                context -> {
-                    if (context instanceof PlayerInteractEvent) {
-                        Action action = ((PlayerInteractEvent) context).getAction();
-                        return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
-                    }
-
-                    return true;
-                });
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onClickTrigger(PlayerInteractEvent e) {
-        if (!BukkitUtil.isLeftHandClick(e))
-            return;
-
-        handleClick(e);
-    }
-
-    @Override
-    protected ClickTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return getTrigger(api,
-                info,
-                script);
-    }
-
     private void handleClick(PlayerInteractEvent e) {
         Player player = e.getPlayer();
         Block clicked = e.getClickedBlock();
 
-        if (clicked == null)
-            return;
+        if (clicked == null) return;
 
         Location loc = clicked.getLocation();
         ClickTrigger trigger = getTriggerForLocation(loc);
-        if (trigger == null)
-            return;
+        if (trigger == null) return;
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", e.getPlayer());
@@ -132,8 +107,23 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigge
         return;
     }
 
-    @Override
-    protected String getTriggerTypeName() {
-        return "Click";
+    @EventHandler(ignoreCancelled = true)
+    public void onClickTrigger(PlayerInteractEvent e) {
+        if (!BukkitUtil.isLeftHandClick(e)) return;
+
+        handleClick(e);
+    }
+
+    private static ClickTrigger getTrigger(ITriggerReactorAPI api,
+                                           TriggerInfo info,
+                                           String script) throws TriggerInitFailedException {
+        return new ClickTrigger(api, info, script, context -> {
+            if (context instanceof PlayerInteractEvent) {
+                Action action = ((PlayerInteractEvent) context).getAction();
+                return action == Action.LEFT_CLICK_BLOCK || action == Action.RIGHT_CLICK_BLOCK;
+            }
+
+            return true;
+        });
     }
 }

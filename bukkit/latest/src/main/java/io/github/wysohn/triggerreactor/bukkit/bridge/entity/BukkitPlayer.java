@@ -43,29 +43,23 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     }
 
     @Override
-    public void sendMessage(String message) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
-    }
-
-    @Override
     public boolean hasPermission(String permission) {
         return player.hasPermission(permission);
     }
 
     @Override
-    public IInventory getInventory() {
-        return wrapper.wrap(player.getInventory());
-    }
-
-    @Override
-    public void openInventory(IInventory inventory) {
-        Inventory inv = inventory.get();
-        player.openInventory(inv);
+    public void sendMessage(String message) {
+        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 
     @Override
     public SimpleChunkLocation getChunk() {
         return LocationUtil.convertToSimpleChunkLocation(player.getLocation().getChunk());
+    }
+
+    @Override
+    public IInventory getInventory() {
+        return wrapper.wrap(player.getInventory());
     }
 
     @SuppressWarnings("deprecation")
@@ -75,13 +69,19 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     }
 
     @Override
+    public void setItemInMainHand(IItemStack iS) {
+        player.getInventory().setItemInMainHand(iS.get());
+    }
+
+    @Override
     public ILocation getLocation() {
         return new BukkitLocation(player.getLocation());
     }
 
     @Override
-    public void setItemInMainHand(IItemStack iS) {
-        player.getInventory().setItemInMainHand(iS.get());
+    public void openInventory(IInventory inventory) {
+        Inventory inv = inventory.get();
+        player.openInventory(inv);
     }
 
 }

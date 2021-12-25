@@ -24,6 +24,8 @@ public abstract class AbstractTestJavaScripts {
     protected IGameController mockMain;
     protected PluginManager mockPluginManager;
 
+    protected abstract void before() throws Exception;
+
     @Before
     public void init() throws Exception {
         sem = new ScriptEngineManager();
@@ -34,18 +36,16 @@ public abstract class AbstractTestJavaScripts {
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
 
         mockPluginManager = mock(PluginManager.class);
-        Mockito.when(mockPluginManager.isPluginEnabled(Mockito.anyString())).thenAnswer(
-                invocation -> {
-                    String pluginName = invocation.getArgument(0);
+        Mockito.when(mockPluginManager.isPluginEnabled(Mockito.anyString())).thenAnswer(invocation -> {
+            String pluginName = invocation.getArgument(0);
 
-                    switch (pluginName) {
-                        case "PlaceholderAPI":
-                            return false;
-                    }
-
+            switch (pluginName) {
+                case "PlaceholderAPI":
                     return false;
-                }
-        );
+            }
+
+            return false;
+        });
 
         before();
 
@@ -55,22 +55,18 @@ public abstract class AbstractTestJavaScripts {
         field.set(null, server);
 
         Mockito.when(server.getPluginManager()).thenReturn(mockPluginManager);
-        Mockito.when(server.dispatchCommand(Mockito.any(CommandSender.class), Mockito.anyString()))
-                .then(invocation -> {
-                    CommandSender sender = invocation.getArgument(0);
-                    String command = invocation.getArgument(1);
+        Mockito.when(server.dispatchCommand(Mockito.any(CommandSender.class), Mockito.anyString())).then(invocation -> {
+            CommandSender sender = invocation.getArgument(0);
+            String command = invocation.getArgument(1);
 
-                    // send the command as message for test purpose
-                    sender.sendMessage(command);
+            // send the command as message for test purpose
+            sender.sendMessage(command);
 
-                    return null;
-                });
+            return null;
+        });
     }
 
-    protected abstract void before() throws Exception;
-
-    protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz)
-            throws ScriptException {
+    protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz) throws ScriptException {
         engine.put("Temp", clazz);
         engine.eval("var " + clazz.getSimpleName() + " = Temp.static;");
     }

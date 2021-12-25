@@ -77,84 +77,23 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     protected abstract String getTriggerTypeName();
 
-    protected T getTriggerForLocation(SimpleLocation sloc) {
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-        if (!chunkMap.containsKey(scloc))
-            return null;
-
-        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
-        if (!locationMap.containsKey(sloc))
-            return null;
-
-        return locationMap.get(sloc);
-    }
-
-    protected void setLocationCache(SimpleLocation sloc, T trigger) {
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
-        if (!chunkMap.containsKey(scloc)) {
-            locationMap = new ConcurrentHashMap<>();
-            chunkMap.put(scloc, locationMap);
-        }
-
-        locationMap.put(sloc, trigger);
-        put(sloc.toString(), trigger);
-
-        main.saveAsynchronously(this);
-    }
-
-    protected T removeLocationCache(SimpleLocation sloc) {
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-
-        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
-        if (!chunkMap.containsKey(scloc)) {
-            return null;
-        }
-
-        T result = locationMap.remove(sloc);
-        remove(sloc.toString());
-
-        main.saveAsynchronously(this);
-        return result;
-    }
-
     protected abstract T newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException;
 
     protected abstract void showTriggerInfo(ICommandSender sender, SimpleLocation sloc);
 
-    protected boolean isLocationSetting(IPlayer player) {
-        return settingLocation.containsKey(player.getUniqueId());
-    }
-
-    public boolean startLocationSet(IPlayer player, String script) {
-        if (settingLocation.containsKey(player.getUniqueId()))
+    /**
+     * @param player
+     * @param sloc
+     * @return true if copy ready; false if no trigger found at the location
+     */
+    protected boolean copyTrigger(IPlayer player, SimpleLocation sloc) {
+        T trigger = getTriggerForLocation(sloc);
+        if (trigger == null) {
             return false;
+        }
 
-        settingLocation.put(player.getUniqueId(), script);
-
+        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.COPY, sloc));
         return true;
-    }
-
-    protected boolean stopLocationSet(IPlayer player) {
-        if (!settingLocation.containsKey(player.getUniqueId()))
-            return false;
-
-        settingLocation.remove(player.getUniqueId());
-
-        return true;
-    }
-
-    protected String getSettingLocationScript(IPlayer player) {
-        return settingLocation.get(player.getUniqueId());
-    }
-
-    protected void onItemSwap(IPlayer player) {
-        if (player.getUniqueId() == null)
-            return;
-
-        clipboard.remove(player.getUniqueId());
     }
 
     /**
@@ -172,22 +111,43 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return true;
     }
 
-
-    /**
-     * @param player
-     * @param sloc
-     * @return true if copy ready; false if no trigger found at the location
-     */
-    protected boolean copyTrigger(IPlayer player, SimpleLocation sloc) {
-        T trigger = getTriggerForLocation(sloc);
-        if (trigger == null) {
-            return false;
-        }
-
-        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.COPY, sloc));
-        return true;
+    protected String getSettingLocationScript(IPlayer player) {
+        return settingLocation.get(player.getUniqueId());
     }
 
+    protected T getTriggerForLocation(SimpleLocation sloc) {
+        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+
+        if (!chunkMap.containsKey(scloc)) return null;
+
+        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+        if (!locationMap.containsKey(sloc)) return null;
+
+        return locationMap.get(sloc);
+    }
+
+    public Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(SimpleChunkLocation scloc) {
+        Set<Map.Entry<SimpleLocation, Trigger>> triggers = new HashSet<>();
+        if (!chunkMap.containsKey(scloc)) return triggers;
+
+        for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : chunkMap.entrySet()) {
+            for (Entry<SimpleLocation, T> entryIn : entry.getValue().entrySet()) {
+                triggers.add(new SimpleEntry<SimpleLocation, Trigger>(entryIn.getKey(), entryIn.getValue()));
+            }
+        }
+
+        return triggers;
+    }
+
+    protected boolean isLocationSetting(IPlayer player) {
+        return settingLocation.containsKey(player.getUniqueId());
+    }
+
+    protected void onItemSwap(IPlayer player) {
+        if (player.getUniqueId() == null) return;
+
+        clipboard.remove(player.getUniqueId());
+    }
 
     /**
      * @param player
@@ -196,8 +156,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
      */
     protected boolean pasteTrigger(IPlayer player, SimpleLocation sloc) {
         ClipBoard board = clipboard.get(player.getUniqueId());
-        if (board == null)
-            return false;
+        if (board == null) return false;
 
         SimpleLocation from = board.location;
         if (from == null) {
@@ -210,8 +169,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
 
         try {
-            if (board.type == ClipBoard.BoardType.CUT)
-                trigger = removeLocationCache(board.location);
+            if (board.type == ClipBoard.BoardType.CUT) trigger = removeLocationCache(board.location);
 
             T copy = (T) trigger.clone();
 
@@ -227,18 +185,60 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return true;
     }
 
-    public Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(SimpleChunkLocation scloc) {
-        Set<Map.Entry<SimpleLocation, Trigger>> triggers = new HashSet<>();
-        if (!chunkMap.containsKey(scloc))
-            return triggers;
+    protected T removeLocationCache(SimpleLocation sloc) {
+        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
-        for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : chunkMap.entrySet()) {
-            for (Entry<SimpleLocation, T> entryIn : entry.getValue().entrySet()) {
-                triggers.add(new SimpleEntry<SimpleLocation, Trigger>(entryIn.getKey(), entryIn.getValue()));
-            }
+        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+        if (!chunkMap.containsKey(scloc)) {
+            return null;
         }
 
-        return triggers;
+        T result = locationMap.remove(sloc);
+        remove(sloc.toString());
+
+        main.saveAsynchronously(this);
+        return result;
+    }
+
+    protected void setLocationCache(SimpleLocation sloc, T trigger) {
+        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+
+        Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
+        if (!chunkMap.containsKey(scloc)) {
+            locationMap = new ConcurrentHashMap<>();
+            chunkMap.put(scloc, locationMap);
+        }
+
+        locationMap.put(sloc, trigger);
+        put(sloc.toString(), trigger);
+
+        main.saveAsynchronously(this);
+    }
+
+    public boolean startLocationSet(IPlayer player, String script) {
+        if (settingLocation.containsKey(player.getUniqueId())) return false;
+
+        settingLocation.put(player.getUniqueId(), script);
+
+        return true;
+    }
+
+    protected boolean stopLocationSet(IPlayer player) {
+        if (!settingLocation.containsKey(player.getUniqueId())) return false;
+
+        settingLocation.remove(player.getUniqueId());
+
+        return true;
+    }
+
+    public interface ClickHandler {
+        /**
+         * Check if click is allowed for this context. If it were Bukkit API, it will be PlayerInteractEvent.
+         *
+         * @param context the context
+         * @return true if allowed; false if not (the click will be ignored in this case)
+         */
+        boolean allow(Object context);
     }
 
     private static class ClipBoard {
@@ -251,17 +251,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
 
         enum BoardType {
-            CUT, COPY
+            CUT,
+            COPY
         }
-    }
-
-    public interface ClickHandler {
-        /**
-         * Check if click is allowed for this context. If it were Bukkit API, it will be PlayerInteractEvent.
-         *
-         * @param context the context
-         * @return true if allowed; false if not (the click will be ignored in this case)
-         */
-        boolean allow(Object context);
     }
 }

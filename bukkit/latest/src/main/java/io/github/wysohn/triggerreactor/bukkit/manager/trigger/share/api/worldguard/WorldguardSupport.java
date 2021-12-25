@@ -40,6 +40,11 @@ public class WorldguardSupport extends APISupport {
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("WorldGuard");
 
@@ -56,35 +61,8 @@ public class WorldguardSupport extends APISupport {
     }
 
     @Override
-    public void onDisable() {
-
-    }
-
-    private BlockVector3 toVector3(Location loc) {
-        return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
-    }
-
-    /**
-     * List all the names of regions that is covering the provided location
-     *
-     * @param loc location to check
-     * @return set of region names. It may be empty but never be null.
-     */
-    public Set<String> getRegionNames(Location loc) {
-        Set<String> names = new HashSet<>();
-
-        RegionContainer container = wg.getPlatform().getRegionContainer();
-        for (ProtectedRegion region : container.get(BukkitAdapter.adapt(loc.getWorld()))
-                .getApplicableRegions(toVector3(loc)).getRegions()) {
-            names.add(region.getId());
-        }
-
-        return names;
-    }
-
-    public boolean regionExists(World world, String regionName) {
-        RegionContainer container = wg.getPlatform().getRegionContainer();
-        return container.get(BukkitAdapter.adapt(world)).getRegion(regionName) != null;
+    public String getVariableName() {
+        return "worldguard";
     }
 
     /**
@@ -98,8 +76,7 @@ public class WorldguardSupport extends APISupport {
 
         RegionContainer container = wg.getPlatform().getRegionContainer();
         ProtectedRegion region = container.get(BukkitAdapter.adapt(world)).getRegion(regionName);
-        if (region == null)
-            return null;
+        if (region == null) return null;
 
         BlockVector3 min = region.getMinimumPoint();
         BlockVector3 max = region.getMaximumPoint();
@@ -110,8 +87,31 @@ public class WorldguardSupport extends APISupport {
         return locs;
     }
 
-    @Override
-    public String getVariableName() {
-        return "worldguard";
+    /**
+     * List all the names of regions that is covering the provided location
+     *
+     * @param loc location to check
+     * @return set of region names. It may be empty but never be null.
+     */
+    public Set<String> getRegionNames(Location loc) {
+        Set<String> names = new HashSet<>();
+
+        RegionContainer container = wg.getPlatform().getRegionContainer();
+        for (ProtectedRegion region : container.get(BukkitAdapter.adapt(loc.getWorld()))
+                .getApplicableRegions(toVector3(loc))
+                .getRegions()) {
+            names.add(region.getId());
+        }
+
+        return names;
+    }
+
+    public boolean regionExists(World world, String regionName) {
+        RegionContainer container = wg.getPlatform().getRegionContainer();
+        return container.get(BukkitAdapter.adapt(world)).getRegion(regionName) != null;
+    }
+
+    private BlockVector3 toVector3(Location loc) {
+        return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
     }
 }

@@ -28,6 +28,11 @@ public class SpongeItemStack implements IItemStack {
     }
 
     @Override
+    public IItemStack clone() {
+        return new SpongeItemStack(itemStack.copy());
+    }
+
+    @Override
     public <T> T get() {
         return (T) itemStack;
     }
@@ -38,11 +43,6 @@ public class SpongeItemStack implements IItemStack {
     @Override
     public <T> T getType() {
         return (T) itemStack.getItem().getType();
-    }
-
-    @Override
-    public IItemStack clone() {
-        return new SpongeItemStack(itemStack.copy());
     }
 
 }

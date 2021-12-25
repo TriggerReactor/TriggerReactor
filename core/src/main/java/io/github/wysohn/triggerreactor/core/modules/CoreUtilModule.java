@@ -28,13 +28,13 @@ import java.util.logging.Logger;
 
 @Module
 public abstract class CoreUtilModule {
-    @Provides
-    @PluginScope
-    static Logger provideLogger(){
-        throw new RuntimeException("Dependent must provide it");
-    }
-
     @Binds
     @PluginScope
     abstract IThrowableHandler provideThrowableHandler(ThrowableHandler throwableHandler);
+
+    @Provides
+    @PluginScope
+    static Logger provideLogger() {
+        throw new RuntimeException("Dependent must provide it");
+    }
 }

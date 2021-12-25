@@ -18,66 +18,66 @@ import java.util.logging.Logger;
 /**
  * interface to expose the useful classes to be used by the various
  * dynamic instances that cannot inject the dependency.
- *
+ * <p>
  * DO NOT directly access the methods from the TriggerReactor unless
  * it's absolutely necessary. For example, Trigger class has to be
  * instantiated runtime therefore we cannot inject the dependency. Pass
  * this to those instances so that they have access to the necessary
  * managers, etc.
- *
+ * <p>
  * Third-party plugins may use these methods to
  * access and control TriggerReactor.
  */
 public interface ITriggerReactorAPI {
+    AbstractAreaTriggerManager getAreaManager();
+
+    /// Triggers
+    AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager();
+
+    AbstractCommandTriggerManager getCmdManager();
+
+    AbstractCustomTriggerManager getCustomManager();
+
+    /// Managers
+    AbstractExecutorManager getExecutorManager();
+
+    AbstractExternalAPIManager getExternalAPIManager();
+
+    IGameController getGameController();
+
+    AbstractInventoryEditManager getInvEditManager();
+
+    AbstractPlayerLocationManager getLocationManager();
+
+    AbstractNamedTriggerManager getNamedTriggerManager();
+
+    AbstractPermissionManager getPermissionManager();
+
+    AbstractPlaceholderManager getPlaceholderManager();
+
+    PluginConfigManager getPluginConfigManager();
+
+    AbstractRepeatingTriggerManager getRepeatManager();
+
+    AbstractScriptEditManager getScriptEditManager();
+
+    AbstractAreaSelectionManager getSelectionManager();
+
+    SelfReference getSelfReference();
+
+    TaskSupervisor getTaskSupervisor();
+
+    IThrowableHandler getThrowableHandler();
+
+    GlobalVariableManager getVariableManager();
+
+    AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager();
+
+    AbstractInventoryTriggerManager<?> invManager();
+
     Logger logger();
 
     Object pluginInstance();
 
     IPluginLifecycleController pluginLifecycleController();
-
-    IThrowableHandler getThrowableHandler();
-
-    IGameController getGameController();
-
-    TaskSupervisor getTaskSupervisor();
-
-    SelfReference getSelfReference();
-
-    /// Managers
-    AbstractExecutorManager getExecutorManager();
-
-    AbstractPlaceholderManager getPlaceholderManager();
-
-    AbstractScriptEditManager getScriptEditManager();
-
-    AbstractPlayerLocationManager getLocationManager();
-
-    AbstractPermissionManager getPermissionManager();
-
-    AbstractAreaSelectionManager getSelectionManager();
-
-    AbstractInventoryEditManager getInvEditManager();
-
-    AbstractExternalAPIManager getExternalAPIManager();
-
-    /// Triggers
-    AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager();
-
-    AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager();
-
-    AbstractCommandTriggerManager getCmdManager();
-
-    AbstractInventoryTriggerManager<?> invManager();
-
-    AbstractAreaTriggerManager getAreaManager();
-
-    AbstractCustomTriggerManager getCustomManager();
-
-    AbstractRepeatingTriggerManager getRepeatManager();
-
-    AbstractNamedTriggerManager getNamedTriggerManager();
-
-    PluginConfigManager getPluginConfigManager();
-
-    GlobalVariableManager getVariableManager();
 }

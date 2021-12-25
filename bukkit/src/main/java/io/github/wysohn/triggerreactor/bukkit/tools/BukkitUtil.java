@@ -30,6 +30,7 @@ import java.util.Collection;
 
 public class BukkitUtil {
     private static boolean getOnlinePlayersMethodFound = true;
+    private static boolean getHandMethodFound = true;
 
     /**
      * Get list of players. For old version like 1.5.2, the return value of Bukkit.getOnlinePlayers() is array
@@ -66,8 +67,6 @@ public class BukkitUtil {
         }
     }
 
-    private static boolean getHandMethodFound = true;
-
     /**
      * Check if the provided PlayerInteractEvent is caused by main hand. For the old versions, there was no concept of
      * 'using both hand,' so it will return true always. If it is new version, It will check to see if the left hand
@@ -87,8 +86,7 @@ public class BukkitUtil {
                 Object out = method.invoke(e);
 
                 //how is it possible ?_?
-                if (out == null)
-                    return false; // just process it as noo left hand click
+                if (out == null) return false; // just process it as noo left hand click
 
                 Class<?> clazz = Class.forName("org.bukkit.inventory.EquipmentSlot");
                 if (!clazz.isEnum()) {//This is not likely the case but just for safety

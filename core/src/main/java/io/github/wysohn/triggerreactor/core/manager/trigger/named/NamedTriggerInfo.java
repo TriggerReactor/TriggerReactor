@@ -41,8 +41,6 @@ public class NamedTriggerInfo extends TriggerInfo {
         Path filePath = sourceCodeFile.toPath();
         Path relative = folderPath.relativize(filePath);
 
-        return relative.toString()
-                .replaceAll(Pattern.quote(File.separator), ":")
-                .replace(".trg", "");
+        return relative.toString().replaceAll(Pattern.quote(File.separator), ":").replace(".trg", "");
     }
 }

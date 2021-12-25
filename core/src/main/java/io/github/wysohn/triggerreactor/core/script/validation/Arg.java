@@ -30,6 +30,14 @@ public class Arg {
         return options.containsKey(option);
     }
 
+    String name() {
+        String name = (String) getOption(validationOptions.forName("name"));
+        if (name == null) {
+            return "null";
+        }
+        return name;
+    }
+
     //returns a String describing this Arg's type, for error-construction purposes
     String typeString() {
         ValidationOption typeOption = validationOptions.forName("type");
@@ -42,14 +50,6 @@ public class Arg {
         }
 
         return type.toString();
-    }
-
-    String name() {
-        String name = (String) getOption(validationOptions.forName("name"));
-        if (name == null) {
-            return "null";
-        }
-        return name;
     }
 
     /**

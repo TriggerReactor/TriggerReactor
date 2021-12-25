@@ -28,15 +28,19 @@ import java.util.UUID;
 
 @Singleton
 public class InventoryEditManager extends AbstractInventoryEditManager implements Listener {
+    private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
     @Inject
     AbstractInventoryTriggerManager<?> invManager;
     @Inject
     IWrapper wrapper;
 
-    private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
-
     @Inject
     InventoryEditManager(TriggerReactorMain plugin) {
+
+    }
+
+    @Override
+    public void onDisable() {
 
     }
 
@@ -50,35 +54,7 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
     }
 
     @Override
-    public void onDisable() {
-
-    }
-
-    @Override
     public void saveAll() {
-    }
-
-    @Override
-    public void startEdit(IPlayer player, InventoryTrigger trigger) {
-        UUID u = player.getUniqueId();
-        if (sessions.containsKey(u)) {
-            return;
-        }
-        sessions.put(u, trigger);
-
-        IItemStack[] iitems = trigger.getItems();
-        ItemStack[] items = new ItemStack[iitems.length];
-        for (int i = 0; i < items.length; i++) {
-            items[i] = Optional.ofNullable(iitems[i])
-                    .map(IScriptObject::get)
-                    .filter(ItemStack.class::isInstance)
-                    .map(ItemStack.class::cast)
-                    .orElse(null);
-        }
-
-        Inventory inv = Bukkit.createInventory(null, items.length, trigger.getInfo().getTriggerName());
-        inv.setContents(items);
-        player.openInventory(wrapper.wrap(inv));
     }
 
     @Override
@@ -118,6 +94,29 @@ public class InventoryEditManager extends AbstractInventoryEditManager implement
         invManager.replaceItems(trigger, iitems);
         stopEdit(player);
         player.sendMessage("Saved edits");
+    }
+
+    @Override
+    public void startEdit(IPlayer player, InventoryTrigger trigger) {
+        UUID u = player.getUniqueId();
+        if (sessions.containsKey(u)) {
+            return;
+        }
+        sessions.put(u, trigger);
+
+        IItemStack[] iitems = trigger.getItems();
+        ItemStack[] items = new ItemStack[iitems.length];
+        for (int i = 0; i < items.length; i++) {
+            items[i] = Optional.ofNullable(iitems[i])
+                    .map(IScriptObject::get)
+                    .filter(ItemStack.class::isInstance)
+                    .map(ItemStack.class::cast)
+                    .orElse(null);
+        }
+
+        Inventory inv = Bukkit.createInventory(null, items.length, trigger.getInfo().getTriggerName());
+        inv.setContents(items);
+        player.openInventory(wrapper.wrap(inv));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

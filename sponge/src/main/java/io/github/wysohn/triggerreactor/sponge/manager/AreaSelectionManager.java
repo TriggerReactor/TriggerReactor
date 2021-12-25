@@ -35,11 +35,6 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager {
     }
 
     @Listener
-    public void onQuit(ClientConnectionEvent.Disconnect e) {
-        resetSelections(e.getTargetEntity().getUniqueId());
-    }
-
-    @Listener
     public void onInteract(InteractBlockEvent.Primary.MainHand e) {
         onInteract(e, true);
     }
@@ -51,13 +46,11 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager {
 
     public void onInteract(InteractBlockEvent e, boolean leftClick) {
         Player player = e.getCause().first(Player.class).orElse(null);
-        if (player == null)
-            return;
+        if (player == null) return;
 
         UUID uuid = player.getUniqueId();
 
-        if (!selecting.contains(uuid))
-            return;
+        if (!selecting.contains(uuid)) return;
 
         e.setCancelled(true);
 
@@ -73,7 +66,9 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager {
         if (result != null) {
             switch (result) {
                 case DIFFERENTWORLD:
-                    player.sendMessage(Text.builder("Positions have different world name.").color(TextColors.RED).build());
+                    player.sendMessage(Text.builder("Positions have different world name.")
+                                               .color(TextColors.RED)
+                                               .build());
                     break;
                 case COMPLETE:
                     SimpleLocation left = leftPosition.get(uuid);
@@ -82,7 +77,9 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager {
                     SimpleLocation smallest = getSmallest(left, right);
                     SimpleLocation largest = getLargest(left, right);
 
-                    player.sendMessage(Text.builder("Smallest: " + smallest + " , Largest: " + largest).color(TextColors.LIGHT_PURPLE).build());
+                    player.sendMessage(Text.builder("Smallest: " + smallest + " , Largest: " + largest)
+                                               .color(TextColors.LIGHT_PURPLE)
+                                               .build());
                     break;
                 case LEFTSET:
                     player.sendMessage(Text.builder("Left ready").color(TextColors.GREEN).build());
@@ -92,6 +89,11 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager {
                     break;
             }
         }
+    }
+
+    @Listener
+    public void onQuit(ClientConnectionEvent.Disconnect e) {
+        resetSelections(e.getTargetEntity().getUniqueId());
     }
 
     @Override

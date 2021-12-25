@@ -12,6 +12,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private long interval = 1000L;
     private boolean autoStart = false;
     private Map<String, Object> vars;
+    //////////////////////////////////////////////////////////////////////////////////////
+    private boolean paused;
 
     public RepeatingTrigger(ITriggerReactorAPI api,
                             TriggerInfo info,
@@ -31,16 +33,20 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         init();
     }
 
-    /**
-     * This should be called at least once on start up so variables can be
-     * initialized.
-     */
     @Override
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
-        ValidationUtil.notNull(scriptVars);
-        vars = scriptVars;
+    public RepeatingTrigger clone() {
+        try {
+            return new RepeatingTrigger(api, info, script, interval);
+        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
+            e.printStackTrace();
+        }
 
-        return super.activate(e, scriptVars);
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "{" + "interval=" + interval + ", autoStart=" + autoStart + ", paused=" + paused + '}';
     }
 
     /**
@@ -56,65 +62,23 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     /**
+     * This should be called at least once on start up so variables can be
+     * initialized.
+     */
+    @Override
+    public boolean activate(Object e, Map<String, Object> scriptVars) {
+        ValidationUtil.notNull(scriptVars);
+        vars = scriptVars;
+
+        return super.activate(e, scriptVars);
+    }
+
+    /**
      * We don't use cooldown for this trigger. Just return false always
      */
     @Override
     protected boolean checkCooldown(Object e) {
         return false;
-    }
-
-    public long getInterval() {
-        return interval;
-    }
-
-    public void setInterval(long interval) {
-        this.interval = interval;
-    }
-
-    public boolean isAutoStart() {
-        return autoStart;
-    }
-
-    public void setAutoStart(boolean autoStart) {
-        this.autoStart = autoStart;
-    }
-
-    @Override
-    public RepeatingTrigger clone() {
-        try {
-            return new RepeatingTrigger(api, info, script,
-                    interval);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "{" +
-                "interval=" + interval +
-                ", autoStart=" + autoStart +
-                ", paused=" + paused +
-                '}';
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    private boolean paused;
-
-    public boolean isPaused() {
-        return paused;
-    }
-
-    public void setPaused(boolean paused) {
-        this.paused = paused;
-
-        if (!paused) {
-            synchronized (this) {
-                this.notify();
-            }
-        }
     }
 
     @Override
@@ -147,6 +111,36 @@ public class RepeatingTrigger extends Trigger implements Runnable {
             activate(new Object(), vars);
         } catch (Exception e) {
             api.getThrowableHandler().handleException(null, e);
+        }
+    }
+
+    public long getInterval() {
+        return interval;
+    }
+
+    public void setInterval(long interval) {
+        this.interval = interval;
+    }
+
+    public boolean isAutoStart() {
+        return autoStart;
+    }
+
+    public void setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+
+        if (!paused) {
+            synchronized (this) {
+                this.notify();
+            }
         }
     }
 }

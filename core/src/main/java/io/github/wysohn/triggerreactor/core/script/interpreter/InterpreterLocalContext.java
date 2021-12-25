@@ -44,86 +44,6 @@ public class InterpreterLocalContext {
 
     private int callArgsSize = 0;
 
-    Map<String, Class<?>> getImportMap() {
-        return importMap;
-    }
-
-    public Map<String, Object> getVars() {
-        return vars;
-    }
-
-    void setVars(Map<String, Object> vars) {
-        this.vars = vars;
-    }
-
-    Token pushToken(Token token){
-        return this.stack.push(token);
-    }
-
-    Token popToken(){
-        return this.stack.pop();
-    }
-
-    boolean stackEmpty() {
-        return this.stack.empty();
-    }
-
-    public Object getTriggerCause() {
-        return triggerCause;
-    }
-
-    void setTriggerCause(Object triggerCause) {
-        this.triggerCause = triggerCause;
-    }
-
-    Timings.Timing getTiming() {
-        return timing;
-    }
-
-    void setTiming(Timings.Timing timing) {
-        this.timing = timing;
-    }
-
-    boolean isStopFlag() {
-        return stopFlag;
-    }
-
-    void setStopFlag(boolean stopFlag) {
-        this.stopFlag = stopFlag;
-    }
-
-    boolean isWaitFlag() {
-        return waitFlag;
-    }
-
-    void setWaitFlag(boolean waitFlag) {
-        this.waitFlag = waitFlag;
-    }
-
-    boolean isBreakFlag() {
-        return breakFlag;
-    }
-
-    void setBreakFlag(boolean breakFlag) {
-        this.breakFlag = breakFlag;
-    }
-
-    boolean isContinueFlag() {
-        return continueFlag;
-    }
-
-    void setContinueFlag(boolean continueFlag) {
-        this.continueFlag = continueFlag;
-    }
-
-    int getCallArgsSize() {
-        return callArgsSize;
-    }
-
-    void setCallArgsSize(int callArgsSize) {
-        this.callArgsSize = callArgsSize;
-    }
-
     /**
      * Copy current state, except for the current stack
      *
@@ -144,5 +64,85 @@ public class InterpreterLocalContext {
                 .orElse(Timings.LIMBO); // attach lambda timings to the caller timings
 
         return context;
+    }
+
+    int getCallArgsSize() {
+        return callArgsSize;
+    }
+
+    void setCallArgsSize(int callArgsSize) {
+        this.callArgsSize = callArgsSize;
+    }
+
+    Map<String, Class<?>> getImportMap() {
+        return importMap;
+    }
+
+    Timings.Timing getTiming() {
+        return timing;
+    }
+
+    void setTiming(Timings.Timing timing) {
+        this.timing = timing;
+    }
+
+    public Object getTriggerCause() {
+        return triggerCause;
+    }
+
+    void setTriggerCause(Object triggerCause) {
+        this.triggerCause = triggerCause;
+    }
+
+    public Map<String, Object> getVars() {
+        return vars;
+    }
+
+    void setVars(Map<String, Object> vars) {
+        this.vars = vars;
+    }
+
+    boolean isBreakFlag() {
+        return breakFlag;
+    }
+
+    void setBreakFlag(boolean breakFlag) {
+        this.breakFlag = breakFlag;
+    }
+
+    boolean isContinueFlag() {
+        return continueFlag;
+    }
+
+    void setContinueFlag(boolean continueFlag) {
+        this.continueFlag = continueFlag;
+    }
+
+    boolean isStopFlag() {
+        return stopFlag;
+    }
+
+    void setStopFlag(boolean stopFlag) {
+        this.stopFlag = stopFlag;
+    }
+
+    boolean isWaitFlag() {
+        return waitFlag;
+    }
+
+    void setWaitFlag(boolean waitFlag) {
+        this.waitFlag = waitFlag;
+    }
+
+    Token popToken() {
+        return this.stack.pop();
+    }
+
+    Token pushToken(Token token) {
+        return this.stack.push(token);
+    }
+
+    boolean stackEmpty() {
+        return this.stack.empty();
     }
 }

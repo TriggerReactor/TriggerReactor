@@ -8,12 +8,12 @@ import javax.inject.Inject;
 
 public class BukkitWrapper extends AbstractBukkitWrapper {
     @Inject
-    BukkitWrapper(){
+    BukkitWrapper() {
 
     }
 
     @Override
     public IPlayer wrap(Player player) {
-        return new BukkitPlayer(player);
+        return new BukkitPlayer(this, player);
     }
 }

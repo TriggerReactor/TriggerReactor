@@ -34,9 +34,26 @@ import java.util.UUID;
 @Singleton
 public class AreaSelectionManager extends AbstractAreaSelectionManager implements Listener {
 
-    @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
-        resetSelections(e.getPlayer().getUniqueId());
+    @Override
+    public void onDisable() {
+
+    }
+
+    @Override
+    public void onEnable() {
+
+    }
+
+    @Override
+    public void onReload() {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void saveAll() {
+        // TODO Auto-generated method stub
+
     }
 
     @EventHandler
@@ -44,13 +61,11 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager implement
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (!selecting.contains(uuid))
-            return;
+        if (!selecting.contains(uuid)) return;
 
         e.setCancelled(true);
 
-        if (!BukkitUtil.isLeftHandClick(e))
-            return;
+        if (!BukkitUtil.isLeftHandClick(e)) return;
 
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getClickedBlock().getLocation());
 
@@ -85,25 +100,8 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager implement
         }
     }
 
-    @Override
-    public void onEnable() {
-
-    }
-
-    @Override
-    public void onReload() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
-    @Override
-    public void saveAll() {
-        // TODO Auto-generated method stub
-
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        resetSelections(e.getPlayer().getUniqueId());
     }
 }

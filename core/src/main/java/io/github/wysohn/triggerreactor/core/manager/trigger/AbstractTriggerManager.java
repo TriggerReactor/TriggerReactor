@@ -36,6 +36,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class AbstractTriggerManager<T extends Trigger> extends Manager implements ITriggerLoader<T> {
+    private final String folderName;
+    private final Observer observer = new Observer();
+    private final Map<String, T> triggers = new ConcurrentHashMap<>();
     @Inject
     protected TriggerReactorMain main;
     @Inject
@@ -53,23 +56,10 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     @Inject
     @Named("DataFolder")
     protected File dataFolder;
-
-    private final String folderName;
-    private final Observer observer = new Observer();
-    private final Map<String, T> triggers = new ConcurrentHashMap<>();
-
     protected File folder;
 
     public AbstractTriggerManager(String folderName) {
         this.folderName = folderName;
-    }
-
-    public File getFolder() {
-        return folder;
-    }
-
-    public TriggerInfo[] getTriggerInfos() {
-        return listTriggers(folder, configSourceFactories);
     }
 
     @Override
@@ -79,8 +69,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     @Override
     public void onReload() {
-        if (!folder.exists())
-            folder.mkdirs();
+        if (!folder.exists()) folder.mkdirs();
 
         triggers.clear();
 
@@ -89,29 +78,16 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
                 info.reloadConfig();
 
                 T t = load(info);
-                Optional.ofNullable(t)
-                        .ifPresent(trigger -> {
-                            if (has(info.getTriggerName())) {
-                                logger.warning(info + " is already registered! Duplicated Trigger?");
-                            } else {
-                                put(info.getTriggerName(), trigger);
-                            }
-                        });
+                Optional.ofNullable(t).ifPresent(trigger -> {
+                    if (has(info.getTriggerName())) {
+                        logger.warning(info + " is already registered! Duplicated Trigger?");
+                    } else {
+                        put(info.getTriggerName(), trigger);
+                    }
+                });
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load " + info, e);
             }
-        }
-    }
-
-    public void reload(String triggerName) {
-        T trigger = get(triggerName);
-        TriggerInfo info = trigger.info;
-
-        try {
-            trigger = load(info);
-            put(triggerName, trigger);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load " + info, e);
         }
     }
 
@@ -126,6 +102,28 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return triggers.get(name);
     }
 
+    public Collection<T> getAllTriggers() {
+        return triggers.values();
+    }
+
+    public File getFolder() {
+        return folder;
+    }
+
+    public TriggerInfo[] getTriggerInfos() {
+        return listTriggers(folder, configSourceFactories);
+    }
+
+    public List<String> getTriggerList(TriggerFilter filter) {
+        List<String> strs = new ArrayList<>();
+        for (Trigger trigger : Collections.unmodifiableCollection(getAllTriggers())) {
+            String str = trigger.toString();
+            if (filter != null && filter.accept(str)) strs.add(str);
+            else if (filter == null) strs.add(str);
+        }
+        return strs;
+    }
+
     public boolean has(String name) {
         return triggers.containsKey(name);
     }
@@ -135,47 +133,25 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return triggers.put(name, t);
     }
 
+    public void reload(String triggerName) {
+        T trigger = get(triggerName);
+        TriggerInfo info = trigger.info;
+
+        try {
+            trigger = load(info);
+            put(triggerName, trigger);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load " + info, e);
+        }
+    }
+
     public T remove(String name) {
         T deleted = triggers.remove(name);
 
         //TODO File I/O need to be done asynchronously
-        Optional.ofNullable(deleted)
-                .map(T::getInfo)
-                .ifPresent(TriggerInfo::delete);
+        Optional.ofNullable(deleted).map(T::getInfo).ifPresent(TriggerInfo::delete);
 
         return deleted;
-    }
-
-    public Collection<T> getAllTriggers() {
-        return triggers.values();
-    }
-
-    public List<String> getTriggerList(TriggerFilter filter) {
-        List<String> strs = new ArrayList<>();
-        for (Trigger trigger : Collections.unmodifiableCollection(getAllTriggers())) {
-            String str = trigger.toString();
-            if (filter != null && filter.accept(str))
-                strs.add(str);
-            else if (filter == null)
-                strs.add(str);
-        }
-        return strs;
-    }
-
-    @FunctionalInterface
-    public interface TriggerFilter {
-        boolean accept(String name);
-    }
-
-    public static File getTriggerFile(File folder, String triggerName, boolean write) {
-        File triggerFile = new File(folder, triggerName + ".trg");
-
-        //if reading the file, first check if .trg file exists and then try with no extension
-        //we do not care about no extension file when we are writing.
-        if (!write && !triggerFile.exists())
-            triggerFile = new File(folder, triggerName);
-
-        return triggerFile;
     }
 
     void reportWarnings(List<Warning> warnings, Trigger trigger) {
@@ -192,8 +168,8 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             ww = "warning was";
         }
 
-        logger.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
-                trigger.getInfo() + " =====");
+        logger.log(L,
+                   "===== " + warnings.size() + " " + ww + " found while loading trigger " + trigger.getInfo() + " =====");
         for (Warning w : warnings) {
             for (String line : w.getMessageLines()) {
                 logger.log(L, line);
@@ -203,12 +179,19 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         logger.log(Level.WARNING, "");
     }
 
-    private class Observer implements IObserver {
-        @Override
-        public void onUpdate(IObservable observable) {
-            //TODO need to be done async (file I/O)
-            save((T) observable);
-        }
+    public static File getTriggerFile(File folder, String triggerName, boolean write) {
+        File triggerFile = new File(folder, triggerName + ".trg");
+
+        //if reading the file, first check if .trg file exists and then try with no extension
+        //we do not care about no extension file when we are writing.
+        if (!write && !triggerFile.exists()) triggerFile = new File(folder, triggerName);
+
+        return triggerFile;
+    }
+
+    @FunctionalInterface
+    public interface TriggerFilter {
+        boolean accept(String name);
     }
 
     @SuppressWarnings("serial")
@@ -218,5 +201,13 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             super(message, cause);
         }
 
+    }
+
+    private class Observer implements IObserver {
+        @Override
+        public void onUpdate(IObservable observable) {
+            //TODO need to be done async (file I/O)
+            save((T) observable);
+        }
     }
 }

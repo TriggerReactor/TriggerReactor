@@ -27,47 +27,41 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
-    private static final GsonBuilder GSON_BUILDER = new GsonBuilder()
-            .excludeFieldsWithModifiers(Modifier.TRANSIENT, Modifier.STATIC).enableComplexMapKeySerialization()
-            .setPrettyPrinting().serializeNulls()
+    private static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT,
+                                                                                                 Modifier.STATIC)
+            .enableComplexMapKeySerialization()
+            .setPrettyPrinting()
+            .serializeNulls()
             .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class, Boolean.class, NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class, Integer.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class, Long.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class, Float.class, NullTypeAdapters.NULL_ADOPTER_FLOAT))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class, Double.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class,
+                                                                Boolean.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class,
+                                                                Integer.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class,
+                                                                Long.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class,
+                                                                Float.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_FLOAT))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class,
+                                                                Double.class,
+                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
-
-    public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
-        GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);
-    }
-
-    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder()
-            .addChain(new DefaultValidator())
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder().addChain(new DefaultValidator())
             .addChain(new UUIDValidator())
             .addChain(new SimpleLocationValidator())
             .addChain(new SimpleChunkLocationValidator());
-
-    public static void registerValidator(ITypeValidator... validators) {
-        ValidationUtil.notNull(validators);
-        ValidationUtil.allNotNull(validators);
-        for (ITypeValidator validator : validators) {
-            VALIDATOR_BUILDER.addChain(validator);
-        }
-    }
-
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
-
     //Lock order: file -> cache
     private final File file;
     private final Function<File, Reader> readerFactory;
     private final Function<File, Writer> writerFactory;
     private final Map<String, Object> cache = new HashMap<>();
-
     private final Gson gson = GSON_BUILDER.create();
-
     private final ITypeValidator typeValidator;
 
     public GsonConfigSource(File file) {
@@ -94,9 +88,7 @@ public class GsonConfigSource implements IConfigSource {
      * @param writerFactory
      * @deprecated for test. Do not use it directly unless necessary.
      */
-    public GsonConfigSource(File file,
-                            Function<File, Reader> readerFactory,
-                            Function<File, Writer> writerFactory) {
+    public GsonConfigSource(File file, Function<File, Reader> readerFactory, Function<File, Writer> writerFactory) {
         ValidationUtil.notNull(file);
         ValidationUtil.notNull(readerFactory);
         ValidationUtil.notNull(writerFactory);
@@ -108,22 +100,8 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     @Override
-    public boolean fileExists() {
-        // this is not a perfect way yet can cover most cases.
-        return file.exists() && file.length() > 0;
-    }
-
-    private void ensureFile() {
-        if (!file.exists()) {
-            if (!file.getParentFile().exists())
-                file.getParentFile().mkdirs();
-
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    public void onDisable() {
+        shutdown();
     }
 
     @Override
@@ -139,12 +117,10 @@ public class GsonConfigSource implements IConfigSource {
             try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
                     Map<String, Object> loaded = null;
-                    if (file.exists() && file.length() > 0L)
-                        loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+                    if (file.exists() && file.length() > 0L) loaded = GsonHelper.readJson(new JsonReader(fr), gson);
 
                     cache.clear();
-                    if (loaded != null)
-                        cache.putAll(loaded);
+                    if (loaded != null) cache.putAll(loaded);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -153,8 +129,60 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     @Override
-    public void onDisable() {
-        shutdown();
+    public void delete() {
+        exec.shutdownNow();
+        file.delete();
+    }
+
+    @Override
+    public boolean fileExists() {
+        // this is not a perfect way yet can cover most cases.
+        return file.exists() && file.length() > 0;
+    }
+
+    @Override
+    public <T> Optional<T> get(String key) {
+        synchronized (cache) {
+            return Optional.ofNullable((T) get(cache, IConfigSource.toPath(key), Object.class));
+        }
+    }
+
+    @Override
+    public <T> Optional<T> get(String key, Class<T> asType) {
+        synchronized (cache) {
+            return Optional.ofNullable(get(cache, IConfigSource.toPath(key), asType));
+        }
+    }
+
+    @Override
+    public boolean has(String key) {
+        return get(cache, IConfigSource.toPath(key), Object.class) != null;
+    }
+
+    @Override
+    public boolean isSection(String key) {
+        synchronized (cache) {
+            return get(cache, IConfigSource.toPath(key), Object.class) instanceof Map;
+        }
+    }
+
+    @Override
+    public Set<String> keys() {
+        synchronized (cache) {
+            return new HashSet<>(cache.keySet());
+        }
+    }
+
+    @Override
+    public void put(String key, Object value) {
+        synchronized (cache) {
+            put(cache, IConfigSource.toPath(key), value);
+            exec.execute(() -> {
+                synchronized (file) {
+                    cacheToFile();
+                }
+            });
+        }
     }
 
     @Override
@@ -163,6 +191,13 @@ public class GsonConfigSource implements IConfigSource {
 
         synchronized (file) {
             cacheToFile();
+        }
+    }
+
+    @Override
+    public String toString() {
+        synchronized (cache) {
+            return cache.toString();
         }
     }
 
@@ -177,6 +212,18 @@ public class GsonConfigSource implements IConfigSource {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void ensureFile() {
+        if (!file.exists()) {
+            if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -195,20 +242,6 @@ public class GsonConfigSource implements IConfigSource {
         }
 
         return null;
-    }
-
-    @Override
-    public <T> Optional<T> get(String key, Class<T> asType) {
-        synchronized (cache) {
-            return Optional.ofNullable(get(cache, IConfigSource.toPath(key), asType));
-        }
-    }
-
-    @Override
-    public <T> Optional<T> get(String key) {
-        synchronized (cache) {
-            return Optional.ofNullable((T) get(cache, IConfigSource.toPath(key), Object.class));
-        }
     }
 
     private void put(Map<String, Object> map, String[] path, Object value) {
@@ -244,37 +277,6 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
-    @Override
-    public void put(String key, Object value) {
-        synchronized (cache) {
-            put(cache, IConfigSource.toPath(key), value);
-            exec.execute(() -> {
-                synchronized (file) {
-                    cacheToFile();
-                }
-            });
-        }
-    }
-
-    @Override
-    public boolean has(String key) {
-        return get(cache, IConfigSource.toPath(key), Object.class) != null;
-    }
-
-    @Override
-    public Set<String> keys() {
-        synchronized (cache) {
-            return new HashSet<>(cache.keySet());
-        }
-    }
-
-    @Override
-    public boolean isSection(String key) {
-        synchronized (cache) {
-            return get(cache, IConfigSource.toPath(key), Object.class) instanceof Map;
-        }
-    }
-
     /**
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
@@ -287,16 +289,15 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
-    @Override
-    public void delete() {
-        exec.shutdownNow();
-        file.delete();
+    public static <T> void registerSerializer(Class<T> type, Serializer<T> serializer) {
+        GSON_BUILDER.registerTypeHierarchyAdapter(type, serializer);
     }
 
-    @Override
-    public String toString() {
-        synchronized (cache){
-            return cache.toString();
+    public static void registerValidator(ITypeValidator... validators) {
+        ValidationUtil.notNull(validators);
+        ValidationUtil.allNotNull(validators);
+        for (ITypeValidator validator : validators) {
+            VALIDATOR_BUILDER.addChain(validator);
         }
     }
 }

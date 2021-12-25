@@ -10,7 +10,7 @@ import java.io.File;
 public abstract class FakeDataFolderModule {
     @Provides
     @Named("DataFolder")
-    static File provideDataFolder(){
+    static File provideDataFolder() {
         return new File(".");
     }
 }

@@ -38,22 +38,20 @@ public class ClickTrigger extends Trigger {
     }
 
     @Override
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
-        if (!handler.allow(e))
-            return true;
-
-        return super.activate(e, scriptVars);
-    }
-
-    @Override
     public Trigger clone() {
         try {
             //TODO: using same handler will be safe?
-            return new ClickTrigger(api, info, script,
-                    handler);
+            return new ClickTrigger(api, info, script, handler);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public boolean activate(Object e, Map<String, Object> scriptVars) {
+        if (!handler.allow(e)) return true;
+
+        return super.activate(e, scriptVars);
     }
 }

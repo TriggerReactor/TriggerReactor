@@ -17,10 +17,6 @@
 package io.github.wysohn.triggerreactor.core.bridge;
 
 public interface ICommandSender extends IMinecraftObject {
-    void sendMessage(String message);
-
-    boolean hasPermission(String permission);
-
     /**
      * hashCode() and equals() are needed for ScriptEditManager
      *
@@ -36,4 +32,8 @@ public interface ICommandSender extends IMinecraftObject {
      */
     @Override
     boolean equals(Object obj);
+
+    boolean hasPermission(String permission);
+
+    void sendMessage(String message);
 }

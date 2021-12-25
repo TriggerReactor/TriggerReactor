@@ -32,20 +32,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
-    @Inject
-    ITriggerReactorAPI api;
-
     private static final String SYNC = "sync";
     private static final String PERMISSION = "permissions";
     private static final String ALIASES = "aliases";
     public static final String TABS = "tabs";
-
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
-
     private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
+    @Inject
+    ITriggerReactorAPI api;
+
     {
         tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
     }
@@ -54,40 +51,12 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         super(folderName);
     }
 
-    private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
-        String hint = (String) tabs.get(HINT);
-        String candidates_str = (String) tabs.get(CANDIDATES);
-
-        ITabCompleter tabCompleter;
-        if (candidates_str != null && candidates_str.startsWith("$")) {
-            tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
-        } else if (candidates_str == null && hint != null) {
-            tabCompleter = ITabCompleter.Builder.withHint(hint).build();
-        } else if (candidates_str != null && hint == null) {
-            tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
-        } else {
-            tabCompleter = ITabCompleter.Builder.withHint(hint)
-                    .setCandidate(
-                            Optional.ofNullable(candidates_str)
-                                    .map(str -> ITabCompleter.list(str.split(",")))
-                                    .orElseGet(() -> ITabCompleter.list(""))
-                    )
-                    .build();
-        }
-        return tabCompleter;
-    }
-
-    private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
-        return tabs.stream()
-                .map(this::toTabCompleter)
-                .toArray(ITabCompleter[]::new);
-    }
-
     @Override
     public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
-        List<String> aliases = info.getConfig().get(ALIASES, List.class)
-                .map(aliasList -> (((List<String>)aliasList).stream()
+        List<String> aliases = info.getConfig()
+                .get(ALIASES, List.class)
+                .map(aliasList -> (((List<String>) aliasList).stream()
                         .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
                         .collect(Collectors.toList())))
                 .orElse(new ArrayList<>());
@@ -112,9 +81,12 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
             trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
-            trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
-                    .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
-                    .toArray());
+            trigger.getInfo()
+                    .getConfig()
+                    .put(ALIASES,
+                         Arrays.stream(trigger.getAliases())
+                                 .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
+                                 .toArray());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -130,8 +102,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         super.onReload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
-            if(!registerCommand(trigger.getInfo().getTriggerName(), trigger)){
-                logger.warning("Attempted to register command trigger "+trigger.getInfo()+" but failed.");
+            if (!registerCommand(trigger.getInfo().getTriggerName(), trigger)) {
+                logger.warning("Attempted to register command trigger " + trigger.getInfo() + " but failed.");
                 logger.warning("Probably, the command is already in use by another command trigger.");
             }
         }
@@ -155,51 +127,19 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     }
 
     /**
-     * @param cmd    command to intercept
-     * @param script script to be executed
-     * @return true on success; false if cmd already binded.
-     */
-    public boolean addCommandTrigger(String cmd, String script) throws TriggerInitFailedException {
-        if (has(cmd))
-            return false;
-
-        File file = getTriggerFile(folder, cmd, true);
-        String name = TriggerInfo.extractName(file);
-        IConfigSource config = configSourceFactories.create(folder, name);
-        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        CommandTrigger trigger = new CommandTrigger(api, info, script);
-
-        put(cmd, trigger);
-        if(!registerCommand(cmd, trigger))
-            return false;
-
-        synchronizeCommandMap();
-        main.saveAsynchronously(this);
-        return true;
-    }
-
-    public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger(api,
-                new TriggerInfo(null, null, "temp") {
-                    @Override
-                    public boolean isValid() {
-                        return false;
-                    }
-                }, script);
-    }
-
-    /**
      * Register this command to command map. If the command is already in use by another plugin,
      * the original command will be overriden, and the original command will be recovered when
      * the trigger is un-registered. However, if the trigger's name is already registered and
      * also overriden by another command trigger, this method does nothing and return false.
      *
      * @param triggerName name of the trigger to register
-     * @param trigger the actual trigger instance
+     * @param trigger     the actual trigger instance
      * @return true if registered; false if the command is already overriden by another command trigger and
      * is also already registered trigger, it will return false.
      */
     protected abstract boolean registerCommand(String triggerName, CommandTrigger trigger);
+
+    protected abstract void synchronizeCommandMap();
 
     /**
      * Unregister this command from command map.
@@ -209,15 +149,68 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      */
     protected abstract boolean unregisterCommand(String triggerName);
 
-    protected abstract void synchronizeCommandMap();
+    /**
+     * @param cmd    command to intercept
+     * @param script script to be executed
+     * @return true on success; false if cmd already binded.
+     */
+    public boolean addCommandTrigger(String cmd, String script) throws TriggerInitFailedException {
+        if (has(cmd)) return false;
+
+        File file = getTriggerFile(folder, cmd, true);
+        String name = TriggerInfo.extractName(file);
+        IConfigSource config = configSourceFactories.create(folder, name);
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+        CommandTrigger trigger = new CommandTrigger(api, info, script);
+
+        put(cmd, trigger);
+        if (!registerCommand(cmd, trigger)) return false;
+
+        synchronizeCommandMap();
+        main.saveAsynchronously(this);
+        return true;
+    }
+
+    public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
+        return new CommandTrigger(api, new TriggerInfo(null, null, "temp") {
+            @Override
+            public boolean isValid() {
+                return false;
+            }
+        }, script);
+    }
 
     public void reregisterCommand(String triggerName) {
-        Optional.ofNullable(get(triggerName))
-                .ifPresent(trigger -> {
-                    unregisterCommand(triggerName);
-                    registerCommand(triggerName, trigger);
+        Optional.ofNullable(get(triggerName)).ifPresent(trigger -> {
+            unregisterCommand(triggerName);
+            registerCommand(triggerName, trigger);
 
-                    synchronizeCommandMap();
-                });
+            synchronizeCommandMap();
+        });
+    }
+
+    private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
+        String hint = (String) tabs.get(HINT);
+        String candidates_str = (String) tabs.get(CANDIDATES);
+
+        ITabCompleter tabCompleter;
+        if (candidates_str != null && candidates_str.startsWith("$")) {
+            tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
+        } else if (candidates_str == null && hint != null) {
+            tabCompleter = ITabCompleter.Builder.withHint(hint).build();
+        } else if (candidates_str != null && hint == null) {
+            tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
+        } else {
+            tabCompleter = ITabCompleter.Builder.withHint(hint)
+                    .setCandidate(Optional.ofNullable(candidates_str)
+                                          .map(str -> ITabCompleter.list(str.split(",")))
+                                          .orElseGet(() -> ITabCompleter.list("")))
+                    .build();
+        }
+        return tabCompleter;
+    }
+
+    private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
+        return tabs.stream().map(this::toTabCompleter).toArray(ITabCompleter[]::new);
     }
 }

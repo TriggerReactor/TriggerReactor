@@ -34,6 +34,9 @@ import java.util.regex.Pattern;
 
 @PluginScope
 public final class GlobalVariableManager extends Manager implements IMigratable {
+    private static final Pattern pattern = Pattern.compile(
+            "# Match a valid Windows filename (unspecified file system).          \n" + "^                                # Anchor to start of string.        \n" + "(?!                              # Assert filename is not: CON, PRN, \n" + "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n" + "    CON|PRN|AUX|NUL|             # COM5, COM6, COM7, COM8, COM9,     \n" + "    COM[1-9]|LPT[1-9]            # LPT1, LPT2, LPT3, LPT4, LPT5,     \n" + "  )                              # LPT6, LPT7, LPT8, and LPT9...     \n" + "  (?:\\.[^.]*)?                  # followed by optional extension    \n" + "  $                              # and end of string                 \n" + ")                                # End negative lookahead assertion. \n" + "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n" + "[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]  # Last char is not a space or dot.  \n" + "$                                # Anchor to end of string.            ",
+            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
     @Inject
     ConfigSourceFactories configSourceFactories;
     @Inject
@@ -41,107 +44,7 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
     @Inject
     @Named("DataFolder")
     File dataFolder;
-    
     private IConfigSource configSource;
-
-    @Inject
-    public GlobalVariableManager() {
-
-    }
-
-    @Override
-    public void onEnable() throws Exception{
-        configSource = configSourceFactories.create(dataFolder, "var");
-        configSource.onEnable();
-    }
-
-    @Override
-    public void onReload() {
-        logger.info("Reloading global variables...");
-        configSource.onReload();
-        logger.info("Global variables were loaded from " + configSource);
-    }
-
-    @Override
-    public void saveAll() {
-        configSource.saveAll();
-    }
-
-    @Override
-    public void onDisable() {
-        configSource.onDisable();
-    }
-
-    @Override
-    public boolean isMigrationNeeded() {
-        File oldFile = new File(dataFolder, "var.yml");
-        // after migration, file will be renamed to .yml.bak, and .json file will be created.
-        // so migrate only if old file exist and new file is not yet generated.
-        return oldFile.exists() && !configSource.fileExists();
-    }
-
-    @Override
-    public void migrate(IMigrationHelper migrationHelper) {
-        DelegatedConfigSource delegatedConfigSource = new DelegatedConfigSource(configSource) {
-            @Override
-            public void put(String key, Object value) {
-                GlobalVariableManager.this.put(key, value);
-            }
-        };
-        migrationHelper.migrate(delegatedConfigSource);
-    }
-
-    /**
-     * Remove global variable named 'key.' The 'key' might can contains '.' to indicate the grouping
-     * of yaml.
-     *
-     * @param key the key
-     */
-    public void remove(String key) {
-        configSource.put(key, null);
-    }
-
-    /**
-     * Check if the key is set
-     *
-     * @param key the key
-     * @return true if set; false if nothing is set with 'key'
-     */
-    public boolean has(String key) {
-        return configSource.has(key);
-    }
-
-    /**
-     * Save new value. This should replace the value if already exists.
-     *
-     * @param key   the key. (This can contains '.' to indicate grouping of yaml)
-     * @param value the value to save
-     * @throws Exception
-     */
-    public void put(String key, Object value) {
-        configSource.put(key, value);
-    }
-
-    /**
-     * get value saved with the 'key'
-     *
-     * @param key the key
-     * @return the value object if exists; null if nothing found
-     */
-    public Object get(String key) {
-        return configSource.get(key).orElse(null);
-    }
-
-    /**
-     * Get global variable adapter that will be used by Triggers. The adapter should extends HashMap and
-     * override get() put() has() remove() methods in order to work properly.
-     *
-     * @return
-     */
-    public HashMap<Object, Object> getGlobalVariableAdapter() {
-        return adapter;
-    }
-
     private final GlobalVariableAdapter adapter = new GlobalVariableAdapter() {
         private final ConcurrentHashMap<TemporaryGlobalVariableKey, Object> temp_map = new ConcurrentHashMap<>();
 
@@ -198,21 +101,103 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
         }
     };
 
-    private static final Pattern pattern = Pattern.compile(
-            "# Match a valid Windows filename (unspecified file system).          \n" +
-                    "^                                # Anchor to start of string.        \n" +
-                    "(?!                              # Assert filename is not: CON, PRN, \n" +
-                    "  (?:                            # AUX, NUL, COM1, COM2, COM3, COM4, \n" +
-                    "    CON|PRN|AUX|NUL|             # COM5, COM6, COM7, COM8, COM9,     \n" +
-                    "    COM[1-9]|LPT[1-9]            # LPT1, LPT2, LPT3, LPT4, LPT5,     \n" +
-                    "  )                              # LPT6, LPT7, LPT8, and LPT9...     \n" +
-                    "  (?:\\.[^.]*)?                  # followed by optional extension    \n" +
-                    "  $                              # and end of string                 \n" +
-                    ")                                # End negative lookahead assertion. \n" +
-                    "[^<>:\"/\\\\|?*\\x00-\\x1F]*     # Zero or more valid filename chars.\n" +
-                    "[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]  # Last char is not a space or dot.  \n" +
-                    "$                                # Anchor to end of string.            ",
-            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE | Pattern.COMMENTS);
+    @Inject
+    public GlobalVariableManager() {
+
+    }
+
+    @Override
+    public void saveAll() {
+        configSource.saveAll();
+    }
+
+    @Override
+    public void onDisable() {
+        configSource.onDisable();
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+        configSource = configSourceFactories.create(dataFolder, "var");
+        configSource.onEnable();
+    }
+
+    @Override
+    public void onReload() {
+        logger.info("Reloading global variables...");
+        configSource.onReload();
+        logger.info("Global variables were loaded from " + configSource);
+    }
+
+    @Override
+    public boolean isMigrationNeeded() {
+        File oldFile = new File(dataFolder, "var.yml");
+        // after migration, file will be renamed to .yml.bak, and .json file will be created.
+        // so migrate only if old file exist and new file is not yet generated.
+        return oldFile.exists() && !configSource.fileExists();
+    }
+
+    @Override
+    public void migrate(IMigrationHelper migrationHelper) {
+        DelegatedConfigSource delegatedConfigSource = new DelegatedConfigSource(configSource) {
+            @Override
+            public void put(String key, Object value) {
+                GlobalVariableManager.this.put(key, value);
+            }
+        };
+        migrationHelper.migrate(delegatedConfigSource);
+    }
+
+    /**
+     * get value saved with the 'key'
+     *
+     * @param key the key
+     * @return the value object if exists; null if nothing found
+     */
+    public Object get(String key) {
+        return configSource.get(key).orElse(null);
+    }
+
+    /**
+     * Get global variable adapter that will be used by Triggers. The adapter should extends HashMap and
+     * override get() put() has() remove() methods in order to work properly.
+     *
+     * @return
+     */
+    public HashMap<Object, Object> getGlobalVariableAdapter() {
+        return adapter;
+    }
+
+    /**
+     * Check if the key is set
+     *
+     * @param key the key
+     * @return true if set; false if nothing is set with 'key'
+     */
+    public boolean has(String key) {
+        return configSource.has(key);
+    }
+
+    /**
+     * Save new value. This should replace the value if already exists.
+     *
+     * @param key   the key. (This can contains '.' to indicate grouping of yaml)
+     * @param value the value to save
+     * @throws Exception
+     */
+    public void put(String key, Object value) {
+        configSource.put(key, value);
+    }
+
+    /**
+     * Remove global variable named 'key.' The 'key' might can contains '.' to indicate the grouping
+     * of yaml.
+     *
+     * @param key the key
+     */
+    public void remove(String key) {
+        configSource.put(key, null);
+    }
 
     /**
      * Check if the string is valid as key.

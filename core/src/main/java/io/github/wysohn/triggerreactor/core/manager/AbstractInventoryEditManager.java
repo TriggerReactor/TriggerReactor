@@ -19,8 +19,6 @@ public abstract class AbstractInventoryEditManager extends Manager {
     //inventories currently awaiting a save/discard/continue command
     protected Map<UUID, IInventory> suspended = new HashMap<>();
 
-    public abstract void startEdit(IPlayer player, InventoryTrigger trigger);
-
     //called by the "continue edit" button
     public abstract void continueEdit(IPlayer player);
 
@@ -29,6 +27,8 @@ public abstract class AbstractInventoryEditManager extends Manager {
 
     //called by the "save" button
     public abstract void saveEdit(IPlayer player);
+
+    public abstract void startEdit(IPlayer player, InventoryTrigger trigger);
 
     //helper method to remove the player from both maps
     protected void stopEdit(IPlayer player) {

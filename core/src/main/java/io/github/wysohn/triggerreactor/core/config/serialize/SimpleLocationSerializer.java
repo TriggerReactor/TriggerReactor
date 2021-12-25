@@ -7,7 +7,9 @@ import java.lang.reflect.Type;
 
 public class SimpleLocationSerializer implements Serializer<SimpleLocation> {
     @Override
-    public SimpleLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public SimpleLocation deserialize(JsonElement json,
+                                      Type typeOfT,
+                                      JsonDeserializationContext context) throws JsonParseException {
         return SimpleLocation.valueOf(json.getAsString());
     }
 

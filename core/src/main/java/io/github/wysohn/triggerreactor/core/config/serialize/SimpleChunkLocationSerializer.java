@@ -7,7 +7,9 @@ import java.lang.reflect.Type;
 
 public class SimpleChunkLocationSerializer implements Serializer<SimpleChunkLocation> {
     @Override
-    public SimpleChunkLocation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public SimpleChunkLocation deserialize(JsonElement json,
+                                           Type typeOfT,
+                                           JsonDeserializationContext context) throws JsonParseException {
         return SimpleChunkLocation.valueOf(json.getAsString());
     }
 

@@ -25,12 +25,12 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 @Module
 public abstract class CoreGameControllerModule {
     @Provides
-    static IGameController provideGameController(){
+    static IGameController provideGameController() {
         throw new RuntimeException("Must be provided by dependant.");
     }
 
     @Provides
-    static TaskSupervisor provideTaskSupervisor(){
+    static TaskSupervisor provideTaskSupervisor() {
         throw new RuntimeException("Must be provided by dependant.");
     }
 }

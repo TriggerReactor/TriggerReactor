@@ -40,72 +40,6 @@ public class CommonFunctions extends AbstractCommonFunctions {
     }
 
     @Override
-    @Deprecated
-    public boolean takeItem(Player player, int id, int amount) {
-        throw new UnsupportedOperationException("Cannot use numeric value for id since 1.13. Use appropriate Material value.");
-    }
-
-    @Override
-    public boolean takeItem(Player player, String id, int amount) {
-        ItemStack IS = new ItemStack(Material.valueOf(id), amount);
-        return takeItem(player, IS, amount);
-    }
-
-    @Override
-    @Deprecated
-    public boolean takeItem(Player player, int id, int amount, int data) {
-        throw new UnsupportedOperationException("Cannot use numeric value for id since 1.13. Use appropriate Material value.");
-    }
-
-    @Override
-    public boolean takeItem(Player player, String id, int amount, int data) {
-        @SuppressWarnings("deprecation")
-        ItemStack IS = new ItemStack(Material.valueOf(id), amount, (short) data);
-        return takeItem(player, IS, amount);
-    }
-
-    @Override
-    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
-                                         boolean particles) {
-        PotionEffectType type = null;
-        type = PotionEffectType.getByName(EffectType);
-
-        if (type != null) {
-            return new PotionEffect(type, duration, amplifier, ambient, particles);
-        } else {
-            return null;
-        }
-    }
-
-    @Override
-    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient, boolean particles, Color color) {
-        return makePotionEffect(EffectType, duration, amplifier, ambient, particles);
-    }
-
-    @Override
-    @Deprecated
-    public ItemStack item(int type, int amount, int data) {
-        throw new UnsupportedOperationException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public ItemStack item(String type, int amount, int data) {
-        return new ItemStack(Material.valueOf(type), amount, (short) data);
-    }
-
-    @Override
-    @Deprecated
-    public ItemStack item(int type, int amount) {
-        throw new UnsupportedOperationException("Cannot use numeric value for type since 1.13. Use appropriate Material value.");
-    }
-
-    @Override
-    public ItemStack item(String type, int amount) {
-        return item(type, amount, 0);
-    }
-
-    @Override
     public Collection<? extends Player> getPlayers() {
         return BukkitUtil.getOnlinePlayers();
     }
@@ -137,12 +71,63 @@ public class CommonFunctions extends AbstractCommonFunctions {
         return head;
     }
 
+    @Override
+    @Deprecated
+    public ItemStack item(int type, int amount, int data) {
+        throw new UnsupportedOperationException(
+                "Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public ItemStack item(String type, int amount, int data) {
+        return new ItemStack(Material.valueOf(type), amount, (short) data);
+    }
+
+    @Override
+    @Deprecated
+    public ItemStack item(int type, int amount) {
+        throw new UnsupportedOperationException(
+                "Cannot use numeric value for type since 1.13. Use appropriate Material value.");
+    }
+
+    @Override
+    public ItemStack item(String type, int amount) {
+        return item(type, amount, 0);
+    }
+
+    @Override
+    public PotionEffect makePotionEffect(String EffectType,
+                                         int duration,
+                                         int amplifier,
+                                         boolean ambient,
+                                         boolean particles,
+                                         Color color) {
+        return makePotionEffect(EffectType, duration, amplifier, ambient, particles);
+    }
+
+    @Override
+    public PotionEffect makePotionEffect(String EffectType,
+                                         int duration,
+                                         int amplifier,
+                                         boolean ambient,
+                                         boolean particles) {
+        PotionEffectType type = null;
+        type = PotionEffectType.getByName(EffectType);
+
+        if (type != null) {
+            return new PotionEffect(type, duration, amplifier, ambient, particles);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * @deprecated Location itself implements ConfigurationSerializable on latest versions.
      */
     @Deprecated
     @Override
-    public SerializableLocation serializeLocation(World world, double x, double y, double z){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z) {
         return new SerializableLocation(new Location(world, x, y, z));
     }
 
@@ -151,7 +136,7 @@ public class CommonFunctions extends AbstractCommonFunctions {
      */
     @Deprecated
     @Override
-    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch){
+    public SerializableLocation serializeLocation(World world, double x, double y, double z, double yaw, double pitch) {
         return new SerializableLocation(new Location(world, x, y, z, toFloat(yaw), toFloat(pitch)));
     }
 
@@ -160,8 +145,34 @@ public class CommonFunctions extends AbstractCommonFunctions {
      */
     @Deprecated
     @Override
-    public SerializableLocation serializeLocation(Location loc){
+    public SerializableLocation serializeLocation(Location loc) {
         return new SerializableLocation(loc);
+    }
+
+    @Override
+    @Deprecated
+    public boolean takeItem(Player player, int id, int amount) {
+        throw new UnsupportedOperationException(
+                "Cannot use numeric value for id since 1.13. Use appropriate Material value.");
+    }
+
+    @Override
+    public boolean takeItem(Player player, String id, int amount) {
+        ItemStack IS = new ItemStack(Material.valueOf(id), amount);
+        return takeItem(player, IS, amount);
+    }
+
+    @Override
+    @Deprecated
+    public boolean takeItem(Player player, int id, int amount, int data) {
+        throw new UnsupportedOperationException(
+                "Cannot use numeric value for id since 1.13. Use appropriate Material value.");
+    }
+
+    @Override
+    public boolean takeItem(Player player, String id, int amount, int data) {
+        @SuppressWarnings("deprecation") ItemStack IS = new ItemStack(Material.valueOf(id), amount, (short) data);
+        return takeItem(player, IS, amount);
     }
 //Eventually, this has to be created either as Executor or Placeholder
 //    public BossBar makeBossBar(String title, String color, String style) {

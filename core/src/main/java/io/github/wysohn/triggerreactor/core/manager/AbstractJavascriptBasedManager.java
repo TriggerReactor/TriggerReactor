@@ -63,22 +63,19 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
             return engine;
         }
 
-        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " +
-                "the stock Java does not contain the java script engine as it used to be. Install GraalVM instead of " +
-                "the stock Java, or you have to download third-party plugin, such as JShader.");
+        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " + "the stock Java does not contain the java script engine as it used to be. Install GraalVM instead of " + "the stock Java, or you have to download third-party plugin, such as JShader.");
     }
 
     protected static String readSourceCode(InputStream file) throws IOException {
         StringBuilder builder = new StringBuilder();
         InputStreamReader reader = new InputStreamReader(file);
         int read = -1;
-        while ((read = reader.read()) != -1)
-            builder.append((char) read);
+        while ((read = reader.read()) != -1) builder.append((char) read);
         reader.close();
         return builder.toString();
     }
 
-    protected abstract class Evaluable<R>{
+    protected abstract class Evaluable<R> {
         private final String indentifier;
         private final String timingsGroup;
         private final String functionName;
@@ -90,7 +87,10 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
         private boolean firstRun = true;
         private Validator validator = null;
 
-        public Evaluable(String indentifier, String timingsGroup, String functionName, String sourceCode,
+        public Evaluable(String indentifier,
+                         String timingsGroup,
+                         String functionName,
+                         String sourceCode,
                          ScriptEngine engine) throws ScriptException {
             this.indentifier = indentifier;
             this.timingsGroup = timingsGroup;
@@ -99,22 +99,10 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
 
             this.engine = engine;
 
-            synchronized (this.engine){
+            synchronized (this.engine) {
                 Compilable compiler = (Compilable) this.engine;
                 compiled = compiler.compile(sourceCode);
             }
-        }
-
-        private void registerValidationInfo(Bindings bindings) {
-            Map<String, Object> validation = (Map<String, Object>) bindings.get("validation");
-            if (validation == null) {
-                return;
-            }
-            this.validator = Validator.from(validation);
-        }
-
-        public ValidationResult validate(Object... args){
-            return validator.validate(args);
         }
 
         public R evaluate(Timings.Timing timing,
@@ -128,8 +116,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
             final Bindings bindings = engine.createBindings();
 
             scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
-            scriptContext.setBindings(engine.getBindings(ScriptContext.GLOBAL_SCOPE),
-                    ScriptContext.GLOBAL_SCOPE);
+            scriptContext.setBindings(engine.getBindings(ScriptContext.GLOBAL_SCOPE), ScriptContext.GLOBAL_SCOPE);
 
             bindings.put("event", event);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -138,7 +125,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 bindings.put(key, value);
             }
 
-            try (Timings.Timing t = time.getTiming("JS <eval>").begin()){
+            try (Timings.Timing t = time.getTiming("JS <eval>").begin()) {
                 compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
@@ -200,11 +187,24 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                     } catch (InterruptedException | ExecutionException e1) {
                         throw new Exception(indentifier + functionName + " encountered error.", e1);
                     } catch (TimeoutException e1) {
-                        throw new Exception(indentifier + functionName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
+                        throw new Exception(indentifier + functionName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?",
+                                            e1);
                     }
                     return result;
                 }
             }
+        }
+
+        private void registerValidationInfo(Bindings bindings) {
+            Map<String, Object> validation = (Map<String, Object>) bindings.get("validation");
+            if (validation == null) {
+                return;
+            }
+            this.validator = Validator.from(validation);
+        }
+
+        public ValidationResult validate(Object... args) {
+            return validator.validate(args);
         }
     }
 }

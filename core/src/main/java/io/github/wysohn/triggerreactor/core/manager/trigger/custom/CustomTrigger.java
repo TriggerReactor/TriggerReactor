@@ -36,9 +36,7 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
 
     @Override
     public String toString() {
-        return super.toString() + "{" +
-                "event=" + (event == null ? null : event.getName()) +
-                '}';
+        return super.toString() + "{" + "event=" + (event == null ? null : event.getName()) + '}';
     }
 
     @Override
@@ -51,30 +49,26 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         CustomTrigger other = (CustomTrigger) obj;
         if (getInfo() == null) {
             return other.getInfo() == null;
         } else return getInfo().equals(other.getInfo());
     }
 
-    public String getEventName() {
-        return eventName;
-    }
-
     @Override
     public void onEvent(Object e) {
         if (e.getClass() != event
                 // temporary way to deal with sponge events
-                && !e.getClass().getSimpleName().contains(event.getSimpleName()))
-            return;
+                && !e.getClass().getSimpleName().contains(event.getSimpleName())) return;
 
         Map<String, Object> vars = new HashMap<>();
         this.activate(e, vars);
+    }
+
+    public String getEventName() {
+        return eventName;
     }
 }

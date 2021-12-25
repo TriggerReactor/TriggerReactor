@@ -32,8 +32,7 @@ public abstract class AbstractScriptEditManager extends Manager {
     public abstract void startEdit(ICommandSender sender, String title, String script, Consumer<String> saveHandler);
 
     public static String parseSpaceToMarker(String str) {
-        if (str == null || str == "")
-            return null;
+        if (str == null || str == "") return null;
 
         StringBuilder builder = new StringBuilder();
         int index = 0;

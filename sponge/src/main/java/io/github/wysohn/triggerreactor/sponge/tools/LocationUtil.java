@@ -26,18 +26,12 @@ import org.spongepowered.api.world.World;
 
 public class LocationUtil {
     public static SimpleLocation convertToSimpleLocation(Location<World> loc) {
-        return new SimpleLocation(loc.getExtent().getName(),
-                loc.getBlockX(),
-                loc.getBlockY(),
-                loc.getBlockZ(),
-                0,
-                0);
+        return new SimpleLocation(loc.getExtent().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), 0, 0);
     }
 
     public static Location<World> convertToBukkitLocation(SimpleLocation sloc) {
         World world = Sponge.getServer().getWorld(sloc.getWorld()).get();
-        if (world == null)
-            return null;
+        if (world == null) return null;
 
         int x = sloc.getX();
         int y = sloc.getY();
@@ -52,8 +46,7 @@ public class LocationUtil {
 
     public static Chunk convertToBukkitChunk(SimpleChunkLocation scloc) {
         World world = Sponge.getServer().getWorld(scloc.getWorld()).get();
-        if (world == null)
-            return null;
+        if (world == null) return null;
 
         return world.getChunkAtBlock(scloc.getI(), 0, scloc.getJ()).get();
     }

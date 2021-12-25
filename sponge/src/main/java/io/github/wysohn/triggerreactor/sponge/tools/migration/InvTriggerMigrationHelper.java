@@ -23,13 +23,6 @@ public class InvTriggerMigrationHelper extends AbstractInvTriggerMingrationHelpe
     }
 
     @Override
-    protected Optional<Integer> getSize() {
-        return Optional.of(oldConfig)
-                .map(config -> config.getNode(AbstractInventoryTriggerManager.SIZE))
-                .map(ConfigurationNode::getInt);
-    }
-
-    @Override
     protected Map<Integer, ItemStack> getItems() {
         final DataTranslator<ConfigurationNode> translator = DataTranslators.CONFIGURATION_NODE;
 
@@ -42,14 +35,23 @@ public class InvTriggerMigrationHelper extends AbstractInvTriggerMingrationHelpe
                         int index = Integer.parseInt((String) entry.getKey());
                         try {
                             DataContainer container = translator.translate(entry.getValue());
-                            Sponge.getDataManager().deserialize(ItemStack.class, container).ifPresent(itemStack ->
-                                    out.put(index, itemStack));
+                            Sponge.getDataManager()
+                                    .deserialize(ItemStack.class, container)
+                                    .ifPresent(itemStack -> out.put(index, itemStack));
                         } catch (Exception ex) {
                             ex.printStackTrace();
                             //show exception and continue
                         }
                     }
                     return out;
-                }).orElseGet(LinkedHashMap::new);
+                })
+                .orElseGet(LinkedHashMap::new);
+    }
+
+    @Override
+    protected Optional<Integer> getSize() {
+        return Optional.of(oldConfig)
+                .map(config -> config.getNode(AbstractInventoryTriggerManager.SIZE))
+                .map(ConfigurationNode::getInt);
     }
 }

@@ -15,15 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.bukkit.module;
+package io.github.wysohn.triggerreactor.core.components;
 
-import dagger.Binds;
-import dagger.Module;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
-import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import dagger.Component;
+import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
+import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
 
-@Module
-public abstract class LatestBukkitWrapperModule {
-    @Binds
-    abstract IWrapper bindWrapper(BukkitWrapper wrapper);
+@Component(modules = {ConfigSourceFactoryModule.class})
+public interface ConfigurationComponent {
+    ConfigSourceFactories factories();
 }

@@ -27,81 +27,81 @@ import io.github.wysohn.triggerreactor.core.manager.*;
 public abstract class CoreManagerModule {
     @Binds
     @IntoSet
-    abstract Manager bindGlobalVariableManagerIntoSet(GlobalVariableManager manager);
+    abstract Manager bindAreaSelectionManagerIntoSet(AbstractAreaSelectionManager manager);
 
     @Binds
     @IntoSet
-    abstract Manager bindPluginConfigManagerIntoSet(PluginConfigManager manager);
-
-    @Provides
-    static AbstractExternalAPIManager bindExternalAPIManager(){
-        throw new RuntimeException("Must be provided by dependant.");
-    }
+    abstract Manager bindExecutorManagerIntoSet(AbstractExecutorManager manager);
 
     @Binds
     @IntoSet
     abstract Manager bindExternalAPIManagerIntoSet(AbstractExternalAPIManager manager);
 
-    @Provides
-    static AbstractScriptEditManager bindScriptEditManager(){
-        throw new RuntimeException("Must be provided by dependant.");
-    }
+    @Binds
+    @IntoSet
+    abstract Manager bindGlobalVariableManagerIntoSet(GlobalVariableManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindInventoryEditManagerIntoSet(AbstractInventoryEditManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindPermissionManagerIntoSet(AbstractPermissionManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindPlaceholderManagerIntoSet(AbstractPlaceholderManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindPlayerLocationManagerIntoSet(AbstractPlayerLocationManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindPluginConfigManagerIntoSet(PluginConfigManager manager);
 
     @Binds
     @IntoSet
     abstract Manager bindScriptEditManagerIntoSet(AbstractScriptEditManager manager);
 
     @Provides
-    static AbstractPlayerLocationManager bindPlayerLocationManager(){
+    static AbstractExternalAPIManager bindExternalAPIManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindPlayerLocationManagerIntoSet(AbstractPlayerLocationManager manager);
 
     @Provides
-    static AbstractAreaSelectionManager bindAreaSelectionManager(){
+    static AbstractScriptEditManager bindScriptEditManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindAreaSelectionManagerIntoSet(AbstractAreaSelectionManager manager);
 
     @Provides
-    static AbstractPermissionManager bindPermissionManager(){
+    static AbstractPlayerLocationManager bindPlayerLocationManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindPermissionManagerIntoSet(AbstractPermissionManager manager);
 
     @Provides
-    static AbstractInventoryEditManager bindInventoryEditManager(){
+    static AbstractAreaSelectionManager bindAreaSelectionManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindInventoryEditManagerIntoSet(AbstractInventoryEditManager manager);
 
     @Provides
-    static AbstractExecutorManager bindExecutorManager(){
+    static AbstractPermissionManager bindPermissionManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindExecutorManagerIntoSet(AbstractExecutorManager manager);
 
     @Provides
-    static AbstractPlaceholderManager bindPlaceholderManager(){
+    static AbstractInventoryEditManager bindInventoryEditManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
 
-    @Binds
-    @IntoSet
-    abstract Manager bindPlaceholderManagerIntoSet(AbstractPlaceholderManager manager);
+    @Provides
+    static AbstractExecutorManager bindExecutorManager() {
+        throw new RuntimeException("Must be provided by dependant.");
+    }
+
+    @Provides
+    static AbstractPlaceholderManager bindPlaceholderManager() {
+        throw new RuntimeException("Must be provided by dependant.");
+    }
 }

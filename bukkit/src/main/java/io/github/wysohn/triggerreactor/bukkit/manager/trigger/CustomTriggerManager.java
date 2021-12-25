@@ -37,15 +37,20 @@ import java.util.Map.Entry;
 
 @Singleton
 public class CustomTriggerManager extends AbstractCustomTriggerManager implements BukkitTriggerManager {
+    private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
+    private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
     @Inject
     @Named("PluginInstance")
     Object pluginInstance;
 
-    private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
-
     @Inject
     public CustomTriggerManager() {
         super("CustomTrigger");
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @Override
@@ -58,28 +63,22 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager implement
     }
 
     @Override
-    public void onDisable() {
-
-    }
-
-    private final Map<EventHook, Listener> registeredListerners = new HashMap<>();
-
-    @Override
     protected void registerEvent(TriggerReactorMain plugin, Class<?> clazz, EventHook eventHook) {
         Listener listener = new Listener() {
         };
         try {
-            Bukkit.getPluginManager().registerEvent((Class<? extends Event>) clazz,
-                    listener,
-                    EventPriority.HIGHEST,
-                    (l, event) -> eventHook.onEvent(event), (Plugin) pluginInstance);
+            Bukkit.getPluginManager()
+                    .registerEvent((Class<? extends Event>) clazz,
+                                   listener,
+                                   EventPriority.HIGHEST,
+                                   (l, event) -> eventHook.onEvent(event),
+                                   (Plugin) pluginInstance);
 
             registeredListerners.put(eventHook, listener);
         } catch (IllegalPluginAccessException e) {
             //event with no handler list will throw this exception
             //which means it's a base event
-            if (!BASEEVENTS.contains(BASEEVENTS))
-                BASEEVENTS.add((Class<? extends Event>) clazz);
+            if (!BASEEVENTS.contains(BASEEVENTS)) BASEEVENTS.add((Class<? extends Event>) clazz);
         }
     }
 

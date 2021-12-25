@@ -46,6 +46,16 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger>
     }
 
     @Override
+    protected String getTriggerTypeName() {
+        return "Walk";
+    }
+
+    @Override
+    protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return new WalkTrigger(api, info, script);
+    }
+
+    @Override
     public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -66,24 +76,13 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger>
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onMove(PlayerBlockLocationEvent e) {
-        handleWalk(e, e.getTo());
-    }
-
-    @Override
-    protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return new WalkTrigger(api, info, script);
-    }
-
     private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to) {
         Player player = e.getPlayer();
         SimpleLocation bottomLoc = to.clone();
         bottomLoc.add(0, -1, 0);
 
         WalkTrigger trigger = getTriggerForLocation(bottomLoc);
-        if (trigger == null)
-            return;
+        if (trigger == null) return;
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", player);
@@ -94,8 +93,8 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger>
         trigger.activate(e, varMap);
     }
 
-    @Override
-    protected String getTriggerTypeName() {
-        return "Walk";
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onMove(PlayerBlockLocationEvent e) {
+        handleWalk(e, e.getTo());
     }
 }

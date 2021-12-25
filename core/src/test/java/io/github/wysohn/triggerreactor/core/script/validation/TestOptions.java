@@ -7,15 +7,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class TestOptions {
+    private ValidationOptions validationOptions;
+
     public TestOptions() {
     }
 
-    private ValidationOptions validationOptions;
-
     @Before
     public void init() {
-        validationOptions = new ValidationOptionsBuilder()
-                .addOption(new MinimumOption(), "minimum")
+        validationOptions = new ValidationOptionsBuilder().addOption(new MinimumOption(), "minimum")
                 .addOption(new MaximumOption(), "maximum")
                 .addOption(new NameOption(), "name")
                 .addOption(new TypeOption(), "type")
@@ -23,12 +22,12 @@ public class TestOptions {
     }
 
     @Test
-    public void testSanity() {
-        assertEquals(validationOptions.forName("type").getClass(), TypeOption.class);
-        assertEquals(validationOptions.forName("minimum").getClass(), MinimumOption.class);
-        assertEquals(validationOptions.forName("maximum").getClass(), MaximumOption.class);
-        assertEquals(validationOptions.forName("name").getClass(), NameOption.class);
-        assertEquals(validationOptions.forName("kjfdsdjjfjfffff()#@##"), null);
+    public void testMaximum() {
+        ValidationOption max = validationOptions.forName("maximum");
+        assertTrue(max.canContain(23));
+        assertEquals(max.validate(99, 5), null);
+        assertFalse(max.canContain("derp2"));
+        assertNotEquals(max.validate(5, 12), null);
     }
 
     @Test
@@ -41,12 +40,12 @@ public class TestOptions {
     }
 
     @Test
-    public void testMaximum() {
-        ValidationOption max = validationOptions.forName("maximum");
-        assertTrue(max.canContain(23));
-        assertEquals(max.validate(99, 5), null);
-        assertFalse(max.canContain("derp2"));
-        assertNotEquals(max.validate(5, 12), null);
+    public void testSanity() {
+        assertEquals(validationOptions.forName("type").getClass(), TypeOption.class);
+        assertEquals(validationOptions.forName("minimum").getClass(), MinimumOption.class);
+        assertEquals(validationOptions.forName("maximum").getClass(), MaximumOption.class);
+        assertEquals(validationOptions.forName("name").getClass(), NameOption.class);
+        assertEquals(validationOptions.forName("kjfdsdjjfjfffff()#@##"), null);
     }
 
     @Test

@@ -8,6 +8,37 @@ import java.util.Queue;
 import java.util.Set;
 
 public interface IConfigSource extends IPluginProcedure {
+    /**
+     * Delete the config file.
+     */
+    void delete();
+
+    /**
+     * Check if valid .json file exists. Here, 'valid' means it's a valid json file.
+     * For example, a valid json file must contain at least object ({}).
+     *
+     * @return
+     */
+    boolean fileExists();
+
+    <T> Optional<T> get(String key);
+
+    <T> Optional<T> get(String key, Class<T> asType);
+
+    boolean has(String key);
+
+    boolean isSection(String key);
+
+    Set<String> keys();
+
+    void put(String key, Object value);
+
+    /**
+     * Save all contents in memory to the permanent storage. This is usually
+     * a blocking operation, so try not to call this from the main thread.
+     */
+    void saveAll();
+
     static String[] toPath(String key) {
         Queue<String> path = new LinkedList<>();
 
@@ -30,35 +61,4 @@ public interface IConfigSource extends IPluginProcedure {
 
         return path.toArray(new String[0]);
     }
-
-    /**
-     * Check if valid .json file exists. Here, 'valid' means it's a valid json file.
-     * For example, a valid json file must contain at least object ({}).
-     *
-     * @return
-     */
-    boolean fileExists();
-
-    <T> Optional<T> get(String key, Class<T> asType);
-
-    <T> Optional<T> get(String key);
-
-    void put(String key, Object value);
-
-    boolean has(String key);
-
-    Set<String> keys();
-
-    boolean isSection(String key);
-
-    /**
-     * Save all contents in memory to the permanent storage. This is usually
-     * a blocking operation, so try not to call this from the main thread.
-     */
-    void saveAll();
-
-    /**
-     * Delete the config file.
-     */
-    void delete();
 }

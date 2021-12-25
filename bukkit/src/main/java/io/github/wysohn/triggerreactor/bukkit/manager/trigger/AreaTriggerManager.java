@@ -67,10 +67,73 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
         super.onEnable();
 
         Thread entityTrackingThread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (pluginLifecycleController.isEnabled() && !Thread.interrupted()) {
+                    try {
+                        //track entity locations
+                        for (World w : Bukkit.getWorlds()) {
+                            Collection<WeakReference<Entity>> entityCollection = getEntitiesSync(w);
+                            for (WeakReference<Entity> wr : entityCollection) {
+                                Entity e = wr.get();
+
+                                //reference disposed so ignore
+                                if (e == null) continue;
+
+                                UUID uuid = e.getUniqueId();
+
+                                if (!pluginLifecycleController.isEnabled()) break;
+
+                                Future<Boolean> future = task.submitSync(() -> !e.isDead() && e.isValid());
+
+                                boolean valid = false;
+                                try {
+                                    if (future != null) valid = future.get();
+                                } catch (InterruptedException | CancellationException e1) {
+                                } catch (ExecutionException e1) {
+                                    e1.printStackTrace();
+                                }
+
+                                if (!valid) continue;
+
+                                if (!entityLocationMap.containsKey(uuid)) continue;
+
+                                SimpleLocation previous = entityLocationMap.get(uuid);
+                                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
+
+                                //update location if equal
+                                if (!previous.equals(current)) {
+                                    entityLocationMap.put(uuid, current);
+                                    onEntityBlockMoveAsync(e, previous, current);
+                                }
+
+                            }
+                        }
+                    } catch (IllegalPluginAccessException ex) {
+                        logger.info("Entity tracking has stopped. Plugin is disabling...");
+                        return;
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        // some other unknown issues.
+                        return;
+                    }
+
+                    try {
+                        Thread.sleep(50L);//same as one tick
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
 
             private Collection<WeakReference<Entity>> getEntitiesSync(World w) {
                 Collection<WeakReference<Entity>> entities = new LinkedList<>();
@@ -85,69 +148,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
                     e1.printStackTrace();
                 }
                 return entities;
-            }
-
-            @Override
-            public void run() {
-                while (pluginLifecycleController.isEnabled() && !Thread.interrupted()) {
-                    try{
-                        //track entity locations
-                        for (World w : Bukkit.getWorlds()) {
-                            Collection<WeakReference<Entity>> entityCollection = getEntitiesSync(w);
-                            for (WeakReference<Entity> wr : entityCollection) {
-                                Entity e = wr.get();
-
-                                //reference disposed so ignore
-                                if (e == null)
-                                    continue;
-
-                                UUID uuid = e.getUniqueId();
-
-                                if (!pluginLifecycleController.isEnabled())
-                                    break;
-
-                                Future<Boolean> future = task.submitSync(() -> !e.isDead() && e.isValid());
-
-                                boolean valid = false;
-                                try {
-                                    if (future != null)
-                                        valid = future.get();
-                                } catch (InterruptedException | CancellationException e1) {
-                                } catch (ExecutionException e1) {
-                                    e1.printStackTrace();
-                                }
-
-                                if (!valid)
-                                    continue;
-
-                                if (!entityLocationMap.containsKey(uuid))
-                                    continue;
-
-                                SimpleLocation previous = entityLocationMap.get(uuid);
-                                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
-
-                                //update location if equal
-                                if (!previous.equals(current)) {
-                                    entityLocationMap.put(uuid, current);
-                                    onEntityBlockMoveAsync(e, previous, current);
-                                }
-
-                            }
-                        }
-                    } catch (IllegalPluginAccessException ex){
-                        logger.info("Entity tracking has stopped. Plugin is disabling...");
-                        return;
-                    } catch (Exception ex){
-                        ex.printStackTrace();
-                        // some other unknown issues.
-                        return;
-                    }
-
-                    try {
-                        Thread.sleep(50L);//same as one tick
-                    } catch (InterruptedException e) {
-                    }
-                }
             }
 
         });
@@ -165,8 +165,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
             for (Entity e : w.getEntities()) {
                 UUID uuid = e.getUniqueId();
 
-                if (e.isDead() || !e.isValid())
-                    continue;
+                if (e.isDead() || !e.isValid()) continue;
 
                 SimpleLocation previous = null;
                 SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
@@ -178,9 +177,30 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         }
     }
 
-    @Override
-    public void onDisable() {
+    @EventHandler
+    public void onDeath(PlayerDeathEvent e) {
+        onDeath((EntityDeathEvent) e);
+    }
 
+    @EventHandler
+    public void onDeath(EntityDeathEvent e) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getEntity().getLocation());
+
+        entityTrackMap.remove(e.getEntity().getUniqueId());
+        entityLocationMap.remove(e.getEntity().getUniqueId());
+
+        getAreaForLocation(sloc).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(e.getEntity().getUniqueId()));
+    }
+
+    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
+        getAreaForLocation(from).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(wrapper, entity)));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -200,19 +220,15 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 
-        from.stream()
-                .filter((entry) -> !entry.getKey().isInThisArea(e.getTo()))//only for area leaving
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> {
+        from.stream().filter((entry) -> !entry.getKey().isInThisArea(e.getTo()))//only for area leaving
+                .map(Map.Entry::getValue).forEach((trigger) -> {
                     trigger.removeEntity(e.getPlayer().getUniqueId());
                     trigger.activate(e, varMap, EventType.EXIT);
                 });
 
 
-        to.stream()
-                .filter((entry) -> !entry.getKey().isInThisArea(e.getFrom()))//only for entering area
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> {
+        to.stream().filter((entry) -> !entry.getKey().isInThisArea(e.getFrom()))//only for entering area
+                .map(Map.Entry::getValue).forEach((trigger) -> {
                     trigger.addEntity(new BukkitEntity(wrapper, e.getPlayer()));
                     trigger.activate(e, varMap, EventType.ENTER);
                 });
@@ -222,37 +238,12 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
     public void onSpawn(EntitySpawnEvent e) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getLocation());
 
-        entityTrackMap.put(e.getEntity().getUniqueId(), new WeakReference<IEntity>(new BukkitEntity(wrapper, e.getEntity())));
+        entityTrackMap.put(e.getEntity().getUniqueId(),
+                           new WeakReference<IEntity>(new BukkitEntity(wrapper, e.getEntity())));
         entityLocationMap.put(e.getEntity().getUniqueId(), sloc);
 
         getAreaForLocation(sloc).stream()
                 .map(Map.Entry::getValue)
                 .forEach((trigger) -> trigger.addEntity(new BukkitEntity(wrapper, e.getEntity())));
-    }
-
-    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
-        getAreaForLocation(from).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
-        getAreaForLocation(current).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(wrapper, entity)));
-    }
-
-    @EventHandler
-    public void onDeath(PlayerDeathEvent e) {
-        onDeath((EntityDeathEvent) e);
-    }
-
-    @EventHandler
-    public void onDeath(EntityDeathEvent e) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getEntity().getLocation());
-
-        entityTrackMap.remove(e.getEntity().getUniqueId());
-        entityLocationMap.remove(e.getEntity().getUniqueId());
-
-        getAreaForLocation(sloc).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(e.getEntity().getUniqueId()));
     }
 }

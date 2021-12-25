@@ -44,10 +44,30 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     protected World mockWorld;
     protected Player mockPlayer;
     protected ItemMeta mockItemMeta;
+    private String title;
 
     public AbstractTestCommonFunctions(AbstractCommonFunctions fn) {
         super(fn);
     }
+
+    protected abstract boolean isEqual(ItemStack IS1, ItemStack IS2);
+
+    protected abstract boolean isSimilar(ItemStack IS1, ItemStack IS2);
+
+    @Test
+    public abstract void testGetPlayers();
+
+    @Test
+    public abstract void testHeadForName();
+
+    @Test
+    public abstract void testHeadForValue();
+
+    @Test
+    public abstract void testItem();
+
+    @Test
+    public abstract void testMakePotionEffect();
 
     @Before
     public void init() throws Exception {
@@ -70,12 +90,10 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         Mockito.when(server.getItemFactory()).thenReturn(mockItemFactory);
 
         Mockito.when(mockItemFactory.getItemMeta(Mockito.any(Material.class))).thenReturn(mockItemMeta);
-        Mockito.when(server.getWorld(Mockito.anyString())).then(
-                invocation -> {
-                    return mockWorld;
-                });
-        @SuppressWarnings("serial")
-        Collection<? extends Player> players = new ArrayList<Player>() {{
+        Mockito.when(server.getWorld(Mockito.anyString())).then(invocation -> {
+            return mockWorld;
+        });
+        @SuppressWarnings("serial") Collection<? extends Player> players = new ArrayList<Player>() {{
             add(mockPlayer);
         }};
         doReturn(players).when(server).getOnlinePlayers();
@@ -83,159 +101,114 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         Mockito.when(server.getOfflinePlayer(Mockito.anyString())).thenReturn(mockPlayer);
     }
 
-    protected class FakeInventory {
-        protected ItemStack[] contents = new ItemStack[54];
-
-        //copy from CraftBukkit
-        protected int first(ItemStack item, boolean withAmount) {
-            if (item == null) {
-                return -1;
-            }
-            ItemStack[] inventory = contents;
-            for (int i = 0; i < inventory.length; i++) {
-                if (inventory[i] == null) continue;
-
-                if (withAmount ? item.equals(inventory[i]) : isSimilar(item, inventory[i])) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-    }
-
-    public static FakeInventory fInventory(AbstractTestCommonFunctions test, ItemStack... items) {
-        FakeInventory inv = test.new FakeInventory();
-
-        for (int i = 0; i < Math.min(inv.contents.length, items.length); i++) {
-            inv.contents[i] = items[i];
-        }
-
-        return inv;
-    }
-
-    protected abstract boolean isSimilar(ItemStack IS1, ItemStack IS2);
-
-    protected abstract boolean isEqual(ItemStack IS1, ItemStack IS2);
-
     protected PlayerInventory preparePlayerInventory(Player mockPlayer, FakeInventory inv) {
         PlayerInventory mockInventory = mock(PlayerInventory.class);
 
         Mockito.when(mockPlayer.getInventory()).thenReturn(mockInventory);
-        Mockito.when(mockInventory.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt()))
-                .then(invocation -> {
-                    ItemStack target = invocation.getArgument(0);
-                    int amount = invocation.getArgument(1);
+        Mockito.when(mockInventory.containsAtLeast(Mockito.any(ItemStack.class), Mockito.anyInt())).then(invocation -> {
+            ItemStack target = invocation.getArgument(0);
+            int amount = invocation.getArgument(1);
 
-                    int count = 0;
-                    for (ItemStack IS : inv.contents) {
-                        if (IS == null)
-                            continue;
+            int count = 0;
+            for (ItemStack IS : inv.contents) {
+                if (IS == null) continue;
 
-                        if (isSimilar(IS, target))
-                            count += IS.getAmount();
+                if (isSimilar(IS, target)) count += IS.getAmount();
 
-                        if (count >= amount)
-                            return true;
-                    }
+                if (count >= amount) return true;
+            }
 
-                    return false;
-                });
+            return false;
+        });
 
-        Mockito.when(mockInventory.removeItem(ArgumentMatchers.<ItemStack>any()))
-                .then(invocation -> {
-                    // Cody copied from CraftBukkit
-                    Object[] items = invocation.getArguments();
-                    HashMap<Integer, ItemStack> leftover = new HashMap<Integer, ItemStack>();
+        Mockito.when(mockInventory.removeItem(ArgumentMatchers.<ItemStack>any())).then(invocation -> {
+            // Cody copied from CraftBukkit
+            Object[] items = invocation.getArguments();
+            HashMap<Integer, ItemStack> leftover = new HashMap<Integer, ItemStack>();
 
-                    for (int i = 0; i < items.length; i++) {
-                        ItemStack item = (ItemStack) items[i];
-                        int toDelete = item.getAmount();
+            for (int i = 0; i < items.length; i++) {
+                ItemStack item = (ItemStack) items[i];
+                int toDelete = item.getAmount();
 
-                        while (true) {
-                            int first = inv.first(item, false);
+                while (true) {
+                    int first = inv.first(item, false);
 
-                            // Drat! we don't have this type in the inventory
-                            if (first == -1) {
-                                item.setAmount(toDelete);
-                                leftover.put(i, item);
-                                break;
-                            } else {
-                                ItemStack itemStack = inv.contents[first];
-                                int amount = itemStack.getAmount();
+                    // Drat! we don't have this type in the inventory
+                    if (first == -1) {
+                        item.setAmount(toDelete);
+                        leftover.put(i, item);
+                        break;
+                    } else {
+                        ItemStack itemStack = inv.contents[first];
+                        int amount = itemStack.getAmount();
 
-                                if (amount <= toDelete) {
-                                    toDelete -= amount;
-                                    // clear the slot, all used up
-                                    inv.contents[first] = null;
-                                } else {
-                                    // split the stack and store
-                                    itemStack.setAmount(amount - toDelete);
-                                    inv.contents[first] = itemStack;
-                                    toDelete = 0;
-                                }
-                            }
-
-                            // Bail when done
-                            if (toDelete <= 0) {
-                                break;
-                            }
+                        if (amount <= toDelete) {
+                            toDelete -= amount;
+                            // clear the slot, all used up
+                            inv.contents[first] = null;
+                        } else {
+                            // split the stack and store
+                            itemStack.setAmount(amount - toDelete);
+                            inv.contents[first] = itemStack;
+                            toDelete = 0;
                         }
                     }
-                    return leftover;
-                });
+
+                    // Bail when done
+                    if (toDelete <= 0) {
+                        break;
+                    }
+                }
+            }
+            return leftover;
+        });
 
         return mockInventory;
     }
 
     @Test
-    public void testLocation() {
-        Location loc1 = new Location(mockWorld, 1, 2, 3);
-        Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
+    public void testAddLore() {
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
 
-        Mockito.when(mockWorld.getName()).thenReturn("test");
-        Assert.assertEquals(loc1, fn.location("test", 1, 2, 3));
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
 
-        Mockito.when(mockWorld.getName()).thenReturn("test2");
-        Assert.assertEquals(loc2, fn.location("test2", 4, 5, 6, 0.5, 0.6));
+        fn.addLore(IS, "efef");
+        Assert.assertEquals(3, lores.size());
+        Assert.assertEquals("efef", lores.get(lores.size() - 1));
     }
 
     @Test
     public void testBlock() {
         Block mockBlock = mock(Block.class);
-        Mockito.when(mockWorld.getBlockAt(Mockito.any(Location.class)))
-                .thenReturn(mockBlock);
+        Mockito.when(mockWorld.getBlockAt(Mockito.any(Location.class))).thenReturn(mockBlock);
 
         Assert.assertEquals(mockBlock, fn.block("test", 1, 2, 3));
     }
 
     @Test
-    public void testLocationEqual() {
-        Location loc1 = new Location(mockWorld, 1, 2, 3);
-        Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
-        Location loc3 = new Location(mockWorld, 1, 2, 3, 0.7F, 0.8F);
-        Location loc4 = new Location(mockWorld, 4, 5, 6, 0.1F, 0.2F);
-
-        Assert.assertFalse(fn.locationEqual(loc1, loc2));
-        Assert.assertTrue(fn.locationEqual(loc1, loc3));
-        Assert.assertFalse(fn.locationEqual(loc2, loc3));
-        Assert.assertTrue(fn.locationEqual(loc2, loc4));
+    public void testBukkitColor() {
+        Color expect = Color.fromRGB(3, 6, 8);
+        Color result = fn.bukkitColor(3, 6, 8);
+        Assert.assertEquals(expect.asBGR(), result.asBGR());
     }
 
     @Test
-    public abstract void testMakePotionEffect();
+    public void testClearLore() {
+        ItemStack IS = new ItemStack(Material.STONE);
+        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
 
-    @Test
-    public void testPlayer() {
-        Assert.assertEquals(mockPlayer, fn.player("wysohn"));
+        fn.clearLore(IS);
+        Mockito.verify(mockItemMeta).setLore(captor.capture());
+        Assert.assertEquals(0, captor.getValue().size());
     }
 
     @Test
-    public void testOPlayer() {
-        Assert.assertEquals(mockPlayer, fn.oplayer("wysohn"));
+    public void testColor() {
+        Assert.assertEquals(ChatColor.RED + "My message", fn.color("&cMy message"));
     }
-
-    @Test
-    public abstract void testGetPlayers();
 
     @Test
     public void testCurrentArea() {
@@ -258,27 +231,16 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
+    public void testFormatCurrency() {
+        Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44));
+        Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44, "en", "US"));
+        Assert.assertEquals("\u00a33,234,463.44", fn.formatCurrency(3234463.44, "en", "GB"));
+    }
+
+    @Test
     public void testGetEntitiesInArea() {
         //TODO: testable?
     }
-
-    @Test
-    public void testColor() {
-        Assert.assertEquals(ChatColor.RED + "My message",
-                fn.color("&cMy message"));
-    }
-
-    @Test
-    public void testBukkitColor() {
-        Color expect = Color.fromRGB(3, 6, 8);
-        Color result = fn.bukkitColor(3, 6, 8);
-        Assert.assertEquals(expect.asBGR(), result.asBGR());
-    }
-
-    @Test
-    public abstract void testItem();
-
-    private String title;
 
     @Test
     public void testGetItemTitle() {
@@ -286,31 +248,6 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         Mockito.doAnswer(invocation -> "abc").when(mockItemMeta).getDisplayName();
 
         Assert.assertEquals("abc", fn.getItemTitle(IS));
-    }
-
-    @Test
-    public void testSetItemTitle() {
-        ItemStack IS = new ItemStack(Material.STONE);
-        Mockito.doAnswer(invocation -> {
-            title = invocation.getArgument(0);
-            return null;
-        }).when(mockItemMeta).setDisplayName(Mockito.anyString());
-
-        fn.setItemTitle(IS, "xyz");
-        Assert.assertEquals("xyz", title);
-    }
-
-    @Test
-    public void testHasLore() {
-        List<String> lores = new ArrayList<>();
-        lores.add("abab");
-        lores.add("cdcd");
-
-        ItemStack IS = new ItemStack(Material.STONE);
-        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
-
-        Assert.assertTrue(fn.hasLore(IS, "abab"));
-        Assert.assertFalse(fn.hasLore(IS, "hoho"));
     }
 
     @Test
@@ -329,21 +266,13 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testAddLore() {
-        List<String> lores = new ArrayList<>();
-        lores.add("abab");
-        lores.add("cdcd");
-
-        ItemStack IS = new ItemStack(Material.STONE);
-        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
-
-        fn.addLore(IS, "efef");
-        Assert.assertEquals(3, lores.size());
-        Assert.assertEquals("efef", lores.get(lores.size() - 1));
+    public void testGetTargetBlock() {
+        fn.getTargetBlock(mockPlayer, 30);
+        Mockito.verify(mockPlayer).getTargetBlock(null, 30);
     }
 
     @Test
-    public void testSetLore() {
+    public void testHasLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
@@ -351,11 +280,56 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
         ItemStack IS = new ItemStack(Material.STONE);
         Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
 
-        fn.setLore(IS, 0, "pqpq");
-        Assert.assertEquals("pqpq", lores.get(0));
-        fn.setLore(IS, 5, "ffee");
-        Assert.assertEquals(6, lores.size());
-        Assert.assertEquals("ffee", lores.get(5));
+        Assert.assertTrue(fn.hasLore(IS, "abab"));
+        Assert.assertFalse(fn.hasLore(IS, "hoho"));
+    }
+
+    @Test
+    public void testLocation() {
+        Location loc1 = new Location(mockWorld, 1, 2, 3);
+        Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
+
+        Mockito.when(mockWorld.getName()).thenReturn("test");
+        Assert.assertEquals(loc1, fn.location("test", 1, 2, 3));
+
+        Mockito.when(mockWorld.getName()).thenReturn("test2");
+        Assert.assertEquals(loc2, fn.location("test2", 4, 5, 6, 0.5, 0.6));
+    }
+
+    @Test
+    public void testLocationEqual() {
+        Location loc1 = new Location(mockWorld, 1, 2, 3);
+        Location loc2 = new Location(mockWorld, 4, 5, 6, 0.5F, 0.6F);
+        Location loc3 = new Location(mockWorld, 1, 2, 3, 0.7F, 0.8F);
+        Location loc4 = new Location(mockWorld, 4, 5, 6, 0.1F, 0.2F);
+
+        Assert.assertFalse(fn.locationEqual(loc1, loc2));
+        Assert.assertTrue(fn.locationEqual(loc1, loc3));
+        Assert.assertFalse(fn.locationEqual(loc2, loc3));
+        Assert.assertTrue(fn.locationEqual(loc2, loc4));
+    }
+
+    @Test
+    public void testLoreSize() {
+        List<String> lores = new ArrayList<>();
+        lores.add("abab");
+        lores.add("cdcd");
+        lores.add("efef");
+
+        ItemStack IS = new ItemStack(Material.STONE);
+        Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
+
+        Assert.assertEquals(3, fn.loreSize(IS));
+    }
+
+    @Test
+    public void testOPlayer() {
+        Assert.assertEquals(mockPlayer, fn.oplayer("wysohn"));
+    }
+
+    @Test
+    public void testPlayer() {
+        Assert.assertEquals(mockPlayer, fn.player("wysohn"));
     }
 
     @Test
@@ -379,44 +353,60 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
     }
 
     @Test
-    public void testClearLore() {
+    public void testSetItemTitle() {
         ItemStack IS = new ItemStack(Material.STONE);
-        ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
+        Mockito.doAnswer(invocation -> {
+            title = invocation.getArgument(0);
+            return null;
+        }).when(mockItemMeta).setDisplayName(Mockito.anyString());
 
-        fn.clearLore(IS);
-        Mockito.verify(mockItemMeta).setLore(captor.capture());
-        Assert.assertEquals(0, captor.getValue().size());
+        fn.setItemTitle(IS, "xyz");
+        Assert.assertEquals("xyz", title);
     }
 
     @Test
-    public void testLoreSize() {
+    public void testSetLore() {
         List<String> lores = new ArrayList<>();
         lores.add("abab");
         lores.add("cdcd");
-        lores.add("efef");
 
         ItemStack IS = new ItemStack(Material.STONE);
         Mockito.doAnswer(invocation -> lores).when(mockItemMeta).getLore();
 
-        Assert.assertEquals(3, fn.loreSize(IS));
+        fn.setLore(IS, 0, "pqpq");
+        Assert.assertEquals("pqpq", lores.get(0));
+        fn.setLore(IS, 5, "ffee");
+        Assert.assertEquals(6, lores.size());
+        Assert.assertEquals("ffee", lores.get(5));
     }
 
-    @Test
-    public void testFormatCurrency() {
-        Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44));
-        Assert.assertEquals("$3,234,463.44", fn.formatCurrency(3234463.44, "en", "US"));
-        Assert.assertEquals("\u00a33,234,463.44", fn.formatCurrency(3234463.44, "en", "GB"));
+    public static FakeInventory fInventory(AbstractTestCommonFunctions test, ItemStack... items) {
+        FakeInventory inv = test.new FakeInventory();
+
+        for (int i = 0; i < Math.min(inv.contents.length, items.length); i++) {
+            inv.contents[i] = items[i];
+        }
+
+        return inv;
     }
 
-    @Test
-    public void testGetTargetBlock() {
-        fn.getTargetBlock(mockPlayer, 30);
-        Mockito.verify(mockPlayer).getTargetBlock(null, 30);
+    protected class FakeInventory {
+        protected ItemStack[] contents = new ItemStack[54];
+
+        //copy from CraftBukkit
+        protected int first(ItemStack item, boolean withAmount) {
+            if (item == null) {
+                return -1;
+            }
+            ItemStack[] inventory = contents;
+            for (int i = 0; i < inventory.length; i++) {
+                if (inventory[i] == null) continue;
+
+                if (withAmount ? item.equals(inventory[i]) : isSimilar(item, inventory[i])) {
+                    return i;
+                }
+            }
+            return -1;
+        }
     }
-
-    @Test
-    public abstract void testHeadForName();
-
-    @Test
-    public abstract void testHeadForValue();
 }

@@ -28,22 +28,6 @@ public class Area {
         this.largest = largest;
     }
 
-    public SimpleLocation getSmallest() {
-        return smallest;
-    }
-
-    public SimpleLocation getLargest() {
-        return largest;
-    }
-
-    public boolean isInThisArea(SimpleLocation sloc) {
-        if (smallest.getX() <= sloc.getX() && sloc.getX() <= largest.getX()
-                && smallest.getY() <= sloc.getY() && sloc.getY() <= largest.getY()
-                && smallest.getZ() <= sloc.getZ() && sloc.getZ() <= largest.getZ())
-            return true;
-        return false;
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -55,23 +39,16 @@ public class Area {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Area other = (Area) obj;
         if (largest == null) {
-            if (other.largest != null)
-                return false;
-        } else if (!largest.equals(other.largest))
-            return false;
+            if (other.largest != null) return false;
+        } else if (!largest.equals(other.largest)) return false;
         if (smallest == null) {
-            if (other.smallest != null)
-                return false;
-        } else if (!smallest.equals(other.smallest))
-            return false;
+            if (other.smallest != null) return false;
+        } else if (!smallest.equals(other.smallest)) return false;
         return true;
     }
 
@@ -80,9 +57,22 @@ public class Area {
         return "[smallest=" + smallest + ", largest=" + largest + "]";
     }
 
+    public SimpleLocation getLargest() {
+        return largest;
+    }
+
+    public SimpleLocation getSmallest() {
+        return smallest;
+    }
+
+    public boolean isInThisArea(SimpleLocation sloc) {
+        if (smallest.getX() <= sloc.getX() && sloc.getX() <= largest.getX() && smallest.getY() <= sloc.getY() && sloc.getY() <= largest.getY() && smallest.getZ() <= sloc.getZ() && sloc.getZ() <= largest.getZ())
+            return true;
+        return false;
+    }
+
     public static boolean isConflicting(Area area1, Area area2) {
-        if (!area1.smallest.getWorld().equals(area2.smallest.getWorld()))
-            return false;
+        if (!area1.smallest.getWorld().equals(area2.smallest.getWorld())) return false;
 
         int xs1 = area1.smallest.getX(), xs2 = area2.smallest.getX();
         int ys1 = area1.smallest.getY(), ys2 = area2.smallest.getY();
@@ -122,14 +112,12 @@ public class Area {
                 int yFloor = ys1;
                 int yCeiling = yl2;
 
-                if (yFloor - yCeiling <= 0)
-                    return true;
+                if (yFloor - yCeiling <= 0) return true;
             } else if (yl1 < yl2) {//sec2 on sec1
                 int yFloor = ys2;
                 int yCeiling = yl1;
 
-                if (yFloor - yCeiling <= 0)
-                    return true;
+                if (yFloor - yCeiling <= 0) return true;
             } else {//sec2 bot == sec1 bot
                 return true;
             }

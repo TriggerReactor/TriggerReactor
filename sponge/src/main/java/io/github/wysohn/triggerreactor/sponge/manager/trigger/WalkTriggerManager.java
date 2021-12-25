@@ -59,14 +59,9 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         });
     }
 
-    @Listener(order = Order.POST)
-    public void onMove(PlayerBlockLocationEvent e) {
-        handleWalk(e, e.getTo());
-    }
-
     @Override
-    protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return new WalkTrigger(info, script);
+    protected String getTriggerTypeName() {
+        return "Walk";
     }
 
     private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to) {
@@ -75,8 +70,7 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
         bottomLoc.add(0, -1, 0);
 
         WalkTrigger trigger = getTriggerForLocation(bottomLoc);
-        if (trigger == null)
-            return;
+        if (trigger == null) return;
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("player", player);
@@ -88,7 +82,12 @@ public class WalkTriggerManager extends LocationBasedTriggerManager<AbstractLoca
     }
 
     @Override
-    protected String getTriggerTypeName() {
-        return "Walk";
+    protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return new WalkTrigger(info, script);
+    }
+
+    @Listener(order = Order.POST)
+    public void onMove(PlayerBlockLocationEvent e) {
+        handleWalk(e, e.getTo());
     }
 }

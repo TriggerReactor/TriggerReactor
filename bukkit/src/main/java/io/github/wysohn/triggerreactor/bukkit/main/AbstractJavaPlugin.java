@@ -92,16 +92,33 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-public abstract class AbstractJavaPlugin
-        extends JavaPlugin
+public abstract class AbstractJavaPlugin extends JavaPlugin
         implements ICommandMapHandler, IGameController, IPluginLifecycleController {
-    private TriggerReactorMain main;
-    private ITriggerReactorAPI api;
-
-    private BungeeCordHelper bungeeHelper;
-    private MysqlSupport mysqlHelper;
+    static {
+        GsonConfigSource.registerSerializer(ConfigurationSerializable.class, new BukkitConfigurationSerializer());
+        GsonConfigSource.registerValidator(obj -> obj instanceof ConfigurationSerializable);
+    }
 
     private final Lag tpsHelper = new Lag();
+    private TriggerReactorMain main;
+    private ITriggerReactorAPI api;
+    private BungeeCordHelper bungeeHelper;
+    private MysqlSupport mysqlHelper;
+    private Thread bungeeConnectionThread;
+
+    public void disablePlugin() {
+        Bukkit.getPluginManager().disablePlugin(this);
+    }
+
+    @Override
+    public String getAuthor() {
+        return String.join(", ", getDescription().getAuthors());
+    }
+
+    @Override
+    public <T> T getPlugin(String pluginName) {
+        return (T) getServer().getPluginManager().getPlugin(pluginName);
+    }
 
     @Override
     public String getPluginDescription() {
@@ -113,9 +130,8 @@ public abstract class AbstractJavaPlugin
         return getDescription().getVersion();
     }
 
-    @Override
-    public String getAuthor() {
-        return String.join(", ", getDescription().getAuthors());
+    public boolean isDebugging() {
+        return this.main.isDebugging();
     }
 
     @Override
@@ -124,23 +140,22 @@ public abstract class AbstractJavaPlugin
     }
 
     @Override
-    public <T> T getPlugin(String pluginName) {
-        return (T) getServer().getPluginManager().getPlugin(pluginName);
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return this.main.onCommand(main.getWrapper().wrap(sender), command.getName(), args);
     }
 
     @Override
-    public <T> Future<T> submitSync(Callable<T> call) {
-        return getServer().getScheduler().callSyncMethod(this, call);
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return main.onTabComplete(new BukkitCommandSender(sender), args);
     }
 
     @Override
-    public void submitAsync(Runnable run) {
-        getServer().getScheduler().runTaskAsynchronously(this, run);
+    public void onDisable() {
+        new ContinuingTasks.Builder().append(() -> Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent()))
+                .append(() -> bungeeConnectionThread.interrupt())
+                .append(() -> main.onDisable())
+                .run(Throwable::printStackTrace);
     }
-
-    protected abstract TriggerReactorMain getMain();
-
-    protected abstract Set<Manager> getManagers();
 
     @Override
     public void onEnable() {
@@ -175,270 +190,22 @@ public abstract class AbstractJavaPlugin
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
 
-    private void migrateOldConfig() {
-        new ContinuingTasks.Builder()
-                .append(() -> {
-                    if (api.getPluginConfigManager().isMigrationNeeded()) {
-                        api.getPluginConfigManager().migrate(new NaiveMigrationHelper(getConfig(),
-                                new File(getDataFolder(), "config.yml")));
-                    }
-                })
-                .append(() -> {
-                    if (api.getVariableManager().isMigrationNeeded()) {
-                        File file = new File(getDataFolder(), "var.yml");
-                        FileConfiguration conf = new Utf8YamlConfiguration();
-                        try {
-                            conf.load(file);
-                        } catch (IOException | InvalidConfigurationException e) {
-                            e.printStackTrace();
-                        }
-                        api.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
-                    }
-                })
-                .append(() -> {
-                    Optional.of(api.invManager())
-                            .map(AbstractTriggerManager::getTriggerInfos)
-                            .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
-                                    .filter(TriggerInfo::isMigrationNeeded)
-                                    .forEach(triggerInfo -> {
-                                        File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                        File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                        FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                                        triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldFileConfig));
-                                    }));
-                })
-                .append(() -> {
-                    getManagers().stream()
-                            .filter(AbstractTriggerManager.class::isInstance)
-                            .map(AbstractTriggerManager.class::cast)
-                            .map(AbstractTriggerManager::getTriggerInfos)
-                            .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                                    .filter(TriggerInfo::isMigrationNeeded)
-                                    .forEach(triggerInfo -> {
-                                        File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                        File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                        FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                                        triggerInfo.migrate(new NaiveMigrationHelper(oldFileConfig, oldFile));
-                                    }));
-                })
-                .run();
-    }
-
-    private Thread bungeeConnectionThread;
-
-    private void initBungeeHelper() {
-        bungeeHelper = new BungeeCordHelper();
-        bungeeConnectionThread = new Thread(bungeeHelper);
-        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
-        bungeeConnectionThread.start();
-    }
-
-    private void initMysql() {
-        FileConfiguration config = getConfig();
-        if (config.getBoolean("Mysql.Enable", false)) {
-            try {
-                getLogger().info("Initializing Mysql support...");
-                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
-                        config.getString("Mysql.DbName"),
-                        "data",
-                        config.getString("Mysql.UserName"),
-                        config.getString("Mysql.Password"));
-                getLogger().info(mysqlHelper.toString());
-                getLogger().info("Done!");
-            } catch (SQLException e) {
-                e.printStackTrace();
-                getLogger().warning("Failed to initialize Mysql. Check for the error above.");
-            }
-        } else {
-            String path = "Mysql.Enable";
-            if (!config.isSet(path))
-                config.set(path, false);
-            path = "Mysql.Address";
-            if (!config.isSet(path))
-                config.set(path, "127.0.0.1:3306");
-            path = "Mysql.DbName";
-            if (!config.isSet(path))
-                config.set(path, "TriggerReactor");
-            path = "Mysql.UserName";
-            if (!config.isSet(path))
-                config.set(path, "root");
-            path = "Mysql.Password";
-            if (!config.isSet(path))
-                config.set(path, "1234");
-
-            saveConfig();
-        }
-    }
-
-    @Override
-    public void onDisable() {
-        new ContinuingTasks.Builder()
-                .append(() -> Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent()))
-                .append(() -> bungeeConnectionThread.interrupt())
-                .append(() -> main.onDisable())
-                .run(Throwable::printStackTrace);
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return this.main.onCommand(
-                main.getWrapper().wrap(sender),
-                command.getName(),
-                args);
-    }
-
-    public File getJarFile() {
-        return super.getFile();
-    }
-
-    public BungeeCordHelper getBungeeHelper() {
-        return bungeeHelper;
-    }
-
-    public MysqlSupport getMysqlHelper() {
-        return mysqlHelper;
-    }
-
-    public boolean isDebugging() {
-        return this.main.isDebugging();
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return main.onTabComplete(new BukkitCommandSender(sender), args);
-    }
-
-    public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set) {
-        for (Map.Entry<SimpleLocation, Trigger> entry : set) {
-            SimpleLocation sloc = entry.getKey();
-            Player player = sender.get();
-            player.sendBlockChange(
-                    new Location(Bukkit.getWorld(sloc.getWorld()), sloc.getX(), sloc.getY(), sloc.getZ()),
-                    Material.GLOWSTONE, (byte) 0);
-        }
-    }
-
-    public void registerEvents(Manager manager) {
-        if (manager instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) manager, this);
-    }
-
     public void runTask(Runnable runnable) {
         Bukkit.getScheduler().runTask(this, runnable);
     }
 
-    private ProcessInterrupter.Builder newInterrupterBuilder() {
-        return ProcessInterrupter.Builder.begin()
-                .perExecutor((context, command, args) -> {
-                    if ("CALL".equalsIgnoreCase(command)) {
-                        if (args.length < 1)
-                            throw new RuntimeException("Need parameter [String] or [String, boolean]");
+    public void addItemLore(IItemStack iS, String lore) {
+        ItemStack IS = iS.get();
 
-                        if (args[0] instanceof String) {
-                            Trigger trigger = api.getNamedTriggerManager().get((String) args[0]);
-                            if (trigger == null)
-                                throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
-
-                            boolean sync = true;
-                            if (args.length > 1 && args[1] instanceof Boolean) {
-                                sync = (boolean) args[1];
-                            }
-
-                            if (sync) {
-                                trigger.activate(context.getTriggerCause(), context.getVars(), true);
-                            } else {//use snapshot to avoid concurrent modification
-                                trigger.activate(context.getTriggerCause(), new HashMap<>(context.getVars()), false);
-                            }
-
-                            return true;
-                        } else {
-                            throw new RuntimeException("Parameter type not match; it should be a String."
-                                    + " Make sure to put double quotes, if you provided String literal.");
-                        }
-                    }
-
-                    return false;
-                })
-                .perExecutor((context, command, args) -> {
-                    if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                        if(!getServer().isPrimaryThread())
-                            throw new RuntimeException("Trying to cancel event in async trigger.");
-
-                        if (context.getTriggerCause() instanceof Cancellable) {
-                            ((Cancellable) context.getTriggerCause()).setCancelled(true);
-                            return true;
-                        } else {
-                            throw new RuntimeException(context.getTriggerCause() + " is not a Cancellable event!");
-                        }
-                    }
-
-                    return false;
-                });
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        lores.add(lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
     }
 
-    private ProcessInterrupter.Builder appendCooldownInterrupter(ProcessInterrupter.Builder builder, Map<UUID, Long> cooldowns) {
-        return builder.perExecutor(((context, command, args) -> {
-            if ("COOLDOWN".equalsIgnoreCase(command)) {
-                if (!(args[0] instanceof Number))
-                    throw new RuntimeException(args[0] + " is not a number!");
-
-                if (context.getTriggerCause() instanceof PlayerEvent) {
-                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                    Player player = ((PlayerEvent) context.getTriggerCause()).getPlayer();
-                    UUID uuid = player.getUniqueId();
-                    cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                }
-                return true;
-            }
-
-            return false;
-        })).perPlaceholder((context, placeholder, args) -> {
-//            if ("cooldown".equals(placeholder)) {
-//                if (context.getTriggerCause() instanceof PlayerEvent) {
-//                    return cooldowns.getOrDefault(((PlayerEvent) context.getTriggerCause()).getPlayer().getUniqueId(), 0L);
-//                } else {
-//                    return 0;
-//                }
-//            }
-            return null;
-        });
-    }
-
-    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
-        return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns)
-                .build();
-    }
-
-    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
-                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
-        return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns)
-                .perNode((context, node) -> {
-                    //safety feature to stop all trigger immediately if executing on 'open' or 'click'
-                    //  is still running after the inventory is closed.
-                    if (context.getTriggerCause() instanceof InventoryOpenEvent
-                            || context.getTriggerCause() instanceof InventoryClickEvent) {
-                        Inventory inv = ((InventoryEvent) context.getTriggerCause()).getInventory();
-
-                        //it's not GUI so stop execution
-                        return !inventoryMap.containsKey(main.getWrapper().wrap(inv));
-                    }
-
-                    return false;
-                })
-                .build();
-    }
-
-    public IPlayer extractPlayerFromContext(Object e) {
-        if (e instanceof PlayerEvent) {
-            Player player = ((PlayerEvent) e).getPlayer();
-            return main.getWrapper().wrap(player);
-        } else if (e instanceof InventoryInteractEvent) {
-            HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
-            if (he instanceof Player)
-                return main.getWrapper().wrap(he);
-        }
-
-        return null;
+    public void callEvent(IEvent event) {
+        Bukkit.getPluginManager().callEvent(event.get());
     }
 
     public <T> Future<T> callSyncMethod(Callable<T> call) {
@@ -447,26 +214,6 @@ public abstract class AbstractJavaPlugin
         } catch (Exception e) {
         }
         return null;
-    }
-
-    public void disablePlugin() {
-        Bukkit.getPluginManager().disablePlugin(this);
-    }
-
-    public void callEvent(IEvent event) {
-        Bukkit.getPluginManager().callEvent(event.get());
-    }
-
-    public IPlayer getPlayer(String string) {
-        Player player = Bukkit.getPlayer(string);
-        if (player != null)
-            return main.getWrapper().wrap(player);
-        else
-            return null;
-    }
-
-    public ICommandSender getConsoleSender() {
-        return main.getWrapper().wrap(Bukkit.getConsoleSender());
     }
 
     public Object createEmptyPlayerEvent(ICommandSender sender) {
@@ -486,6 +233,26 @@ public abstract class AbstractJavaPlugin
         }
     }
 
+    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
+        return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns).build();
+    }
+
+    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
+                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
+        return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns).perNode((context, node) -> {
+            //safety feature to stop all trigger immediately if executing on 'open' or 'click'
+            //  is still running after the inventory is closed.
+            if (context.getTriggerCause() instanceof InventoryOpenEvent || context.getTriggerCause() instanceof InventoryClickEvent) {
+                Inventory inv = ((InventoryEvent) context.getTriggerCause()).getInventory();
+
+                //it's not GUI so stop execution
+                return !inventoryMap.containsKey(main.getWrapper().wrap(inv));
+            }
+
+            return false;
+        }).build();
+    }
+
     public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
         Object unwrapped = sender.get();
 
@@ -503,61 +270,20 @@ public abstract class AbstractJavaPlugin
         }
     }
 
-    public void setItemTitle(IItemStack iS, String title) {
-        ItemStack IS = iS.get();
-        ItemMeta IM = IS.getItemMeta();
-        IM.setDisplayName(title);
-        IS.setItemMeta(IM);
-    }
-
-    public void addItemLore(IItemStack iS, String lore) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        lores.add(lore);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-    }
-
-    public boolean setLore(IItemStack iS, int index, String lore) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        if (lore == null || index < 0 || index > lores.size() - 1)
-            return false;
-
-        lores.set(index, lore);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-
-        return true;
-    }
-
-    public boolean removeLore(IItemStack iS, int index) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.getLore();
-        if (lores == null || index < 0 || index > lores.size() - 1)
-            return false;
-
-        lores.remove(index);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-
-        return true;
-    }
-
-    public boolean isServerThread() {
-        boolean result = false;
-
-        synchronized (this) {
-            result = Bukkit.isPrimaryThread();
+    public IPlayer extractPlayerFromContext(Object e) {
+        if (e instanceof PlayerEvent) {
+            Player player = ((PlayerEvent) e).getPlayer();
+            return main.getWrapper().wrap(player);
+        } else if (e instanceof InventoryInteractEvent) {
+            HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
+            if (he instanceof Player) return main.getWrapper().wrap(he);
         }
 
-        return result;
+        return null;
+    }
+
+    public ICommandSender getConsoleSender() {
+        return main.getWrapper().wrap(Bukkit.getConsoleSender());
     }
 
     public Map<String, Object> getCustomVarsForTrigger(Object e) {
@@ -591,13 +317,259 @@ public abstract class AbstractJavaPlugin
             try {
                 Method m = e.getClass().getMethod("getPlayer");
                 variables.put("player", m.invoke(e));
-            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
-                    | InvocationTargetException e1) {
+            } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
                 return variables;
             }
         }
 
         return variables;
+    }
+
+    public IPlayer getPlayer(String string) {
+        Player player = Bukkit.getPlayer(string);
+        if (player != null) return main.getWrapper().wrap(player);
+        else return null;
+    }
+
+    public boolean removeLore(IItemStack iS, int index) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.getLore();
+        if (lores == null || index < 0 || index > lores.size() - 1) return false;
+
+        lores.remove(index);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+
+        return true;
+    }
+
+    public void setItemTitle(IItemStack iS, String title) {
+        ItemStack IS = iS.get();
+        ItemMeta IM = IS.getItemMeta();
+        IM.setDisplayName(title);
+        IS.setItemMeta(IM);
+    }
+
+    public boolean setLore(IItemStack iS, int index, String lore) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        if (lore == null || index < 0 || index > lores.size() - 1) return false;
+
+        lores.set(index, lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+
+        return true;
+    }
+
+    public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set) {
+        for (Map.Entry<SimpleLocation, Trigger> entry : set) {
+            SimpleLocation sloc = entry.getKey();
+            Player player = sender.get();
+            player.sendBlockChange(new Location(Bukkit.getWorld(sloc.getWorld()),
+                                                sloc.getX(),
+                                                sloc.getY(),
+                                                sloc.getZ()), Material.GLOWSTONE, (byte) 0);
+        }
+    }
+
+    public boolean isServerThread() {
+        boolean result = false;
+
+        synchronized (this) {
+            result = Bukkit.isPrimaryThread();
+        }
+
+        return result;
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        getServer().getScheduler().runTaskAsynchronously(this, run);
+    }
+
+    @Override
+    public <T> Future<T> submitSync(Callable<T> call) {
+        return getServer().getScheduler().callSyncMethod(this, call);
+    }
+
+    protected abstract TriggerReactorMain getMain();
+
+    protected abstract Set<Manager> getManagers();
+
+    private ProcessInterrupter.Builder appendCooldownInterrupter(ProcessInterrupter.Builder builder,
+                                                                 Map<UUID, Long> cooldowns) {
+        return builder.perExecutor(((context, command, args) -> {
+            if ("COOLDOWN".equalsIgnoreCase(command)) {
+                if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+
+                if (context.getTriggerCause() instanceof PlayerEvent) {
+                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
+                    Player player = ((PlayerEvent) context.getTriggerCause()).getPlayer();
+                    UUID uuid = player.getUniqueId();
+                    cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                }
+                return true;
+            }
+
+            return false;
+        })).perPlaceholder((context, placeholder, args) -> {
+//            if ("cooldown".equals(placeholder)) {
+//                if (context.getTriggerCause() instanceof PlayerEvent) {
+//                    return cooldowns.getOrDefault(((PlayerEvent) context.getTriggerCause()).getPlayer().getUniqueId(), 0L);
+//                } else {
+//                    return 0;
+//                }
+//            }
+            return null;
+        });
+    }
+
+    public BungeeCordHelper getBungeeHelper() {
+        return bungeeHelper;
+    }
+
+    public File getJarFile() {
+        return super.getFile();
+    }
+
+    public MysqlSupport getMysqlHelper() {
+        return mysqlHelper;
+    }
+
+    private void initBungeeHelper() {
+        bungeeHelper = new BungeeCordHelper();
+        bungeeConnectionThread = new Thread(bungeeHelper);
+        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
+        bungeeConnectionThread.start();
+    }
+
+    private void initMysql() {
+        FileConfiguration config = getConfig();
+        if (config.getBoolean("Mysql.Enable", false)) {
+            try {
+                getLogger().info("Initializing Mysql support...");
+                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
+                                               config.getString("Mysql.DbName"),
+                                               "data",
+                                               config.getString("Mysql.UserName"),
+                                               config.getString("Mysql.Password"));
+                getLogger().info(mysqlHelper.toString());
+                getLogger().info("Done!");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                getLogger().warning("Failed to initialize Mysql. Check for the error above.");
+            }
+        } else {
+            String path = "Mysql.Enable";
+            if (!config.isSet(path)) config.set(path, false);
+            path = "Mysql.Address";
+            if (!config.isSet(path)) config.set(path, "127.0.0.1:3306");
+            path = "Mysql.DbName";
+            if (!config.isSet(path)) config.set(path, "TriggerReactor");
+            path = "Mysql.UserName";
+            if (!config.isSet(path)) config.set(path, "root");
+            path = "Mysql.Password";
+            if (!config.isSet(path)) config.set(path, "1234");
+
+            saveConfig();
+        }
+    }
+
+    private void migrateOldConfig() {
+        new ContinuingTasks.Builder().append(() -> {
+            if (api.getPluginConfigManager().isMigrationNeeded()) {
+                api.getPluginConfigManager()
+                        .migrate(new NaiveMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
+            }
+        }).append(() -> {
+            if (api.getVariableManager().isMigrationNeeded()) {
+                File file = new File(getDataFolder(), "var.yml");
+                FileConfiguration conf = new Utf8YamlConfiguration();
+                try {
+                    conf.load(file);
+                } catch (IOException | InvalidConfigurationException e) {
+                    e.printStackTrace();
+                }
+                api.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
+            }
+        }).append(() -> {
+            Optional.of(api.invManager())
+                    .map(AbstractTriggerManager::getTriggerInfos)
+                    .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                            .filter(TriggerInfo::isMigrationNeeded)
+                            .forEach(triggerInfo -> {
+                                File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldFileConfig));
+                            }));
+        }).append(() -> {
+            getManagers().stream()
+                    .filter(AbstractTriggerManager.class::isInstance)
+                    .map(AbstractTriggerManager.class::cast)
+                    .map(AbstractTriggerManager::getTriggerInfos)
+                    .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                            .filter(TriggerInfo::isMigrationNeeded)
+                            .forEach(triggerInfo -> {
+                                File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                triggerInfo.migrate(new NaiveMigrationHelper(oldFileConfig, oldFile));
+                            }));
+        }).run();
+    }
+
+    private ProcessInterrupter.Builder newInterrupterBuilder() {
+        return ProcessInterrupter.Builder.begin().perExecutor((context, command, args) -> {
+            if ("CALL".equalsIgnoreCase(command)) {
+                if (args.length < 1) throw new RuntimeException("Need parameter [String] or [String, boolean]");
+
+                if (args[0] instanceof String) {
+                    Trigger trigger = api.getNamedTriggerManager().get((String) args[0]);
+                    if (trigger == null) throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
+
+                    boolean sync = true;
+                    if (args.length > 1 && args[1] instanceof Boolean) {
+                        sync = (boolean) args[1];
+                    }
+
+                    if (sync) {
+                        trigger.activate(context.getTriggerCause(), context.getVars(), true);
+                    } else {//use snapshot to avoid concurrent modification
+                        trigger.activate(context.getTriggerCause(), new HashMap<>(context.getVars()), false);
+                    }
+
+                    return true;
+                } else {
+                    throw new RuntimeException("Parameter type not match; it should be a String." + " Make sure to put double quotes, if you provided String literal.");
+                }
+            }
+
+            return false;
+        }).perExecutor((context, command, args) -> {
+            if ("CANCELEVENT".equalsIgnoreCase(command)) {
+                if (!getServer().isPrimaryThread())
+                    throw new RuntimeException("Trying to cancel event in async trigger.");
+
+                if (context.getTriggerCause() instanceof Cancellable) {
+                    ((Cancellable) context.getTriggerCause()).setCancelled(true);
+                    return true;
+                } else {
+                    throw new RuntimeException(context.getTriggerCause() + " is not a Cancellable event!");
+                }
+            }
+
+            return false;
+        });
+    }
+
+    public void registerEvents(Manager manager) {
+        if (manager instanceof Listener) Bukkit.getPluginManager().registerEvents((Listener) manager, this);
     }
 
     public class MysqlSupport {
@@ -611,8 +583,13 @@ public abstract class AbstractJavaPlugin
         private final String tablename;
 
         private final String address;
+        private final String CREATETABLEQUARY = "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY + " CHAR(128) PRIMARY KEY," + "" + VALUE + " MEDIUMBLOB" + ")";
 
-        private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws SQLException {
+        private MysqlSupport(String address,
+                             String dbName,
+                             String tablename,
+                             String userName,
+                             String password) throws SQLException {
             this.dbName = dbName;
             this.tablename = tablename;
             this.address = address;
@@ -637,6 +614,11 @@ public abstract class AbstractJavaPlugin
             conn.close();
         }
 
+        @Override
+        public String toString() {
+            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
+        }
+
         private Connection createConnection() {
             Connection conn = null;
 
@@ -645,20 +627,10 @@ public abstract class AbstractJavaPlugin
             } catch (SQLException e) {
                 // e.printStackTrace();
             } finally {
-                if (conn == null)
-                    conn = pool.getValidConnection();
+                if (conn == null) conn = pool.getValidConnection();
             }
 
             return conn;
-        }
-
-        private final String CREATETABLEQUARY = "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY
-                + " CHAR(128) PRIMARY KEY," + "" + VALUE + " MEDIUMBLOB" + ")";
-
-        private void initTable(Connection conn) throws SQLException {
-            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
-            pstmt.executeUpdate();
-            pstmt.close();
         }
 
         public Object get(String key) throws SQLException {
@@ -669,8 +641,7 @@ public abstract class AbstractJavaPlugin
                 pstmt.setString(1, key);
                 ResultSet rs = pstmt.executeQuery();
 
-                if (!rs.next())
-                    return null;
+                if (!rs.next()) return null;
                 InputStream is = rs.getBinaryStream(VALUE);
 
                 try (ObjectInputStream ois = new ObjectInputStream(is)) {
@@ -682,6 +653,12 @@ public abstract class AbstractJavaPlugin
             }
 
             return out;
+        }
+
+        private void initTable(Connection conn) throws SQLException {
+            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
+            pstmt.executeUpdate();
+            pstmt.close();
         }
 
         public void set(String key, Serializable value) throws SQLException {
@@ -703,11 +680,6 @@ public abstract class AbstractJavaPlugin
                     e.printStackTrace();
                 }
             }
-        }
-
-        @Override
-        public String toString() {
-            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
         }
     }
 
@@ -740,14 +712,12 @@ public abstract class AbstractJavaPlugin
                 Set<String> serverListSet = Sets.newHashSet(serverList);
 
                 for (String server : serverListSet) {
-                    if (!playerCounts.containsKey(server))
-                        playerCounts.put(server, -1);
+                    if (!playerCounts.containsKey(server)) playerCounts.put(server, -1);
                 }
 
                 Set<String> deleteServer = new HashSet<>();
                 for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
-                    if (!serverListSet.contains(entry.getKey()))
-                        deleteServer.add(entry.getKey());
+                    if (!serverListSet.contains(entry.getKey())) deleteServer.add(entry.getKey());
                 }
 
                 for (String delete : deleteServer) {
@@ -761,29 +731,11 @@ public abstract class AbstractJavaPlugin
             }
         }
 
-        public void sendToServer(Player player, String serverName) {
-            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF("Connect");
-            out.writeUTF(serverName);
-
-            player.sendPluginMessage(AbstractJavaPlugin.this, CHANNEL, out.toByteArray());
-        }
-
-        public String[] getServerNames() {
-            String[] servers = playerCounts.keySet().toArray(new String[playerCounts.size()]);
-            return servers;
-        }
-
-        public int getPlayerCount(String serverName) {
-            return playerCounts.getOrDefault(serverName, -1);
-        }
-
         @Override
         public void run() {
             while (!Thread.interrupted()) {
                 Player player = Iterables.getFirst(BukkitUtil.getOnlinePlayers(), null);
-                if (player == null)
-                    return;
+                if (player == null) return;
 
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
                 out.writeUTF(SUB_SERVERLIST);
@@ -807,6 +759,23 @@ public abstract class AbstractJavaPlugin
                 }
             }
         }
+
+        public int getPlayerCount(String serverName) {
+            return playerCounts.getOrDefault(serverName, -1);
+        }
+
+        public String[] getServerNames() {
+            String[] servers = playerCounts.keySet().toArray(new String[playerCounts.size()]);
+            return servers;
+        }
+
+        public void sendToServer(Player player, String serverName) {
+            ByteArrayDataOutput out = ByteStreams.newDataOutput();
+            out.writeUTF("Connect");
+            out.writeUTF(serverName);
+
+            player.sendPluginMessage(AbstractJavaPlugin.this, CHANNEL, out.toByteArray());
+        }
     }
 
     private class CommandSenderEvent extends Event {
@@ -822,10 +791,5 @@ public abstract class AbstractJavaPlugin
             return null;
         }
 
-    }
-
-    static {
-        GsonConfigSource.registerSerializer(ConfigurationSerializable.class, new BukkitConfigurationSerializer());
-        GsonConfigSource.registerValidator(obj -> obj instanceof ConfigurationSerializable);
     }
 }

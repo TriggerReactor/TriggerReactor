@@ -43,13 +43,27 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
     IThrowableHandler throwableHandler;
 
     @Inject
-    public BukkitTaskSupervisor(){
+    public BukkitTaskSupervisor() {
 
     }
 
     @Override
     public boolean isServerThread() {
         return server.get().isPrimaryThread();
+    }
+
+    @Override
+    public void runTask(Runnable runnable) {
+        server.get().getScheduler().runTask((Plugin) pluginInstance, runnable);
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        try {
+            new Thread(run).start();
+        } catch (Exception ex) {
+            throwableHandler.handleException(null, ex);
+        }
     }
 
     @Override
@@ -86,8 +100,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
                 }
 
                 @Override
-                public T get(long arg0, TimeUnit arg1)
-                        throws ExecutionException {
+                public T get(long arg0, TimeUnit arg1) throws ExecutionException {
                     T out = null;
                     try {
                         out = call.call();
@@ -101,20 +114,6 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
             };
         } else {
             return gameController.callSyncMethod(call);
-        }
-    }
-
-    @Override
-    public void runTask(Runnable runnable) {
-        server.get().getScheduler().runTask((Plugin) pluginInstance, runnable);
-    }
-
-    @Override
-    public void submitAsync(Runnable run) {
-        try{
-            new Thread(run).start();
-        }catch (Exception ex){
-            throwableHandler.handleException(null, ex);
         }
     }
 }

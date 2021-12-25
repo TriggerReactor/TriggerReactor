@@ -14,14 +14,14 @@ import static org.mockito.Mockito.mock;
 public abstract class GlobalVariableSettingsModule {
     @Provides
     @Named("DefaultConfigType")
-    static String provideType(){
+    static String provideType() {
         return "gson";
     }
 
     @Provides
     @IntoMap
     @StringKey("gson")
-    static IConfigSourceFactory provideFactory(){
+    static IConfigSourceFactory provideFactory() {
         return mock(IConfigSourceFactory.class);
     }
 }

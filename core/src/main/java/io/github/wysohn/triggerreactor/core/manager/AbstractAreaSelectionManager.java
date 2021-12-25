@@ -27,33 +27,25 @@ public abstract class AbstractAreaSelectionManager extends Manager {
     protected final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
 
     /**
-     * get the smallest point between two coordinates. Smallest means that the x, y, and z are all
-     * the minimum value between two coordinates.
-     *
-     * @param left  coordinate 1
-     * @param right coordinate 2
-     * @return the smallest between two
+     * @param player
+     * @return null if invalid selection; Area if done
      */
-    protected static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
-        return new SimpleLocation(left.getWorld(),
-                Math.min(left.getX(), right.getX()),
-                Math.min(left.getY(), right.getY()),
-                Math.min(left.getZ(), right.getZ()));
-    }
+    public Area getSelection(UUID uuid) {
+        SimpleLocation left = leftPosition.get(uuid);
+        SimpleLocation right = rightPosition.get(uuid);
 
-    /**
-     * get the largest point between two coordinates. Largest means that the x, y, and z are all
-     * the maximum value between two coordinates.
-     *
-     * @param left  coordinate 1
-     * @param right coordinate 2
-     * @return the largest between two
-     */
-    protected static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
-        return new SimpleLocation(right.getWorld(),
-                Math.max(left.getX(), right.getX()),
-                Math.max(left.getY(), right.getY()),
-                Math.max(left.getZ(), right.getZ()));
+        if (left != null && right != null) {
+            if (!left.getWorld().equals(right.getWorld())) {
+                return null;
+            }
+
+            SimpleLocation smallest = getSmallest(left, right);
+            SimpleLocation largest = getLargest(left, right);
+
+            return new Area(smallest, largest);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -89,6 +81,12 @@ public abstract class AbstractAreaSelectionManager extends Manager {
         }
     }
 
+    public void resetSelections(UUID uuid) {
+        selecting.remove(uuid);
+        leftPosition.remove(uuid);
+        rightPosition.remove(uuid);
+    }
+
     /**
      * @param player
      * @return true if on; false if off
@@ -104,32 +102,34 @@ public abstract class AbstractAreaSelectionManager extends Manager {
         }
     }
 
-    public void resetSelections(UUID uuid) {
-        selecting.remove(uuid);
-        leftPosition.remove(uuid);
-        rightPosition.remove(uuid);
+    /**
+     * get the smallest point between two coordinates. Smallest means that the x, y, and z are all
+     * the minimum value between two coordinates.
+     *
+     * @param left  coordinate 1
+     * @param right coordinate 2
+     * @return the smallest between two
+     */
+    protected static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
+        return new SimpleLocation(left.getWorld(),
+                                  Math.min(left.getX(), right.getX()),
+                                  Math.min(left.getY(), right.getY()),
+                                  Math.min(left.getZ(), right.getZ()));
     }
 
     /**
-     * @param player
-     * @return null if invalid selection; Area if done
+     * get the largest point between two coordinates. Largest means that the x, y, and z are all
+     * the maximum value between two coordinates.
+     *
+     * @param left  coordinate 1
+     * @param right coordinate 2
+     * @return the largest between two
      */
-    public Area getSelection(UUID uuid) {
-        SimpleLocation left = leftPosition.get(uuid);
-        SimpleLocation right = rightPosition.get(uuid);
-
-        if (left != null && right != null) {
-            if (!left.getWorld().equals(right.getWorld())) {
-                return null;
-            }
-
-            SimpleLocation smallest = getSmallest(left, right);
-            SimpleLocation largest = getLargest(left, right);
-
-            return new Area(smallest, largest);
-        } else {
-            return null;
-        }
+    protected static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
+        return new SimpleLocation(right.getWorld(),
+                                  Math.max(left.getX(), right.getX()),
+                                  Math.max(left.getY(), right.getY()),
+                                  Math.max(left.getZ(), right.getZ()));
     }
 
     public enum ClickAction {

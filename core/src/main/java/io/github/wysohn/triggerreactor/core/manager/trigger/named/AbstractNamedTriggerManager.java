@@ -39,33 +39,6 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
         super(folderName);
     }
 
-    private File[] getAllFiles(List<File> list, File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files != null) {
-                for (File each : files) {
-                    getAllFiles(list, each);
-                }
-            }
-        } else {
-            list.add(file);
-        }
-
-        return list.toArray(new File[0]);
-    }
-
-    @Override
-    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactories fn) {
-        File[] files = getAllFiles(new ArrayList<>(), folder);
-        return Arrays.stream(files)
-                .filter(file -> file.getName().endsWith(".trg"))
-                .map(file -> {
-                    String name = TriggerInfo.extractName(file);
-                    IConfigSource config = fn.create(folder, name);
-                    return new NamedTriggerInfo(folder, file, config);
-                }).toArray(NamedTriggerInfo[]::new);
-    }
-
     @Override
     public NamedTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
@@ -80,5 +53,30 @@ public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager
     @Override
     public void save(NamedTrigger trigger) {
         // we don't save NamedTrigger
+    }
+
+    @Override
+    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactories fn) {
+        File[] files = getAllFiles(new ArrayList<>(), folder);
+        return Arrays.stream(files).filter(file -> file.getName().endsWith(".trg")).map(file -> {
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = fn.create(folder, name);
+            return new NamedTriggerInfo(folder, file, config);
+        }).toArray(NamedTriggerInfo[]::new);
+    }
+
+    private File[] getAllFiles(List<File> list, File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File each : files) {
+                    getAllFiles(list, each);
+                }
+            }
+        } else {
+            list.add(file);
+        }
+
+        return list.toArray(new File[0]);
     }
 }

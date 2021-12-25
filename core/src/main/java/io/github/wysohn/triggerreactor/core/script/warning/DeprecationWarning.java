@@ -13,11 +13,9 @@ public class DeprecationWarning extends Warning {
 
     @Override
     public String[] getMessageLines() {
-        return new String[]{
-                "Deprecated token found at line " + row + ": ",
-                context,
-                value + " is deprecated and may be removed in a future release"
-        };
+        return new String[]{"Deprecated token found at line " + row + ": ",
+                            context,
+                            value + " is deprecated and may be removed in a future release"};
     }
 
     @Override

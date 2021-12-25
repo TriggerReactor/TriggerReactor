@@ -28,6 +28,11 @@ public class BukkitItemStack implements IItemStack {
     }
 
     @Override
+    public IItemStack clone() {
+        return new BukkitItemStack(itemStack.clone());
+    }
+
+    @Override
     public <T> T get() {
         return (T) itemStack;
     }
@@ -38,11 +43,6 @@ public class BukkitItemStack implements IItemStack {
     @Override
     public <T> T getType() {
         return (T) itemStack.getType();
-    }
-
-    @Override
-    public IItemStack clone() {
-        return new BukkitItemStack(itemStack.clone());
     }
 
 }

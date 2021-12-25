@@ -22,38 +22,8 @@ import java.util.Set;
 
 public class EmptyConfigSource implements IConfigSource {
     @Override
-    public boolean fileExists() {
-        return true;
-    }
+    public void onDisable() {
 
-    @Override
-    public <T> Optional<T> get(String key, Class<T> asType) {
-        return Optional.empty();
-    }
-
-    @Override
-    public <T> Optional<T> get(String key) {
-        return Optional.empty();
-    }
-
-    @Override
-    public void put(String key, Object value) {
-
-    }
-
-    @Override
-    public boolean has(String key) {
-        return false;
-    }
-
-    @Override
-    public Set<String> keys() {
-        return null;
-    }
-
-    @Override
-    public boolean isSection(String key) {
-        return false;
     }
 
     @Override
@@ -67,17 +37,47 @@ public class EmptyConfigSource implements IConfigSource {
     }
 
     @Override
-    public void saveAll() {
-
-    }
-
-    @Override
-    public void onDisable() {
-
-    }
-
-    @Override
     public void delete() {
+
+    }
+
+    @Override
+    public boolean fileExists() {
+        return true;
+    }
+
+    @Override
+    public <T> Optional<T> get(String key) {
+        return Optional.empty();
+    }
+
+    @Override
+    public <T> Optional<T> get(String key, Class<T> asType) {
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean has(String key) {
+        return false;
+    }
+
+    @Override
+    public boolean isSection(String key) {
+        return false;
+    }
+
+    @Override
+    public Set<String> keys() {
+        return null;
+    }
+
+    @Override
+    public void put(String key, Object value) {
+
+    }
+
+    @Override
+    public void saveAll() {
 
     }
 }

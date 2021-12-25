@@ -34,8 +34,7 @@ public class InventoryTrigger extends Trigger {
         if (size < 9 || size % 9 != 0)
             throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
 
-        if (size > MAXSIZE)
-            throw new IllegalArgumentException("Inventory Size cannot be larger than " + MAXSIZE);
+        if (size > MAXSIZE) throw new IllegalArgumentException("Inventory Size cannot be larger than " + MAXSIZE);
 
         this.items = new IItemStack[size];
 
@@ -47,27 +46,32 @@ public class InventoryTrigger extends Trigger {
     }
 
     @Override
-    protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
-                         boolean sync) {
-        try {
-            interpreter.startWithContextAndInterrupter(e,
-                    api.getGameController().createInterrupterForInv(cooldowns, AbstractInventoryTriggerManager.inventoryMap),
-                    timing);
-        } catch (Exception ex) {
-            api.getThrowableHandler().handleException(e,
-                    new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
-        }
-    }
-
-    @Override
     public InventoryTrigger clone() {
         try {
-            return new InventoryTrigger(api,
-                    getInfo(), getScript(), items.clone());
+            return new InventoryTrigger(api, getInfo(), getScript(), items.clone());
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    protected void start(Timings.Timing timing,
+                         Object e,
+                         Map<String, Object> scriptVars,
+                         Interpreter interpreter,
+                         boolean sync) {
+        try {
+            interpreter.startWithContextAndInterrupter(e,
+                                                       api.getGameController()
+                                                               .createInterrupterForInv(cooldowns,
+                                                                                        AbstractInventoryTriggerManager.inventoryMap),
+                                                       timing);
+        } catch (Exception ex) {
+            api.getThrowableHandler()
+                    .handleException(e,
+                                     new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
+        }
     }
 
     public IItemStack[] getItems() {

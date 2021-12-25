@@ -34,8 +34,13 @@ public class Accessor {
         this.target = index;
     }
 
-    public Object getTargetParent() {
-        return targetParent;
+    @Override
+    public String toString() {
+        if (targetParent.getClass().isArray()) {
+            return targetParent + "[" + target + "]";
+        } else {
+            return targetParent + "." + target;
+        }
     }
 
     public Object evaluateTarget() throws NoSuchFieldException, IllegalArgumentException {
@@ -44,7 +49,8 @@ public class Accessor {
                 try {
                     return Array.get(targetParent, (Integer) target);
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    throw new IllegalArgumentException(target + " is out of bound for array! Size: " + Array.getLength(targetParent));
+                    throw new IllegalArgumentException(target + " is out of bound for array! Size: " + Array.getLength(
+                            targetParent));
                 }
             } else if (target instanceof String && ((String) target).equals("length")) {
                 return Array.getLength(targetParent);
@@ -58,20 +64,15 @@ public class Accessor {
         }
     }
 
+    public Object getTargetParent() {
+        return targetParent;
+    }
+
     public void setTargetValue(Object value) throws NoSuchFieldException, IllegalArgumentException {
         if (targetParent.getClass().isArray()) {
             Array.set(targetParent, (Integer) target, value);
         } else {
             ReflectionUtil.setField(targetParent, (String) target, value);
-        }
-    }
-
-    @Override
-    public String toString() {
-        if (targetParent.getClass().isArray()) {
-            return targetParent + "[" + target + "]";
-        } else {
-            return targetParent + "." + target;
         }
     }
 

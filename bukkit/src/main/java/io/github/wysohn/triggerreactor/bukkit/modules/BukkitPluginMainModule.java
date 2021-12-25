@@ -24,12 +24,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Logger;
 
-@Module(includes = {
-        CorePluginMainModule.class,
-})
+@Module(includes = {CorePluginMainModule.class,})
 public abstract class BukkitPluginMainModule {
     @Provides
-    static Logger bindLogger(JavaPlugin javaPlugin){
+    static Logger bindLogger(JavaPlugin javaPlugin) {
         return javaPlugin.getLogger();
     }
 }

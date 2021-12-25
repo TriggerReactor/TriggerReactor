@@ -22,11 +22,11 @@ import java.util.Set;
 
 public interface KeyValueManager<V> {
 
-    V get(Object key);
-
     boolean containsKey(Object key);
 
     Set<Entry<String, V>> entrySet();
+
+    V get(Object key);
 
     /**
      * Get map directly associated with this manager.

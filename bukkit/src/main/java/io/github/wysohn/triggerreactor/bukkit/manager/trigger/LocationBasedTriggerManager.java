@@ -53,15 +53,19 @@ import java.util.function.Predicate;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractLocationBasedTriggerManager<T>
         implements BukkitTriggerManager {
-    @Inject
-    AbstractScriptEditManager scriptEditManager;
-
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
+    @Inject
+    AbstractScriptEditManager scriptEditManager;
 
     public LocationBasedTriggerManager(String folderName) {
         super(folderName);
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @Override
@@ -70,21 +74,167 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     @Override
-    public void onDisable() {
+    protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc) {
+        Trigger trigger = getTriggerForLocation(sloc);
+        if (trigger == null) {
+            return;
+        }
 
+        Location loc = LocationUtil.convertToBukkitLocation(sloc);
+        Block clicked = loc.getBlock();
+
+        sender.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("Trigger: " + getTriggerTypeName());
+        sender.sendMessage("Block Type: " + clicked.getType().name());
+        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation()
+                .getBlockX() + "," + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
+        sender.sendMessage("");
+        sender.sendMessage("Script:");
+        sender.sendMessage(trigger.getScript());
+        sender.sendMessage("- - - - - - - - - - - - - -");
+    }
+
+    /**
+     * @param player
+     * @param loc
+     * @return true if copy ready; false if no trigger found at the location
+     */
+    protected boolean copyTrigger(Player player, Location loc) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        return copyTrigger(main.getWrapper().wrap(player), sloc);
+    }
+
+    /**
+     * @param player
+     * @param loc
+     * @return true if cut ready; false if no trigger found at the location
+     */
+    protected boolean cutTrigger(Player player, Location loc) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        return cutTrigger(main.getWrapper().wrap(player), sloc);
+    }
+
+    private Collection<Block> getSurroundingBlocks(Block block, Predicate<Block> pred) {
+        Collection<Block> blocks = new ArrayList<>();
+        Predicate<Block> notNull = b -> b != null;
+
+        Block relative = null;
+
+        relative = block.getRelative(BlockFace.NORTH);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        relative = block.getRelative(BlockFace.SOUTH);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        relative = block.getRelative(BlockFace.EAST);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        relative = block.getRelative(BlockFace.WEST);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        return blocks;
+    }
+
+    protected T getTriggerForLocation(Location loc) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        return getTriggerForLocation(sloc);
+    }
+
+    protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
+        SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
+        return getTriggersInChunk(scloc);
+    }
+
+    private void handleLocationSetting(Block clicked, Player p) {
+        IPlayer bukkitPlayer = main.getWrapper().wrap(p);
+
+        Location loc = clicked.getLocation();
+        T trigger = getTriggerForLocation(loc);
+        if (trigger != null) {
+            bukkitPlayer.sendMessage(ChatColor.RED + "Another trigger is set at there!");
+            showTriggerInfo(bukkitPlayer, clicked);
+            return;
+        }
+
+        String script = getSettingLocationScript(bukkitPlayer);
+        if (script == null) {
+            bukkitPlayer.sendMessage(ChatColor.RED + "Could not find script... but how?");
+            return;
+        }
+
+        File file = getTriggerFile(folder, LocationUtil.convertToSimpleLocation(loc).toString(), true);
+        try {
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = configSourceFactories.create(folder, name);
+            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+            trigger = newTrigger(info, script);
+        } catch (TriggerInitFailedException e1) {
+            bukkitPlayer.sendMessage(ChatColor.RED + "Encounterd an error!");
+            bukkitPlayer.sendMessage(ChatColor.RED + e1.getMessage());
+            bukkitPlayer.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
+            e1.printStackTrace();
+
+            stopLocationSet(bukkitPlayer);
+            return;
+        }
+
+        setTriggerForLocation(loc, trigger);
+
+        showTriggerInfo(bukkitPlayer, clicked);
+
+        stopLocationSet(bukkitPlayer);
+
+        main.saveAsynchronously(this);
+    }
+
+    private void handleScriptEdit(Player player, T trigger) {
+        IPlayer bukkitPlayer = main.getWrapper().wrap(player);
+
+        scriptEditManager.startEdit(bukkitPlayer,
+                                    trigger.getInfo().getTriggerName(),
+                                    trigger.getScript(),
+                                    (SaveHandler) script -> {
+                                        try {
+                                            trigger.setScript(script);
+                                        } catch (TriggerInitFailedException e) {
+                                            throwableHandler.handleException(bukkitPlayer, e);
+                                        }
+
+                                        main.saveAsynchronously(LocationBasedTriggerManager.this);
+                                    });
+    }
+
+    @EventHandler
+    public void onBreak(BlockBreakEvent e) {
+        Block block = e.getBlock();
+
+        T trigger = getTriggerForLocation(block.getLocation());
+        if (trigger == null) return;
+
+        Player player = e.getPlayer();
+
+        player.sendMessage(ChatColor.GRAY + "Cannot break trigger block.");
+        player.sendMessage(ChatColor.GRAY + "To remove trigger, hold inspection tool " + INSPECTION_TOOL.name());
+        e.setCancelled(true);
     }
 
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClick(PlayerInteractEvent e) {
-        if (!BukkitUtil.isLeftHandClick(e))
-            return;
+        if (!BukkitUtil.isLeftHandClick(e)) return;
 
         Player player = e.getPlayer();
         ItemStack IS = player.getInventory().getItemInHand();
         Block clicked = e.getClickedBlock();
-        if (clicked == null)
-            return;
+        if (clicked == null) return;
 
         T trigger = getTriggerForLocation(clicked.getLocation());
         IPlayer bukkitPlayer = main.getWrapper().wrap(player);
@@ -143,96 +293,30 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         }
     }
 
-    private void handleLocationSetting(Block clicked, Player p) {
-        IPlayer bukkitPlayer = main.getWrapper().wrap(p);
-
-        Location loc = clicked.getLocation();
-        T trigger = getTriggerForLocation(loc);
-        if (trigger != null) {
-            bukkitPlayer.sendMessage(ChatColor.RED + "Another trigger is set at there!");
-            showTriggerInfo(bukkitPlayer, clicked);
-            return;
-        }
-
-        String script = getSettingLocationScript(bukkitPlayer);
-        if (script == null) {
-            bukkitPlayer.sendMessage(ChatColor.RED + "Could not find script... but how?");
-            return;
-        }
-
-        File file = getTriggerFile(folder, LocationUtil.convertToSimpleLocation(loc).toString(), true);
-        try {
-            String name = TriggerInfo.extractName(file);
-            IConfigSource config = configSourceFactories.create(folder, name);
-            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = newTrigger(info, script);
-        } catch (TriggerInitFailedException e1) {
-            bukkitPlayer.sendMessage(ChatColor.RED + "Encounterd an error!");
-            bukkitPlayer.sendMessage(ChatColor.RED + e1.getMessage());
-            bukkitPlayer.sendMessage(ChatColor.RED + "If you are an administrator, check console to see details.");
-            e1.printStackTrace();
-
-            stopLocationSet(bukkitPlayer);
-            return;
-        }
-
-        setTriggerForLocation(loc, trigger);
-
-        showTriggerInfo(bukkitPlayer, clicked);
-
-        stopLocationSet(bukkitPlayer);
-
-        main.saveAsynchronously(this);
+    @EventHandler
+    public void onItemSwap(PlayerItemHeldEvent e) {
+        onItemSwap((IPlayer) main.getWrapper().wrap(e.getPlayer()));
     }
 
-    private void handleScriptEdit(Player player, T trigger) {
-        IPlayer bukkitPlayer = main.getWrapper().wrap(player);
+    @EventHandler(priority = EventPriority.LOW)
+    public void onSignBreak(BlockBreakEvent e) {
+        if (e.isCancelled()) return;
 
-        scriptEditManager.startEdit(bukkitPlayer, trigger.getInfo().getTriggerName(), trigger.getScript(),
-                (SaveHandler) script -> {
-                    try {
-                        trigger.setScript(script);
-                    } catch (TriggerInitFailedException e) {
-                        throwableHandler.handleException(bukkitPlayer, e);
-                    }
+        Block block = e.getBlock();
+        Block above = block.getRelative(BlockFace.UP);
 
-                    main.saveAsynchronously(LocationBasedTriggerManager.this);
-                });
-    }
+        // check if this break event of the block
+        // will cause the destruction of sign above it
+        if (!above.getType().name().equals("SIGN_POST") && !above.getType().name().endsWith("_SIGN")) return;
 
-    private Collection<Block> getSurroundingBlocks(Block block, Predicate<Block> pred) {
-        Collection<Block> blocks = new ArrayList<>();
-        Predicate<Block> notNull = b -> b != null;
-
-        Block relative = null;
-
-        relative = block.getRelative(BlockFace.NORTH);
-        if (notNull.and(pred).test(relative)) {
-            blocks.add(relative);
-        }
-
-        relative = block.getRelative(BlockFace.SOUTH);
-        if (notNull.and(pred).test(relative)) {
-            blocks.add(relative);
-        }
-
-        relative = block.getRelative(BlockFace.EAST);
-        if (notNull.and(pred).test(relative)) {
-            blocks.add(relative);
-        }
-
-        relative = block.getRelative(BlockFace.WEST);
-        if (notNull.and(pred).test(relative)) {
-            blocks.add(relative);
-        }
-
-        return blocks;
+        BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
+        onBreak(bbe);
+        e.setCancelled(bbe.isCancelled());
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void onWallSignBreak(BlockBreakEvent e) {
-        if (e.isCancelled())
-            return;
+        if (e.isCancelled()) return;
 
         Block block = e.getBlock();
         for (Block surronding : getSurroundingBlocks(block, (b) -> b.getType() == Material.WALL_SIGN)) {
@@ -247,58 +331,24 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         }
     }
 
-    @EventHandler(priority = EventPriority.LOW)
-    public void onSignBreak(BlockBreakEvent e) {
-        if (e.isCancelled())
-            return;
-
-        Block block = e.getBlock();
-        Block above = block.getRelative(BlockFace.UP);
-
-        // check if this break event of the block
-        // will cause the destruction of sign above it
-        if (!above.getType().name().equals("SIGN_POST")
-                && !above.getType().name().endsWith("_SIGN"))
-            return;
-
-        BlockBreakEvent bbe = new BlockBreakEvent(above, e.getPlayer());
-        onBreak(bbe);
-        e.setCancelled(bbe.isCancelled());
-    }
-
-    @EventHandler
-    public void onBreak(BlockBreakEvent e) {
-        Block block = e.getBlock();
-
-        T trigger = getTriggerForLocation(block.getLocation());
-        if (trigger == null)
-            return;
-
-        Player player = e.getPlayer();
-
-        player.sendMessage(ChatColor.GRAY + "Cannot break trigger block.");
-        player.sendMessage(ChatColor.GRAY + "To remove trigger, hold inspection tool " + INSPECTION_TOOL.name());
-        e.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onItemSwap(PlayerItemHeldEvent e) {
-        onItemSwap((IPlayer) main.getWrapper().wrap(e.getPlayer()));
-    }
-
-    protected T getTriggerForLocation(Location loc) {
+    /**
+     * @param player
+     * @param loc
+     * @return true if pasted; false if nothing in the clipboard
+     */
+    protected boolean pasteTrigger(Player player, Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return getTriggerForLocation(sloc);
-    }
-
-    protected void setTriggerForLocation(Location loc, T trigger) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        setLocationCache(sloc, trigger);
+        return pasteTrigger(main.getWrapper().wrap(player), sloc);
     }
 
     protected T removeTriggerForLocation(Location loc) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
         return removeLocationCache(sloc);
+    }
+
+    protected void setTriggerForLocation(Location loc, T trigger) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        setLocationCache(sloc, trigger);
     }
 
     protected void showTriggerInfo(ICommandSender sender, Block clicked) {
@@ -310,67 +360,11 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage("- - - - - - - - - - - - - -");
         sender.sendMessage("Trigger: " + getTriggerTypeName());
         sender.sendMessage("Block Type: " + clicked.getType().name());
-        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
-                + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
+        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation()
+                .getBlockX() + "," + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
         sender.sendMessage("");
         sender.sendMessage("Script:");
         sender.sendMessage(trigger.getScript());
         sender.sendMessage("- - - - - - - - - - - - - -");
-    }
-
-    @Override
-    protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc) {
-        Trigger trigger = getTriggerForLocation(sloc);
-        if (trigger == null) {
-            return;
-        }
-
-        Location loc = LocationUtil.convertToBukkitLocation(sloc);
-        Block clicked = loc.getBlock();
-
-        sender.sendMessage("- - - - - - - - - - - - - -");
-        sender.sendMessage("Trigger: " + getTriggerTypeName());
-        sender.sendMessage("Block Type: " + clicked.getType().name());
-        sender.sendMessage("Location: " + clicked.getWorld().getName() + "@" + clicked.getLocation().getBlockX() + ","
-                + clicked.getLocation().getBlockY() + "," + clicked.getLocation().getBlockZ());
-        sender.sendMessage("");
-        sender.sendMessage("Script:");
-        sender.sendMessage(trigger.getScript());
-        sender.sendMessage("- - - - - - - - - - - - - -");
-    }
-
-    /**
-     * @param player
-     * @param loc
-     * @return true if cut ready; false if no trigger found at the location
-     */
-    protected boolean cutTrigger(Player player, Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return cutTrigger(main.getWrapper().wrap(player), sloc);
-    }
-
-    /**
-     * @param player
-     * @param loc
-     * @return true if copy ready; false if no trigger found at the location
-     */
-    protected boolean copyTrigger(Player player, Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return copyTrigger(main.getWrapper().wrap(player), sloc);
-    }
-
-    /**
-     * @param player
-     * @param loc
-     * @return true if pasted; false if nothing in the clipboard
-     */
-    protected boolean pasteTrigger(Player player, Location loc) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        return pasteTrigger(main.getWrapper().wrap(player), sloc);
-    }
-
-    protected Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(Chunk chunk) {
-        SimpleChunkLocation scloc = LocationUtil.convertToSimpleChunkLocation(chunk);
-        return getTriggersInChunk(scloc);
     }
 }

@@ -37,8 +37,8 @@ import java.io.IOException;
 
 public class EditingPrompt implements Prompt, Listener {
     private final ScriptEditor editor;
-    private Runnable postWork;
     private final Conversable sender;
+    private Runnable postWork;
 
     public EditingPrompt(Plugin plugin, Conversable sender, ScriptEditor editor, Runnable postWork) {
         this.sender = sender;
@@ -53,6 +53,23 @@ public class EditingPrompt implements Prompt, Listener {
     }
 
     @Override
+    public String getPromptText(ConversationContext arg0) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                editor.printScript(new BukkitScriptEditorUser(arg0.getForWhom()));
+            }
+        }).start();
+        return "";
+    }
+
+    @Override
+    public boolean blocksForInput(ConversationContext arg0) {
+        return true;
+    }
+
+    @Override
     public Prompt acceptInput(ConversationContext arg0, String arg1) {
         if (arg1.equals("save")) {
             try {
@@ -63,8 +80,7 @@ public class EditingPrompt implements Prompt, Listener {
 
             HandlerList.unregisterAll(this);
 
-            if (postWork != null)
-                postWork.run();
+            if (postWork != null) postWork.run();
 
             return Prompt.END_OF_CONVERSATION;
         } else if (arg1.equals("exit")) {
@@ -106,38 +122,19 @@ public class EditingPrompt implements Prompt, Listener {
         return this;
     }
 
-    @Override
-    public boolean blocksForInput(ConversationContext arg0) {
-        return true;
-    }
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        if (!e.getPlayer().equals(sender)) return;
 
-    @Override
-    public String getPromptText(ConversationContext arg0) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                editor.printScript(new BukkitScriptEditorUser(arg0.getForWhom()));
-            }
-        }).start();
-        return "";
+        HandlerList.unregisterAll(this);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onTab(PlayerChatTabCompleteEvent e) {
-        if (!e.getPlayer().equals(sender))
-            return;
+        if (!e.getPlayer().equals(sender)) return;
 
         e.getTabCompletions().clear();
         e.getTabCompletions().add(AbstractScriptEditManager.parseSpaceToMarker(editor.getLine()));
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
-        if (!e.getPlayer().equals(sender))
-            return;
-
-        HandlerList.unregisterAll(this);
     }
 
     private static class BukkitScriptEditorUser implements ScriptEditorUser {
@@ -149,11 +146,6 @@ public class EditingPrompt implements Prompt, Listener {
         }
 
         @Override
-        public void sendMessage(String rawMessage) {
-            conv.sendRawMessage(ChatColor.translateAlternateColorCodes('&', rawMessage));
-        }
-
-        @Override
         public int hashCode() {
             return conv.hashCode();
         }
@@ -161,6 +153,11 @@ public class EditingPrompt implements Prompt, Listener {
         @Override
         public boolean equals(Object obj) {
             return conv.equals(obj);
+        }
+
+        @Override
+        public void sendMessage(String rawMessage) {
+            conv.sendRawMessage(ChatColor.translateAlternateColorCodes('&', rawMessage));
         }
 
 

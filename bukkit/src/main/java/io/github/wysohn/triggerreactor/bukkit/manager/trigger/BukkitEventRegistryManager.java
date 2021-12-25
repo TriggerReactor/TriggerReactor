@@ -65,7 +65,39 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
     private static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
 
     @Inject
-    public BukkitEventRegistryManager(){
+    public BukkitEventRegistryManager() {
+
+    }
+
+    @Override
+    public boolean eventExist(String eventStr) {
+        try {
+            return getEvent(eventStr) != null;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public Collection<String> getAbbreviations() {
+        return ABBREVIATIONS.keySet();
+    }
+
+    @Override
+    public Class<?> getEvent(String eventStr) throws ClassNotFoundException {
+        Class<? extends Event> event;
+        if (ABBREVIATIONS.containsKey(eventStr)) {
+            event = ABBREVIATIONS.get(eventStr);
+        } else if (EVENTS.containsKey(eventStr)) {
+            event = EVENTS.get(eventStr);
+        } else {
+            event = (Class<? extends Event>) Class.forName(eventStr);
+        }
+
+        return event;
+    }
+
+    @Override
+    public void onDisable() {
 
     }
 
@@ -76,11 +108,6 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
 
     @Override
     public void onReload() throws RuntimeException {
-
-    }
-
-    @Override
-    public void onDisable() {
 
     }
 
@@ -98,42 +125,12 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
                 e1.printStackTrace();
             }
 
-            if (!Event.class.isAssignableFrom(test))
-                continue;
+            if (!Event.class.isAssignableFrom(test)) continue;
 
             Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if (clazz.equals(Event.class))
-                continue;
+            if (clazz.equals(Event.class)) continue;
 
             EVENTS.put(clazz.getSimpleName(), clazz);
         }
-    }
-
-
-    @Override
-    public boolean eventExist(String eventStr) {
-        try {
-            return getEvent(eventStr) != null;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    @Override
-    public Class<?> getEvent(String eventStr) throws ClassNotFoundException {
-        Class<? extends Event> event;
-        if (ABBREVIATIONS.containsKey(eventStr)) {
-            event = ABBREVIATIONS.get(eventStr);
-        } else if (EVENTS.containsKey(eventStr)) {
-            event = EVENTS.get(eventStr);
-        } else {
-            event = (Class<? extends Event>) Class.forName(eventStr);
-        }
-
-        return event;
-    }
-
-    public Collection<String> getAbbreviations() {
-        return ABBREVIATIONS.keySet();
     }
 }

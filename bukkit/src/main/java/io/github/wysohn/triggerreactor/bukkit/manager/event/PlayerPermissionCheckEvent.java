@@ -32,10 +32,19 @@ import org.bukkit.event.player.PlayerEvent;
  */
 public class PlayerPermissionCheckEvent extends PlayerEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
-    private boolean cancelled;
-
     private final String requestedPermission;
+    private boolean cancelled;
     private boolean allowed = false;
+
+    public PlayerPermissionCheckEvent(Player player, String requestedPermission) {
+        super(player);
+        this.requestedPermission = requestedPermission;
+    }
+
+    @Override
+    public HandlerList getHandlers() {
+        return handlers;
+    }
 
     @Override
     public boolean isCancelled() {
@@ -47,18 +56,8 @@ public class PlayerPermissionCheckEvent extends PlayerEvent implements Cancellab
         cancelled = cancel;
     }
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
-
-    public PlayerPermissionCheckEvent(Player player, String requestedPermission) {
-        super(player);
-        this.requestedPermission = requestedPermission;
+    public String getRequestedPermission() {
+        return requestedPermission;
     }
 
     public boolean isAllowed() {
@@ -69,8 +68,8 @@ public class PlayerPermissionCheckEvent extends PlayerEvent implements Cancellab
         this.allowed = allowed;
     }
 
-    public String getRequestedPermission() {
-        return requestedPermission;
+    public static HandlerList getHandlerList() {
+        return handlers;
     }
 
 

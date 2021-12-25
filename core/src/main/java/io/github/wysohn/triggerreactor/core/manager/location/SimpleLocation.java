@@ -39,6 +39,48 @@ public class SimpleLocation implements Cloneable {
         this.yaw = yaw;
     }
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((world == null) ? 0 : world.hashCode());
+        result = prime * result + x;
+        result = prime * result + y;
+        result = prime * result + z;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        SimpleLocation other = (SimpleLocation) obj;
+        if (world == null) {
+            if (other.world != null) return false;
+        } else if (!world.equals(other.world)) return false;
+        if (x != other.x) return false;
+        if (y != other.y) return false;
+        if (z != other.z) return false;
+        return true;
+    }
+
+    @Override
+    public SimpleLocation clone() {
+        return new SimpleLocation(world, x, y, z);
+    }
+
+    @Override
+    public String toString() {
+        return world + "@" + x + "," + y + "," + z;
+    }
+
+    public void add(int x, int y, int z) {
+        this.x += x;
+        this.y += y;
+        this.z += z;
+    }
+
     public String getWorld() {
         return world;
     }
@@ -55,71 +97,19 @@ public class SimpleLocation implements Cloneable {
         return z;
     }
 
-    public void add(int x, int y, int z) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((world == null) ? 0 : world.hashCode());
-        result = prime * result + x;
-        result = prime * result + y;
-        result = prime * result + z;
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        SimpleLocation other = (SimpleLocation) obj;
-        if (world == null) {
-            if (other.world != null)
-                return false;
-        } else if (!world.equals(other.world))
-            return false;
-        if (x != other.x)
-            return false;
-        if (y != other.y)
-            return false;
-        if (z != other.z)
-            return false;
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return world + "@" + x + "," + y + "," + z;
-    }
-
-    @Override
-    public SimpleLocation clone() {
-        return new SimpleLocation(world, x, y, z);
-    }
-
     public static SimpleLocation valueOf(String str) {
         String[] splitw = str.split("@", 2);
-        if (splitw.length != 2)
-            throw new SimpleLocationFormatException(str);
+        if (splitw.length != 2) throw new SimpleLocationFormatException(str);
 
         String world = splitw[0];
 
         String[] splitl = splitw[1].split(",", 3);
-        if (splitl.length != 3)
-            throw new SimpleLocationFormatException(str);
+        if (splitl.length != 3) throw new SimpleLocationFormatException(str);
 
         return new SimpleLocation(world,
-                Integer.parseInt(splitl[0]),
-                Integer.parseInt(splitl[1]),
-                Integer.parseInt(splitl[2]));
+                                  Integer.parseInt(splitl[0]),
+                                  Integer.parseInt(splitl[1]),
+                                  Integer.parseInt(splitl[2]));
     }
 
     @SuppressWarnings("serial")

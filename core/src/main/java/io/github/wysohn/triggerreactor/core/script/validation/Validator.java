@@ -8,6 +8,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Validator {
+    private static final ValidationOptions validationOptions = new ValidationOptionsBuilder().addOption(new MinimumOption(),
+                                                                                                        "minimum")
+            .addOption(new MaximumOption(), "maximum")
+            .addOption(new NameOption(), "name")
+            .addOption(new TypeOption(), "type")
+            .build();
     private final Overload[] overloads;
 
     private Validator() {
@@ -85,8 +91,8 @@ public class Validator {
                         ValidationOption option = validationOptions.forName(key);
                         Object value = getOrFail((Map<String, Object>) argObject, key);
                         if (!(option.canContain(value))) {
-                            throw new ValidationException("Invalid value for option " + option.getClass().getSimpleName() +
-                                    " : " + value);
+                            throw new ValidationException("Invalid value for option " + option.getClass()
+                                    .getSimpleName() + " : " + value);
                         }
 
                         arg.addOption(option, value);
@@ -103,11 +109,4 @@ public class Validator {
             throw new ValidationException("Incorrect data type found while processing validation info", e);
         }
     }
-
-    private static final ValidationOptions validationOptions = new ValidationOptionsBuilder()
-            .addOption(new MinimumOption(), "minimum")
-            .addOption(new MaximumOption(), "maximum")
-            .addOption(new NameOption(), "name")
-            .addOption(new TypeOption(), "type")
-            .build();
 }

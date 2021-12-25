@@ -38,11 +38,10 @@ import java.util.function.Function;
 public abstract class BukkitScriptEngineModule {
     @Provides
     @Singleton
-    static ScriptEngineManager bindScriptEngineManager(Server server){
+    static ScriptEngineManager bindScriptEngineManager(Server server) {
         ScriptEngineManager scriptEngineManager = server.getServicesManager().load(ScriptEngineManager.class);
 
-        if(scriptEngineManager == null)
-            scriptEngineManager = new ScriptEngineManager();
+        if (scriptEngineManager == null) scriptEngineManager = new ScriptEngineManager();
 
         return scriptEngineManager;
     }
@@ -55,7 +54,7 @@ public abstract class BukkitScriptEngineModule {
 
     @Provides
     @IntoSet
-    static IScriptEngineInitializer provideSharedVarsInitializer(Lazy<TriggerReactorMain> main){
+    static IScriptEngineInitializer provideSharedVarsInitializer(Lazy<TriggerReactorMain> main) {
         return (sem) -> {
             for (Map.Entry<String, AbstractAPISupport> entry : main.get().getSharedVars().entrySet()) {
                 sem.put(entry.getKey(), entry.getValue());
@@ -65,7 +64,7 @@ public abstract class BukkitScriptEngineModule {
 
     @Provides
     @IntoSet
-    static IScriptEngineInitializer provideInitializer(Lazy<GlobalVariableManager> lazy){
+    static IScriptEngineInitializer provideInitializer(Lazy<GlobalVariableManager> lazy) {
         return (sem) -> {
             GlobalVariableManager variableManager = lazy.get();
 

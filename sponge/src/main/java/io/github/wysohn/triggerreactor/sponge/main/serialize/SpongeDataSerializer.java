@@ -13,7 +13,9 @@ import java.util.Map;
 
 public class SpongeDataSerializer implements Serializer<DataSerializable> {
     @Override
-    public DataSerializable deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public DataSerializable deserialize(JsonElement json,
+                                        Type typeOfT,
+                                        JsonDeserializationContext context) throws JsonParseException {
         JsonObject ser = (JsonObject) json;
 
         DataContainer container = DataContainer.createNew();
@@ -23,9 +25,7 @@ public class SpongeDataSerializer implements Serializer<DataSerializable> {
             container.set(DataQuery.of(s.split("\\.")), o);
         });
         try {
-            return ItemStack.builder()
-                    .fromContainer(container)
-                    .build();
+            return ItemStack.builder().fromContainer(container).build();
         } catch (Exception ex) {
             throw new RuntimeException("Cannot deserialize " + json, ex);
         }

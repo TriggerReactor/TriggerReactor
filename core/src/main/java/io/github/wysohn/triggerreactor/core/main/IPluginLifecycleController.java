@@ -19,6 +19,28 @@ package io.github.wysohn.triggerreactor.core.main;
 
 public interface IPluginLifecycleController {
     /**
+     * Disable this plugin.
+     */
+    void disablePlugin();
+
+    /**
+     * get Author of plugin
+     *
+     * @return author name of the plugin as String.
+     */
+    String getAuthor();
+
+    /**
+     * Get plugin instance of name 'pluginName'
+     *
+     * @param pluginName
+     * @param <T>        type to be cast into. 'Plugin' in Bukkit API for e.g.
+     * @return null if target is not available; instance otherwise. Note that
+     * it still returns the plugin instance even if the target plugin is not enabled.
+     */
+    <T> T getPlugin(String pluginName);
+
+    /**
      * get Plugin's description.
      *
      * @return returns the full name of the plugin and its version.
@@ -32,12 +54,15 @@ public interface IPluginLifecycleController {
      */
     String getVersion();
 
+    boolean isDebugging();
+
     /**
-     * get Author of plugin
+     * Check if the target plugin is available and enabled.
      *
-     * @return author name of the plugin as String.
+     * @param pluginName
+     * @return
      */
-    String getAuthor();
+    boolean isEnabled(String pluginName);
 
     /**
      * Check if this plugin is enabled.
@@ -45,28 +70,4 @@ public interface IPluginLifecycleController {
      * @return true if enabled; false if disabled.
      */
     boolean isEnabled();
-
-    /**
-     * Check if the target plugin is available and enabled.
-     * @param pluginName
-     * @return
-     */
-    boolean isEnabled(String pluginName);
-
-    /**
-     * Get plugin instance of name 'pluginName'
-     *
-     * @param pluginName
-     * @param <T>        type to be cast into. 'Plugin' in Bukkit API for e.g.
-     * @return null if target is not available; instance otherwise. Note that
-     * it still returns the plugin instance even if the target plugin is not enabled.
-     */
-    <T> T getPlugin(String pluginName);
-
-    boolean isDebugging();
-
-    /**
-     * Disable this plugin.
-     */
-    void disablePlugin();
 }

@@ -32,6 +32,11 @@ public class PlaceHolderSupport extends APISupport {
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
         //init() is called only when PlaceholderAPI is enabled.
         new PlaceholderExpansionSupport(api).register();
@@ -39,11 +44,6 @@ public class PlaceHolderSupport extends APISupport {
 
     @Override
     public void onReload() throws RuntimeException {
-
-    }
-
-    @Override
-    public void onDisable() {
 
     }
 

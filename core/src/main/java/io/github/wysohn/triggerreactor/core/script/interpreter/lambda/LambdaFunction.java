@@ -17,7 +17,7 @@ public class LambdaFunction implements InvocationHandler {
     public LambdaFunction(LambdaParameter[] parameters,
                           Node body,
                           InterpreterLocalContext localContext,
-                          InterpreterGlobalContext globalContext){
+                          InterpreterGlobalContext globalContext) {
         this.parameters = parameters;
         this.body = body;
         this.lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
@@ -32,9 +32,8 @@ public class LambdaFunction implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         int argsLength = args == null ? 0 : args.length;
 
-        if(parameters.length != argsLength)
-            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+args.length+"" +
-                    " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
+        if (parameters.length != argsLength)
+            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided " + args.length + "" + " arguments, yet the LAMBDA only has " + parameters.length + " ids. " + body);
 
         // initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {

@@ -19,7 +19,7 @@ import javax.inject.Named;
 import java.util.logging.Logger;
 
 @PluginScope
-public class TriggerReactorAPI implements ITriggerReactorAPI{
+public class TriggerReactorAPI implements ITriggerReactorAPI {
     @Inject
     Logger logger;
     @Inject
@@ -76,8 +76,101 @@ public class TriggerReactorAPI implements ITriggerReactorAPI{
     AbstractNamedTriggerManager namedTriggerManager;
 
     @Inject
-    TriggerReactorAPI(){
+    TriggerReactorAPI() {
 
+    }
+
+    public AbstractAreaTriggerManager getAreaManager() {
+        return areaManager;
+    }
+
+    public AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
+        return clickManager;
+    }
+
+    public AbstractCommandTriggerManager getCmdManager() {
+        return cmdManager;
+    }
+
+    public AbstractCustomTriggerManager getCustomManager() {
+        return customManager;
+    }
+
+    public AbstractExecutorManager getExecutorManager() {
+        return executorManager;
+    }
+
+    @Override
+    public AbstractExternalAPIManager getExternalAPIManager() {
+        return externalAPIManager;
+    }
+
+    @Override
+    public IGameController getGameController() {
+        return gameController;
+    }
+
+    public AbstractInventoryEditManager getInvEditManager() {
+        return invEditManager;
+    }
+
+    public AbstractPlayerLocationManager getLocationManager() {
+        return locationManager;
+    }
+
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
+    }
+
+    public AbstractPermissionManager getPermissionManager() {
+        return permissionManager;
+    }
+
+    public AbstractPlaceholderManager getPlaceholderManager() {
+        return placeholderManager;
+    }
+
+    public final PluginConfigManager getPluginConfigManager() {
+        return pluginConfigManager;
+    }
+
+    public AbstractRepeatingTriggerManager getRepeatManager() {
+        return repeatManager;
+    }
+
+    public AbstractScriptEditManager getScriptEditManager() {
+        return scriptEditManager;
+    }
+
+    public AbstractAreaSelectionManager getSelectionManager() {
+        return selectionManager;
+    }
+
+    @Override
+    public SelfReference getSelfReference() {
+        return selfReference;
+    }
+
+    @Override
+    public TaskSupervisor getTaskSupervisor() {
+        return taskSupervisor;
+    }
+
+    @Override
+    public IThrowableHandler getThrowableHandler() {
+        return throwableHandler;
+    }
+
+    public final GlobalVariableManager getVariableManager() {
+        return globalVariableManager;
+    }
+
+    public AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager() {
+        return walkManager;
+    }
+
+    public AbstractInventoryTriggerManager<?> invManager() {
+        return invManager;
     }
 
     @Override
@@ -93,97 +186,5 @@ public class TriggerReactorAPI implements ITriggerReactorAPI{
     @Override
     public IPluginLifecycleController pluginLifecycleController() {
         return pluginLifecycleController;
-    }
-
-    @Override
-    public IThrowableHandler getThrowableHandler() {
-        return throwableHandler;
-    }
-
-    @Override
-    public IGameController getGameController() {
-        return gameController;
-    }
-
-    @Override
-    public TaskSupervisor getTaskSupervisor() {
-        return taskSupervisor;
-    }
-
-    @Override
-    public SelfReference getSelfReference() {
-        return selfReference;
-    }
-
-    public final PluginConfigManager getPluginConfigManager() {
-        return pluginConfigManager;
-    }
-
-    public final GlobalVariableManager getVariableManager() {
-        return globalVariableManager;
-    }
-
-    public AbstractExecutorManager getExecutorManager() {
-        return executorManager;
-    }
-
-    public AbstractPlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
-    }
-    public AbstractScriptEditManager getScriptEditManager() {
-        return scriptEditManager;
-    }
-
-    public AbstractPlayerLocationManager getLocationManager() {
-        return locationManager;
-    }
-
-    public AbstractPermissionManager getPermissionManager() {
-        return permissionManager;
-    }
-
-    public AbstractAreaSelectionManager getSelectionManager() {
-        return selectionManager;
-    }
-
-    public AbstractInventoryEditManager getInvEditManager() {
-        return invEditManager;
-    }
-
-    @Override
-    public AbstractExternalAPIManager getExternalAPIManager() {
-        return externalAPIManager;
-    }
-
-    public AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
-        return clickManager;
-    }
-
-    public AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager() {
-        return walkManager;
-    }
-
-    public AbstractCommandTriggerManager getCmdManager() {
-        return cmdManager;
-    }
-
-    public AbstractInventoryTriggerManager<?> invManager() {
-        return invManager;
-    }
-
-    public AbstractAreaTriggerManager getAreaManager() {
-        return areaManager;
-    }
-
-    public AbstractCustomTriggerManager getCustomManager() {
-        return customManager;
-    }
-
-    public AbstractRepeatingTriggerManager getRepeatManager() {
-        return repeatManager;
-    }
-
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        return namedTriggerManager;
     }
 }

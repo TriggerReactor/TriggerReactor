@@ -27,11 +27,11 @@ import org.bukkit.Server;
 
 @Module
 public abstract class BukkitGameControllerModule {
-    @Provides
-    static Server provideServer(){
-        return Bukkit.getServer();
-    }
-
     @Binds
     abstract TaskSupervisor bindTaskSupervisor(BukkitTaskSupervisor taskSupervisor);
+
+    @Provides
+    static Server provideServer() {
+        return Bukkit.getServer();
+    }
 }

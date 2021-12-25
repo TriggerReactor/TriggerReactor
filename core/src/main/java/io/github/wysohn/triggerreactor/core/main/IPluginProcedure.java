@@ -20,7 +20,12 @@ package io.github.wysohn.triggerreactor.core.main;
 /**
  * Any entity that has to cooperate with the plugin lifecycle
  */
-public interface IPluginProcedure{
+public interface IPluginProcedure {
+    /**
+     * Invoked before the main thread shutdown.
+     */
+    void onDisable();
+
     /**
      * Invoked once by the API before game starts
      */
@@ -30,9 +35,4 @@ public interface IPluginProcedure{
      * Invoked every time /trg reload command is used
      */
     void onReload() throws RuntimeException;
-
-    /**
-     * Invoked before the main thread shutdown.
-     */
-    void onDisable();
 }

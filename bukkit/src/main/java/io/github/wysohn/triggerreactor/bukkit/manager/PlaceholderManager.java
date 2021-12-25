@@ -41,6 +41,11 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, CopyOption.REPLACE_IF_EXIST);
 
@@ -55,7 +60,7 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
 
         jsPlaceholders.clear();
         File[] folder = placeholderFolder.listFiles(filter);
-        ValidationUtil.assertTrue(folder, Objects::nonNull, placeholderFolder+" is not a folder.");
+        ValidationUtil.assertTrue(folder, Objects::nonNull, placeholderFolder + " is not a folder.");
 
         for (File file : Objects.requireNonNull(folder)) {
             try {
@@ -66,11 +71,6 @@ public class PlaceholderManager extends AbstractPlaceholderManager {
                 continue;
             }
         }
-    }
-
-    @Override
-    public void onDisable() {
-
     }
 
     @Override

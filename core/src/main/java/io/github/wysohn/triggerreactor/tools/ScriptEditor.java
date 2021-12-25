@@ -24,11 +24,11 @@ import java.util.function.Consumer;
 
 public class ScriptEditor {
     private static final String separater = System.lineSeparator();
-
+    public static final String USAGE = "&dIn edit mode, you cannot receieve any message from the other users. You can type &6save &dor &6exit " + "&dany time to escape from the edit mode. If the code is more than one line, you can go up or down by typing &6u " + "&dor &6d. &dWhen you are doing so, you can provide number of lines to skip. (for example, &6d 10 &dwill move down 10 lines). " + "If you don't provide the number, the default value 1 will be used instead. &6il &dto insert a new line and " + "&6dl &dto delete current line. Look for &c<< &d sign to see where you are currently at. You can also " + "&6type anything and press Tab key &dto copy the code where the cursor is pointing. Because of how minecraft client is made," + " you need to specify space with &6^ to insert spaces. For example, you might can add four spaces before the code like this: " + "&6^^^^#MESSAGE \"HI\" &dAlso, if you want to copy current line to the command prompt, &6type anything on the prompt " + "and press tab&d.    &aNow enter anything to continue...";
     private final String title;
     private final String script;
     private final Consumer<String> handler;
-
+    private final int separatorSize = 60;
     private int currentIndex = 0;
     private int currentCursor = 0;
     private List<String> lines = new ArrayList<String>();
@@ -41,11 +41,59 @@ public class ScriptEditor {
         load();
     }
 
+    private void clearScreen(ScriptEditorUser conversable) {
+        for (int i = 0; i < 40; i++) {
+            conversable.sendMessage("");
+        }
+    }
+
+    public void deleteLine() {
+        lines.remove(currentCursor);
+
+        if (currentCursor >= lines.size()) {
+            currentCursor--;
+        }
+    }
+
+    public void down(int lines) {
+        if (lines <= 0) return;
+
+        currentCursor = Math.min(this.lines.size() - 1, currentCursor + lines);
+
+        //if not within 16 around the index
+        if (!(currentIndex <= currentCursor && currentCursor < currentIndex + 16)) {
+            currentIndex = currentCursor - 16 + 1;
+        }
+    }
+
+    public String getLine() {
+        return lines.get(currentCursor);
+    }
+
+    public void insertNewLine() {
+        if (currentCursor + 1 > lines.size()) lines.add("");
+        else lines.add(currentCursor + 1, "");
+    }
+
+    public void intput(String input) {
+        lines.set(currentCursor, input);
+    }
+
     private void load() {
         String[] strs = script.split(separater);
         for (String str : strs) {
             lines.add(str.replaceAll("\\t", "    "));
         }
+    }
+
+    private void printFooter(ScriptEditorUser conversable) {
+        printSeparator(conversable);
+        conversable.sendMessage("&du <lines>&8, &dd <lines>&8, &dil&8, &ddl");
+    }
+
+    private void printHeader(ScriptEditorUser conversable) {
+        conversable.sendMessage("&dsave&8, &dexit &9" + title);
+        printSeparator(conversable);
     }
 
     public void printScript(ScriptEditorUser conversable) {
@@ -55,25 +103,12 @@ public class ScriptEditor {
         printFooter(conversable);
     }
 
-    private final int separatorSize = 60;
-
     private void printSeparator(ScriptEditorUser conversable) {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < separatorSize; i++) {
             builder.append('-');
         }
         conversable.sendMessage("&7" + builder.toString());
-    }
-
-    private void clearScreen(ScriptEditorUser conversable) {
-        for (int i = 0; i < 40; i++) {
-            conversable.sendMessage("");
-        }
-    }
-
-    private void printHeader(ScriptEditorUser conversable) {
-        conversable.sendMessage("&dsave&8, &dexit &9" + title);
-        printSeparator(conversable);
     }
 
     private void printSource(ScriptEditorUser conversable) {
@@ -88,11 +123,6 @@ public class ScriptEditor {
             conversable.sendMessage(dis == null ? "" : dis);
     }
 
-    private void printFooter(ScriptEditorUser conversable) {
-        printSeparator(conversable);
-        conversable.sendMessage("&du <lines>&8, &dd <lines>&8, &dil&8, &ddl");
-    }
-
     public void save() throws IOException, ScriptException {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < lines.size(); i++) {
@@ -102,8 +132,7 @@ public class ScriptEditor {
     }
 
     public void up(int lines) {
-        if (lines <= 0)
-            return;
+        if (lines <= 0) return;
 
         currentCursor = Math.max(0, currentCursor - lines);
 
@@ -113,49 +142,9 @@ public class ScriptEditor {
         }
     }
 
-    public void down(int lines) {
-        if (lines <= 0)
-            return;
-
-        currentCursor = Math.min(this.lines.size() - 1, currentCursor + lines);
-
-        //if not within 16 around the index
-        if (!(currentIndex <= currentCursor && currentCursor < currentIndex + 16)) {
-            currentIndex = currentCursor - 16 + 1;
-        }
-    }
-
-    public void insertNewLine() {
-        if (currentCursor + 1 > lines.size())
-            lines.add("");
-        else
-            lines.add(currentCursor + 1, "");
-    }
-
-    public void deleteLine() {
-        lines.remove(currentCursor);
-
-        if (currentCursor >= lines.size()) {
-            currentCursor--;
-        }
-    }
-
-    public void intput(String input) {
-        lines.set(currentCursor, input);
-    }
-
-    public String getLine() {
-        return lines.get(currentCursor);
-    }
-
-    public interface SaveHandler extends Consumer<String>{
-        void accept(String script);
-    }
-
     private static String width(String str, int length) {
         int d = length - str.length();
-        if (d <= 0)
-            return str;
+        if (d <= 0) return str;
 
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < d; i++)
@@ -165,17 +154,11 @@ public class ScriptEditor {
         return builder.toString();
     }
 
+    public interface SaveHandler extends Consumer<String> {
+        void accept(String script);
+    }
+
     public interface ScriptEditorUser {
         void sendMessage(String rawMessage);
     }
-
-    public static final String USAGE = "&dIn edit mode, you cannot receieve any message from the other users. You can type &6save &dor &6exit "
-            + "&dany time to escape from the edit mode. If the code is more than one line, you can go up or down by typing &6u "
-            + "&dor &6d. &dWhen you are doing so, you can provide number of lines to skip. (for example, &6d 10 &dwill move down 10 lines). "
-            + "If you don't provide the number, the default value 1 will be used instead. &6il &dto insert a new line and "
-            + "&6dl &dto delete current line. Look for &c<< &d sign to see where you are currently at. You can also "
-            + "&6type anything and press Tab key &dto copy the code where the cursor is pointing. Because of how minecraft client is made,"
-            + " you need to specify space with &6^ to insert spaces. For example, you might can add four spaces before the code like this: "
-            + "&6^^^^#MESSAGE \"HI\" &dAlso, if you want to copy current line to the command prompt, &6type anything on the prompt "
-            + "and press tab&d.    &aNow enter anything to continue...";
 }

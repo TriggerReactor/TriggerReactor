@@ -9,8 +9,9 @@ public class TemporaryGlobalVariableKey {
         this.key = key;
     }
 
-    public String getKey() {
-        return key;
+    @Override
+    public int hashCode() {
+        return Objects.hash(key);
     }
 
     @Override
@@ -21,8 +22,7 @@ public class TemporaryGlobalVariableKey {
         return Objects.equals(key, that.key);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(key);
+    public String getKey() {
+        return key;
     }
 }

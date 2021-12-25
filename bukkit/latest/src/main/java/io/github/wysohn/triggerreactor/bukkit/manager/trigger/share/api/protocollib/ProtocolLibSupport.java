@@ -47,6 +47,11 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
         protocolManager = ProtocolLibrary.getProtocolManager();
     }
@@ -57,8 +62,17 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     @Override
-    public void onDisable() {
+    public String getVariableName() {
+        return "protocollib";
+    }
 
+    /**
+     * create empty data watcher. Use this for fake entities.
+     *
+     * @return
+     */
+    public WrappedDataWatcher createEmptyWatcher() {
+        return new WrappedDataWatcher();
     }
 
     /**
@@ -73,145 +87,29 @@ public class ProtocolLibSupport extends APISupport {
         ValidationUtil.notNull(packetType);
 
         Collection<PacketType> types = PacketType.fromName(packetType);
-        if (types.isEmpty())
-            throw new RuntimeException("Cannot find packet type " + packetType);
+        if (types.isEmpty()) throw new RuntimeException("Cannot find packet type " + packetType);
 
         PacketType type = types.iterator().next();
         return protocolManager.createPacket(type);
     }
 
-    /**
-     * create empty data watcher. Use this for fake entities.
-     *
-     * @return
-     */
-    public WrappedDataWatcher createEmptyWatcher() {
-        return new WrappedDataWatcher();
-    }
+    public double[] getAngle(double fromX, double fromY, double fromZ, double toX, double toY, double toZ) {
+        double[] result = new double[2];
 
-    /**
-     * send packet.
-     *
-     * @param p         player to send packet
-     * @param container the packet
-     * @throws InvocationTargetException
-     */
-    public void sendPacket(Player p, PacketContainer container) throws InvocationTargetException {
-        ValidationUtil.notNull(p);
-        ValidationUtil.notNull(container);
+        double relX = toX - fromX;
+        double relY = toY - fromY;
+        double relZ = toZ - fromZ;
 
-        ProtocolLibrary.getProtocolManager().sendServerPacket(p, container);
-    }
+        double r = Math.sqrt(relX * relX + relY * relY + relZ * relZ);
 
-    /**
-     * Predefined method to spawn a fake entity. It may not work in versions older (perhaps newer) versions than 1.12
-     *
-     * @param p          player to send packet
-     * @param entityId   entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param entityUuid uuid of entity
-     * @param type       type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param x
-     * @param y
-     * @param z
-     * @param yaw        in degree
-     * @param pitch      in degree
-     * @param headPitch  in degree
-     * @param velX       See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
-     * @param velY       See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
-     * @param velZ       See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p, int entityId, UUID entityUuid, int type,
-                                double x, double y, double z, double yaw, double pitch, double headPitch,
-                                int velX, int velY, int velZ) throws InvocationTargetException {
-        PacketContainer container = createPacket(PacketType.Play.Server.SPAWN_ENTITY_LIVING.name());
+        double yaw = -Math.atan2(relX, relZ) / Math.PI * 180;
+        while (yaw < 0) yaw += 360;
+        double pitch = -Math.asin(relY / r) / Math.PI * 180;
 
-        container.getIntegers()
-                .write(0, entityId)
-                .write(1, type)
-                .write(2, velX)
-                .write(3, velY)
-                .write(4, velZ);
+        result[0] = yaw * 256 / 360;
+        result[1] = pitch * 256 / 360;
 
-        container.getUUIDs()
-                .write(0, entityUuid == null ? UUID.randomUUID() : entityUuid);
-
-        container.getDoubles()
-                .write(0, x)
-                .write(1, y)
-                .write(2, z);
-
-        container.getBytes()
-                .write(0, (byte) (yaw * 256.0F / 360.0F))
-                .write(1, (byte) (pitch * 256.0F / 360.0F))
-                .write(2, (byte) (headPitch * 256.0F / 360.0F));
-
-        container.getDataWatcherModifier()
-                .write(0, createEmptyWatcher());
-
-        this.sendPacket(p, container);
-    }
-
-    /**
-     * Spawn fake entity without velocity set and with random UUID set.
-     *
-     * @param p         player to send packet
-     * @param entityId  entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type      type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param x
-     * @param y
-     * @param z
-     * @param yaw       in degree
-     * @param pitch     in degree
-     * @param headPitch in degree
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p, int entityId, int type,
-                                double x, double y, double z, double yaw, double pitch, double headPitch) throws InvocationTargetException {
-        this.sendEntitySpawn(p, entityId, UUID.randomUUID(), type, x, y, z, yaw, pitch, headPitch, 0, 0, 0);
-    }
-
-    /**
-     * Spawn entity at location
-     *
-     * @param p        player to send packet
-     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param location the Location
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p, int entityId, int type,
-                                Location location) throws InvocationTargetException {
-        this.sendEntitySpawn(p, entityId, type,
-                location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch(), location.getPitch());
-    }
-
-    /**
-     * Spawn entity at location
-     *
-     * @param p        player to send packet
-     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param x
-     * @param y
-     * @param z
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p, int entityId, int type,
-                                double x, double y, double z) throws InvocationTargetException {
-        this.sendEntitySpawn(p, entityId, type, x, y, z, 0, 0, 0);
-    }
-
-    /**
-     * Spawn entity at player's current location.
-     *
-     * @param p        player to send packet
-     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p, int entityId, int type) throws InvocationTargetException {
-        this.sendEntitySpawn(p, entityId, type, p.getLocation());
+        return result;
     }
 
     /**
@@ -249,6 +147,87 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
+     * Sends equip packet to player for specified entity.
+     *
+     * @param p        player to send packet
+     * @param entityId the id of entity to equip item
+     * @param slot     the slot name. String must be same as one of the enum in {@link EnumItemSlot}
+     * @param item     the item to equip.
+     * @throws ClassNotFoundException    This throws if EnumItemSlot doesn't exist in nms package. This can be the case
+     *                                   where you are trying to use this method in somewhere 1.8 version environment. It's advised to create your own with
+     *                                   {@link #createPacket(String)} as PacketPlayoutEntityEquipment.class around 1.8 version specify everything using primitive types.
+     * @throws InvocationTargetException
+     */
+    public void sendEntityEquip(Player p,
+                                int entityId,
+                                String slot,
+                                ItemStack item) throws ClassNotFoundException, InvocationTargetException {
+        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT.name());
+
+        container.getIntegers().write(0, entityId);
+
+        Class<?> clazz = Class.forName("net.minecraft.server." + nmsVersion + ".EnumItemSlot");
+        container.getEnumModifier(EnumItemSlot.class, clazz).write(0, EnumItemSlot.valueOf(slot));
+
+        container.getItemModifier().write(0, item);
+
+        this.sendPacket(p, container);
+    }
+
+    /**
+     * Send entity look packet
+     *
+     * @param p
+     * @param entityId
+     * @param yaw      A rotation angle in steps of 1/256 of a full turn
+     * @param pitch    A rotation angle in steps of 1/256 of a full turn
+     * @throws InvocationTargetException
+     */
+    public void sendEntityLook(Player p, int entityId, int yaw, int pitch) throws InvocationTargetException {
+        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_LOOK.name());
+
+        container.getIntegers().write(0, entityId);
+
+        container.getBytes().write(0, (byte) (yaw % 256)).write(1, (byte) (pitch % 256));
+
+        this.sendPacket(p, container);
+
+        container = createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION.name());
+
+        container.getIntegers().write(0, entityId);
+
+        container.getBytes().write(0, (byte) (yaw % 256));
+
+        this.sendPacket(p, container);
+    }
+
+    /**
+     * Send entity look packet relative to the coordinates
+     *
+     * @param p
+     * @param entityId
+     * @param fromX
+     * @param fromY
+     * @param fromZ
+     * @param toX
+     * @param toY
+     * @param toZ
+     * @throws InvocationTargetException
+     */
+    public void sendEntityLook(Player p,
+                               int entityId,
+                               double fromX,
+                               double fromY,
+                               double fromZ,
+                               double toX,
+                               double toY,
+                               double toZ) throws InvocationTargetException {
+        double[] result = getAngle(fromX, fromY, fromZ, toX, toY, toZ);
+
+        this.sendEntityLook(p, entityId, (int) result[0], (int) result[1]);
+    }
+
+    /**
      * send entity movement packet.
      *
      * @param p        player to send packet
@@ -259,16 +238,15 @@ public class ProtocolLibSupport extends APISupport {
      * @param onGround no documentation
      * @throws InvocationTargetException
      */
-    public void sendEntityMove(Player p, int entityId,
-                               int dX, int dY, int dZ,
+    public void sendEntityMove(Player p,
+                               int entityId,
+                               int dX,
+                               int dY,
+                               int dZ,
                                boolean onGround) throws InvocationTargetException {
         PacketContainer container = createPacket(PacketType.Play.Server.REL_ENTITY_MOVE.name());
 
-        container.getIntegers()
-                .write(0, entityId)
-                .write(1, dX)
-                .write(2, dY)
-                .write(3, dZ);
+        container.getIntegers().write(0, entityId).write(1, dX).write(2, dY).write(3, dZ);
 
 
         container.getBooleans().write(0, onGround);
@@ -290,9 +268,14 @@ public class ProtocolLibSupport extends APISupport {
      * @param onGround no documentation
      * @throws InvocationTargetException
      */
-    public void sendEntityMove(Player p, int entityId,
-                               double fromX, double fromY, double fromZ,
-                               double toX, double toY, double toZ,
+    public void sendEntityMove(Player p,
+                               int entityId,
+                               double fromX,
+                               double fromY,
+                               double fromZ,
+                               double toX,
+                               double toY,
+                               double toZ,
                                boolean onGround) throws InvocationTargetException {
 
         int dX = (int) ((toX * 32 - fromX * 32) * 128);
@@ -303,108 +286,153 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
-     * Send entity look packet
+     * Predefined method to spawn a fake entity. It may not work in versions older (perhaps newer) versions than 1.12
      *
-     * @param p
-     * @param entityId
-     * @param yaw      A rotation angle in steps of 1/256 of a full turn
-     * @param pitch    A rotation angle in steps of 1/256 of a full turn
+     * @param p          player to send packet
+     * @param entityId   entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param entityUuid uuid of entity
+     * @param type       type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param x
+     * @param y
+     * @param z
+     * @param yaw        in degree
+     * @param pitch      in degree
+     * @param headPitch  in degree
+     * @param velX       See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
+     * @param velY       See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
+     * @param velZ       See <a href="http://wiki.vg/Protocol#Entity_Velocity">this</a>
      * @throws InvocationTargetException
      */
-    public void sendEntityLook(Player p, int entityId, int yaw, int pitch) throws InvocationTargetException {
-        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_LOOK.name());
+    public void sendEntitySpawn(Player p,
+                                int entityId,
+                                UUID entityUuid,
+                                int type,
+                                double x,
+                                double y,
+                                double z,
+                                double yaw,
+                                double pitch,
+                                double headPitch,
+                                int velX,
+                                int velY,
+                                int velZ) throws InvocationTargetException {
+        PacketContainer container = createPacket(PacketType.Play.Server.SPAWN_ENTITY_LIVING.name());
 
-        container.getIntegers().write(0, entityId);
+        container.getIntegers().write(0, entityId).write(1, type).write(2, velX).write(3, velY).write(4, velZ);
+
+        container.getUUIDs().write(0, entityUuid == null ? UUID.randomUUID() : entityUuid);
+
+        container.getDoubles().write(0, x).write(1, y).write(2, z);
 
         container.getBytes()
-                .write(0, (byte) (yaw % 256))
-                .write(1, (byte) (pitch % 256));
+                .write(0, (byte) (yaw * 256.0F / 360.0F))
+                .write(1, (byte) (pitch * 256.0F / 360.0F))
+                .write(2, (byte) (headPitch * 256.0F / 360.0F));
 
-        this.sendPacket(p, container);
-
-        container = createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION.name());
-
-        container.getIntegers().write(0, entityId);
-
-        container.getBytes()
-                .write(0, (byte) (yaw % 256));
+        container.getDataWatcherModifier().write(0, createEmptyWatcher());
 
         this.sendPacket(p, container);
     }
 
     /**
-     * Send entity look packet relative to the coordinates
+     * Spawn fake entity without velocity set and with random UUID set.
      *
-     * @param p
-     * @param entityId
-     * @param fromX
-     * @param fromY
-     * @param fromZ
-     * @param toX
-     * @param toY
-     * @param toZ
+     * @param p         player to send packet
+     * @param entityId  entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type      type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param x
+     * @param y
+     * @param z
+     * @param yaw       in degree
+     * @param pitch     in degree
+     * @param headPitch in degree
      * @throws InvocationTargetException
      */
-    public void sendEntityLook(Player p, int entityId,
-                               double fromX, double fromY, double fromZ,
-                               double toX, double toY, double toZ) throws InvocationTargetException {
-        double[] result = getAngle(fromX, fromY, fromZ, toX, toY, toZ);
-
-        this.sendEntityLook(p, entityId, (int) result[0], (int) result[1]);
-    }
-
-    public double[] getAngle(double fromX, double fromY, double fromZ,
-                             double toX, double toY, double toZ) {
-        double[] result = new double[2];
-
-        double relX = toX - fromX;
-        double relY = toY - fromY;
-        double relZ = toZ - fromZ;
-
-        double r = Math.sqrt(relX * relX + relY * relY + relZ * relZ);
-
-        double yaw = -Math.atan2(relX, relZ) / Math.PI * 180;
-        while (yaw < 0)
-            yaw += 360;
-        double pitch = -Math.asin(relY / r) / Math.PI * 180;
-
-        result[0] = yaw * 256 / 360;
-        result[1] = pitch * 256 / 360;
-
-        return result;
+    public void sendEntitySpawn(Player p,
+                                int entityId,
+                                int type,
+                                double x,
+                                double y,
+                                double z,
+                                double yaw,
+                                double pitch,
+                                double headPitch) throws InvocationTargetException {
+        this.sendEntitySpawn(p, entityId, UUID.randomUUID(), type, x, y, z, yaw, pitch, headPitch, 0, 0, 0);
     }
 
     /**
-     * Sends equip packet to player for specified entity.
+     * Spawn entity at location
      *
      * @param p        player to send packet
-     * @param entityId the id of entity to equip item
-     * @param slot     the slot name. String must be same as one of the enum in {@link EnumItemSlot}
-     * @param item     the item to equip.
-     * @throws ClassNotFoundException    This throws if EnumItemSlot doesn't exist in nms package. This can be the case
-     *                                   where you are trying to use this method in somewhere 1.8 version environment. It's advised to create your own with
-     *                                   {@link #createPacket(String)} as PacketPlayoutEntityEquipment.class around 1.8 version specify everything using primitive types.
+     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param location the Location
      * @throws InvocationTargetException
      */
-    public void sendEntityEquip(Player p, int entityId, String slot, ItemStack item) throws ClassNotFoundException, InvocationTargetException {
-        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT.name());
-
-        container.getIntegers().write(0, entityId);
-
-        Class<?> clazz = Class.forName("net.minecraft.server." + nmsVersion + ".EnumItemSlot");
-        container.getEnumModifier(EnumItemSlot.class, clazz).write(0, EnumItemSlot.valueOf(slot));
-
-        container.getItemModifier().write(0, item);
-
-        this.sendPacket(p, container);
+    public void sendEntitySpawn(Player p, int entityId, int type, Location location) throws InvocationTargetException {
+        this.sendEntitySpawn(p,
+                             entityId,
+                             type,
+                             location.getX(),
+                             location.getY(),
+                             location.getZ(),
+                             location.getYaw(),
+                             location.getPitch(),
+                             location.getPitch());
     }
 
-    @Override
-    public String getVariableName() {
-        return "protocollib";
+    /**
+     * Spawn entity at location
+     *
+     * @param p        player to send packet
+     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param x
+     * @param y
+     * @param z
+     * @throws InvocationTargetException
+     */
+    public void sendEntitySpawn(Player p,
+                                int entityId,
+                                int type,
+                                double x,
+                                double y,
+                                double z) throws InvocationTargetException {
+        this.sendEntitySpawn(p, entityId, type, x, y, z, 0, 0, 0);
+    }
+
+    /**
+     * Spawn entity at player's current location.
+     *
+     * @param p        player to send packet
+     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @throws InvocationTargetException
+     */
+    public void sendEntitySpawn(Player p, int entityId, int type) throws InvocationTargetException {
+        this.sendEntitySpawn(p, entityId, type, p.getLocation());
+    }
+
+    /**
+     * send packet.
+     *
+     * @param p         player to send packet
+     * @param container the packet
+     * @throws InvocationTargetException
+     */
+    public void sendPacket(Player p, PacketContainer container) throws InvocationTargetException {
+        ValidationUtil.notNull(p);
+        ValidationUtil.notNull(container);
+
+        ProtocolLibrary.getProtocolManager().sendServerPacket(p, container);
     }
 
     public enum EnumItemSlot {
-        MAINHAND, OFFHAND, FEET, LEGS, CHEST, HEAD
+        MAINHAND,
+        OFFHAND,
+        FEET,
+        LEGS,
+        CHEST,
+        HEAD
     }
 }

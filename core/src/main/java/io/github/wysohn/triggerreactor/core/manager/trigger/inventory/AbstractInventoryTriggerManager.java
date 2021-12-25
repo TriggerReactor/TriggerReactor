@@ -37,30 +37,28 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
-    @Inject
-    ITriggerReactorAPI api;
-
+    final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";
-
-    private final Class<ItemStack> itemClass;
-
-    final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
+    private final Class<ItemStack> itemClass;
+    @Inject
+    ITriggerReactorAPI api;
 
-    public AbstractInventoryTriggerManager(String folderName,
-                                           Class<ItemStack> itemClass) {
+    public AbstractInventoryTriggerManager(String folderName, Class<ItemStack> itemClass) {
         super(folderName);
         this.itemClass = itemClass;
     }
 
     @Override
     public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-        int size = info.getConfig().get(SIZE, Integer.class)
+        int size = info.getConfig()
+                .get(SIZE, Integer.class)
                 .filter(s -> s != 0 && s % 9 == 0)
                 .filter(s -> s <= InventoryTrigger.MAXSIZE)
-                .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
+                .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size",
+                                                                        info.getConfig()));
         Map<Integer, IItemStack> items = new HashMap<>();
 
         if (info.getConfig().has(ITEMS)) {
@@ -70,8 +68,9 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
 
             for (int i = 0; i < size; i++) {
                 final int itemIndex = i;
-                info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item ->
-                        items.put(itemIndex, main.getWrapper().wrap(item)));
+                info.getConfig()
+                        .get(ITEMS + "." + i, itemClass)
+                        .ifPresent(item -> items.put(itemIndex, main.getWrapper().wrap(item)));
             }
         }
 
@@ -103,14 +102,69 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         }
     }
 
-    private void updateItemConfig(InventoryTrigger trigger, IItemStack[] items) {
-        for (int i = 0; i < items.length; i++) {
-            IItemStack item = items[i];
-            if (item == null)
-                continue;
+    /**
+     * Create actual inventory.
+     *
+     * @param size size of inventory. Must be multiple of 9.
+     * @param name name of the inventory. This is the raw name, so the
+     *             implemented method has to translate color code and and
+     *             underscore appropriately.
+     * @return the inventory
+     */
+    protected abstract IInventory createInventory(int size, String name);
 
-            trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
-        }
+    /**
+     * @param trigger
+     * @param size      mutiple of 9; must be less than or equalt to 54 (exclusive)
+     * @param inventory
+     */
+    protected abstract void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
+
+    /**
+     * @param name this can contain color code &, but you should specify exact
+     *             name for the title.
+     * @return true on success; false if already exist
+     * @throws ParserException See {@link Trigger#init()}
+     * @throws LexerException  See {@link Trigger#init()}
+     * @throws IOException     See {@link Trigger#init()}
+     */
+    public boolean createTrigger(int size, String name, String script) throws TriggerInitFailedException {
+        if (has(name)) return false;
+
+        File file = getTriggerFile(folder, name, true);
+        IConfigSource config = configSourceFactories.create(folder, name);
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+        put(name, new InventoryTrigger(api, info, script, size, new HashMap<>()));
+
+        return true;
+    }
+
+    public Map<String, Object> getSharedVarsForInventory(IInventory inventory) {
+        return inventorySharedVars.get(inventory);
+    }
+
+    public InventoryTrigger getTriggerForOpenInventory(IInventory inventory) {
+        return inventoryMap.get(inventory);
+    }
+
+    public boolean hasInventoryOpen(IInventory inventory) {
+        return inventoryMap.containsKey(inventory);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    protected void onInventoryClose(Object e, IPlayer player, IInventory inventory) {
+        if (!inventoryMap.containsKey(inventory)) return;
+        InventoryTrigger trigger = inventoryMap.get(inventory);
+
+        Map<String, Object> varMap = inventorySharedVars.get(inventory);
+        varMap.put("player", player.get());
+        varMap.put("trigger", "close");
+
+        trigger.activate(e, varMap, true);
+
+        inventoryMap.remove(inventory);
+        inventorySharedVars.remove(inventory);
     }
 
     /**
@@ -120,8 +174,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
      */
     public IInventory openGUI(IPlayer player, String name) {
         InventoryTrigger trigger = get(name);
-        if (trigger == null)
-            return null;
+        if (trigger == null) return null;
 
         String title = trigger.getInfo().getConfig().get(TITLE, String.class).orElse(name);
 
@@ -139,45 +192,6 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         return inventory;
     }
 
-    /**
-     * Create actual inventory.
-     *
-     * @param size size of inventory. Must be multiple of 9.
-     * @param name name of the inventory. This is the raw name, so the
-     *             implemented method has to translate color code and and
-     *             underscore appropriately.
-     * @return the inventory
-     */
-    protected abstract IInventory createInventory(int size, String name);
-
-    /**
-     * @param name this can contain color code &, but you should specify exact
-     *             name for the title.
-     * @return true on success; false if already exist
-     * @throws ParserException See {@link Trigger#init()}
-     * @throws LexerException  See {@link Trigger#init()}
-     * @throws IOException     See {@link Trigger#init()}
-     */
-    public boolean createTrigger(int size, String name, String script)
-            throws TriggerInitFailedException {
-        if (has(name))
-            return false;
-
-        File file = getTriggerFile(folder, name, true);
-        IConfigSource config = configSourceFactories.create(folder, name);
-        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        put(name, new InventoryTrigger(api, info, script, size, new HashMap<>()));
-
-        return true;
-    }
-
-    /**
-     * @param trigger
-     * @param size      mutiple of 9; must be less than or equalt to 54 (exclusive)
-     * @param inventory
-     */
-    protected abstract void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
-
     //helper method to replace all the items in an inventory trigger
     public void replaceItems(InventoryTrigger trigger, IItemStack[] items) {
         IItemStack[] triggerItems = trigger.getItems();
@@ -188,33 +202,13 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         updateItemConfig(trigger, items);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
+    private void updateItemConfig(InventoryTrigger trigger, IItemStack[] items) {
+        for (int i = 0; i < items.length; i++) {
+            IItemStack item = items[i];
+            if (item == null) continue;
 
-    protected void onInventoryClose(Object e, IPlayer player, IInventory inventory) {
-        if (!inventoryMap.containsKey(inventory))
-            return;
-        InventoryTrigger trigger = inventoryMap.get(inventory);
-
-        Map<String, Object> varMap = inventorySharedVars.get(inventory);
-        varMap.put("player", player.get());
-        varMap.put("trigger", "close");
-
-        trigger.activate(e, varMap, true);
-
-        inventoryMap.remove(inventory);
-        inventorySharedVars.remove(inventory);
-    }
-
-    public boolean hasInventoryOpen(IInventory inventory) {
-        return inventoryMap.containsKey(inventory);
-    }
-
-    public InventoryTrigger getTriggerForOpenInventory(IInventory inventory) {
-        return inventoryMap.get(inventory);
-    }
-
-    public Map<String, Object> getSharedVarsForInventory(IInventory inventory) {
-        return inventorySharedVars.get(inventory);
+            trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
+        }
     }
 
 }

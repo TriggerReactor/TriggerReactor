@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 @Singleton
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
+    private final Map<String, Command> overridens = new HashMap<>();
     @Inject
     Logger logger;
     @Inject
@@ -52,9 +53,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
     @Inject
     @Named("PluginInstance")
     Object pluginInstance;
-
     private Map<String, Command> commandMap;
-    private final Map<String, Command> overridens = new HashMap<>();
 
     @Inject
     public CommandTriggerManager() {
@@ -63,23 +62,21 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
     }
 
     @Override
-    public void onEnable() throws Exception {
-        super.onEnable();
-    }
-
-    @Override
     public void onDisable() {
         this.commandMap = commandMapHandler.getCommandMap(main);
     }
 
     @Override
+    public void onEnable() throws Exception {
+        super.onEnable();
+    }
+
+    @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
-        if(commandMap.containsKey(triggerName) && overridens.containsKey(triggerName))
-            return false;
+        if (commandMap.containsKey(triggerName) && overridens.containsKey(triggerName)) return false;
 
         PluginCommand command = createCommand(triggerName);
-        command.setAliases(Arrays.stream(trigger.getAliases())
-                .collect(Collectors.toList()));
+        command.setAliases(Arrays.stream(trigger.getAliases()).collect(Collectors.toList()));
         command.setTabCompleter((sender, command12, alias, args) -> {
             ITabCompleter tabCompleter = Optional.ofNullable(trigger.getTabCompleters())
                     .filter(iTabCompleters -> iTabCompleters.length >= args.length)
@@ -100,47 +97,44 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
             }
 
             ICommandSender commandSender = gameController.getPlayer(sender.getName());
-            execute(gameController.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
+            execute(gameController.createPlayerCommandEvent(commandSender, label, args),
+                    (Player) sender,
+                    triggerName,
+                    args,
+                    trigger);
             return true;
         });
 
-        Optional.ofNullable(commandMap.get(triggerName))
-                .ifPresent(c -> overridens.put(triggerName, c));
+        Optional.ofNullable(commandMap.get(triggerName)).ifPresent(c -> overridens.put(triggerName, c));
         commandMap.put(triggerName, command);
         // register aliases manually here
         for (String alias : trigger.getAliases()) {
-            Optional.ofNullable(commandMap.get(alias))
-                    .ifPresent(c -> overridens.put(alias, c));
+            Optional.ofNullable(commandMap.get(alias)).ifPresent(c -> overridens.put(alias, c));
             commandMap.put(alias, command);
         }
         return true;
     }
 
     @Override
-    protected boolean unregisterCommand(String triggerName) {
-        Command command = commandMap.remove(triggerName);
-        if (command == null)
-            return false;
-
-        if (overridens.containsKey(triggerName))
-            commandMap.put(triggerName, overridens.remove(triggerName));
-        else
-            commandMap.remove(triggerName);
-
-        // also un-register aliases manually here
-        for (String alias : command.getAliases()) {
-            if (overridens.containsKey(alias))
-                commandMap.put(alias, overridens.remove(alias));
-            else
-                commandMap.remove(alias);
-        }
-
-        return true;
+    protected void synchronizeCommandMap() {
+        commandMapHandler.synchronizeCommandMap();
     }
 
     @Override
-    protected void synchronizeCommandMap() {
-        commandMapHandler.synchronizeCommandMap();
+    protected boolean unregisterCommand(String triggerName) {
+        Command command = commandMap.remove(triggerName);
+        if (command == null) return false;
+
+        if (overridens.containsKey(triggerName)) commandMap.put(triggerName, overridens.remove(triggerName));
+        else commandMap.remove(triggerName);
+
+        // also un-register aliases manually here
+        for (String alias : command.getAliases()) {
+            if (overridens.containsKey(alias)) commandMap.put(alias, overridens.remove(alias));
+            else commandMap.remove(alias);
+        }
+
+        return true;
     }
 //    @EventHandler(priority = EventPriority.HIGHEST)
 //    public void onCommand(PlayerCommandPreprocessEvent e) {
@@ -163,13 +157,26 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
 //        execute(e, player, cmd, args, trigger);
 //    }
 
+    private PluginCommand createCommand(String commandName) {
+        try {
+            Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+            c.setAccessible(true);
+            return c.newInstance(commandName, pluginInstance);
+        } catch (Exception ex) {
+            if (pluginLifecycleController.isDebugging()) ex.printStackTrace();
+
+            logger.warning("Couldn't construct 'PluginCommand'. This may indicate that you are using very very old" + " version of Bukkit. Please report this to TR team, so we can work on it.");
+            logger.warning("Use /trg debug to see more details.");
+            return null;
+        }
+    }
+
     private void execute(Object context, Player player, String cmd, String[] args, CommandTrigger trigger) {
         for (String permission : trigger.getPermissions()) {
             if (!player.hasPermission(permission)) {
                 player.sendMessage(ChatColor.RED + "[TR] You don't have permission!");
                 if (main.isDebugging()) {
-                    logger.info("Player " + player.getName() + " executed command " + cmd
-                            + " but didn't have permission " + permission + "");
+                    logger.info("Player " + player.getName() + " executed command " + cmd + " but didn't have permission " + permission + "");
                 }
                 return;
             }
@@ -182,21 +189,5 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         varMap.put("argslength", args.length);
 
         trigger.activate(context, varMap);
-    }
-
-    private PluginCommand createCommand(String commandName) {
-        try {
-            Constructor<PluginCommand> c = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-            c.setAccessible(true);
-            return c.newInstance(commandName, pluginInstance);
-        } catch (Exception ex) {
-            if (pluginLifecycleController.isDebugging())
-                ex.printStackTrace();
-
-            logger.warning("Couldn't construct 'PluginCommand'. This may indicate that you are using very very old" +
-                    " version of Bukkit. Please report this to TR team, so we can work on it.");
-            logger.warning("Use /trg debug to see more details.");
-            return null;
-        }
     }
 }

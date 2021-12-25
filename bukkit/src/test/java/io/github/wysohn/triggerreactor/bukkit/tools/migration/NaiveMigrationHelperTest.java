@@ -18,19 +18,7 @@ public class NaiveMigrationHelperTest {
     @Test
     public void migrate() {
         IConfigSource mockSource = mock(IConfigSource.class);
-        FileConfiguration mockConfig = YamlConfiguration.loadConfiguration(new StringReader("" +
-                "Mysql:\n" +
-                "  Enable: false\n" +
-                "  Address: 127.0.0.1:3306\n" +
-                "  DbName: TriggerReactor\n" +
-                "  UserName: root\n" +
-                "  Password: '1234'\n" +
-                "  Deep: \n" +
-                "      Value: 5555\n" +
-                "      Value2: 52.24\n" +
-                "PermissionManager:\n" +
-                "  Intercept: true" +
-                ""));
+        FileConfiguration mockConfig = YamlConfiguration.loadConfiguration(new StringReader("" + "Mysql:\n" + "  Enable: false\n" + "  Address: 127.0.0.1:3306\n" + "  DbName: TriggerReactor\n" + "  UserName: root\n" + "  Password: '1234'\n" + "  Deep: \n" + "      Value: 5555\n" + "      Value2: 52.24\n" + "PermissionManager:\n" + "  Intercept: true" + ""));
 
         File mockFile = mock(File.class);
         IMigratable mockMigratable = new IMigratable() {

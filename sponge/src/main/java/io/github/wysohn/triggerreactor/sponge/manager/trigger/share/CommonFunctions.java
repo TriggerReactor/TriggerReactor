@@ -66,197 +66,53 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     }
 
     /**
-     * Simply try to get plugin object directly. *
-     * <p>
-     * Example) #MESSAGE "spawn region info:
-     * "+plugin("WorldGuard").getRegionManager(player.getWorld()).getRegion("spawn")
-     * </p>
+     * Append a lore to the specified ItemStack
      *
-     * @param name name of the plugin.
-     * @return Plugin object on success; null if plugin not found or loaded.
+     * @param IS
+     * @param lore
      */
-    public Object plugin(String name) {
-        PluginContainer container = Sponge.getPluginManager().getPlugin(name).orElse(null);
-        if (container == null)
-            return null;
-
-        return container.getInstance();
+    public void addLore(ItemStack IS, String lore) {
+        addLore(IS, text(lore));
     }
 
-    public ItemType itemType(String name) {
-        return Sponge.getGame().getRegistry().getType(ItemType.class, name).orElse(null);
+    public void addLore(ItemStack IS, Text lore) {
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
+        texts.add(lore);
+        IS.offer(Keys.ITEM_LORE, texts);
     }
 
-    /**
-     * take item from player.
-     * <p>
-     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one
-     * stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
-     * </p>
-     *
-     * @param player target player
-     * @param id     item name. Sponge does not support numerical item id.
-     * @param amount amount
-     * @return true if took it; false if player doesn't have it
-     */
-    public boolean takeItem(Player player, String id, int amount) {
-        ItemStack IS = ItemStack.of(itemType(id), amount);
-        if (!player.getInventory().contains(IS))
-            return false;
-
-        Optional<ItemStack> result = player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
-                .peek(amount);
-        if (result.isPresent() && result.orElse(null).getQuantity() < amount)
-            return false;
-
-        return player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS)).poll(amount).orElse(null)
-                .getQuantity() == amount;
-    }
-
-    /**
-     * take ItemStack from player. This check for every single metadata (title, lores, enchantment, etc.),
-     * so only the exactly matching items will be removed
-     * <p>
-     * Example) /trg run IF takeItem(player, {"some.item"}, 1);
-     * </p>
-     *
-     * @param player target player
-     * @param id     item name. Sponge does not support numerical item id.
-     * @param amount amount
-     * @return true if took it; false if player doesn't have it
-     */
-    public boolean takeItem(Player player, ItemStack IS, int amount) {
-        if (!player.getInventory().contains(IS))
-            return false;
-
-        Optional<ItemStack> result = player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
-                .peek(amount);
-        if (result.isPresent() && result.orElse(null).getQuantity() < amount)
-            return false;
-
-        return player.getInventory().query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS)).poll(amount).orElse(null)
-                .getQuantity() == amount;
-    }
-
-    public Location<World> location(String world, int x, int y, int z) {
-        World w = Sponge.getServer().getWorld(world).orElse(null);
-        if (world == null)
-            throw new RuntimeException("world " + world + " does not exists!");
-        return new Location<World>(w, x, y, z);
-    }
-
-    /**
-     * check if two location are equal not considering their decimal points
-     * <p>
-     * Example) /trg run IF locationEqual(player.getLocation(),
-     * {"otherLocation"}); #MESSAGE "match"; ENDIF;
-     * </p>
-     *
-     * @param loc1
-     * @param loc2
-     * @return true if equal; false if not
-     */
-    public boolean locationEqual(Location<World> loc1, Location<World> loc2) {
-        return loc1.getExtent().equals(loc2.getExtent()) && loc1.getBlockX() == loc2.getBlockX()
-                && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
-    }
-
-    /**
-     * create a PotionEffect for use in entity.addPotionEffect();
-     * <p>
-     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED",
-     * 1000000, 5, false, true, bukkitColor(21,2,24) ))
-     * </p>
-     *
-     * @param EffectType the name of the PotionEffectType to use
-     * @param duration   how long the potioneffect should last when applied to an
-     *                   enitity
-     * @param amplifier  how strong the effect should be
-     * @param ambient    if true particle effects will be more transparent
-     * @param particles  if false potion particle effects will not be shown
-     * @param color      sets the color of the potion particle effects shown
-     * @return returns a PotionEffect object or null if specified
-     * PotionEffectType was not found.
-     */
-    public PotionEffect makePotionEffect(String EffectType, int duration, int amplifier, boolean ambient,
-                                         boolean particles, Color color) {
-        PotionEffectType type = null;
+    public BossBarColor barColor(String name) throws IllegalArgumentException, NoSuchFieldException {
         try {
-            type = (PotionEffectType) PotionEffectTypes.class.getField(EffectType).get(null);
-        } catch (Exception e) {
-            throw new IllegalArgumentException(EffectType + " is not a valid PotionEffectType!");
-        }
-
-        if (type != null) {
-            return PotionEffect.builder().duration(duration).amplifier(amplifier).ambience(ambient).particles(particles)
-                    .potionType(type).build();
-        } else {
+            return (BossBarColor) BossBarColors.class.getField(name).get(null);
+        } catch (IllegalAccessException | SecurityException e) {
+            e.printStackTrace();
             return null;
         }
-
     }
 
     /**
-     * try to get a player from name. Mostly online player.
-     * <p>
-     * Example) player("wysohn").performCommand("spawn")
-     * </p>
+     * Clear all lores from item.
      *
-     * @param name name of player
-     * @return the Player object; it can be null if no player is found with the
-     * name
+     * @param IS
      */
-    public Player player(String name) {
-        return Sponge.getServer().getPlayer(name).orElse(null);
+    public void clearLore(ItemStack IS) {
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
+        texts.clear();
+        IS.offer(Keys.ITEM_LORE, texts);
     }
 
     /**
-     * try to get offline player from name.
+     * Translate & into minecraft color code
      * <p>
-     * Example) /trg run #MESSAGE "UUID is: "+oplayer("wysohn").getUniqueId()
+     * Example) /trg run player.sendMessage(color("&aGREEN, &cRED"))
      * </p>
      *
-     * @param name name of player
-     * @return the OfflinePlayer object; it never returns null but always return
-     * an offline player even if the player doesn't exist.
+     * @param str unprocessed string
+     * @return the sponge Text.
      */
-    public User oplayer(String name) {
-        Optional<UserStorageService> userStorage = Sponge.getServiceManager().provide(UserStorageService.class);
-        return userStorage.orElse(null).get(name).orElse(null);
+    public Text color(String str) {
+        return text(str);
     }
-
-    /**
-     * get list of online players online
-     * <p>
-     * Example) /trg run FOR p = getPlayers(); p.performCommand("spawn");
-     * ENDFOR;
-     * </p>
-     *
-     * @return player iterator
-     */
-    public Collection<? extends Player> getPlayers() {
-        return Sponge.getServer().getOnlinePlayers();
-    }
-
-    /*
-     * public static void main(String[] ar) throws ClassNotFoundException,
-     * NoSuchMethodException, InstantiationException, IllegalArgumentException,
-     * InvocationTargetException { CommonFunctions com = new
-     * CommonFunctions(null); com.newInstance(Test.class.getName(), new
-     * Child()); }
-     *
-     * public static class Parent{
-     *
-     * }
-     *
-     * public static class Child extends Parent{
-     *
-     * }
-     *
-     * public static class Test{ public Test(Parent parent) {
-     *
-     * } }
-     */
 
     /**
      * Get the name of area where entity is currently standing on.
@@ -295,7 +151,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public String[] currentAreasAt(Location location) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
-        String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location)).stream()
+        String[] names = areaManager.getAreas(LocationUtil.convertToSimpleLocation(location))
+                .stream()
                 .map(Map.Entry::getValue)
                 .map(Trigger::getInfo)
                 .map(TriggerInfo::getTriggerName)
@@ -313,69 +170,13 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         AreaTrigger trigger = areaManager.get(areaTriggerName);
-        if (trigger == null)
-            return null;
+        if (trigger == null) return null;
 
         List<Entity> entities = new ArrayList<>();
         for (IEntity ie : trigger.getEntities())
             entities.add(ie.get());
 
         return entities;
-    }
-
-    /**
-     * Translate & into minecraft color code
-     * <p>
-     * Example) /trg run player.sendMessage(color("&aGREEN, &cRED"))
-     * </p>
-     *
-     * @param str unprocessed string
-     * @return the sponge Text.
-     */
-    public Text color(String str) {
-        return text(str);
-    }
-
-    /**
-     * convert plain String to Sponge usable Text.
-     *
-     * @param str String to convert
-     * @return Text
-     */
-    public Text text(String str) {
-        return TextSerializers.FORMATTING_CODE.deserialize(str);
-    }
-
-    /**
-     * creates and returns a bukkit color object using the RGB values given. the
-     * max value for the int arguments is 255 exceeding it may cause errors.
-     * <p>
-     * Example) /trg run partColor = bukkitColor(255,255,255)
-     * </p>
-     *
-     * @param red   red the value of red in RGB
-     * @param green green the value of green in RGB
-     * @param blue  blue the value of blue in RGB
-     * @return returns a Color object from org.bukkit.Color
-     */
-    public Color spongeColor(int red, int green, int blue) {
-        Color color = null;
-        color = Color.ofRgb(red, green, blue);
-        return color;
-    }
-
-    /**
-     * Create a new ItemStack
-     * <p>
-     * Example) /trg run #GIVE item(1, 64, 0)
-     * </p>
-     *
-     * @param type   type name. Sponge does not support numerical item types.
-     * @param amount amount of item
-     * @return the ItemStack
-     */
-    public ItemStack item(String type, int amount) {
-        return ItemStack.of(itemType(type), amount);
     }
 
     /**
@@ -392,43 +193,25 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         return IS.get(Keys.DISPLAY_NAME).orElse(Text.EMPTY);
     }
 
-    /**
-     * Set title of the specified ItemStack
-     * <p>
-     * Example) /trg run myitem = item(1, 1); setItemTitle(myitem, "I'm stone");
-     * #GIVE myitem;
-     * </p>
+    /*
+     * public static void main(String[] ar) throws ClassNotFoundException,
+     * NoSuchMethodException, InstantiationException, IllegalArgumentException,
+     * InvocationTargetException { CommonFunctions com = new
+     * CommonFunctions(null); com.newInstance(Test.class.getName(), new
+     * Child()); }
      *
-     * @param IS
-     * @param title
-     */
-    public void setItemTitle(ItemStack IS, String title) {
-        setItemTitle(IS, text(title));
-    }
-
-    public void setItemTitle(ItemStack IS, Text title) {
-        IS.offer(Keys.DISPLAY_NAME, title);
-    }
-
-    /**
-     * Check if the specified ItemStack contains the 'lore.' At least one is
-     * contained in the lore will return true.
+     * public static class Parent{
      *
-     * @param IS
-     * @param lore
-     * @return true if 'lore' is in IS; false if not
+     * }
+     *
+     * public static class Child extends Parent{
+     *
+     * }
+     *
+     * public static class Test{ public Test(Parent parent) {
+     *
+     * } }
      */
-    public boolean hasLore(ItemStack IS, String lore) {
-        if (!IS.get(Keys.ITEM_LORE).isPresent())
-            return false;
-
-        for (Text txt : IS.get(Keys.ITEM_LORE).orElse(new ArrayList<Text>())) {
-            if (txt.toPlain().equals(lore))
-                return true;
-        }
-
-        return false;
-    }
 
     /**
      * get Lore at the specified index
@@ -438,81 +221,25 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return String of lore; null if not found
      */
     public Text getLore(ItemStack IS, int index) {
-        if (!IS.get(Keys.ITEM_LORE).isPresent())
-            return null;
+        if (!IS.get(Keys.ITEM_LORE).isPresent()) return null;
 
         List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if (texts == null)
-            return null;
+        if (texts == null) return null;
 
         return texts.get(index);
     }
 
     /**
-     * Append a lore to the specified ItemStack
+     * get list of online players online
+     * <p>
+     * Example) /trg run FOR p = getPlayers(); p.performCommand("spawn");
+     * ENDFOR;
+     * </p>
      *
-     * @param IS
-     * @param lore
+     * @return player iterator
      */
-    public void addLore(ItemStack IS, String lore) {
-        addLore(IS, text(lore));
-    }
-
-    public void addLore(ItemStack IS, Text lore) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
-        texts.add(lore);
-        IS.offer(Keys.ITEM_LORE, texts);
-    }
-
-    /**
-     * Replace a lore at 'index' for the specified ItemStack
-     *
-     * @param IS
-     * @param index
-     * @param lore
-     */
-    public void setLore(ItemStack IS, int index, String lore) {
-        setLore(IS, index, text(lore));
-    }
-
-    public void setLore(ItemStack IS, int index, Text lore) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
-        texts.set(index, lore);
-        IS.offer(Keys.ITEM_LORE, texts);
-    }
-
-    /**
-     * Remove lore at the 'index' of the specified ItemStack
-     *
-     * @param IS
-     * @param index
-     */
-    public void removeLore(ItemStack IS, int index) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
-        texts.remove(index);
-        IS.offer(Keys.ITEM_LORE, texts);
-    }
-
-    /**
-     * Clear all lores from item.
-     *
-     * @param IS
-     */
-    public void clearLore(ItemStack IS) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
-        texts.clear();
-        IS.offer(Keys.ITEM_LORE, texts);
-    }
-
-    /**
-     * get size of the lores for the specified ItemStack
-     *
-     * @param IS
-     * @return
-     */
-    public int loreSize(ItemStack IS) {
-        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
-        return texts.size();
+    public Collection<? extends Player> getPlayers() {
+        return Sponge.getServer().getOnlinePlayers();
     }
 
     /**
@@ -529,6 +256,24 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     public BlockState getTargetBlock(Player player, int maxDistance) {
         BlockRayHit<World> brh = BlockRay.from(player).distanceLimit(maxDistance).build().end().orElse(null);
         return brh.getExtent().getBlock(brh.getBlockPosition());
+    }
+
+    /**
+     * Check if the specified ItemStack contains the 'lore.' At least one is
+     * contained in the lore will return true.
+     *
+     * @param IS
+     * @param lore
+     * @return true if 'lore' is in IS; false if not
+     */
+    public boolean hasLore(ItemStack IS, String lore) {
+        if (!IS.get(Keys.ITEM_LORE).isPresent()) return false;
+
+        for (Text txt : IS.get(Keys.ITEM_LORE).orElse(new ArrayList<Text>())) {
+            if (txt.toPlain().equals(lore)) return true;
+        }
+
+        return false;
     }
 
     /**
@@ -587,16 +332,278 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         return IS;
     }
 
-    public BossBarColor barColor(String name) throws IllegalArgumentException, NoSuchFieldException {
-        try {
-            return (BossBarColor) BossBarColors.class.getField(name).get(null);
-        } catch (IllegalAccessException | SecurityException e) {
-            e.printStackTrace();
-            return null;
-        }
+    /**
+     * Create a new ItemStack
+     * <p>
+     * Example) /trg run #GIVE item(1, 64, 0)
+     * </p>
+     *
+     * @param type   type name. Sponge does not support numerical item types.
+     * @param amount amount of item
+     * @return the ItemStack
+     */
+    public ItemStack item(String type, int amount) {
+        return ItemStack.of(itemType(type), amount);
+    }
+
+    public ItemType itemType(String name) {
+        return Sponge.getGame().getRegistry().getType(ItemType.class, name).orElse(null);
+    }
+
+    public Location<World> location(String world, int x, int y, int z) {
+        World w = Sponge.getServer().getWorld(world).orElse(null);
+        if (world == null) throw new RuntimeException("world " + world + " does not exists!");
+        return new Location<World>(w, x, y, z);
+    }
+
+    /**
+     * check if two location are equal not considering their decimal points
+     * <p>
+     * Example) /trg run IF locationEqual(player.getLocation(),
+     * {"otherLocation"}); #MESSAGE "match"; ENDIF;
+     * </p>
+     *
+     * @param loc1
+     * @param loc2
+     * @return true if equal; false if not
+     */
+    public boolean locationEqual(Location<World> loc1, Location<World> loc2) {
+        return loc1.getExtent()
+                .equals(loc2.getExtent()) && loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
+    }
+
+    /**
+     * get size of the lores for the specified ItemStack
+     *
+     * @param IS
+     * @return
+     */
+    public int loreSize(ItemStack IS) {
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
+        return texts.size();
     }
 
     public BossBar makeBossBar(String title, BossBarColor color, String style) {
         return ServerBossBar.builder().color(color).build();
+    }
+
+    /**
+     * create a PotionEffect for use in entity.addPotionEffect();
+     * <p>
+     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED",
+     * 1000000, 5, false, true, bukkitColor(21,2,24) ))
+     * </p>
+     *
+     * @param EffectType the name of the PotionEffectType to use
+     * @param duration   how long the potioneffect should last when applied to an
+     *                   enitity
+     * @param amplifier  how strong the effect should be
+     * @param ambient    if true particle effects will be more transparent
+     * @param particles  if false potion particle effects will not be shown
+     * @param color      sets the color of the potion particle effects shown
+     * @return returns a PotionEffect object or null if specified
+     * PotionEffectType was not found.
+     */
+    public PotionEffect makePotionEffect(String EffectType,
+                                         int duration,
+                                         int amplifier,
+                                         boolean ambient,
+                                         boolean particles,
+                                         Color color) {
+        PotionEffectType type = null;
+        try {
+            type = (PotionEffectType) PotionEffectTypes.class.getField(EffectType).get(null);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(EffectType + " is not a valid PotionEffectType!");
+        }
+
+        if (type != null) {
+            return PotionEffect.builder()
+                    .duration(duration)
+                    .amplifier(amplifier)
+                    .ambience(ambient)
+                    .particles(particles)
+                    .potionType(type)
+                    .build();
+        } else {
+            return null;
+        }
+
+    }
+
+    /**
+     * try to get offline player from name.
+     * <p>
+     * Example) /trg run #MESSAGE "UUID is: "+oplayer("wysohn").getUniqueId()
+     * </p>
+     *
+     * @param name name of player
+     * @return the OfflinePlayer object; it never returns null but always return
+     * an offline player even if the player doesn't exist.
+     */
+    public User oplayer(String name) {
+        Optional<UserStorageService> userStorage = Sponge.getServiceManager().provide(UserStorageService.class);
+        return userStorage.orElse(null).get(name).orElse(null);
+    }
+
+    /**
+     * try to get a player from name. Mostly online player.
+     * <p>
+     * Example) player("wysohn").performCommand("spawn")
+     * </p>
+     *
+     * @param name name of player
+     * @return the Player object; it can be null if no player is found with the
+     * name
+     */
+    public Player player(String name) {
+        return Sponge.getServer().getPlayer(name).orElse(null);
+    }
+
+    /**
+     * Simply try to get plugin object directly. *
+     * <p>
+     * Example) #MESSAGE "spawn region info:
+     * "+plugin("WorldGuard").getRegionManager(player.getWorld()).getRegion("spawn")
+     * </p>
+     *
+     * @param name name of the plugin.
+     * @return Plugin object on success; null if plugin not found or loaded.
+     */
+    public Object plugin(String name) {
+        PluginContainer container = Sponge.getPluginManager().getPlugin(name).orElse(null);
+        if (container == null) return null;
+
+        return container.getInstance();
+    }
+
+    /**
+     * Remove lore at the 'index' of the specified ItemStack
+     *
+     * @param IS
+     * @param index
+     */
+    public void removeLore(ItemStack IS, int index) {
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
+        texts.remove(index);
+        IS.offer(Keys.ITEM_LORE, texts);
+    }
+
+    /**
+     * Set title of the specified ItemStack
+     * <p>
+     * Example) /trg run myitem = item(1, 1); setItemTitle(myitem, "I'm stone");
+     * #GIVE myitem;
+     * </p>
+     *
+     * @param IS
+     * @param title
+     */
+    public void setItemTitle(ItemStack IS, String title) {
+        setItemTitle(IS, text(title));
+    }
+
+    public void setItemTitle(ItemStack IS, Text title) {
+        IS.offer(Keys.DISPLAY_NAME, title);
+    }
+
+    /**
+     * Replace a lore at 'index' for the specified ItemStack
+     *
+     * @param IS
+     * @param index
+     * @param lore
+     */
+    public void setLore(ItemStack IS, int index, String lore) {
+        setLore(IS, index, text(lore));
+    }
+
+    public void setLore(ItemStack IS, int index, Text lore) {
+        List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(new ArrayList<>());
+        texts.set(index, lore);
+        IS.offer(Keys.ITEM_LORE, texts);
+    }
+
+    /**
+     * creates and returns a bukkit color object using the RGB values given. the
+     * max value for the int arguments is 255 exceeding it may cause errors.
+     * <p>
+     * Example) /trg run partColor = bukkitColor(255,255,255)
+     * </p>
+     *
+     * @param red   red the value of red in RGB
+     * @param green green the value of green in RGB
+     * @param blue  blue the value of blue in RGB
+     * @return returns a Color object from org.bukkit.Color
+     */
+    public Color spongeColor(int red, int green, int blue) {
+        Color color = null;
+        color = Color.ofRgb(red, green, blue);
+        return color;
+    }
+
+    /**
+     * take item from player.
+     * <p>
+     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one
+     * stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
+     * </p>
+     *
+     * @param player target player
+     * @param id     item name. Sponge does not support numerical item id.
+     * @param amount amount
+     * @return true if took it; false if player doesn't have it
+     */
+    public boolean takeItem(Player player, String id, int amount) {
+        ItemStack IS = ItemStack.of(itemType(id), amount);
+        if (!player.getInventory().contains(IS)) return false;
+
+        Optional<ItemStack> result = player.getInventory()
+                .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
+                .peek(amount);
+        if (result.isPresent() && result.orElse(null).getQuantity() < amount) return false;
+
+        return player.getInventory()
+                .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
+                .poll(amount)
+                .orElse(null)
+                .getQuantity() == amount;
+    }
+
+    /**
+     * take ItemStack from player. This check for every single metadata (title, lores, enchantment, etc.),
+     * so only the exactly matching items will be removed
+     * <p>
+     * Example) /trg run IF takeItem(player, {"some.item"}, 1);
+     * </p>
+     *
+     * @param player target player
+     * @param id     item name. Sponge does not support numerical item id.
+     * @param amount amount
+     * @return true if took it; false if player doesn't have it
+     */
+    public boolean takeItem(Player player, ItemStack IS, int amount) {
+        if (!player.getInventory().contains(IS)) return false;
+
+        Optional<ItemStack> result = player.getInventory()
+                .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
+                .peek(amount);
+        if (result.isPresent() && result.orElse(null).getQuantity() < amount) return false;
+
+        return player.getInventory()
+                .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
+                .poll(amount)
+                .orElse(null)
+                .getQuantity() == amount;
+    }
+
+    /**
+     * convert plain String to Sponge usable Text.
+     *
+     * @param str String to convert
+     * @return Text
+     */
+    public Text text(String str) {
+        return TextSerializers.FORMATTING_CODE.deserialize(str);
     }
 }

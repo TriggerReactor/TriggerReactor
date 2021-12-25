@@ -77,11 +77,9 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                                 e1.printStackTrace();
                             }
 
-                            if (!valid)
-                                continue;
+                            if (!valid) continue;
 
-                            if (!entityLocationMap.containsKey(uuid))
-                                continue;
+                            if (!entityLocationMap.containsKey(uuid)) continue;
 
                             SimpleLocation previous = entityLocationMap.get(uuid);
                             SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
@@ -108,26 +106,25 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
         entityTrackingThread.start();
     }
 
-    @Override
-    public void reload() {
-        super.reload();
+    @Listener
+    public void onDeath(DestructEntityEvent.Death e) {
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetEntity().getLocation());
 
-        //re-register entities
-        for (World w : Sponge.getServer().getWorlds()) {
-            for (Entity e : w.getEntities()) {
-                UUID uuid = e.getUniqueId();
+        entityTrackMap.remove(e.getTargetEntity().getUniqueId());
+        entityLocationMap.remove(e.getTargetEntity().getUniqueId());
 
-                if (e.isRemoved() || !e.isLoaded())
-                    continue;
+        getAreaForLocation(sloc).stream()
+                .map(Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(e.getTargetEntity().getUniqueId()));
+    }
 
-                SimpleLocation previous = null;
-                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
-
-                entityLocationMap.put(uuid, current);
-                entityTrackMap.put(uuid, new WeakReference<IEntity>(new SpongeEntity(e)));
-                onEntityBlockMoveAsync(e, previous, current);
-            }
-        }
+    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
+        getAreaForLocation(from).stream()
+                .map(Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(new SpongeEntity(entity)));
     }
 
     @Listener(order = Order.POST)
@@ -148,19 +145,15 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
         varMap.put("from", e.getFrom());
         varMap.put("to", e.getTo());
 
-        from.stream()
-                .filter((entry) -> !entry.getKey().isInThisArea(e.getTo()))//only for area leaving
-                .map(Entry::getValue)
-                .forEach((trigger) -> {
+        from.stream().filter((entry) -> !entry.getKey().isInThisArea(e.getTo()))//only for area leaving
+                .map(Entry::getValue).forEach((trigger) -> {
                     trigger.removeEntity(e.getTargetEntity().getUniqueId());
                     trigger.activate(e, varMap, EventType.EXIT);
                 });
 
 
-        to.stream()
-                .filter((entry) -> !entry.getKey().isInThisArea(e.getFrom()))//only for entering area
-                .map(Entry::getValue)
-                .forEach((trigger) -> {
+        to.stream().filter((entry) -> !entry.getKey().isInThisArea(e.getFrom()))//only for entering area
+                .map(Entry::getValue).forEach((trigger) -> {
                     trigger.addEntity(new SpongeEntity(e.getTargetEntity()));
                     trigger.activate(e, varMap, EventType.ENTER);
                 });
@@ -170,7 +163,8 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
     public void onSpawn(RespawnPlayerEvent e) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetEntity().getLocation());
 
-        entityTrackMap.put(e.getTargetEntity().getUniqueId(), new WeakReference<IEntity>(new SpongeEntity(e.getTargetEntity())));
+        entityTrackMap.put(e.getTargetEntity().getUniqueId(),
+                           new WeakReference<IEntity>(new SpongeEntity(e.getTargetEntity())));
         entityLocationMap.put(e.getTargetEntity().getUniqueId(), sloc);
 
         getAreaForLocation(sloc).stream()
@@ -178,24 +172,24 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                 .forEach((trigger) -> trigger.addEntity(new SpongeEntity(e.getTargetEntity())));
     }
 
-    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
-        getAreaForLocation(from).stream()
-                .map(Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
-        getAreaForLocation(current).stream()
-                .map(Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new SpongeEntity(entity)));
-    }
+    @Override
+    public void reload() {
+        super.reload();
 
-    @Listener
-    public void onDeath(DestructEntityEvent.Death e) {
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetEntity().getLocation());
+        //re-register entities
+        for (World w : Sponge.getServer().getWorlds()) {
+            for (Entity e : w.getEntities()) {
+                UUID uuid = e.getUniqueId();
 
-        entityTrackMap.remove(e.getTargetEntity().getUniqueId());
-        entityLocationMap.remove(e.getTargetEntity().getUniqueId());
+                if (e.isRemoved() || !e.isLoaded()) continue;
 
-        getAreaForLocation(sloc).stream()
-                .map(Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(e.getTargetEntity().getUniqueId()));
+                SimpleLocation previous = null;
+                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
+
+                entityLocationMap.put(uuid, current);
+                entityTrackMap.put(uuid, new WeakReference<IEntity>(new SpongeEntity(e)));
+                onEntityBlockMoveAsync(e, previous, current);
+            }
+        }
     }
 }

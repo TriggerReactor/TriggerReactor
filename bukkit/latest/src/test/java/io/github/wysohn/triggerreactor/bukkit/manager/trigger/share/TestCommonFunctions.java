@@ -29,9 +29,9 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         super(fn);
     }
 
-    @Parameterized.Parameters
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
+    @Override
+    protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
+        return IS1.getType() == IS2.getType() && IS1.getAmount() == IS2.getAmount();
     }
 
     @Override
@@ -40,8 +40,36 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
     }
 
     @Override
-    protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
-        return IS1.getType() == IS2.getType() && IS1.getAmount() == IS2.getAmount();
+    public void testGetPlayers() {
+        Assert.assertTrue(fn.getPlayers().contains(mockPlayer));
+    }
+
+    @Override
+    public void testHeadForName() {
+        //TODO: not testable?
+    }
+
+    @Override
+    public void testHeadForValue() {
+        //TODO: not testable?
+    }
+
+    @SuppressWarnings("deprecation")
+    @Test(expected = UnsupportedOperationException.class)
+    public void testItem() {
+        ItemStack IS = new ItemStack(Material.STONE, 64);
+        ItemStack IS2 = new ItemStack(Material.GRANITE, 63);
+
+        Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item("GRANITE", 63)));
+
+        Assert.assertTrue(isEqual(IS, fn.item(0, 64)));
+        Assert.assertTrue(isEqual(IS2, fn.item(0, 63, 1)));
+    }
+
+    @Override
+    public void testMakePotionEffect() {
+        //TODO: not testable?
     }
 
     @SuppressWarnings("deprecation")
@@ -65,36 +93,8 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         fn.takeItem(mockPlayer, 1, 5, 1);
     }
 
-    @Override
-    public void testGetPlayers() {
-        Assert.assertTrue(fn.getPlayers().contains(mockPlayer));
-    }
-
-    @Override
-    public void testMakePotionEffect() {
-        //TODO: not testable?
-    }
-
-    @SuppressWarnings("deprecation")
-    @Test(expected = UnsupportedOperationException.class)
-    public void testItem() {
-        ItemStack IS = new ItemStack(Material.STONE, 64);
-        ItemStack IS2 = new ItemStack(Material.GRANITE, 63);
-
-        Assert.assertTrue(isEqual(IS, fn.item("STONE", 64)));
-        Assert.assertTrue(isEqual(IS2, fn.item("GRANITE", 63)));
-
-        Assert.assertTrue(isEqual(IS, fn.item(0, 64)));
-        Assert.assertTrue(isEqual(IS2, fn.item(0, 63, 1)));
-    }
-
-    @Override
-    public void testHeadForName() {
-        //TODO: not testable?
-    }
-
-    @Override
-    public void testHeadForValue() {
-        //TODO: not testable?
+    @Parameterized.Parameters
+    public static Iterable<Object[]> data() {
+        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
     }
 }

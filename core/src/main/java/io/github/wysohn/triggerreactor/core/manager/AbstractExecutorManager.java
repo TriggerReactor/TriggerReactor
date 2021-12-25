@@ -27,11 +27,52 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
+public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager
+        implements KeyValueManager<Executor> {
+    static {
+        DEPRECATED_EXECUTORS.add("MODIFYPLAYER");
+    }
+
+    private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
+    protected Map<String, Executor> jsExecutors = new HashMap<>();
     @Inject
     Logger logger;
 
-    protected Map<String, Executor> jsExecutors = new HashMap<>();
+    /* (non-Javadoc)
+     * @see KeyValueManager#containsKey(java.lang.Object)
+     */
+    @Override
+    public boolean containsKey(Object key) {
+        return jsExecutors.containsKey(key);
+    }
+
+    /* (non-Javadoc)
+     * @see KeyValueManager#entrySet()
+     */
+    @Override
+    public Set<Entry<String, Executor>> entrySet() {
+        Set<Entry<String, Executor>> set = new HashSet<>();
+        for (Entry<String, Executor> entry : jsExecutors.entrySet()) {
+            set.add(new AbstractMap.SimpleEntry<String, Executor>(entry.getKey(), entry.getValue()));
+        }
+        return set;
+    }
+
+    /* (non-Javadoc)
+     * @see KeyValueManager#get(java.lang.Object)
+     */
+    @Override
+    public Executor get(Object key) {
+        return jsExecutors.get(key);
+    }
+
+    /* (non-Javadoc)
+     * @see KeyValueManager#getExecutorMap()
+     */
+    @Override
+    public Map<String, Executor> getBackedMap() {
+        return this.jsExecutors;
+    }
 
     /**
      * Loads all the Executor files and files under the folders. If Executors are inside the folder, the folder
@@ -72,48 +113,14 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
         }
     }
 
-    /* (non-Javadoc)
-     * @see KeyValueManager#get(java.lang.Object)
-     */
-    @Override
-    public Executor get(Object key) {
-        return jsExecutors.get(key);
-    }
-
-    /* (non-Javadoc)
-     * @see KeyValueManager#containsKey(java.lang.Object)
-     */
-    @Override
-    public boolean containsKey(Object key) {
-        return jsExecutors.containsKey(key);
-    }
-
-    /* (non-Javadoc)
-     * @see KeyValueManager#entrySet()
-     */
-    @Override
-    public Set<Entry<String, Executor>> entrySet() {
-        Set<Entry<String, Executor>> set = new HashSet<>();
-        for (Entry<String, Executor> entry : jsExecutors.entrySet()) {
-            set.add(new AbstractMap.SimpleEntry<String, Executor>(entry.getKey(), entry.getValue()));
-        }
-        return set;
-    }
-
-    /* (non-Javadoc)
-     * @see KeyValueManager#getExecutorMap()
-     */
-    @Override
-    public Map<String, Executor> getBackedMap() {
-        return this.jsExecutors;
-    }
-
     public class JSExecutor extends Evaluable<Integer> implements Executor {
         public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
             this(executorName, engine, new FileInputStream(file));
         }
 
-        public JSExecutor(String executorName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
+        public JSExecutor(String executorName,
+                          ScriptEngine engine,
+                          InputStream file) throws ScriptException, IOException {
             super("#", "Executors", executorName, readSourceCode(file), engine);
         }
 
@@ -124,11 +131,5 @@ public abstract class AbstractExecutorManager extends AbstractJavascriptBasedMan
                                Object... args) throws Exception {
             return evaluate(timing, variables, event, args);
         }
-    }
-
-    private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
-
-    static {
-        DEPRECATED_EXECUTORS.add("MODIFYPLAYER");
     }
 }

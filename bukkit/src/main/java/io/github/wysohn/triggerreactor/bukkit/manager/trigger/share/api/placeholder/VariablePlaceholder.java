@@ -46,8 +46,7 @@ public class VariablePlaceholder implements IVariablePlaceholder {
      */
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
-        if (identifier == null || identifier.length() == 0 || identifier.equals("?"))
-            return "";
+        if (identifier == null || identifier.length() == 0 || identifier.equals("?")) return "";
 
         if (identifier.toLowerCase().equals("version")) {
             return api.pluginLifecycleController().getVersion();
@@ -57,10 +56,11 @@ public class VariablePlaceholder implements IVariablePlaceholder {
 
         Object value = null;
 
-        String variableName = identifier.replaceAll("<uuid>", Optional.ofNullable(player)
-                .map(Entity::getUniqueId)
-                .map(UUID::toString)
-                .orElse(""));
+        String variableName = identifier.replaceAll("<uuid>",
+                                                    Optional.ofNullable(player)
+                                                            .map(Entity::getUniqueId)
+                                                            .map(UUID::toString)
+                                                            .orElse(""));
 
         if (variableName.startsWith("?")) {
             //%tr_?<variable name>% - temporary global variable

@@ -23,8 +23,9 @@ import io.github.wysohn.triggerreactor.core.bridge.IMinecraftObject;
 public interface IWrapper {
     /**
      * Wrap an arbitrary object that is specific to the sub-projects
+     *
      * @param object the object only exist in the sub-project
-     * @param <T> type to be converted
+     * @param <T>    type to be converted
      * @return the wrapped object
      */
     <T extends IMinecraftObject> T wrap(Object object);

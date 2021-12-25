@@ -44,6 +44,16 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
         commandManager = Sponge.getCommandManager();
     }
 
+    private void execute(Object e, Player player, String cmd, String[] args, CommandTrigger trigger) {
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", player);
+        varMap.put("command", cmd);
+        varMap.put("args", args);
+        varMap.put("argslength", args.length);
+
+        trigger.activate(e, varMap);
+    }
+
     @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
         String[] commandArr = new String[1 + trigger.getAliases().length];
@@ -53,25 +63,18 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
 
         commandManager.register(plugin.getMain(), new CommandCallable() {
             @Override
-            public CommandResult process(CommandSource source, String arguments) throws CommandException {
-                if (!(source instanceof Player)) {
-                    source.sendMessage(Text.of("CommandTrigger works only for Players."));
-                    return CommandResult.success();
-                }
-
-                ICommandSender commandSender = plugin.getPlayer(source.getName());
-                String[] args = arguments.split(" ");
-                execute(plugin.createPlayerCommandEvent(commandSender, triggerName, args),
-                        (Player) source,
-                        triggerName,
-                        args,
-                        trigger);
-
-                return CommandResult.success();
+            public Optional<Text> getHelp(CommandSource source) {
+                return Optional.empty();
             }
 
             @Override
-            public List<String> getSuggestions(CommandSource source, String arguments,
+            public Optional<Text> getShortDescription(CommandSource source) {
+                return Optional.empty();
+            }
+
+            @Override
+            public List<String> getSuggestions(CommandSource source,
+                                               String arguments,
                                                @Nullable Location<World> targetPosition) throws CommandException {
                 String[] args;
                 if (arguments.length() > 0) {
@@ -94,41 +97,37 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
             }
 
             @Override
-            public boolean testPermission(CommandSource source) {
-                for (String permission : trigger.getPermissions()) {
-                    if (!source.hasPermission(permission))
-                        return false;
-                }
-                return true;
-            }
-
-            @Override
-            public Optional<Text> getShortDescription(CommandSource source) {
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<Text> getHelp(CommandSource source) {
-                return Optional.empty();
-            }
-
-            @Override
             public Text getUsage(CommandSource source) {
                 return null;
             }
+
+            @Override
+            public CommandResult process(CommandSource source, String arguments) throws CommandException {
+                if (!(source instanceof Player)) {
+                    source.sendMessage(Text.of("CommandTrigger works only for Players."));
+                    return CommandResult.success();
+                }
+
+                ICommandSender commandSender = plugin.getPlayer(source.getName());
+                String[] args = arguments.split(" ");
+                execute(plugin.createPlayerCommandEvent(commandSender, triggerName, args),
+                        (Player) source,
+                        triggerName,
+                        args,
+                        trigger);
+
+                return CommandResult.success();
+            }
+
+            @Override
+            public boolean testPermission(CommandSource source) {
+                for (String permission : trigger.getPermissions()) {
+                    if (!source.hasPermission(permission)) return false;
+                }
+                return true;
+            }
         }, commandArr).ifPresent(commandMapping -> mappings.put(triggerName, commandMapping));
         return false;
-    }
-
-    @Override
-    protected boolean unregisterCommand(String triggerName) {
-        // CommandMapping instance seems like an unique entity regardless of the commands being same
-        CommandMapping mapping = commandManager.get(triggerName).orElse(null);
-        if (mapping == null)
-            return false;
-
-        commandManager.removeMapping(mapping);
-        return true;
     }
 
     @Override
@@ -152,14 +151,14 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
 //        execute(e, player, cmd, args, trigger);
 //    }
 
-    private void execute(Object e, Player player, String cmd, String[] args, CommandTrigger trigger) {
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player);
-        varMap.put("command", cmd);
-        varMap.put("args", args);
-        varMap.put("argslength", args.length);
+    @Override
+    protected boolean unregisterCommand(String triggerName) {
+        // CommandMapping instance seems like an unique entity regardless of the commands being same
+        CommandMapping mapping = commandManager.get(triggerName).orElse(null);
+        if (mapping == null) return false;
 
-        trigger.activate(e, varMap);
+        commandManager.removeMapping(mapping);
+        return true;
     }
 
     public static void main(String[] ar) {

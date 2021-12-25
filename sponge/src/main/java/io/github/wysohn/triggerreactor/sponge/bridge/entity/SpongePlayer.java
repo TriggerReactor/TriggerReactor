@@ -40,28 +40,8 @@ public class SpongePlayer extends SpongeEntity implements IPlayer {
     }
 
     @Override
-    public void sendMessage(String message) {
-        player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return player.hasPermission(permission);
-    }
-
-    @Override
     public <T> T get() {
         return (T) player;
-    }
-
-    @Override
-    public IInventory getInventory() {
-        return new SpongeInventory(player.getInventory(), player.getInventory().getCarrier().get());
-    }
-
-    @Override
-    public void openInventory(IInventory inventory) {
-        player.openInventory(inventory.get()).orElse(null);
     }
 
     @Override
@@ -72,8 +52,18 @@ public class SpongePlayer extends SpongeEntity implements IPlayer {
     }
 
     @Override
+    public IInventory getInventory() {
+        return new SpongeInventory(player.getInventory(), player.getInventory().getCarrier().get());
+    }
+
+    @Override
     public IItemStack getItemInMainHand() {
         return new SpongeItemStack(player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.empty()));
+    }
+
+    @Override
+    public void setItemInMainHand(IItemStack iS) {
+        player.setItemInHand(HandTypes.MAIN_HAND, iS.get());
     }
 
     @Override
@@ -82,8 +72,18 @@ public class SpongePlayer extends SpongeEntity implements IPlayer {
     }
 
     @Override
-    public void setItemInMainHand(IItemStack iS) {
-        player.setItemInHand(HandTypes.MAIN_HAND, iS.get());
+    public boolean hasPermission(String permission) {
+        return player.hasPermission(permission);
+    }
+
+    @Override
+    public void openInventory(IInventory inventory) {
+        player.openInventory(inventory.get()).orElse(null);
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        player.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
     }
 
 }

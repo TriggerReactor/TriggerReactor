@@ -13,14 +13,13 @@ public class ConfigurationUtil {
         return config.getNode(objs);
     }
 
-    public static String asDottedPath(ConfigurationNode config){
+    public static String asDottedPath(ConfigurationNode config) {
         Object[] objs = config.getPath();
-        if(objs.length < 1)
-            return null;
+        if (objs.length < 1) return null;
 
         StringBuilder pathBuilder = new StringBuilder();
         pathBuilder.append(objs[0]);
-        for(int i = 1; i < objs.length; i++){
+        for (int i = 1; i < objs.length; i++) {
             pathBuilder.append('.');
             pathBuilder.append(objs[i]);
         }

@@ -51,8 +51,10 @@ public class SkullUtil {
             Object properties = getPropertiesMethod.invoke(profile);
 
             Method putMethod = properties.getClass().getMethod("put", Object.class, Object.class);
-            putMethod.invoke(properties, "textures",
-                    propertyClazz.getConstructor(String.class, String.class).newInstance("textures", textureValue));
+            putMethod.invoke(properties,
+                             "textures",
+                             propertyClazz.getConstructor(String.class, String.class)
+                                     .newInstance("textures", textureValue));
 
             Field profileField = SM.getClass().getDeclaredField("profile");
             profileField.setAccessible(true);
@@ -105,10 +107,6 @@ public class SkullUtil {
 
         private final String owner;
 
-        private static class Holder {
-            static HashMap<String, CustomSkullType> map = new HashMap<String, CustomSkullType>();
-        }
-
         CustomSkullType(String owner) {
             this.owner = owner;
             Holder.map.put(owner, this);
@@ -127,6 +125,10 @@ public class SkullUtil {
 
         public static CustomSkullType get(String owner) {
             return Holder.map.get(owner);
+        }
+
+        private static class Holder {
+            static HashMap<String, CustomSkullType> map = new HashMap<String, CustomSkullType>();
         }
     }
 

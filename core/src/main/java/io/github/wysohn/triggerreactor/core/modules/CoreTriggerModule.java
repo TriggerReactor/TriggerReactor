@@ -34,75 +34,75 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRe
 
 @Module
 public abstract class CoreTriggerModule {
-    @Provides
-    static AbstractLocationBasedTriggerManager<ClickTrigger> provideClickTriggerManager(){
-        throw new RuntimeException("Must be provided by dependant.");
-    }
+    @Binds
+    @IntoSet
+    abstract Manager bindAreaTriggerIntoSet(AbstractAreaTriggerManager manager);
 
     @Binds
     @IntoSet
     abstract Manager bindClickTriggerIntoSet(AbstractLocationBasedTriggerManager<ClickTrigger> manager);
 
-    @Provides
-    static AbstractLocationBasedTriggerManager<WalkTrigger> provideWalkTriggerManager(){
-        throw new RuntimeException("Must be provided by dependant.");
-    }
+    @Binds
+    @IntoSet
+    abstract Manager bindCommandTriggerIntoSet(AbstractCommandTriggerManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindCustomTriggerIntoSet(AbstractCustomTriggerManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindInventoryTriggerIntoSet(AbstractInventoryTriggerManager<?> manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindNamedTriggerIntoSet(AbstractNamedTriggerManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindRepeatingTriggerIntoSet(AbstractRepeatingTriggerManager manager);
 
     @Binds
     @IntoSet
     abstract Manager bindWalkTriggerIntoSet(AbstractLocationBasedTriggerManager<WalkTrigger> manager);
 
     @Provides
-    static AbstractCommandTriggerManager provideCommandTriggerManager(){
+    static AbstractLocationBasedTriggerManager<ClickTrigger> provideClickTriggerManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindCommandTriggerIntoSet(AbstractCommandTriggerManager manager);
 
     @Provides
-    static AbstractAreaTriggerManager provideAreaTriggerManager(){
+    static AbstractLocationBasedTriggerManager<WalkTrigger> provideWalkTriggerManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindAreaTriggerIntoSet(AbstractAreaTriggerManager manager);
 
     @Provides
-    static AbstractNamedTriggerManager provideNamedTriggerManager(){
+    static AbstractCommandTriggerManager provideCommandTriggerManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindNamedTriggerIntoSet(AbstractNamedTriggerManager manager);
 
     @Provides
-    static AbstractCustomTriggerManager provideCustomTriggerManager(){
+    static AbstractAreaTriggerManager provideAreaTriggerManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindCustomTriggerIntoSet(AbstractCustomTriggerManager manager);
 
     @Provides
-    static AbstractInventoryTriggerManager<?> provideInventoryTriggerManager(){
+    static AbstractNamedTriggerManager provideNamedTriggerManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
-
-    @Binds
-    @IntoSet
-    abstract Manager bindInventoryTriggerIntoSet(AbstractInventoryTriggerManager<?> manager);
 
     @Provides
-    static AbstractRepeatingTriggerManager provideRepeatingTriggerManager(){
+    static AbstractCustomTriggerManager provideCustomTriggerManager() {
         throw new RuntimeException("Must be provided by dependant.");
     }
 
-    @Binds
-    @IntoSet
-    abstract Manager bindRepeatingTriggerIntoSet(AbstractRepeatingTriggerManager manager);
+    @Provides
+    static AbstractInventoryTriggerManager<?> provideInventoryTriggerManager() {
+        throw new RuntimeException("Must be provided by dependant.");
+    }
+
+    @Provides
+    static AbstractRepeatingTriggerManager provideRepeatingTriggerManager() {
+        throw new RuntimeException("Must be provided by dependant.");
+    }
 }

@@ -40,17 +40,9 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
-    @Inject
-    ITriggerReactorAPI api;
-    @Inject
-    IPluginLifecycleController pluginLifecycleController;
-
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
-
-    protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
-
     /**
      * The child class should update this map with its own way. Though, the entity which garbage-corrected will
      * be also deleted from this map automatically.
@@ -62,6 +54,11 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      * <b>Adding or removing from this map also has to be reflected in entityLocationMap as well</b>
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
+    protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
+    @Inject
+    ITriggerReactorAPI api;
+    @Inject
+    IPluginLifecycleController pluginLifecycleController;
 
     public AbstractAreaTriggerManager(String folderName) {
         super(folderName);
@@ -74,8 +71,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                     //clean up the reference map
                     Set<UUID> deletes = new HashSet<>();
                     for (Entry<UUID, WeakReference<IEntity>> entry : entityTrackMap.entrySet()) {
-                        if (entry.getValue().get() == null)
-                            deletes.add(entry.getKey());
+                        if (entry.getValue().get() == null) deletes.add(entry.getKey());
                     }
                     for (UUID delete : deletes) {
                         entityTrackMap.remove(delete);
@@ -100,34 +96,16 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     @Override
-    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactories fn) {
-        return Optional.ofNullable(folder.listFiles())
-                .map(files -> Arrays.stream(files)
-                        .filter(File::isDirectory)
-                        .map(file -> {
-                            String name = file.getName();
-                            IConfigSource config = fn.create(folder, name);
-                            return toTriggerInfo(file, config);
-                        })
-                        .toArray(TriggerInfo[]::new))
-                .orElse(new TriggerInfo[0]);
-    }
-
-    @Override
-    public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
-        return new AreaTriggerInfo(file, configSource, file.getName());
-    }
-
-    @Override
     public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-        SimpleLocation smallest = info.getConfig().get(SMALLEST, String.class)
+        SimpleLocation smallest = info.getConfig()
+                .get(SMALLEST, String.class)
                 .map(SimpleLocation::valueOf)
                 .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-        SimpleLocation largest = info.getConfig().get(LARGEST, String.class)
+        SimpleLocation largest = info.getConfig()
+                .get(LARGEST, String.class)
                 .map(SimpleLocation::valueOf)
                 .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-        boolean isSync = info.getConfig().get(SYNC, Boolean.class)
-                .orElse(false);
+        boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
 
         File scriptFolder = new File(folder, info.getTriggerName());
         if (!scriptFolder.exists()) {
@@ -138,8 +116,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         File enterFile = null;
         try {
             enterFile = getTriggerFile(scriptFolder, "Enter", false);
-            if (!enterFile.exists())
-                enterFile.createNewFile();
+            if (!enterFile.exists()) enterFile.createNewFile();
             enterScript = FileUtil.readFromFile(enterFile);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -150,8 +127,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         File exitFile = null;
         try {
             exitFile = getTriggerFile(scriptFolder, "Exit", false);
-            if (!exitFile.exists())
-                exitFile.createNewFile();
+            if (!exitFile.exists()) exitFile.createNewFile();
             exitScript = FileUtil.readFromFile(exitFile);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -185,7 +161,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         if (trigger.getEnterTrigger() != null) {
             try {
-                FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
+                FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true),
+                                     trigger.getEnterTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
                 logger.warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
@@ -203,6 +180,22 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     @Override
+    public TriggerInfo[] listTriggers(File folder, ConfigSourceFactories fn) {
+        return Optional.ofNullable(folder.listFiles())
+                .map(files -> Arrays.stream(files).filter(File::isDirectory).map(file -> {
+                    String name = file.getName();
+                    IConfigSource config = fn.create(folder, name);
+                    return toTriggerInfo(file, config);
+                }).toArray(TriggerInfo[]::new))
+                .orElse(new TriggerInfo[0]);
+    }
+
+    @Override
+    public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
+        return new AreaTriggerInfo(file, configSource, file.getName());
+    }
+
+    @Override
     public void onReload() {
         entityLocationMap.clear();
         entityTrackMap.clear();
@@ -213,100 +206,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         for (AreaTrigger trigger : getAllTriggers()) {
             this.setupArea(trigger);
-        }
-    }
-
-    /**
-     * Get list of all Area Triggers containing this sloc.
-     *
-     * @param sloc
-     * @return list of Entries containing the given sloc. It may be empty but never null.
-     */
-    protected List<Map.Entry<Area, AreaTrigger>> getAreaForLocation(SimpleLocation sloc) {
-        if (sloc == null)
-            return new ArrayList<>();
-
-        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
-        if (!areaTriggersByLocation.containsKey(scloc))
-            return new ArrayList<>();
-
-        List<Map.Entry<Area, AreaTrigger>> list = areaTriggersByLocation.get(scloc).entrySet().stream()
-                .filter(entry -> entry.getKey().isInThisArea(sloc))
-                .collect(Collectors.toList());
-
-        return list;
-    }
-
-    /**
-     * get all the area that is conflicting with given area. This does not include the area itself.
-     * It's quite a CPU intensive work; use it wisely
-     *
-     * @param area
-     * @param filter decide what it means by 'conflict' between the given area and other areas
-     * @return never be null; can be empty if no conflicts are found
-     */
-    public Set<Area> getConflictingAreas(Area area, Predicate<Area> filter) {
-        Set<Area> conflicts = new HashSet<>();
-
-        Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
-        for (SimpleChunkLocation scloc : sclocs) {
-            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
-            if (map == null)
-                continue;
-
-            for (Entry<Area, AreaTrigger> mapentry : map.entrySet()) {
-                Area areaOther = mapentry.getKey();
-
-                if (filter.test(areaOther))
-                    conflicts.add(areaOther);
-            }
-        }
-
-        return conflicts;
-    }
-
-    /**
-     * Create a new Area Trigger.
-     *
-     * @param name     name of the Area Trigger.
-     * @param smallest smallest point (ex. 0,0,0)
-     * @param largest  largest point(ex. 15,15,15)
-     * @return true on success; false if exact same area (same smallest and largest) already exist.
-     */
-    public boolean createArea(String name, SimpleLocation smallest, SimpleLocation largest) {
-        Area area = new Area(smallest, largest);
-
-        // exact same area found
-        if (!getConflictingAreas(area, area::equals).isEmpty())
-            return false;
-
-        File areaFolder = new File(folder, name);
-        IConfigSource config = configSourceFactories.create(folder, name);
-        AreaTrigger trigger = new AreaTrigger(api, new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
-        put(name, trigger);
-
-        setupArea(trigger);
-
-        return true;
-    }
-
-    /**
-     * reset the area cache. Should be called on reload or on Area Trigger created.
-     *
-     * @param trigger
-     */
-    protected void setupArea(AreaTrigger trigger) {
-        Area area = trigger.area;
-
-        Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
-        for (SimpleChunkLocation scloc : sclocs) {
-            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
-            if (map == null) {
-                map = new ConcurrentHashMap<>();
-                areaTriggersByLocation.put(scloc, map);
-            }
-
-            map.put(area, trigger);
         }
     }
 
@@ -325,13 +224,27 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     /**
-     * Try to get Area Triggers at given location
+     * Create a new Area Trigger.
      *
-     * @param sloc
-     * @return list of areas that contains the sloc. It may be empty but never null.
+     * @param name     name of the Area Trigger.
+     * @param smallest smallest point (ex. 0,0,0)
+     * @param largest  largest point(ex. 15,15,15)
+     * @return true on success; false if exact same area (same smallest and largest) already exist.
      */
-    public List<Map.Entry<Area, AreaTrigger>> getAreas(SimpleLocation sloc) {
-        return getAreaForLocation(sloc);
+    public boolean createArea(String name, SimpleLocation smallest, SimpleLocation largest) {
+        Area area = new Area(smallest, largest);
+
+        // exact same area found
+        if (!getConflictingAreas(area, area::equals).isEmpty()) return false;
+
+        File areaFolder = new File(folder, name);
+        IConfigSource config = configSourceFactories.create(folder, name);
+        AreaTrigger trigger = new AreaTrigger(api, new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
+        put(name, trigger);
+
+        setupArea(trigger);
+
+        return true;
     }
 
     /**
@@ -358,7 +271,85 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         return false;
     }
 
+    /**
+     * Get list of all Area Triggers containing this sloc.
+     *
+     * @param sloc
+     * @return list of Entries containing the given sloc. It may be empty but never null.
+     */
+    protected List<Map.Entry<Area, AreaTrigger>> getAreaForLocation(SimpleLocation sloc) {
+        if (sloc == null) return new ArrayList<>();
+
+        SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
+        if (!areaTriggersByLocation.containsKey(scloc)) return new ArrayList<>();
+
+        List<Map.Entry<Area, AreaTrigger>> list = areaTriggersByLocation.get(scloc)
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().isInThisArea(sloc))
+                .collect(Collectors.toList());
+
+        return list;
+    }
+
+    /**
+     * Try to get Area Triggers at given location
+     *
+     * @param sloc
+     * @return list of areas that contains the sloc. It may be empty but never null.
+     */
+    public List<Map.Entry<Area, AreaTrigger>> getAreas(SimpleLocation sloc) {
+        return getAreaForLocation(sloc);
+    }
+
+    /**
+     * get all the area that is conflicting with given area. This does not include the area itself.
+     * It's quite a CPU intensive work; use it wisely
+     *
+     * @param area
+     * @param filter decide what it means by 'conflict' between the given area and other areas
+     * @return never be null; can be empty if no conflicts are found
+     */
+    public Set<Area> getConflictingAreas(Area area, Predicate<Area> filter) {
+        Set<Area> conflicts = new HashSet<>();
+
+        Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
+        for (SimpleChunkLocation scloc : sclocs) {
+            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
+            if (map == null) continue;
+
+            for (Entry<Area, AreaTrigger> mapentry : map.entrySet()) {
+                Area areaOther = mapentry.getKey();
+
+                if (filter.test(areaOther)) conflicts.add(areaOther);
+            }
+        }
+
+        return conflicts;
+    }
+
+    /**
+     * reset the area cache. Should be called on reload or on Area Trigger created.
+     *
+     * @param trigger
+     */
+    protected void setupArea(AreaTrigger trigger) {
+        Area area = trigger.area;
+
+        Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
+        for (SimpleChunkLocation scloc : sclocs) {
+            Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
+            if (map == null) {
+                map = new ConcurrentHashMap<>();
+                areaTriggersByLocation.put(scloc, map);
+            }
+
+            map.put(area, trigger);
+        }
+    }
+
     public enum EventType {
-        ENTER, EXIT
+        ENTER,
+        EXIT
     }
 }

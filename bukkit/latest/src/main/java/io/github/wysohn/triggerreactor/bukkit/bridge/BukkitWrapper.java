@@ -8,7 +8,7 @@ import javax.inject.Inject;
 
 public class BukkitWrapper extends AbstractBukkitWrapper {
     @Inject
-    BukkitWrapper(){
+    BukkitWrapper() {
 
     }
 

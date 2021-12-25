@@ -22,25 +22,20 @@ import io.github.wysohn.triggerreactor.bukkit.modules.BukkitManagerModule;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitPluginMainModule;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitScriptEngineModule;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
-import io.github.wysohn.triggerreactor.core.main.PluginMainComponent;
+import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Set;
 
-@Component(modules = {
-        BukkitPluginMainModule.class,
-        BukkitScriptEngineModule.class,
-        BukkitManagerModule.class
-}, dependencies = {
-        PluginMainComponent.class
-})
+@Component(modules = {BukkitPluginMainModule.class, BukkitScriptEngineModule.class, BukkitManagerModule.class},
+           dependencies = {PluginMainComponent.class})
 @BukkitPluginScope
 public interface BukkitPluginMainComponent {
     void inject(JavaPlugin javaPlugin);
 
-    Set<Manager> managers();
-
     TriggerReactorMain main();
+
+    Set<Manager> managers();
 }

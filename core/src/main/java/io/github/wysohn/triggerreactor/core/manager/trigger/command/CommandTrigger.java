@@ -20,16 +20,20 @@ public class CommandTrigger extends Trigger {
         init();
     }
 
-    public String[] getPermissions() {
-        return permissions;
+    @Override
+    public CommandTrigger clone() {
+        try {
+            return new CommandTrigger(api, info, getScript());
+        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    public void setPermissions(String[] permissions) {
-        if (permissions == null) {
-            this.permissions = new String[0];
-        } else {
-            this.permissions = permissions;
-        }
+    @Override
+    public String toString() {
+        return super.toString() + "{" + "permissions=" + Arrays.toString(permissions) + ", aliases=" + Arrays.toString(
+                aliases) + '}';
     }
 
     public String[] getAliases() {
@@ -44,6 +48,18 @@ public class CommandTrigger extends Trigger {
         }
     }
 
+    public String[] getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(String[] permissions) {
+        if (permissions == null) {
+            this.permissions = new String[0];
+        } else {
+            this.permissions = permissions;
+        }
+    }
+
     public ITabCompleter[] getTabCompleters() {
         return tabCompleters;
     }
@@ -54,23 +70,5 @@ public class CommandTrigger extends Trigger {
         } else {
             this.tabCompleters = tabCompleters;
         }
-    }
-
-    @Override
-    public CommandTrigger clone() {
-        try {
-            return new CommandTrigger(api, info, getScript());
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "{" +
-                "permissions=" + Arrays.toString(permissions) +
-                ", aliases=" + Arrays.toString(aliases) +
-                '}';
     }
 }

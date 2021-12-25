@@ -1,18 +1,12 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerLegacyBukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.components.LegacyBukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
+import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -28,42 +22,38 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class TriggerReactor extends AbstractJavaPlugin {
     private LegacyBukkitPluginMainComponent component;
-    private TriggerReactorMain main;
 
-    private SelfReference selfReference;
     private CustomCommandHandle customCommandHandle = new CustomCommandHandle();
 
     @Override
     public void onEnable() {
-        component = DaggerLegacyBukkitPluginMainComponent.builder().build();
+        component = DaggerLegacyBukkitPluginMainComponent.builder()
+                .bukkitPluginMainComponent(DaggerBukkitPluginMainComponent.builder()
+                                                   .pluginMainComponent(DaggerPluginMainComponent.create())
+                                                   .build())
+                .build();
+        component.inject(this);
 
-        selfReference = new CommonFunctions(main);
-        BukkitTriggerReactorCore.WRAPPER = new BukkitWrapper();
         if (!ConfigurationSerializable.class.isAssignableFrom(Location.class)) {
             ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");
         }
-
         Bukkit.getPluginManager().registerEvents(customCommandHandle, this);
 
         super.onEnable();
     }
 
     @Override
-    protected void registerAPIs() {
-        APISupport.addSharedVars("coreprotect", CoreprotectSupport.class);
-        APISupport.addSharedVars("mcmmo", McMmoSupport.class);
-        APISupport.addSharedVars("placeholder", PlaceHolderSupport.class);
-        APISupport.addSharedVars("protocollib", ProtocolLibSupport.class);
-        APISupport.addSharedVars("vault", VaultSupport.class);
-        APISupport.addSharedVars("worldguard", WorldguardSupport.class);
+    protected TriggerReactorMain getMain() {
+        return component.main();
     }
 
     @Override
-    public SelfReference getSelfReference() {
-        return selfReference;
+    protected Set<Manager> getManagers() {
+        return null;
     }
 
     @Override
@@ -102,8 +92,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
         @Override
         public Command put(String key, Command value) {
             Command previous = super.put(key, value);
-            Optional.ofNullable(previous)
-                    .ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
+            Optional.ofNullable(previous).ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
             value.getAliases().forEach(alias -> aliasesMap.put(alias, key));
             return previous;
         }
@@ -111,8 +100,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
         @Override
         public void putAll(Map<? extends String, ? extends Command> m) {
             m.forEach((key, command) -> {
-                Optional.ofNullable(super.get(key))
-                        .ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
+                Optional.ofNullable(super.get(key)).ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
                 command.getAliases().forEach(alias -> aliasesMap.put(alias, key));
             });
             super.putAll(m);
@@ -121,8 +109,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
         @Override
         public Command remove(Object key) {
             Command remove = super.remove(key);
-            Optional.ofNullable(remove)
-                    .ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
+            Optional.ofNullable(remove).ifPresent(c -> c.getAliases().forEach(aliasesMap::remove));
             return remove;
         }
 
@@ -143,13 +130,8 @@ public class TriggerReactor extends AbstractJavaPlugin {
                 args[i] = split[i + 1];
 
             Command command = super.get(cmd);
-            if (command == null)
-                command = Optional.of(cmd)
-                        .map(aliasesMap::get)
-                        .map(super::get)
-                        .orElse(null);
-            if (command == null)
-                return;
+            if (command == null) command = Optional.of(cmd).map(aliasesMap::get).map(super::get).orElse(null);
+            if (command == null) return;
             e.setCancelled(true);
 
             command.execute(player, cmd, args);
@@ -167,13 +149,8 @@ public class TriggerReactor extends AbstractJavaPlugin {
                 args[i] = split[i + 1];
 
             Command command = super.get(cmd);
-            if (command == null)
-                command = Optional.of(cmd)
-                        .map(aliasesMap::get)
-                        .map(super::get)
-                        .orElse(null);
-            if (command == null)
-                return;
+            if (command == null) command = Optional.of(cmd).map(aliasesMap::get).map(super::get).orElse(null);
+            if (command == null) return;
 
             e.getTabCompletions().addAll(command.tabComplete(sender, cmd, args));
         }

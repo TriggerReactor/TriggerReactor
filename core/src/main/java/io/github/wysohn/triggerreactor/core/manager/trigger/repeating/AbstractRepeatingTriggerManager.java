@@ -37,15 +37,12 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
-    @Inject
-    ITriggerReactorAPI api;
-
     private static final String AUTOSTART = "AutoStart";
     private static final String INTERVAL = "Interval";
-
     protected static final String TRIGGER = "trigger";
-
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
+    @Inject
+    ITriggerReactorAPI api;
 
     public AbstractRepeatingTriggerManager(String folderName) {
         super(folderName);
@@ -58,8 +55,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            RepeatingTrigger trigger = new RepeatingTrigger(api,
-                    info, script);
+            RepeatingTrigger trigger = new RepeatingTrigger(api, info, script);
             trigger.setAutoStart(autoStart);
             trigger.setInterval(interval);
             return trigger;
@@ -101,6 +97,18 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         }
     }
 
+    @Override
+    public RepeatingTrigger remove(String name) {
+        RepeatingTrigger remove = super.remove(name);
+
+        // stop the thread if it's running
+        if (runningThreads.containsKey(remove.getInfo().getTriggerName())) {
+            this.stopTrigger(remove.getInfo().getTriggerName());
+        }
+
+        return remove;
+    }
+
     /**
      * Create trigger.
      *
@@ -112,8 +120,10 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @throws LexerException  See {@link Trigger#init()}
      * @throws ParserException See {@link Trigger#init()}
      */
-    public boolean createTrigger(String triggerName, File file, String script, long interval)
-            throws TriggerInitFailedException, IOException {
+    public boolean createTrigger(String triggerName,
+                                 File file,
+                                 String script,
+                                 long interval) throws TriggerInitFailedException, IOException {
         if (get(triggerName) != null) {
             return false;
         }
@@ -121,8 +131,7 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         String name = TriggerInfo.extractName(file);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger trigger = new RepeatingTrigger(api,
-                info, script, interval);
+        RepeatingTrigger trigger = new RepeatingTrigger(api, info, script, interval);
         put(triggerName, trigger);
 
         return true;
@@ -138,22 +147,9 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      * @throws LexerException  See {@link Trigger#init()}
      * @throws ParserException See {@link Trigger#init()}
      */
-    public boolean createTrigger(String triggerName, String script)
-            throws TriggerInitFailedException, IOException {
+    public boolean createTrigger(String triggerName, String script) throws TriggerInitFailedException, IOException {
         File triggerFile = getTriggerFile(folder, triggerName, true);
         return createTrigger(triggerName, triggerFile, script, 1000L);
-    }
-
-    @Override
-    public RepeatingTrigger remove(String name) {
-        RepeatingTrigger remove = super.remove(name);
-
-        // stop the thread if it's running
-        if (runningThreads.containsKey(remove.getInfo().getTriggerName())) {
-            this.stopTrigger(remove.getInfo().getTriggerName());
-        }
-
-        return remove;
     }
 
     /**
@@ -165,6 +161,20 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
      */
     public boolean isRunning(String triggerName) {
         return runningThreads.containsKey(triggerName);
+    }
+
+    public void showTriggerInfo(ICommandSender sender, RepeatingTrigger trigger) {
+        sender.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("Trigger: " + trigger.getInfo());
+        sender.sendMessage("Auto Start: " + trigger.isAutoStart());
+        sender.sendMessage("Interval: " + TimeUtil.milliSecondsToString(trigger.getInterval()));
+        sender.sendMessage("");
+        sender.sendMessage("Paused: " + trigger.isPaused());
+        sender.sendMessage("Running: " + isRunning(trigger.getInfo().getTriggerName()));
+        sender.sendMessage("");
+        sender.sendMessage("Script:");
+        sender.sendMessage(trigger.getScript());
+        sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     /**
@@ -216,20 +226,6 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
 
         thread.interrupt();
         return true;
-    }
-
-    public void showTriggerInfo(ICommandSender sender, RepeatingTrigger trigger) {
-        sender.sendMessage("- - - - - - - - - - - - - -");
-        sender.sendMessage("Trigger: " + trigger.getInfo());
-        sender.sendMessage("Auto Start: " + trigger.isAutoStart());
-        sender.sendMessage("Interval: " + TimeUtil.milliSecondsToString(trigger.getInterval()));
-        sender.sendMessage("");
-        sender.sendMessage("Paused: " + trigger.isPaused());
-        sender.sendMessage("Running: " + isRunning(trigger.getInfo().getTriggerName()));
-        sender.sendMessage("");
-        sender.sendMessage("Script:");
-        sender.sendMessage(trigger.getScript());
-        sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
     protected interface ThrowableHandler {

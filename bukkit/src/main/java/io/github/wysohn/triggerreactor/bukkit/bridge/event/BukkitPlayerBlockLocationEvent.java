@@ -32,8 +32,8 @@ public class BukkitPlayerBlockLocationEvent implements IPlayerBlockLocationEvent
     }
 
     @Override
-    public IPlayer getIPlayer() {
-        return wrapper.wrap(event.getPlayer());
+    public <T> T get() {
+        return (T) event;
     }
 
     @Override
@@ -47,11 +47,6 @@ public class BukkitPlayerBlockLocationEvent implements IPlayerBlockLocationEvent
     }
 
     @Override
-    public <T> T get() {
-        return (T) event;
-    }
-
-    @Override
     public boolean isCancelled() {
         return event.isCancelled();
     }
@@ -59,6 +54,11 @@ public class BukkitPlayerBlockLocationEvent implements IPlayerBlockLocationEvent
     @Override
     public void setCancelled(boolean b) {
         event.setCancelled(true);
+    }
+
+    @Override
+    public IPlayer getIPlayer() {
+        return wrapper.wrap(event.getPlayer());
     }
 
 }

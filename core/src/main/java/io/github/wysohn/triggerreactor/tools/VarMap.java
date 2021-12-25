@@ -7,13 +7,18 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class VarMap extends ConcurrentHashMap<String, Object> {
     private static final long serialVersionUID = 1L;
-
-    private static final class NullObject {
-    }
-
     private static final NullObject NULL = new NullObject();
 
     public VarMap() {
+    }
+
+    @Override
+    public Object get(Object key) {
+        Object result = super.get(key);
+        if (result == NULL) {
+            return null;
+        }
+        return result;
     }
 
     @Override
@@ -24,12 +29,6 @@ public class VarMap extends ConcurrentHashMap<String, Object> {
         return super.put(key, value);
     }
 
-    @Override
-    public Object get(Object key) {
-        Object result = super.get(key);
-        if (result == NULL) {
-            return null;
-        }
-        return result;
+    private static final class NullObject {
     }
 }

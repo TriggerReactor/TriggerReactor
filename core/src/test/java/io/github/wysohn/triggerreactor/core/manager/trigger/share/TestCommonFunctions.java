@@ -19,17 +19,59 @@ import static org.junit.Assert.*;
 @RunWith(Parameterized.class)
 public class TestCommonFunctions<FN extends CommonFunctions> {
     private static final String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
-
-    @Parameterized.Parameters
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{null}});
-    }
-
     protected final FN fn;
     private final int trials = 100;
 
     public TestCommonFunctions(FN fn) {
         this.fn = fn;
+    }
+
+    @Test
+    public void arrayOf() {
+        Object[] arr = fn.arrayOf("a", 1, false);
+        assertArrayEquals(new Object[]{"a", 1, false}, arr);
+    }
+
+    @Test
+    public void listOf() {
+        List<Object> list = fn.listOf("b", 2, true);
+        List<Object> expect = new ArrayList<>();
+        expect.add("b");
+        expect.add(2);
+        expect.add(true);
+        assertEquals(expect, list);
+    }
+
+    @Test
+    public void setWithCollection() {
+        List<Object> list = fn.listOf("e", "f", "g");
+        Set<String> expect = new HashSet<>();
+        expect.add("e");
+        expect.add("f");
+        expect.add("g");
+        assertEquals(expect, fn.set(list));
+    }
+
+    @Test
+    public void testConstructor() throws Exception {
+        //thx for the test cases
+        ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
+        assertEquals(0, e.marker);
+
+        e = (ExampleClass) fn.newInstance(example, new Double(1.1));
+        assertEquals(2, e.marker);
+
+        File file = (File) fn.newInstance("java.io.File", "test.txt");
+        FileWriter writer = (FileWriter) fn.newInstance("java.io.FileWriter", file);
+        FileReader reader = (FileReader) fn.newInstance("java.io.FileReader", file);
+    }
+
+    @Test
+    public void testDataStructures() {
+        Set<Object> set = fn.set();
+        List<Object> list = fn.list();
+        Map<Object, Object> map = fn.map();
+        assertTrue(map.size() == 0 && list.size() == 0 && set.size() == 0);
     }
 
     @Test
@@ -69,14 +111,6 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
     }
 
     @Test
-    public void testDataStructures() {
-        Set<Object> set = fn.set();
-        List<Object> list = fn.list();
-        Map<Object, Object> map = fn.map();
-        assertTrue(map.size() == 0 && list.size() == 0 && set.size() == 0);
-    }
-
-    @Test
     public void testStaticAccess() throws Exception {
         ExampleClass.reset();
 
@@ -94,43 +128,8 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
 
     }
 
-    @Test
-    public void testConstructor() throws Exception {
-        //thx for the test cases
-        ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
-        assertEquals(0, e.marker);
-
-        e = (ExampleClass) fn.newInstance(example, new Double(1.1));
-        assertEquals(2, e.marker);
-
-        File file = (File) fn.newInstance("java.io.File", "test.txt");
-        FileWriter writer = (FileWriter) fn.newInstance("java.io.FileWriter", file);
-        FileReader reader = (FileReader) fn.newInstance("java.io.FileReader", file);
-    }
-
-    @Test
-    public void arrayOf() {
-        Object[] arr = fn.arrayOf("a", 1, false);
-        assertArrayEquals(new Object[]{"a", 1, false}, arr);
-    }
-
-    @Test
-    public void listOf() {
-        List<Object> list = fn.listOf("b", 2, true);
-        List<Object> expect = new ArrayList<>();
-        expect.add("b");
-        expect.add(2);
-        expect.add(true);
-        assertEquals(expect, list);
-    }
-
-    @Test
-    public void setWithCollection() {
-        List<Object> list = fn.listOf("e", "f", "g");
-        Set<String> expect = new HashSet<>();
-        expect.add("e");
-        expect.add("f");
-        expect.add("g");
-        assertEquals(expect, fn.set(list));
+    @Parameterized.Parameters
+    public static Iterable<Object[]> data() {
+        return Arrays.asList(new Object[][]{{null}});
     }
 }

@@ -22,7 +22,10 @@ public abstract class JsTest {
      * @param otherDirectories list of directories to go through to reach the file, such as PLAYER for PLAYER/SETFLYMODE
      * @throws FileNotFoundException
      */
-    protected JsTest(ScriptEngine engine, String name, String firstDirectory, String... otherDirectories) throws FileNotFoundException {
+    protected JsTest(ScriptEngine engine,
+                     String name,
+                     String firstDirectory,
+                     String... otherDirectories) throws FileNotFoundException {
         this.name = name;
 
         StringBuilder builder = new StringBuilder();
@@ -44,22 +47,18 @@ public abstract class JsTest {
         this.args = new Object[]{};
     }
 
+    public abstract int getOverload(Object... args);
+
+    public abstract Object test() throws Exception;
+
     public JsTest addVariable(String name, Object value) {
         varMap.put(name, value);
         return this;
     }
 
-    public JsTest withArgs(Object... args) {
-        this.args = args;
+    public JsTest assertInvalid(Object... args) {
+        assertFalse(isValid(args));
         return this;
-    }
-
-    public abstract Object test() throws Exception;
-
-    public abstract int getOverload(Object... args);
-
-    public boolean isValid(Object... args) {
-        return getOverload(args) != -1;
     }
 
     public JsTest assertValid(Object... args) {
@@ -67,8 +66,12 @@ public abstract class JsTest {
         return this;
     }
 
-    public JsTest assertInvalid(Object... args) {
-        assertFalse(isValid(args));
+    public boolean isValid(Object... args) {
+        return getOverload(args) != -1;
+    }
+
+    public JsTest withArgs(Object... args) {
+        this.args = args;
         return this;
     }
 }

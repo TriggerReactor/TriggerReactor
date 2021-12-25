@@ -34,6 +34,11 @@ public class CoreprotectSupport extends APISupport {
     }
 
     @Override
+    public void onDisable() {
+
+    }
+
+    @Override
     public void onEnable() throws Exception {
         coreprotect = CoreProtect.getInstance().getAPI();
 
@@ -52,11 +57,6 @@ public class CoreprotectSupport extends APISupport {
 
     @Override
     public void onReload() throws RuntimeException {
-
-    }
-
-    @Override
-    public void onDisable() {
 
     }
 

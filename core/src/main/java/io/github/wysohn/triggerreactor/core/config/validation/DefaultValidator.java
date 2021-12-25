@@ -24,13 +24,9 @@ import java.util.Collection;
 public class DefaultValidator implements ITypeValidator {
     @Override
     public boolean isSerializable(Object obj) {
-        if (obj == null)
-            return true;
+        if (obj == null) return true;
 
-        return obj instanceof String
-                || obj instanceof Number
-                || obj instanceof Boolean
-                || obj instanceof Collection
-                || obj.getClass().isArray();
+        return obj instanceof String || obj instanceof Number || obj instanceof Boolean || obj instanceof Collection || obj.getClass()
+                .isArray();
     }
 }

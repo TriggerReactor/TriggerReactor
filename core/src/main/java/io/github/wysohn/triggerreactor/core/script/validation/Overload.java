@@ -8,6 +8,13 @@ public class Overload {
     }
 
     /**
+     * Get a specific Arg
+     */
+    Arg get(int index) {
+        return args[index];
+    }
+
+    /**
      * @return the number of args this Overload contains
      */
     int length() {
@@ -15,10 +22,21 @@ public class Overload {
     }
 
     /**
-     * Get a specific Arg
+     * @param args the Object this Overload should attempt to match
+     *             args.length and length() are expected to match
+     * @return null if the args match, an error otherwise
      */
-    Arg get(int index) {
-        return args[index];
+    String matches(Object... args) {
+        if (length() != args.length) {
+            throw new ValidationException("the length of args and the length of the overload should match;");
+        }
+        for (int i = 0; i < args.length; i++) {
+            String error = this.args[i].validate(args[i]);
+            if (error != null) {
+                return error;
+            }
+        }
+        return null;
     }
 
     /**
@@ -38,23 +56,5 @@ public class Overload {
             }
         }
         return builder.toString();
-    }
-
-    /**
-     * @param args the Object this Overload should attempt to match
-     *             args.length and length() are expected to match
-     * @return null if the args match, an error otherwise
-     */
-    String matches(Object... args) {
-        if (length() != args.length) {
-            throw new ValidationException("the length of args and the length of the overload should match;");
-        }
-        for (int i = 0; i < args.length; i++) {
-            String error = this.args[i].validate(args[i]);
-            if (error != null) {
-                return error;
-            }
-        }
-        return null;
     }
 }

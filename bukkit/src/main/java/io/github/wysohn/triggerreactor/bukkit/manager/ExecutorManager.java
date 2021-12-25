@@ -39,6 +39,7 @@ import java.util.logging.Logger;
 
 @Singleton
 public class ExecutorManager extends AbstractExecutorManager {
+    private static final String JAR_FOLDER_LOCATION = "Executor";
     @Inject
     TaskSupervisor task;
     @Inject
@@ -46,13 +47,15 @@ public class ExecutorManager extends AbstractExecutorManager {
     File dataFolder;
     @Inject
     Logger logger;
-
-    private static final String JAR_FOLDER_LOCATION = "Executor";
-
     private File executorFolder;
 
     @Override
-    public void onEnable() throws Exception{
+    public void onDisable() {
+
+    }
+
+    @Override
+    public void onEnable() throws Exception {
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, CopyOption.REPLACE_IF_EXIST);
         this.executorFolder = new File(dataFolder, "Executor");
 
@@ -78,11 +81,12 @@ public class ExecutorManager extends AbstractExecutorManager {
         this.jsExecutors.put("CMDOP", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> variables, Object e,
+            public Integer execute(Timings.Timing timing,
+                                   Map<String, Object> variables,
+                                   Object e,
                                    Object... args) throws Exception {
                 Object player = variables.get("player");
-                if (!(player instanceof Player))
-                    return null;
+                if (!(player instanceof Player)) return null;
 
                 DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
                 if (task.isServerThread()) {
@@ -101,12 +105,6 @@ public class ExecutorManager extends AbstractExecutorManager {
 
         });
     }
-
-    @Override
-    public void onDisable() {
-
-    }
-
 
     @Override
     public void saveAll() {
@@ -135,11 +133,6 @@ public class ExecutorManager extends AbstractExecutorManager {
             this.cmd = cmd;
         }
 
-        private void deOpIfWasNotOp() {
-            if (!wasOp)
-                player.setOp(false);
-        }
-
         @Override
         public Void call() throws Exception {
             wasOp = player.isOp();
@@ -164,6 +157,10 @@ public class ExecutorManager extends AbstractExecutorManager {
                 deOpIfWasNotOp();
             }
             return null;
+        }
+
+        private void deOpIfWasNotOp() {
+            if (!wasOp) player.setOp(false);
         }
 
     }

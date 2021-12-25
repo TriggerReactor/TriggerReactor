@@ -20,6 +20,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Token {
+    static {
+        BOXED_PRIMITIVES.add(Boolean.class);
+        BOXED_PRIMITIVES.add(Character.class);
+        BOXED_PRIMITIVES.add(Byte.class);
+        BOXED_PRIMITIVES.add(Short.class);
+        BOXED_PRIMITIVES.add(Integer.class);
+        BOXED_PRIMITIVES.add(Long.class);
+        BOXED_PRIMITIVES.add(Float.class);
+        BOXED_PRIMITIVES.add(Double.class);
+        BOXED_PRIMITIVES.add(Void.class);
+    }
+
+    private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
     public final Type type;
     public final Object value;
     public final int row;
@@ -31,7 +44,6 @@ public class Token {
         this.row = row;
         this.col = col;
     }
-
 
     public Token(Type type, Object value, Token tokenOrigin) {
         this.type = type;
@@ -48,75 +60,6 @@ public class Token {
         this(type, value, -1, -1);
     }
 
-    public Object getValue() {
-        return value;
-    }
-
-    public boolean isInteger() {
-        return value instanceof Integer
-                || value instanceof Long
-                || value instanceof Short
-                || value instanceof Byte;
-    }
-
-    public boolean isDecimal() {
-        return value instanceof Double
-                || value instanceof Float;
-    }
-
-    public boolean isBoolean() {
-        return value instanceof Boolean;
-    }
-
-    public boolean isString() {
-        return value instanceof String;
-    }
-
-    public boolean isArray() {
-        return value != null && value.getClass().isArray();
-    }
-
-    public boolean isIterable() {
-        return value != null && (value.getClass().isArray() || value instanceof Iterable);
-    }
-
-    public boolean isObject() {
-        return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
-    }
-
-    public boolean isBoxedPrimitive(){
-        return value != null && BOXED_PRIMITIVES.contains(value.getClass());
-    }
-
-    public int toInteger() {
-        return ((Number) value).intValue();
-    }
-
-    public double toDecimal() {
-        return ((Number) value).doubleValue();
-    }
-
-    public boolean isNumeric() {
-        return isInteger() || isDecimal();
-    }
-
-    public boolean toBoolean() {
-        return (boolean) value;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    @Override
-    public String toString() {
-        return "[type: " + type.name() + ", value: '" + value + "'] at row[" + row + "], col[" + col + "]";
-    }
-
-    public String toStringRowColOnly() {
-        return "at row[" + row + "], col[" + col + "]";
-    }
-
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -128,37 +71,111 @@ public class Token {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         Token other = (Token) obj;
-        if (type != other.type)
-            return false;
+        if (type != other.type) return false;
         if (value == null) {
             return other.value == null;
         } else return value.equals(other.value);
     }
 
-    public enum Type {
-        IMPORT, CLAZZ,
+    @Override
+    public String toString() {
+        return "[type: " + type.name() + ", value: '" + value + "'] at row[" + row + "], col[" + col + "]";
+    }
 
-        ROOT, ENDL,
+    public Type getType() {
+        return type;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public boolean isArray() {
+        return value != null && value.getClass().isArray();
+    }
+
+    public boolean isBoolean() {
+        return value instanceof Boolean;
+    }
+
+    public boolean isBoxedPrimitive() {
+        return value != null && BOXED_PRIMITIVES.contains(value.getClass());
+    }
+
+    public boolean isDecimal() {
+        return value instanceof Double || value instanceof Float;
+    }
+
+    public boolean isInteger() {
+        return value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte;
+    }
+
+    public boolean isIterable() {
+        return value != null && (value.getClass().isArray() || value instanceof Iterable);
+    }
+
+    public boolean isNumeric() {
+        return isInteger() || isDecimal();
+    }
+
+    public boolean isObject() {
+        return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
+    }
+
+    public boolean isString() {
+        return value instanceof String;
+    }
+
+    public boolean toBoolean() {
+        return (boolean) value;
+    }
+
+    public double toDecimal() {
+        return ((Number) value).doubleValue();
+    }
+
+    public int toInteger() {
+        return ((Number) value).intValue();
+    }
+
+    public String toStringRowColOnly() {
+        return "at row[" + row + "], col[" + col + "]";
+    }
+
+    public static void main(String[] ar) {
+        Object bool = true;
+        System.out.println(bool instanceof Boolean);
+    }
+
+    public enum Type {
+        IMPORT,
+        CLAZZ,
+
+        ROOT,
+        ENDL,
 
         //Literal
-        STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
+        STRING(true),
+        INTEGER(true),
+        DECIMAL(true),
+        BOOLEAN(true),
 
         OBJECT,
         /**
          * Function Call
          **/
-        CALL, ACCESS, ARRAYACCESS,
+        CALL,
+        ACCESS,
+        ARRAYACCESS,
         /**
          * self reference
          **/
-        THIS, ITERATOR,
+        THIS,
+        ITERATOR,
 
         /**
          * Parenthesis, Blocks
@@ -167,21 +184,31 @@ public class Token {
         /**
          * Arithmetic
          **/
-        OPERATOR_A, OPERATOR_UNARY,
+        OPERATOR_A,
+        OPERATOR_UNARY,
         /**
          * Logical
          **/
         OPERATOR_L,
 
-        GID, GID_TEMP, ID, PLACEHOLDER, NULLVALUE,
+        GID,
+        GID_TEMP,
+        ID,
+        PLACEHOLDER,
+        NULLVALUE,
 
-        BODY, EXECUTOR,
+        BODY,
+        EXECUTOR,
 
-        SYNC, ASYNC,
+        SYNC,
+        ASYNC,
 
-        LAMBDA, PARAMETERS, LAMBDABODY,
+        LAMBDA,
+        PARAMETERS,
+        LAMBDABODY,
 
-        CATCHBODY, FINALLYBODY,
+        CATCHBODY,
+        FINALLYBODY,
         /**
          * Temporary use only
          **/
@@ -201,23 +228,5 @@ public class Token {
         public boolean isLiteral() {
             return literal;
         }
-    }
-
-    private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
-    static {
-        BOXED_PRIMITIVES.add(Boolean.class);
-        BOXED_PRIMITIVES.add(Character.class);
-        BOXED_PRIMITIVES.add(Byte.class);
-        BOXED_PRIMITIVES.add(Short.class);
-        BOXED_PRIMITIVES.add(Integer.class);
-        BOXED_PRIMITIVES.add(Long.class);
-        BOXED_PRIMITIVES.add(Float.class);
-        BOXED_PRIMITIVES.add(Double.class);
-        BOXED_PRIMITIVES.add(Void.class);
-    }
-
-    public static void main(String[] ar) {
-        Object bool = true;
-        System.out.println(bool instanceof Boolean);
     }
 }

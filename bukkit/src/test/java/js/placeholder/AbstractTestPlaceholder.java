@@ -38,17 +38,6 @@ import static org.mockito.Mockito.*;
  */
 public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
-    @BeforeClass
-    public static void begin(){
-        PlaceholderTest.coverage.clear();
-    }
-
-    @AfterClass
-    public static void tearDown(){
-        PlaceholderTest.coverage.forEach((key, b) -> System.out.println(key));
-        PlaceholderTest.coverage.clear();
-    }
-
     @Test
     public void testBlockName() throws Exception {
         World world = mock(World.class);
@@ -58,88 +47,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(world.getBlockAt(0, 1, 5)).thenReturn(block);
         when(block.getType()).thenReturn(Material.DIAMOND_BLOCK);
 
-        assertEquals("diamond_block", new PlaceholderTest(engine, "blockname")
-                .withArgs("world", 0, 1, 5)
-                .test());
-    }
-
-    @Test
-    public void testPlayername() throws Exception {
-        Player mockPlayer = mock(Player.class);
-        when(mockPlayer.getName()).thenReturn("wysohn");
-
-        Object result = new PlaceholderTest(engine, "playername")
-                .addVariable("player", mockPlayer)
-                .test();
-
-        assertEquals("wysohn", result);
-    }
-
-    @Test
-    public void testPlayernameMultiThreaded() throws Exception {
-        Player mockPlayer = mock(Player.class);
-        ExecutorService pool = Executors.newSingleThreadExecutor();
-
-        when(mockPlayer.getName()).thenReturn("wysohn");
-        when(mockMain.isServerThread()).thenReturn(false);
-        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
-            Callable call = invocation.getArgument(0);
-            return pool.submit(call);
-        });
-
-        Runnable run = new Runnable() {
-            final JsTest test = new PlaceholderTest(engine, "playername")
-                    .addVariable("player", mockPlayer);
-
-            @Override
-            public void run() {
-                for(int i = 0; i < 1000; i++){
-                    Object result = null;
-                    try {
-                        result = test.test();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    assertEquals("wysohn", result);
-                }
-            }
-        };
-
-        Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
-
-        Thread thread1 = new Thread(run);
-        thread1.setUncaughtExceptionHandler(handler);
-        Thread thread2 = new Thread(run);
-        thread2.setUncaughtExceptionHandler(handler);
-
-        thread1.start();
-        thread2.start();
-
-        thread1.join();
-        thread2.join();
-
-        verify(handler, never()).uncaughtException(any(), any());
-        verify(mockPlayer, times(2000)).getName();
-    }
-
-    /*
-    @Test
-    public void testIsNumber() throws Exception{
-        JsTest output = new PlaceholderTest(engine, "isnumber");
-
-        output.withArgs("3").test();
-       // assertEquals(true, output); TODO
-    }
-    */
-
-    @Test
-    public void testRandom() throws Exception {
-        JsTest test = new PlaceholderTest(engine, "random");
-
-        test.withArgs(1).test();
-
-        test.assertValid(0).assertValid(1, 2)
-                .assertInvalid().assertInvalid(1, 2, 3).assertInvalid("j").assertInvalid(4, "j");
+        assertEquals("diamond_block", new PlaceholderTest(engine, "blockname").withArgs("world", 0, 1, 5).test());
     }
 
     @Test
@@ -182,6 +90,22 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     }
 
     @Test
+    public void testCount() throws Exception {
+        ItemStack vItem = mock(ItemStack.class);
+        Material stone = Material.valueOf("STONE");
+        PlaceholderTest test = new PlaceholderTest(engine, "count");
+        when(vItem.getType()).thenReturn(stone);
+        when(vItem.getAmount()).thenReturn(34);
+
+        Object result = test.withArgs(vItem).test();
+
+        Assert.assertEquals(result, 34);
+        test.assertValid(vItem);
+        test.assertInvalid("hi");
+        test.assertInvalid(24);
+    }
+
+    @Test
     public void testEntityname() throws Exception {
         EntityEvent mockEvent = mock(EntityEvent.class);
         Entity mockEntity = mock(Entity.class);
@@ -215,38 +139,15 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid("hi");
     }
 
+    /*
     @Test
-    public void testOffHandItem() throws Exception {
-        Player vp = mock(Player.class);
-        PlayerInventory vInv = mock(PlayerInventory.class);
-        ItemStack vItem = mock(ItemStack.class);
-        when(vp.getInventory()).thenReturn(vInv);
-        when(vInv.getItemInOffHand()).thenReturn(vItem);
-        PlaceholderTest test = new PlaceholderTest(engine, "offhanditem");
-        test.addVariable("player", vp);
-        ItemStack result = (ItemStack) test.withArgs().test();
-        Assert.assertEquals(result, vItem);
+    public void testIsNumber() throws Exception{
+        JsTest output = new PlaceholderTest(engine, "isnumber");
 
-        test.assertInvalid("hi");
+        output.withArgs("3").test();
+       // assertEquals(true, output); TODO
     }
-
-    @Test
-    public void testPlayerInv() throws Exception {
-        Player vp = mock(Player.class);
-        PlayerInventory vInv = mock(PlayerInventory.class);
-        ItemStack vItem = mock(ItemStack.class);
-        when(vp.getInventory()).thenReturn(vInv);
-        when(vInv.getSize()).thenReturn(36);
-        when(vInv.getItem(2)).thenReturn(vItem);
-        PlaceholderTest test = new PlaceholderTest(engine, "playerinv");
-        test.addVariable("player", vp);
-        ItemStack result = (ItemStack) test.withArgs(2).test();
-        Assert.assertEquals(result, vItem);
-
-        test.assertInvalid("hi");
-        test.assertInvalid(true);
-
-    }
+    */
 
     @Test
     public void testId() throws Exception {
@@ -279,6 +180,42 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     }
 
     @Test
+    public void testIsNumber() throws Exception {
+        assertEquals(true, new PlaceholderTest(engine, "isnumber").withArgs("20342.5352").test());
+
+        assertEquals(false, new PlaceholderTest(engine, "isnumber").withArgs("20343d.66").test());
+    }
+
+    @Test
+    public void testLore() throws Exception {
+        ItemStack vItem = mock(ItemStack.class);
+        ItemMeta vIM = mock(ItemMeta.class);
+        List<String> lores = new ArrayList<>();
+        lores.add("creeper");
+        lores.add("awwman");
+        lores.add("sowebackinthemine");
+        when(vItem.hasItemMeta()).thenReturn(true);
+        when(vItem.getItemMeta()).thenReturn(vIM);
+        when(vIM.hasLore()).thenReturn(true);
+        when(vIM.getLore()).thenReturn(lores);
+        String loreString = "";
+        for (int k = 0; k < lores.size(); k++) {
+            String lore = lores.get(k);
+            if (k == (lores.size() - 1)) loreString = loreString + lore;
+            else loreString = loreString + lore + "\n";
+        }
+
+        PlaceholderTest test = new PlaceholderTest(engine, "lore");
+        Object result = test.withArgs(vItem).test();
+        Assert.assertEquals(result, loreString);
+
+        test.assertInvalid("hi");
+        test.assertInvalid(true);
+        test.assertInvalid(35);
+
+    }
+
+    @Test
     public void testName() throws Exception {
         ItemStack vItem = mock(ItemStack.class);
         ItemMeta vIM = mock(ItemMeta.class);
@@ -298,80 +235,144 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testIsNumber() throws Exception{
-        assertEquals(true, new PlaceholderTest(engine, "isnumber")
-                .withArgs("20342.5352")
-                .test());
+    public void testOffHandItem() throws Exception {
+        Player vp = mock(Player.class);
+        PlayerInventory vInv = mock(PlayerInventory.class);
+        ItemStack vItem = mock(ItemStack.class);
+        when(vp.getInventory()).thenReturn(vInv);
+        when(vInv.getItemInOffHand()).thenReturn(vItem);
+        PlaceholderTest test = new PlaceholderTest(engine, "offhanditem");
+        test.addVariable("player", vp);
+        ItemStack result = (ItemStack) test.withArgs().test();
+        Assert.assertEquals(result, vItem);
 
-        assertEquals(false, new PlaceholderTest(engine, "isnumber")
-                .withArgs("20343d.66")
-                .test());
+        test.assertInvalid("hi");
     }
 
     @Test
-    public void testLore() throws Exception {
-        ItemStack vItem = mock(ItemStack.class);
-        ItemMeta vIM = mock(ItemMeta.class);
-        List<String> lores = new ArrayList<>();
-        lores.add("creeper");
-        lores.add("awwman");
-        lores.add("sowebackinthemine");
-        when(vItem.hasItemMeta()).thenReturn(true);
-        when(vItem.getItemMeta()).thenReturn(vIM);
-        when(vIM.hasLore()).thenReturn(true);
-        when(vIM.getLore()).thenReturn(lores);
-        String loreString = "";
-        for (int k = 0; k < lores.size(); k++) {
-            String lore = lores.get(k);
-            if (k == (lores.size() - 1))
-                loreString = loreString + lore;
-            else
-                loreString = loreString + lore + "\n";
-        }
+    public void testOnlinePlayers() throws Exception {
+        Player[] players = new Player[]{mock(Player.class),
+                                        mock(Player.class),
+                                        mock(Player.class),
+                                        mock(Player.class),
+                                        mock(Player.class),};
 
-        PlaceholderTest test = new PlaceholderTest(engine, "lore");
-        Object result = test.withArgs(vItem).test();
-        Assert.assertEquals(result, loreString);
+        doReturn(Arrays.asList(players)).when(server).getOnlinePlayers();
+
+        assertEquals(5, new PlaceholderTest(engine, "onlineplayers").test());
+    }
+
+    @Test
+    public void testPlayerInv() throws Exception {
+        Player vp = mock(Player.class);
+        PlayerInventory vInv = mock(PlayerInventory.class);
+        ItemStack vItem = mock(ItemStack.class);
+        when(vp.getInventory()).thenReturn(vInv);
+        when(vInv.getSize()).thenReturn(36);
+        when(vInv.getItem(2)).thenReturn(vItem);
+        PlaceholderTest test = new PlaceholderTest(engine, "playerinv");
+        test.addVariable("player", vp);
+        ItemStack result = (ItemStack) test.withArgs(2).test();
+        Assert.assertEquals(result, vItem);
 
         test.assertInvalid("hi");
         test.assertInvalid(true);
-        test.assertInvalid(35);
 
+    }
+
+    @Test
+    public void testPlayername() throws Exception {
+        Player mockPlayer = mock(Player.class);
+        when(mockPlayer.getName()).thenReturn("wysohn");
+
+        Object result = new PlaceholderTest(engine, "playername").addVariable("player", mockPlayer).test();
+
+        assertEquals("wysohn", result);
+    }
+
+    @Test
+    public void testPlayernameMultiThreaded() throws Exception {
+        Player mockPlayer = mock(Player.class);
+        ExecutorService pool = Executors.newSingleThreadExecutor();
+
+        when(mockPlayer.getName()).thenReturn("wysohn");
+        when(mockMain.isServerThread()).thenReturn(false);
+        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
+            Callable call = invocation.getArgument(0);
+            return pool.submit(call);
+        });
+
+        Runnable run = new Runnable() {
+            final JsTest test = new PlaceholderTest(engine, "playername").addVariable("player", mockPlayer);
+
+            @Override
+            public void run() {
+                for (int i = 0; i < 1000; i++) {
+                    Object result = null;
+                    try {
+                        result = test.test();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    assertEquals("wysohn", result);
+                }
+            }
+        };
+
+        Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
+
+        Thread thread1 = new Thread(run);
+        thread1.setUncaughtExceptionHandler(handler);
+        Thread thread2 = new Thread(run);
+        thread2.setUncaughtExceptionHandler(handler);
+
+        thread1.start();
+        thread2.start();
+
+        thread1.join();
+        thread2.join();
+
+        verify(handler, never()).uncaughtException(any(), any());
+        verify(mockPlayer, times(2000)).getName();
+    }
+
+    @Test
+    public void testRandom() throws Exception {
+        JsTest test = new PlaceholderTest(engine, "random");
+
+        test.withArgs(1).test();
+
+        test.assertValid(0)
+                .assertValid(1, 2)
+                .assertInvalid()
+                .assertInvalid(1, 2, 3)
+                .assertInvalid("j")
+                .assertInvalid(4, "j");
     }
 
     @Test
     public void testRound() throws Exception {
-        assertEquals(1.34, new PlaceholderTest(engine, "round")
-                .withArgs(1.3449, 2)
-                .test());
+        assertEquals(1.34, new PlaceholderTest(engine, "round").withArgs(1.3449, 2).test());
     }
 
     @Test
     public void testRound2() throws Exception {
-        assertEquals(1.0, new PlaceholderTest(engine, "round")
-                .withArgs(1.3449, 0)
-                .test());
+        assertEquals(1.0, new PlaceholderTest(engine, "round").withArgs(1.3449, 0).test());
     }
 
     @Test
     public void testRound2_2() throws Exception {
-        assertEquals(34, new PlaceholderTest(engine, "round")
-                .withArgs(34, 2)
-                .test());
+        assertEquals(34, new PlaceholderTest(engine, "round").withArgs(34, 2).test());
     }
 
     @Test(expected = Exception.class)
     public void testRound3() throws Exception {
-        assertEquals(1.34, new PlaceholderTest(engine, "round")
-                .withArgs(1.3449, 2.3)
-                .test());
+        assertEquals(1.34, new PlaceholderTest(engine, "round").withArgs(1.3449, 2.3).test());
     }
 
     @Test(expected = Exception.class)
     public void testRound4() throws Exception {
-        assertEquals(1.34, new PlaceholderTest(engine, "round")
-                .withArgs(1.3449, -2)
-                .test());
+        assertEquals(1.34, new PlaceholderTest(engine, "round").withArgs(1.3449, -2).test());
     }
 
     @Test
@@ -391,35 +392,14 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         test.assertInvalid(true);
     }
 
-    @Test
-    public void testCount() throws Exception {
-        ItemStack vItem = mock(ItemStack.class);
-        Material stone = Material.valueOf("STONE");
-        PlaceholderTest test = new PlaceholderTest(engine, "count");
-        when(vItem.getType()).thenReturn(stone);
-        when(vItem.getAmount()).thenReturn(34);
-
-        Object result = test.withArgs(vItem).test();
-
-        Assert.assertEquals(result, 34);
-        test.assertValid(vItem);
-        test.assertInvalid("hi");
-        test.assertInvalid(24);
+    @BeforeClass
+    public static void begin() {
+        PlaceholderTest.coverage.clear();
     }
 
-    @Test
-    public void testOnlinePlayers() throws Exception{
-        Player[] players = new Player[]{
-                mock(Player.class),
-                mock(Player.class),
-                mock(Player.class),
-                mock(Player.class),
-                mock(Player.class),
-        };
-
-        doReturn(Arrays.asList(players)).when(server).getOnlinePlayers();
-
-        assertEquals(5, new PlaceholderTest(engine, "onlineplayers")
-                .test());
+    @AfterClass
+    public static void tearDown() {
+        PlaceholderTest.coverage.forEach((key, b) -> System.out.println(key));
+        PlaceholderTest.coverage.clear();
     }
 }

@@ -39,42 +39,38 @@ import java.util.concurrent.Future;
  * Do not put plugin specific methods here. Put them in the TriggerReactorMain instead.
  */
 public interface IGameController extends TaskSupervisor {
-    boolean removeLore(IItemStack iS, int index);
-
-    boolean setLore(IItemStack iS, int index, String lore);
+    /**
+     * Run task on the server thread. Usually it happens via scheduler.
+     *
+     * @param runnable the Runnable to run
+     */
+    void runTask(Runnable runnable);
 
     void addItemLore(IItemStack iS, String lore);
 
-    void setItemTitle(IItemStack iS, String title);
+    /**
+     * Call event so that it can be heard by listeners
+     *
+     * @param event
+     */
+    void callEvent(IEvent event);
 
-    IPlayer getPlayer(String string);
+    /**
+     * Run Callable on the server thread.
+     *
+     * @param call the callable
+     * @return the future object.
+     */
+    <T> Future<T> callSyncMethod(Callable<T> call);
 
     Object createEmptyPlayerEvent(ICommandSender sender);
-
-    Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
-
-    /**
-     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
-     * instead of changing the real block.
-     *
-     * @param sender sender to show the glow stones
-     * @param set    the set contains location of block and its associated trigger.
-     */
-    void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set);
-
-    /**
-     * get sender instance of the console
-     *
-     * @return
-     */
-    ICommandSender getConsoleSender();
 
     /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
      * interrupter to handle
      * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
      *
-     * @param cooldowns   list of current cooldowns.
+     * @param cooldowns list of current cooldowns.
      * @return the interrupter created.
      */
     ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
@@ -97,6 +93,8 @@ public interface IGameController extends TaskSupervisor {
     ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
                                                Map<IInventory, InventoryTrigger> inventoryMap);
 
+    Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
+
     /**
      * try to extract player from context 'e'.
      *
@@ -106,26 +104,11 @@ public interface IGameController extends TaskSupervisor {
     IPlayer extractPlayerFromContext(Object e);
 
     /**
-     * Run task on the server thread. Usually it happens via scheduler.
+     * get sender instance of the console
      *
-     * @param runnable the Runnable to run
+     * @return
      */
-    void runTask(Runnable runnable);
-
-    /**
-     * Run Callable on the server thread.
-     *
-     * @param call the callable
-     * @return the future object.
-     */
-    <T> Future<T> callSyncMethod(Callable<T> call);
-
-    /**
-     * Call event so that it can be heard by listeners
-     *
-     * @param event
-     */
-    void callEvent(IEvent event);
+    ICommandSender getConsoleSender();
 
     /**
      * extract useful custom variables manually from 'event'
@@ -134,4 +117,21 @@ public interface IGameController extends TaskSupervisor {
      * @return
      */
     Map<String, Object> getCustomVarsForTrigger(Object event);
+
+    IPlayer getPlayer(String string);
+
+    boolean removeLore(IItemStack iS, int index);
+
+    void setItemTitle(IItemStack iS, String title);
+
+    boolean setLore(IItemStack iS, int index, String lore);
+
+    /**
+     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
+     * instead of changing the real block.
+     *
+     * @param sender sender to show the glow stones
+     * @param set    the set contains location of block and its associated trigger.
+     */
+    void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set);
 }

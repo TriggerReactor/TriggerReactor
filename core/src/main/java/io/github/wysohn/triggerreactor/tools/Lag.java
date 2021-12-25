@@ -5,8 +5,19 @@ public class Lag implements Runnable {
     public int TICK_COUNT = 0;
     public long[] TICKS = new long[600];
 
-    public double getTPS() {
-        return getTPS(100);
+    @Override
+    public void run() {
+        TICKS[(TICK_COUNT % TICKS.length)] = System.currentTimeMillis();
+
+        TICK_COUNT += 1;
+    }
+
+    public long getElapsed(int tickID) {
+        if (TICK_COUNT - tickID >= TICKS.length) {
+        }
+
+        long time = TICKS[(tickID % TICKS.length)];
+        return System.currentTimeMillis() - time;
     }
 
     public double getTPS(int ticks) {
@@ -19,18 +30,7 @@ public class Lag implements Runnable {
         return ticks / (elapsed / 1000.0D);
     }
 
-    public long getElapsed(int tickID) {
-        if (TICK_COUNT - tickID >= TICKS.length) {
-        }
-
-        long time = TICKS[(tickID % TICKS.length)];
-        return System.currentTimeMillis() - time;
-    }
-
-    @Override
-    public void run() {
-        TICKS[(TICK_COUNT % TICKS.length)] = System.currentTimeMillis();
-
-        TICK_COUNT += 1;
+    public double getTPS() {
+        return getTPS(100);
     }
 }

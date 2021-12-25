@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 @Module
 public abstract class DummyLoggerModule {
     @Provides
-    static Logger provideLogger(){
+    static Logger provideLogger() {
         return mock(Logger.class);
     }
 }

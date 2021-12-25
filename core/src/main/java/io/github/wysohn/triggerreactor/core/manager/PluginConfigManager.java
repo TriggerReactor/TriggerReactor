@@ -31,17 +31,6 @@ public class PluginConfigManager extends Manager implements IMigratable, IConfig
     }
 
     @Override
-    public void onEnable() throws Exception{
-        configSource = configSourceFactories.create(dataFolder, "config");
-        configSource.onEnable();
-    }
-
-    @Override
-    public void onReload() {
-        configSource.onReload();
-    }
-
-    @Override
     public void saveAll() {
         configSource.saveAll();
     }
@@ -52,8 +41,54 @@ public class PluginConfigManager extends Manager implements IMigratable, IConfig
     }
 
     @Override
+    public boolean fileExists() {
+        return configSource.fileExists();
+    }
+
+    @Override
+    public <T> Optional<T> get(String key) {
+        return configSource.get(key);
+    }
+
+    @Override
+    public <T> Optional<T> get(String key, Class<T> asType) {
+        return configSource.get(key, asType);
+    }
+
+    @Override
+    public boolean has(String key) {
+        return configSource.has(key);
+    }
+
+    @Override
+    public boolean isSection(String key) {
+        return configSource.isSection(key);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return configSource.keys();
+    }
+
+    @Override
+    public void put(String key, Object value) {
+        configSource.put(key, value);
+    }
+
+    @Override
     public void onDisable() {
         configSource.onDisable();
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+        configSource = configSourceFactories.create(dataFolder, "config");
+        configSource.onEnable();
+    }
+
+    @Override
+    public void onReload() {
+        configSource.onReload();
     }
 
     @Override
@@ -68,40 +103,5 @@ public class PluginConfigManager extends Manager implements IMigratable, IConfig
     public void migrate(IMigrationHelper migrationHelper) {
         migrationHelper.migrate(configSource);
         configSource.onReload();
-    }
-
-    @Override
-    public boolean fileExists() {
-        return configSource.fileExists();
-    }
-
-    @Override
-    public <T> Optional<T> get(String key, Class<T> asType) {
-        return configSource.get(key, asType);
-    }
-
-    @Override
-    public <T> Optional<T> get(String key) {
-        return configSource.get(key);
-    }
-
-    @Override
-    public void put(String key, Object value) {
-        configSource.put(key, value);
-    }
-
-    @Override
-    public boolean has(String key) {
-        return configSource.has(key);
-    }
-
-    @Override
-    public Set<String> keys() {
-        return configSource.keys();
-    }
-
-    @Override
-    public boolean isSection(String key) {
-        return configSource.isSection(key);
     }
 }

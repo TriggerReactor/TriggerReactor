@@ -30,9 +30,8 @@ public class ErrorPrompt implements Prompt {
     }
 
     @Override
-    public Prompt acceptInput(ConversationContext arg0, String arg1) {
-        // TODO Auto-generated method stub
-        return returnPrompt;
+    public String getPromptText(ConversationContext arg0) {
+        return errorMessage + ChatColor.GREEN + "   " + "Type anything to continue...";
     }
 
     @Override
@@ -42,8 +41,9 @@ public class ErrorPrompt implements Prompt {
     }
 
     @Override
-    public String getPromptText(ConversationContext arg0) {
-        return errorMessage + ChatColor.GREEN + "   " + "Type anything to continue...";
+    public Prompt acceptInput(ConversationContext arg0, String arg1) {
+        // TODO Auto-generated method stub
+        return returnPrompt;
     }
 
 }

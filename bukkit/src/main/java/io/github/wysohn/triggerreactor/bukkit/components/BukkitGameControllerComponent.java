@@ -19,11 +19,11 @@ package io.github.wysohn.triggerreactor.bukkit.components;
 
 import dagger.Component;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitGameControllerModule;
-import io.github.wysohn.triggerreactor.core.main.CoreGameControllerComponent;
+import io.github.wysohn.triggerreactor.core.components.CoreGameControllerComponent;
 import org.bukkit.Server;
 
 @Component(modules = {BukkitGameControllerModule.class},
-    dependencies = {CoreGameControllerComponent.class})
+           dependencies = {CoreGameControllerComponent.class})
 public interface BukkitGameControllerComponent {
     Server server();
 }

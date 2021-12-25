@@ -38,9 +38,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class CustomTriggerManager extends AbstractCustomTriggerManager {
-    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
-    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
-
     @SuppressWarnings("serial")
     private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
         put("onJoin", ClientConnectionEvent.Join.class);
@@ -60,6 +57,10 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         put("onStart", TriggerReactorStartEvent.class);
         put("onStop", TriggerReactorStopEvent.class);
     }};
+    private static final String basePackageName = "org.spongepowered.api.event";
+    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
+    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
+    private Map<EventHook, EventListener> registeredListeners = new HashMap<>();
 
     public CustomTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
@@ -94,17 +95,6 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         }
     }
 
-    @Override
-    public void reload() {
-        for (Entry<EventHook, EventListener> entry : registeredListeners.entrySet()) {
-            Sponge.getEventManager().unregisterListeners(entry.getValue());
-        }
-        registeredListeners.clear();
-        super.reload();
-    }
-
-    private static final String basePackageName = "org.spongepowered.api.event";
-
     public Collection<String> getAbbreviations() {
         return ABBREVIATIONS.keySet();
     }
@@ -118,18 +108,14 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
                 e1.printStackTrace();
             }
 
-            if (!Event.class.isAssignableFrom(test))
-                continue;
+            if (!Event.class.isAssignableFrom(test)) continue;
 
             Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if (clazz.equals(Event.class))
-                continue;
+            if (clazz.equals(Event.class)) continue;
 
             EVENTS.put(clazz.getSimpleName(), clazz);
         }
     }
-
-    private Map<EventHook, EventListener> registeredListeners = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     @Override
@@ -144,6 +130,15 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         };
         registeredListeners.put(eventHook, listener);
         Sponge.getEventManager().registerListener(plugin, (Class<? extends Event>) clazz, listener);
+    }
+
+    @Override
+    public void reload() {
+        for (Entry<EventHook, EventListener> entry : registeredListeners.entrySet()) {
+            Sponge.getEventManager().unregisterListeners(entry.getValue());
+        }
+        registeredListeners.clear();
+        super.reload();
     }
 
     @Override

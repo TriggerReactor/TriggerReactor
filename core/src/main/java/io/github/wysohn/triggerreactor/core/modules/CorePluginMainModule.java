@@ -36,28 +36,28 @@ public abstract class CorePluginMainModule {
 
     @Provides
     @Named("PluginInstance")
-    static Object providePluginInstance(){
+    static Object providePluginInstance() {
         throw new RuntimeException("Dependent must provide it");
     }
 
     @Provides
     @Named("DataFolder")
-    static File provideDataFolder(){
+    static File provideDataFolder() {
         throw new RuntimeException("Dependent must provide it");
     }
 
     @Provides
-    static IWrapper provideWrapper(){
+    static IWrapper provideWrapper() {
         throw new RuntimeException("Dependent must provide it");
     }
 
     @Provides
-    static IPluginLifecycleController provideLifecycleController(){
+    static IPluginLifecycleController provideLifecycleController() {
         throw new RuntimeException("Dependent must provide it");
     }
 
     @Provides
-    static SelfReference provideSelfReference(){
+    static SelfReference provideSelfReference() {
         throw new RuntimeException("Dependent must provide it");
     }
 }

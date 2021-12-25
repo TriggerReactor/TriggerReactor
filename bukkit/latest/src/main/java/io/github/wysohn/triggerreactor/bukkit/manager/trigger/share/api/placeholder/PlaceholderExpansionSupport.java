@@ -22,7 +22,6 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
 public class PlaceholderExpansionSupport extends PlaceholderExpansion {
-    private final ITriggerReactorAPI api;
     private final IVariablePlaceholder variablePlaceholder;
 
     /**
@@ -33,8 +32,22 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      * @param api The instance of our plugin's api.
      */
     public PlaceholderExpansionSupport(ITriggerReactorAPI api) {
-        this.api = api;
         this.variablePlaceholder = new VariablePlaceholder(api);
+    }
+
+    @Override
+    public String getIdentifier() {
+        return variablePlaceholder.getIdentifier();
+    }
+
+    @Override
+    public String getAuthor() {
+        return variablePlaceholder.getAuthor();
+    }
+
+    @Override
+    public String getVersion() {
+        return variablePlaceholder.getVersion();
     }
 
     /**
@@ -58,44 +71,6 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
     @Override
     public boolean canRegister() {
         return true;
-    }
-
-    /**
-     * The name of the person who created this expansion should go here.
-     * <br>For convienience do we return the author from the plugin.yml
-     *
-     * @return The name of the author as a String.
-     */
-    @Override
-    public String getAuthor() {
-        return api.pluginLifecycleController().getAuthor();
-    }
-
-    /**
-     * The placeholder identifier should go here.
-     * <br>This is what tells PlaceholderAPI to call our onRequest
-     * method to obtain a value if a placeholder starts with our
-     * identifier.
-     * <br>This must be unique and can not contain % or _
-     *
-     * @return The identifier in {@code %<identifier>_<value>%} as String.
-     */
-    @Override
-    public String getIdentifier() {
-        return "tr";
-    }
-
-    /**
-     * This is the version of the expansion.
-     * <br>You don't have to use numbers, since it is set as a String.
-     * <p>
-     * For convienience do we return the version from the plugin.yml
-     *
-     * @return The version as a String.
-     */
-    @Override
-    public String getVersion() {
-        return api.pluginLifecycleController().getVersion();
     }
 
     @Override

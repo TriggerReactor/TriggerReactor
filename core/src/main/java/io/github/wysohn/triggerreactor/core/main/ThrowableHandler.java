@@ -23,14 +23,14 @@ import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 import javax.inject.Inject;
 
 @PluginScope
-public class ThrowableHandler implements IThrowableHandler{
+public class ThrowableHandler implements IThrowableHandler {
     @Inject
     IPluginLifecycleController pluginLifecycleController;
     @Inject
     IGameController gameController;
 
     @Inject
-    public ThrowableHandler(){
+    public ThrowableHandler() {
 
     }
 
@@ -48,8 +48,7 @@ public class ThrowableHandler implements IThrowableHandler{
         }
 
         ICommandSender sender = gameController.extractPlayerFromContext(e);
-        if (sender == null)
-            sender = gameController.getConsoleSender();
+        if (sender == null) sender = gameController.getConsoleSender();
 
         sendExceptionMessage(sender, throwable);
     }
@@ -65,8 +64,7 @@ public class ThrowableHandler implements IThrowableHandler{
             throwable.printStackTrace();
         }
 
-        if (sender == null)
-            sender = gameController.getConsoleSender();
+        if (sender == null) sender = gameController.getConsoleSender();
 
         sendExceptionMessage(sender, throwable);
     }

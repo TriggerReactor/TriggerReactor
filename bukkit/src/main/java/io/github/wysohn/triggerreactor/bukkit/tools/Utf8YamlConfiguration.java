@@ -50,6 +50,24 @@ public class Utf8YamlConfiguration extends CopyYamlConfiguration {
     }*/
 
     @Override
+    public void save(File file) throws IOException {
+        Validate.notNull(file, "File cannot be null");
+
+        Files.createParentDirs(file);
+
+        String data = saveToString();
+
+        FileOutputStream stream = new FileOutputStream(file);
+        OutputStreamWriter writer = new OutputStreamWriter(stream, UTF8_CHARSET);
+
+        try {
+            writer.write(data);
+        } finally {
+            writer.close();
+        }
+    }
+
+    @Override
     public void load(File file) throws IOException, InvalidConfigurationException {
         Validate.notNull(file, "File cannot be null");
 
@@ -66,23 +84,5 @@ public class Utf8YamlConfiguration extends CopyYamlConfiguration {
         }
 
         loadFromString(builder.toString());
-    }
-
-    @Override
-    public void save(File file) throws IOException {
-        Validate.notNull(file, "File cannot be null");
-
-        Files.createParentDirs(file);
-
-        String data = saveToString();
-
-        FileOutputStream stream = new FileOutputStream(file);
-        OutputStreamWriter writer = new OutputStreamWriter(stream, UTF8_CHARSET);
-
-        try {
-            writer.write(data);
-        } finally {
-            writer.close();
-        }
     }
 }

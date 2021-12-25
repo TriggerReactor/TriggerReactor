@@ -44,21 +44,12 @@ public class ScriptEditManager extends AbstractScriptEditManager implements Conv
     }
 
     @Override
-    public void startEdit(ICommandSender sender, String title, String script, Consumer<String> consumer) {
-        ConversationFactory factory = new ConversationFactory((Plugin) pluginInstance);
+    public void conversationAbandoned(ConversationAbandonedEvent arg0) {
 
-        EditingPrompt prompt = new EditingPrompt((Plugin) pluginInstance, sender.get(), new ScriptEditor(title, script, consumer));
-        Conversation conv = factory.thatExcludesNonPlayersWithMessage("Sorry, this is in-game only feature!")
-                .withFirstPrompt(new UsagePrompt(prompt))
-                .addConversationAbandonedListener(this)
-                .buildConversation(sender.get());
-        conv.getContext().setSessionData("edit", prompt);
-
-        conv.begin();
     }
 
     @Override
-    public void conversationAbandoned(ConversationAbandonedEvent arg0) {
+    public void onDisable() {
 
     }
 
@@ -73,12 +64,23 @@ public class ScriptEditManager extends AbstractScriptEditManager implements Conv
     }
 
     @Override
-    public void onDisable() {
+    public void saveAll() {
 
     }
 
     @Override
-    public void saveAll() {
+    public void startEdit(ICommandSender sender, String title, String script, Consumer<String> consumer) {
+        ConversationFactory factory = new ConversationFactory((Plugin) pluginInstance);
 
+        EditingPrompt prompt = new EditingPrompt((Plugin) pluginInstance,
+                                                 sender.get(),
+                                                 new ScriptEditor(title, script, consumer));
+        Conversation conv = factory.thatExcludesNonPlayersWithMessage("Sorry, this is in-game only feature!")
+                .withFirstPrompt(new UsagePrompt(prompt))
+                .addConversationAbandonedListener(this)
+                .buildConversation(sender.get());
+        conv.getContext().setSessionData("edit", prompt);
+
+        conv.begin();
     }
 }

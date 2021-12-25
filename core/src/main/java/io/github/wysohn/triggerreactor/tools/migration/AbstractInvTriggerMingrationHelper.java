@@ -15,19 +15,17 @@ public abstract class AbstractInvTriggerMingrationHelper<ItemStack> implements I
         this.oldFile = oldFile;
     }
 
-    protected abstract Optional<Integer> getSize();
-
-    protected abstract Map<Integer, ItemStack> getItems();
-
     @Override
     public void migrate(IConfigSource current) {
         getSize().ifPresent(size -> current.put(AbstractInventoryTriggerManager.SIZE, size));
-        getItems().forEach((index, item) ->
-                current.put(AbstractInventoryTriggerManager.ITEMS + "." + index, item));
+        getItems().forEach((index, item) -> current.put(AbstractInventoryTriggerManager.ITEMS + "." + index, item));
 
-        if (oldFile.exists())
-            oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+        if (oldFile.exists()) oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
 
         current.saveAll();
     }
+
+    protected abstract Map<Integer, ItemStack> getItems();
+
+    protected abstract Optional<Integer> getSize();
 }

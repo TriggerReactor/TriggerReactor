@@ -19,14 +19,14 @@ import java.util.function.Supplier;
  * and 'timing' would be the child of 'my' and 'name' would be child of 'timing.'
  */
 public class Timings {
-    public static final Timing LIMBO = new LimboTiming();
-
-    private static final Timing root = new Timing(null, "<ROOT>");
-
     static {
         root.displayName = "Root";
     }
 
+    private static final Timing root = new Timing(null, "<ROOT>");
+    private static final int SPACES = 2;
+    private static final DecimalFormat df = new DecimalFormat("#.##");
+    public static final Timing LIMBO = new LimboTiming();
     public static boolean on = false;
 
     /**
@@ -49,8 +49,7 @@ public class Timings {
     }
 
     private static Timing getTiming(Timing root, String name) {
-        if (name == null)
-            return root;
+        if (name == null) return root;
 
         String[] split = name.split("\\.");
         Stack<String> path = new Stack<>();
@@ -69,8 +68,7 @@ public class Timings {
     }
 
     public static void print(Timing timing, OutputStream stream) throws IOException {
-        if (timing == null)
-            return;
+        if (timing == null) return;
 
         stream.write(timing.toString().getBytes());
         for (Map.Entry<String, Timing> child : timing.children.entrySet()) {
@@ -85,15 +83,16 @@ public class Timings {
 
     public static class Timing implements AutoCloseable {
         private final Timing parent;
-        private String fullName;
         private final int level;
         private final Map<String, Timing> children = new ConcurrentHashMap<>();
         private final Supplier<Long> currentTimeFn;
-
+        private String fullName;
         private String displayName;
 
         private long executionTime;
         private long count;
+        private long begin;
+        private boolean mainThread;
 
         private Timing(Timing parent, String fullName) {
             this(parent, fullName, System::currentTimeMillis);
@@ -111,61 +110,39 @@ public class Timings {
             this.currentTimeFn = currentTimeFn;
         }
 
-        public String getDisplayName() {
-            return displayName;
+        @Override
+        public void close() {
+            if (!on) return;
+
+            add(currentTimeFn.get() - begin);
+            begin = -1;
         }
 
-        public void setDisplayName(String displayName) {
-            if (displayName == null)
-                return;
-
-            this.displayName = displayName;
+        @Override
+        public String toString() {
+            String str = StringUtils.spaces(level * SPACES) + " > " + displayName;
+            if (!isLeafNode()) str += "[" + children.size() + "]";
+            str += " -- (total: " + executionTime + "ms, count: " + count + ", avg: " + df.format(avg()) + "ms)";
+            if (mainThread) str += "  !!MainThread";
+            return str;
         }
 
-        public boolean isLeafNode() {
-            return children.size() == 0;
-        }
+        private void add(long executionTime) {
+            if (!on) return;
 
-        /**
-         * This should be the direct child name. Do not use fully qualified name.
-         *
-         * @param name the name of the direct child name.
-         * @return Timing instance
-         */
-        private Timing getOrCreate(String name) {
-            if (name.contains("."))
-                throw new RuntimeException("Cannot use .(dot) for the direct child's name!");
+            this.executionTime += executionTime;
+            this.count++;
 
-            if (children.containsKey(name)) {
-                return children.get(name);
-            } else {
-                Timing t;
-                if (parent == null) {
-                    t = new Timing(this, StringUtils.dottedPath(root.fullName, name));
-                } else {
-                    t = new Timing(this, StringUtils.dottedPath(parent.fullName, name));
-                }
-                t.displayName = name;
-                children.put(name, t);
-                return t;
+            if (parent != null) {
+                parent.add(executionTime);
             }
         }
 
-        /**
-         * Get Timing starting from 'this' Timing as root.
-         * <p>
-         * For example, if 'this' Timing is "Some.Thing," any Timing
-         * made by this method will always start with "Some.Thing".
-         *
-         * @param name the fully qualified name to extend from 'this' Timing.
-         * @return the child timing. 'this' Timing if name is null.
-         */
-        public Timing getTiming(String name) {
-            return Timings.getTiming(this, name);
-        }
+        public double avg() {
+            if (count == 0) return -1;
 
-        private long begin;
-        private boolean mainThread;
+            return Math.min(999999.99, (double) executionTime / count);
+        }
 
         /**
          * Record current system timestamp and return this Timing instance.
@@ -199,49 +176,60 @@ public class Timings {
          * @return this instance
          */
         public Timing begin() {
-            if (parent == null)
-                throw new RuntimeException("Can't begin() with root Timing.");
+            if (parent == null) throw new RuntimeException("Can't begin() with root Timing.");
 
             return begin(false);
         }
 
-        public double avg() {
-            if (count == 0)
-                return -1;
-
-            return Math.min(999999.99, (double) executionTime / count);
+        public String getDisplayName() {
+            return displayName;
         }
 
-        private void add(long executionTime) {
-            if (!on)
-                return;
+        public void setDisplayName(String displayName) {
+            if (displayName == null) return;
 
-            this.executionTime += executionTime;
-            this.count++;
+            this.displayName = displayName;
+        }
 
-            if (parent != null) {
-                parent.add(executionTime);
+        /**
+         * This should be the direct child name. Do not use fully qualified name.
+         *
+         * @param name the name of the direct child name.
+         * @return Timing instance
+         */
+        private Timing getOrCreate(String name) {
+            if (name.contains(".")) throw new RuntimeException("Cannot use .(dot) for the direct child's name!");
+
+            if (children.containsKey(name)) {
+                return children.get(name);
+            } else {
+                Timing t;
+                if (parent == null) {
+                    t = new Timing(this, StringUtils.dottedPath(root.fullName, name));
+                } else {
+                    t = new Timing(this, StringUtils.dottedPath(parent.fullName, name));
+                }
+                t.displayName = name;
+                children.put(name, t);
+                return t;
             }
         }
 
-        @Override
-        public void close() {
-            if (!on)
-                return;
-
-            add(currentTimeFn.get() - begin);
-            begin = -1;
+        /**
+         * Get Timing starting from 'this' Timing as root.
+         * <p>
+         * For example, if 'this' Timing is "Some.Thing," any Timing
+         * made by this method will always start with "Some.Thing".
+         *
+         * @param name the fully qualified name to extend from 'this' Timing.
+         * @return the child timing. 'this' Timing if name is null.
+         */
+        public Timing getTiming(String name) {
+            return Timings.getTiming(this, name);
         }
 
-        @Override
-        public String toString() {
-            String str = StringUtils.spaces(level * SPACES) + " > " + displayName;
-            if (!isLeafNode())
-                str += "[" + children.size() + "]";
-            str += " -- (total: " + executionTime + "ms, count: " + count + ", avg: " + df.format(avg()) + "ms)";
-            if (mainThread)
-                str += "  !!MainThread";
-            return str;
+        public boolean isLeafNode() {
+            return children.size() == 0;
         }
 
 
@@ -250,6 +238,26 @@ public class Timings {
     public static class LimboTiming extends Timing {
         public LimboTiming() {
             super(null, null);
+        }
+
+        @Override
+        public void close() {
+
+        }
+
+        @Override
+        public double avg() {
+            return -1;
+        }
+
+        @Override
+        public Timing begin(boolean mainThread) {
+            return this;
+        }
+
+        @Override
+        public Timing begin() {
+            return this;
         }
 
         @Override
@@ -266,28 +274,5 @@ public class Timings {
         public Timing getTiming(String name) {
             return this;
         }
-
-        @Override
-        public Timing begin(boolean mainThread) {
-            return this;
-        }
-
-        @Override
-        public Timing begin() {
-            return this;
-        }
-
-        @Override
-        public double avg() {
-            return -1;
-        }
-
-        @Override
-        public void close() {
-
-        }
     }
-
-    private static final int SPACES = 2;
-    private static final DecimalFormat df = new DecimalFormat("#.##");
 }

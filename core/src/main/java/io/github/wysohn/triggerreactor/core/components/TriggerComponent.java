@@ -15,7 +15,7 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.manager.trigger;
+package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Component;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
@@ -34,19 +34,19 @@ import javax.inject.Singleton;
 @Component(modules = CoreTriggerModule.class)
 @Singleton
 public interface TriggerComponent {
-    AbstractLocationBasedTriggerManager<ClickTrigger> clickTrigger();
-
-    AbstractLocationBasedTriggerManager<WalkTrigger> walkTrigger();
-
-    AbstractCommandTriggerManager commandTrigger();
-
     AbstractAreaTriggerManager areaTrigger();
 
-    AbstractNamedTriggerManager namedTrigger();
+    AbstractLocationBasedTriggerManager<ClickTrigger> clickTrigger();
+
+    AbstractCommandTriggerManager commandTrigger();
 
     AbstractCustomTriggerManager customTrigger();
 
     AbstractInventoryTriggerManager<?> inventoryTrigger();
 
+    AbstractNamedTriggerManager namedTrigger();
+
     AbstractRepeatingTriggerManager repeatingTrigger();
+
+    AbstractLocationBasedTriggerManager<WalkTrigger> walkTrigger();
 }

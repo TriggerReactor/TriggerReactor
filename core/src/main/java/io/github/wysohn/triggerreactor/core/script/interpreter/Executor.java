@@ -34,6 +34,5 @@ public interface Executor {
      * @return usually null; return code to intercept execution
      * @throws Exception
      */
-    Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                    Object... args) throws Exception;
+    Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) throws Exception;
 }

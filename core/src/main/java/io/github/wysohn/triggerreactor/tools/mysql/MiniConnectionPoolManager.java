@@ -78,22 +78,6 @@ public class MiniConnectionPoolManager {
     // call, or null
 
     /**
-     * Thrown in {@link #getConnection()} or {@link #getValidConnection()} when
-     * no free connection becomes available within <code>timeout</code> seconds.
-     */
-    public static class TimeoutException extends RuntimeException {
-        private static final long serialVersionUID = 1;
-
-        public TimeoutException() {
-            super("Timeout while waiting for a free database connection.");
-        }
-
-        public TimeoutException(String msg) {
-            super(msg);
-        }
-    }
-
-    /**
      * Constructs a MiniConnectionPoolManager object with a timeout of 60
      * seconds.
      *
@@ -127,6 +111,26 @@ public class MiniConnectionPoolManager {
         poolConnectionEventListener = new PoolConnectionEventListener();
     }
 
+    private synchronized void assertInnerState() {
+        if (activeConnections < 0) {
+            throw new AssertionError();
+        }
+        if (activeConnections + recycledConnections.size() > maxConnections) {
+            throw new AssertionError();
+        }
+        if (activeConnections + semaphore.availablePermits() > maxConnections) {
+            throw new AssertionError();
+        }
+    }
+
+    private void closeConnectionAndIgnoreException(PooledConnection pconn) {
+        try {
+            pconn.close();
+        } catch (SQLException e) {
+            log("Error while closing database connection: " + e.toString());
+        }
+    }
+
     /**
      * Closes all unused pooled connections.
      */
@@ -149,6 +153,37 @@ public class MiniConnectionPoolManager {
         if (e != null) {
             throw e;
         }
+    }
+
+    private synchronized void disposeConnection(PooledConnection pconn) {
+        pconn.removeConnectionEventListener(poolConnectionEventListener);
+        if (!recycledConnections.remove(pconn) && pconn != connectionInTransition) {
+            // If the PooledConnection is not in the recycledConnections list
+            // and is not currently within a PooledConnection.getConnection()
+            // call,
+            // we assume that the connection was active.
+            if (activeConnections <= 0) {
+                throw new AssertionError();
+            }
+            activeConnections--;
+            semaphore.release();
+        }
+        closeConnectionAndIgnoreException(pconn);
+        assertInnerState();
+    }
+
+    /**
+     * Returns the number of active (open) connections of this pool.
+     *
+     * <p>
+     * This is the number of <code>Connection</code> objects that have been
+     * issued by {@link #getConnection()}, for which
+     * <code>Connection.close()</code> has not yet been called.
+     *
+     * @return the number of active connections.
+     **/
+    public synchronized int getActiveConnections() {
+        return activeConnections;
     }
 
     /**
@@ -221,6 +256,20 @@ public class MiniConnectionPoolManager {
         activeConnections++;
         assertInnerState();
         return conn;
+    }
+
+    /**
+     * Returns the number of inactive (unused) connections in this pool.
+     *
+     * <p>
+     * This is the number of internally kept recycled connections, for which
+     * <code>Connection.close()</code> has been called and which have not yet
+     * been reused.
+     *
+     * @return the number of inactive connections.
+     **/
+    public synchronized int getInactiveConnections() {
+        return recycledConnections.size();
     }
 
     /**
@@ -303,6 +352,18 @@ public class MiniConnectionPoolManager {
         return null;
     }
 
+    private void log(String msg) {
+        String s = "MiniConnectionPoolManager: " + msg;
+        try {
+            if (logWriter == null) {
+                System.err.println(s);
+            } else {
+                logWriter.println(s);
+            }
+        } catch (Exception e) {
+        }
+    }
+
     // Purges the PooledConnection associated with the passed Connection from
     // the connection pool.
     private synchronized void purgeConnection(Connection conn) {
@@ -336,52 +397,19 @@ public class MiniConnectionPoolManager {
         assertInnerState();
     }
 
-    private synchronized void disposeConnection(PooledConnection pconn) {
-        pconn.removeConnectionEventListener(poolConnectionEventListener);
-        if (!recycledConnections.remove(pconn) && pconn != connectionInTransition) {
-            // If the PooledConnection is not in the recycledConnections list
-            // and is not currently within a PooledConnection.getConnection()
-            // call,
-            // we assume that the connection was active.
-            if (activeConnections <= 0) {
-                throw new AssertionError();
-            }
-            activeConnections--;
-            semaphore.release();
-        }
-        closeConnectionAndIgnoreException(pconn);
-        assertInnerState();
-    }
+    /**
+     * Thrown in {@link #getConnection()} or {@link #getValidConnection()} when
+     * no free connection becomes available within <code>timeout</code> seconds.
+     */
+    public static class TimeoutException extends RuntimeException {
+        private static final long serialVersionUID = 1;
 
-    private void closeConnectionAndIgnoreException(PooledConnection pconn) {
-        try {
-            pconn.close();
-        } catch (SQLException e) {
-            log("Error while closing database connection: " + e.toString());
+        public TimeoutException() {
+            super("Timeout while waiting for a free database connection.");
         }
-    }
 
-    private void log(String msg) {
-        String s = "MiniConnectionPoolManager: " + msg;
-        try {
-            if (logWriter == null) {
-                System.err.println(s);
-            } else {
-                logWriter.println(s);
-            }
-        } catch (Exception e) {
-        }
-    }
-
-    private synchronized void assertInnerState() {
-        if (activeConnections < 0) {
-            throw new AssertionError();
-        }
-        if (activeConnections + recycledConnections.size() > maxConnections) {
-            throw new AssertionError();
-        }
-        if (activeConnections + semaphore.availablePermits() > maxConnections) {
-            throw new AssertionError();
+        public TimeoutException(String msg) {
+            super(msg);
         }
     }
 
@@ -395,34 +423,6 @@ public class MiniConnectionPoolManager {
             PooledConnection pconn = (PooledConnection) event.getSource();
             disposeConnection(pconn);
         }
-    }
-
-    /**
-     * Returns the number of active (open) connections of this pool.
-     *
-     * <p>
-     * This is the number of <code>Connection</code> objects that have been
-     * issued by {@link #getConnection()}, for which
-     * <code>Connection.close()</code> has not yet been called.
-     *
-     * @return the number of active connections.
-     **/
-    public synchronized int getActiveConnections() {
-        return activeConnections;
-    }
-
-    /**
-     * Returns the number of inactive (unused) connections in this pool.
-     *
-     * <p>
-     * This is the number of internally kept recycled connections, for which
-     * <code>Connection.close()</code> has been called and which have not yet
-     * been reused.
-     *
-     * @return the number of inactive connections.
-     **/
-    public synchronized int getInactiveConnections() {
-        return recycledConnections.size();
     }
 
 } // end class MiniConnectionPoolManager

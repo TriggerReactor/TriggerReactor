@@ -113,31 +113,28 @@ import java.util.logging.Logger;
 
 @Plugin(id = TriggerReactor.ID)
 public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.TriggerReactorCore {
-    protected static final String ID = "triggerreactor";
-
-    private static SpongeExecutorService SYNC_EXECUTOR = null;
-    private static SpongeWrapper WRAPPER = null;
-
-    public static SpongeWrapper getWrapper() {
-        return WRAPPER;
-    }
-
-    @Inject
-    private Logger logger;
-
-    @Inject
-    @ConfigDir(sharedRoot = false)
-    private Path privateConfigDir;
-
     static {
         System.setProperty("bstats.relocatecheck", "false");
     }
 
+    static {
+        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
+        GsonConfigSource.registerValidator(obj -> obj instanceof DataSerializable);
+    }
+
+    protected static final String ID = "triggerreactor";
+    private static SpongeExecutorService SYNC_EXECUTOR = null;
+    private static SpongeWrapper WRAPPER = null;
+    private final SelfReference selfReference = new CommonFunctions(this);
+    private final Set<Class<? extends Manager>> savings = new HashSet<>();
+    @Inject
+    private Logger logger;
+    @Inject
+    @ConfigDir(sharedRoot = false)
+    private Path privateConfigDir;
     @Inject
     private MetricsLite2 metrics;
-
     private Lag tpsHelper;
-
     private AbstractExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
     private AbstractScriptEditManager scriptEditManager;
@@ -145,7 +142,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
     private AbstractInventoryEditManager invEditManager;
-
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
     private AbstractCommandTriggerManager cmdManager;
@@ -153,10 +149,581 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     private AbstractAreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
-
     private AbstractNamedTriggerManager namedTriggerManager;
 
-    private final SelfReference selfReference = new CommonFunctions(this);
+    @Override
+    protected void addItemLore(IItemStack iS, String lore) {
+        ItemStack IS = iS.get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
+        if (lores == null) lores = new ArrayList<Text>();
+        lores.add(Text.of(lore));
+        IS.offer(Keys.ITEM_LORE, lores);
+    }
+
+    @Override
+    public void callEvent(IEvent event) {
+        Event e = event.get();
+
+        Sponge.getEventManager().post(e);
+    }
+
+    @Override
+    public <T> Future<T> callSyncMethod(Callable<T> call) {
+        return SYNC_EXECUTOR.submit(call);
+    }
+
+    @Override
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
+        Object unwrapped = sender.get();
+
+        if (unwrapped instanceof Player) {
+            return new Event() {
+
+                @Override
+                public Cause getCause() {
+                    Player src = (Player) unwrapped;
+                    EventContext context = EventContext.builder().add(EventContextKeys.PLAYER, src).build();
+                    return Cause.builder().append(unwrapped).build(context);
+                }
+            };
+        } else if (unwrapped instanceof ConsoleSource) {
+            return new Event() {
+                Cause cause = null;
+
+                {
+                    try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+                        frame.pushCause(new DelegatedPlayer((CommandSource) unwrapped));
+                        cause = frame.getCurrentCause();
+                    }
+                }
+
+                @Override
+                public Cause getCause() {
+                    return cause;
+                }
+            };
+        } else {
+            throw new RuntimeException("Cannot create empty PlayerEvent for " + sender);
+        }
+    }
+
+    @Override
+    public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
+        return new ProcessInterrupter() {
+            @Override
+            public boolean onCommand(Object context, String command, Object[] args) {
+                if ("CALL".equalsIgnoreCase(command)) {
+                    if (args.length < 1) throw new RuntimeException("Need parameter [String] or [String, boolean]");
+
+                    if (args[0] instanceof String) {
+                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
+                        if (trigger == null)
+                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
+
+                        if (args.length > 1 && args[1] instanceof Boolean) {
+                            trigger.setSync((boolean) args[1]);
+                        } else {
+                            trigger.setSync(true);
+                        }
+
+                        if (trigger.isSync()) {
+                            trigger.activate(e, interpreter.getVars());
+                        } else {//use snapshot to avoid concurrent modification
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                        }
+
+                        return true;
+                    } else {
+                        throw new RuntimeException("Parameter type not match; it should be a String." + " Make sure to put double quotes, if you provided String literal.");
+                    }
+                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
+                    if (!interpreter.isSync()) throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+
+                    if (context instanceof Cancellable) {
+                        ((Cancellable) context).setCancelled(true);
+                        return true;
+                    } else {
+                        throw new RuntimeException(context + " is not a Cancellable event!");
+                    }
+                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
+                    if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+
+                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
+                    if (e instanceof Event) {
+                        ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+                            UUID uuid = player.getUniqueId();
+                            cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                        });
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean onNodeProcess(Node node) {
+                return false;
+            }
+
+            @Override
+            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
+//                if("cooldown".equals(placeholder) && e instanceof Event){
+//                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
+//                    if(optPlayer.isPresent()){
+//                        Player player = optPlayer.get();
+//                        long secondsLeft = Math.max(0L,
+//                                cooldowns.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis());
+//                        return secondsLeft / 1000;
+//                    }else{
+//                        return 0L;
+//                    }
+//                }else{
+//                    return null;
+//                }
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public ProcessInterrupter createInterrupterForInv(Object e,
+                                                      Interpreter interpreter,
+                                                      Map<UUID, Long> cooldowns,
+                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
+        return new ProcessInterrupter() {
+            @Override
+            public boolean onCommand(Object context, String command, Object[] args) {
+                if ("CALL".equalsIgnoreCase(command)) {
+                    if (args.length < 1) throw new RuntimeException("Need parameter [String] or [String, boolean]");
+
+                    if (args[0] instanceof String) {
+                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
+                        if (trigger == null)
+                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
+
+                        if (args.length > 1 && args[1] instanceof Boolean) {
+                            trigger.setSync((boolean) args[1]);
+                        } else {
+                            trigger.setSync(true);
+                        }
+
+                        if (trigger.isSync()) {
+                            trigger.activate(e, interpreter.getVars());
+                        } else {//use snapshot to avoid concurrent modification
+                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                        }
+
+                        return true;
+                    } else {
+                        throw new RuntimeException("Parameter type not match; it should be a String." + " Make sure to put double quotes, if you provided String literal.");
+                    }
+                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
+                    if (!interpreter.isSync()) throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+
+                    if (context instanceof Cancellable) {
+                        ((Cancellable) context).setCancelled(true);
+                        return true;
+                    } else {
+                        throw new RuntimeException(context + " is not a Cancellable event!");
+                    }
+                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
+                    if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+
+                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
+                    if (e instanceof Event) {
+                        ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+                            UUID uuid = player.getUniqueId();
+                            cooldowns.put(uuid, System.currentTimeMillis() + mills);
+                        });
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public boolean onNodeProcess(Node node) {
+                //safety feature to stop all trigger immediately if executing on 'open' or 'click'
+                //  is still running after the inventory is closed.
+                if (e instanceof InteractInventoryEvent.Open || e instanceof InteractInventoryEvent.Close) {
+                    Inventory inv = ((InteractInventoryEvent) e).getTargetInventory();
+                    if (!(inv instanceof CarriedInventory)) return false;
+
+                    CarriedInventory inventory = (CarriedInventory) inv;
+                    Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
+
+                    if (carrier == null) return false;
+
+                    //it's not GUI so stop execution
+                    return !inventoryMap.containsKey(new SpongeInventory(inv, carrier));
+                }
+
+                return false;
+            }
+
+            @Override
+            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
+//                if("cooldown".equals(placeholder) && e instanceof Event){
+//                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
+//                    if(optPlayer.isPresent()){
+//                        Player player = optPlayer.get();
+//                        long secondsLeft = Math.max(0L,
+//                                cooldowns.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis());
+//                        return secondsLeft / 1000;
+//                    }else{
+//                        return 0L;
+//                    }
+//                }else{
+//                    return null;
+//                }
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        Object unwrapped = sender.get();
+
+        return new SendCommandEvent() {
+            Cause cause = null;
+
+            {
+                try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
+                    frame.pushCause(unwrapped);
+                    cause = frame.getCurrentCause();
+                }
+            }
+
+            @Override
+            public String getArguments() {
+                return String.join(" ", args);
+            }
+
+            @Override
+            public void setArguments(String arguments) {
+
+            }
+
+            @Override
+            public Cause getCause() {
+                return cause;
+            }
+
+            @Override
+            public String getCommand() {
+                return label;
+            }
+
+            @Override
+            public void setCommand(String command) {
+
+            }
+
+            @Override
+            public CommandResult getResult() {
+                return CommandResult.success();
+            }
+
+            @Override
+            public void setResult(CommandResult result) {
+
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+
+            @Override
+            public void setCancelled(boolean cancel) {
+
+            }
+        };
+    }
+
+    @Override
+    public void disablePlugin() {
+        //Sponge doesn't disable plugins at runtime
+    }
+
+    @Override
+    public IPlayer extractPlayerFromContext(Object e) {
+        if (e instanceof Event) {
+            Player player = ((Event) e).getCause().first(Player.class).orElse(null);
+            if (player != null) return new SpongePlayer(player);
+        }
+
+        return null;
+    }
+
+    @Override
+    public AbstractAreaTriggerManager getAreaManager() {
+        return areaManager;
+    }
+
+    @Override
+    public String getAuthor() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null) return plugin.getAuthors().toString();
+        else return "?";
+    }
+
+    @Override
+    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
+        return clickManager;
+    }
+
+    @Override
+    public AbstractCommandTriggerManager getCmdManager() {
+        return cmdManager;
+    }
+
+    @Override
+    public Object getConfig(String key) {
+        // TODO later
+        return null;
+    }
+
+    @Override
+    public <T> T getConfig(String key, T def) {
+        // TODO later
+        return null;
+    }
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return new SpongeCommandSender(Sponge.getServer().getConsole());
+    }
+
+    @Override
+    public AbstractCustomTriggerManager getCustomManager() {
+        return customManager;
+    }
+
+    @Override
+    public Map<String, Object> getCustomVarsForTrigger(Object e) {
+        Map<String, Object> variables = new HashMap<>();
+        // Thanks for the amazing API!
+        if (e instanceof Event) {
+            ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
+                variables.put("player", player);
+            });
+
+            ((Event) e).getCause().first(Entity.class).ifPresent((entity) -> {
+                variables.put("entity", entity);
+            });
+        }
+        return variables;
+    }
+
+    @Override
+    public File getDataFolder() {
+        return this.privateConfigDir.toFile();
+    }
+
+    @Override
+    public AbstractExecutorManager getExecutorManager() {
+        return executorManager;
+    }
+
+    @Override
+    public AbstractInventoryEditManager getInvEditManager() {
+        return invEditManager;
+    }
+
+    @Override
+    public AbstractInventoryTriggerManager getInvManager() {
+        return invManager;
+    }
+
+    @Override
+    public AbstractPlayerLocationManager getLocationManager() {
+        return locationManager;
+    }
+
+    @Override
+    public Logger getLogger() {
+        return logger;
+    }
+
+    @Override
+    public <T> T getMain() {
+        return (T) this;
+    }
+
+    @Override
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
+    }
+
+    @Override
+    public AbstractPermissionManager getPermissionManager() {
+        return permissionManager;
+    }
+
+    @Override
+    public AbstractPlaceholderManager getPlaceholderManager() {
+        return placeholderManager;
+    }
+
+    @Override
+    public IPlayer getPlayer(String string) {
+        Player player = Sponge.getServer().getPlayer(string).orElse(null);
+        if (player == null) return null;
+
+        return new SpongePlayer(player);
+    }
+
+    @Override
+    public String getPluginDescription() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null) return plugin.getDescription().orElse(ID + " v[?]");
+        else return ID + " v[?]";
+    }
+
+    @Override
+    public AbstractRepeatingTriggerManager getRepeatManager() {
+        return repeatManager;
+    }
+
+    @Override
+    public AbstractScriptEditManager getScriptEditManager() {
+        return scriptEditManager;
+    }
+
+    @Override
+    public AbstractAreaSelectionManager getSelectionManager() {
+        return selectionManager;
+    }
+
+    @Override
+    public SelfReference getSelfReference() {
+        return selfReference;
+    }
+
+    public Lag getTpsHelper() {
+        return tpsHelper;
+    }
+
+    @Override
+    public String getVersion() {
+        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
+        if (plugin != null) return plugin.getVersion().orElse("?");
+        else return "?";
+    }
+
+    @Override
+    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
+        return walkManager;
+    }
+
+    private void initFailed(Exception e) {
+        e.printStackTrace();
+        getLogger().severe("Initialization failed!");
+        getLogger().severe(e.getMessage());
+        disablePlugin();
+    }
+
+    @Override
+    public boolean isConfigSet(String key) {
+        // TODO later
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true; //Sponge doesn't disable plugins at runtime
+    }
+
+    @Override
+    public boolean isServerThread() {
+        boolean result = false;
+
+        synchronized (this) {
+            result = Sponge.getServer().isMainThread();
+        }
+
+        return result;
+    }
+
+    private void migrateOldConfig() {
+        new ContinuingTasks.Builder().append(() -> {
+//                    if (getPluginConfigManager().isMigrationNeeded()) {
+//                        File file = new File(getDataFolder(), "config.yml");
+//                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
+//                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+//                        ConfigurationNode confFileConfig = null;
+//                        try {
+//                            confFileConfig = varFileConfigLoader.load();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                            return;
+//                        }
+//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(confFileConfig, file));
+//                    }
+                })
+                .append(() -> {
+                    if (getVariableManager().isMigrationNeeded()) {
+                        File file = new File(getDataFolder(), "var.yml");
+                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader = HoconConfigurationLoader.builder()
+                                .setPath(file.toPath())
+                                .build();
+                        ConfigurationNode varFileConfig = null;
+                        try {
+                            varFileConfig = varFileConfigLoader.load();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
+                    }
+                })
+                .append(() -> Optional.of(getInvManager())
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
+                                })))
+                .append(() -> Manager.getManagers()
+                        .stream()
+                        .filter(AbstractTriggerManager.class::isInstance)
+                        .map(AbstractTriggerManager.class::cast)
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
+                                })))
+                .run();
+    }
 
     @Listener
     public void onConstruct(GameInitializationEvent event) {
@@ -199,146 +766,19 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         Sponge.getScheduler().createTaskBuilder().execute(tpsHelper).delayTicks(100L).intervalTicks(1L).submit(this);
     }
 
-    private void initFailed(Exception e) {
-        e.printStackTrace();
-        getLogger().severe("Initialization failed!");
-        getLogger().severe(e.getMessage());
-        disablePlugin();
-    }
-
-    public Lag getTpsHelper() {
-        return tpsHelper;
-    }
-
     @Listener
-    public void onLoadComplete(GameAboutToStartServerEvent e) {
-        for (Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()) {
-            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
+    public void onDisable(GameStoppingServerEvent e) {
+        try {
+            Sponge.getEventManager().post(new TriggerReactorStopEvent(TriggerReactor.this));
+        } finally {
+            getLogger().info("Shutting down the managers...");
+            onCoreDisable();
+            getLogger().info("OK");
+
+            getLogger().info("Finalizing the scheduled script executions...");
+            CACHED_THREAD_POOL.shutdown();
+            getLogger().info("Shut down complete!");
         }
-    }
-
-    @Listener
-    public void onInitialize(GameAboutToStartServerEvent e) {
-        Sponge.getCommandManager().register(this, new CommandCallable() {
-
-            @Override
-            public CommandResult process(CommandSource src, String args) throws CommandException {
-                if (src instanceof Player) {
-                    onCommand(new SpongePlayer((Player) src), "triggerreactor",
-                            args.split(" "));
-                } else {
-                    onCommand(new SpongeCommandSender(src), "triggerreactor",
-                            args.split(" "));
-                }
-
-                return CommandResult.success();
-            }
-
-            @Override
-            public List<String> getSuggestions(CommandSource source, String arguments, Location<World> targetPosition)
-                    throws CommandException {
-                //return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(arguments.split(" "));
-                return new ArrayList<>();
-            }
-
-            @Override
-            public boolean testPermission(CommandSource source) {
-                return source.hasPermission("triggerreactor.admin");
-            }
-
-            @Override
-            public Optional<Text> getShortDescription(CommandSource source) {
-                return Optional.of(Text.of("TriggerReactor"));
-            }
-
-            @Override
-            public Optional<Text> getHelp(CommandSource source) {
-                return Optional.of(Text.of("/trg for details"));
-            }
-
-            @Override
-            public Text getUsage(CommandSource source) {
-                return Text.of("/trg for details");
-            }
-
-        }, "trg", "trigger");
-
-        migrateOldConfig();
-    }
-
-    private void migrateOldConfig() {
-        new ContinuingTasks.Builder()
-                .append(() -> {
-//                    if (getPluginConfigManager().isMigrationNeeded()) {
-//                        File file = new File(getDataFolder(), "config.yml");
-//                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
-//                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-//                        ConfigurationNode confFileConfig = null;
-//                        try {
-//                            confFileConfig = varFileConfigLoader.load();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                            return;
-//                        }
-//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(confFileConfig, file));
-//                    }
-                })
-                .append(() -> {
-                    if (getVariableManager().isMigrationNeeded()) {
-                        File file = new File(getDataFolder(), "var.yml");
-                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
-                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-                        ConfigurationNode varFileConfig = null;
-                        try {
-                            varFileConfig = varFileConfigLoader.load();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            return;
-                        }
-                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
-                    }
-                })
-                .append(() -> Optional.of(getInvManager())
-                        .map(AbstractTriggerManager::getTriggerInfos)
-                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
-                                .filter(TriggerInfo::isMigrationNeeded)
-                                .forEach(triggerInfo -> {
-                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-                                            .setPath(oldFile.toPath())
-                                            .build();
-                                    ConfigurationNode oldConfig = null;
-                                    try {
-                                        oldConfig = loader.load();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        return;
-                                    }
-                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
-                                })))
-                .append(() -> Manager.getManagers().stream()
-                        .filter(AbstractTriggerManager.class::isInstance)
-                        .map(AbstractTriggerManager.class::cast)
-                        .map(AbstractTriggerManager::getTriggerInfos)
-                        .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                                .filter(TriggerInfo::isMigrationNeeded)
-                                .forEach(triggerInfo -> {
-                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-                                            .setPath(oldFile.toPath())
-                                            .build();
-                                    ConfigurationNode oldConfig = null;
-                                    try {
-                                        oldConfig = loader.load();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        return;
-                                    }
-                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
-                                })))
-                .run();
     }
 
     @Listener
@@ -399,17 +839,57 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Listener
-    public void onDisable(GameStoppingServerEvent e) {
-        try {
-            Sponge.getEventManager().post(new TriggerReactorStopEvent(TriggerReactor.this));
-        } finally {
-            getLogger().info("Shutting down the managers...");
-            onCoreDisable();
-            getLogger().info("OK");
+    public void onInitialize(GameAboutToStartServerEvent e) {
+        Sponge.getCommandManager().register(this, new CommandCallable() {
 
-            getLogger().info("Finalizing the scheduled script executions...");
-            CACHED_THREAD_POOL.shutdown();
-            getLogger().info("Shut down complete!");
+            @Override
+            public Optional<Text> getHelp(CommandSource source) {
+                return Optional.of(Text.of("/trg for details"));
+            }
+
+            @Override
+            public Optional<Text> getShortDescription(CommandSource source) {
+                return Optional.of(Text.of("TriggerReactor"));
+            }
+
+            @Override
+            public List<String> getSuggestions(CommandSource source,
+                                               String arguments,
+                                               Location<World> targetPosition) throws CommandException {
+                //return io.github.wysohn.triggerreactor.core.main.TriggerReactor.onTabComplete(arguments.split(" "));
+                return new ArrayList<>();
+            }
+
+            @Override
+            public Text getUsage(CommandSource source) {
+                return Text.of("/trg for details");
+            }
+
+            @Override
+            public CommandResult process(CommandSource src, String args) throws CommandException {
+                if (src instanceof Player) {
+                    onCommand(new SpongePlayer((Player) src), "triggerreactor", args.split(" "));
+                } else {
+                    onCommand(new SpongeCommandSender(src), "triggerreactor", args.split(" "));
+                }
+
+                return CommandResult.success();
+            }
+
+            @Override
+            public boolean testPermission(CommandSource source) {
+                return source.hasPermission("triggerreactor.admin");
+            }
+
+        }, "trg", "trigger");
+
+        migrateOldConfig();
+    }
+
+    @Listener
+    public void onLoadComplete(GameAboutToStartServerEvent e) {
+        for (Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()) {
+            AbstractAPISupport.addSharedVar(sharedVars, entry.getKey(), entry.getValue());
         }
     }
 
@@ -424,100 +904,28 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Listener
     public void onTabComplete(TabCompleteEvent.Command e) {
-        e.getCause().allOf(Player.class).stream()
-                .findFirst()
-                .map(SpongeCommandSender::new)
-                .ifPresent(sender -> {
-                    String cmd = e.getCommand();
-                    if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
-                        return;
-                    }
-                    String[] args = e.getArguments().split(" ", -1);
-                    List<String> completions = e.getTabCompletions();
-                    completions.clear();
-                    Optional.ofNullable(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(sender, args))
-                            .ifPresent(completions::addAll);
-                });
+        e.getCause().allOf(Player.class).stream().findFirst().map(SpongeCommandSender::new).ifPresent(sender -> {
+            String cmd = e.getCommand();
+            if (!(cmd.equals("trg") || cmd.equals("triggerreactor"))) {
+                return;
+            }
+            String[] args = e.getArguments().split(" ", -1);
+            List<String> completions = e.getTabCompletions();
+            completions.clear();
+            Optional.ofNullable(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(sender,
+                                                                                                           args))
+                    .ifPresent(completions::addAll);
+        });
     }
 
     @Override
-    public SelfReference getSelfReference() {
-        return selfReference;
+    public void registerEvents(Manager manager) {
+        Sponge.getEventManager().registerListeners(this, manager);
     }
 
     @Override
-    public AbstractExecutorManager getExecutorManager() {
-        return executorManager;
-    }
-
-    @Override
-    public AbstractPlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
-    }
-
-    @Override
-    public AbstractScriptEditManager getScriptEditManager() {
-        return scriptEditManager;
-    }
-
-    @Override
-    public AbstractPlayerLocationManager getLocationManager() {
-        return locationManager;
-    }
-
-    @Override
-    public AbstractPermissionManager getPermissionManager() {
-        return permissionManager;
-    }
-
-    @Override
-    public AbstractAreaSelectionManager getSelectionManager() {
-        return selectionManager;
-    }
-
-    @Override
-    public AbstractInventoryEditManager getInvEditManager() {
-        return invEditManager;
-    }
-
-    @Override
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
-        return clickManager;
-    }
-
-    @Override
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
-        return walkManager;
-    }
-
-    @Override
-    public AbstractCommandTriggerManager getCmdManager() {
-        return cmdManager;
-    }
-
-    @Override
-    public AbstractInventoryTriggerManager getInvManager() {
-        return invManager;
-    }
-
-    @Override
-    public AbstractAreaTriggerManager getAreaManager() {
-        return areaManager;
-    }
-
-    @Override
-    public AbstractCustomTriggerManager getCustomManager() {
-        return customManager;
-    }
-
-    @Override
-    public AbstractRepeatingTriggerManager getRepeatManager() {
-        return repeatManager;
-    }
-
-    @Override
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        return namedTriggerManager;
+    public void reloadConfig() {
+        // TODO later
     }
 
     @Override
@@ -534,264 +942,13 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    protected boolean setLore(IItemStack iS, int index, String lore) {
-        ItemStack IS = iS.get();
-        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
-        if (lores != null) {
-            if (lores.size() > 0 && index >= 0 && index < lores.size()) {
-                lores.set(index, Text.of(lore));
-                IS.offer(Keys.ITEM_LORE, lores);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    protected void addItemLore(IItemStack iS, String lore) {
-        ItemStack IS = iS.get();
-        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
-        if (lores == null)
-            lores = new ArrayList<Text>();
-        lores.add(Text.of(lore));
-        IS.offer(Keys.ITEM_LORE, lores);
-    }
-
-    @Override
-    protected void setItemTitle(IItemStack iS, String title) {
-        ItemStack IS = iS.get();
-        IS.offer(Keys.DISPLAY_NAME, Text.of(title));
-    }
-
-    @Override
-    public IPlayer getPlayer(String string) {
-        Player player = Sponge.getServer().getPlayer(string).orElse(null);
-        if (player == null)
-            return null;
-
-        return new SpongePlayer(player);
-    }
-
-    @Override
-    public Object createEmptyPlayerEvent(ICommandSender sender) {
-        Object unwrapped = sender.get();
-
-        if (unwrapped instanceof Player) {
-            return new Event() {
-
-                @Override
-                public Cause getCause() {
-                    Player src = (Player) unwrapped;
-                    EventContext context = EventContext.builder().add(EventContextKeys.PLAYER, src).build();
-                    return Cause.builder().append(unwrapped).build(context);
-                }
-            };
-        } else if (unwrapped instanceof ConsoleSource) {
-            return new Event() {
-                Cause cause = null;
-
-                {
-                    try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-                        frame.pushCause(new DelegatedPlayer((CommandSource) unwrapped));
-                        cause = frame.getCurrentCause();
-                    }
-                }
-
-                @Override
-                public Cause getCause() {
-                    return cause;
-                }
-            };
-        } else {
-            throw new RuntimeException("Cannot create empty PlayerEvent for " + sender);
-        }
-    }
-
-    @Override
-    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
-        Object unwrapped = sender.get();
-
-        return new SendCommandEvent() {
-            Cause cause = null;
-
-            {
-                try (CauseStackManager.StackFrame frame = Sponge.getCauseStackManager().pushCauseFrame()) {
-                    frame.pushCause(unwrapped);
-                    cause = frame.getCurrentCause();
-                }
-            }
-
-            @Override
-            public String getCommand() {
-                return label;
-            }
-
-            @Override
-            public void setCommand(String command) {
-
-            }
-
-            @Override
-            public String getArguments() {
-                return String.join(" ", args);
-            }
-
-            @Override
-            public void setArguments(String arguments) {
-
-            }
-
-            @Override
-            public CommandResult getResult() {
-                return CommandResult.success();
-            }
-
-            @Override
-            public void setResult(CommandResult result) {
-
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return false;
-            }
-
-            @Override
-            public void setCancelled(boolean cancel) {
-
-            }
-
-            @Override
-            public Cause getCause() {
-                return cause;
-            }
-        };
-    }
-
-    @Override
-    protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
-        sender.sendMessage(String.format("&b%s &8- &7%s", command, desc));
-    }
-
-    @Override
-    protected void sendDetails(ICommandSender sender, String detail) {
-        sender.sendMessage(String.format("  &7%s", detail));
-    }
-
-    @Override
-    public String getPluginDescription() {
-        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
-        if (plugin != null)
-            return plugin.getDescription().orElse(ID + " v[?]");
-        else
-            return ID + " v[?]";
-    }
-
-    @Override
-    public String getVersion() {
-        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
-        if (plugin != null)
-            return plugin.getVersion().orElse("?");
-        else
-            return "?";
-    }
-
-    @Override
-    public String getAuthor() {
-        PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
-        if (plugin != null)
-            return plugin.getAuthors().toString();
-        else
-            return "?";
-    }
-
-    @Override
-    protected void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
-        CommandSource source = sender.get();
-        if (source instanceof Player) {
-            Player player = (Player) source;
-
-            for (Entry<SimpleLocation, Trigger> entry : set) {
-                SimpleLocation sloc = entry.getKey();
-                player.sendBlockChange(sloc.getX(), sloc.getY(), sloc.getZ(), BlockTypes.GLOWSTONE.getDefaultState());
-            }
-        }
-    }
-
-    @Override
-    public void registerEvents(Manager manager) {
-        Sponge.getEventManager().registerListeners(this, manager);
-    }
-
-    @Override
-    public File getDataFolder() {
-        return this.privateConfigDir.toFile();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return logger;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true; //Sponge doesn't disable plugins at runtime
-    }
-
-    @Override
-    public void disablePlugin() {
-        //Sponge doesn't disable plugins at runtime
-    }
-
-    @Override
-    public <T> T getMain() {
-        return (T) this;
-    }
-
-    @Override
-    public boolean isConfigSet(String key) {
-        // TODO later
-        return false;
-    }
-
-    @Override
-    public void setConfig(String key, Object value) {
-        // TODO later
-    }
-
-    @Override
-    public Object getConfig(String key) {
-        // TODO later
-        return null;
-    }
-
-    @Override
-    public <T> T getConfig(String key, T def) {
-        // TODO later
-        return null;
-    }
-
-    @Override
-    public void saveConfig() {
-        // TODO later
-    }
-
-    @Override
-    public void reloadConfig() {
-        // TODO later
-    }
-
-    @Override
     public void runTask(Runnable runnable) {
         Sponge.getScheduler().createTaskBuilder().execute(runnable).submit(this);
     }
 
-    private final Set<Class<? extends Manager>> savings = new HashSet<>();
-
     @Override
     public void saveAsynchronously(Manager manager) {
-        if (savings.contains(manager.getClass()))
-            return;
+        if (savings.contains(manager.getClass())) return;
 
         new Thread(new Runnable() {
             @Override
@@ -819,247 +976,59 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        return new ProcessInterrupter() {
-            @Override
-            public boolean onNodeProcess(Node node) {
-                return false;
-            }
-
-            @Override
-            public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1)
-                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
-
-                    if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
-                        if (trigger == null)
-                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
-
-                        if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
-                        }
-
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
-                        } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
-                        }
-
-                        return true;
-                    } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
-                    }
-                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
-                    if (context instanceof Cancellable) {
-                        ((Cancellable) context).setCancelled(true);
-                        return true;
-                    } else {
-                        throw new RuntimeException(context + " is not a Cancellable event!");
-                    }
-                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number))
-                        throw new RuntimeException(args[0] + " is not a number!");
-
-                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                    if (e instanceof Event) {
-                        ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
-                            UUID uuid = player.getUniqueId();
-                            cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                        });
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-//                if("cooldown".equals(placeholder) && e instanceof Event){
-//                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
-//                    if(optPlayer.isPresent()){
-//                        Player player = optPlayer.get();
-//                        long secondsLeft = Math.max(0L,
-//                                cooldowns.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis());
-//                        return secondsLeft / 1000;
-//                    }else{
-//                        return 0L;
-//                    }
-//                }else{
-//                    return null;
-//                }
-                return null;
-            }
-        };
+    public void saveConfig() {
+        // TODO later
     }
 
     @Override
-    public ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
-                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
-        return new ProcessInterrupter() {
-            @Override
-            public boolean onNodeProcess(Node node) {
-                //safety feature to stop all trigger immediately if executing on 'open' or 'click'
-                //  is still running after the inventory is closed.
-                if (e instanceof InteractInventoryEvent.Open
-                        || e instanceof InteractInventoryEvent.Close) {
-                    Inventory inv = ((InteractInventoryEvent) e).getTargetInventory();
-                    if (!(inv instanceof CarriedInventory))
-                        return false;
-
-                    CarriedInventory inventory = (CarriedInventory) inv;
-                    Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
-
-                    if (carrier == null)
-                        return false;
-
-                    //it's not GUI so stop execution
-                    return !inventoryMap.containsKey(new SpongeInventory(inv, carrier));
-                }
-
-                return false;
-            }
-
-            @Override
-            public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1)
-                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
-
-                    if (args[0] instanceof String) {
-                        Trigger trigger = getNamedTriggerManager().get((String) args[0]);
-                        if (trigger == null)
-                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
-
-                        if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
-                        }
-
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
-                        } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
-                        }
-
-                        return true;
-                    } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
-                    }
-                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
-                    if (context instanceof Cancellable) {
-                        ((Cancellable) context).setCancelled(true);
-                        return true;
-                    } else {
-                        throw new RuntimeException(context + " is not a Cancellable event!");
-                    }
-                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number))
-                        throw new RuntimeException(args[0] + " is not a number!");
-
-                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                    if (e instanceof Event) {
-                        ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
-                            UUID uuid = player.getUniqueId();
-                            cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                        });
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-//                if("cooldown".equals(placeholder) && e instanceof Event){
-//                    Optional<Player> optPlayer = ((Event) e).getCause().first(Player.class);
-//                    if(optPlayer.isPresent()){
-//                        Player player = optPlayer.get();
-//                        long secondsLeft = Math.max(0L,
-//                                cooldowns.getOrDefault(player.getUniqueId(), 0L) - System.currentTimeMillis());
-//                        return secondsLeft / 1000;
-//                    }else{
-//                        return 0L;
-//                    }
-//                }else{
-//                    return null;
-//                }
-                return null;
-            }
-        };
+    protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
+        sender.sendMessage(String.format("&b%s &8- &7%s", command, desc));
     }
 
     @Override
-    public IPlayer extractPlayerFromContext(Object e) {
-        if (e instanceof Event) {
-            Player player = ((Event) e).getCause().first(Player.class).orElse(null);
-            if (player != null)
-                return new SpongePlayer(player);
+    protected void sendDetails(ICommandSender sender, String detail) {
+        sender.sendMessage(String.format("  &7%s", detail));
+    }
+
+    @Override
+    public void setConfig(String key, Object value) {
+        // TODO later
+    }
+
+    @Override
+    protected void setItemTitle(IItemStack iS, String title) {
+        ItemStack IS = iS.get();
+        IS.offer(Keys.DISPLAY_NAME, Text.of(title));
+    }
+
+    @Override
+    protected boolean setLore(IItemStack iS, int index, String lore) {
+        ItemStack IS = iS.get();
+        List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
+        if (lores != null) {
+            if (lores.size() > 0 && index >= 0 && index < lores.size()) {
+                lores.set(index, Text.of(lore));
+                IS.offer(Keys.ITEM_LORE, lores);
+                return true;
+            }
         }
-
-        return null;
+        return false;
     }
 
     @Override
-    public <T> Future<T> callSyncMethod(Callable<T> call) {
-        return SYNC_EXECUTOR.submit(call);
-    }
+    protected void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
+        CommandSource source = sender.get();
+        if (source instanceof Player) {
+            Player player = (Player) source;
 
-    @Override
-    public void callEvent(IEvent event) {
-        Event e = event.get();
-
-        Sponge.getEventManager().post(e);
-    }
-
-    @Override
-    public boolean isServerThread() {
-        boolean result = false;
-
-        synchronized (this) {
-            result = Sponge.getServer().isMainThread();
+            for (Entry<SimpleLocation, Trigger> entry : set) {
+                SimpleLocation sloc = entry.getKey();
+                player.sendBlockChange(sloc.getX(), sloc.getY(), sloc.getZ(), BlockTypes.GLOWSTONE.getDefaultState());
+            }
         }
-
-        return result;
     }
 
-    @Override
-    public Map<String, Object> getCustomVarsForTrigger(Object e) {
-        Map<String, Object> variables = new HashMap<>();
-        // Thanks for the amazing API!
-        if (e instanceof Event) {
-            ((Event) e).getCause().first(Player.class).ifPresent((player) -> {
-                variables.put("player", player);
-            });
-
-            ((Event) e).getCause().first(Entity.class).ifPresent((entity) -> {
-                variables.put("entity", entity);
-            });
-        }
-        return variables;
-    }
-
-    @Override
-    public ICommandSender getConsoleSender() {
-        return new SpongeCommandSender(Sponge.getServer().getConsole());
-    }
-
-    static {
-        GsonConfigSource.registerSerializer(DataSerializable.class, new SpongeDataSerializer());
-        GsonConfigSource.registerValidator(obj -> obj instanceof DataSerializable);
+    public static SpongeWrapper getWrapper() {
+        return WRAPPER;
     }
 }

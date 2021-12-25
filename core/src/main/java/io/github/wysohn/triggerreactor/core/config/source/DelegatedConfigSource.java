@@ -10,47 +10,13 @@ public class DelegatedConfigSource implements IConfigSource {
         this.configSource = configSource;
     }
 
-    public static String[] toPath(String key) {
-        return IConfigSource.toPath(key);
+    @Override
+    public void onDisable() {
+        configSource.onDisable();
     }
 
     @Override
-    public boolean fileExists() {
-        return configSource.fileExists();
-    }
-
-    @Override
-    public <T> Optional<T> get(String key, Class<T> asType) {
-        return configSource.get(key, asType);
-    }
-
-    @Override
-    public <T> Optional<T> get(String key) {
-        return configSource.get(key);
-    }
-
-    @Override
-    public void put(String key, Object value) {
-        configSource.put(key, value);
-    }
-
-    @Override
-    public boolean has(String key) {
-        return configSource.has(key);
-    }
-
-    @Override
-    public Set<String> keys() {
-        return configSource.keys();
-    }
-
-    @Override
-    public boolean isSection(String key) {
-        return configSource.isSection(key);
-    }
-
-    @Override
-    public void onEnable() throws Exception{
+    public void onEnable() throws Exception {
         configSource.onEnable();
     }
 
@@ -60,17 +26,51 @@ public class DelegatedConfigSource implements IConfigSource {
     }
 
     @Override
+    public void delete() {
+        configSource.delete();
+    }
+
+    @Override
+    public boolean fileExists() {
+        return configSource.fileExists();
+    }
+
+    @Override
+    public <T> Optional<T> get(String key) {
+        return configSource.get(key);
+    }
+
+    @Override
+    public <T> Optional<T> get(String key, Class<T> asType) {
+        return configSource.get(key, asType);
+    }
+
+    @Override
+    public boolean has(String key) {
+        return configSource.has(key);
+    }
+
+    @Override
+    public boolean isSection(String key) {
+        return configSource.isSection(key);
+    }
+
+    @Override
+    public Set<String> keys() {
+        return configSource.keys();
+    }
+
+    @Override
+    public void put(String key, Object value) {
+        configSource.put(key, value);
+    }
+
+    @Override
     public void saveAll() {
         configSource.saveAll();
     }
 
-    @Override
-    public void onDisable() {
-        configSource.onDisable();
-    }
-
-    @Override
-    public void delete() {
-        configSource.delete();
+    public static String[] toPath(String key) {
+        return IConfigSource.toPath(key);
     }
 }

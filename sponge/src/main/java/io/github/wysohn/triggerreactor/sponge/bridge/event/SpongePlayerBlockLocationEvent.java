@@ -31,11 +31,6 @@ public class SpongePlayerBlockLocationEvent implements IPlayerBlockLocationEvent
     }
 
     @Override
-    public IPlayer getIPlayer() {
-        return new SpongePlayer(event.getTargetEntity());
-    }
-
-    @Override
     public <T> T get() {
         return (T) event;
     }
@@ -43,6 +38,11 @@ public class SpongePlayerBlockLocationEvent implements IPlayerBlockLocationEvent
     @Override
     public SimpleLocation getFrom() {
         return event.getFrom();
+    }
+
+    @Override
+    public IPlayer getIPlayer() {
+        return new SpongePlayer(event.getTargetEntity());
     }
 
     @Override

@@ -9,19 +9,6 @@ public class ExampleClass {
 
     public int marker;
 
-    public static void reset() {
-        foo = 42;
-        bar = false;
-    }
-
-    public static int baz(int merp) {
-        return merp * 2;
-    }
-
-    public static String add(String a, String b) {
-        return a + b;
-    }
-
     public ExampleClass(int x) {
         this.marker = 0;
     }
@@ -36,5 +23,18 @@ public class ExampleClass {
 
     public ExampleClass(Object x) {
         this.marker = 3;
+    }
+
+    public static void reset() {
+        foo = 42;
+        bar = false;
+    }
+
+    public static int baz(int merp) {
+        return merp * 2;
+    }
+
+    public static String add(String a, String b) {
+        return a + b;
     }
 }

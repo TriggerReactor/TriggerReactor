@@ -6,24 +6,6 @@ import org.junit.Test;
 public class TimingsTest {
 
     @Test
-    public void testTiming() {
-        Timings.Timing timingName = Timings.getTiming("my.timing.name");
-        Timings.Timing timingTiming = Timings.getTiming("my.timing");
-        Timings.Timing timingMy = Timings.getTiming("my");
-        Timings.Timing root = Timings.getTiming(null);
-
-        Assert.assertNotNull(timingName);
-        Assert.assertNotNull(timingTiming);
-        Assert.assertNotNull(timingMy);
-        Assert.assertNotNull(root);
-
-        Assert.assertEquals(timingName, Timings.getTiming("my.timing.name"));
-        Assert.assertEquals(timingTiming, Timings.getTiming("my.timing"));
-        Assert.assertEquals(timingMy, Timings.getTiming("my"));
-        Assert.assertEquals(root, Timings.getTiming(null));
-    }
-
-    @Test
     public void testExampleTiming() throws Exception {
         Timings.on = true;
 
@@ -61,5 +43,23 @@ public class TimingsTest {
         }
 
         //Timings.print(Timings.getTiming(null), System.out);
+    }
+
+    @Test
+    public void testTiming() {
+        Timings.Timing timingName = Timings.getTiming("my.timing.name");
+        Timings.Timing timingTiming = Timings.getTiming("my.timing");
+        Timings.Timing timingMy = Timings.getTiming("my");
+        Timings.Timing root = Timings.getTiming(null);
+
+        Assert.assertNotNull(timingName);
+        Assert.assertNotNull(timingTiming);
+        Assert.assertNotNull(timingMy);
+        Assert.assertNotNull(root);
+
+        Assert.assertEquals(timingName, Timings.getTiming("my.timing.name"));
+        Assert.assertEquals(timingTiming, Timings.getTiming("my.timing"));
+        Assert.assertEquals(timingMy, Timings.getTiming("my"));
+        Assert.assertEquals(root, Timings.getTiming(null));
     }
 }

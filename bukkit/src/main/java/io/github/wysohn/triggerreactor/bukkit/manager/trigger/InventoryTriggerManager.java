@@ -41,81 +41,18 @@ import java.util.List;
 import java.util.Map;
 
 @Singleton
-public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack> implements BukkitTriggerManager {
+public class InventoryTriggerManager extends AbstractInventoryTriggerManager<ItemStack>
+        implements BukkitTriggerManager {
     @Inject
     public InventoryTriggerManager() {
         super("InventoryTrigger", ItemStack.class);
     }
 
-    /**
-     * @param player
-     * @param name
-     * @return the opened Inventory's reference; null if no Inventory Trigger found
-     */
-    public IInventory openGUI(Player player, String name) {
-        IPlayer bukkitPlayer = main.getWrapper().wrap(player);
-        return openGUI(bukkitPlayer, name);
-    }
-
-    @EventHandler
-    public void onOpen(InventoryOpenEvent e) {
-        Inventory inventory = e.getInventory();
-
-        if (!this.hasInventoryOpen(main.getWrapper().wrap(inventory)))
-            return;
-        InventoryTrigger trigger = getTriggerForOpenInventory(main.getWrapper().wrap(inventory));
-
-        Map<String, Object> varMap = getSharedVarsForInventory(main.getWrapper().wrap(inventory));
-        varMap.put("player", e.getPlayer());
-        varMap.put("trigger", "open");
-
-        trigger.activate(e, varMap);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onDrag(InventoryDragEvent e) {
-        Inventory inventory = e.getInventory();
-
-        if (!this.hasInventoryOpen(main.getWrapper().wrap(inventory)))
-            return;
-        e.setCancelled(true);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onClick(InventoryClickEvent e) {
-        Inventory inventory = e.getInventory();
-
-        if (!this.hasInventoryOpen(main.getWrapper().wrap(inventory)))
-            return;
-        InventoryTrigger trigger = getTriggerForOpenInventory(main.getWrapper().wrap(inventory));
-
-        // just always cancel if it's GUI
-        e.setCancelled(true);
-
-        if (!(e.getWhoClicked() instanceof Player))
-            return;
-
-        if (e.getRawSlot() < 0)
-            return;
-
-        ItemStack clickedItem = e.getCurrentItem();
-        if (clickedItem == null)
-            clickedItem = new ItemStack(Material.AIR);
-
-        Map<String, Object> varMap = getSharedVarsForInventory(main.getWrapper().wrap(inventory));
-        varMap.put("item", clickedItem.clone());
-        varMap.put("slot", e.getRawSlot());
-        varMap.put("click", e.getClick().name());
-        varMap.put("hotbar", e.getHotbarButton());
-        varMap.put("trigger", "click");
-
-        trigger.activate(e, varMap);
-    }
-
-    @EventHandler
-    public void onClose(InventoryCloseEvent e) {
-        IPlayer bukkitPlayer = main.getWrapper().wrap((Player) e.getPlayer());
-        onInventoryClose(e, bukkitPlayer, main.getWrapper().wrap(e.getInventory()));
+    @Override
+    protected IInventory createInventory(int size, String name) {
+        name = name.replaceAll("_", " ");
+        name = ChatColor.translateAlternateColorCodes('&', name);
+        return main.getWrapper().wrap(Bukkit.createInventory(null, size, name));
     }
 
     @Override
@@ -127,6 +64,11 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
                 inv.setItem(i, getColoredItem(item.get()));
             }
         }
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     /**
@@ -156,15 +98,68 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         return item;
     }
 
-    @Override
-    protected IInventory createInventory(int size, String name) {
-        name = name.replaceAll("_", " ");
-        name = ChatColor.translateAlternateColorCodes('&', name);
-        return main.getWrapper().wrap(Bukkit.createInventory(null, size, name));
+    @EventHandler(ignoreCancelled = true)
+    public void onClick(InventoryClickEvent e) {
+        Inventory inventory = e.getInventory();
+
+        if (!this.hasInventoryOpen(main.getWrapper().wrap(inventory))) return;
+        InventoryTrigger trigger = getTriggerForOpenInventory(main.getWrapper().wrap(inventory));
+
+        // just always cancel if it's GUI
+        e.setCancelled(true);
+
+        if (!(e.getWhoClicked() instanceof Player)) return;
+
+        if (e.getRawSlot() < 0) return;
+
+        ItemStack clickedItem = e.getCurrentItem();
+        if (clickedItem == null) clickedItem = new ItemStack(Material.AIR);
+
+        Map<String, Object> varMap = getSharedVarsForInventory(main.getWrapper().wrap(inventory));
+        varMap.put("item", clickedItem.clone());
+        varMap.put("slot", e.getRawSlot());
+        varMap.put("click", e.getClick().name());
+        varMap.put("hotbar", e.getHotbarButton());
+        varMap.put("trigger", "click");
+
+        trigger.activate(e, varMap);
     }
 
-    @Override
-    public void onDisable() {
-        
+    @EventHandler
+    public void onClose(InventoryCloseEvent e) {
+        IPlayer bukkitPlayer = main.getWrapper().wrap((Player) e.getPlayer());
+        onInventoryClose(e, bukkitPlayer, main.getWrapper().wrap(e.getInventory()));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onDrag(InventoryDragEvent e) {
+        Inventory inventory = e.getInventory();
+
+        if (!this.hasInventoryOpen(main.getWrapper().wrap(inventory))) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onOpen(InventoryOpenEvent e) {
+        Inventory inventory = e.getInventory();
+
+        if (!this.hasInventoryOpen(main.getWrapper().wrap(inventory))) return;
+        InventoryTrigger trigger = getTriggerForOpenInventory(main.getWrapper().wrap(inventory));
+
+        Map<String, Object> varMap = getSharedVarsForInventory(main.getWrapper().wrap(inventory));
+        varMap.put("player", e.getPlayer());
+        varMap.put("trigger", "open");
+
+        trigger.activate(e, varMap);
+    }
+
+    /**
+     * @param player
+     * @param name
+     * @return the opened Inventory's reference; null if no Inventory Trigger found
+     */
+    public IInventory openGUI(Player player, String name) {
+        IPlayer bukkitPlayer = main.getWrapper().wrap(player);
+        return openGUI(bukkitPlayer, name);
     }
 }

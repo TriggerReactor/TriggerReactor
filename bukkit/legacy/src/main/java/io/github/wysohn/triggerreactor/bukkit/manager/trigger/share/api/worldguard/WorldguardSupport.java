@@ -20,7 +20,7 @@ import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,8 +33,18 @@ import java.util.Set;
 public class WorldguardSupport extends APISupport {
     private WorldGuardPlugin wg;
 
-    public WorldguardSupport(TriggerReactorMain plugin) {
-        super(plugin, "WorldGuard");
+    public WorldguardSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
+        super(targetPluginInstance, api);
+    }
+
+    @Override
+    public String getVariableName() {
+        return "worldguard";
+    }
+
+    @Override
+    public void onDisable() {
+
     }
 
     @Override
@@ -46,6 +56,32 @@ public class WorldguardSupport extends APISupport {
         }
 
         wg = (WorldGuardPlugin) plugin;
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+
+    }
+
+    /**
+     * @param world
+     * @param regionName
+     * @return array of min/max locations. [0] for smallest, [1] for largest. Always length of 2.
+     * returns null if provided region name doesn't exists.
+     */
+    public Location[] getRegion(World world, String regionName) {
+        Location[] locs = new Location[2];
+
+        ProtectedRegion region = wg.getRegionManager(world).getRegion(regionName);
+        if (region == null) return null;
+
+        BlockVector min = region.getMinimumPoint();
+        BlockVector max = region.getMaximumPoint();
+
+        locs[0] = new Location(world, min.getX(), min.getY(), min.getZ());
+        locs[1] = new Location(world, max.getX(), max.getY(), max.getZ());
+
+        return locs;
     }
 
     /**
@@ -66,27 +102,5 @@ public class WorldguardSupport extends APISupport {
 
     public boolean regionExists(World world, String regionName) {
         return wg.getRegionManager(world).getRegion(regionName) != null;
-    }
-
-    /**
-     * @param world
-     * @param regionName
-     * @return array of min/max locations. [0] for smallest, [1] for largest. Always length of 2.
-     * returns null if provided region name doesn't exists.
-     */
-    public Location[] getRegion(World world, String regionName) {
-        Location[] locs = new Location[2];
-
-        ProtectedRegion region = wg.getRegionManager(world).getRegion(regionName);
-        if (region == null)
-            return null;
-
-        BlockVector min = region.getMinimumPoint();
-        BlockVector max = region.getMaximumPoint();
-
-        locs[0] = new Location(world, min.getX(), min.getY(), min.getZ());
-        locs[1] = new Location(world, max.getX(), max.getY(), max.getZ());
-
-        return locs;
     }
 }

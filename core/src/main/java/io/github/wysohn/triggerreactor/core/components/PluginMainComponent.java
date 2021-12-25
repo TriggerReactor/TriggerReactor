@@ -15,9 +15,13 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.main;
+package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Component;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.modules.*;
 import io.github.wysohn.triggerreactor.core.scope.PluginScope;
@@ -28,35 +32,33 @@ import java.io.File;
 import java.util.Set;
 import java.util.logging.Logger;
 
-@Component(modules = {
-        ConfigSourceFactoryModule.class,
-        CorePluginMainModule.class,
-        CoreManagerModule.class,
-        CoreTriggerModule.class,
-        CoreExternalAPIModule.class,
-        CoreScriptEngineModule.class,
-        CoreGameControllerModule.class,
-        CoreUtilModule.class,
-})
+@Component(modules = {ConfigSourceFactoryModule.class,
+                      CorePluginMainModule.class,
+                      CoreManagerModule.class,
+                      CoreTriggerModule.class,
+                      CoreExternalAPIModule.class,
+                      CoreScriptEngineModule.class,
+                      CoreGameControllerModule.class,
+                      CoreUtilModule.class,})
 @PluginScope
 public interface PluginMainComponent {
     ITriggerReactorAPI api();
 
-    @Named("PluginInstance")
-    Object pluginInstance();
-
-    Logger logger();
-
     @Named("DataFolder")
     File dataFolder();
 
-    IWrapper wrapper();
-
     TriggerReactorMain getMain();
+
+    Logger logger();
+
+    Set<Manager> managers();
+
+    @Named("PluginInstance")
+    Object pluginInstance();
 
     IPluginLifecycleController pluginLifecycleController();
 
     SelfReference selfReference();
 
-    Set<Manager> managers();
+    IWrapper wrapper();
 }

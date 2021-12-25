@@ -29,8 +29,8 @@ public class UsagePrompt implements Prompt {
     }
 
     @Override
-    public Prompt acceptInput(ConversationContext arg0, String arg1) {
-        return next;
+    public String getPromptText(ConversationContext arg0) {
+        return ChatColor.translateAlternateColorCodes('&', ScriptEditor.USAGE);
     }
 
     @Override
@@ -39,8 +39,8 @@ public class UsagePrompt implements Prompt {
     }
 
     @Override
-    public String getPromptText(ConversationContext arg0) {
-        return ChatColor.translateAlternateColorCodes('&', ScriptEditor.USAGE);
+    public Prompt acceptInput(ConversationContext arg0, String arg1) {
+        return next;
     }
 
 }

@@ -41,12 +41,9 @@ public class BukkitInventory implements IInventory {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
         BukkitInventory other = (BukkitInventory) obj;
         if (inventory == null) {
             return other.inventory == null;

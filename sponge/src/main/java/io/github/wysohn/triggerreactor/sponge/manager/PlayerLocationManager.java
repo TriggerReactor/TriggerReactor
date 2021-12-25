@@ -32,33 +32,17 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager {
         setCurrentBlockLocation(player.getUniqueId(), sloc);
     }
 
-    @Listener
-    public void onSpawn(RespawnPlayerEvent e) {
-        Player player = e.getTargetEntity();
-        Location<World> loc = player.getLocation();
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
-        setCurrentBlockLocation(player.getUniqueId(), sloc);
-    }
-
-    @Listener(order = Order.BEFORE_POST)
-    public void onQuit(ClientConnectionEvent.Disconnect e) {
-        Player player = e.getTargetEntity();
-        removeCurrentBlockLocation(player.getUniqueId());
-    }
-
     @Listener(order = Order.FIRST)
     public void onMove(MoveEntityEvent e) {
         Entity entity = e.getTargetEntity();
-        if (!(entity instanceof Player))
-            return;
+        if (!(entity instanceof Player)) return;
 
         Player player = (Player) e.getTargetEntity();
 
         Transform<World> transformFrom = e.getFromTransform();
         Transform<World> transformTo = e.getToTransform();
 
-        if (transformFrom.equals(transformTo))
-            return;
+        if (transformFrom.equals(transformTo)) return;
 
         SimpleLocation from = getCurrentBlockLocation(player.getUniqueId());
         SimpleLocation to = LocationUtil.convertToSimpleLocation(transformTo.getLocation());
@@ -70,6 +54,20 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager {
             transformTo.setLocation(loc);
             e.setToTransform(transformTo);
         }
+    }
+
+    @Listener(order = Order.BEFORE_POST)
+    public void onQuit(ClientConnectionEvent.Disconnect e) {
+        Player player = e.getTargetEntity();
+        removeCurrentBlockLocation(player.getUniqueId());
+    }
+
+    @Listener
+    public void onSpawn(RespawnPlayerEvent e) {
+        Player player = e.getTargetEntity();
+        Location<World> loc = player.getLocation();
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(loc);
+        setCurrentBlockLocation(player.getUniqueId(), sloc);
     }
 
     @Override

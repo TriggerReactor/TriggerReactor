@@ -22,45 +22,10 @@ public class AreaTrigger extends Trigger {
     private ExitTrigger exitTrigger;
     private AbstractAreaTriggerManager.EventType type = null;
 
-    public AreaTrigger(ITriggerReactorAPI api,
-                       TriggerInfo info,
-                       Area area, File folder) {
+    public AreaTrigger(ITriggerReactorAPI api, TriggerInfo info, Area area, File folder) {
         super(api, info, null); // area trigger has scripts in its folder
         this.area = area;
         this.folder = folder;
-    }
-
-    public Area getArea() {
-        return area;
-    }
-
-    //we don't need interpreter for area trigger but enter and exit trigger
-    @Override
-    protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-        return null;
-    }
-
-    public void activate(Object e, Map<String, Object> scriptVars, AbstractAreaTriggerManager.EventType type) {
-        this.type = type;
-
-        super.activate(e, scriptVars);
-    }
-
-    //intercept and pass interpretation to appropriate trigger
-    @Override
-    protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-        switch (type) {
-            case ENTER:
-                if (getEnterTrigger() != null)
-                    getEnterTrigger().activate(e, scriptVars);
-                break;
-            case EXIT:
-                if (getExitTrigger() != null)
-                    getExitTrigger().activate(e, scriptVars);
-                break;
-            default:
-                throw new RuntimeException("Unknown area event type " + type);
-        }
     }
 
     @Override
@@ -69,15 +34,52 @@ public class AreaTrigger extends Trigger {
     }
 
     @Override
+    public String toString() {
+        return super.toString() + "{" + "area=" + area + '}';
+    }
+
+    @Override
     protected String getTimingId() {
         return StringUtils.dottedPath(super.getTimingId(), area.toString());
     }
 
+    //we don't need interpreter for area trigger but enter and exit trigger
     @Override
-    public String toString() {
-        return super.toString() + "{" +
-                "area=" + area +
-                '}';
+    protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
+        return null;
+    }
+
+    //intercept and pass interpretation to appropriate trigger
+    @Override
+    protected void startInterpretation(Object e,
+                                       Map<String, Object> scriptVars,
+                                       Interpreter interpreter,
+                                       boolean sync) {
+        switch (type) {
+            case ENTER:
+                if (getEnterTrigger() != null) getEnterTrigger().activate(e, scriptVars);
+                break;
+            case EXIT:
+                if (getExitTrigger() != null) getExitTrigger().activate(e, scriptVars);
+                break;
+            default:
+                throw new RuntimeException("Unknown area event type " + type);
+        }
+    }
+
+    public void activate(Object e, Map<String, Object> scriptVars, AbstractAreaTriggerManager.EventType type) {
+        this.type = type;
+
+        super.activate(e, scriptVars);
+    }
+
+    public void addEntity(IEntity entity) {
+        WeakReference<IEntity> ref = new WeakReference<>(entity);
+        this.trackedEntities.put(entity.getUniqueId(), ref);
+    }
+
+    public Area getArea() {
+        return area;
     }
 
     public EnterTrigger getEnterTrigger() {
@@ -90,41 +92,6 @@ public class AreaTrigger extends Trigger {
 
     public void setEnterTrigger(EnterTrigger enterTrigger) {
         this.enterTrigger = enterTrigger;
-    }
-
-    public ExitTrigger getExitTrigger() {
-        return exitTrigger;
-    }
-
-    public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        exitTrigger = new ExitTrigger(api, getInfo(), script, this);
-    }
-
-    public void setExitTrigger(ExitTrigger exitTrigger) {
-        this.exitTrigger = exitTrigger;
-    }
-
-    public void addEntity(IEntity entity) {
-        WeakReference<IEntity> ref = new WeakReference<>(entity);
-        this.trackedEntities.put(entity.getUniqueId(), ref);
-    }
-
-    public void removeEntity(UUID uuid) {
-        this.trackedEntities.remove(uuid);
-    }
-
-    public IEntity getEntity(UUID uuid) {
-        WeakReference<IEntity> ref = this.trackedEntities.get(uuid);
-        if (ref == null)
-            return null;
-
-        IEntity entity = ref.get();
-        //just remove it as it's got garbage-collected.
-        if (entity == null) {
-            this.trackedEntities.remove(uuid);
-        }
-
-        return entity;
     }
 
     public List<IEntity> getEntities() {
@@ -148,6 +115,35 @@ public class AreaTrigger extends Trigger {
         return entities;
     }
 
+    public IEntity getEntity(UUID uuid) {
+        WeakReference<IEntity> ref = this.trackedEntities.get(uuid);
+        if (ref == null) return null;
+
+        IEntity entity = ref.get();
+        //just remove it as it's got garbage-collected.
+        if (entity == null) {
+            this.trackedEntities.remove(uuid);
+        }
+
+        return entity;
+    }
+
+    public ExitTrigger getExitTrigger() {
+        return exitTrigger;
+    }
+
+    public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        exitTrigger = new ExitTrigger(api, getInfo(), script, this);
+    }
+
+    public void setExitTrigger(ExitTrigger exitTrigger) {
+        this.exitTrigger = exitTrigger;
+    }
+
+    public void removeEntity(UUID uuid) {
+        this.trackedEntities.remove(uuid);
+    }
+
     public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
@@ -162,11 +158,6 @@ public class AreaTrigger extends Trigger {
         }
 
         @Override
-        protected String getTimingId() {
-            return StringUtils.dottedPath(areaTrigger.getTimingId(), "Enter");
-        }
-
-        @Override
         public Trigger clone() {
             try {
                 return new EnterTrigger(api, info, script, areaTrigger);
@@ -174,6 +165,11 @@ public class AreaTrigger extends Trigger {
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        protected String getTimingId() {
+            return StringUtils.dottedPath(areaTrigger.getTimingId(), "Enter");
         }
 
     }
@@ -192,11 +188,6 @@ public class AreaTrigger extends Trigger {
         }
 
         @Override
-        protected String getTimingId() {
-            return StringUtils.dottedPath(areaTrigger.getTimingId(), "Exit");
-        }
-
-        @Override
         public Trigger clone() {
             try {
                 return new ExitTrigger(api, info, script, areaTrigger);
@@ -204,6 +195,11 @@ public class AreaTrigger extends Trigger {
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        protected String getTimingId() {
+            return StringUtils.dottedPath(areaTrigger.getTimingId(), "Exit");
         }
 
     }

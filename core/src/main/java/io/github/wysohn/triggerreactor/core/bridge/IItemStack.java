@@ -18,13 +18,13 @@ package io.github.wysohn.triggerreactor.core.bridge;
 
 public interface IItemStack extends IMinecraftObject, Cloneable {
 
+    IItemStack clone();
+
     /**
      * Returns the item type. It varies on the platform. (Material for Bukkit API for example)
      *
      * @return
      */
     <T> T getType();
-
-    IItemStack clone();
 
 }

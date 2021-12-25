@@ -30,6 +30,5 @@ public interface Placeholder {
      * @param args    arguments to be used
      * @return replaced value. Should be always primitive type. Can be null if something went wrong
      */
-    Object parse(Timings.Timing timing, Object context, Map<String, Object> vars,
-                 Object... args) throws Exception;
+    Object parse(Timings.Timing timing, Object context, Map<String, Object> vars, Object... args) throws Exception;
 }

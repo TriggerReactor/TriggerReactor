@@ -30,12 +30,8 @@ public class ExitConfirmPrompt implements Prompt {
     }
 
     @Override
-    public Prompt acceptInput(ConversationContext arg0, String arg1) {
-        if (arg1.equalsIgnoreCase("yes")) {
-            return Prompt.END_OF_CONVERSATION;
-        } else {
-            return fallback;
-        }
+    public String getPromptText(ConversationContext arg0) {
+        return ChatColor.GOLD + "Are you sure to exit? " + ChatColor.RED + "Unsaved data will all be deleted! " + ChatColor.GOLD + "Type " + ChatColor.GREEN + "yes " + ChatColor.GOLD + "to exit or type " + ChatColor.RED + "anything " + ChatColor.BLUE + "to cancel.";
     }
 
     @Override
@@ -44,10 +40,12 @@ public class ExitConfirmPrompt implements Prompt {
     }
 
     @Override
-    public String getPromptText(ConversationContext arg0) {
-        return ChatColor.GOLD + "Are you sure to exit? " + ChatColor.RED + "Unsaved data will all be deleted! "
-                + ChatColor.GOLD + "Type " + ChatColor.GREEN + "yes " + ChatColor.GOLD + "to exit or type "
-                + ChatColor.RED + "anything " + ChatColor.BLUE + "to cancel.";
+    public Prompt acceptInput(ConversationContext arg0, String arg1) {
+        if (arg1.equalsIgnoreCase("yes")) {
+            return Prompt.END_OF_CONVERSATION;
+        } else {
+            return fallback;
+        }
     }
 
 }

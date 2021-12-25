@@ -20,23 +20,20 @@ import java.util.function.Predicate;
 
 public class ValidationUtil {
     public static <T> void notNull(T obj) {
-        if (obj == null)
-            throw new RuntimeException("Value cannot be null.");
+        if (obj == null) throw new RuntimeException("Value cannot be null.");
     }
 
     public static <T> void allNotNull(T... objs) {
         for (T obj : objs) {
-            if (obj == null)
-                throw new RuntimeException("At least one of the element in array is null.");
+            if (obj == null) throw new RuntimeException("At least one of the element in array is null.");
         }
     }
 
-    public static <T> void assertTrue(T obj, Predicate<T> predicate, String message){
-        if(!predicate.test(obj))
-            throw new RuntimeException(message);
+    public static <T> void assertTrue(T obj, Predicate<T> predicate, String message) {
+        if (!predicate.test(obj)) throw new RuntimeException(message);
     }
 
-    public static <T> void assertTrue(T obj, Predicate<T> predicate){
+    public static <T> void assertTrue(T obj, Predicate<T> predicate) {
         assertTrue(obj, predicate, "Test fail.");
     }
 }

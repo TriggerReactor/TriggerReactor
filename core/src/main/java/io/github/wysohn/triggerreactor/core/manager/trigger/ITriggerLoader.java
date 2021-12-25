@@ -9,6 +9,10 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public interface ITriggerLoader<T extends Trigger> {
+    T load(TriggerInfo info) throws InvalidTrgConfigurationException;
+
+    void save(T trigger);
+
     default TriggerInfo[] listTriggers(File folder, ConfigSourceFactories fn) {
         return Optional.ofNullable(folder.listFiles())
                 .map(files -> Arrays.stream(files)
@@ -26,8 +30,4 @@ public interface ITriggerLoader<T extends Trigger> {
     default TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
         return TriggerInfo.defaultInfo(file, configSource);
     }
-
-    T load(TriggerInfo info) throws InvalidTrgConfigurationException;
-
-    void save(T trigger);
 }

@@ -35,8 +35,7 @@ import static org.junit.Assert.assertTrue;
 public class TypeValidatorChainTest {
     @Test
     public void testBuilder() {
-        ITypeValidator validator = new TypeValidatorChain.Builder()
-                .addChain(new DefaultValidator())
+        ITypeValidator validator = new TypeValidatorChain.Builder().addChain(new DefaultValidator())
                 .addChain(new UUIDValidator())
                 .addChain(new SimpleLocationValidator())
                 .addChain(new SimpleChunkLocationValidator())

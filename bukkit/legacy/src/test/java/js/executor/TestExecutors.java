@@ -39,9 +39,7 @@ public class TestExecutors extends AbstractTestExecutors {
     public void testMoney() throws Exception {
         VaultSupport vVault = Mockito.mock(VaultSupport.class);
         Player vp = Mockito.mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "MONEY")
-                .addVariable("vault", vVault)
-                .addVariable("player", vp);
+        JsTest test = new ExecutorTest(engine, "MONEY").addVariable("vault", vVault).addVariable("player", vp);
 
         test.withArgs(30).test();
         Mockito.verify(vVault).give(vp, 30);
@@ -64,9 +62,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(block.getState()).thenReturn(state);
         when(state.getData()).thenReturn(data);
 
-        new ExecutorTest(engine, "ROTATEBLOCK")
-                .withArgs(BlockFace.NORTH.name(), location)
-                .test();
+        new ExecutorTest(engine, "ROTATEBLOCK").withArgs(BlockFace.NORTH.name(), location).test();
 
         verify(data).setFacingDirection(BlockFace.NORTH);
         verify(state).setData(data);
@@ -83,10 +79,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(block.getType()).thenReturn(Material.SIGN_POST);
         when(block.getState()).thenReturn(sign);
 
-        new ExecutorTest(engine, "SIGNEDIT")
-                .withArgs(0, "line1", location)
-                .addVariable("player", player)
-                .test();
+        new ExecutorTest(engine, "SIGNEDIT").withArgs(0, "line1", location).addVariable("player", player).test();
 
         verify(sign).setLine(0, "line1");
         verify(sign).update();
@@ -118,10 +111,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs(1, 33, 96, -15)
-                .test();
+        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player).withArgs(1, 33, 96, -15).test();
 
         verify(block).setType(eq(Material.STONE));
         verify(block).setData(eq((byte) 0));
@@ -138,10 +128,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
-                .withArgs(4, 3, 33, 96, -15)
-                .test();
+        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player).withArgs(4, 3, 33, 96, -15).test();
 
         verify(block).setType(eq(Material.COBBLESTONE));
         verify(block).setData(eq((byte) 3));
@@ -158,8 +145,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK")
-                .addVariable("player", player)
+        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player)
                 .withArgs(3, 2, new Location(mockWorld, 33, 96, -15))
                 .test();
 

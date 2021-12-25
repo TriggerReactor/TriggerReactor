@@ -25,14 +25,41 @@ import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-public abstract class AbstractPlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
+public abstract class AbstractPlaceholderManager extends AbstractJavascriptBasedManager
+        implements KeyValueManager<Placeholder> {
     protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
+
+    @Override
+    public boolean containsKey(Object key) {
+        return jsPlaceholders.containsKey(key);
+    }
+
+    @Override
+    public Set<Entry<String, Placeholder>> entrySet() {
+        Set<Entry<String, Placeholder>> set = new HashSet<>();
+        for (Entry<String, Placeholder> entry : jsPlaceholders.entrySet()) {
+            set.add(new AbstractMap.SimpleEntry<String, Placeholder>(entry.getKey(), entry.getValue()));
+        }
+        return set;
+    }
+
+    @Override
+    public Placeholder get(Object key) {
+        return jsPlaceholders.get(key);
+    }
+
+    @Override
+    public Map<String, Placeholder> getBackedMap() {
+        return jsPlaceholders;
+    }
 
     protected void reloadPlaceholders(File file, FileFilter filter) throws ScriptException, IOException {
         reloadPlaceholders(new Stack<>(), file, filter);
     }
 
-    private void reloadPlaceholders(Stack<String> name, File file, FileFilter filter) throws ScriptException, IOException {
+    private void reloadPlaceholders(Stack<String> name,
+                                    File file,
+                                    FileFilter filter) throws ScriptException, IOException {
         if (file.isDirectory()) {
             name.push(file.getName());
             for (File f : file.listFiles(filter)) {
@@ -58,41 +85,23 @@ public abstract class AbstractPlaceholderManager extends AbstractJavascriptBased
         }
     }
 
-    @Override
-    public Placeholder get(Object key) {
-        return jsPlaceholders.get(key);
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return jsPlaceholders.containsKey(key);
-    }
-
-    @Override
-    public Set<Entry<String, Placeholder>> entrySet() {
-        Set<Entry<String, Placeholder>> set = new HashSet<>();
-        for (Entry<String, Placeholder> entry : jsPlaceholders.entrySet()) {
-            set.add(new AbstractMap.SimpleEntry<String, Placeholder>(entry.getKey(), entry.getValue()));
-        }
-        return set;
-    }
-
-    @Override
-    public Map<String, Placeholder> getBackedMap() {
-        return jsPlaceholders;
-    }
-
     public class JSPlaceholder extends Evaluable<Object> implements Placeholder {
-        public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException, IOException {
+        public JSPlaceholder(String placeholderName,
+                             ScriptEngine engine,
+                             File file) throws ScriptException, IOException {
             this(placeholderName, engine, new FileInputStream(file));
         }
 
-        public JSPlaceholder(String placeholderName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
+        public JSPlaceholder(String placeholderName,
+                             ScriptEngine engine,
+                             InputStream file) throws ScriptException, IOException {
             super("$", "Placeholders", placeholderName, readSourceCode(file), engine);
         }
 
         @Override
-        public Object parse(Timings.Timing timing, Object context, Map<String, Object> variables,
+        public Object parse(Timings.Timing timing,
+                            Object context,
+                            Map<String, Object> variables,
                             Object... args) throws Exception {
             return evaluate(timing, variables, context, args);
         }

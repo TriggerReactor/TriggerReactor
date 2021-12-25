@@ -15,13 +15,17 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.config;
+package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Component;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
-import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.modules.CoreExternalAPIModule;
 
-@Component(modules = {ConfigSourceFactoryModule.class})
-public interface ConfigurationComponent {
-    ConfigSourceFactories factories();
+import javax.inject.Singleton;
+import java.util.Map;
+
+@Component(modules = {CoreExternalAPIModule.class})
+@Singleton
+public interface ExternalAPIComponent {
+    Map<String, Class<? extends AbstractAPISupport>> externalAPIProtoMap();
 }

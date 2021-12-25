@@ -15,16 +15,20 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
+package io.github.wysohn.triggerreactor.bukkit.module;
 
-import dagger.Component;
-import io.github.wysohn.triggerreactor.core.modules.CoreExternalAPIModule;
+import dagger.Binds;
+import dagger.Module;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitWrapper;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
-import javax.inject.Singleton;
-import java.util.Map;
+@Module
+public abstract class LegacyBukkitModule {
+    @Binds
+    abstract SelfReference bindSelfReference(CommonFunctions fn);
 
-@Component(modules = {CoreExternalAPIModule.class})
-@Singleton
-public interface ExternalAPIComponent {
-    Map<String, Class<? extends AbstractAPISupport>> externalAPIProtoMap();
+    @Binds
+    abstract IWrapper bindWrapper(BukkitWrapper wrapper);
 }
