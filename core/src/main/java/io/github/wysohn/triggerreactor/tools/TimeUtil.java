@@ -23,6 +23,33 @@ public class TimeUtil {
     private static Pattern pattern = Pattern.compile("(\\d+)(h|m|s|t)");
 
     /**
+     * Convert interval into formatted
+     *
+     * @param interval
+     * @return
+     */
+    public static String milliSecondsToString(long interval) {
+        int r = 0;
+
+        int hour = (int) interval / (60 * 60 * 1000);
+        r = (int) interval % (60 * 60 * 1000);
+
+        int minute = r / (60 * 1000);
+        r = r % (60 * 1000);
+
+        int second = r / (1000);
+        r = r % (1000);
+
+        int tick = r / (50);
+
+        return hour + "h " + minute + "m " + second + "s " + tick + "t";
+    }
+
+    public static void main(String[] ar) {
+        System.out.println(parseTime("12h33m50s"));
+    }
+
+    /**
      * convert time format into milliseconds
      *
      * @param str the format string
@@ -49,32 +76,5 @@ public class TimeUtil {
         }
 
         return sum;
-    }
-
-    /**
-     * Convert interval into formatted
-     *
-     * @param interval
-     * @return
-     */
-    public static String milliSecondsToString(long interval) {
-        int r = 0;
-
-        int hour = (int) interval / (60 * 60 * 1000);
-        r = (int) interval % (60 * 60 * 1000);
-
-        int minute = r / (60 * 1000);
-        r = r % (60 * 1000);
-
-        int second = r / (1000);
-        r = r % (1000);
-
-        int tick = r / (50);
-
-        return hour + "h " + minute + "m " + second + "s " + tick + "t";
-    }
-
-    public static void main(String[] ar) {
-        System.out.println(parseTime("12h33m50s"));
     }
 }

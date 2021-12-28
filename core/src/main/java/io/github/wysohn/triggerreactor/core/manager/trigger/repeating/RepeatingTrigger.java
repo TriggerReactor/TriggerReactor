@@ -1,52 +1,50 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
+import javax.inject.Inject;
+import java.util.HashMap;
 import java.util.Map;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
+    @Inject
+    IThrowableHandler throwableHandler;
+
     private long interval = 1000L;
     private boolean autoStart = false;
     private Map<String, Object> vars;
     //////////////////////////////////////////////////////////////////////////////////////
     private boolean paused;
 
-    public RepeatingTrigger(ITriggerReactorAPI api,
-                            TriggerInfo info,
-                            String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        this(api, info, script, 1000L);
-
-        init();
-    }
-
-    public RepeatingTrigger(ITriggerReactorAPI api,
-                            TriggerInfo info,
-                            String script,
-                            long interval) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(api, info, script);
+    @AssistedInject
+    RepeatingTrigger(@Assisted TriggerInfo info, @Assisted String script, @Assisted long interval) {
+        super(info, script);
         this.interval = interval;
-
-        init();
     }
 
-    @Override
-    public RepeatingTrigger clone() {
-        try {
-            return new RepeatingTrigger(api, info, script, interval);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
+    public RepeatingTrigger(Trigger o) {
+        super(o);
+        ValidationUtil.assertTrue(o, v -> v instanceof RepeatingTrigger);
+        RepeatingTrigger other = (RepeatingTrigger) o;
 
-        return null;
+        this.throwableHandler = other.throwableHandler;
+        this.interval = other.interval;
+        this.autoStart = other.autoStart;
+        this.vars = vars == null ? null : new HashMap<>(vars);
+        this.paused = other.paused;
     }
 
     @Override
     public String toString() {
-        return super.toString() + "{" + "interval=" + interval + ", autoStart=" + autoStart + ", paused=" + paused + '}';
+        return super.toString() + "{" + "interval=" + interval + ", autoStart=" + autoStart + ", paused=" + paused
+                + '}';
     }
 
     /**
@@ -54,11 +52,11 @@ public class RepeatingTrigger extends Trigger implements Runnable {
      * initialized.
      */
     @Override
-    public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
+    public boolean activate(Map<String, Object> scriptVars) {
         ValidationUtil.notNull(scriptVars);
         vars = scriptVars;
 
-        return super.activate(e, scriptVars, sync);
+        return super.activate(scriptVars);
     }
 
     /**
@@ -66,11 +64,11 @@ public class RepeatingTrigger extends Trigger implements Runnable {
      * initialized.
      */
     @Override
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
+    public boolean activate(Map<String, Object> scriptVars, boolean sync) {
         ValidationUtil.notNull(scriptVars);
         vars = scriptVars;
 
-        return super.activate(e, scriptVars);
+        return super.activate(scriptVars, sync);
     }
 
     /**
@@ -91,10 +89,10 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                     }
                 }
 
-                vars.put(AbstractRepeatingTriggerManager.TRIGGER, "repeat");
+                vars.put(RepeatingTriggerManager.TRIGGER, "repeat");
 
                 // we re-use the variables over and over.
-                activate(new Object(), vars);
+                activate(vars);
 
                 try {
                     Thread.sleep(interval);
@@ -103,14 +101,14 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 }
             }
         } catch (Exception e) {
-            api.getThrowableHandler().handleException(null, e);
+            throwableHandler.handleException((ICommandSender) null, e);
         }
 
         try {
-            vars.put(AbstractRepeatingTriggerManager.TRIGGER, "stop");
-            activate(new Object(), vars);
+            vars.put(RepeatingTriggerManager.TRIGGER, "stop");
+            activate(vars);
         } catch (Exception e) {
-            api.getThrowableHandler().handleException(null, e);
+            throwableHandler.handleException((ICommandSender) null, e);
         }
     }
 

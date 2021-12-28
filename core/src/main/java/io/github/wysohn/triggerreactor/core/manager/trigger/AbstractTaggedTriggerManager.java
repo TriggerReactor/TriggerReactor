@@ -22,7 +22,8 @@ public abstract class AbstractTaggedTriggerManager<T extends Trigger> extends Ab
             return new String[]{null, rawTriggerName};
         }
         String[] split = rawTriggerName.split("-", 2);
-        if (split.length < 2) return new String[]{null, rawTriggerName};
+        if (split.length < 2)
+            return new String[]{null, rawTriggerName};
 
         return split;
     }

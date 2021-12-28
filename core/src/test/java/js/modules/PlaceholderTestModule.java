@@ -2,18 +2,18 @@ package js.modules;
 
 import dagger.Binds;
 import dagger.Module;
-import io.github.wysohn.triggerreactor.core.manager.AbstractPlaceholderManager;
+import io.github.wysohn.triggerreactor.core.manager.PlaceholderManager;
 import modules.DummyLoggerModule;
 import modules.FakeDataFolderModule;
 
 import javax.inject.Inject;
 
-@Module(includes = {DefaultTestModule.class, DummyLoggerModule.class, FakeDataFolderModule.class,})
+@Module(includes = {DummyLoggerModule.class, FakeDataFolderModule.class,})
 public abstract class PlaceholderTestModule {
     @Binds
-    abstract AbstractPlaceholderManager bindManager(DummyPlaceholderManager manager);
+    abstract PlaceholderManager bindManager(DummyPlaceholderManager manager);
 
-    static class DummyPlaceholderManager extends AbstractPlaceholderManager {
+    static class DummyPlaceholderManager extends PlaceholderManager {
 
         @Inject
         DummyPlaceholderManager() {
@@ -22,11 +22,6 @@ public abstract class PlaceholderTestModule {
 
         @Override
         public void onDisable() {
-
-        }
-
-        @Override
-        public void onEnable() throws Exception {
 
         }
 

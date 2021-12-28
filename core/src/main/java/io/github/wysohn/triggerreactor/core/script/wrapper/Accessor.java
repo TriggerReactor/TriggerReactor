@@ -49,8 +49,8 @@ public class Accessor {
                 try {
                     return Array.get(targetParent, (Integer) target);
                 } catch (ArrayIndexOutOfBoundsException e) {
-                    throw new IllegalArgumentException(target + " is out of bound for array! Size: " + Array.getLength(
-                            targetParent));
+                    throw new IllegalArgumentException(
+                            target + " is out of bound for array! Size: " + Array.getLength(targetParent));
                 }
             } else if (target instanceof String && ((String) target).equals("length")) {
                 return Array.getLength(targetParent);

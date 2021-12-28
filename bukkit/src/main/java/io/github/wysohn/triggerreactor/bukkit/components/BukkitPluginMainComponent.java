@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.bukkit.components;
 
 import dagger.Component;
-import io.github.wysohn.triggerreactor.bukkit.modules.BukkitManagerModule;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitPluginMainModule;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitScriptEngineModule;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
@@ -29,8 +28,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Set;
 
-@Component(modules = {BukkitPluginMainModule.class, BukkitScriptEngineModule.class, BukkitManagerModule.class},
-           dependencies = {PluginMainComponent.class})
+@Component(modules = {BukkitPluginMainModule.class, BukkitScriptEngineModule.class,},
+           dependencies = {PluginMainComponent.class, BukkitManagerComponent.class})
 @BukkitPluginScope
 public interface BukkitPluginMainComponent {
     void inject(JavaPlugin javaPlugin);

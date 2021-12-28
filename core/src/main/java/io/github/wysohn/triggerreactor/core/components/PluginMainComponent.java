@@ -18,47 +18,32 @@
 package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Component;
-import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.main.IWrapper;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.modules.*;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
+import io.github.wysohn.triggerreactor.core.modules.CoreExternalAPIModule;
+import io.github.wysohn.triggerreactor.core.modules.CoreUtilModule;
+import io.github.wysohn.triggerreactor.core.scope.MainScope;
 
-import javax.inject.Named;
-import java.io.File;
-import java.util.Set;
-import java.util.logging.Logger;
-
-@Component(modules = {ConfigSourceFactoryModule.class,
-                      CorePluginMainModule.class,
-                      CoreManagerModule.class,
-                      CoreTriggerModule.class,
-                      CoreExternalAPIModule.class,
-                      CoreScriptEngineModule.class,
-                      CoreGameControllerModule.class,
-                      CoreUtilModule.class,})
-@PluginScope
+@Component(modules = {ConfigSourceFactoryModule.class, CoreExternalAPIModule.class, CoreUtilModule.class,},
+           dependencies = {ScriptEngineComponent.class,
+                           PluginLifecycleComponent.class,
+                           ManagerComponent.class,
+                           TriggerComponent.class,
+                           BootstrapComponent.class,})
+@MainScope
 public interface PluginMainComponent {
-    ITriggerReactorAPI api();
+    @Component.Builder
+    interface Builder {
+        PluginMainComponent build();
 
-    @Named("DataFolder")
-    File dataFolder();
+        // dependency
+        Builder scriptEngineComponent(ScriptEngineComponent component);
 
-    TriggerReactorMain getMain();
+        Builder pluginLifecycleComponent(PluginLifecycleComponent component);
 
-    Logger logger();
+        Builder managerComponent(ManagerComponent component);
 
-    Set<Manager> managers();
+        Builder triggerComponent(TriggerComponent component);
 
-    @Named("PluginInstance")
-    Object pluginInstance();
-
-    IPluginLifecycleController pluginLifecycleController();
-
-    SelfReference selfReference();
-
-    IWrapper wrapper();
+        Builder bootstrapComponent(BootstrapComponent component);
+    }
 }

@@ -3,30 +3,30 @@ main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor
 version: unspecified
 author: wysohn
 authors:
-  - soliddanii
-  - MidnightSugar
-  - TheBestNightSky
-  - dltks0306
-  - RubrumExPlaneta
-  - Alex4386
-  - RedLime
-  - mrandriyg
-  - professer_snape
-  - gerzytet
-  - Kuiprux
-  - Ioloolo
+- soliddanii
+- MidnightSugar
+- TheBestNightSky
+- dltks0306
+- RubrumExPlaneta
+- Alex4386
+- RedLime
+- mrandriyg
+- professer_snape
+- gerzytet
+- Kuiprux
+- Ioloolo
 softdepend:
-  - Vault
-  - PlaceholderAPI
-  - mcMMO
-  - CoreProtect
-  - ProtocolLib
-  - WorldGuard
-  - NashornJs
+- Vault
+- PlaceholderAPI
+- mcMMO
+- CoreProtect
+- ProtocolLib
+- WorldGuard
+- NashornJs
 commands:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility
 permissions:
   triggerreactor.admin:
@@ -34,5 +34,5 @@ permissions:
 command:
   triggerreactor:
     aliases:
-      - trg
+    - trg
     description: Simple script parser with infinite possibility

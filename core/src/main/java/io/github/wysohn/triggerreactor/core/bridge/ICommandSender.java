@@ -35,5 +35,9 @@ public interface ICommandSender extends IMinecraftObject {
 
     boolean hasPermission(String permission);
 
-    void sendMessage(String message);
+    default void sendMessage(String message) {
+        sendMessage(message, false);
+    }
+
+    void sendMessage(String message, boolean raw);
 }

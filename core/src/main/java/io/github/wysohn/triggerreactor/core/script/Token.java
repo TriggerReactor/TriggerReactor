@@ -24,12 +24,6 @@ public class Token {
     public final Object value;
     public final int row;
     public final int col;
-    public Token(Type type, Object value, int row, int col) {
-        this.type = type;
-        this.value = value;
-        this.row = row;
-        this.col = col;
-    }
 
     public Token(Type type, Object value, Token tokenOrigin) {
         this.type = type;
@@ -46,6 +40,13 @@ public class Token {
         this(type, value, -1, -1);
     }
 
+    public Token(Type type, Object value, int row, int col) {
+        this.type = type;
+        this.value = value;
+        this.row = row;
+        this.col = col;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -57,14 +58,19 @@ public class Token {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         Token other = (Token) obj;
-        if (type != other.type) return false;
+        if (type != other.type)
+            return false;
         if (value == null) {
             return other.value == null;
-        } else return value.equals(other.value);
+        } else
+            return value.equals(other.value);
     }
 
     @Override
@@ -80,24 +86,8 @@ public class Token {
         return value;
     }
 
-    public boolean isArray() {
-        return value != null && value.getClass().isArray();
-    }
-
-    public boolean isBoolean() {
-        return value instanceof Boolean;
-    }
-
     public boolean isBoxedPrimitive() {
         return value != null && BOXED_PRIMITIVES.contains(value.getClass());
-    }
-
-    public boolean isDecimal() {
-        return value instanceof Double || value instanceof Float;
-    }
-
-    public boolean isInteger() {
-        return value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte;
     }
 
     public boolean isIterable() {
@@ -108,8 +98,24 @@ public class Token {
         return isInteger() || isDecimal();
     }
 
+    public boolean isInteger() {
+        return value instanceof Integer || value instanceof Long || value instanceof Short || value instanceof Byte;
+    }
+
+    public boolean isDecimal() {
+        return value instanceof Double || value instanceof Float;
+    }
+
     public boolean isObject() {
         return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
+    }
+
+    public boolean isBoolean() {
+        return value instanceof Boolean;
+    }
+
+    public boolean isArray() {
+        return value != null && value.getClass().isArray();
     }
 
     public boolean isString() {
@@ -131,6 +137,7 @@ public class Token {
     public String toStringRowColOnly() {
         return "at row[" + row + "], col[" + col + "]";
     }
+
     private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<Class<?>>() {{
         add(Boolean.class);
         add(Character.class);

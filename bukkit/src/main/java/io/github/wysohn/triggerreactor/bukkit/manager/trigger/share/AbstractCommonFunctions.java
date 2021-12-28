@@ -1,11 +1,10 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -19,11 +18,23 @@ import org.bukkit.potion.PotionEffect;
 import javax.inject.Inject;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class AbstractCommonFunctions
         extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
     @Inject
-    AbstractAreaTriggerManager areaManager;
+    AreaTriggerManager areaManager;
+
+    /**
+     * Translate money into specified country's currency format. US currency will be used.
+     *
+     * @param money money
+     * @return formatted currecy
+     */
+    @Override
+    public String formatCurrency(double money) {
+        return formatCurrency(money, "en", "US");
+    }
 
     /**
      * Translate money into specified country's currency format. You need to provide exact locale provided
@@ -42,17 +53,6 @@ public abstract class AbstractCommonFunctions
     }
 
     /**
-     * Translate money into specified country's currency format. US currency will be used.
-     *
-     * @param money money
-     * @return formatted currecy
-     */
-    @Override
-    public String formatCurrency(double money) {
-        return formatCurrency(money, "en", "US");
-    }
-
-    /**
      * get list of online players online
      * <p>
      * Example) /trg run FOR p = getPlayers(); p.performCommand("spawn"); ENDFOR;
@@ -61,19 +61,6 @@ public abstract class AbstractCommonFunctions
      * @return player iterator
      */
     public abstract Collection<? extends Player> getPlayers();
-
-    /**
-     * Create a player head with given name.
-     *
-     * <p>
-     * Example) /trg run #GIVE headForName("wysohn")
-     * </p>
-     *
-     * @param targetName name of the owner of head
-     * @param amount     amount
-     * @return the ItemStack head
-     */
-    public abstract ItemStack headForName(String targetName, int amount);
 
     /**
      * Create a player head with given textureValue(base64 encoded).
@@ -147,7 +134,8 @@ public abstract class AbstractCommonFunctions
     /**
      * create a PotionEffect for use in entity.addPotionEffect();
      * <p>
-     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED", 1000000, 5, false, true, bukkitColor(21,2,24) ))
+     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED", 1000000, 5, false, true, bukkitColor(21,2,
+     * 24) ))
      * </p>
      *
      * @param EffectType the name of the PotionEffectType to use
@@ -170,7 +158,8 @@ public abstract class AbstractCommonFunctions
     /**
      * create a PotionEffect for use in entity.addPotionEffect();
      * <p>
-     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED", 1000000, 5, false, true, bukkitColor(21,2,24) ))
+     * Example) /trg run player.addPotionEffect( makePotionEffect("SPEED", 1000000, 5, false, true, bukkitColor(21,2,
+     * 24) ))
      * </p>
      *
      * @param EffectType the name of the PotionEffectType to use
@@ -243,9 +232,11 @@ public abstract class AbstractCommonFunctions
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
+     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't
+     * have a stone"; ENDIF;
      * </p>
-     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
+     * You can find item names in
+     * <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      *
      * @param player target player
      * @param id     item id
@@ -271,9 +262,11 @@ public abstract class AbstractCommonFunctions
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, "STONE", 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
+     * Example) /trg run IF takeItem(player, "STONE", 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You
+     * don't have a granite"; ENDIF;
      * </p>
-     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
+     * You can find item names in
+     * <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      *
      * @param player target player
      * @param id     item id
@@ -291,13 +284,29 @@ public abstract class AbstractCommonFunctions
      */
     public void addLore(ItemStack IS, String lore) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
-        if (IM == null) return;
+        if (IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if (IM == null)
+            return;
         List<String> lores = IM.getLore();
-        if (lores == null) lores = new ArrayList<>();
+        if (lores == null)
+            lores = new ArrayList<>();
         lores.add(color(lore));
         IM.setLore(lores);
         IS.setItemMeta(IM);
+    }
+
+    /**
+     * Translate & into minecraft color code
+     * <p>
+     * Example) /trg run player.sendMessage(color("&aGREEN, &cRED"))
+     * </p>
+     *
+     * @param str unprocessed string
+     * @return string with minecraft color codes
+     */
+    public String color(String str) {
+        return ChatColor.translateAlternateColorCodes('&', str);
     }
 
     /**
@@ -313,6 +322,37 @@ public abstract class AbstractCommonFunctions
      */
     public Block block(String world, int x, int y, int z) {
         return location(world, x, y, z).getBlock();
+    }
+
+    /**
+     * Create Location instance.
+     *
+     * @param world the name of world.
+     * @param x     x coordinate
+     * @param y     y coordinate
+     * @param z     z coordinate
+     * @return the Location.
+     */
+    public Location location(String world, double x, double y, double z) {
+        return location(world, x, y, z, 0.0, 0.0);
+    }
+
+    /**
+     * Create Location instance including pitch and yaw
+     *
+     * @param world the name of world.
+     * @param x     x coordinate
+     * @param y     y coordinate
+     * @param z     z coordinate
+     * @param yaw   yaw
+     * @param pitch pitch
+     * @return the Location instance
+     */
+    public Location location(String world, double x, double y, double z, double yaw, double pitch) {
+        World w = Bukkit.getWorld(world);
+        if (w == null)
+            throw new RuntimeException("world " + world + " does not exists!");
+        return new Location(w, x, y, z, toFloat(yaw), toFloat(pitch));
     }
 
     /**
@@ -339,22 +379,10 @@ public abstract class AbstractCommonFunctions
      */
     public void clearLore(ItemStack IS) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) return;
+        if (IM == null)
+            return;
         IM.setLore(new ArrayList<>());
         IS.setItemMeta(IM);
-    }
-
-    /**
-     * Translate & into minecraft color code
-     * <p>
-     * Example) /trg run player.sendMessage(color("&aGREEN, &cRED"))
-     * </p>
-     *
-     * @param str unprocessed string
-     * @return string with minecraft color codes
-     */
-    public String color(String str) {
-        return ChatColor.translateAlternateColorCodes('&', str);
     }
 
     /**
@@ -372,6 +400,21 @@ public abstract class AbstractCommonFunctions
     public String currentArea(Entity entity) {
         String[] areas = currentAreasAt(entity.getLocation());
         return areas.length > 0 ? areas[0] : null;
+    }
+
+    /**
+     * Get the name of area triggers containing the given location.
+     *
+     * @param location the location to check
+     * @return array of AreaTrigger names. The array can be empty but never null.
+     */
+    public String[] currentAreasAt(Location location) {
+        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location))
+                .stream()
+                .map(Map.Entry::getValue)
+                .map(Trigger::getInfo)
+                .map(TriggerInfo::getTriggerName)
+                .toArray(String[]::new);
     }
 
     /**
@@ -404,21 +447,6 @@ public abstract class AbstractCommonFunctions
     }
 
     /**
-     * Get the name of area triggers containing the given location.
-     *
-     * @param location the location to check
-     * @return array of AreaTrigger names. The array can be empty but never null.
-     */
-    public String[] currentAreasAt(Location location) {
-        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location))
-                .stream()
-                .map(Map.Entry::getValue)
-                .map(Trigger::getInfo)
-                .map(TriggerInfo::getTriggerName)
-                .toArray(String[]::new);
-    }
-
-    /**
      * Get list of entities tracked by this AreaTrigger.
      *
      * @param areaTriggerName name of AreaTrigger to get entities from
@@ -426,13 +454,13 @@ public abstract class AbstractCommonFunctions
      */
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AreaTrigger trigger = areaManager.get(areaTriggerName);
-        if (trigger == null) return null;
+        if (trigger == null)
+            return null;
 
-        List<Entity> entities = new ArrayList<>();
-        for (IEntity ie : trigger.getEntities())
-            entities.add(ie.get());
-
-        return entities;
+        return trigger.getEntities().stream()
+                .filter(Entity.class::isInstance)
+                .map(Entity.class::cast)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -446,7 +474,8 @@ public abstract class AbstractCommonFunctions
      */
     public String getItemTitle(ItemStack IS) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) return "";
+        if (IM == null)
+            return "";
 
         String dispName = IM.getDisplayName();
         return dispName == null ? "" : dispName;
@@ -461,12 +490,15 @@ public abstract class AbstractCommonFunctions
      */
     public String getLore(ItemStack IS, int index) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) return null;
+        if (IM == null)
+            return null;
 
         List<String> lores = IM.getLore();
-        if (lores == null) return null;
+        if (lores == null)
+            return null;
 
-        if (index < 0 || index >= lores.size()) return null;
+        if (index < 0 || index >= lores.size())
+            return null;
 
         return lores.get(index);
     }
@@ -495,10 +527,12 @@ public abstract class AbstractCommonFunctions
      */
     public boolean hasLore(ItemStack IS, String lore) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) return false;
+        if (IM == null)
+            return false;
 
         List<String> lores = IM.getLore();
-        if (lores == null) return false;
+        if (lores == null)
+            return false;
 
         return lores.contains(lore);
     }
@@ -518,34 +552,17 @@ public abstract class AbstractCommonFunctions
     }
 
     /**
-     * Create Location instance.
+     * Create a player head with given name.
      *
-     * @param world the name of world.
-     * @param x     x coordinate
-     * @param y     y coordinate
-     * @param z     z coordinate
-     * @return the Location.
-     */
-    public Location location(String world, double x, double y, double z) {
-        return location(world, x, y, z, 0.0, 0.0);
-    }
-
-    /**
-     * Create Location instance including pitch and yaw
+     * <p>
+     * Example) /trg run #GIVE headForName("wysohn")
+     * </p>
      *
-     * @param world the name of world.
-     * @param x     x coordinate
-     * @param y     y coordinate
-     * @param z     z coordinate
-     * @param yaw   yaw
-     * @param pitch pitch
-     * @return the Location instance
+     * @param targetName name of the owner of head
+     * @param amount     amount
+     * @return the ItemStack head
      */
-    public Location location(String world, double x, double y, double z, double yaw, double pitch) {
-        World w = Bukkit.getWorld(world);
-        if (w == null) throw new RuntimeException("world " + world + " does not exists!");
-        return new Location(w, x, y, z, toFloat(yaw), toFloat(pitch));
-    }
+    public abstract ItemStack headForName(String targetName, int amount);
 
     /**
      * check if two location are equal not considering their decimal points
@@ -569,9 +586,11 @@ public abstract class AbstractCommonFunctions
      */
     public int loreSize(ItemStack IS) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) return 0;
+        if (IM == null)
+            return 0;
         List<String> lores = IM.getLore();
-        if (lores == null) return 0;
+        if (lores == null)
+            return 0;
         return lores.size();
     }
 
@@ -625,12 +644,16 @@ public abstract class AbstractCommonFunctions
      */
     public void removeLore(ItemStack IS, int index) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
-        if (IM == null) return;
+        if (IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if (IM == null)
+            return;
         List<String> lores = IM.getLore();
-        if (lores == null) lores = new ArrayList<>();
+        if (lores == null)
+            lores = new ArrayList<>();
 
-        if (index < 0 || index >= lores.size()) return;
+        if (index < 0 || index >= lores.size())
+            return;
 
         lores.remove(index);
         IM.setLore(lores);
@@ -648,8 +671,10 @@ public abstract class AbstractCommonFunctions
      */
     public void setItemTitle(ItemStack IS, String title) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
-        if (IM == null) return;
+        if (IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if (IM == null)
+            return;
         IM.setDisplayName(color(title));
         IS.setItemMeta(IM);
     }
@@ -666,12 +691,16 @@ public abstract class AbstractCommonFunctions
      */
     public void setLore(ItemStack IS, int index, String lore) {
         ItemMeta IM = IS.getItemMeta();
-        if (IM == null) IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
-        if (IM == null) return;
+        if (IM == null)
+            IM = Bukkit.getItemFactory().getItemMeta(IS.getType());
+        if (IM == null)
+            return;
         List<String> lores = IM.getLore();
-        if (lores == null) lores = new ArrayList<>();
+        if (lores == null)
+            lores = new ArrayList<>();
 
-        while (index >= lores.size()) lores.add("");
+        while (index >= lores.size())
+            lores.add("");
 
         lores.set(index, color(lore));
         IM.setLore(lores);
@@ -684,7 +713,8 @@ public abstract class AbstractCommonFunctions
      * <p>
      * Example) /trg run IF takeItem(player, {"some.item"}, 1);
      * </p>
-     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
+     * You can find item names in
+     * <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      *
      * @param player target player
      * @param IS     item id
@@ -692,7 +722,8 @@ public abstract class AbstractCommonFunctions
      * @return true if took it; false if player doesn't have it
      */
     public boolean takeItem(Player player, ItemStack IS, int amount) {
-        if (!player.getInventory().containsAtLeast(IS, amount)) return false;
+        if (!player.getInventory().containsAtLeast(IS, amount))
+            return false;
         IS.setAmount(amount);
 
         player.getInventory().removeItem(IS);

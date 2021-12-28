@@ -5,10 +5,9 @@ package js.executor;
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
-import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -32,7 +31,6 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
@@ -45,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 /**
@@ -52,15 +51,6 @@ import static org.mockito.Mockito.*;
  */
 
 public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
-    PluginMainComponent pluginMainComponent;
-
-    @Before
-    public void init() throws Exception {
-        super.init();
-
-        pluginMainComponent = DaggerPluginMainComponent.builder().build();
-    }
-
     @Test
     public abstract void testMoney() throws Exception;
 
@@ -87,7 +77,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         doReturn(players).when(server).getOnlinePlayers();
 
-        new ExecutorTest(engine, "BROADCAST").withArgs(message).test();
+        new ExecutorTest(localContext, "BROADCAST").withArgs(message).test();
         for (Player mockPlayer : players) {
             verify(mockPlayer).sendMessage(argThat((String s) -> colored.equals(s)));
         }
@@ -99,7 +89,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         Player mockPlayer = mock(Player.class);
         Entity mockEntity = mock(Entity.class);
-        JsTest test = new ExecutorTest(engine, "BURN").addVariable("player", mockPlayer);
+        JsTest test = new ExecutorTest(localContext, "BURN").addVariable("player", mockPlayer);
 
         test.withArgs(3).test();
         verify(mockPlayer).setFireTicks(60);
@@ -135,7 +125,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
         Player player2 = mock(Player.class);
         Player nullP = null;
-        JsTest test = new ExecutorTest(engine, "CLEARCHAT").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "CLEARCHAT").addVariable("player", player);
 
         //case1
         test.withArgs().test();
@@ -158,7 +148,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         for (int i = 0; i < 10; i++) {
             entities.add(mock(Entity.class));
         }
-        JsTest test = new ExecutorTest(engine, "CLEARENTITY").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "CLEARENTITY").addVariable("player", player);
         when(player.getNearbyEntities(2d, 2d, 2d)).thenReturn(entities);
         test.withArgs(2).test();
         for (Entity ve : entities) {
@@ -171,7 +161,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testClearPotion() throws Exception {
         Player p = mock(Player.class);
-        ExecutorTest test = new ExecutorTest(engine, "CLEARPOTION");
+        ExecutorTest test = new ExecutorTest(localContext, "CLEARPOTION");
         test.addVariable("player", p);
         test.test();
 
@@ -185,7 +175,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testCloseGUI() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "CLOSEGUI").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "CLOSEGUI").addVariable("player", player);
 
         //only happy case
         test.withArgs().test();
@@ -197,7 +187,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
         when(player.getServer()).thenReturn(server);
 
-        JsTest test = new ExecutorTest(engine, "CMD").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "CMD").addVariable("player", player);
 
         //only happy case
         test.withArgs("some command line").test();
@@ -212,7 +202,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getServer()).thenReturn(server);
         when(server.getConsoleSender()).thenReturn(sender);
 
-        new ExecutorTest(engine, "CMDCON").withArgs("some command line").test();
+        new ExecutorTest(localContext, "CMDCON").withArgs("some command line").test();
 
         verify(server).dispatchCommand(sender, "some command line");
     }
@@ -242,7 +232,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getWorld()).thenReturn(world);
         when(factory.equals(any(), any())).thenReturn(true);
 
-        new ExecutorTest(engine, "DROPITEM").addVariable("player", player)
+        new ExecutorTest(localContext, "DROPITEM").addVariable("player", player)
                 .withArgs("STONE", 1, "None", -204, 82, 266)
                 .test();
 
@@ -255,7 +245,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(server.getWorld(anyString())).thenReturn(world);
 
-        new ExecutorTest(engine, "EXPLOSION").withArgs("world", 101.2, 33.4, 55, 2.9, false).test();
+        new ExecutorTest(localContext, "EXPLOSION").withArgs("world", 101.2, 33.4, 55, 2.9, false).test();
 
         verify(world).createExplosion(new Location(world, 101.2, 33.4, 55), 2.9F, false);
     }
@@ -267,7 +257,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "FALLINGBLOCK").addVariable("player", player).withArgs("STONE", 44.5, 6, 78.9).test();
+        new ExecutorTest(localContext, "FALLINGBLOCK").addVariable("player", player).withArgs("STONE", 44.5, 6, 78.9).test();
 
         verify(world).spawnFallingBlock(new Location(world, 44.5, 6, 78.9), Material.STONE, (byte) 0);
     }
@@ -276,11 +266,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testGUI() throws Exception {
         IPlayer vip = mock(IPlayer.class);
         ITriggerReactorAPI api = mock(ITriggerReactorAPI.class);
-        AbstractInventoryTriggerManager invManager = mock(AbstractInventoryTriggerManager.class);
+        InventoryTriggerManager invManager = mock(InventoryTriggerManager.class);
         IInventory iInv = mock(IInventory.class);
-        JsTest test = new ExecutorTest(engine, "GUI").addVariable("player", vip).addVariable("api", api);
+        JsTest test = new ExecutorTest(localContext, "GUI").addVariable("player", vip).addVariable("api", api);
 
-        when(api.invManager()).thenReturn(invManager);
+        when(api.getInventoryTriggerManager()).thenReturn(invManager);
         when(invManager.openGUI(vip, "Hi")).thenReturn(iInv);
         test.withArgs("Hi").test();
         verify(invManager).openGUI(vip, "Hi");
@@ -295,7 +285,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
         PlayerInventory playerInv = mock(PlayerInventory.class);
         ItemStack vItem = mock(ItemStack.class);
-        JsTest test = new ExecutorTest(engine, "GIVE").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "GIVE").addVariable("player", player);
 
         when(player.getInventory()).thenReturn(playerInv);
         when(playerInv.firstEmpty()).thenReturn(4);
@@ -319,7 +309,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         for (int i = 0; i < 4; i++) {
             vEntities.add(mock(ItemFrame.class));
         }
-        JsTest test = new ExecutorTest(engine, "ITEMFRAMEROTATE");
+        JsTest test = new ExecutorTest(localContext, "ITEMFRAMEROTATE");
 
         when(vLoc.getBlock()).thenReturn(vBlock);
         when(vBlock.getWorld()).thenReturn(vWorld);
@@ -351,7 +341,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         String msg2 = ChatColor.translateAlternateColorCodes('&', "&cKICKED");
 
         //case1
-        ExecutorTest test = new ExecutorTest(engine, "KICK");
+        ExecutorTest test = new ExecutorTest(localContext, "KICK");
         test.addVariable("player", player);
         test.withArgs().test();
         verify(player).kickPlayer(msg);
@@ -383,7 +373,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testKill() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "KILL").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "KILL").addVariable("player", player);
 
         test.withArgs().test();
         verify(player).setHealth(0d);
@@ -396,7 +386,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Block vBlock = mock(Block.class);
         BlockState vBS = mock(BlockState.class);
         Lever vLever = mock(Lever.class);
-        JsTest test = new ExecutorTest(engine, "LEVEROFF");
+        JsTest test = new ExecutorTest(localContext, "LEVEROFF");
 
         when(vLoc.getBlock()).thenReturn(vBlock);
         when(vBlock.getState()).thenReturn(vBS);
@@ -416,7 +406,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Block vBlock = mock(Block.class);
         BlockState vBS = mock(BlockState.class);
         Lever vLever = mock(Lever.class);
-        JsTest test = new ExecutorTest(engine, "LEVERON");
+        JsTest test = new ExecutorTest(localContext, "LEVERON");
 
         when(vLoc.getBlock()).thenReturn(vBlock);
         when(vBlock.getState()).thenReturn(vBS);
@@ -436,7 +426,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Block vBlock = mock(Block.class);
         BlockState vBS = mock(BlockState.class);
         Lever vLever = mock(Lever.class);
-        JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
+        JsTest test = new ExecutorTest(localContext, "LEVERTOGGLE");
 
         when(vLoc.getBlock()).thenReturn(vBlock);
         when(vBlock.getState()).thenReturn(vBS);
@@ -460,7 +450,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testLightning() throws Exception {
         Location vLoc = mock(Location.class);
         World vWorld = mock(World.class);
-        JsTest test = new ExecutorTest(engine, "LIGHTNING");
+        JsTest test = new ExecutorTest(localContext, "LIGHTNING");
 
         when(vLoc.getWorld()).thenReturn(vWorld);
         test.withArgs(vLoc).test();
@@ -482,7 +472,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testMessage() throws Exception {
         Player mockPlayer = mock(Player.class);
 
-        new ExecutorTest(engine, "MESSAGE").addVariable("player", mockPlayer).withArgs("&cTest Message").test();
+        new ExecutorTest(localContext, "MESSAGE").addVariable("player", mockPlayer).withArgs("&cTest Message").test();
 
         String expected = ChatColor.translateAlternateColorCodes('&', "&cTest Message");
         verify(mockPlayer).sendMessage(argThat((String str) -> expected.equals(str)));
@@ -499,27 +489,55 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
             return pool.submit(call);
         });
 
-        Runnable run = new Runnable() {
-            final JsTest test = new ExecutorTest(engine, "MESSAGE").addVariable("player", mockPlayer)
-                    .withArgs("&cTest Message");
+        // represents one trigger executing an executor
+        InterpreterLocalContext context1 = new InterpreterLocalContext();
+        context1.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        Runnable run1 = () -> {
+            JsTest test = null;
+            try {
+                test = new ExecutorTest(context1, "MESSAGE")
+                        .addVariable("player", mockPlayer)
+                        .withArgs("&cTest Message");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            for (int i = 0; i < 1000; i++) {
+                try {
+                    test.test();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
 
-            @Override
-            public void run() {
-                for (int i = 0; i < 1000; i++) {
-                    try {
-                        test.test();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+        // represents one trigger executing an executor
+        InterpreterLocalContext context2 = new InterpreterLocalContext();
+        context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        assertNotEquals(context1.getExtra(Interpreter.SCRIPT_ENGINE_KEY),
+                        context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
+        Runnable run2 = () -> {
+            JsTest test = null;
+            try {
+                test = new ExecutorTest(context2, "MESSAGE")
+                        .addVariable("player", mockPlayer)
+                        .withArgs("&cTest Message");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            for (int i = 0; i < 1000; i++) {
+                try {
+                    test.test();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         };
 
         Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
 
-        Thread thread1 = new Thread(run);
+        Thread thread1 = new Thread(run1);
         thread1.setUncaughtExceptionHandler(handler);
-        Thread thread2 = new Thread(run);
+        Thread thread2 = new Thread(run2);
         thread2.setUncaughtExceptionHandler(handler);
 
         thread1.start();
@@ -538,7 +556,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testMessageNull() throws Exception {
         Player mockPlayer = mock(Player.class);
 
-        new ExecutorTest(engine, "MESSAGE").addVariable("player", mockPlayer).withArgs(new Object[]{null}).test();
+        new ExecutorTest(localContext, "MESSAGE").addVariable("player", mockPlayer).withArgs(new Object[]{null}).test();
 
         String expected = "null";
         verify(mockPlayer).sendMessage(argThat((String str) -> expected.equals(str)));
@@ -554,7 +572,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(held.getType()).thenReturn(Material.STONE);
         when(held.getItemMeta()).thenReturn(meta);
 
-        new ExecutorTest(engine, "MODIFYHELDITEM").addVariable("player", player).withArgs("TITLE", "some title").test();
+        new ExecutorTest(localContext, "MODIFYHELDITEM").addVariable("player", player).withArgs("TITLE", "some title").test();
 
         verify(meta).setDisplayName("some title");
     }
@@ -578,7 +596,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testPlayer_SetFlyMode() throws Exception {
         Player mockPlayer = mock(Player.class);
 
-        JsTest test = new ExecutorTest(engine, "SETFLYMODE").addVariable("player", mockPlayer);
+        JsTest test = new ExecutorTest(localContext, "SETFLYMODE").addVariable("player", mockPlayer);
 
         for (boolean b : new boolean[]{true, false}) {
             test.withArgs(b).test();
@@ -593,7 +611,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetFlySpeed() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETFLYSPEED").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETFLYSPEED").addVariable("player", player);
 
         //only case
         test.withArgs(0.5).test();
@@ -610,7 +628,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetFood() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETFOOD").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETFOOD").addVariable("player", player);
 
 
         //case1
@@ -631,7 +649,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetGameMode() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETGAMEMODE").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETGAMEMODE").addVariable("player", player);
 
         //only case
         test.withArgs("creative").test();
@@ -650,7 +668,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetHealth() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETHEALTH").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETHEALTH").addVariable("player", player);
         when(player.getMaxHealth()).thenReturn(20.0);
 
         //case1
@@ -672,7 +690,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetMaxHealth() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETMAXHEALTH").addVariable("player", player);
 
         //case1
         test.withArgs(30).test();
@@ -693,7 +711,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetSaturation() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETSATURATION").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETSATURATION").addVariable("player", player);
 
         //case1
         test.withArgs(25).test();
@@ -712,7 +730,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetWalkSpeed() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETWALKSPEED").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETWALKSPEED").addVariable("player", player);
         //case1
         test.withArgs(1).test();
         verify(player).setWalkSpeed(1.0F);
@@ -731,7 +749,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPlayer_SetXp() throws Exception {
         Player player = mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "SETXP").addVariable("player", player);
+        JsTest test = new ExecutorTest(localContext, "SETXP").addVariable("player", player);
 
         //case1
         test.withArgs(0.3).test();
@@ -753,7 +771,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testPotion() throws Exception {
 //        Player player = mock(Player.class);
 //
-//        new ExecutorTest(engine, "POTION")
+//        new ExecutorTest(localContext, "POTION")
 //                .addVariable("player", player)
 //                .withArgs("LUCK", 100, 1)
 //                .test();
@@ -776,7 +794,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getScoreboard()).thenReturn(scoreboard);
         when(scoreboard.getTeam(anyString())).thenReturn(team);
 
-        new ExecutorTest(engine, "SCOREBOARD").withArgs("TEAM", "someteam", "ADD", "wysohn")
+        new ExecutorTest(localContext, "SCOREBOARD").withArgs("TEAM", "someteam", "ADD", "wysohn")
                 .addVariable("player", player)
                 .test();
 
@@ -791,7 +809,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(plugin.getBungeeHelper()).thenReturn(helper);
 
-        new ExecutorTest(engine, "SERVER").addVariable("player", player)
+        new ExecutorTest(localContext, "SERVER").addVariable("player", player)
                 .addVariable("plugin", plugin)
                 .withArgs("someServer")
                 .test();
@@ -805,7 +823,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         World mockWorld = mock(World.class);
         Block mockBlock = mock(Block.class);
 
-        JsTest test = new ExecutorTest(engine, "SETBLOCK");
+        JsTest test = new ExecutorTest(localContext, "SETBLOCK");
         test.addVariable("block", mockBlock);
 
         when(server.getWorld("world")).thenReturn(mockWorld);
@@ -824,7 +842,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getWorld()).thenReturn(mockWorld);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        assertJSError(() -> new ExecutorTest(engine, "SETBLOCK").withArgs("STONE", 22, 80, 33).test(),
+        assertJSError(() -> new ExecutorTest(localContext, "SETBLOCK").withArgs("STONE", 22, 80, 33).test(),
                       "cannot use #SETBLOCK in non-player related event. Or use Location instance.");
     }
 
@@ -839,7 +857,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player).withArgs("GLASS", 33, 96, -15).test();
+        new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player).withArgs("GLASS", 33, 96, -15).test();
 
         verify(block).setType(eq(Material.GLASS));
     }
@@ -855,7 +873,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player).withArgs("GLASS", 3, 33, 96, -15).test();
+        new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player).withArgs("GLASS", 3, 33, 96, -15).test();
 
         verify(block).setType(eq(Material.GLASS));
     }
@@ -871,7 +889,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player)
+        new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player)
                 .withArgs("GLASS", new Location(mockWorld, 33, 96, -15))
                 .test();
 
@@ -889,7 +907,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(engine, "SETBLOCK").addVariable("player", player)
+        new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player)
                 .withArgs("GLASS", 2, new Location(mockWorld, 33, 96, -15))
                 .test();
 
@@ -902,7 +920,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Material stone = Material.valueOf("STONE");
         when(vItem.getType()).thenReturn(stone);
 
-        ExecutorTest test = new ExecutorTest(engine, "SETCOUNT");
+        ExecutorTest test = new ExecutorTest(localContext, "SETCOUNT");
 
         test.withArgs(3, vItem).test();
 
@@ -919,7 +937,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
         ItemStack vItem = mock(ItemStack.class);
         PlayerInventory piv = mock(PlayerInventory.class);
-        ExecutorTest test = new ExecutorTest(engine, "SETHELDITEM");
+        ExecutorTest test = new ExecutorTest(localContext, "SETHELDITEM");
         test.addVariable("player", player);
         when(player.getInventory()).thenReturn(piv);
         test.withArgs(vItem).test();
@@ -935,7 +953,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testSetItemLore() throws Exception {
         ItemStack vItem = mock(ItemStack.class);
         ItemMeta vIM = mock(ItemMeta.class);
-        ExecutorTest test = new ExecutorTest(engine, "SETITEMLORE");
+        ExecutorTest test = new ExecutorTest(localContext, "SETITEMLORE");
         when(vItem.getItemMeta()).thenReturn(vIM);
         test.withArgs("NO\nNO", vItem).test();
         verify(vItem).setItemMeta(vIM);
@@ -952,7 +970,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         ItemStack vItem = mock(ItemStack.class);
         ItemMeta vIM = mock(ItemMeta.class);
         Material stone = Material.valueOf("STONE");
-        ExecutorTest test = new ExecutorTest(engine, "SETITEMNAME");
+        ExecutorTest test = new ExecutorTest(localContext, "SETITEMNAME");
         when(vItem.getItemMeta()).thenReturn(vIM);
         when(vItem.getType()).thenReturn(stone);
         test.withArgs("NO--NO", vItem).test();
@@ -971,7 +989,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
         ItemStack vItem = mock(ItemStack.class);
         PlayerInventory vInv = mock(PlayerInventory.class);
-        ExecutorTest test = new ExecutorTest(engine, "SETOFFHAND");
+        ExecutorTest test = new ExecutorTest(localContext, "SETOFFHAND");
         test.addVariable("player", player);
         when(player.getInventory()).thenReturn(vInv);
         test.withArgs(vItem).test();
@@ -989,7 +1007,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         PlayerInventory vInv = mock(PlayerInventory.class);
         when(player.getInventory()).thenReturn(vInv);
         when(vInv.getSize()).thenReturn(36);
-        ExecutorTest test = new ExecutorTest(engine, "SETPLAYERINV");
+        ExecutorTest test = new ExecutorTest(localContext, "SETPLAYERINV");
         test.addVariable("player", player);
         test.withArgs(1, vItem).test();
         verify(vInv).setItem(1, vItem);
@@ -1006,7 +1024,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         ItemStack vItem = mock(ItemStack.class);
         when(vEvent.getInventory()).thenReturn(vInv);
         when(vInv.getSize()).thenReturn(36);
-        ExecutorTest test = new ExecutorTest(engine, "SETSLOT");
+        ExecutorTest test = new ExecutorTest(localContext, "SETSLOT");
         test.addVariable("event", vEvent);
         test.withArgs(1, vItem).test();
         verify(vInv).setItem(1, vItem);
@@ -1025,7 +1043,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Material newDirt = Material.valueOf("DIRT");
         when(vItem.getType()).thenReturn(stone);
 
-        ExecutorTest test = new ExecutorTest(engine, "SETTYPE");
+        ExecutorTest test = new ExecutorTest(localContext, "SETTYPE");
 
         test.withArgs("DIRT", vItem).test();
 
@@ -1045,7 +1063,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getLocation()).thenReturn(location);
 
-        new ExecutorTest(engine, "SOUND").withArgs(location, "BOO", 1.0, 1.0).addVariable("player", player).test();
+        new ExecutorTest(localContext, "SOUND").withArgs(location, "BOO", 1.0, 1.0).addVariable("player", player).test();
 
         verify(player).playSound(location, "BOO", 1.0f, 1.0f);
     }
@@ -1059,7 +1077,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getLocation()).thenReturn(location);
         when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "SOUNDALL").withArgs(location, "BOO", 1.0, 1.0).addVariable("player", player).test();
+        new ExecutorTest(localContext, "SOUNDALL").withArgs(location, "BOO", 1.0, 1.0).addVariable("player", player).test();
 
         verify(world).playSound(location, "BOO", 1.0f, 1.0f);
     }
@@ -1072,7 +1090,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "SPAWN").addVariable("player", player)
+        new ExecutorTest(localContext, "SPAWN").addVariable("player", player)
                 .withArgs(location, EntityType.CREEPER.name())
                 .test();
 
@@ -1085,7 +1103,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(server.getWorld(anyString())).thenReturn(world);
 
-        new ExecutorTest(engine, "TIME").withArgs("world", 12000).test();
+        new ExecutorTest(localContext, "TIME").withArgs("world", 12000).test();
 
         verify(world).setTime(12000L);
     }
@@ -1097,7 +1115,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(world);
 
-        new ExecutorTest(engine, "TP").withArgs(1, 2.5, 3).addVariable("player", player).test();
+        new ExecutorTest(localContext, "TP").withArgs(1, 2.5, 3).addVariable("player", player).test();
 
         verify(player).teleport(new Location(world, 1, 2.5, 3));
     }
@@ -1111,7 +1129,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getWorld()).thenReturn(world);
         when(player.getLocation()).thenReturn(location);
 
-        new ExecutorTest(engine, "TPPOS").withArgs("~33 ~-2 ~9").addVariable("player", player).test();
+        new ExecutorTest(localContext, "TPPOS").withArgs("~33 ~-2 ~9").addVariable("player", player).test();
 
         verify(player).teleport(new Location(world, 1 + 33, 1 - 2, 1 + 9));
     }
@@ -1120,14 +1138,14 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testVelocity() throws Exception {
         Player player = mock(Player.class);
 
-        new ExecutorTest(engine, "VELOCITY").withArgs(1, -2, 3).addVariable("player", player).test();
+        new ExecutorTest(localContext, "VELOCITY").withArgs(1, -2, 3).addVariable("player", player).test();
 
         verify(player).setVelocity(new Vector(1, -2, 3));
     }
 
     @Test
     public void testWeather() throws Exception {
-        JsTest test = new ExecutorTest(engine, "WEATHER");
+        JsTest test = new ExecutorTest(localContext, "WEATHER");
         World mockWorld = mock(World.class);
         when(server.getWorld("merp")).thenReturn(mockWorld);
 

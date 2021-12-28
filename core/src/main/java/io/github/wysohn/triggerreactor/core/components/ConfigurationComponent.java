@@ -21,7 +21,12 @@ import dagger.Component;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
 
+import javax.inject.Named;
+
 @Component(modules = {ConfigSourceFactoryModule.class})
 public interface ConfigurationComponent {
+    @Named("DefaultConfigType")
+    String defaultType();
+
     ConfigSourceFactories factories();
 }

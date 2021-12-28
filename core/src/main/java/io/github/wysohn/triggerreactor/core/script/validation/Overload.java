@@ -15,13 +15,6 @@ public class Overload {
     }
 
     /**
-     * @return the number of args this Overload contains
-     */
-    int length() {
-        return args.length;
-    }
-
-    /**
      * @param args the Object this Overload should attempt to match
      *             args.length and length() are expected to match
      * @return null if the args match, an error otherwise
@@ -37,6 +30,13 @@ public class Overload {
             }
         }
         return null;
+    }
+
+    /**
+     * @return the number of args this Overload contains
+     */
+    int length() {
+        return args.length;
     }
 
     /**

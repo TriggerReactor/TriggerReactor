@@ -2,18 +2,18 @@ package js.modules;
 
 import dagger.Binds;
 import dagger.Module;
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
+import io.github.wysohn.triggerreactor.core.manager.ExecutorManager;
 import modules.DummyLoggerModule;
 import modules.FakeDataFolderModule;
 
 import javax.inject.Inject;
 
-@Module(includes = {DefaultTestModule.class, DummyLoggerModule.class, FakeDataFolderModule.class,})
+@Module(includes = {DummyLoggerModule.class, FakeDataFolderModule.class,})
 public abstract class ExecutorTestModule {
     @Binds
-    abstract AbstractExecutorManager bindManager(DummyExecutorManager manager);
+    abstract ExecutorManager bindManager(DummyExecutorManager manager);
 
-    static class DummyExecutorManager extends AbstractExecutorManager {
+    static class DummyExecutorManager extends ExecutorManager {
 
         @Inject
         DummyExecutorManager() {
@@ -22,11 +22,6 @@ public abstract class ExecutorTestModule {
 
         @Override
         public void onDisable() {
-
-        }
-
-        @Override
-        public void onEnable() throws Exception {
 
         }
 

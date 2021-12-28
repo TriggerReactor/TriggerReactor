@@ -38,6 +38,16 @@ public interface TaskSupervisor {
      * @param task
      * @param mills
      */
+    static void runTaskLater(Runnable task) {
+        runTaskLater(task, 0L);
+    }
+
+    /**
+     * This will run in separate thread.
+     *
+     * @param task
+     * @param mills
+     */
     static void runTaskLater(Runnable task, long mills) {
         new Thread(() -> {
             if (mills > 0) {
@@ -50,15 +60,5 @@ public interface TaskSupervisor {
 
             task.run();
         }).start();
-    }
-
-    /**
-     * This will run in separate thread.
-     *
-     * @param task
-     * @param mills
-     */
-    static void runTaskLater(Runnable task) {
-        runTaskLater(task, 0L);
     }
 }

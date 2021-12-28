@@ -7,6 +7,7 @@ public class TriggerReactorStartEvent extends Event {
     public HandlerList getHandlers() {
         return handlers;
     }
+
     private static final HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {

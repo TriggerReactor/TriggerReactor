@@ -39,6 +39,7 @@ public class EventBase extends Event implements Cancellable {
     public void setCancelled(boolean cancel) {
         cancelled = cancel;
     }
+
     private static final HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {

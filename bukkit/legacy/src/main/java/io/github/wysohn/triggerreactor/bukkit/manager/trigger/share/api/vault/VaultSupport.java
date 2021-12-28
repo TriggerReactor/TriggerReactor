@@ -16,8 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault;
 
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
@@ -31,8 +33,9 @@ public class VaultSupport extends APISupport {
     public Economy economy = null;
     public Chat chat = null;
 
-    public VaultSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
-        super(targetPluginInstance, api);
+    @AssistedInject
+    public VaultSupport(@Assisted Object targetPluginInstance) {
+        super(targetPluginInstance);
     }
 
     @Override
@@ -48,13 +51,13 @@ public class VaultSupport extends APISupport {
     @Override
     public void onEnable() throws APISupportException {
         if (setupPermissions()) {
-            api.logger().info("Vault permission hooked.");
+            TriggerReactorAPI.logger().info("Vault permission hooked.");
         }
         if (setupChat()) {
-            api.logger().info("Vault chat hooked.");
+            TriggerReactorAPI.logger().info("Vault chat hooked.");
         }
         if (setupEconomy()) {
-            api.logger().info("Vault economy hooked.");
+            TriggerReactorAPI.logger().info("Vault economy hooked.");
         }
     }
 
@@ -176,7 +179,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupChat() {
-        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
         RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer()
                 .getServicesManager()
                 .getRegistration(net.milkbowl.vault.chat.Chat.class);
@@ -188,7 +191,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupEconomy() {
-        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
         RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer()
                 .getServicesManager()
                 .getRegistration(net.milkbowl.vault.economy.Economy.class);
@@ -200,7 +203,7 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupPermissions() {
-        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
         RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer()
                 .getServicesManager()
                 .getRegistration(net.milkbowl.vault.permission.Permission.class);

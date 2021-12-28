@@ -24,11 +24,15 @@ public interface Placeholder {
     /**
      * Replace this placeholder with appropriate value.
      *
-     * @param timing  the parent timing instance. Extend timing using this instance, not creating new one. Can be null.
-     * @param context the context where placeholder was used. It's Event for Bukkit API.
-     * @param vars    variables that will be used in the Placeholder. Some may can be overridden.
-     * @param args    arguments to be used
+     * @param timing       the parent timing instance. Extend timing using this instance, not creating new one. Can
+     *                     be null.
+     * @param localContext context used per thread that is running the interpreter.
+     * @param vars         variables that will be used in the Placeholder. Some may can be overridden.
+     * @param args         arguments to be used
      * @return replaced value. Should be always primitive type. Can be null if something went wrong
      */
-    Object parse(Timings.Timing timing, Object context, Map<String, Object> vars, Object... args) throws Exception;
+    Object parse(Timings.Timing timing,
+                 InterpreterLocalContext localContext,
+                 Map<String, Object> vars,
+                 Object... args) throws Exception;
 }

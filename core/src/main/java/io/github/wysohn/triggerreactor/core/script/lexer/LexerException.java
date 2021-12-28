@@ -24,5 +24,6 @@ public class LexerException extends Exception {
     public LexerException(String message, Lexer lexer) {
         super(message + " near row:" + lexer.getRow() + " col:" + lexer.getCol());
     }
+
     private static final long serialVersionUID = 1L;
 }

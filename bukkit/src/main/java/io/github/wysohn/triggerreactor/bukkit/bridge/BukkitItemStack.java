@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class BukkitItemStack implements IItemStack {
@@ -45,4 +46,27 @@ public class BukkitItemStack implements IItemStack {
         return (T) itemStack.getType();
     }
 
+    @Override
+    public boolean isAir() {
+        return itemStack.getType() == Material.AIR;
+    }
+
+    @Override
+    public boolean isInspectionTool() {
+        return itemStack.getType() == INSPECTION_TOOL;
+    }
+
+    @Override
+    public boolean isCutTool() {
+        return itemStack.getType() == CUT_TOOL;
+    }
+
+    @Override
+    public boolean isCopyTool() {
+        return itemStack.getType() == COPY_TOOL;
+    }
+
+    public static final Material INSPECTION_TOOL = Material.BONE;
+    public static final Material CUT_TOOL = Material.SHEARS;
+    public static final Material COPY_TOOL = Material.PAPER;
 }

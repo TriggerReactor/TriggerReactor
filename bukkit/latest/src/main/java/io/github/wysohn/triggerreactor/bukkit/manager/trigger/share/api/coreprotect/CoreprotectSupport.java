@@ -17,7 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.coreprotect.CoreProtect;
 import net.coreprotect.CoreProtectAPI;
@@ -29,8 +29,8 @@ public class CoreprotectSupport extends APISupport {
      */
     protected CoreProtectAPI coreprotect;
 
-    public CoreprotectSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
-        super(targetPluginInstance, api);
+    public CoreprotectSupport(Object targetPluginInstance) {
+        super(targetPluginInstance);
     }
 
     @Override
@@ -45,12 +45,12 @@ public class CoreprotectSupport extends APISupport {
         try {
             coreprotect.getClass().getMethod("APIVersion");
         } catch (NoSuchMethodException e) {
-            api.logger().warning("Found CoreProtect, but the version is too low.");
+            TriggerReactorAPI.logger().warning("Found CoreProtect, but the version is too low.");
             throw new APISupportException("API version too low.");
         }
 
         if (coreprotect.APIVersion() < 4) {
-            api.logger().warning("Found CoreProtect, but the version is too low.");
+            TriggerReactorAPI.logger().warning("Found CoreProtect, but the version is too low.");
             throw new APISupportException("API version too low.");
         }
     }

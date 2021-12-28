@@ -1,24 +1,27 @@
 package js;
 
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager;
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.ExecutorManager;
+import io.github.wysohn.triggerreactor.core.manager.ExecutorManager.JSExecutor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import js.components.DaggerExecutorTestComponent;
+import js.components.DaggerScriptEngineComponent;
 import js.components.ExecutorTestComponent;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class ExecutorTest extends JsTest {
-    private final AbstractExecutorManager manager;
+    private final ExecutorManager manager;
     private final JSExecutor executor;
-    public ExecutorTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
-        super(engine, name, "Executor", directories);
+
+    public ExecutorTest(InterpreterLocalContext localContext, String name, String... directories) throws Exception {
+        super(localContext, name, "Executor", directories);
         manager = component.executorManager();
-        executor = manager.new JSExecutor(name, engine, stream);
+        manager.onEnable();
+
+        executor = manager.new JSExecutor(name, stream);
     }
 
     @Override
@@ -29,9 +32,14 @@ public class ExecutorTest extends JsTest {
     @Override
     public Object test() throws Exception {
         coverage.put(this.name, true);
-        executor.execute(Timings.LIMBO, varMap, null, args);
+        executor.execute(Timings.LIMBO, localContext, localContext.getVars(), args);
         return null;
     }
-    private static final ExecutorTestComponent component = DaggerExecutorTestComponent.create();
+
+    private static final ExecutorTestComponent component = DaggerExecutorTestComponent.builder()
+            .engineComponent(DaggerScriptEngineComponent.builder()
+                    .initializer(new HashSet<>())
+                    .build())
+            .build();
     public static final Map<String, Boolean> coverage = new TreeMap<>();
 }

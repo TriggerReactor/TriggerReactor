@@ -32,6 +32,17 @@ public class CommonFunctions implements SelfReference {
     }
 
     /**
+     * Translate money into specified country's currency format. US currency
+     * will be used.
+     *
+     * @param money
+     * @return formatted currecy
+     */
+    public String formatCurrency(double money) {
+        return formatCurrency(money, "en", "US");
+    }
+
+    /**
      * Translate money into specified country's currency format. You need to
      * provide exact locale provided in
      * http://www.oracle.com/technetwork/java/javase/java8locales-2095355.html
@@ -45,17 +56,6 @@ public class CommonFunctions implements SelfReference {
         Locale locale = new Locale(locale1, locale2);
         NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(locale);
         return currencyFormatter.format(money);
-    }
-
-    /**
-     * Translate money into specified country's currency format. US currency
-     * will be used.
-     *
-     * @param money
-     * @return formatted currecy
-     */
-    public String formatCurrency(double money) {
-        return formatCurrency(money, "en", "US");
     }
 
     public List<Object> list() {
@@ -101,18 +101,6 @@ public class CommonFunctions implements SelfReference {
      *
      * @param args      array to merge
      * @param indexFrom inclusive
-     * @return
-     */
-    public String mergeArguments(String[] args, int indexFrom) {
-        return mergeArguments(args, indexFrom, args.length - 1);
-    }
-
-    /**
-     * Merge array of String. This is specifically useful for args variable of
-     * Command Trigger but not limited to.
-     *
-     * @param args      array to merge
-     * @param indexFrom inclusive
      * @param indexTo   inclusive
      * @return
      */
@@ -124,8 +112,20 @@ public class CommonFunctions implements SelfReference {
         return builder.toString();
     }
 
-    public Object newInstance(String className,
-                              Object... args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalArgumentException, InvocationTargetException {
+    /**
+     * Merge array of String. This is specifically useful for args variable of
+     * Command Trigger but not limited to.
+     *
+     * @param args      array to merge
+     * @param indexFrom inclusive
+     * @return
+     */
+    public String mergeArguments(String[] args, int indexFrom) {
+        return mergeArguments(args, indexFrom, args.length - 1);
+    }
+
+    public Object newInstance(String className, Object... args) throws ClassNotFoundException, NoSuchMethodException,
+            InstantiationException, IllegalArgumentException, InvocationTargetException {
         try {
             Class<?> clazz = Class.forName(className);
 
@@ -153,7 +153,8 @@ public class CommonFunctions implements SelfReference {
                     // check non vararg part
                     for (int i = 0; i < parameterTypes.length - 1; i++) {
                         matches = ReflectionUtil.checkMatch(parameterTypes[i], args[i]);
-                        if (!matches) break;
+                        if (!matches)
+                            break;
                     }
 
                     // check rest
@@ -161,7 +162,8 @@ public class CommonFunctions implements SelfReference {
                         Class<?> arrayType = parameterTypes[parameterTypes.length - 1].getComponentType();
 
                         matches = ReflectionUtil.checkMatch(arrayType, args[i]);
-                        if (!matches) break;
+                        if (!matches)
+                            break;
                     }
 
                     if (matches) {
@@ -172,7 +174,8 @@ public class CommonFunctions implements SelfReference {
 
                     for (int i = 0; i < parameterTypes.length; i++) {
                         matches = ReflectionUtil.checkMatch(parameterTypes[i], args[i]);
-                        if (!matches) break;
+                        if (!matches)
+                            break;
                     }
 
                     if (matches) {
@@ -206,9 +209,8 @@ public class CommonFunctions implements SelfReference {
                             if (otherParams[j].isEnum()) { // enum will be handled later
                                 constructor = targetConstructor;
                                 break;
-                            } else if (ClassUtils.isAssignable(otherParams[j],
-                                                               params[j],
-                                                               true)) { //narrow down to find the most specific method
+                            } else if (ClassUtils.isAssignable(otherParams[j], params[j],
+                                    true)) { //narrow down to find the most specific method
                                 constructor = targetConstructor;
                                 break;
                             }
@@ -225,7 +227,11 @@ public class CommonFunctions implements SelfReference {
                         try {
                             args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
                         } catch (IllegalArgumentException ex1) {
-                            throw new RuntimeException("Tried to convert value [" + args[i] + "] to Enum [" + parameterTypes[i] + "] or find appropriate method but found nothing. Make sure" + " that the value [" + args[i] + "] matches exactly with one of the Enums in [" + parameterTypes[i] + "] or the method you are looking exists.");
+                            throw new RuntimeException(
+                                    "Tried to convert value [" + args[i] + "] to Enum [" + parameterTypes[i] + "] or "
+                                            + "find appropriate method but found nothing. Make sure" + " that the value"
+                                            + " [" + args[i] + "] matches exactly with one of the Enums in ["
+                                            + parameterTypes[i] + "] or the method you are looking exists.");
                         }
                     }
                 }
@@ -234,7 +240,7 @@ public class CommonFunctions implements SelfReference {
                     Class<?>[] parameterTypes = constructor.getParameterTypes();
 
                     Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
-                                                       args.length - parameterTypes.length + 1);
+                            args.length - parameterTypes.length + 1);
                     for (int k = 0; k < Array.getLength(varargs); k++) {
                         Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
                     }
@@ -258,7 +264,8 @@ public class CommonFunctions implements SelfReference {
                     builder.append(", " + args[i].getClass().getSimpleName());
                 }
 
-                throw new IllegalArgumentException(className + "(" + builder.toString() + "). " + "Make sure the arguments match.");
+                throw new IllegalArgumentException(
+                        className + "(" + builder.toString() + "). " + "Make sure the arguments match.");
             } else {
                 throw new IllegalArgumentException(className + "(). Make sure the arguments match.");
             }
@@ -433,8 +440,8 @@ public class CommonFunctions implements SelfReference {
      * @throws ClassNotFoundException error if the specified 'className' does not exist
      * @throws NoSuchFieldException   error if the specified 'fieldName' field does not exist in the class.
      */
-    public Object staticGetFieldValue(String className,
-                                      String fieldName) throws ClassNotFoundException, NoSuchFieldException {
+    public Object staticGetFieldValue(String className, String fieldName) throws ClassNotFoundException,
+            NoSuchFieldException {
         Class<?> clazz = Class.forName(className);
 
         Field field = clazz.getField(fieldName);
@@ -462,9 +469,8 @@ public class CommonFunctions implements SelfReference {
      * @throws IllegalArgumentException error if invalid 'args' are passed to the method.
      * @throws IllegalAccessException
      */
-    public Object staticMethod(String className,
-                               String methodName,
-                               Object... args) throws ClassNotFoundException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException {
+    public Object staticMethod(String className, String methodName, Object... args) throws ClassNotFoundException,
+            NoSuchMethodException, IllegalArgumentException, IllegalAccessException {
         Class<?> clazz = Class.forName(className);
 
         try {
@@ -488,9 +494,8 @@ public class CommonFunctions implements SelfReference {
      * @throws NoSuchFieldException     error if the specified 'fieldName' field does not exist in the class.
      * @throws IllegalArgumentException if the 'value' is incompatible with the field type.
      */
-    public void staticSetFieldValue(String className,
-                                    String fieldName,
-                                    Object value) throws ClassNotFoundException, NoSuchFieldException, IllegalArgumentException {
+    public void staticSetFieldValue(String className, String fieldName, Object value) throws ClassNotFoundException,
+            NoSuchFieldException, IllegalArgumentException {
         Class<?> clazz = Class.forName(className);
 
         Field field = clazz.getField(fieldName);
@@ -543,6 +548,7 @@ public class CommonFunctions implements SelfReference {
             return value.getClass().getCanonicalName();
         }
     }
+
     private static final Random rand = new Random();
 
 }

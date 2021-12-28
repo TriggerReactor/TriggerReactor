@@ -37,14 +37,11 @@ public class Parser {
     private final List<Warning> warnings = new ArrayList<Warning>();
     private boolean showWarnings;
     private Token token;
+
     public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
 
         nextToken();
-    }
-
-    public List<Warning> getWarnings() {
-        return warnings;
     }
 
     private void nextToken() throws IOException, ParserException {
@@ -57,7 +54,8 @@ public class Parser {
                 Type type = token.type;
                 String value = String.valueOf(token.value);
 
-                if (type == null || value == null) return;
+                if (type == null || value == null)
+                    return;
 
                 if (deprecationSupervisors.stream()
                         .anyMatch(deprecationSupervisor -> deprecationSupervisor.isDeprecated(type, value))) {
@@ -71,13 +69,18 @@ public class Parser {
         }
     }
 
+    public List<Warning> getWarnings() {
+        return warnings;
+    }
+
     public Node parse(boolean showWarnings) throws IOException, LexerException, ParserException {
         this.showWarnings = showWarnings;
         lexer.setWarnings(showWarnings);
 
         Node root = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
         Node statement = null;
-        while ((statement = parseStatement()) != null) root.getChildren().add(statement);
+        while ((statement = parseStatement()) != null)
+            root.getChildren().add(statement);
 
         List<Warning> lexWarnings = lexer.getWarnings();
         if (lexWarnings != null) {
@@ -93,7 +96,8 @@ public class Parser {
 
     private Node parseAssignment() throws IOException, LexerException, ParserException {
         Node id = parseLogic();
-        if (id == null) throw new ParserException("Expected Id but found nothing. Token: " + token);
+        if (id == null)
+            throw new ParserException("Expected Id but found nothing. Token: " + token);
 
         Node parent = parseAssignmentAndLogic(id);
         if (parent != null) {
@@ -104,10 +108,10 @@ public class Parser {
     }
 
     private Node parseAssignmentAndLogic(Node leftNode) throws IOException, LexerException, ParserException {
-        if (token != null && ("+=".equals(token.value) || "-=".equals(token.value) || "*=".equals(token.value) || "/=".equals(
-                token.value) || "%=".equals(token.value) || "=".equals(token.value) || "<<=".equals(token.value) || ">>=".equals(
-                token.value) || ">>>=".equals(token.value) || "&=".equals(token.value) || "^=".equals(token.value) || "|=".equals(
-                token.value))) {
+        if (token != null && ("+=".equals(token.value) || "-=".equals(token.value) || "*=".equals(token.value)
+                || "/=".equals(token.value) || "%=".equals(token.value) || "=".equals(token.value) || "<<=".equals(
+                token.value) || ">>=".equals(token.value) || ">>>=".equals(token.value) || "&=".equals(token.value)
+                || "^=".equals(token.value) || "|=".equals(token.value))) {
             Node assign = new Node(new Token(Type.OPERATOR, "=", token.row, token.col));
             Token assignToken = token;
             String assignTokenValue = (String) assignToken.value;
@@ -115,7 +119,8 @@ public class Parser {
 
             Node right = parseLogic();
             if (right == null)
-                throw new ParserException("Expected an assignable value on the right of " + token + ", but found nothing.");
+                throw new ParserException(
+                        "Expected an assignable value on the right of " + token + ", but found nothing.");
 
             assign.getChildren().add(leftNode);
             if ("=".equals(assignTokenValue)) {
@@ -144,7 +149,9 @@ public class Parser {
         Node parent = parseBitShiftOper(expression);
         if (parent != null) {
             if (parent.getChildren().size() != 2)
-                throw new ParserException("Operator " + parent.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + parent.getToken() + " requires number or variable on the left and right of it. "
+                                + token);
 
             return parent;
         } else {
@@ -153,8 +160,8 @@ public class Parser {
     }
 
     private Node parseBitShiftOper(Node left) throws IOException, LexerException, ParserException {
-        if (token != null && token.type == Type.OPERATOR_A && ("<<".equals(token.value) || ">>".equals(token.value) || ">>>".equals(
-                token.value))) {
+        if (token != null && token.type == Type.OPERATOR_A && ("<<".equals(token.value) || ">>".equals(token.value)
+                || ">>>".equals(token.value))) {
             Node node = new Node(token);
             nextToken();
 
@@ -164,7 +171,9 @@ public class Parser {
             if (expression != null) {
                 node.getChildren().add(expression);
             } else {
-                throw new ParserException("Operator " + node.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + node.getToken() + " requires number or variable on the left and right of it. "
+                                + token);
             }
 
             Node bitShift = parseBitShiftOper(node);
@@ -187,32 +196,41 @@ public class Parser {
         Node comparison = parseComparison();
         Node parsedNode = comparison;
 
-        if (level == curLevel) return parsedNode;
+        if (level == curLevel)
+            return parsedNode;
         curLevel++;
 
         Node bitwiseAnd = parseBitwiseAnd(parsedNode);
         if (bitwiseAnd != null) {
             if (bitwiseAnd.getChildren().size() != 2)
-                throw new ParserException("Operator " + bitwiseAnd.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + bitwiseAnd.getToken() + " requires number or variable on the left and right of "
+                                + "it. " + token);
             parsedNode = bitwiseAnd;
         }
 
-        if (level == curLevel) return parsedNode;
+        if (level == curLevel)
+            return parsedNode;
         curLevel++;
 
         Node bitwiseXor = parseBitwiseXor(parsedNode);
         if (bitwiseXor != null) {
             if (bitwiseXor.getChildren().size() != 2)
-                throw new ParserException("Operator " + bitwiseXor.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + bitwiseXor.getToken() + " requires number or variable on the left and right of "
+                                + "it. " + token);
             parsedNode = bitwiseXor;
         }
 
-        if (level == curLevel) return parsedNode;
+        if (level == curLevel)
+            return parsedNode;
 
         Node bitwiseOr = parseBitwiseOr(parsedNode);
         if (bitwiseOr != null) {
             if (bitwiseOr.getChildren().size() != 2)
-                throw new ParserException("Operator " + bitwiseOr.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + bitwiseOr.getToken() + " requires number or variable on the left and right of "
+                                + "it. " + token);
             parsedNode = bitwiseOr;
         }
 
@@ -230,7 +248,9 @@ public class Parser {
             if (comparison != null) {
                 node.getChildren().add(comparison);
             } else {
-                throw new ParserException("Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                throw new ParserException(
+                        "Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! "
+                                + token);
             }
 
             Node bitwiseAnd = parseBitwiseAnd(node);
@@ -269,7 +289,8 @@ public class Parser {
             if(logic != null){
                 node.getChildren().add(logic);
             }else{
-                throw new ParserException("Expected a logic after ["+node.getToken().value+"] but found ["+token+"] ! "+token);
+                throw new ParserException("Expected a logic after ["+node.getToken().value+"] but found ["+token+"] !
+                 "+token);
             }
 
             Node assignmentAndLogic = parseAssignmentAndId(node);
@@ -294,7 +315,9 @@ public class Parser {
             if (bitwiseXor != null) {
                 node.getChildren().add(bitwiseXor);
             } else {
-                throw new ParserException("Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                throw new ParserException(
+                        "Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! "
+                                + token);
             }
 
             Node bitwiseOr = parseBitwiseOr(node);
@@ -319,7 +342,9 @@ public class Parser {
             if (bitwiseAnd != null) {
                 node.getChildren().add(bitwiseAnd);
             } else {
-                throw new ParserException("Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                throw new ParserException(
+                        "Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! "
+                                + token);
             }
 
             Node bitwiseXor = parseBitwiseXor(node);
@@ -336,9 +361,10 @@ public class Parser {
     private Node parseComparison() throws IOException, LexerException, ParserException {
         Node bitshift = parseBitShift();
 
-        if (token != null && ((token.type == Type.OPERATOR_L && ("<".equals(token.value) || "<=".equals(token.value) || ">".equals(
-                token.value) || ">=".equals(token.value) || "==".equals(token.value) || "!=".equals(token.value))) || "IS".equals(
-                token.value))) {
+        if (token != null && (
+                (token.type == Type.OPERATOR_L && ("<".equals(token.value) || "<=".equals(token.value) || ">".equals(
+                        token.value) || ">=".equals(token.value) || "==".equals(token.value) || "!=".equals(
+                        token.value))) || "IS".equals(token.value))) {
             Node node = new Node(token);
             nextToken();
 
@@ -350,7 +376,9 @@ public class Parser {
             else {
                 node.getChildren().add(right);
                 if (node.getChildren().size() != 2)
-                    throw new ParserException("Comparison " + node.getToken() + " requires number or variable on the left and right of it. " + token);
+                    throw new ParserException(
+                            "Comparison " + node.getToken() + " requires number or variable on the left and right of "
+                                    + "it. " + token);
 
                 return node;
             }
@@ -365,7 +393,9 @@ public class Parser {
         Node parent = parseTermAndExpression(term);
         if (parent != null) {
             if (parent.getChildren().size() != 2)
-                throw new ParserException("Operator " + parent.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + parent.getToken() + " requires number or variable on the left and right of it. "
+                                + token);
 
             return parent;
         } else {
@@ -374,7 +404,8 @@ public class Parser {
     }
 
     private Node parseFactor() throws IOException, LexerException, ParserException {
-        if (token == null) return null;
+        if (token == null)
+            return null;
 
         if ("LAMBDA".equals(token.value)) {
             Node lambda = new Node(new Token(Type.LAMBDA, "<LAMBDA>", token));
@@ -407,7 +438,8 @@ public class Parser {
 
             Node statement = null;
             while ((statement = parseStatement()) != null) {
-                if ("ENDLAMBDA".equals(statement.getToken().getValue())) break;
+                if ("ENDLAMBDA".equals(statement.getToken().getValue()))
+                    break;
                 body.getChildren().add(statement);
             }
 
@@ -534,7 +566,8 @@ public class Parser {
             nextToken();
             if (token.type != Type.ID //variable
                     && !"{".equals(token.value) //gvar
-            ) throw new ParserException("Only Variable is allowed for unary increment/decrement operation! " + token);
+            )
+                throw new ParserException("Only Variable is allowed for unary increment/decrement operation! " + token);
 
             Node node = new Node(new Token(Type.OPERATOR_UNARY, tokenValue + "expr", token.row, token.col));
             node.getChildren().add(parseFactor());
@@ -571,8 +604,8 @@ public class Parser {
     }
 
     private Node parseFactorAndTerm(Node left) throws IOException, LexerException, ParserException {
-        if (token != null && token.type == Type.OPERATOR_A && ("*".equals(token.value) || "/".equals(token.value) || "%".equals(
-                token.value))) {
+        if (token != null && token.type == Type.OPERATOR_A && ("*".equals(token.value) || "/".equals(token.value)
+                || "%".equals(token.value))) {
             Node node = new Node(token);
             nextToken();
 
@@ -582,7 +615,8 @@ public class Parser {
             if (factor != null) {
                 node.getChildren().add(factor);
             } else {
-                throw new ParserException("Expected a factor after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                throw new ParserException(
+                        "Expected a factor after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
             }
 
             Node factorAndTerm = parseFactorAndTerm(node);
@@ -602,13 +636,15 @@ public class Parser {
 
             Token idToken;
             do {
-                if (".".equals(token.value)) nextToken();
+                if (".".equals(token.value))
+                    nextToken();
 
                 idToken = token;
                 nextToken();
 
                 //id[i]
-                if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access                                                                                   // access
+                if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access
+                    // access
                     nextToken();
 
                     Node index = parseBitShift();
@@ -647,7 +683,8 @@ public class Parser {
                     }
 
                     //id(args)[i]
-                    if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access                                                                                   // access
+                    if (token != null && token.type == Type.OPERATOR && token.value.equals("[")) { // array access
+                        // access
                         nextToken();
 
                         Node index = parseBitShift();
@@ -664,7 +701,8 @@ public class Parser {
                 }
                 //id
                 else {
-                    if (idToken.type != Type.ID) throw new ParserException("Expected an ID but found " + idToken);
+                    if (idToken.type != Type.ID)
+                        throw new ParserException("Expected an ID but found " + idToken);
                     deque.addLast(new Node(idToken));
                 }
             } while (token != null && ".".equals(token.value));
@@ -709,8 +747,8 @@ public class Parser {
         Node trueBody = new Node(new Token(Type.BODY, "<BODY>"));
 
         Node codes = null;
-        while (token != null && (codes = parseStatement()) != null && !"ENDIF".equals(codes.getToken().value) && !"ELSE".equals(
-                codes.getToken().value) && !"ELSEIF".equals(codes.getToken().value)) {
+        while (token != null && (codes = parseStatement()) != null && !"ENDIF".equals(codes.getToken().value)
+                && !"ELSE".equals(codes.getToken().value) && !"ELSEIF".equals(codes.getToken().value)) {
             trueBody.getChildren().add(codes);
         }
         ifNode.getChildren().add(trueBody);
@@ -750,7 +788,8 @@ public class Parser {
         Node parent = parseLogicAndBitwise(bitwise);
         if (parent != null) {
             if (parent.getChildren().size() != 2)
-                throw new ParserException("Operator " + parent.getToken() + " requires boolean on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + parent.getToken() + " requires boolean on the left and right of it. " + token);
 
             return parent;
         } else {
@@ -771,7 +810,9 @@ public class Parser {
                 //insert right comparison
                 node.getChildren().add(bitwise);
             } else {
-                throw new ParserException("Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                throw new ParserException(
+                        "Expected a comparison after [" + node.getToken().value + "] but found [" + token + "] ! "
+                                + token);
             }
 
             Node logicAndBitwise = parseLogicAndBitwise(node);
@@ -874,7 +915,8 @@ public class Parser {
                     throw new ParserException("Could not find variable name for FOR statement! " + forNode.getToken());
                 forNode.getChildren().add(varName);
 
-                if (!"=".equals(token.value)) throw new ParserException("Expected '=' but found " + token);
+                if (!"=".equals(token.value))
+                    throw new ParserException("Expected '=' but found " + token);
                 nextToken();
 
                 Node iteration = new Node(new Token(Type.ITERATOR, "<ITERATOR>"));
@@ -897,7 +939,8 @@ public class Parser {
                 while ((codes = parseStatement()) != null && !"ENDFOR".equals(codes.getToken().value)) {
                     body.getChildren().add(codes);
                 }
-                if (codes == null) throw new ParserException("Could not find ENDFOR statement! " + forNode.getToken());
+                if (codes == null)
+                    throw new ParserException("Could not find ENDFOR statement! " + forNode.getToken());
 
                 forNode.getChildren().add(body);
 
@@ -915,7 +958,8 @@ public class Parser {
                     node.getChildren().add(codes);
                 }
 
-                if (codes == null) throw new ParserException("Could not find ENDSYNC. Did you forget to put one?");
+                if (codes == null)
+                    throw new ParserException("Could not find ENDSYNC. Did you forget to put one?");
 
                 return node;
             } else if ("ENDSYNC".equals(token.value)) {
@@ -931,7 +975,8 @@ public class Parser {
                     node.getChildren().add(codes);
                 }
 
-                if (codes == null) throw new ParserException("Could not find ENDASYNC. Did you forget to put one?");
+                if (codes == null)
+                    throw new ParserException("Could not find ENDASYNC. Did you forget to put one?");
 
                 return node;
             } else if ("ENDASYNC".equals(token.value)) {
@@ -960,9 +1005,11 @@ public class Parser {
                     if (token != null && token.type != Type.ENDL) {
                         do {
                             Node node = parseLogic();
-                            if (node != null) args.add(node);
+                            if (node != null)
+                                args.add(node);
 
-                            if (token != null && ",".equals(token.value)) nextToken();
+                            if (token != null && ",".equals(token.value))
+                                nextToken();
                         } while ((token != null && token.type != Type.ENDL));
                     }
                     commandNode.getChildren().addAll(args);
@@ -1008,7 +1055,9 @@ public class Parser {
         Node parent = parseFactorAndTerm(factor);
         if (parent != null) {
             if (parent.getChildren().size() != 2)
-                throw new ParserException("Operator " + parent.getToken() + " requires number or variable on the left and right of it. " + token);
+                throw new ParserException(
+                        "Operator " + parent.getToken() + " requires number or variable on the left and right of it. "
+                                + token);
 
             return parent;
         } else {
@@ -1019,13 +1068,16 @@ public class Parser {
     private Node parseTermAndExpression(Node left) throws IOException, LexerException, ParserException {
         if (token != null && token.type == Type.OPERATOR_A && ("+".equals(token.value) || "-".equals(token.value))) {
             if ("-".equals(token.value) && left != null //for negative sign only
-                    && (!"*".equals(left.getToken().value) && !"/".equals(left.getToken().value) && !"%".equals(left.getToken().value) && !"+".equals(
-                    left.getToken().value) && !"-".equals(left.getToken().value) && !".".equals(left.getToken().value) && !"<<".equals(
-                    left.getToken().value) && !">>".equals(left.getToken().value) && !">>>".equals(left.getToken().value) && !"&".equals(
-                    left.getToken().value) && !"^".equals(left.getToken().value) && !"|".equals(left.getToken().value) && !"~".equals(
+                    && (!"*".equals(left.getToken().value) && !"/".equals(left.getToken().value) && !"%".equals(
+                    left.getToken().value) && !"+".equals(left.getToken().value) && !"-".equals(left.getToken().value)
+                    && !".".equals(left.getToken().value) && !"<<".equals(left.getToken().value) && !">>".equals(
+                    left.getToken().value) && !">>>".equals(left.getToken().value) && !"&".equals(left.getToken().value)
+                    && !"^".equals(left.getToken().value) && !"|".equals(left.getToken().value) && !"~".equals(
                     left.getToken().value)
 
-                    && left.getToken().type != Type.PLACEHOLDER && left.getToken().type != Type.ID && left.getToken().type != Type.GID && left.getToken().type != Type.GID_TEMP && left.getToken().type != Type.INTEGER && left.getToken().type != Type.DECIMAL
+                    && left.getToken().type != Type.PLACEHOLDER && left.getToken().type != Type.ID
+                    && left.getToken().type != Type.GID && left.getToken().type != Type.GID_TEMP
+                    && left.getToken().type != Type.INTEGER && left.getToken().type != Type.DECIMAL
 
                     && left.getToken().type != Type.OPERATOR_UNARY)) {
                 //if left node is NOT possible candidate of expression, it can be an unary minus. Just skip to factor
@@ -1043,7 +1095,8 @@ public class Parser {
                 //insert right term
                 node.getChildren().add(term);
             } else {
-                throw new ParserException("Expected a term after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
+                throw new ParserException(
+                        "Expected a term after [" + node.getToken().value + "] but found [" + token + "] ! " + token);
             }
 
             Node termAndexpression = parseTermAndExpression(node);
@@ -1062,8 +1115,8 @@ public class Parser {
 
         Node tryBody = new Node(new Token(Type.BODY, "<TRYBODY>"));
         Node codes = null;
-        while (token != null && (codes = parseStatement()) != null && !"CATCH".equals(codes.getToken().value) && !"FINALLY".equals(
-                codes.getToken().value) && !"ENDTRY".equals(codes.getToken().value)) {
+        while (token != null && (codes = parseStatement()) != null && !"CATCH".equals(codes.getToken().value)
+                && !"FINALLY".equals(codes.getToken().value) && !"ENDTRY".equals(codes.getToken().value)) {
             tryBody.getChildren().add(codes);
         }
         tryNode.getChildren().add(tryBody);
@@ -1082,8 +1135,8 @@ public class Parser {
             nextToken();
 
             Node catchCodeBody = new Node(new Token(Type.BODY, "<BODY>"));
-            while (token != null && (codes = parseStatement()) != null && !"FINALLY".equals(codes.getToken().value) && !"ENDTRY".equals(
-                    codes.getToken().value)) {
+            while (token != null && (codes = parseStatement()) != null && !"FINALLY".equals(codes.getToken().value)
+                    && !"ENDTRY".equals(codes.getToken().value)) {
                 catchCodeBody.getChildren().add(codes);
             }
 
@@ -1111,8 +1164,10 @@ public class Parser {
     }
 
     private void skipEndLines() throws IOException, LexerException, ParserException {
-        while (token != null && token.type == Type.ENDL) nextToken();
+        while (token != null && token.type == Type.ENDL)
+            nextToken();
     }
+
     private static final List<DeprecationSupervisor> deprecationSupervisors = new ArrayList<>();
 
     public static void addDeprecationSupervisor(DeprecationSupervisor ds) {

@@ -1,190 +1,146 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.IGUIOpenHelper;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import javax.script.ScriptEngineManager;
 import java.util.logging.Logger;
 
-@PluginScope
-public class TriggerReactorAPI implements ITriggerReactorAPI {
-    @Inject
-    Logger logger;
-    @Inject
-    @Named("PluginInstance")
-    Object pluginInstance;
+/**
+ * interface to expose the useful classes to be used by the various
+ * dynamic instances that cannot inject the dependency.
+ * <p>
+ * DO NOT directly access these methods inside the TriggerReactor unless
+ * it's absolutely necessary. For example, ExternalAPISupport class has to be
+ * instantiated runtime therefore we cannot inject the dependency. Pass
+ * this to those instances so that they have access to the necessary
+ * managers, etc.
+ * <p>
+ * Third-party plugins may use these methods to
+ * access and control TriggerReactor, but no guarantees are given
+ * that there will be no changes for the internal methods, yet
+ * methods provided here will be preserved.
+ */
+public final class TriggerReactorAPI {
 
-    @Inject
-    IPluginLifecycleController pluginLifecycleController;
-    @Inject
-    IThrowableHandler throwableHandler;
-    @Inject
-    IGameController gameController;
-    @Inject
-    TaskSupervisor taskSupervisor;
-    @Inject
-    SelfReference selfReference;
-
-    @Inject
-    GlobalVariableManager globalVariableManager;
-    @Inject
-    PluginConfigManager pluginConfigManager;
-    @Inject
-    AbstractExecutorManager executorManager;
-    @Inject
-    AbstractPlaceholderManager placeholderManager;
-    @Inject
-    AbstractScriptEditManager scriptEditManager;
-    @Inject
-    AbstractPlayerLocationManager locationManager;
-    @Inject
-    AbstractPermissionManager permissionManager;
-    @Inject
-    AbstractAreaSelectionManager selectionManager;
-    @Inject
-    AbstractInventoryEditManager invEditManager;
-    @Inject
-    AbstractExternalAPIManager externalAPIManager;
-
-    @Inject
-    AbstractLocationBasedTriggerManager<ClickTrigger> clickManager;
-    @Inject
-    AbstractLocationBasedTriggerManager<WalkTrigger> walkManager;
-    @Inject
-    AbstractCommandTriggerManager cmdManager;
-    @Inject
-    AbstractInventoryTriggerManager<?> invManager;
-    @Inject
-    AbstractAreaTriggerManager areaManager;
-    @Inject
-    AbstractCustomTriggerManager customManager;
-    @Inject
-    AbstractRepeatingTriggerManager repeatManager;
-    @Inject
-    AbstractNamedTriggerManager namedTriggerManager;
-
-    @Inject
-    TriggerReactorAPI() {
-
+    public static AreaTriggerManager getAreaManager() {
+        return TriggerReactorMain.instance.areaManager;
     }
 
-    public AbstractAreaTriggerManager getAreaManager() {
-        return areaManager;
+    public static AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
+        return TriggerReactorMain.instance.clickManager;
     }
 
-    public AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
-        return clickManager;
+    public static CommandTriggerManager getCmdManager() {
+        return TriggerReactorMain.instance.cmdManager;
     }
 
-    public AbstractCommandTriggerManager getCmdManager() {
-        return cmdManager;
+    public static CustomTriggerManager getCustomManager() {
+        return TriggerReactorMain.instance.customManager;
     }
 
-    public AbstractCustomTriggerManager getCustomManager() {
-        return customManager;
+    public static ExecutorManager getExecutorManager() {
+        return TriggerReactorMain.instance.executorManager;
     }
 
-    public AbstractExecutorManager getExecutorManager() {
-        return executorManager;
+
+    public static ExternalAPIManager getExternalAPIManager() {
+        return TriggerReactorMain.instance.externalAPIManager;
     }
 
-    @Override
-    public AbstractExternalAPIManager getExternalAPIManager() {
-        return externalAPIManager;
+    public static IGameController getGameController() {
+        return TriggerReactorMain.instance.gameController;
     }
 
-    @Override
-    public IGameController getGameController() {
-        return gameController;
+    public static InventoryEditManager getInvEditManager() {
+        return TriggerReactorMain.instance.invEditManager;
     }
 
-    public AbstractInventoryEditManager getInvEditManager() {
-        return invEditManager;
+    public static PlayerLocationManager getLocationManager() {
+        return TriggerReactorMain.instance.locationManager;
     }
 
-    public AbstractPlayerLocationManager getLocationManager() {
-        return locationManager;
+    public static NamedTriggerManager getNamedTriggerManager() {
+        return TriggerReactorMain.instance.namedTriggerManager;
     }
 
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        return namedTriggerManager;
+    public static PlaceholderManager getPlaceholderManager() {
+        return TriggerReactorMain.instance.placeholderManager;
     }
 
-    public AbstractPermissionManager getPermissionManager() {
-        return permissionManager;
+    public static PluginConfigManager getPluginConfigManager() {
+        return TriggerReactorMain.instance.pluginConfigManager;
     }
 
-    public AbstractPlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
+    public static RepeatingTriggerManager getRepeatManager() {
+        return TriggerReactorMain.instance.repeatManager;
     }
 
-    public final PluginConfigManager getPluginConfigManager() {
-        return pluginConfigManager;
+    public static ScriptEditManager getScriptEditManager() {
+        return TriggerReactorMain.instance.scriptEditManager;
     }
 
-    public AbstractRepeatingTriggerManager getRepeatManager() {
-        return repeatManager;
+
+    public static ScriptEngineManager getScriptEngineManager() {
+        return TriggerReactorMain.instance.scriptEngineManager;
     }
 
-    public AbstractScriptEditManager getScriptEditManager() {
-        return scriptEditManager;
+    public static AreaSelectionManager getSelectionManager() {
+        return TriggerReactorMain.instance.selectionManager;
     }
 
-    public AbstractAreaSelectionManager getSelectionManager() {
-        return selectionManager;
+    public static SelfReference getSelfReference() {
+        return TriggerReactorMain.instance.selfReference;
     }
 
-    @Override
-    public SelfReference getSelfReference() {
-        return selfReference;
+    public static TaskSupervisor getTaskSupervisor() {
+        return TriggerReactorMain.instance.taskSupervisor;
     }
 
-    @Override
-    public TaskSupervisor getTaskSupervisor() {
-        return taskSupervisor;
+
+    public static IThrowableHandler getThrowableHandler() {
+        return TriggerReactorMain.instance.throwableHandler;
     }
 
-    @Override
-    public IThrowableHandler getThrowableHandler() {
-        return throwableHandler;
+    public static GlobalVariableManager getGlobalVariableManager() {
+        return TriggerReactorMain.instance.globalVariableManager;
     }
 
-    public final GlobalVariableManager getVariableManager() {
-        return globalVariableManager;
+    public static AbstractLocationBasedTriggerManager<WalkTrigger> getWalkTriggerManager() {
+        return TriggerReactorMain.instance.walkManager;
     }
 
-    public AbstractLocationBasedTriggerManager<WalkTrigger> getWalkManager() {
-        return walkManager;
+    public static InventoryTriggerManager getInventoryTriggerManager() {
+        return TriggerReactorMain.instance.invManager;
     }
 
-    public AbstractInventoryTriggerManager<?> invManager() {
-        return invManager;
+
+    public static Logger logger() {
+        return TriggerReactorMain.instance.logger;
     }
 
-    @Override
-    public Logger logger() {
-        return logger;
+
+    public static Object pluginInstance() {
+        return TriggerReactorMain.instance.pluginInstance;
     }
 
-    @Override
-    public Object pluginInstance() {
-        return pluginInstance;
+
+    public static IPluginLifecycleController pluginLifecycleController() {
+        return TriggerReactorMain.instance.pluginLifecycleController;
     }
 
-    @Override
-    public IPluginLifecycleController pluginLifecycleController() {
-        return pluginLifecycleController;
+    public static IGUIOpenHelper guiOpenHelper() {
+        return TriggerReactorMain.instance.guiOpenHelper;
     }
 }

@@ -60,20 +60,30 @@ public class SimpleChunkLocation {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         SimpleChunkLocation other = (SimpleChunkLocation) obj;
-        if (i != other.i) return false;
-        if (j != other.j) return false;
+        if (i != other.i)
+            return false;
+        if (j != other.j)
+            return false;
         if (world == null) {
             return other.world == null;
-        } else return world.equals(other.world);
+        } else
+            return world.equals(other.world);
     }
 
     @Override
     public String toString() {
         return world + "@" + i + "," + j;
+    }
+
+    public SimpleChunkLocation add(Vector dir) {
+        return add((int) dir.getX(), (int) dir.getZ());
     }
 
     /**
@@ -86,10 +96,6 @@ public class SimpleChunkLocation {
      */
     public SimpleChunkLocation add(int i, int j) {
         return new SimpleChunkLocation(world, this.i + i, this.j + j);
-    }
-
-    public SimpleChunkLocation add(Vector dir) {
-        return add((int) dir.getX(), (int) dir.getZ());
     }
 
     public double distance(SimpleChunkLocation other) {
@@ -110,12 +116,14 @@ public class SimpleChunkLocation {
 
     public static SimpleChunkLocation valueOf(String value) {
         String[] splitw = value.split("@", 2);
-        if (splitw.length != 2) throw new SimpleChunkLocationFormatException(value);
+        if (splitw.length != 2)
+            throw new SimpleChunkLocationFormatException(value);
 
         String world = splitw[0];
 
         String[] splitc = splitw[1].split(",", 2);
-        if (splitc.length != 2) throw new SimpleChunkLocationFormatException(value);
+        if (splitc.length != 2)
+            throw new SimpleChunkLocationFormatException(value);
 
         return new SimpleChunkLocation(world, Integer.parseInt(splitc[0]), Integer.parseInt(splitc[1]));
     }

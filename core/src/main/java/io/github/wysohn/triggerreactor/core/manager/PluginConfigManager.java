@@ -4,7 +4,6 @@ import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -13,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 
-@PluginScope
 public class PluginConfigManager extends Manager implements IMigratable, IConfigSource {
     @Inject
     ConfigSourceFactories configSourceFactories;

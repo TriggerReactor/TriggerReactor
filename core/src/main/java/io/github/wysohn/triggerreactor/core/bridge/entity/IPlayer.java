@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.bridge.entity;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 
 import java.util.UUID;
@@ -41,7 +40,15 @@ public interface IPlayer extends IEntity, ICommandSender {
 
     void setItemInMainHand(IItemStack iS);
 
-    ILocation getLocation();
-
     void openInventory(IInventory inventory);
+
+    boolean isOp();
+
+    void setOp(boolean bool);
+
+    void dispatchCommand(String command);
+
+    String getName();
+
+    boolean isSneaking();
 }

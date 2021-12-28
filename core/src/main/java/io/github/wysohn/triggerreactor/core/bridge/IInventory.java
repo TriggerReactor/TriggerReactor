@@ -30,4 +30,18 @@ public interface IInventory extends IMinecraftObject {
     @Override
     boolean equals(Object obj);
 
+    IItemStack[] getStorageContents();
+
+    default void setContents(IItemStack[] items) {
+        setContents(items, false);
+    }
+
+    /**
+     * Set contents of inventory and also replace the color codes
+     * of all items.
+     *
+     * @param items
+     * @param colorItems set contents and also replace the color code of items
+     */
+    void setContents(IItemStack[] items, boolean colorItems);
 }

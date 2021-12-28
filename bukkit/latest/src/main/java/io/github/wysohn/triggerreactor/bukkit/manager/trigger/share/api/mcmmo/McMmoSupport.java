@@ -21,12 +21,11 @@ import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.datatypes.skills.SuperAbilityType;
 import com.gmail.nossr50.util.player.UserManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
 import org.bukkit.entity.Player;
 
 public class McMmoSupport extends APISupport {
-    public McMmoSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
-        super(targetPluginInstance, api);
+    public McMmoSupport(Object targetPluginInstance) {
+        super(targetPluginInstance);
     }
 
     @Override

@@ -16,15 +16,15 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import org.bukkit.plugin.Plugin;
 
 public abstract class APISupport extends AbstractAPISupport {
     private final Plugin target;
 
-    public APISupport(Object targetPluginInstance, ITriggerReactorAPI api) {
-        super(targetPluginInstance, api);
+    public APISupport(Object targetPluginInstance) {
+        super(targetPluginInstance);
         target = (Plugin) targetPluginInstance;
     }
 

@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaParameter;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -28,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
@@ -36,16 +36,16 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class Interpreter {
     private final Node root;
-    private final InterpreterLocalContext context;
-    private final InterpreterGlobalContext globalContext;
     private final Object waitLock = new Object();
+
+    private InterpreterLocalContext context;
+    private InterpreterGlobalContext globalContext;
     /**
      * Warning) Most of the executors are not depending on the state of the Interpreter,
      * so most of them can be in the GlobalInterpreterContext and be shared with other
@@ -58,14 +58,19 @@ public class Interpreter {
      */
     private final Executor EXECUTOR_WAIT = new Executor() {
         @Override
-        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object triggerCause, Object... args) {
+        public Integer execute(Timings.Timing timing,
+                               InterpreterLocalContext localContext,
+                               Map<String, Object> vars,
+                               Object... args) {
             if (globalContext.task.isServerThread()) {
                 throw new RuntimeException("WAIT is illegal in sync mode!");
             }
 
-            if (args.length < 1) throw new RuntimeException("Missing arguments [Decimal].");
+            if (args.length < 1)
+                throw new RuntimeException("Missing arguments [Decimal].");
 
-            if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+            if (!(args[0] instanceof Number))
+                throw new RuntimeException(args[0] + " is not a number!");
 
             double secs = ((Number) args[0]).doubleValue();
             long later = (long) (secs * 1000);
@@ -93,14 +98,8 @@ public class Interpreter {
             initDefaultExecutors();
         }
     */
-    public Interpreter(Node root, InterpreterLocalContext context, InterpreterGlobalContext globalContext) {
-        this.root = root;
-        this.context = context;
-        this.globalContext = globalContext;
-    }
-
     public Interpreter(Node root) {
-        this(root, new InterpreterLocalContext(), new InterpreterGlobalContext());
+        this.root = root;
     }
 
     private void assignValue(Token id, Token value) throws InterpreterException {
@@ -123,14 +122,16 @@ public class Interpreter {
             }
         } else if (id.type == Type.GID || id.type == Type.GID_TEMP) {
             if (value.type == Type.NULLVALUE) {
-                globalContext.gvars.remove(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()));
+                globalContext.gvars.remove(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(
+                        id.value.toString()));
             } else {
                 if (isVariable(value)) {
                     value = unwrapVariable(value);
                 }
 
-                globalContext.gvars.put(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()),
-                                        value.value);
+                globalContext.gvars.put(
+                        id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()),
+                        value.value);
             }
         } else if (id.type == Type.ID) {
             if (isVariable(value)) {
@@ -139,8 +140,8 @@ public class Interpreter {
 
             context.getVars().put(id.value.toString(), value.value);
         } else {
-            throw new InterpreterException("Cannot assign value to " + id.value == null ? null : id.value.getClass()
-                    .getSimpleName());
+            throw new InterpreterException(
+                    "Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
         }
     }
 
@@ -153,8 +154,8 @@ public class Interpreter {
             try {
                 result = ReflectionUtil.constructNew(clazz, args);
             } catch (Exception e) {
-                throw new InterpreterException("Cannot create new instance with " + right + " of " + clazz.getSimpleName(),
-                                               e);
+                throw new InterpreterException(
+                        "Cannot create new instance with " + right + " of " + clazz.getSimpleName(), e);
             }
         } else if (left.type == Type.CLAZZ) {
             Class<?> clazz = (Class<?>) left.value;
@@ -165,12 +166,12 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                                               e);
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error while executing fuction " + right, e);
             } catch (IllegalArgumentException e) {
-                throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.",
-                                               e);
+                throw new InterpreterException(
+                        "Could not execute function " + right + " due to innapropriate arguments.", e);
             }
         } else {
             try {
@@ -179,12 +180,12 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                                               e);
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error while executing fuction " + right, e);
             } catch (IllegalArgumentException e) {
-                throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.",
-                                               e);
+                throw new InterpreterException(
+                        "Could not execute function " + right + " due to innapropriate arguments.", e);
             }
         }
 
@@ -203,42 +204,16 @@ public class Interpreter {
         return globalContext.executorMap;
     }
 
-    public void setExecutorMap(Map<String, Executor> executorMap) {
-        if (started) throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        for (Entry<String, Executor> entry : executorMap.entrySet())
-            globalContext.executorMap.put(entry.getKey(), entry.getValue());
-    }
-
     public Map<Object, Object> getGvars() {
         return globalContext.gvars;
-    }
-
-    public void setGvars(Map<Object, Object> gvars) {
-        if (started) throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.gvars = gvars;
     }
 
     public Map<String, Placeholder> getPlaceholderMap() {
         return globalContext.placeholderMap;
     }
 
-    public void setPlaceholderMap(Map<String, Placeholder> placeholderMap) {
-        if (started) throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        for (Entry<String, Placeholder> entry : placeholderMap.entrySet())
-            globalContext.placeholderMap.put(entry.getKey(), entry.getValue());
-    }
-
     public SelfReference getSelfReference() {
         return globalContext.selfReference;
-    }
-
-    public void setSelfReference(SelfReference selfReference) {
-        if (started) throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.selfReference = selfReference;
     }
 
     /**
@@ -250,10 +225,6 @@ public class Interpreter {
         return context.getVars();
     }
 
-    public void setVars(Map<String, Object> vars) {
-        context.setVars(vars);
-    }
-
     /**
      * @param node
      * @return return codes in Executor. null if execution continues.
@@ -261,12 +232,14 @@ public class Interpreter {
      */
     private Integer interpret(Node node) throws InterpreterException {
         try {
-            if (globalContext.interrupter != null && globalContext.interrupter.onNodeProcess(context, node)) {
+            if (context.getInterrupter() != null && context.getInterrupter().onNodeProcess(context, node)) {
                 return Executor.STOP;
             }
 
-            if (node.getToken().type == Type.BODY || node.getToken().type == Type.CATCHBODY || node.getToken().type == Type.FINALLYBODY || node.getToken().type == Type.LAMBDA || "IF".equals(
-                    node.getToken().value) || "ELSEIF".equals(node.getToken().value) || "WHILE".equals(node.getToken().value)) {
+            if (node.getToken().type == Type.BODY || node.getToken().type == Type.CATCHBODY
+                    || node.getToken().type == Type.FINALLYBODY || node.getToken().type == Type.LAMBDA || "IF".equals(
+                    node.getToken().value) || "ELSEIF".equals(node.getToken().value) || "WHILE".equals(
+                    node.getToken().value)) {
                 return null;
             } else if ("IS".equals(node.getToken().value)) {
                 Token right = context.popToken();
@@ -276,7 +249,8 @@ public class Interpreter {
                     right = unwrapVariable(right);
                 }
 
-                if (!(right.value instanceof Class)) throw new RuntimeException(right + " is not a Class!");
+                if (!(right.value instanceof Class))
+                    throw new RuntimeException(right + " is not a Class!");
 
                 if (isVariable(left)) {
                     left = unwrapVariable(left);
@@ -298,21 +272,18 @@ public class Interpreter {
                     args[i] = argument.value;
                 }
 
-                if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context, command, args)) {
+                if (context.getInterrupter() != null && context.getInterrupter().onCommand(context, command, args)) {
                     return null;
                 } else {
                     if ("WAIT".equalsIgnoreCase(command)) {
-                        return EXECUTOR_WAIT.execute(context.getTiming(),
-                                                     context.getVars(),
-                                                     context.getTriggerCause(),
-                                                     args);
+                        return EXECUTOR_WAIT.execute(context.getTiming(), context, context.getVars(), args);
                     }
 
                     if (!globalContext.executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
                     return globalContext.executorMap.get(command)
-                            .execute(context.getTiming(), context.getVars(), context.getTriggerCause(), args);
+                            .execute(context.getTiming(), context, context.getVars(), args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -329,8 +300,8 @@ public class Interpreter {
                 }
 
                 Object replaced = null;
-                if (globalContext.interrupter != null) {
-                    replaced = globalContext.interrupter.onPlaceholder(context, placeholderName, args);
+                if (context.getInterrupter() != null) {
+                    replaced = context.getInterrupter().onPlaceholder(context, placeholderName, args);
                 }
 
                 if (replaced == null && !globalContext.placeholderMap.containsKey(placeholderName))
@@ -338,7 +309,7 @@ public class Interpreter {
 
                 if (replaced == null) {
                     replaced = globalContext.placeholderMap.get(placeholderName)
-                            .parse(context.getTiming(), context.getTriggerCause(), context.getVars(), args);
+                            .parse(context.getTiming(), context, context.getVars());
                 }
 
                 if (replaced instanceof Number) {
@@ -368,12 +339,11 @@ public class Interpreter {
                     left = unwrapVariable(left);
                 }
 
-                if ("+".equals(tokenValue) && (left.type == Type.STRING || (right != null && right.type == Type.STRING))) {
+                if ("+".equals(tokenValue) && (left.type == Type.STRING || (right != null
+                        && right.type == Type.STRING))) {
                     context.pushToken(new Token(Type.STRING,
-                                                String.valueOf(left.value) + Optional.ofNullable(right)
-                                                        .map(r -> r.value)
-                                                        .orElse("null"),
-                                                node.getToken()));
+                            String.valueOf(left.value) + Optional.ofNullable(right).map(r -> r.value).orElse("null"),
+                            node.getToken()));
                 } else if ("&".equals(tokenValue) || "^".equals(tokenValue) || "|".equals(tokenValue)) {
                     if (left.type == Type.BOOLEAN && right != null && right.type == Type.BOOLEAN) {
                         boolean result;
@@ -390,8 +360,11 @@ public class Interpreter {
 
                         context.pushToken(new Token(Type.BOOLEAN, result, node.getToken().row, node.getToken().col));
                     } else {
-                        if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric() || right.isDecimal())
-                            throw new InterpreterException("Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! Operands should both be boolean or integer.");
+                        if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric()
+                                || right.isDecimal())
+                            throw new InterpreterException(
+                                    "Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! "
+                                            + "Operands should both be boolean or integer.");
 
                         int result;
                         switch (tokenValue) {
@@ -410,10 +383,12 @@ public class Interpreter {
                 } else if ("~".equals(tokenValue) || "<<".equals(tokenValue) || ">>".equals(tokenValue) || ">>>".equals(
                         tokenValue)) {
                     if (!left.isNumeric() || left.isDecimal())
-                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + left + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute bit shift operation on non-integer value [" + left + "]!");
 
                     if (right != null && (!right.isNumeric() || right.isDecimal()))
-                        throw new InterpreterException("Cannot execute bit shift operation on non-integer value [" + right + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute bit shift operation on non-integer value [" + right + "]!");
 
                     int result;
                     switch (tokenValue) {
@@ -422,19 +397,22 @@ public class Interpreter {
                             break;
                         case "<<":
                             if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " << null");
+                                throw new InterpreterException(
+                                        "Bitwise operator encountered null: " + left + " << null");
 
                             result = left.toInteger() << right.toInteger();
                             break;
                         case ">>":
                             if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >> null");
+                                throw new InterpreterException(
+                                        "Bitwise operator encountered null: " + left + " >> null");
 
                             result = left.toInteger() >> right.toInteger();
                             break;
                         default: //case ">>>"
                             if (right == null)
-                                throw new InterpreterException("Bitwise operator encountered null: " + left + " >>> null");
+                                throw new InterpreterException(
+                                        "Bitwise operator encountered null: " + left + " >>> null");
 
                             result = left.toInteger() >>> right.toInteger();
                             break;
@@ -442,10 +420,12 @@ public class Interpreter {
                     context.pushToken(new Token(Type.INTEGER, result, node.getToken().row, node.getToken().col));
                 } else {
                     if (!left.isNumeric())
-                        throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute arithmetic operation on non-numeric value [" + left + "]!");
 
                     if (right == null || !right.isNumeric())
-                        throw new InterpreterException("Cannot execute arithmetic operation on non-numeric value [" + right + "]!");
+                        throw new InterpreterException(
+                                "Cannot execute arithmetic operation on non-numeric value [" + right + "]!");
 
                     boolean integer = true;
                     if (left.isDecimal() || right.isDecimal()) {
@@ -455,34 +435,36 @@ public class Interpreter {
                     Number result;
                     switch (tokenValue) {
                         case "+":
-                            result = integer ? left.toInteger() + right.toInteger() : left.toDecimal() + right.toDecimal();
+                            result = integer ?
+                                    left.toInteger() + right.toInteger() : left.toDecimal() + right.toDecimal();
                             break;
                         case "-":
-                            result = integer ? left.toInteger() - right.toInteger() : left.toDecimal() - right.toDecimal();
+                            result = integer ?
+                                    left.toInteger() - right.toInteger() : left.toDecimal() - right.toDecimal();
                             break;
                         case "*":
-                            result = integer ? left.toInteger() * right.toInteger() : left.toDecimal() * right.toDecimal();
+                            result = integer ?
+                                    left.toInteger() * right.toInteger() : left.toDecimal() * right.toDecimal();
                             break;
                         case "/":
-                            result = integer ? left.toInteger() / right.toInteger() : left.toDecimal() / right.toDecimal();
+                            result = integer ?
+                                    left.toInteger() / right.toInteger() : left.toDecimal() / right.toDecimal();
                             break;
                         case "%":
-                            result = integer ? left.toInteger() % right.toInteger() : left.toDecimal() % right.toDecimal();
+                            result = integer ?
+                                    left.toInteger() % right.toInteger() : left.toDecimal() % right.toDecimal();
                             break;
                         default:
-                            throw new InterpreterException("Cannot interpret the unknown operator " + node.getToken().value);
+                            throw new InterpreterException(
+                                    "Cannot interpret the unknown operator " + node.getToken().value);
                     }
 
                     if (integer) {
-                        context.pushToken(new Token(Type.INTEGER,
-                                                    result.intValue(),
-                                                    node.getToken().row,
-                                                    node.getToken().col));
+                        context.pushToken(
+                                new Token(Type.INTEGER, result.intValue(), node.getToken().row, node.getToken().col));
                     } else {
-                        context.pushToken(new Token(Type.DECIMAL,
-                                                    result.doubleValue(),
-                                                    node.getToken().row,
-                                                    node.getToken().col));
+                        context.pushToken(new Token(Type.DECIMAL, result.doubleValue(), node.getToken().row,
+                                node.getToken().col));
                     }
                 }
             } else if (node.getToken().type == Type.OPERATOR_UNARY) {
@@ -494,15 +476,11 @@ public class Interpreter {
                     }
 
                     if (!value.isNumeric())
-                        throw new InterpreterException("Cannot do unary minus operation for non-numeric value " + value);
+                        throw new InterpreterException(
+                                "Cannot do unary minus operation for non-numeric value " + value);
 
-                    context.pushToken(value.isInteger() ? new Token(Type.INTEGER,
-                                                                    -value.toInteger(),
-                                                                    value.row,
-                                                                    value.col) : new Token(Type.DECIMAL,
-                                                                                           -value.toDecimal(),
-                                                                                           value.row,
-                                                                                           value.col));
+                    context.pushToken(value.isInteger() ? new Token(Type.INTEGER, -value.toInteger(), value.row,
+                            value.col) : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
                 } else {
                     Token var = context.popToken();
 
@@ -515,62 +493,44 @@ public class Interpreter {
                         boolean processed = false;
                         if ("++expr".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() + 1,
-                                                                             var.row,
-                                                                             var.col) : new Token(Type.DECIMAL,
-                                                                                                  unwrappedVar.toDecimal() + 1,
-                                                                                                  var.row,
-                                                                                                  var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger() + 1,
+                                            var.row, var.col) : new Token(Type.DECIMAL, unwrappedVar.toDecimal() + 1,
+                                            var.row, var.col));
                             processed = true;
                         } else if ("--expr".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() - 1,
-                                                                             var.row,
-                                                                             var.col) : new Token(Type.DECIMAL,
-                                                                                                  unwrappedVar.toDecimal() - 1,
-                                                                                                  var.row,
-                                                                                                  var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger() - 1,
+                                            var.row, var.col) : new Token(Type.DECIMAL, unwrappedVar.toDecimal() - 1,
+                                            var.row, var.col));
                             processed = true;
                         }
 
                         unwrappedVar = unwrapVariable(var);
-                        context.pushToken(unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                               unwrappedVar.toInteger(),
-                                                                               var.row,
-                                                                               var.col) : new Token(Type.DECIMAL,
-                                                                                                    unwrappedVar.toDecimal(),
-                                                                                                    var.row,
-                                                                                                    var.col));
+                        context.pushToken(
+                                unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger(), var.row,
+                                        var.col) : new Token(Type.DECIMAL, unwrappedVar.toDecimal(), var.row, var.col));
 
                         if ("expr++".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() + 1,
-                                                                             var.row,
-                                                                             var.col) : new Token(Type.DECIMAL,
-                                                                                                  unwrappedVar.toDecimal() + 1,
-                                                                                                  var.row,
-                                                                                                  var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger() + 1,
+                                            var.row, var.col) : new Token(Type.DECIMAL, unwrappedVar.toDecimal() + 1,
+                                            var.row, var.col));
                             processed = true;
                         } else if ("expr--".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() - 1,
-                                                                             var.row,
-                                                                             var.col) : new Token(Type.DECIMAL,
-                                                                                                  unwrappedVar.toDecimal() - 1,
-                                                                                                  var.row,
-                                                                                                  var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER, unwrappedVar.toInteger() - 1,
+                                            var.row, var.col) : new Token(Type.DECIMAL, unwrappedVar.toDecimal() - 1,
+                                            var.row, var.col));
                             processed = true;
                         }
 
                         if (!processed) {
-                            throw new InterpreterException("Cannot interpret the unknown unary operator " + node.getToken().value);
+                            throw new InterpreterException(
+                                    "Cannot interpret the unknown unary operator " + node.getToken().value);
                         }
                     } else {
-                        throw new InterpreterException("Cannot do unary increment/decrement operation for non-variable" + var);
+                        throw new InterpreterException(
+                                "Cannot do unary increment/decrement operation for non-variable" + var);
                     }
                 }
             } else if (node.getToken().type == Type.OPERATOR_L) {
@@ -610,32 +570,36 @@ public class Interpreter {
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) < (right.isInteger() ? right.toInteger() : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal())
+                                            < (right.isInteger() ? right.toInteger() : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case ">":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) > (right.isInteger() ? right.toInteger() : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal())
+                                            > (right.isInteger() ? right.toInteger() : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case "<=":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) <= (right.isInteger() ? right.toInteger() : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal())
+                                            <= (right.isInteger() ? right.toInteger() : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case ">=":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) >= (right.isInteger() ? right.toInteger() : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal())
+                                            >= (right.isInteger() ? right.toInteger() : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case "==":
                             if (left.type == Type.NULLVALUE || right.type == Type.NULLVALUE) {
@@ -647,9 +611,8 @@ public class Interpreter {
                                     context.pushToken(new Token(Type.BOOLEAN, left.value == null, node.getToken()));
                                 }
                             } else {
-                                context.pushToken(new Token(Type.BOOLEAN,
-                                                            left.value.equals(right.value),
-                                                            node.getToken()));
+                                context.pushToken(
+                                        new Token(Type.BOOLEAN, left.value.equals(right.value), node.getToken()));
                             }
 
                             break;
@@ -663,20 +626,17 @@ public class Interpreter {
                                     context.pushToken(new Token(Type.BOOLEAN, left.value != null, node.getToken()));
                                 }
                             } else {
-                                context.pushToken(new Token(Type.BOOLEAN,
-                                                            !left.value.equals(right.value),
-                                                            node.getToken()));
+                                context.pushToken(
+                                        new Token(Type.BOOLEAN, !left.value.equals(right.value), node.getToken()));
                             }
                             break;
                         case "&&":
-                            context.pushToken(new Token(Type.BOOLEAN,
-                                                        left.toBoolean() && right.toBoolean(),
-                                                        node.getToken()));
+                            context.pushToken(
+                                    new Token(Type.BOOLEAN, left.toBoolean() && right.toBoolean(), node.getToken()));
                             break;
                         case "||":
-                            context.pushToken(new Token(Type.BOOLEAN,
-                                                        left.toBoolean() || right.toBoolean(),
-                                                        node.getToken()));
+                            context.pushToken(
+                                    new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean(), node.getToken()));
                             break;
                     }
                 }
@@ -709,8 +669,7 @@ public class Interpreter {
 
                             if (left.type == Type.THIS) {
                                 callFunction(new Token(Type.OBJECT, right.value, node.getToken()),
-                                             new Token(Type.OBJECT, globalContext.selfReference, node.getToken()),
-                                             args);
+                                        new Token(Type.OBJECT, globalContext.selfReference, node.getToken()), args);
                             } else {
                                 Token temp = left;
 
@@ -719,7 +678,8 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    throw new InterpreterException("Cannot access " + right + "! " + temp.value + " is null.");
+                                    throw new InterpreterException(
+                                            "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
 
                                 if (left.isObject()) { // method call for target object
@@ -740,7 +700,9 @@ public class Interpreter {
 
                                     callFunction(right, new Token(Type.EPS, var, node.getToken()), args);
                                 } else {
-                                    throw new InterpreterException("Unexpected value " + left + " for target of " + right + ". " + "Is " + left + "." + right + " what you were trying to do?");
+                                    throw new InterpreterException(
+                                            "Unexpected value " + left + " for target of " + right + ". " + "Is " + left
+                                                    + "." + right + " what you were trying to do?");
                                 }
                             }
                         }
@@ -758,13 +720,14 @@ public class Interpreter {
                                 }
 
                                 if (left.getType() == Type.NULLVALUE) {
-                                    throw new InterpreterException("Cannot access " + right + "! " + temp.value + " is null.");
+                                    throw new InterpreterException(
+                                            "Cannot access " + right + "! " + temp.value + " is null.");
                                 }
 
                                 if (left.isObject() || left.isArray()) {
-                                    context.pushToken(new Token(Type.ACCESS,
-                                                                new Accessor(left.value, (String) right.value),
-                                                                node.getToken()));
+                                    context.pushToken(
+                                            new Token(Type.ACCESS, new Accessor(left.value, (String) right.value),
+                                                    node.getToken()));
                                 } else {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -777,9 +740,8 @@ public class Interpreter {
                                         throw new InterpreterException("Unknown error " + e.getMessage(), e);
                                     }
 
-                                    context.pushToken(new Token(Type.ACCESS,
-                                                                new Accessor(var, (String) right.value),
-                                                                node.getToken()));
+                                    context.pushToken(new Token(Type.ACCESS, new Accessor(var, (String) right.value),
+                                            node.getToken()));
                                 }
                             }
                         }
@@ -797,9 +759,11 @@ public class Interpreter {
                     right = unwrapVariable(right);
                 }
 
-                if (!left.isArray()) throw new InterpreterException(left + " is not an array!");
+                if (!left.isArray())
+                    throw new InterpreterException(left + " is not an array!");
 
-                if (!right.isInteger()) throw new InterpreterException(right + " is not a valid index for array!");
+                if (!right.isInteger())
+                    throw new InterpreterException(right + " is not a valid index for array!");
 
                 context.pushToken(new Token(Type.ACCESS, new Accessor(left.value, right.toInteger()), node.getToken()));
             } else if (node.getToken().type == Type.THIS) {
@@ -824,17 +788,14 @@ public class Interpreter {
             } else if (node.getToken().type == Type.STRING) {
                 context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.INTEGER) {
-                context.pushToken(new Token(node.getToken().type,
-                                            Integer.parseInt((String) node.getToken().value),
-                                            node.getToken()));
+                context.pushToken(new Token(node.getToken().type, Integer.parseInt((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.DECIMAL) {
-                context.pushToken(new Token(node.getToken().type,
-                                            Double.parseDouble((String) node.getToken().value),
-                                            node.getToken()));
+                context.pushToken(new Token(node.getToken().type, Double.parseDouble((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.BOOLEAN) {
-                context.pushToken(new Token(node.getToken().type,
-                                            Boolean.parseBoolean((String) node.getToken().value),
-                                            node.getToken()));
+                context.pushToken(new Token(node.getToken().type, Boolean.parseBoolean((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.EPS) {
                 context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.NULLVALUE) {
@@ -853,19 +814,73 @@ public class Interpreter {
     }
 
     private boolean isPrimitive(Object obj) {
-        return obj.getClass() == Boolean.class || obj.getClass() == Integer.class || obj.getClass() == Double.class || obj.getClass() == String.class;
+        return obj.getClass() == Boolean.class || obj.getClass() == Integer.class || obj.getClass() == Double.class
+                || obj.getClass() == String.class;
     }
 
     public boolean isStopFlag() {
         return context.isStopFlag();
     }
 
-    private boolean isVariable(Token token) {
-        return token.type == Type.ID || token.type == Type.GID || token.type == Type.GID_TEMP || token.type == Type.ACCESS;
-    }
-
     public boolean isWaitFlag() {
         return context.isWaitFlag();
+    }
+
+    /**
+     * Get possible result produced by this interpreter execution.
+     * <p>
+     * For example, if the code is simply 4 + 5 * 6 without any assignment,
+     * the result will be 34.
+     *
+     * @return the result (top of the stack); null if there is no result.
+     */
+    public Object result() throws InterpreterException {
+        if (context.stackEmpty())
+            return null;
+
+        Token token = context.popToken();
+        if (isVariable(token)) {
+            token = unwrapVariable(token);
+        }
+
+        return token.value;
+    }
+
+    private boolean isVariable(Token token) {
+        return token.type == Type.ID || token.type == Type.GID || token.type == Type.GID_TEMP
+                || token.type == Type.ACCESS;
+    }
+
+    private Token unwrapVariable(Token varToken) throws InterpreterException {
+        if (varToken.type == Type.ID) {
+            if (context.getImportMap().containsKey(varToken.value)) {
+                Class<?> clazz = context.getImportMap().get(varToken.value);
+                return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
+            }
+
+            Object var = context.getVars().get(varToken.value);
+
+            return parseValue(var, varToken);
+        } else if (varToken.type == Type.GID) {
+            return parseValue(globalContext.gvars.get(varToken.value), varToken);
+        } else if (varToken.type == Type.GID_TEMP) {
+            return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)),
+                    varToken);
+        } else if (varToken.type == Type.ACCESS) {
+            Accessor accessor = (Accessor) varToken.value;
+            Object var;
+            try {
+                var = accessor.evaluateTarget();
+            } catch (NoSuchFieldException e) {
+                throw new InterpreterException("Unknown field " + accessor, e);
+            } catch (Exception e) {
+                throw new InterpreterException("Unknown error " + e.getMessage(), e);
+            }
+
+            return parseValue(var, varToken);
+        } else {
+            throw new InterpreterException("Unresolved id " + varToken);
+        }
     }
 
     private Token parseValue(Object var, Token origin) {
@@ -887,48 +902,39 @@ public class Interpreter {
     }
 
     /**
-     * Get possible result produced by this interpreter execution.
-     * <p>
-     * For example, if the code is simply 4 + 5 * 6 without any assignment,
-     * the result will be 34.
+     * Begin interpretation
      *
-     * @return the result (top of the stack); null if there is no result.
-     */
-    public Object result() throws InterpreterException {
-        if (context.stackEmpty()) return null;
-
-        Token token = context.popToken();
-        if (isVariable(token)) {
-            token = unwrapVariable(token);
-        }
-
-        return token.value;
-    }
-
-    public void setTaskSupervisor(TaskSupervisor taskSupervisor) {
-        if (started) throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.task = taskSupervisor;
-    }
-
-    /**
-     * Start interpretation without changing any context information.
-     *
+     * @param context       the local context. This should be per thread.
+     * @param globalContext the global context. This is readonly and can be used by multiple threads
+     *                      concurrently.
      * @throws InterpreterException
      */
-    public void start() throws InterpreterException {
-        for (int i = 0; i < root.getChildren().size(); i++)
-            start(root.getChildren().get(i));
+    public void start(InterpreterLocalContext context, InterpreterGlobalContext globalContext) throws
+            InterpreterException {
+        ValidationUtil.notNull(context);
+        ValidationUtil.notNull(globalContext);
+
+        this.context = context;
+        this.globalContext = globalContext;
+
+        try (Timings.Timing t = this.context.getTiming()
+                .getTiming("Code Interpretation")
+                .begin(globalContext.task.isServerThread())) {
+            for (int i = 0; i < root.getChildren().size(); i++)
+                start(root.getChildren().get(i));
+        }
     }
 
     //Check if stopFlag is on before pop Token from stack.
     private void start(Node node) throws InterpreterException {
-        if (context.isStopFlag()) return;
+        if (context.isStopFlag())
+            return;
 
         //IF children -- [0] : condition , [1] : true body , [2] : false body(may not exist)
         if ("ELSEIF".equals(node.getToken().value) || "IF".equals(node.getToken().value)) {
             start(node.getChildren().get(0));//[0] condition
-            if (context.isStopFlag()) return;
+            if (context.isStopFlag())
+                return;
 
             Token resultToken = context.popToken();
 
@@ -994,13 +1000,11 @@ public class Interpreter {
                         throw e;
                     }
                 } finally {
-                    if ((node.getChildren().size() == 2 && node.getChildren()
-                            .get(1)
-                            .getToken().type == Type.FINALLYBODY)) {
+                    if ((node.getChildren().size() == 2
+                            && node.getChildren().get(1).getToken().type == Type.FINALLYBODY)) {
                         start(node.getChildren().get(1));
-                    } else if (node.getChildren().size() == 3 && node.getChildren()
-                            .get(2)
-                            .getToken().type == Type.FINALLYBODY) {
+                    } else if (node.getChildren().size() == 3
+                            && node.getChildren().get(2).getToken().type == Type.FINALLYBODY) {
                         start(node.getChildren().get(2));
                     }
                 }
@@ -1043,18 +1047,22 @@ public class Interpreter {
 
                 if (globalContext.task.isServerThread()) {
                     long timeTook = System.currentTimeMillis() - start;
-                    if (timeTook > 3000L) throw new InterpreterException(
-                            "WHILE loop took more than 3 seconds in Server Thread. This is usually " + "considered as 'too long' and can crash the server.");
+                    if (timeTook > 3000L)
+                        throw new InterpreterException(
+                                "WHILE loop took more than 3 seconds in Server Thread. This is usually "
+                                        + "considered as 'too long' and can crash the server.");
                 }
             } while (!context.isStopFlag());
         } else if ("FOR".equals(node.getToken().value)) {
             start(node.getChildren().get(0));
 
 
-            if (context.isStopFlag()) return;
+            if (context.isStopFlag())
+                return;
             Token idToken = context.popToken();
 
-            if (idToken == null) throw new InterpreterException("Iteration variable for FOR statement not found!");
+            if (idToken == null)
+                throw new InterpreterException("Iteration variable for FOR statement not found!");
 
             if (node.getChildren().get(1).getToken().type != Type.ITERATOR)
                 throw new InterpreterException("Expected <ITERATOR> but found " + node.getChildren().get(1).getToken());
@@ -1063,19 +1071,22 @@ public class Interpreter {
             if (iterNode.getChildren().size() == 1) {
                 start(iterNode.getChildren().get(0));
 
-                if (context.isStopFlag()) return;
+                if (context.isStopFlag())
+                    return;
                 Token valueToken = context.popToken();
 
                 if (isVariable(valueToken)) {
                     valueToken = unwrapVariable(valueToken);
                 }
 
-                if (!valueToken.isIterable()) throw new InterpreterException(valueToken + " is not iterable!");
+                if (!valueToken.isIterable())
+                    throw new InterpreterException(valueToken + " is not iterable!");
 
                 if (valueToken.isArray()) {
                     for (int i = 0; i < Array.getLength(valueToken.value); i++) {
                         Object obj = Array.get(valueToken.value, i);
-                        if (context.isStopFlag()) break;
+                        if (context.isStopFlag())
+                            break;
 
                         assignValue(idToken, parseValue(obj, valueToken));
                         start(node.getChildren().get(2));
@@ -1089,7 +1100,8 @@ public class Interpreter {
                     }
                 } else {
                     for (Object obj : (Iterable<?>) valueToken.value) {
-                        if (context.isStopFlag()) break;
+                        if (context.isStopFlag())
+                            break;
 
                         assignValue(idToken, parseValue(obj, valueToken));
                         start(node.getChildren().get(2));
@@ -1106,7 +1118,8 @@ public class Interpreter {
                 Node initNode = iterNode.getChildren().get(0);
                 start(initNode);
 
-                if (context.isStopFlag()) return;
+                if (context.isStopFlag())
+                    return;
                 Token initToken = context.popToken();
                 if (isVariable(initToken)) {
                     initToken = unwrapVariable(initToken);
@@ -1118,7 +1131,8 @@ public class Interpreter {
                 Node limitNode = iterNode.getChildren().get(1);
                 start(limitNode);
 
-                if (context.isStopFlag()) return;
+                if (context.isStopFlag())
+                    return;
                 Token limitToken = context.popToken();
                 if (isVariable(limitToken)) {
                     limitToken = unwrapVariable(limitToken);
@@ -1144,8 +1158,9 @@ public class Interpreter {
 
         } else if (node.getToken().getType() == Type.LAMBDA) {
             if (node.getChildren().size() != 2)
-                throw new InterpreterException("The LAMBDA node has " + node.getChildren()
-                        .size() + " children instead of 2. " + "Report this to us: " + node);
+                throw new InterpreterException(
+                        "The LAMBDA node has " + node.getChildren().size() + " children instead of 2. "
+                                + "Report this to us: " + node);
 
             Node parameters = node.getChildren().get(0);
             if (parameters.getToken().getType() != Type.PARAMETERS)
@@ -1164,9 +1179,9 @@ public class Interpreter {
                 lambdaParameters[i] = new LambdaParameter(idNode);
             }
 
-            context.pushToken(new Token(Type.EPS,
-                                        new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
-                                        node.getToken()));
+            context.pushToken(
+                    new Token(Type.EPS, new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
+                            node.getToken()));
         } else if (node.getToken().getType() == Type.SYNC) {
             try {
                 globalContext.task.submitSync(new Callable<Void>() {
@@ -1191,11 +1206,10 @@ public class Interpreter {
                 Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
                 rootCopy.getChildren().addAll(node.getChildren());
 
-                Interpreter copy = new Interpreter(rootCopy, context.copyState("ASYNC"), globalContext);
-
+                Interpreter copy = new Interpreter(rootCopy);
 
                 try {
-                    copy.start();
+                    copy.start(context.copyState("ASYNC"), globalContext);
                 } catch (InterpreterException e) {
                     throw new RuntimeException(e);
                 }
@@ -1204,9 +1218,11 @@ public class Interpreter {
         } else {
             for (int i = 0; i < node.getChildren().size(); i++) {
                 //ignore rest of body and continue if continue flag is set
-                if (context.isContinueFlag()) continue;
+                if (context.isContinueFlag())
+                    continue;
                 //ignore rest of body and stop
-                if (context.isBreakFlag()) break;
+                if (context.isBreakFlag())
+                    break;
 
                 Node child = node.getChildren().get(i);
                 start(child);
@@ -1277,76 +1293,7 @@ public class Interpreter {
         }
     }
 
-    public void startWithContext(Object context) throws InterpreterException {
-        started = true;
-        startWithContextAndInterrupter(context, null, Timings.LIMBO);
-    }
-
-    /**
-     * Start interpretation.
-     *
-     * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
-     * @throws InterpreterException
-     */
-    public void startWithContext(Object context, Timings.Timing timing) throws InterpreterException {
-        started = true;
-        startWithContextAndInterrupter(context, null, timing);
-    }
-
-    /**
-     * Start interpretation.
-     *
-     * @param triggerCause The triggerCause that can be used by Executors.
-     *                     This is usually Event object for Bukkit plugin.
-     * @param interrupter  gives the caller to interrupt the execution
-     * @throws InterpreterException
-     */
-    public void startWithContextAndInterrupter(Object triggerCause,
-                                               ProcessInterrupter interrupter,
-                                               Timings.Timing timing) throws InterpreterException {
-        this.context.setTriggerCause(triggerCause);
-        this.globalContext.interrupter = interrupter;
-        this.context.setTiming(timing);
-
-        try (Timings.Timing t = this.context.getTiming()
-                .getTiming("Code Interpretation")
-                .begin(globalContext.task.isServerThread())) {
-            for (int i = 0; i < root.getChildren().size(); i++)
-                start(root.getChildren().get(i));
-        }
-    }
-
-    private Token unwrapVariable(Token varToken) throws InterpreterException {
-        if (varToken.type == Type.ID) {
-            if (context.getImportMap().containsKey(varToken.value)) {
-                Class<?> clazz = context.getImportMap().get(varToken.value);
-                return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
-            }
-
-            Object var = context.getVars().get(varToken.value);
-
-            return parseValue(var, varToken);
-        } else if (varToken.type == Type.GID) {
-            return parseValue(globalContext.gvars.get(varToken.value), varToken);
-        } else if (varToken.type == Type.GID_TEMP) {
-            return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)),
-                              varToken);
-        } else if (varToken.type == Type.ACCESS) {
-            Accessor accessor = (Accessor) varToken.value;
-            Object var;
-            try {
-                var = accessor.evaluateTarget();
-            } catch (NoSuchFieldException e) {
-                throw new InterpreterException("Unknown field " + accessor, e);
-            } catch (Exception e) {
-                throw new InterpreterException("Unknown error " + e.getMessage(), e);
-            }
-
-            return parseValue(var, varToken);
-        } else {
-            throw new InterpreterException("Unresolved id " + varToken);
-        }
-    }
+    public static final String SCRIPT_ENGINE_KEY = "ScriptEngineKey";
 
     static {
         Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && "MODIFYPLAYER".equals(value)));
@@ -1365,8 +1312,8 @@ public class Interpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
                                    Map<String, Object> variables,
-                                   Object e,
                                    Object... args) throws Exception {
                 return null;
             }
@@ -1376,9 +1323,10 @@ public class Interpreter {
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.globalContext.gvars = gvars;
+        InterpreterGlobalContext globalContext = new InterpreterGlobalContext();
+        globalContext.placeholderMap.putAll(placeholderMap);
+        globalContext.gvars = gvars;
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO, null), globalContext);
     }
 }

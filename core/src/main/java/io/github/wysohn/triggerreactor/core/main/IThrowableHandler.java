@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.core.main;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 
 public interface IThrowableHandler {
     /**
@@ -25,10 +26,10 @@ public interface IThrowableHandler {
      * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
      * related to this Exception and show useful information to the game.
      *
-     * @param e         the context
+     * @param event     the context
      * @param throwable the exception that was thrown
      */
-    void handleException(Object e, Throwable throwable);
+    void handleException(Object event, Throwable throwable);
 
     /**
      * Handle the exception caused by Executors or Triggers.
@@ -37,4 +38,7 @@ public interface IThrowableHandler {
      * @param throwable the exception that was thrown
      */
     void handleException(ICommandSender sender, Throwable throwable);
+
+
+    void handleException(InterpreterLocalContext context, Throwable throwable);
 }

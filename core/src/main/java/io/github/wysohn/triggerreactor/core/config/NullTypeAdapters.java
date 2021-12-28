@@ -71,12 +71,14 @@ public class NullTypeAdapters {
                 return 0;
             } else if (token == JsonToken.NUMBER) {
                 String value = in.nextString();
-                if (value.contains(".")) return Double.parseDouble(value);
-                else try {
-                    return Integer.parseInt(value);
-                } catch (NumberFormatException ex) {
-                    return Long.parseLong(value);
-                }
+                if (value.contains("."))
+                    return Double.parseDouble(value);
+                else
+                    try {
+                        return Integer.parseInt(value);
+                    } catch (NumberFormatException ex) {
+                        return Long.parseLong(value);
+                    }
             } else {
                 throw new JsonSyntaxException(token + " is not valid value for Number!");
             }

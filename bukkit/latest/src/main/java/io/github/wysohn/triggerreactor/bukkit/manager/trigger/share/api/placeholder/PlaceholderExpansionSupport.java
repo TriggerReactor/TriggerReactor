@@ -17,7 +17,9 @@
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 
@@ -28,11 +30,10 @@ public class PlaceholderExpansionSupport extends PlaceholderExpansion {
      * Since we register the expansion inside our own plugin, we
      * can simply use this method here to get an instance of our
      * plugin.
-     *
-     * @param api The instance of our plugin's api.
      */
-    public PlaceholderExpansionSupport(ITriggerReactorAPI api) {
-        this.variablePlaceholder = new VariablePlaceholder(api);
+    public PlaceholderExpansionSupport(IPluginLifecycleController lifecycleController,
+                                       GlobalVariableManager globalVariableManager) {
+        this.variablePlaceholder = new VariablePlaceholder(lifecycleController, globalVariableManager);
     }
 
     @Override

@@ -23,7 +23,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
 /**
- * This event fires depends on the player's block location. Unlike the PlayerMoveEvent, it only checks wether a player moved
+ * This event fires depends on the player's block location. Unlike the PlayerMoveEvent, it only checks wether a
+ * player moved
  * from a block to block. This significantly reduces the server load when you want to check player entering area, etc.
  *
  * @author wysohn
@@ -32,6 +33,7 @@ public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable
     private final SimpleLocation from;
     private final SimpleLocation to;
     private boolean cancelled;
+
     public PlayerBlockLocationEvent(Player who, SimpleLocation from, SimpleLocation to) {
         super(who);
         this.from = from;
@@ -60,6 +62,7 @@ public class PlayerBlockLocationEvent extends PlayerEvent implements Cancellable
     public SimpleLocation getTo() {
         return to;
     }
+
     private static final HandlerList handlers = new HandlerList();
 
     public static HandlerList getHandlerList() {

@@ -17,7 +17,9 @@
 
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -27,10 +29,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class VariablePlaceholder implements IVariablePlaceholder {
-    private final ITriggerReactorAPI api;
+    private final IPluginLifecycleController lifecycleController;
+    private final GlobalVariableManager globalVariableManager;
 
-    public VariablePlaceholder(ITriggerReactorAPI api) {
-        this.api = api;
+    public VariablePlaceholder(IPluginLifecycleController lifecycleController,
+                               GlobalVariableManager globalVariableManager) {
+        this.lifecycleController = lifecycleController;
+        this.globalVariableManager = globalVariableManager;
     }
 
     /**
@@ -46,21 +51,19 @@ public class VariablePlaceholder implements IVariablePlaceholder {
      */
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
-        if (identifier == null || identifier.length() == 0 || identifier.equals("?")) return "";
+        if (identifier == null || identifier.length() == 0 || identifier.equals("?"))
+            return "";
 
         if (identifier.toLowerCase().equals("version")) {
-            return api.pluginLifecycleController().getVersion();
+            return lifecycleController.getVersion();
         }
 
-        Map<Object, Object> adapter = api.getVariableManager().getGlobalVariableAdapter();
+        Map<Object, Object> adapter = globalVariableManager.getGlobalVariableAdapter();
 
         Object value = null;
 
         String variableName = identifier.replaceAll("<uuid>",
-                                                    Optional.ofNullable(player)
-                                                            .map(Entity::getUniqueId)
-                                                            .map(UUID::toString)
-                                                            .orElse(""));
+                Optional.ofNullable(player).map(Entity::getUniqueId).map(UUID::toString).orElse(""));
 
         if (variableName.startsWith("?")) {
             //%tr_?<variable name>% - temporary global variable
@@ -72,7 +75,7 @@ public class VariablePlaceholder implements IVariablePlaceholder {
             // %tr_<variable name>%
             //if(identifier.contains("")){return "";}
             variableName = variableName.replace('_', '.');
-            value = api.getVariableManager().get(variableName);
+            value = globalVariableManager.get(variableName);
         }
 
 //        if (value == null) {

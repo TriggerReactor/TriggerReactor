@@ -17,36 +17,66 @@
 
 package io.github.wysohn.triggerreactor.core.components;
 
+import dagger.BindsInstance;
 import dagger.Component;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.modules.CoreTriggerModule;
-
-import javax.inject.Singleton;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
 @Component(modules = CoreTriggerModule.class)
-@Singleton
+@ManagerScope
 public interface TriggerComponent {
-    AbstractAreaTriggerManager areaTrigger();
+    AreaTriggerManager areaTrigger();
 
     AbstractLocationBasedTriggerManager<ClickTrigger> clickTrigger();
 
-    AbstractCommandTriggerManager commandTrigger();
+    CommandTriggerManager commandTrigger();
 
-    AbstractCustomTriggerManager customTrigger();
+    CustomTriggerManager customTrigger();
 
-    AbstractInventoryTriggerManager<?> inventoryTrigger();
+    InventoryTriggerManager inventoryTrigger();
 
-    AbstractNamedTriggerManager namedTrigger();
+    NamedTriggerManager namedTrigger();
 
-    AbstractRepeatingTriggerManager repeatingTrigger();
+    RepeatingTriggerManager repeatingTrigger();
 
     AbstractLocationBasedTriggerManager<WalkTrigger> walkTrigger();
+
+    @Component.Builder
+    interface Builder {
+        TriggerComponent build();
+
+        // injects
+        @BindsInstance
+        Builder areaTrigger(AreaTriggerManager manager);
+
+        @BindsInstance
+        Builder clickTrigger(AbstractLocationBasedTriggerManager<ClickTrigger> manager);
+
+        @BindsInstance
+        Builder commandTrigger(CommandTriggerManager manager);
+
+        @BindsInstance
+        Builder customTrigger(CustomTriggerManager manager);
+
+        @BindsInstance
+        Builder inventoryTrigger(InventoryTriggerManager manager);
+
+        @BindsInstance
+        Builder namedTrigger(NamedTriggerManager manager);
+
+        @BindsInstance
+        Builder repeatingTrigger(RepeatingTriggerManager manager);
+
+        @BindsInstance
+        Builder walkTrigger(AbstractLocationBasedTriggerManager<WalkTrigger> manager);
+    }
 }

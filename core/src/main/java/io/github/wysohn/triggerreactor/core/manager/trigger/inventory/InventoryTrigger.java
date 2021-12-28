@@ -1,79 +1,80 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.ThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
+import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.Map;
 
 public class InventoryTrigger extends Trigger {
     final IItemStack[] items;
+    @Inject
+    IGameController gameController;
+    @Inject
+    ThrowableHandler throwableHandler;
 
-    public InventoryTrigger(ITriggerReactorAPI api,
-                            TriggerInfo info,
-                            String script,
-                            IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(api, info, script);
+    @AssistedInject
+    InventoryTrigger(@Assisted TriggerInfo info, @Assisted String script, @Assisted IItemStack[] items) {
+        super(info, script);
         this.items = items;
-
-        init();
     }
 
-    public InventoryTrigger(ITriggerReactorAPI api,
-                            TriggerInfo info,
-                            String script,
-                            int size,
-                            Map<Integer, IItemStack> items) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(api, info, script);
-        if (size < 9 || size % 9 != 0)
-            throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
+    public InventoryTrigger(Trigger o) {
+        super(o);
+        ValidationUtil.assertTrue(o, v -> v instanceof InventoryTrigger);
+        InventoryTrigger other = (InventoryTrigger) o;
 
-        if (size > MAXSIZE) throw new IllegalArgumentException("Inventory Size cannot be larger than " + MAXSIZE);
-
-        this.items = new IItemStack[size];
-
-        for (Map.Entry<Integer, IItemStack> entry : items.entrySet()) {
-            this.items[entry.getKey()] = entry.getValue();
-        }
-
-        init();
+        this.items = Arrays.copyOf(other.items, other.items.length);
+        this.gameController = other.gameController;
+        this.throwableHandler = other.throwableHandler;
     }
 
     @Override
-    public InventoryTrigger clone() {
-        try {
-            return new InventoryTrigger(api, getInfo(), getScript(), items.clone());
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+    protected void start(Timings.Timing timing, Map<String, Object> scriptVars, Interpreter interpreter) {
 
-    @Override
-    protected void start(Timings.Timing timing,
-                         Object e,
-                         Map<String, Object> scriptVars,
-                         Interpreter interpreter,
-                         boolean sync) {
+        InterpreterLocalContext localContext = new InterpreterLocalContext(timing,
+                gameController.createInterrupterForInv(cooldowns, InventoryTriggerManager.inventoryMap));
+        localContext.putAllVars(scriptVars);
+        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, SCRIPT_ENGINE_COMPONENT.engine());
         try {
-            interpreter.startWithContextAndInterrupter(e,
-                                                       api.getGameController()
-                                                               .createInterrupterForInv(cooldowns,
-                                                                                        AbstractInventoryTriggerManager.inventoryMap),
-                                                       timing);
+
         } catch (Exception ex) {
-            api.getThrowableHandler()
-                    .handleException(e,
-                                     new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
+            throwableHandler.handleException(localContext,
+                    new Exception("Error occurred while processing Trigger [" + getInfo() + "]!", ex));
         }
     }
 
     public IItemStack[] getItems() {
         return items;
     }
+
     public static final int MAXSIZE = 6 * 9;
+
+    public static IItemStack[] itemMapToArray(int size, Map<Integer, IItemStack> items) {
+        checkSize(size);
+
+        IItemStack[] arr = new IItemStack[size];
+        for (Map.Entry<Integer, IItemStack> entry : items.entrySet()) {
+            arr[entry.getKey()] = entry.getValue();
+        }
+        return arr;
+    }
+
+    private static void checkSize(int size) {
+        if (size < 9 || size % 9 != 0)
+            throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
+
+        if (size > MAXSIZE)
+            throw new IllegalArgumentException("Inventory Size cannot be larger than " + MAXSIZE);
+    }
 }

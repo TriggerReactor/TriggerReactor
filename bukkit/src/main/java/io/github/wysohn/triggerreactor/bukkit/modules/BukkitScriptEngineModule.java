@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.modules.CoreScriptEngineManagerModule;
 import org.bukkit.Server;
 
 import javax.inject.Named;
@@ -34,7 +35,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-@Module
+@Module(includes = CoreScriptEngineManagerModule.class)
 public abstract class BukkitScriptEngineModule {
     @Provides
     @Singleton

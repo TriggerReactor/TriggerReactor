@@ -28,6 +28,11 @@ import java.util.zip.ZipInputStream;
 public class JarUtil {
     public static final char JAR_SEPARATOR = '/';
 
+    public static void main(String[] ar) throws IOException {
+        copyFolderFromJar("SomeFolder", new File(""), CopyOption.REPLACE_IF_EXIST);
+
+    }
+
     public static void copyFolderFromJar(String folderName, File destFolder, CopyOption option) throws IOException {
         copyFolderFromJar(folderName, destFolder, option, null);
     }
@@ -36,15 +41,18 @@ public class JarUtil {
                                          File destFolder,
                                          CopyOption option,
                                          PathTrimmer trimmer) throws IOException {
-        if (!destFolder.exists()) destFolder.mkdirs();
+        if (!destFolder.exists())
+            destFolder.mkdirs();
 
         byte[] buffer = new byte[1024];
 
         File fullPath = null;
         String path = JarUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-        if (trimmer != null) path = trimmer.trim(path);
+        if (trimmer != null)
+            path = trimmer.trim(path);
         try {
-            if (!path.startsWith("file")) path = "file://" + path;
+            if (!path.startsWith("file"))
+                path = "file://" + path;
 
             fullPath = new File(new URI(path));
         } catch (URISyntaxException e) {
@@ -54,7 +62,8 @@ public class JarUtil {
 
         ZipEntry entry;
         while ((entry = zis.getNextEntry()) != null) {
-            if (!entry.getName().startsWith(folderName + JAR_SEPARATOR)) continue;
+            if (!entry.getName().startsWith(folderName + JAR_SEPARATOR))
+                continue;
 
             String fileName = entry.getName();
 
@@ -68,11 +77,14 @@ public class JarUtil {
             }
 
             File file = new File(destFolder + File.separator + fileName);
-            if (option == CopyOption.COPY_IF_NOT_EXIST && file.exists()) continue;
+            if (option == CopyOption.COPY_IF_NOT_EXIST && file.exists())
+                continue;
 
-            if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
+            if (!file.getParentFile().exists())
+                file.getParentFile().mkdirs();
 
-            if (!file.exists()) file.createNewFile();
+            if (!file.exists())
+                file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
 
             int len;
@@ -84,11 +96,6 @@ public class JarUtil {
 
         zis.closeEntry();
         zis.close();
-    }
-
-    public static void main(String[] ar) throws IOException {
-        copyFolderFromJar("SomeFolder", new File(""), CopyOption.REPLACE_IF_EXIST);
-
     }
 
     public enum CopyOption {

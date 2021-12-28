@@ -17,10 +17,12 @@ public class GsonHelper {
     public static Map<String, Object> readJson(JsonReader jsonReader, Gson gson) throws IOException {
         Map<String, Object> map = new LinkedTreeMap<>();
 
-        if (!jsonReader.hasNext()) return null;
+        if (!jsonReader.hasNext())
+            return null;
 
         JsonToken token = jsonReader.peek();
-        if (token != JsonToken.BEGIN_OBJECT) return null;
+        if (token != JsonToken.BEGIN_OBJECT)
+            return null;
 
         jsonReader.beginObject();
         readJson(map, jsonReader, gson);
@@ -59,11 +61,13 @@ public class GsonHelper {
 
                     if (adapter != null) {
                         if (!CustomSerializer.SER_VALUE.equals(key))
-                            throw new RuntimeException("Found serializable key but field name of value is not " + CustomSerializer.SER_VALUE);
+                            throw new RuntimeException("Found serializable key but field name of value is not "
+                                    + CustomSerializer.SER_VALUE);
 
                         final Object read = adapter.read(jsonReader);
-                        if (jsonReader.hasNext()) throw new RuntimeException(
-                                "Finished deserialization, yet there are still more fields to read.");
+                        if (jsonReader.hasNext())
+                            throw new RuntimeException(
+                                    "Finished deserialization, yet there are still more fields to read.");
                         jsonReader.endObject();
                         return read;
                     } else {

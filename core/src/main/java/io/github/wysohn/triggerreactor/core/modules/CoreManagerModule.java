@@ -1,107 +1,28 @@
-/*
- *     Copyright (C) 2021 wysohn and contributors
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package io.github.wysohn.triggerreactor.core.modules;
 
 import dagger.Binds;
 import dagger.Module;
-import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.ExternalAPIManager;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
 @Module
 public abstract class CoreManagerModule {
     @Binds
     @IntoSet
-    abstract Manager bindAreaSelectionManagerIntoSet(AbstractAreaSelectionManager manager);
+    @ManagerScope
+    abstract Manager bindIntoSetGlobalVariableManager(GlobalVariableManager manager);
 
     @Binds
     @IntoSet
-    abstract Manager bindExecutorManagerIntoSet(AbstractExecutorManager manager);
+    @ManagerScope
+    abstract Manager bindIntoSetPluginConfigManager(PluginConfigManager manager);
 
     @Binds
     @IntoSet
-    abstract Manager bindExternalAPIManagerIntoSet(AbstractExternalAPIManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindGlobalVariableManagerIntoSet(GlobalVariableManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindInventoryEditManagerIntoSet(AbstractInventoryEditManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindPermissionManagerIntoSet(AbstractPermissionManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindPlaceholderManagerIntoSet(AbstractPlaceholderManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindPlayerLocationManagerIntoSet(AbstractPlayerLocationManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindPluginConfigManagerIntoSet(PluginConfigManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindScriptEditManagerIntoSet(AbstractScriptEditManager manager);
-
-    @Provides
-    static AbstractExternalAPIManager bindExternalAPIManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractScriptEditManager bindScriptEditManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractPlayerLocationManager bindPlayerLocationManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractAreaSelectionManager bindAreaSelectionManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractPermissionManager bindPermissionManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractInventoryEditManager bindInventoryEditManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractExecutorManager bindExecutorManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
-
-    @Provides
-    static AbstractPlaceholderManager bindPlaceholderManager() {
-        throw new RuntimeException("Must be provided by dependant.");
-    }
+    @ManagerScope
+    abstract Manager bindIntoSetExternalAPIManager(ExternalAPIManager manager);
 }

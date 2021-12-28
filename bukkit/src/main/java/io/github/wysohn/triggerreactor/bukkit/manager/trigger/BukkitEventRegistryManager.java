@@ -20,27 +20,40 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.IEventRegistry;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 @Singleton
-public class BukkitEventRegistryManager extends Manager implements AbstractCustomTriggerManager.EventRegistry {
+public class BukkitEventRegistryManager extends Manager implements IEventRegistry {
+    @Inject
+    PluginManager pluginManager;
+    @Inject
+    @Named("PluginInstance")
+    Object pluginInstance;
+
+    private final Map<CustomTriggerManager.EventHook, Listener> registeredListeners = new HashMap<>();
+
     @Inject
     public BukkitEventRegistryManager() {
 
@@ -74,6 +87,31 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
     }
 
     @Override
+    public void unregisterEvent(CustomTriggerManager.EventHook eventHook) {
+        Listener listener = registeredListeners.remove(eventHook);
+        if (listener != null) {
+            HandlerList.unregisterAll(listener);
+        }
+    }
+
+    @Override
+    public void registerEvent(Class<?> clazz, CustomTriggerManager.EventHook eventHook) {
+        Listener listener = new Listener() {
+        };
+        try {
+            pluginManager.registerEvent((Class<? extends Event>) clazz, listener, EventPriority.HIGHEST,
+                    (l, event) -> eventHook.onEvent(event), (Plugin) pluginInstance);
+
+            registeredListeners.put(eventHook, listener);
+        } catch (IllegalPluginAccessException e) {
+            //event with no handler list will throw this exception
+            //which means it's a base event
+            if (!BASEEVENTS.contains(BASEEVENTS))
+                BASEEVENTS.add((Class<? extends Event>) clazz);
+        }
+    }
+
+    @Override
     public void onDisable() {
 
     }
@@ -88,9 +126,11 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
 
     }
 
-    @Override
-    public void saveAll() {
-
+    public void unregisterAll(){
+        for (Map.Entry<CustomTriggerManager.EventHook, Listener> entry : registeredListeners.entrySet()) {
+            HandlerList.unregisterAll(entry.getValue());
+        }
+        registeredListeners.clear();
     }
 
     protected void initEvents() throws IOException {
@@ -102,15 +142,24 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
                 e1.printStackTrace();
             }
 
-            if (!Event.class.isAssignableFrom(test)) continue;
+            if (!Event.class.isAssignableFrom(test))
+                continue;
 
             Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if (clazz.equals(Event.class)) continue;
+            if (clazz.equals(Event.class))
+                continue;
 
             EVENTS.put(clazz.getSimpleName(), clazz);
         }
     }
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
+
+    @Override
+    public void saveAll() {
+
+    }
+
+    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<?
+            extends Event>>() {{
         put("onJoin", PlayerJoinEvent.class);
         put("onQuit", PlayerQuitEvent.class);
         put("onPlayerDeath", PlayerDeathEvent.class);
@@ -130,5 +179,8 @@ public class BukkitEventRegistryManager extends Manager implements AbstractCusto
         put("onStop", TriggerReactorStopEvent.class);
     }};
     private static final String basePackageName = "org.bukkit.event";
-    private static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
+    private static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(
+            String.CASE_INSENSITIVE_ORDER);
+
+    private static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 }

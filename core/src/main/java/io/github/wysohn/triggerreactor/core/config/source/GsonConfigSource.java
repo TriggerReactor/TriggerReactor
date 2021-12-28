@@ -35,6 +35,7 @@ public class GsonConfigSource implements IConfigSource {
     private final Map<String, Object> cache = new HashMap<>();
     private final Gson gson = GSON_BUILDER.create();
     private final ITypeValidator typeValidator;
+
     public GsonConfigSource(File file) {
         this(file, f -> {
             try {
@@ -52,6 +53,7 @@ public class GsonConfigSource implements IConfigSource {
             }
         });
     }
+
     /**
      * @param file
      * @param readerFactory
@@ -87,14 +89,41 @@ public class GsonConfigSource implements IConfigSource {
             try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
                     Map<String, Object> loaded = null;
-                    if (file.exists() && file.length() > 0L) loaded = GsonHelper.readJson(new JsonReader(fr), gson);
+                    if (file.exists() && file.length() > 0L)
+                        loaded = GsonHelper.readJson(new JsonReader(fr), gson);
 
                     cache.clear();
-                    if (loaded != null) cache.putAll(loaded);
+                    if (loaded != null)
+                        cache.putAll(loaded);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void ensureFile() {
+        if (!file.exists()) {
+            if (!file.getParentFile().exists())
+                file.getParentFile().mkdirs();
+
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
+     */
+    public void shutdown() {
+        exec.shutdownNow().forEach(Runnable::run);
+        try {
+            exec.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -164,56 +193,6 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
-    @Override
-    public String toString() {
-        synchronized (cache) {
-            return cache.toString();
-        }
-    }
-
-    /**
-     * Blocking operation
-     */
-    private void cacheToFile() {
-        try (Writer fw = this.writerFactory.apply(file)) {
-            synchronized (cache) {
-                String ser = gson.toJson(cache);
-                fw.write(ser);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void ensureFile() {
-        if (!file.exists()) {
-            if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
-
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private <T> T get(Map<String, Object> map, String[] path, Class<T> asType) {
-        for (int i = 0; i < path.length; i++) {
-            String key = path[i];
-            Object value = map.get(key);
-
-            if (i == path.length - 1) {
-                return asType.cast(value);
-            } else if (value instanceof Map) {
-                map = (Map<String, Object>) value;
-            } else {
-                return null;
-            }
-        }
-
-        return null;
-    }
-
     private void put(Map<String, Object> map, String[] path, Object value) {
         for (int i = 0; i < path.length; i++) {
             String key = path[i];
@@ -248,41 +227,64 @@ public class GsonConfigSource implements IConfigSource {
     }
 
     /**
-     * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
+     * Blocking operation
      */
-    public void shutdown() {
-        exec.shutdownNow().forEach(Runnable::run);
-        try {
-            exec.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+    private void cacheToFile() {
+        try (Writer fw = this.writerFactory.apply(file)) {
+            synchronized (cache) {
+                String ser = gson.toJson(cache);
+                fw.write(ser);
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    private <T> T get(Map<String, Object> map, String[] path, Class<T> asType) {
+        for (int i = 0; i < path.length; i++) {
+            String key = path[i];
+            Object value = map.get(key);
+
+            if (i == path.length - 1) {
+                return asType.cast(value);
+            } else if (value instanceof Map) {
+                map = (Map<String, Object>) value;
+            } else {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        synchronized (cache) {
+            return cache.toString();
+        }
+    }
+
     private static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT,
-                                                                                                 Modifier.STATIC)
+                    Modifier.STATIC)
             .enableComplexMapKeySerialization()
             .setPrettyPrinting()
             .serializeNulls()
             .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class,
-                                                                Boolean.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class,
-                                                                Integer.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class,
-                                                                Long.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class,
-                                                                Float.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_FLOAT))
-            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class,
-                                                                Double.class,
-                                                                NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(
+                    TypeAdapters.newFactory(boolean.class, Boolean.class, NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
+            .registerTypeAdapterFactory(
+                    TypeAdapters.newFactory(int.class, Integer.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(
+                    TypeAdapters.newFactory(long.class, Long.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(
+                    TypeAdapters.newFactory(float.class, Float.class, NullTypeAdapters.NULL_ADOPTER_FLOAT))
+            .registerTypeAdapterFactory(
+                    TypeAdapters.newFactory(double.class, Double.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
-    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder().addChain(new DefaultValidator())
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder().addChain(
+                    new DefaultValidator())
             .addChain(new UUIDValidator())
             .addChain(new SimpleLocationValidator())
             .addChain(new SimpleChunkLocationValidator());

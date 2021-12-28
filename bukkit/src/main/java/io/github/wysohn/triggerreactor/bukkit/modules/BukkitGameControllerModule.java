@@ -20,17 +20,33 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTaskSupervisor;
+import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
+import javax.inject.Named;
+
 @Module
 public abstract class BukkitGameControllerModule {
     @Binds
+    @BukkitPluginScope
+    @Named("PluginInstance")
+    abstract Object providePluginInstance(AbstractJavaPlugin plugin);
+
+    @Binds
+    @BukkitPluginScope
+    abstract IGameController bindGameController(AbstractJavaPlugin plugin);
+
+    @Binds
+    @BukkitPluginScope
     abstract TaskSupervisor bindTaskSupervisor(BukkitTaskSupervisor taskSupervisor);
 
     @Provides
+    @BukkitPluginScope
     static Server provideServer() {
         return Bukkit.getServer();
     }

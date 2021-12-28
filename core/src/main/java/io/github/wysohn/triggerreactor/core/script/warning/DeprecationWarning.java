@@ -20,13 +20,17 @@ public class DeprecationWarning extends Warning {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         DeprecationWarning that = (DeprecationWarning) o;
 
-        if (row != that.row) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (row != that.row)
+            return false;
+        if (value != null ? !value.equals(that.value) : that.value != null)
+            return false;
         return context != null ? context.equals(that.context) : that.context == null;
     }
 }

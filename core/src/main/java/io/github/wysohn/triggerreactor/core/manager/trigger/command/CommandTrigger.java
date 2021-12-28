@@ -1,9 +1,11 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Arrays;
 
@@ -12,22 +14,19 @@ public class CommandTrigger extends Trigger {
     String[] aliases = new String[0];
     ITabCompleter[] tabCompleters = new ITabCompleter[0];
 
-    public CommandTrigger(ITriggerReactorAPI api,
-                          TriggerInfo info,
-                          String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(api, info, script);
-
-        init();
+    @AssistedInject
+    CommandTrigger(@Assisted TriggerInfo info, @Assisted String script) {
+        super(info, script);
     }
 
-    @Override
-    public CommandTrigger clone() {
-        try {
-            return new CommandTrigger(api, info, getScript());
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public CommandTrigger(Trigger o) {
+        super(o);
+        ValidationUtil.assertTrue(o, v -> v instanceof CommandTrigger);
+        CommandTrigger other = (CommandTrigger) o;
+
+        this.permissions = other.permissions;
+        this.aliases = other.aliases;
+        this.tabCompleters = other.tabCompleters;
     }
 
     @Override

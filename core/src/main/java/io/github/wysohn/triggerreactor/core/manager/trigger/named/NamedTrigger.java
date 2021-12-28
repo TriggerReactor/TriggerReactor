@@ -1,27 +1,20 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 public class NamedTrigger extends Trigger {
-    public NamedTrigger(ITriggerReactorAPI api,
-                        TriggerInfo info,
-                        String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(api, info, script);
-
-        init();
+    @AssistedInject
+    NamedTrigger(@Assisted TriggerInfo info, @Assisted String script) {
+        super(info, script);
     }
 
-    @Override
-    public NamedTrigger clone() {
-        try {
-            return new NamedTrigger(api, info, script);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public NamedTrigger(Trigger o) {
+        super(o);
+        ValidationUtil.assertTrue(o, v -> v instanceof NamedTrigger);
     }
-
 }

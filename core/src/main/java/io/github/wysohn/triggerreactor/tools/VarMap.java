@@ -1,11 +1,11 @@
 package io.github.wysohn.triggerreactor.tools;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 /**
- * A concurrent hash map that supports null for get() and put()
+ * A hash map that supports null for get() and put()
  */
-public class VarMap extends ConcurrentHashMap<String, Object> {
+public class VarMap extends HashMap<String, Object> {
     public VarMap() {
     }
 
@@ -25,6 +25,7 @@ public class VarMap extends ConcurrentHashMap<String, Object> {
         }
         return super.put(key, value);
     }
+
     private static final long serialVersionUID = 1L;
     private static final NullObject NULL = new NullObject();
 

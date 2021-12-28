@@ -38,7 +38,7 @@ public class TestExecutors extends AbstractTestExecutors {
     public void testMoney() throws Exception {
         VaultSupport vVault = Mockito.mock(VaultSupport.class);
         Player vp = Mockito.mock(Player.class);
-        JsTest test = new ExecutorTest(engine, "MONEY").addVariable("vault", vVault).addVariable("player", vp);
+        JsTest test = new ExecutorTest(localContext, "MONEY").addVariable("vault", vVault).addVariable("player", vp);
 
         test.withArgs(30).test();
         Mockito.verify(vVault).give(vp, 30);
@@ -59,7 +59,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(location.getBlock()).thenReturn(block);
         when(block.getBlockData()).thenReturn(data);
 
-        new ExecutorTest(engine, "ROTATEBLOCK").withArgs(BlockFace.NORTH.name(), location).test();
+        new ExecutorTest(localContext, "ROTATEBLOCK").withArgs(BlockFace.NORTH.name(), location).test();
 
         verify(data).setFacing(BlockFace.NORTH);
     }
@@ -75,7 +75,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(block.getType()).thenReturn(Material.SPRUCE_SIGN);
         when(block.getState()).thenReturn(sign);
 
-        new ExecutorTest(engine, "SIGNEDIT").withArgs(0, "line1", location).addVariable("player", player).test();
+        new ExecutorTest(localContext, "SIGNEDIT").withArgs(0, "line1", location).addVariable("player", player).test();
 
         verify(sign).setLine(0, "line1");
         verify(sign).update();
@@ -92,7 +92,7 @@ public class TestExecutors extends AbstractTestExecutors {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        assertJSError(() -> new ExecutorTest(engine, "SETBLOCK").addVariable("player", player)
+        assertJSError(() -> new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player)
                 .withArgs(1, 33, 96, -15)
                 .test(), "Cannot use a number as block type after 1.12.2. Use material name directly.");
     }

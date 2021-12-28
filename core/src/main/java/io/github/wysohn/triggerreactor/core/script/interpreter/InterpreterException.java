@@ -30,5 +30,6 @@ public class InterpreterException extends Exception {
     public InterpreterException(String message, Token context) {
 
     }
+
     private static final long serialVersionUID = 1L;
 }

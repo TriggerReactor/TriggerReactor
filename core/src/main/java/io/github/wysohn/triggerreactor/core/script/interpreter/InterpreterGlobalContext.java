@@ -1,8 +1,8 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,17 +16,61 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class InterpreterGlobalContext {
     final Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
-    private final Executor EXECUTOR_STOP = (timing, vars, context, args) -> Executor.STOP;
-    private final Executor EXECUTOR_BREAK = (timing, vars, context, args) -> Executor.BREAK;
-    private final Executor EXECUTOR_CONTINUE = (timing, vars, context, args) -> Executor.CONTINUE;
-    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<Executor>() {{
-        put("STOP", EXECUTOR_STOP);
-        put("BREAK", EXECUTOR_BREAK);
-        put("CONTINUE", EXECUTOR_CONTINUE);
-    }};
+    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<>();
     TaskSupervisor task;
     Map<Object, Object> gvars = new ConcurrentHashMap<>();
     SelfReference selfReference = new SelfReference() {
     };
-    ProcessInterrupter interrupter = null;
+
+    InterpreterGlobalContext() {
+
+    }
+
+    public static class Builder {
+        private final InterpreterGlobalContext context = new InterpreterGlobalContext();
+
+        private Builder() {
+
+        }
+
+        public Builder putPlaceholders(Map<String, Placeholder> map) {
+            context.placeholderMap.putAll(map);
+            return this;
+        }
+
+        public Builder putExecutors(Map<String, Executor> map) {
+            context.executorMap.putAll(map);
+            return this;
+        }
+
+        public Builder task(TaskSupervisor task) {
+            context.task = task;
+            return this;
+        }
+
+        public Builder putGlobalVariables(Map<Object, Object> map) {
+            context.gvars.putAll(map);
+            return this;
+        }
+
+        public Builder selfReference(SelfReference reference) {
+            context.selfReference = reference;
+            return this;
+        }
+
+        public InterpreterGlobalContext build() {
+            ValidationUtil.notNull(context.task);
+            ValidationUtil.notNull(context.selfReference);
+
+            context.executorMap.put("STOP", (timing, localContext, vars, args) -> Executor.STOP);
+            context.executorMap.put("BREAK", (timing, localContext, vars, args) -> Executor.BREAK);
+            context.executorMap.put("CONTINUE", (timing, localContext, vars, args) -> Executor.CONTINUE);
+
+            return context;
+        }
+
+        public static Builder begin() {
+            return new Builder();
+        }
+    }
 }

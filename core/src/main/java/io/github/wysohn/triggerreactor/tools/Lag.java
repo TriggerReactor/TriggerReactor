@@ -20,6 +20,10 @@ public class Lag implements Runnable {
         return System.currentTimeMillis() - time;
     }
 
+    public double getTPS() {
+        return getTPS(100);
+    }
+
     public double getTPS(int ticks) {
         if (TICK_COUNT < ticks) {
             return 20.0D;
@@ -28,9 +32,5 @@ public class Lag implements Runnable {
         long elapsed = System.currentTimeMillis() - TICKS[target];
 
         return ticks / (elapsed / 1000.0D);
-    }
-
-    public double getTPS() {
-        return getTPS(100);
     }
 }

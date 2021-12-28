@@ -32,13 +32,17 @@ public class Vector {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         Vector vector = (Vector) o;
 
-        if (Double.compare(vector.x, x) != 0) return false;
-        if (Double.compare(vector.y, y) != 0) return false;
+        if (Double.compare(vector.x, x) != 0)
+            return false;
+        if (Double.compare(vector.y, y) != 0)
+            return false;
         return Double.compare(vector.z, z) == 0;
     }
 

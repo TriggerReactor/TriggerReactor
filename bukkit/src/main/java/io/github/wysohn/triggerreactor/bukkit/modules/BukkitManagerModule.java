@@ -19,11 +19,78 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import dagger.Binds;
 import dagger.Module;
+import dagger.multibindings.IntoSet;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.BukkitEventRegistryManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.bukkit.scope.BukkitManager;
+import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.IEventRegistry;
 
 @Module
 public abstract class BukkitManagerModule {
     @Binds
-    abstract AbstractCustomTriggerManager.EventRegistry bindEventRegistry(BukkitEventRegistryManager registry);
+    @BukkitManager
+    abstract AreaSelectionManager bindAreaSelectionManager(AreaSelectionManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract ExecutorManager bindExecutorManager(ExecutorManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract InventoryEditManager bindInvEditManager(InventoryEditManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract AbstractPermissionManager bindPermissionManager(PermissionManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract PlaceholderManager bindPlaceholderManager(PlaceholderManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract PlayerLocationManager bindPlayerLocManager(PlayerLocationManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract ScriptEditManager bindScriptEditManager(ScriptEditManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetAreaSelectionManager(AreaSelectionManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetExecutorManager(ExecutorManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetInventoryEditManager(InventoryEditManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetPermissionManager(AbstractPermissionManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetPlaceholderManager(PlaceholderManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetPlayerLocationManager(PlayerLocationManager manager);
+
+    @Binds
+    @IntoSet
+    @BukkitManager
+    abstract Manager bindIntoSetScriptEditManager(ScriptEditManager manager);
+
+    @Binds
+    @BukkitManager
+    abstract IEventRegistry bindEventRegistry(BukkitEventRegistryManager registry);
 }

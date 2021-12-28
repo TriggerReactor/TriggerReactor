@@ -22,8 +22,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -35,16 +34,11 @@ import java.util.Collection;
 import java.util.UUID;
 
 public class ProtocolLibSupport extends APISupport {
-    private final String nmsVersion;
-
+    private String nmsVersion;
     private ProtocolManager protocolManager;
 
-    public ProtocolLibSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
-        super(targetPluginInstance, api);
-
-        Plugin bukkitPlugin = (Plugin) api.pluginInstance();
-        String packageName = bukkitPlugin.getServer().getClass().getPackage().getName();
-        nmsVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
+    public ProtocolLibSupport(Object targetPluginInstance) {
+        super(targetPluginInstance);
     }
 
     @Override
@@ -58,7 +52,14 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     @Override
-    public void onEnable() throws APISupportException {
+    public void onEnable() throws Exception {
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
+        String packageName = bukkitPlugin.getServer()
+                .getClass()
+                .getPackage()
+                .getName();
+        nmsVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
+
         protocolManager = ProtocolLibrary.getProtocolManager();
     }
 

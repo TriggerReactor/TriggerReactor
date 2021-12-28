@@ -18,6 +18,7 @@ public class StringInterpolationWarning extends Warning {
     public String[] getMessageLines() {
         return new String[]{"Unescaped $ found at line " + row + ": ",
                             context,
-                            "to ensure compatibility with the upcoming features of trg 3.0, all $ must be escaped: \\$"};
+                            "to ensure compatibility with the upcoming features of trg 3.0, all $ must be escaped: "
+                                    + "\\$"};
     }
 }

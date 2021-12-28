@@ -17,13 +17,13 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 
 public class PlaceHolderSupport extends APISupport {
-    public PlaceHolderSupport(Object targetPluginInstance, ITriggerReactorAPI api) {
-        super(targetPluginInstance, api);
+    public PlaceHolderSupport(Object targetPluginInstance) {
+        super(targetPluginInstance);
     }
 
     @Override
@@ -39,7 +39,8 @@ public class PlaceHolderSupport extends APISupport {
     @Override
     public void onEnable() throws Exception {
         //init() is called only when PlaceholderAPI is enabled.
-        new PlaceholderExpansionSupport(api).register();
+        new PlaceholderExpansionSupport(TriggerReactorAPI.pluginLifecycleController(),
+                TriggerReactorAPI.getGlobalVariableManager()).register();
     }
 
     @Override

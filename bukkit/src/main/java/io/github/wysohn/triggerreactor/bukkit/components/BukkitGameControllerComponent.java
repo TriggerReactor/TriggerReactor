@@ -17,13 +17,32 @@
 
 package io.github.wysohn.triggerreactor.bukkit.components;
 
+import dagger.BindsInstance;
 import dagger.Component;
+import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitGameControllerModule;
-import io.github.wysohn.triggerreactor.core.components.CoreGameControllerComponent;
+import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
+import io.github.wysohn.triggerreactor.core.components.UtilityComponent;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.bukkit.Server;
 
 @Component(modules = {BukkitGameControllerModule.class},
-           dependencies = {CoreGameControllerComponent.class})
+           dependencies = {UtilityComponent.class})
+@BukkitPluginScope
 public interface BukkitGameControllerComponent {
     Server server();
+
+    IGameController gameController();
+
+    TaskSupervisor task();
+
+    @Component.Builder
+    interface Builder{
+        BukkitGameControllerComponent build();
+
+        // injects
+        @BindsInstance
+        Builder plugin(AbstractJavaPlugin plugin);
+    }
 }

@@ -57,7 +57,7 @@ public class BukkitCommandSender implements ICommandSender {
     }
 
     @Override
-    public void sendMessage(String message) {
+    public void sendMessage(String message, boolean raw) {
         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
     }
 

@@ -48,8 +48,12 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     }
 
     @Override
-    public void sendMessage(String message) {
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    public void sendMessage(String message, boolean raw) {
+        String colored = ChatColor.translateAlternateColorCodes('&', message);
+        if(raw)
+            player.sendRawMessage(colored);
+        else
+            player.sendMessage(colored);
     }
 
     @Override
@@ -84,4 +88,18 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
         player.openInventory(inv);
     }
 
+    @Override
+    public boolean isOp() {
+        return player.isOp();
+    }
+
+    @Override
+    public void setOp(boolean bool) {
+        player.setOp(bool);
+    }
+
+    @Override
+    public void dispatchCommand(String command) {
+        player.performCommand(command);
+    }
 }

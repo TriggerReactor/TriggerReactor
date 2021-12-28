@@ -1,37 +1,39 @@
 package js;
 
 import io.github.wysohn.triggerreactor.core.main.IGameController;
-import io.github.wysohn.triggerreactor.core.manager.AbstractJavascriptBasedManager;
-import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import js.components.DaggerScriptEngineComponent;
+import js.components.ScriptEngineComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.PluginManager;
 import org.junit.Before;
+import org.junit.Test;
 import org.mockito.Mockito;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.lang.reflect.Field;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 public abstract class AbstractTestJavaScripts {
-    protected ScriptEngineManager sem;
-    protected ScriptEngine engine;
+    protected static final ScriptEngineComponent component = DaggerScriptEngineComponent.create();
+
     protected Server server;
     protected IGameController mockMain;
     protected PluginManager mockPluginManager;
 
-    protected abstract void before() throws Exception;
+    protected InterpreterLocalContext localContext;
+
+    protected void before() throws Exception {
+
+    }
 
     @Before
     public void init() throws Exception {
-        sem = new ScriptEngineManager();
-        ScriptEngineInitializer.initScriptEngine(sem);
-        engine = AbstractJavascriptBasedManager.getEngine(sem);
-
         mockMain = mock(IGameController.class);
         Mockito.when(mockMain.isServerThread()).thenReturn(true);
 
@@ -46,6 +48,9 @@ public abstract class AbstractTestJavaScripts {
 
             return false;
         });
+
+        localContext = new InterpreterLocalContext();
+        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
 
         before();
 
@@ -64,6 +69,38 @@ public abstract class AbstractTestJavaScripts {
 
             return null;
         });
+    }
+
+    @Test
+    public void testWithCompilation() throws Exception {
+        ScriptEngineManager sem = component.manager();
+        ScriptEngine engine = sem.getEngineByName("nashorn");
+        CompiledScript compiled = ((Compilable) engine).compile("a + b");
+
+        for (int i = 0; i < 10000; i++) {
+            Bindings bindings = engine.createBindings();
+            bindings.put("a", i);
+            bindings.put("b", i);
+
+            Object result = compiled.eval(bindings);
+            assertEquals(result, (double)i + i);
+        }
+    }
+
+    @Test
+    public void testWithoutCompilation() throws Exception {
+        ScriptEngineManager sem = component.manager();
+        ScriptEngine engine = sem.getEngineByName("nashorn");
+
+        for (int i = 0; i < 10000; i++) {
+            Bindings bindings = engine.createBindings();
+            engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
+            bindings.put("a", i);
+            bindings.put("b", i);
+
+            Object result = engine.eval("a + b");
+            assertEquals(result, (double)i + i);
+        }
     }
 
     protected void register(ScriptEngineManager sem, ScriptEngine engine, Class<?> clazz) throws ScriptException {

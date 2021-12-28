@@ -39,16 +39,23 @@ public class Area {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         Area other = (Area) obj;
         if (largest == null) {
-            if (other.largest != null) return false;
-        } else if (!largest.equals(other.largest)) return false;
+            if (other.largest != null)
+                return false;
+        } else if (!largest.equals(other.largest))
+            return false;
         if (smallest == null) {
-            if (other.smallest != null) return false;
-        } else if (!smallest.equals(other.smallest)) return false;
+            if (other.smallest != null)
+                return false;
+        } else if (!smallest.equals(other.smallest))
+            return false;
         return true;
     }
 
@@ -66,13 +73,15 @@ public class Area {
     }
 
     public boolean isInThisArea(SimpleLocation sloc) {
-        if (smallest.getX() <= sloc.getX() && sloc.getX() <= largest.getX() && smallest.getY() <= sloc.getY() && sloc.getY() <= largest.getY() && smallest.getZ() <= sloc.getZ() && sloc.getZ() <= largest.getZ())
+        if (smallest.getX() <= sloc.getX() && sloc.getX() <= largest.getX() && smallest.getY() <= sloc.getY()
+                && sloc.getY() <= largest.getY() && smallest.getZ() <= sloc.getZ() && sloc.getZ() <= largest.getZ())
             return true;
         return false;
     }
 
     public static boolean isConflicting(Area area1, Area area2) {
-        if (!area1.smallest.getWorld().equals(area2.smallest.getWorld())) return false;
+        if (!area1.smallest.getWorld().equals(area2.smallest.getWorld()))
+            return false;
 
         int xs1 = area1.smallest.getX(), xs2 = area2.smallest.getX();
         int ys1 = area1.smallest.getY(), ys2 = area2.smallest.getY();
@@ -85,7 +94,8 @@ public class Area {
         boolean xConflict = false;
         boolean zConflict = false;
         //compare x
-        if (Math.abs(xl1 - xs1) > Math.abs(xl2 - xs2)) {//sec1 is longer so check if one of the points in sec2 within the range
+        if (Math.abs(xl1 - xs1) > Math.abs(
+                xl2 - xs2)) {//sec1 is longer so check if one of the points in sec2 within the range
             if ((xs1 <= xs2 && xs2 <= xl1) || (xs1 <= xl2 && xl2 <= xl1)) {
                 xConflict = true;
             }
@@ -96,7 +106,8 @@ public class Area {
         }
 
         //compare z
-        if (Math.abs(zl1 - zs1) > Math.abs(zl2 - zs2)) {//sec1 is longer so check if one of the points in sec2 within the range
+        if (Math.abs(zl1 - zs1) > Math.abs(
+                zl2 - zs2)) {//sec1 is longer so check if one of the points in sec2 within the range
             if ((zs1 <= zs2 && zs2 <= zl1) || (zs1 <= zl2 && zl2 <= zl1)) {
                 zConflict = true;
             }
@@ -112,12 +123,14 @@ public class Area {
                 int yFloor = ys1;
                 int yCeiling = yl2;
 
-                if (yFloor - yCeiling <= 0) return true;
+                if (yFloor - yCeiling <= 0)
+                    return true;
             } else if (yl1 < yl2) {//sec2 on sec1
                 int yFloor = ys2;
                 int yCeiling = yl1;
 
-                if (yFloor - yCeiling <= 0) return true;
+                if (yFloor - yCeiling <= 0)
+                    return true;
             } else {//sec2 bot == sec1 bot
                 return true;
             }

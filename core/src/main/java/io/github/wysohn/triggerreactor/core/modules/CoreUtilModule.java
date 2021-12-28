@@ -19,22 +19,13 @@ package io.github.wysohn.triggerreactor.core.modules;
 
 import dagger.Binds;
 import dagger.Module;
-import dagger.Provides;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.main.ThrowableHandler;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
-
-import java.util.logging.Logger;
+import io.github.wysohn.triggerreactor.core.scope.UtilityScope;
 
 @Module
 public abstract class CoreUtilModule {
     @Binds
-    @PluginScope
+    @UtilityScope
     abstract IThrowableHandler provideThrowableHandler(ThrowableHandler throwableHandler);
-
-    @Provides
-    @PluginScope
-    static Logger provideLogger() {
-        throw new RuntimeException("Dependent must provide it");
-    }
 }

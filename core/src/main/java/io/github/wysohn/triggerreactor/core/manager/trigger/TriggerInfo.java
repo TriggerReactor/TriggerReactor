@@ -13,10 +13,27 @@ public abstract class TriggerInfo implements IMigratable {
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
+
     public TriggerInfo(File sourceCodeFile, IConfigSource config) {
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = extractName(sourceCodeFile);
+    }
+
+    /**
+     * extract file name without the extension
+     *
+     * @param file
+     * @return the filename. null if the file is not file
+     */
+    public static String extractName(File file) {
+        if (file.isDirectory())
+            return null;
+
+        if (file.getName().indexOf('.') == -1)
+            return file.getName();
+
+        return file.getName().substring(0, file.getName().indexOf('.'));
     }
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config, String triggerName) {
@@ -27,7 +44,8 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
-        if (sourceCodeFile == null) return false;
+        if (sourceCodeFile == null)
+            return false;
 
         File folder = sourceCodeFile.getParentFile();
         File oldFile = new File(folder, triggerName + ".yml");
@@ -43,6 +61,10 @@ public abstract class TriggerInfo implements IMigratable {
         reloadConfig();
     }
 
+    public void reloadConfig() {
+        Optional.ofNullable(config).ifPresent(IConfigSource::onReload);
+    }
+
     @Override
     public int hashCode() {
         return triggerName != null ? triggerName.hashCode() : 0;
@@ -50,8 +72,10 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         TriggerInfo that = (TriggerInfo) o;
 
@@ -84,10 +108,6 @@ public abstract class TriggerInfo implements IMigratable {
         return config;
     }
 
-    public File getSourceCodeFile() {
-        return sourceCodeFile;
-    }
-
     public String getTriggerName() {
         return triggerName;
     }
@@ -106,40 +126,7 @@ public abstract class TriggerInfo implements IMigratable {
         config.put(KEY_SYNC, sync);
     }
 
-    public void reloadConfig() {
-        Optional.ofNullable(config).ifPresent(IConfigSource::onReload);
-    }
     public static final String KEY_SYNC = "sync";
-
-    /**
-     * Check if the file has valid extension (.trg) or no extension.
-     * No extension file is produced in old versions so have to be renamed accordingly.
-     *
-     * @param file the source code file to check
-     * @return true if has valid extension; false if not file or extension is not valid
-     */
-    public static boolean isTriggerFile(File file) {
-        if (!file.isFile()) return false;
-
-        String name = file.getName();
-
-        //either ends with .trg or no extension
-        return name.endsWith(".trg") || name.indexOf('.') == -1;
-    }
-
-    /**
-     * extract file name without the extension
-     *
-     * @param file
-     * @return the filename. null if the file is not file
-     */
-    public static String extractName(File file) {
-        if (file.isDirectory()) return null;
-
-        if (file.getName().indexOf('.') == -1) return file.getName();
-
-        return file.getName().substring(0, file.getName().indexOf('.'));
-    }
 
     /**
      * Trigger info with default behavior: it is a valid TriggerInfo if the `sourceCodeFile` passes
@@ -152,5 +139,26 @@ public abstract class TriggerInfo implements IMigratable {
                 return isTriggerFile(getSourceCodeFile());
             }
         };
+    }
+
+    /**
+     * Check if the file has valid extension (.trg) or no extension.
+     * No extension file is produced in old versions so have to be renamed accordingly.
+     *
+     * @param file the source code file to check
+     * @return true if has valid extension; false if not file or extension is not valid
+     */
+    public static boolean isTriggerFile(File file) {
+        if (!file.isFile())
+            return false;
+
+        String name = file.getName();
+
+        //either ends with .trg or no extension
+        return name.endsWith(".trg") || name.indexOf('.') == -1;
+    }
+
+    public File getSourceCodeFile() {
+        return sourceCodeFile;
     }
 }

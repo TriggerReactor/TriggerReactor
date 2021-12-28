@@ -52,16 +52,24 @@ public class SimpleLocation implements Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         SimpleLocation other = (SimpleLocation) obj;
         if (world == null) {
-            if (other.world != null) return false;
-        } else if (!world.equals(other.world)) return false;
-        if (x != other.x) return false;
-        if (y != other.y) return false;
-        if (z != other.z) return false;
+            if (other.world != null)
+                return false;
+        } else if (!world.equals(other.world))
+            return false;
+        if (x != other.x)
+            return false;
+        if (y != other.y)
+            return false;
+        if (z != other.z)
+            return false;
         return true;
     }
 
@@ -81,6 +89,19 @@ public class SimpleLocation implements Cloneable {
         this.z += z;
     }
 
+    /**
+     * get the smallest point between two coordinates. Smallest means that the x, y, and z are all
+     * the minimum value between two coordinates.
+     *
+     * @param left  coordinate 1
+     * @param right coordinate 2
+     * @return the smallest between two
+     */
+    public static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
+        return new SimpleLocation(left.getWorld(), Math.min(left.getX(), right.getX()),
+                Math.min(left.getY(), right.getY()), Math.min(left.getZ(), right.getZ()));
+    }
+
     public String getWorld() {
         return world;
     }
@@ -97,19 +118,32 @@ public class SimpleLocation implements Cloneable {
         return z;
     }
 
+    /**
+     * get the largest point between two coordinates. Largest means that the x, y, and z are all
+     * the maximum value between two coordinates.
+     *
+     * @param left  coordinate 1
+     * @param right coordinate 2
+     * @return the largest between two
+     */
+    public static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
+        return new SimpleLocation(right.getWorld(), Math.max(left.getX(), right.getX()),
+                Math.max(left.getY(), right.getY()), Math.max(left.getZ(), right.getZ()));
+    }
+
     public static SimpleLocation valueOf(String str) {
         String[] splitw = str.split("@", 2);
-        if (splitw.length != 2) throw new SimpleLocationFormatException(str);
+        if (splitw.length != 2)
+            throw new SimpleLocationFormatException(str);
 
         String world = splitw[0];
 
         String[] splitl = splitw[1].split(",", 3);
-        if (splitl.length != 3) throw new SimpleLocationFormatException(str);
+        if (splitl.length != 3)
+            throw new SimpleLocationFormatException(str);
 
-        return new SimpleLocation(world,
-                                  Integer.parseInt(splitl[0]),
-                                  Integer.parseInt(splitl[1]),
-                                  Integer.parseInt(splitl[2]));
+        return new SimpleLocation(world, Integer.parseInt(splitl[0]), Integer.parseInt(splitl[1]),
+                Integer.parseInt(splitl[2]));
     }
 
     @SuppressWarnings("serial")

@@ -27,4 +27,16 @@ public interface IItemStack extends IMinecraftObject, Cloneable {
      */
     <T> T getType();
 
+    /**
+     * Check if this item is AIR (empty).
+     *
+     * @return
+     */
+    boolean isAir();
+
+    boolean isInspectionTool();
+
+    boolean isCutTool();
+
+    boolean isCopyTool();
 }

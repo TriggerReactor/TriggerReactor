@@ -20,6 +20,7 @@ package io.github.wysohn.triggerreactor.core.main;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -83,11 +84,16 @@ public interface IGameController extends TaskSupervisor {
      * the Inventory was closed, it is the iterrupter's responsibility to do that.
      *
      * @param cooldowns    list of current cooldowns.
-     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
-     *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
-     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
-     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
-     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
+     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class
+     *                     that implements
+     *                     IIventory should override hashCode() and equals() methods, you can assume that each
+     *                     IInventory instance represents one trigger
+     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object
+     *                     from the 'e' context and see if the Inventory
+     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager,
+     *                     closing the inventory should delete the IInventory
+     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in
+     *                     the 'inventoryMap.'
      * @return
      */
     ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
@@ -134,4 +140,10 @@ public interface IGameController extends TaskSupervisor {
      * @param set    the set contains location of block and its associated trigger.
      */
     void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set);
+
+    Iterable<? extends IPlayer> getOnlinePlayers();
+
+    Iterable<? extends IWorld> getWorlds();
+
+    IInventory createInventory(int size, String name);
 }

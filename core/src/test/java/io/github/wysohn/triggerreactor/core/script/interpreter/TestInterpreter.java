@@ -16,8 +16,8 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.components.DaggerPluginMainComponent;
 import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
-import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -31,7 +31,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -74,19 +73,24 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals("arg1, arg2", args[0]);
                 return null;
             }
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
         String[] args = new String[]{"item1", "item2"};
         interpreter.getVars().put("args", args);
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -102,7 +106,10 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test");
@@ -114,16 +121,18 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new SelfReference() {
-            @SuppressWarnings("unused")
-            public Object array(int size) {
-                return new Object[size];
-            }
-        });
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new SelfReference() {
+                    @SuppressWarnings("unused")
+                    public Object array(int size) {
+                        return new Object[size];
+                    }
+                })
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test"));
     }
@@ -142,9 +151,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-258, args[0]);
                 return null;
@@ -155,9 +163,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-65, args[0]);
                 return null;
@@ -168,9 +175,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2147483583, args[0]);
                 return null;
@@ -181,9 +187,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-129, args[0]);
                 return null;
@@ -194,9 +199,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(67, args[0]);
                 return null;
@@ -207,9 +211,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-196, args[0]);
                 return null;
@@ -220,9 +223,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(128, args[0]);
                 return null;
@@ -233,9 +235,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
                 return null;
@@ -246,9 +247,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
                 return null;
@@ -259,9 +259,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(false, args[0]);
                 return null;
@@ -270,10 +269,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test(expected = InterpreterException.class)
@@ -287,8 +288,10 @@ public class TestInterpreter {
 
             Node root = parser.parse();
             Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.startWithContext(null);
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                    .task(mockTask)
+                    .build();
+            interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         }
     }
 
@@ -303,8 +306,10 @@ public class TestInterpreter {
 
             Node root = parser.parse();
             Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.startWithContext(null);
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                    .task(mockTask)
+                    .build();
+            interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         }
     }
 
@@ -319,8 +324,10 @@ public class TestInterpreter {
 
             Node root = parser.parse();
             Interpreter interpreter = new Interpreter(root);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.startWithContext(null);
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                    .task(mockTask)
+                    .build();
+            interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         }
     }
 
@@ -335,9 +342,8 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -346,9 +352,8 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -356,10 +361,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -372,18 +379,20 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = mock(Executor.class);
-        Mockito.when(mockExecutor.execute(Mockito.any(), Mockito.anyMap(), Mockito.any(), ArgumentMatchers.any()))
+        when(mockExecutor.execute(any(), any(), anyMap(), ArgumentMatchers.any()))
                 .thenReturn(null);
         executorMap.put("TEST", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        Mockito.verify(mockExecutor, Mockito.times(3))
-                .execute(Mockito.any(), Mockito.anyMap(), Mockito.any(), ArgumentMatchers.any());
+        verify(mockExecutor, times(3))
+                .execute(any(), any(), anyMap(), ArgumentMatchers.any());
     }
 
     @Test
@@ -396,7 +405,10 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 assertEquals("abcd\rABCD", args[0]);
@@ -405,10 +417,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -425,9 +439,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
                 assertEquals(false, args[1]);
@@ -443,10 +456,12 @@ public class TestInterpreter {
         executorMap.put("TEST6", exec);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -462,15 +477,17 @@ public class TestInterpreter {
         executorMap.put("TEST", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setSelfReference(new SelfReference() {
-            public float toFloat(Number number) {
-                return number.floatValue();
-            }
-        });
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new SelfReference() {
+                    public float toFloat(Number number) {
+                        return number.floatValue();
+                    }
+                })
+                .build();
 
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Map<String, Object> vars = interpreter.getVars();
 
@@ -493,7 +510,10 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test");
@@ -511,10 +531,12 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test"));
     }
@@ -532,7 +554,10 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test");
@@ -550,10 +575,12 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test"));
     }
@@ -571,7 +598,10 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test");
@@ -589,10 +619,12 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test"));
     }
@@ -610,7 +642,10 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test");
@@ -628,10 +663,12 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test"));
     }
@@ -647,9 +684,8 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 assertEquals(5, args[1]);
@@ -659,9 +695,8 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 assertEquals(5, args[1]);
@@ -669,10 +704,12 @@ public class TestInterpreter {
             }
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -686,9 +723,8 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(9, args[0]);
                 return null;
@@ -697,9 +733,8 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(9, args[0]);
                 return null;
@@ -709,11 +744,15 @@ public class TestInterpreter {
         vars.put("arr", new int[]{1, 2, 3, 4, 5});
         vars.put("iter", Arrays.asList(1, 2, 3, 4, 5));
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setVars(vars);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.putAllVars(vars);
+
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -728,18 +767,23 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals("arg1, arg2", args[0]);
                 return null;
             }
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -754,11 +798,13 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
     }
@@ -775,23 +821,28 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals(12.54, args[0]);
                 return null;
             }
         });
-        Map<Object, Object> map = new HashMap<>();
+        Map<Object, Object> gvars = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setGvars(map);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .putGlobalVariables(gvars)
+                .build();
 
         interpreter.getVars().put("text", "someplayername");
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        Assert.assertTrue(map.containsKey("someplayername.something"));
-        assertEquals(12.54, map.get("someplayername.something"));
+        Assert.assertTrue(gvars.containsKey("someplayername.something"));
+        assertEquals(12.54, gvars.get("someplayername.something"));
     }
 
     @Test
@@ -801,17 +852,20 @@ public class TestInterpreter {
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
 
-        Map<Object, Object> globalVar = new HashMap<>();
-        globalVar.put("some.temp.var", 22);
-        globalVar.put(new TemporaryGlobalVariableKey("some.temp.var"), 22);
-        interpreter.setGvars(globalVar);
+        Map<Object, Object> gvars = new HashMap<>();
+        gvars.put("some.temp.var", 22);
+        gvars.put(new TemporaryGlobalVariableKey("some.temp.var"), 22);
 
-        interpreter.startWithContext(null);
+        Map<String, Executor> executorMap = new HashMap<>();
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .putGlobalVariables(gvars)
+                .build();
+
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         assertEquals(18, interpreter.getVars().get("result"));
         assertEquals(17, interpreter.getVars().get("result2"));
     }
@@ -829,9 +883,8 @@ public class TestInterpreter {
 
 
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
                 return null;
@@ -842,9 +895,8 @@ public class TestInterpreter {
 
 
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 Assert.assertNull(args[0]);
                 return null;
@@ -853,12 +905,14 @@ public class TestInterpreter {
         Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvars);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .putPlaceholders(placeholderMap)
+                .putGlobalVariables(gvars)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertNull(gvars.get("temp"));
     }
@@ -874,9 +928,8 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 Assert.assertTrue((boolean) args[0]);
                 Assert.assertFalse((boolean) args[1]);
@@ -888,11 +941,15 @@ public class TestInterpreter {
         vars.put("test", new TheTest());
         vars.put("test2", new InTest());
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setVars(vars);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.putAllVars(vars);
+
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -909,9 +966,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(TheTest.class, args[0]);
                 return null;
@@ -922,9 +978,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("static", args[0]);
                 return null;
@@ -935,9 +990,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("local", args[0]);
                 return null;
@@ -948,9 +1002,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("staticField", args[0]);
                 return null;
@@ -961,9 +1014,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(TestEnum.IMTEST, args[0]);
                 return null;
@@ -972,10 +1024,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -992,9 +1046,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-2, args[0]);
                 return null;
@@ -1005,9 +1058,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -1018,9 +1070,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(3, args[0]);
                 return null;
@@ -1031,9 +1082,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(3, args[0]);
                 return null;
@@ -1044,9 +1094,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -1055,10 +1104,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1075,9 +1126,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-2.1, args[0]);
                 return null;
@@ -1088,9 +1138,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2.1, args[0]);
                 return null;
@@ -1101,9 +1150,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(3.1, args[0]);
                 return null;
@@ -1114,9 +1162,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(3.1, args[0]);
                 return null;
@@ -1127,9 +1174,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2.1, args[0]);
                 return null;
@@ -1138,10 +1184,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1158,7 +1206,10 @@ public class TestInterpreter {
             int index = 0;
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals(index++, args[0]);
                 return null;
@@ -1166,11 +1217,13 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1187,7 +1240,10 @@ public class TestInterpreter {
             int index = 0;
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals(index++, args[0]);
                 return null;
@@ -1195,10 +1251,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1215,7 +1273,10 @@ public class TestInterpreter {
             int index = 0;
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals(index++, args[0]);
                 return null;
@@ -1223,10 +1284,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1240,24 +1303,26 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), anyInt())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("MESSAGE", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new SelfReference() {
-            public Collection<String> getPlayers() {
-                List<String> names = new ArrayList<>();
-                for (int i = 0; i < 10; i++)
-                    names.add(String.valueOf(i));
-                return names;
-            }
-        });
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new SelfReference() {
+                    public Collection<String> getPlayers() {
+                        List<String> names = new ArrayList<>();
+                        for (int i = 0; i < 10; i++)
+                            names.add(String.valueOf(i));
+                        return names;
+                    }
+                })
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(10)).execute(any(), anyMap(), any(), anyInt());
+        verify(executor, times(10)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -1287,11 +1352,13 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
         interpreter.getVars().put("instance", instance);
 
-        interpreter.start();
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         assertEquals(33, interpreter.getVars().get("abc"));
         assertNull(interpreter.getVars().get("str"));
         assertNull(interpreter.getVars().get("added"));
@@ -1322,11 +1389,13 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
         interpreter.getVars().put("instance", instance);
 
-        interpreter.start();
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         assertNull(interpreter.getVars().get("a"));
         assertNull(interpreter.getVars().get("b"));
 
@@ -1352,11 +1421,13 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
         interpreter.getVars().put("instance", instance);
 
-        interpreter.start();
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         assertNull(interpreter.getVars().get("a"));
         assertNull(interpreter.getVars().get("b"));
 
@@ -1383,11 +1454,13 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
         interpreter.getVars().put("instance", instance);
 
-        interpreter.start();
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         assertNull(interpreter.getVars().get("a"));
         assertNull(interpreter.getVars().get("b"));
 
@@ -1407,9 +1480,8 @@ public class TestInterpreter {
         executorMap.put("TEST", new Executor() {
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("abcd\nABCD", args[0]);
                 return null;
@@ -1417,10 +1489,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1435,7 +1509,10 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 String value = String.valueOf(args[0]);
                 Assert.assertTrue("0".equals(value) || "1".equals(value) || "2".equals(value));
@@ -1445,12 +1522,14 @@ public class TestInterpreter {
         executorMap.put("MESSAGE", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
         interpreter.getVars().put("common", new CommonFunctions());
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1467,13 +1546,15 @@ public class TestInterpreter {
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvars);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .putPlaceholders(placeholderMap)
+                .putGlobalVariables(gvars)
+                .selfReference(new CommonFunctions())
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(gvars.get("temp1") instanceof Integer);
         Assert.assertTrue(gvars.get("temp2") instanceof Double);
@@ -1497,14 +1578,18 @@ public class TestInterpreter {
         vars.put("temp2", new TheTest2());
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setVars(vars);
-        interpreter.setGvars(gvars);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .putPlaceholders(placeholderMap)
+                .putGlobalVariables(gvars)
+                .selfReference(new CommonFunctions())
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.putAllVars(vars);
+
+        interpreter.start(localContext, globalContext);
 
         // the only method matching is the one with enum parameter. Expect it to be converted
         assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
@@ -1524,11 +1609,13 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Object arr = interpreter.getVars().get("arr");
         Assert.assertTrue((boolean) Array.get(arr, 0));
@@ -1548,16 +1635,17 @@ public class TestInterpreter {
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setSelfReference(new SelfReference() {
-            @SuppressWarnings("unused")
-            public Object array(int size) {
-                return new Object[size];
-            }
-        });
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .selfReference(new SelfReference() {
+                    public Object array(int size) {
+                        return new Object[size];
+                    }
+                })
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         assertEquals(123456789123456789L, interpreter.getVars().get("id"));
     }
 
@@ -1575,9 +1663,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -1586,10 +1673,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1606,9 +1695,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -1617,10 +1705,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1649,11 +1739,15 @@ public class TestInterpreter {
             localVars.put("x", x);
 
             Interpreter interpreter = new Interpreter(root);
-            interpreter.setExecutorMap(executorMap);
-            interpreter.setTaskSupervisor(mockTask);
-            interpreter.setVars(localVars);
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                    .putExecutors(executorMap)
+                    .task(mockTask)
+                    .build();
 
-            interpreter.startWithContext(null);
+            InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+            localContext.putAllVars(localVars);
+
+            interpreter.start(localContext, globalContext);
 
             assertEquals(testMap.get(x), localVars.get("result"));
         }
@@ -1673,9 +1767,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
                 return null;
@@ -1684,10 +1777,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1704,9 +1799,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
                 return null;
@@ -1715,10 +1809,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1735,9 +1831,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -1746,10 +1841,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -1765,11 +1862,13 @@ public class TestInterpreter {
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setGvars(gvars);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .putGlobalVariables(gvars)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         assertEquals(true, gvars.get("temp"));
     }
@@ -1787,17 +1886,19 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(0)).execute(any(), anyMap(), any(), any());
+        verify(executor, times(0)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -1814,9 +1915,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("testplayer", args[0]);
                 assertEquals("testwithargs", args[1]);
@@ -1829,9 +1929,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof String);
                 return null;
@@ -1843,9 +1942,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Integer);
                 return null;
@@ -1857,9 +1955,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Double);
                 return null;
@@ -1871,9 +1968,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Boolean);
                 return null;
@@ -1886,7 +1982,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return "testplayer";
@@ -1897,7 +1993,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 assertEquals(0, args[0]);
@@ -1913,7 +2009,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return "testplayer";
@@ -1925,7 +2021,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return 1;
@@ -1937,7 +2033,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return 1.5;
@@ -1949,7 +2045,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return false;
@@ -1958,12 +2054,14 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .putPlaceholders(placeholderMap)
+                .selfReference(new CommonFunctions())
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
     }
@@ -1982,7 +2080,7 @@ public class TestInterpreter {
         placeholderMap.put("merp", new Placeholder() {
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return null;
@@ -1991,10 +2089,14 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.startWithContext(null);
-        assertEquals(null, interpreter.getVars().get("a"));
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putPlaceholders(placeholderMap)
+                .task(mockTask)
+                .build();
+
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+
+        assertNull(interpreter.getVars().get("a"));
     }
 
     @Test
@@ -2009,20 +2111,25 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 return null;
             }
         });
         TheTest reference = new TheTest();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
     }
@@ -2042,9 +2149,8 @@ public class TestInterpreter {
 
                     @Override
                     public Integer execute(Timings.Timing timing,
-                                           Map<String, Object> vars,
-                                           Object context,
-                                           Object... args) throws Exception {
+                                           InterpreterLocalContext localContext,
+                                           Map<String, Object> vars, Object... args) throws Exception {
                         assertEquals("work", args[0]);
                         return null;
                     }
@@ -2054,9 +2160,8 @@ public class TestInterpreter {
 
                     @Override
                     public Integer execute(Timings.Timing timing,
-                                           Map<String, Object> vars,
-                                           Object context,
-                                           Object... args) throws Exception {
+                                           InterpreterLocalContext localContext,
+                                           Map<String, Object> vars, Object... args) throws Exception {
                         assertEquals("work2", args[0]);
                         return null;
                     }
@@ -2066,16 +2171,18 @@ public class TestInterpreter {
         };
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
         interpreter.getVars().put("player", new InTest());
         interpreter.getVars().put("player2", new InTest());
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         interpreter.getVars().remove("player");
         interpreter.getVars().remove("player2");
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2092,7 +2199,10 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST1", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 assertEquals("pass", args[0]);
@@ -2102,7 +2212,10 @@ public class TestInterpreter {
         });
         executorMap.put("TEST2", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 assertEquals("fail", args[0]);
@@ -2112,10 +2225,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("true"));
         Assert.assertFalse(set.contains("false"));
@@ -2135,9 +2250,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -2146,10 +2260,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2166,9 +2282,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -2177,10 +2292,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2197,9 +2314,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -2208,10 +2324,12 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2226,7 +2344,10 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 Object[] arr = (Object[]) args[0];
                 assertEquals("beh0.82", arr[0]);
@@ -2238,14 +2359,16 @@ public class TestInterpreter {
         });
         TheTest reference = new TheTest();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
         interpreter.getVars().put("player", reference);
         interpreter.getVars().put("text", "hello");
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2261,7 +2384,10 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test1");
@@ -2272,7 +2398,10 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test2");
@@ -2281,51 +2410,53 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(new TaskSupervisor() {
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(new TaskSupervisor() {
 
-            @Override
-            public boolean isServerThread() {
-                return true;
-            }
+                    @Override
+                    public boolean isServerThread() {
+                        return true;
+                    }
 
-            @Override
-            public void runTask(Runnable run) {
-                try {
-                    run.run();
-                    set.add("sync");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+                    @Override
+                    public void runTask(Runnable run) {
+                        try {
+                            run.run();
+                            set.add("sync");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-            @Override
-            public void submitAsync(Runnable run) {
-                try {
-                    run.run();
-                    set.add("async");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+                    @Override
+                    public void submitAsync(Runnable run) {
+                        try {
+                            run.run();
+                            set.add("async");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-            /* (non-Javadoc)
-             * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
-             */
-            @Override
-            public <T> Future<T> submitSync(Callable<T> call) {
-                try {
-                    call.call();
-                    set.add("sync");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return new EmptyFuture<T>();
-            }
+                    /* (non-Javadoc)
+                     * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
+                     */
+                    @Override
+                    public <T> Future<T> submitSync(Callable<T> call) {
+                        try {
+                            call.call();
+                            set.add("sync");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new EmptyFuture<T>();
+                    }
 
-        });
+                })
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test1"));
         Assert.assertTrue(set.contains("test2"));
@@ -2346,7 +2477,10 @@ public class TestInterpreter {
         executorMap.put("TEST1", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test1");
@@ -2357,7 +2491,10 @@ public class TestInterpreter {
         executorMap.put("TEST2", new Executor() {
 
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args)
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args)
 
                     throws Exception {
                 set.add("test2");
@@ -2366,51 +2503,53 @@ public class TestInterpreter {
 
         });
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(new TaskSupervisor() {
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(new TaskSupervisor() {
 
-            @Override
-            public boolean isServerThread() {
-                return true;
-            }
+                    @Override
+                    public boolean isServerThread() {
+                        return true;
+                    }
 
-            @Override
-            public void runTask(Runnable run) {
-                try {
-                    run.run();
-                    set.add("sync");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+                    @Override
+                    public void runTask(Runnable run) {
+                        try {
+                            run.run();
+                            set.add("sync");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-            @Override
-            public void submitAsync(Runnable run) {
-                try {
-                    run.run();
-                    set.add("async");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+                    @Override
+                    public void submitAsync(Runnable run) {
+                        try {
+                            run.run();
+                            set.add("async");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-            /* (non-Javadoc)
-             * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
-             */
-            @Override
-            public <T> Future<T> submitSync(Callable<T> call) {
-                try {
-                    call.call();
-                    set.add("sync");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return new EmptyFuture<T>();
-            }
+                    /* (non-Javadoc)
+                     * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
+                     */
+                    @Override
+                    public <T> Future<T> submitSync(Callable<T> call) {
+                        try {
+                            call.call();
+                            set.add("sync");
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return new EmptyFuture<T>();
+                    }
 
-        });
+                })
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         Assert.assertTrue(set.contains("test1"));
         Assert.assertTrue(set.contains("test2"));
@@ -2430,7 +2569,10 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("MESSAGE", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 assertEquals(12.54, args[0]);
                 return null;
@@ -2438,7 +2580,10 @@ public class TestInterpreter {
         });
         executorMap.put("MESSAGE2", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context, Object... args) {
+            public Integer execute(Timings.Timing timing,
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars,
+                                   Object... args) {
 
                 Assert.assertNull(args[0]);
                 return null;
@@ -2446,12 +2591,14 @@ public class TestInterpreter {
         });
         GlobalVariableManager avm = DaggerGlobalVariableManagerComponent.create().globalVariableManager();
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setGvars(avm.getGlobalVariableAdapter());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .putGlobalVariables(avm.getGlobalVariableAdapter())
+                .build();
 
         interpreter.getVars().put("text", "someplayername");
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2467,17 +2614,19 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(3)).execute(any(), anyMap(), any(), any());
+        verify(executor, times(3)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -2493,17 +2642,19 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(4)).execute(any(), anyMap(), any(), any());
+        verify(executor, times(4)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -2519,17 +2670,19 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(2)).execute(any(), anyMap(), any(), any());
+        verify(executor, times(2)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -2545,17 +2698,19 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(3)).execute(any(), anyMap(), any(), any());
+        verify(executor, times(3)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -2571,17 +2726,19 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .selfReference(new CommonFunctions())
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(2)).execute(any(), anyMap(), any(), any());
+        verify(executor, times(2)).execute(any(), any(), anyMap(), anyInt());
     }
 
     @Test
@@ -2598,9 +2755,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-6, args[0]);
                 return null;
@@ -2611,9 +2767,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(3.0, args[0]);
                 return null;
@@ -2624,9 +2779,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-8, args[0]);
                 return null;
@@ -2637,9 +2791,8 @@ public class TestInterpreter {
 
             @Override
             public Integer execute(Timings.Timing timing,
-                                   Map<String, Object> vars,
-                                   Object context,
-                                   Object... args) throws Exception {
+                                   InterpreterLocalContext localContext,
+                                   Map<String, Object> vars, Object... args) throws Exception {
 
                 assertEquals(-9.0, args[0]);
                 return null;
@@ -2652,7 +2805,7 @@ public class TestInterpreter {
 
             @Override
             public Object parse(Timings.Timing timing,
-                                Object context,
+                                InterpreterLocalContext localContext,
                                 Map<String, Object> vars,
                                 Object... args) throws Exception {
                 return 3;
@@ -2661,12 +2814,14 @@ public class TestInterpreter {
         });
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setSelfReference(new CommonFunctions());
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .putPlaceholders(placeholderMap)
+                .selfReference(new CommonFunctions())
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
     }
 
     @Test
@@ -2681,10 +2836,12 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
         assertEquals(3, interpreter.getVars().get("number"));
     }

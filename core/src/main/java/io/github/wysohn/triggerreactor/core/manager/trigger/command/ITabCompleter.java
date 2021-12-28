@@ -19,7 +19,8 @@ public interface ITabCompleter {
      * This only works when player enters command at least 1 character, and naturally, the method is expected to return
      * only the possible candidates that starts with the given character(s) to minimize the overhead.
      * <br><br>
-     * For example, if a player enter `/mycmd abc def g' in the command line, the candidate commands at argument index 2 that
+     * For example, if a player enter `/mycmd abc def g' in the command line, the candidate commands at argument
+     * index 2 that
      * are starting with `g` will show up to the user as tab completion selections.
      *
      * @param part the partially completed command.
@@ -87,16 +88,14 @@ public interface ITabCompleter {
             return this;
         }
 
-        public Builder appendHint(String... hints) {
-            this.hint.addAll(list(hints));
-
-            return this;
-        }
-
         public Builder appendHint(Collection<String> hints) {
             this.hint.addAll(hints);
 
             return this;
+        }
+
+        public ITabCompleter[] buildAsArray() {
+            return new ITabCompleter[]{build()};
         }
 
         public ITabCompleter build() {
@@ -111,7 +110,6 @@ public interface ITabCompleter {
                     return hint;
                 }
             };
-
         }
 
         public Builder setAsPlayerList() {
@@ -128,8 +126,10 @@ public interface ITabCompleter {
         }
 
         public Builder setCandidate(Collection<String> candidates) {
-            if (candidates == null) this.candidate = null;
-            else this.candidate = candidates instanceof List ? (List<String>) candidates : new ArrayList<>(candidates);
+            if (candidates == null)
+                this.candidate = null;
+            else
+                this.candidate = candidates instanceof List ? (List<String>) candidates : new ArrayList<>(candidates);
 
             return this;
         }
@@ -146,16 +146,22 @@ public interface ITabCompleter {
             return this;
         }
 
-        public static Builder of(String... arg) {
-            return new Builder(arg);
-        }
-
         public static Builder of(Template template) {
             return new Builder(template);
         }
 
         public static Builder withHint(String hint) {
             return Builder.of().appendHint(hint);
+        }
+
+        public Builder appendHint(String... hints) {
+            this.hint.addAll(list(hints));
+
+            return this;
+        }
+
+        public static Builder of(String... arg) {
+            return new Builder(arg);
         }
 
     }

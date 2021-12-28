@@ -14,5 +14,6 @@ public class DefaultSerializer<T> implements Serializer<T> {
     public JsonElement serialize(T src, Type typeOfSrc, JsonSerializationContext context) {
         return gson.toJsonTree(src, typeOfSrc);
     }
+
     private static final Gson gson = new Gson();
 }

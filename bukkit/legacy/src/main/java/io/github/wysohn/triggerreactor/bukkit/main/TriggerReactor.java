@@ -4,7 +4,7 @@ import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainC
 import io.github.wysohn.triggerreactor.bukkit.components.DaggerLegacyBukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.components.LegacyBukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
-import io.github.wysohn.triggerreactor.core.main.DaggerPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.components.DaggerPluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import org.bukkit.Bukkit;
@@ -47,7 +47,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
     }
 
     @Override
-    protected TriggerReactorMain getMain() {
+    protected TriggerReactorMain getMainComponent() {
         return component.main();
     }
 

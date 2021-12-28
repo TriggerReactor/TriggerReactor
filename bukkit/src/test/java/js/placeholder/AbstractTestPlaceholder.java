@@ -1,5 +1,7 @@
 package js.placeholder;
 
+import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
@@ -30,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -47,14 +50,14 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(world.getBlockAt(0, 1, 5)).thenReturn(block);
         when(block.getType()).thenReturn(Material.DIAMOND_BLOCK);
 
-        assertEquals("diamond_block", new PlaceholderTest(engine, "blockname").withArgs("world", 0, 1, 5).test());
+        assertEquals("diamond_block", new PlaceholderTest(localContext, "blockname").withArgs("world", 0, 1, 5).test());
     }
 
     @Test
     public void testCmdline() throws Exception {
         PlayerCommandPreprocessEvent mockEvent = mock(PlayerCommandPreprocessEvent.class);
 
-        JsTest test = new PlaceholderTest(engine, "cmdline");
+        JsTest test = new PlaceholderTest(localContext, "cmdline");
         test.addVariable("event", mockEvent);
 
 
@@ -93,7 +96,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     public void testCount() throws Exception {
         ItemStack vItem = mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
-        PlaceholderTest test = new PlaceholderTest(engine, "count");
+        PlaceholderTest test = new PlaceholderTest(localContext, "count");
         when(vItem.getType()).thenReturn(stone);
         when(vItem.getAmount()).thenReturn(34);
 
@@ -110,7 +113,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         EntityEvent mockEvent = mock(EntityEvent.class);
         Entity mockEntity = mock(Entity.class);
 
-        JsTest test = new PlaceholderTest(engine, "entityname");
+        JsTest test = new PlaceholderTest(localContext, "entityname");
         test.addVariable("event", mockEvent);
 
 
@@ -131,7 +134,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         ItemStack vItem = new ItemStack(Material.AIR);
         when(vp.getInventory()).thenReturn(vInv);
         when(vInv.getItemInMainHand()).thenReturn(vItem);
-        PlaceholderTest test = new PlaceholderTest(engine, "helditem");
+        PlaceholderTest test = new PlaceholderTest(localContext, "helditem");
         test.addVariable("player", vp);
         ItemStack result = (ItemStack) test.withArgs().test();
         Assert.assertEquals(result, vItem);
@@ -142,7 +145,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     /*
     @Test
     public void testIsNumber() throws Exception{
-        JsTest output = new PlaceholderTest(engine, "isnumber");
+        JsTest output = new PlaceholderTest(localContext, "isnumber");
 
         output.withArgs("3").test();
        // assertEquals(true, output); TODO
@@ -154,7 +157,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         ItemStack vItem = mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
         when(vItem.getType()).thenReturn(stone);
-        PlaceholderTest test = new PlaceholderTest(engine, "id");
+        PlaceholderTest test = new PlaceholderTest(localContext, "id");
         Object result = test.withArgs(vItem).test();
         Assert.assertEquals(result, stone);
 
@@ -169,7 +172,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         ItemStack vItem = mock(ItemStack.class);
         Material stone = Material.valueOf("STONE");
         when(vItem.getType()).thenReturn(stone);
-        PlaceholderTest test = new PlaceholderTest(engine, "idname");
+        PlaceholderTest test = new PlaceholderTest(localContext, "idname");
         Object result = test.withArgs(vItem).test();
         Assert.assertEquals(result, stone.name());
 
@@ -181,9 +184,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testIsNumber() throws Exception {
-        assertEquals(true, new PlaceholderTest(engine, "isnumber").withArgs("20342.5352").test());
+        assertEquals(true, new PlaceholderTest(localContext, "isnumber").withArgs("20342.5352").test());
 
-        assertEquals(false, new PlaceholderTest(engine, "isnumber").withArgs("20343d.66").test());
+        assertEquals(false, new PlaceholderTest(localContext, "isnumber").withArgs("20343d.66").test());
     }
 
     @Test
@@ -205,7 +208,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
             else loreString = loreString + lore + "\n";
         }
 
-        PlaceholderTest test = new PlaceholderTest(engine, "lore");
+        PlaceholderTest test = new PlaceholderTest(localContext, "lore");
         Object result = test.withArgs(vItem).test();
         Assert.assertEquals(result, loreString);
 
@@ -224,7 +227,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(vIM.hasDisplayName()).thenReturn(true);
         when(vIM.getDisplayName()).thenReturn("awwman");
 
-        PlaceholderTest test = new PlaceholderTest(engine, "name");
+        PlaceholderTest test = new PlaceholderTest(localContext, "name");
         Object result = test.withArgs(vItem).test();
         Assert.assertEquals(result, "awwman");
 
@@ -241,7 +244,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         ItemStack vItem = mock(ItemStack.class);
         when(vp.getInventory()).thenReturn(vInv);
         when(vInv.getItemInOffHand()).thenReturn(vItem);
-        PlaceholderTest test = new PlaceholderTest(engine, "offhanditem");
+        PlaceholderTest test = new PlaceholderTest(localContext, "offhanditem");
         test.addVariable("player", vp);
         ItemStack result = (ItemStack) test.withArgs().test();
         Assert.assertEquals(result, vItem);
@@ -259,7 +262,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
         doReturn(Arrays.asList(players)).when(server).getOnlinePlayers();
 
-        assertEquals(5, new PlaceholderTest(engine, "onlineplayers").test());
+        assertEquals(5, new PlaceholderTest(localContext, "onlineplayers").test());
     }
 
     @Test
@@ -270,7 +273,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(vp.getInventory()).thenReturn(vInv);
         when(vInv.getSize()).thenReturn(36);
         when(vInv.getItem(2)).thenReturn(vItem);
-        PlaceholderTest test = new PlaceholderTest(engine, "playerinv");
+        PlaceholderTest test = new PlaceholderTest(localContext, "playerinv");
         test.addVariable("player", vp);
         ItemStack result = (ItemStack) test.withArgs(2).test();
         Assert.assertEquals(result, vItem);
@@ -285,7 +288,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         Player mockPlayer = mock(Player.class);
         when(mockPlayer.getName()).thenReturn("wysohn");
 
-        Object result = new PlaceholderTest(engine, "playername").addVariable("player", mockPlayer).test();
+        Object result = new PlaceholderTest(localContext, "playername").addVariable("player", mockPlayer).test();
 
         assertEquals("wysohn", result);
     }
@@ -302,28 +305,59 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
             return pool.submit(call);
         });
 
-        Runnable run = new Runnable() {
-            final JsTest test = new PlaceholderTest(engine, "playername").addVariable("player", mockPlayer);
+        // represents one trigger executing an executor
+        InterpreterLocalContext context1 = new InterpreterLocalContext();
+        context1.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        Runnable run1 = () -> {
+            JsTest test = null;
+            try {
+                test = new PlaceholderTest(context1, "playername")
+                        .addVariable("player", mockPlayer);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            @Override
-            public void run() {
-                for (int i = 0; i < 1000; i++) {
-                    Object result = null;
-                    try {
-                        result = test.test();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    assertEquals("wysohn", result);
+            for (int i = 0; i < 1000; i++) {
+                Object result = null;
+                try {
+                    result = test.test();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+                assertEquals("wysohn", result);
+            }
+        };
+
+        // represents one trigger executing an executor
+        InterpreterLocalContext context2 = new InterpreterLocalContext();
+        context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        assertNotEquals(context1.getExtra(Interpreter.SCRIPT_ENGINE_KEY),
+                        context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
+        Runnable run2 = () -> {
+            JsTest test = null;
+            try {
+                test = new PlaceholderTest(context2, "playername")
+                        .addVariable("player", mockPlayer);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            for (int i = 0; i < 1000; i++) {
+                Object result = null;
+                try {
+                    result = test.test();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                assertEquals("wysohn", result);
             }
         };
 
         Thread.UncaughtExceptionHandler handler = mock(Thread.UncaughtExceptionHandler.class);
 
-        Thread thread1 = new Thread(run);
+        Thread thread1 = new Thread(run1);
         thread1.setUncaughtExceptionHandler(handler);
-        Thread thread2 = new Thread(run);
+        Thread thread2 = new Thread(run2);
         thread2.setUncaughtExceptionHandler(handler);
 
         thread1.start();
@@ -338,7 +372,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testRandom() throws Exception {
-        JsTest test = new PlaceholderTest(engine, "random");
+        JsTest test = new PlaceholderTest(localContext, "random");
 
         test.withArgs(1).test();
 
@@ -352,27 +386,27 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
 
     @Test
     public void testRound() throws Exception {
-        assertEquals(1.34, new PlaceholderTest(engine, "round").withArgs(1.3449, 2).test());
+        assertEquals(1.34, new PlaceholderTest(localContext, "round").withArgs(1.3449, 2).test());
     }
 
     @Test
     public void testRound2() throws Exception {
-        assertEquals(1.0, new PlaceholderTest(engine, "round").withArgs(1.3449, 0).test());
+        assertEquals(1.0, new PlaceholderTest(localContext, "round").withArgs(1.3449, 0).test());
     }
 
     @Test
     public void testRound2_2() throws Exception {
-        assertEquals(34, new PlaceholderTest(engine, "round").withArgs(34, 2).test());
+        assertEquals(34, new PlaceholderTest(localContext, "round").withArgs(34, 2).test());
     }
 
     @Test(expected = Exception.class)
     public void testRound3() throws Exception {
-        assertEquals(1.34, new PlaceholderTest(engine, "round").withArgs(1.3449, 2.3).test());
+        assertEquals(1.34, new PlaceholderTest(localContext, "round").withArgs(1.3449, 2.3).test());
     }
 
     @Test(expected = Exception.class)
     public void testRound4() throws Exception {
-        assertEquals(1.34, new PlaceholderTest(engine, "round").withArgs(1.3449, -2).test());
+        assertEquals(1.34, new PlaceholderTest(localContext, "round").withArgs(1.3449, -2).test());
     }
 
     @Test
@@ -383,7 +417,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         when(vEvent.getInventory()).thenReturn(vInv);
         when(vInv.getSize()).thenReturn(36);
         when(vInv.getItem(2)).thenReturn(vItem);
-        PlaceholderTest test = new PlaceholderTest(engine, "slot");
+        PlaceholderTest test = new PlaceholderTest(localContext, "slot");
         test.addVariable("event", vEvent);
         ItemStack result = (ItemStack) test.withArgs(2).test();
         Assert.assertEquals(result, vItem);

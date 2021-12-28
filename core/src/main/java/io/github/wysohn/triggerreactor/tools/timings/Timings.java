@@ -45,7 +45,8 @@ public class Timings {
     }
 
     private static Timing getTiming(Timing root, String name) {
-        if (name == null) return root;
+        if (name == null)
+            return root;
 
         String[] split = name.split("\\.");
         Stack<String> path = new Stack<>();
@@ -64,7 +65,8 @@ public class Timings {
     }
 
     public static void print(Timing timing, OutputStream stream) throws IOException {
-        if (timing == null) return;
+        if (timing == null)
+            return;
 
         stream.write(timing.toString().getBytes());
         for (Map.Entry<String, Timing> child : timing.children.entrySet()) {
@@ -94,11 +96,6 @@ public class Timings {
             this(parent, fullName, System::currentTimeMillis);
         }
 
-        private Timing(Timing parent, String fullName, String displayName) {
-            this(parent, fullName, System::currentTimeMillis);
-            this.displayName = displayName;
-        }
-
         /**
          * Maybe if we need some other measurement unit?
          *
@@ -111,9 +108,15 @@ public class Timings {
             this.currentTimeFn = currentTimeFn;
         }
 
+        private Timing(Timing parent, String fullName, String displayName) {
+            this(parent, fullName, System::currentTimeMillis);
+            this.displayName = displayName;
+        }
+
         @Override
         public void close() {
-            if (!on) return;
+            if (!on)
+                return;
 
             add(currentTimeFn.get() - begin);
             begin = -1;
@@ -122,14 +125,28 @@ public class Timings {
         @Override
         public String toString() {
             String str = StringUtils.spaces(level * SPACES) + " > " + displayName;
-            if (!isLeafNode()) str += "[" + children.size() + "]";
+            if (!isLeafNode())
+                str += "[" + children.size() + "]";
             str += " -- (total: " + executionTime + "ms, count: " + count + ", avg: " + df.format(avg()) + "ms)";
-            if (mainThread) str += "  !!MainThread";
+            if (mainThread)
+                str += "  !!MainThread";
             return str;
         }
 
+        public boolean isLeafNode() {
+            return children.size() == 0;
+        }
+
+        public double avg() {
+            if (count == 0)
+                return -1;
+
+            return Math.min(999999.99, (double) executionTime / count);
+        }
+
         private void add(long executionTime) {
-            if (!on) return;
+            if (!on)
+                return;
 
             this.executionTime += executionTime;
             this.count++;
@@ -139,10 +156,23 @@ public class Timings {
             }
         }
 
-        public double avg() {
-            if (count == 0) return -1;
+        /**
+         * Record current system timestamp and return this Timing instance.
+         * As Timing is AutoCloseable, you can use the try resources which is newly introduced in Java 8.
+         * The execution time will be logged automatically by the close() method.
+         * <p>
+         * try(Timing t = Timings.getTiming("my.timing")){<br>
+         * Thread.sleep(10L);<br>
+         * }
+         * </p>
+         *
+         * @return this instance
+         */
+        public Timing begin() {
+            if (parent == null)
+                throw new RuntimeException("Can't begin() with root Timing.");
 
-            return Math.min(999999.99, (double) executionTime / count);
+            return begin(false);
         }
 
         /**
@@ -164,30 +194,13 @@ public class Timings {
             return this;
         }
 
-        /**
-         * Record current system timestamp and return this Timing instance.
-         * As Timing is AutoCloseable, you can use the try resources which is newly introduced in Java 8.
-         * The execution time will be logged automatically by the close() method.
-         * <p>
-         * try(Timing t = Timings.getTiming("my.timing")){<br>
-         * Thread.sleep(10L);<br>
-         * }
-         * </p>
-         *
-         * @return this instance
-         */
-        public Timing begin() {
-            if (parent == null) throw new RuntimeException("Can't begin() with root Timing.");
-
-            return begin(false);
-        }
-
         public String getDisplayName() {
             return displayName;
         }
 
         public void setDisplayName(String displayName) {
-            if (displayName == null) return;
+            if (displayName == null)
+                return;
 
             this.displayName = displayName;
         }
@@ -199,7 +212,8 @@ public class Timings {
          * @return Timing instance
          */
         private Timing getOrCreate(String name) {
-            if (name.contains(".")) throw new RuntimeException("Cannot use .(dot) for the direct child's name!");
+            if (name.contains("."))
+                throw new RuntimeException("Cannot use .(dot) for the direct child's name!");
 
             if (children.containsKey(name)) {
                 return children.get(name);
@@ -229,10 +243,6 @@ public class Timings {
             return Timings.getTiming(this, name);
         }
 
-        public boolean isLeafNode() {
-            return children.size() == 0;
-        }
-
 
     }
 
@@ -252,12 +262,12 @@ public class Timings {
         }
 
         @Override
-        public Timing begin(boolean mainThread) {
+        public Timing begin() {
             return this;
         }
 
         @Override
-        public Timing begin() {
+        public Timing begin(boolean mainThread) {
             return this;
         }
 

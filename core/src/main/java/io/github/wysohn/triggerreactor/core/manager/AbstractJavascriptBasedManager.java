@@ -18,74 +18,78 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.manager.javascript.CompiledEvaluable;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.script.*;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
-import java.util.logging.Logger;
 
 public abstract class AbstractJavascriptBasedManager extends Manager {
     @Inject
-    protected IGameController gameController;
+    Set<IScriptEngineInitializer> initializerSet;
     @Inject
-    protected IPluginLifecycleController pluginLifecycleController;
+    ScriptEngineManager sem;
     @Inject
-    protected TaskSupervisor taskSupervisor;
+    IGameController gameController;
     @Inject
-    protected ScriptEngineManager sem;
+    IPluginLifecycleController pluginLifecycleController;
     @Inject
-    protected Logger logger;
-    @Inject
-    @Named("DataFolder")
-    protected File dataFolder;
+    TaskSupervisor taskSupervisor;
+
+    @Override
+    public void onEnable() throws Exception {
+        for (IScriptEngineInitializer init : initializerSet) {
+            init.initScriptEngine(sem);
+        }
+    }
 
     protected abstract class Evaluable<R> {
-        private final String indentifier;
+        private final String identifier;
         private final String timingsGroup;
         private final String functionName;
         private final String sourceCode;
+        private final CompiledEvaluable<R> compiled;
 
-        private final ScriptEngine engine;
-
-        private CompiledScript compiled = null;
+        //        private CompiledScript compiled = null;
         private boolean firstRun = true;
         private Validator validator = null;
 
-        public Evaluable(String indentifier,
-                         String timingsGroup,
-                         String functionName,
-                         String sourceCode,
-                         ScriptEngine engine) throws ScriptException {
-            this.indentifier = indentifier;
+        public Evaluable(String identifier, String timingsGroup, String functionName, String sourceCode) {
+            this.identifier = identifier;
             this.timingsGroup = timingsGroup;
             this.functionName = functionName;
             this.sourceCode = sourceCode;
-
-            this.engine = engine;
-
-            synchronized (this.engine) {
-                Compilable compiler = (Compilable) this.engine;
-                compiled = compiler.compile(sourceCode);
-            }
+            this.compiled = new CompiledEvaluable(functionName);
         }
 
         public R evaluate(Timings.Timing timing,
+                          InterpreterLocalContext localContext,
                           Map<String, Object> variables,
-                          Object event,
                           Object... args) throws Exception {
+            ScriptEngine engine = (ScriptEngine) localContext.getExtra(Interpreter.SCRIPT_ENGINE_KEY);
+            ValidationUtil.notNull(engine);
+
+//            if(compiled == null || compiled.getEngine() != engine){
+//                Compilable compiler = (Compilable) engine;
+//                compiled = compiler.compile(sourceCode);
+//            }
+            compiled.compile(engine, sourceCode);
+
             Timings.Timing time = timing.getTiming(timingsGroup).getTiming(functionName);
-            time.setDisplayName(indentifier + functionName);
+            time.setDisplayName(identifier + functionName);
 
             final ScriptContext scriptContext = new SimpleScriptContext();
             final Bindings bindings = engine.createBindings();
@@ -93,7 +97,6 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
             scriptContext.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
             scriptContext.setBindings(engine.getBindings(ScriptContext.GLOBAL_SCOPE), ScriptContext.GLOBAL_SCOPE);
 
-            bindings.put("event", event);
             for (Map.Entry<String, Object> entry : variables.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
@@ -101,7 +104,8 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
             }
 
             try (Timings.Timing t = time.getTiming("JS <eval>").begin()) {
-                compiled.eval(scriptContext);
+                compiled.evaluate(engine, scriptContext);
+//                compiled.eval(scriptContext);
             } catch (ScriptException e2) {
                 e2.printStackTrace();
             }
@@ -120,18 +124,19 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 bindings.put("overload", overload);
             }
 
-            Object jsObject = bindings.get(functionName);
-            if (jsObject == null)
-                throw new Exception(functionName + ".js does not have 'function " + functionName + "()'.");
+//            Object jsObject = bindings.get(functionName);
+//            if (jsObject == null)
+//                throw new Exception(functionName + ".js does not have 'function " + functionName + "()'.");
 
             Callable<R> call = () -> {
                 Object argObj = args;
                 Object result = null;
 
-                try (Timings.Timing t = time.begin(true)) {
-                    engine.setContext(scriptContext);
-                    result = ((Invocable) engine).invokeFunction(functionName, argObj);
-                }
+//                try (Timings.Timing t = time.begin(true)) {
+//                    engine.setContext(scriptContext);
+//                    result = ((Invocable) engine).invokeFunction(functionName, argObj);
+//                }
+                result = compiled.invokeFunction(engine, scriptContext, time, argObj);
 
                 return (R) result;
             };
@@ -143,7 +148,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                     result = call.call();
                 } catch (Exception e1) {
                     e1.printStackTrace();
-                    throw new Exception(indentifier + functionName + " encountered error.", e1);
+                    throw new Exception(identifier + functionName + " encountered error.", e1);
                 }
                 return result;
             } else {
@@ -153,17 +158,19 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                     if (!pluginLifecycleController.isEnabled()) {
                         return call.call();
                     } else {
-                        throw new Exception(indentifier + functionName + " couldn't be finished. The server returned null Future.");
+                        throw new Exception(
+                                identifier + functionName + " couldn't be finished. The server returned null Future.");
                     }
                 } else {
                     R result = null;
                     try {
                         result = future.get(5, TimeUnit.SECONDS);
                     } catch (InterruptedException | ExecutionException e1) {
-                        throw new Exception(indentifier + functionName + " encountered error.", e1);
+                        throw new Exception(identifier + functionName + " encountered error.", e1);
                     } catch (TimeoutException e1) {
-                        throw new Exception(indentifier + functionName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?",
-                                            e1);
+                        throw new Exception(
+                                identifier + functionName + " was stopped. It took longer than 5 seconds to process. "
+                                        + "Is the server lagging?", e1);
                     }
                     return result;
                 }
@@ -183,27 +190,12 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
         }
     }
 
-    public static ScriptEngine getEngine(ScriptEngineManager sem) {
-        ScriptEngine engine = sem.getEngineByName("graal.js");
-        if (engine != null) {
-            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-            bindings.put("polyglot.js.allowAllAccess", true);
-            return engine;
-        }
-
-        engine = sem.getEngineByName("JavaScript");
-        if (engine != null) {
-            return engine;
-        }
-
-        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " + "the stock Java does not contain the java script engine as it used to be. Install GraalVM instead of " + "the stock Java, or you have to download third-party plugin, such as JShader.");
-    }
-
     protected static String readSourceCode(InputStream file) throws IOException {
         StringBuilder builder = new StringBuilder();
         InputStreamReader reader = new InputStreamReader(file);
         int read = -1;
-        while ((read = reader.read()) != -1) builder.append((char) read);
+        while ((read = reader.read()) != -1)
+            builder.append((char) read);
         reader.close();
         return builder.toString();
     }

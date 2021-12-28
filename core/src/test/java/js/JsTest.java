@@ -1,10 +1,9 @@
 package js;
 
-import javax.script.ScriptEngine;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -12,21 +11,20 @@ import static org.junit.Assert.assertTrue;
 public abstract class JsTest {
     protected final String name;
     protected final InputStream stream;
-    protected final ScriptEngine engine;
-    protected Map<String, Object> varMap;
+    protected InterpreterLocalContext localContext;
     protected Object[] args;
 
     /**
-     * @param engine           the script engine to use
      * @param name             the name of the js file being tested (last item in file path)
      * @param otherDirectories list of directories to go through to reach the file, such as PLAYER for PLAYER/SETFLYMODE
      * @throws FileNotFoundException
      */
-    protected JsTest(ScriptEngine engine,
+    protected JsTest(InterpreterLocalContext localContext,
                      String name,
                      String firstDirectory,
                      String... otherDirectories) throws FileNotFoundException {
         this.name = name;
+        this.localContext = localContext;
 
         StringBuilder builder = new StringBuilder();
 
@@ -37,13 +35,11 @@ public abstract class JsTest {
             builder.append('/');
         }
         builder.append(name + ".js");
-        this.engine = engine;
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(builder.toString());
         if (stream == null) {
             throw new FileNotFoundException("could not find file " + builder.toString());
         }
         this.stream = stream;
-        this.varMap = new HashMap<>();
         this.args = new Object[]{};
     }
 
@@ -52,7 +48,7 @@ public abstract class JsTest {
     public abstract Object test() throws Exception;
 
     public JsTest addVariable(String name, Object value) {
-        varMap.put(name, value);
+        localContext.getVars().put(name, value);
         return this;
     }
 

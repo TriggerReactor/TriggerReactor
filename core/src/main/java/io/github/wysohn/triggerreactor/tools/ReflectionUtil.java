@@ -25,9 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ReflectionUtil {
-    public static void setField(Object obj,
-                                String fieldName,
-                                Object value) throws NoSuchFieldException, IllegalArgumentException {
+    public static void setField(Object obj, String fieldName, Object value) throws NoSuchFieldException,
+            IllegalArgumentException {
         Class<?> clazz = obj.getClass();
 
         Field field = clazz.getDeclaredField(fieldName);
@@ -44,10 +43,8 @@ public class ReflectionUtil {
         setFinalField(obj.getClass(), obj, fieldName, value);
     }
 
-    public static void setFinalField(Class<?> clazz,
-                                     Object obj,
-                                     String fieldName,
-                                     Object value) throws NoSuchFieldException {
+    public static void setFinalField(Class<?> clazz, Object obj, String fieldName, Object value) throws
+            NoSuchFieldException {
         Field field = clazz.getDeclaredField(fieldName);
 
         setFinalField(obj, field, value);
@@ -101,9 +98,8 @@ public class ReflectionUtil {
         return null;
     }
 
-    public static Object getField(Class<?> clazz,
-                                  Object obj,
-                                  String fieldName) throws NoSuchFieldException, IllegalArgumentException {
+    public static Object getField(Class<?> clazz, Object obj, String fieldName) throws NoSuchFieldException,
+            IllegalArgumentException {
         Field field = clazz.getDeclaredField(fieldName);
         field.setAccessible(true);
 
@@ -116,6 +112,57 @@ public class ReflectionUtil {
         return null;
     }
 
+    private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {
+        if (ClassUtils.isPrimitiveWrapper(clazz1))
+            clazz1 = ClassUtils.wrapperToPrimitive(clazz1);
+
+        if (ClassUtils.isPrimitiveWrapper(clazz2))
+            clazz2 = ClassUtils.wrapperToPrimitive(clazz2);
+
+        if (clazz1 != null) {
+            return clazz1.equals(clazz2);
+        } else if (clazz2 != null) {
+            return clazz2.equals(clazz1);
+        } else {
+            return true;
+        }
+    }
+
+    public static Object invokeMethod(Object obj, String methodName, Object... args) throws NoSuchMethodException,
+            IllegalArgumentException, InvocationTargetException, IllegalAccessException {
+        Class<?> clazz = obj.getClass();
+
+        return invokeMethod(clazz, obj, methodName, args);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public static Object invokeMethod(Class<?> clazz, Object obj, String methodName, Object... args) throws
+            NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException {
+        try {
+            List<Method> validMethods = getValidExecutables(clazz, methodName, args, Class::getMethods);
+            if (validMethods.isEmpty())
+                throw new NoSuchMethodException(buildFailMessage(clazz, methodName, args));
+
+            // we found all methods that may can be used with the input arguments
+            // yet we still have to find the best fit.
+            // For example, method(1, 1) would be more suitable with method(int, int) than method(double, double)
+            // while both of them can accept the arguments without problem.
+            // pick one method
+            Method method = findBestFit(clazz, methodName, validMethods, args, Class::getMethod);
+            if (method == null)
+                throw new NoSuchMethodException(buildFailMessage(clazz, methodName, args));
+
+            // we need to convert the last part of input arguments as Array
+            if (method.isVarArgs()) {
+                args = mergeVarargs(args, method.getParameterTypes());
+            }
+
+            return method.invoke(obj, args);
+        } catch (NullPointerException e) {
+            throw new RuntimeException(buildFailMessage(clazz, methodName, args), e);
+        }
+    }
+
     private static <T extends Executable> List<T> getValidExecutables(Class<?> clazz,
                                                                       String name,
                                                                       Object[] args,
@@ -125,7 +172,8 @@ public class ReflectionUtil {
 
         for (T executable : extractFn.apply(clazz)) {
             // select method with matching name. All if name is null.
-            if (name != null && !executable.getName().equals(name)) continue;
+            if (name != null && !executable.getName().equals(name))
+                continue;
 
             // get the method's argument types
             Class<?>[] parameterTypes = executable.getParameterTypes();
@@ -152,7 +200,8 @@ public class ReflectionUtil {
                 // check non-vararg part
                 for (int i = 0; i < parameterTypes.length - 1; i++) {
                     matches = i < args.length && checkMatch(parameterTypes[i], args[i]);
-                    if (!matches) break;
+                    if (!matches)
+                        break;
                 }
 
                 // check vararg part
@@ -160,7 +209,8 @@ public class ReflectionUtil {
                     Class<?> methodVarargType = parameterTypes[parameterTypes.length - 1].getComponentType();
                     for (int i = parameterTypes.length - 1; i < args.length; i++) {
                         matches = checkMatch(methodVarargType, args[i]);
-                        if (!matches) break;
+                        if (!matches)
+                            break;
                     }
                 }
 
@@ -173,7 +223,8 @@ public class ReflectionUtil {
                 // check one on one.
                 for (int i = 0; i < parameterTypes.length; i++) {
                     matches = checkMatch(parameterTypes[i], args[i]);
-                    if (!matches) break;
+                    if (!matches)
+                        break;
                 }
 
                 if (matches) {
@@ -183,6 +234,14 @@ public class ReflectionUtil {
         }
 
         return Stream.concat(validVarargMethods.stream(), validMethods.stream()).collect(Collectors.toList());
+    }
+
+    private static String buildFailMessage(Class<?> clazz, String methodName, Object[] args) {
+        StringBuilder builder = new StringBuilder(args.length > 0 ? String.valueOf(args[0]) : "");
+        for (int i = 1; i < args.length; i++)
+            builder.append(",").append(args[i]);
+        return "[" + Optional.ofNullable(clazz).map(Class::getSimpleName).orElse(null) + "]." + methodName + "("
+                + builder.toString() + ")";
     }
 
     private static <T extends Executable> T findBestFit(Class<?> clazz,
@@ -221,7 +280,8 @@ public class ReflectionUtil {
                     if (targetExecutable.isVarArgs() && j >= compareParams.length - 1)
                         compareParam = compareParam.getComponentType();
 
-                    if (!ClassUtils.isAssignable(compareParam, currentParam, true)) continue c;
+                    if (!ClassUtils.isAssignable(compareParam, currentParam, true))
+                        continue c;
                 }
 
                 executable = targetExecutable;
@@ -235,12 +295,12 @@ public class ReflectionUtil {
                 for (int k = 0; k < args.length; k++)
                     types[k] = Optional.ofNullable(args[k]).map(Object::getClass).orElse(null);
 
-                if (args[i] instanceof InvocationHandler && i < parameterTypes.length && parameterTypes[i].isInterface()) {
+                if (args[i] instanceof InvocationHandler && i < parameterTypes.length
+                        && parameterTypes[i].isInterface()) {
                     // we need to proxy the interface to reroute calls to the InvocationHandler
                     InvocationHandler handler = (InvocationHandler) args[i];
                     args[i] = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                                                     new Class[]{parameterTypes[i]},
-                                                     handler);
+                            new Class[]{parameterTypes[i]}, handler);
                 }
 
                 if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
@@ -252,7 +312,11 @@ public class ReflectionUtil {
                         try {
                             args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
                         } catch (IllegalArgumentException ex1) {
-                            throw new RuntimeException("Tried to convert value [" + args[i] + "] to Enum [" + parameterTypes[i] + "] or find appropriate method but found nothing. Make sure" + " that the value [" + args[i] + "] matches exactly with one of the Enums in [" + parameterTypes[i] + "] or the method you are looking exists.");
+                            throw new RuntimeException(
+                                    "Tried to convert value [" + args[i] + "] to Enum [" + parameterTypes[i] + "] or "
+                                            + "find appropriate method but found nothing. Make sure" + " that the value"
+                                            + " [" + args[i] + "] matches exactly with one of the Enums in ["
+                                            + parameterTypes[i] + "] or the method you are looking exists.");
                         }
                     }
                 }
@@ -264,38 +328,10 @@ public class ReflectionUtil {
         }
     }
 
-    @SuppressWarnings({"unchecked"})
-    public static Object invokeMethod(Class<?> clazz,
-                                      Object obj,
-                                      String methodName,
-                                      Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException {
-        try {
-            List<Method> validMethods = getValidExecutables(clazz, methodName, args, Class::getMethods);
-            if (validMethods.isEmpty()) throw new NoSuchMethodException(buildFailMessage(clazz, methodName, args));
-
-            // we found all methods that may can be used with the input arguments
-            // yet we still have to find the best fit.
-            // For example, method(1, 1) would be more suitable with method(int, int) than method(double, double)
-            // while both of them can accept the arguments without problem.
-            // pick one method
-            Method method = findBestFit(clazz, methodName, validMethods, args, Class::getMethod);
-            if (method == null) throw new NoSuchMethodException(buildFailMessage(clazz, methodName, args));
-
-            // we need to convert the last part of input arguments as Array
-            if (method.isVarArgs()) {
-                args = mergeVarargs(args, method.getParameterTypes());
-            }
-
-            return method.invoke(obj, args);
-        } catch (NullPointerException e) {
-            throw new RuntimeException(buildFailMessage(clazz, methodName, args), e);
-        }
-    }
-
     private static Object[] mergeVarargs(Object[] args, Class<?>[] parameterTypes) {
         // build the Array to be used
         Object varargs = Array.newInstance(parameterTypes[parameterTypes.length - 1].getComponentType(),
-                                           args.length - parameterTypes.length + 1);
+                args.length - parameterTypes.length + 1);
         for (int k = 0; k < Array.getLength(varargs); k++)
             Array.set(varargs, k, args[parameterTypes.length - 1 + k]);
 
@@ -309,46 +345,17 @@ public class ReflectionUtil {
         return newArgs;
     }
 
-    private static String buildFailMessage(Class<?> clazz, String methodName, Object[] args) {
-        StringBuilder builder = new StringBuilder(args.length > 0 ? String.valueOf(args[0]) : "");
-        for (int i = 1; i < args.length; i++)
-            builder.append(",").append(args[i]);
-        return "[" + Optional.ofNullable(clazz)
-                .map(Class::getSimpleName)
-                .orElse(null) + "]." + methodName + "(" + builder.toString() + ")";
-    }
-
     public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
-        if (arg instanceof String && parameterType.isEnum()) return true;
+        if (arg instanceof String && parameterType.isEnum())
+            return true;
 
         // if InvocationHandler is provided for the interface parameter, skip it.
         // will try it later
-        if (arg instanceof InvocationHandler && parameterType.isInterface()) return true;
+        if (arg instanceof InvocationHandler && parameterType.isInterface())
+            return true;
 
         return ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
-    }
-
-    private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {
-        if (ClassUtils.isPrimitiveWrapper(clazz1)) clazz1 = ClassUtils.wrapperToPrimitive(clazz1);
-
-        if (ClassUtils.isPrimitiveWrapper(clazz2)) clazz2 = ClassUtils.wrapperToPrimitive(clazz2);
-
-        if (clazz1 != null) {
-            return clazz1.equals(clazz2);
-        } else if (clazz2 != null) {
-            return clazz2.equals(clazz1);
-        } else {
-            return true;
-        }
-    }
-
-    public static Object invokeMethod(Object obj,
-                                      String methodName,
-                                      Object... args) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException {
-        Class<?> clazz = obj.getClass();
-
-        return invokeMethod(clazz, obj, methodName, args);
     }
 
     /**
@@ -480,21 +487,20 @@ public class ReflectionUtil {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //https://stackoverflow.com/questions/520328/can-you-find-all-classes-in-a-package-using-reflection
 
-    public static Object constructNew(Class<?> clazz,
-                                      Object... args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException {
+    public static Object constructNew(Class<?> clazz, Object... args) throws NoSuchMethodException,
+            InstantiationException, IllegalArgumentException, IllegalAccessException {
         if (args.length < 1) {
             return clazz.newInstance();
         } else {
             List<Constructor<?>> validConstructors = getValidExecutables(clazz, null, args, Class::getConstructors);
 
-            if (validConstructors.isEmpty()) throw new NoSuchMethodException(buildFailMessage(clazz, "<init>", args));
+            if (validConstructors.isEmpty())
+                throw new NoSuchMethodException(buildFailMessage(clazz, "<init>", args));
 
-            Constructor<?> target = findBestFit(clazz,
-                                                null,
-                                                validConstructors,
-                                                args,
-                                                (c, name, params) -> c.getConstructor(params));
-            if (target == null) throw new NoSuchMethodException(buildFailMessage(clazz, "<init>", args));
+            Constructor<?> target = findBestFit(clazz, null, validConstructors, args,
+                    (c, name, params) -> c.getConstructor(params));
+            if (target == null)
+                throw new NoSuchMethodException(buildFailMessage(clazz, "<init>", args));
 
             if (target.isVarArgs()) {
                 args = mergeVarargs(args, target.getParameterTypes());
@@ -529,7 +535,8 @@ public class ReflectionUtil {
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/*    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException, InvocationTargetException, IllegalAccessException{
+/*    public static void main(String[] ar) throws NoSuchMethodException, IllegalArgumentException,
+InvocationTargetException, IllegalAccessException{
         System.out.println(invokeMethod(Test.class, (Object) null, "someMethod1", 1,2,"hey"));
     }
 

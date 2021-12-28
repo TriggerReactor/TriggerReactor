@@ -9,6 +9,7 @@ import java.util.Map;
 
 public class Validator {
     private final Overload[] overloads;
+
     private Validator() {
         overloads = null;
     }
@@ -61,19 +62,13 @@ public class Validator {
         }
         return new ValidationResult(builder.toString());
     }
-    private static final ValidationOptions validationOptions = new ValidationOptionsBuilder().addOption(new MinimumOption(),
-                                                                                                        "minimum")
+
+    private static final ValidationOptions validationOptions = new ValidationOptionsBuilder().addOption(
+                    new MinimumOption(), "minimum")
             .addOption(new MaximumOption(), "maximum")
             .addOption(new NameOption(), "name")
             .addOption(new TypeOption(), "type")
             .build();
-
-    private static Object getOrFail(Map<String, Object> js, String slot) {
-        if (!(js.containsKey(slot))) {
-            throw new ValidationException("Could not find property " + slot + " while processing validation info.");
-        }
-        return js.get(slot);
-    }
 
     public static Validator from(Map<String, Object> js) {
         try {
@@ -90,8 +85,8 @@ public class Validator {
                         ValidationOption option = validationOptions.forName(key);
                         Object value = getOrFail((Map<String, Object>) argObject, key);
                         if (!(option.canContain(value))) {
-                            throw new ValidationException("Invalid value for option " + option.getClass()
-                                    .getSimpleName() + " : " + value);
+                            throw new ValidationException(
+                                    "Invalid value for option " + option.getClass().getSimpleName() + " : " + value);
                         }
 
                         arg.addOption(option, value);
@@ -107,5 +102,12 @@ public class Validator {
         } catch (ClassCastException e) {
             throw new ValidationException("Incorrect data type found while processing validation info", e);
         }
+    }
+
+    private static Object getOrFail(Map<String, Object> js, String slot) {
+        if (!(js.containsKey(slot))) {
+            throw new ValidationException("Could not find property " + slot + " while processing validation info.");
+        }
+        return js.get(slot);
     }
 }

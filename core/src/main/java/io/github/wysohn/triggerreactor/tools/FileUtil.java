@@ -58,7 +58,8 @@ public class FileUtil {
     }
 
     public static String readFromFile(File file) throws UnsupportedEncodingException, IOException {
-        if (!file.exists()) return null;
+        if (!file.exists())
+            return null;
 
         StringBuilder builder = new StringBuilder();
         try (FileInputStream fis = new FileInputStream(file);
@@ -107,11 +108,13 @@ public class FileUtil {
      * @throws IOException
      */
     public static void moveFolder(File folder, File dest, CopyOption... options) throws IOException {
-        if (folder.isFile()) return;
+        if (folder.isFile())
+            return;
 
         for (File target : folder.listFiles()) {
             if (target.isFile()) {
-                if (!dest.exists()) dest.mkdirs();
+                if (!dest.exists())
+                    dest.mkdirs();
                 Files.move(target.toPath().normalize(), new File(dest, target.getName()).toPath().normalize(), options);
             } else {
                 File destFolder = new File(dest, target.getName());

@@ -23,10 +23,11 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
+import io.github.wysohn.triggerreactor.bukkit.components.BukkitManagerComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.BukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
@@ -36,22 +37,26 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.components.BootstrapComponent;
+import io.github.wysohn.triggerreactor.core.components.ConfigurationComponent;
+import io.github.wysohn.triggerreactor.core.components.DaggerConfigurationComponent;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -91,16 +96,20 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin
         implements ICommandMapHandler, IGameController, IPluginLifecycleController {
     private final Lag tpsHelper = new Lag();
-    private TriggerReactorMain main;
-    private ITriggerReactorAPI api;
+
+    private BukkitManagerComponent managerComponent;
+    private IWrapper wrapper;
+
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
     private Thread bungeeConnectionThread;
 
+    @Override
     public void disablePlugin() {
         Bukkit.getPluginManager().disablePlugin(this);
     }
@@ -125,8 +134,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         return getDescription().getVersion();
     }
 
+    @Override
     public boolean isDebugging() {
-        return this.main.isDebugging();
+        return this.getMainComponent().main().isDebugging();
     }
 
     @Override
@@ -136,54 +146,58 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return this.main.onCommand(main.getWrapper().wrap(sender), command.getName(), args);
+        return this.getMainComponent().main().onCommand(getMainComponent().main().getWrapper().wrap(sender), command.getName(), args);
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return main.onTabComplete(new BukkitCommandSender(sender), args);
+        return getMainComponent().main().onTabComplete(new BukkitCommandSender(sender), args);
     }
 
     @Override
     public void onDisable() {
         new ContinuingTasks.Builder().append(() -> Bukkit.getPluginManager().callEvent(new TriggerReactorStopEvent()))
                 .append(() -> bungeeConnectionThread.interrupt())
-                .append(() -> main.onDisable())
+                .append(() -> getMainComponent().main().onDisable())
                 .run(Throwable::printStackTrace);
     }
 
     @Override
     public void onEnable() {
         super.onEnable();
-
-        main = getMain();
-        api = main.api();
-
         PluginCommand trg = this.getCommand("triggerreactor");
         trg.setExecutor(this);
+
+        ConfigurationComponent configurationComponent = DaggerConfigurationComponent.create();
+
+        managerComponent = DaggerBukkitManagerComponent.builder()
+
+                .builder();
+
+        apiComponent = DaggerAPIComponent.builder()
+                .bootstrapComponent(getBootstrapComponent())
+                .build();
 
         initBungeeHelper();
         initMysql();
 
         try {
-            main.onEnable();
+            getMainComponent().main().onEnable();
 
             migrateOldConfig();
 
-            main.onReload();
+            getMainComponent().main().onReload();
         } catch (Exception ex) {
             ex.printStackTrace();
             setEnabled(false);
             return;
         }
 
-        getManagers().stream()
-                .filter(Listener.class::isInstance)
-                .map(Listener.class::cast)
-                .forEach(manager -> Bukkit.getPluginManager().registerEvents(manager, this));
         Bukkit.getScheduler().runTaskTimer(this, tpsHelper, 0L, 20L);
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
+
+    protected abstract BootstrapComponent getBootstrapComponent();
 
     public void runTask(Runnable runnable) {
         Bukkit.getScheduler().runTask(this, runnable);
@@ -237,11 +251,13 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns).perNode((context, node) -> {
             //safety feature to stop all trigger immediately if executing on 'open' or 'click'
             //  is still running after the inventory is closed.
-            if (context.getTriggerCause() instanceof InventoryOpenEvent || context.getTriggerCause() instanceof InventoryClickEvent) {
-                Inventory inv = ((InventoryEvent) context.getTriggerCause()).getInventory();
+            Event event = (Event) context.getVar(Trigger.VAR_NAME_EVENT);
+            if (event instanceof InventoryOpenEvent || event instanceof InventoryClickEvent) {
+                Inventory inv = ((InventoryEvent) event).getInventory();
 
-                //it's not GUI so stop execution
-                return !inventoryMap.containsKey(main.getWrapper().wrap(inv));
+                //stop execution if it's not GUI
+                IInventory inventory = getMainComponent().main().getWrapper().wrap(inv);
+                return !inventoryMap.containsKey(inventory);
             }
 
             return false;
@@ -268,17 +284,17 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
     public IPlayer extractPlayerFromContext(Object e) {
         if (e instanceof PlayerEvent) {
             Player player = ((PlayerEvent) e).getPlayer();
-            return main.getWrapper().wrap(player);
+            return getMainComponent().main().getWrapper().wrap(player);
         } else if (e instanceof InventoryInteractEvent) {
             HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
-            if (he instanceof Player) return main.getWrapper().wrap(he);
+            if (he instanceof Player) return getMainComponent().main().getWrapper().wrap(he);
         }
 
         return null;
     }
 
     public ICommandSender getConsoleSender() {
-        return main.getWrapper().wrap(Bukkit.getConsoleSender());
+        return getMainComponent().main().getWrapper().wrap(Bukkit.getConsoleSender());
     }
 
     public Map<String, Object> getCustomVarsForTrigger(Object e) {
@@ -322,7 +338,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
     public IPlayer getPlayer(String string) {
         Player player = Bukkit.getPlayer(string);
-        if (player != null) return main.getWrapper().wrap(player);
+        if (player != null) return getMainComponent().main().getWrapper().wrap(player);
         else return null;
     }
 
@@ -372,6 +388,20 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         }
     }
 
+    @Override
+    public Iterable<? extends IPlayer> getOnlinePlayers() {
+        return getServer().getOnlinePlayers().stream()
+                .map(wrapper::wrap)
+                .map(IPlayer.class::cast)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public IInventory createInventory(int size, String name) {
+        name = ChatColor.translateAlternateColorCodes('&', name);
+        return wrapper.wrap(Bukkit.createInventory(null, size, name));
+    }
+
     public boolean isServerThread() {
         boolean result = false;
 
@@ -392,9 +422,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         return getServer().getScheduler().callSyncMethod(this, call);
     }
 
-    protected abstract TriggerReactorMain getMain();
-
-    protected abstract Set<Manager> getManagers();
+    protected abstract BukkitPluginMainComponent getMainComponent();
 
     private ProcessInterrupter.Builder appendCooldownInterrupter(ProcessInterrupter.Builder builder,
                                                                  Map<UUID, Long> cooldowns) {
@@ -402,9 +430,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
             if ("COOLDOWN".equalsIgnoreCase(command)) {
                 if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
 
-                if (context.getTriggerCause() instanceof PlayerEvent) {
+                Player player = (Player) context.getVar(Trigger.VAR_NAME_PLAYER);
+                if (player != null) {
                     long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                    Player player = ((PlayerEvent) context.getTriggerCause()).getPlayer();
                     UUID uuid = player.getUniqueId();
                     cooldowns.put(uuid, System.currentTimeMillis() + mills);
                 }
@@ -482,7 +510,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
                         .migrate(new NaiveMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
             }
         }).append(() -> {
-            if (api.getVariableManager().isMigrationNeeded()) {
+            if (api.getGlobalVariableManager().isMigrationNeeded()) {
                 File file = new File(getDataFolder(), "var.yml");
                 FileConfiguration conf = new Utf8YamlConfiguration();
                 try {
@@ -490,10 +518,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
                 } catch (IOException | InvalidConfigurationException e) {
                     e.printStackTrace();
                 }
-                api.getVariableManager().migrate(new NaiveMigrationHelper(conf, file));
+                api.getGlobalVariableManager().migrate(new NaiveMigrationHelper(conf, file));
             }
         }).append(() -> {
-            Optional.of(api.invManager())
+            Optional.of(api.getInventoryTriggerManager())
                     .map(AbstractTriggerManager::getTriggerInfos)
                     .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
                             .filter(TriggerInfo::isMigrationNeeded)
@@ -534,9 +562,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
                     }
 
                     if (sync) {
-                        trigger.activate(context.getTriggerCause(), context.getVars(), true);
+                        trigger.activate(context.getVars(), true);
                     } else {//use snapshot to avoid concurrent modification
-                        trigger.activate(context.getTriggerCause(), new HashMap<>(context.getVars()), false);
+                        trigger.activate(new HashMap<>(context.getVars()), false);
                     }
 
                     return true;
@@ -551,11 +579,12 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
                 if (!getServer().isPrimaryThread())
                     throw new RuntimeException("Trying to cancel event in async trigger.");
 
-                if (context.getTriggerCause() instanceof Cancellable) {
-                    ((Cancellable) context.getTriggerCause()).setCancelled(true);
+                Event event = (Event) context.getVar(Trigger.VAR_NAME_EVENT);
+                if (event instanceof Cancellable) {
+                    ((Cancellable) event).setCancelled(true);
                     return true;
                 } else {
-                    throw new RuntimeException(context.getTriggerCause() + " is not a Cancellable event!");
+                    throw new RuntimeException(event + " is not a Cancellable event!");
                 }
             }
 

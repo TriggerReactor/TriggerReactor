@@ -28,11 +28,12 @@ public abstract class CustomSerializer<T> implements Serializer<T> {
     }
 
     @Override
-    public final T deserialize(JsonElement json,
-                               Type typeOfT,
-                               JsonDeserializationContext context) throws JsonParseException {
+    public final T deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
+            JsonParseException {
         return deserialize(json, context);
     }
+
+    public abstract T deserialize(JsonElement json, JsonDeserializationContext context);
 
     @Override
     public final JsonElement serialize(T src, Type typeOfSrc, JsonSerializationContext context) {
@@ -41,8 +42,6 @@ public abstract class CustomSerializer<T> implements Serializer<T> {
         jsonObject.add(SER_VALUE, serialize(src, context));
         return jsonObject;
     }
-
-    public abstract T deserialize(JsonElement json, JsonDeserializationContext context);
 
     public abstract JsonElement serialize(T src, JsonSerializationContext context);
 

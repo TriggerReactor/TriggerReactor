@@ -20,6 +20,7 @@ public class ParserException extends Exception {
     public ParserException(String message) {
         super(message);
     }
+
     private static final long serialVersionUID = 1L;
 
 }

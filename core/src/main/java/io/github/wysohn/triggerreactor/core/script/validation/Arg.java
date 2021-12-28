@@ -22,20 +22,8 @@ public class Arg {
         options.put(option, value);
     }
 
-    Object getOption(ValidationOption option) {
-        return options.get(option);
-    }
-
     boolean hasOption(ValidationOption option) {
         return options.containsKey(option);
-    }
-
-    String name() {
-        String name = (String) getOption(validationOptions.forName("name"));
-        if (name == null) {
-            return "null";
-        }
-        return name;
     }
 
     //returns a String describing this Arg's type, for error-construction purposes
@@ -50,6 +38,10 @@ public class Arg {
         }
 
         return type.toString();
+    }
+
+    Object getOption(ValidationOption option) {
+        return options.get(option);
     }
 
     /**
@@ -70,5 +62,13 @@ public class Arg {
             return error;
         }
         return null;
+    }
+
+    String name() {
+        String name = (String) getOption(validationOptions.forName("name"));
+        if (name == null) {
+            return "null";
+        }
+        return name;
     }
 }

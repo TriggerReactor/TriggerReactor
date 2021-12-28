@@ -16,8 +16,10 @@ public class TemporaryGlobalVariableKey {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         TemporaryGlobalVariableKey that = (TemporaryGlobalVariableKey) o;
         return Objects.equals(key, that.key);
     }

@@ -42,5 +42,6 @@ public class CaseInsensitiveStringMap<T> extends HashMap<String, T> {
 
         return null;
     }
+
     private static final long serialVersionUID = 1L;
 }

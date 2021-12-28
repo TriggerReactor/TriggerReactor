@@ -1,20 +1,21 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.tools.VarMap;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Stack;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 /**
  * Storage for the mutable states of the interpreter.
  * <p>
  * <p>
  * This should be used per individual thread to avoid any race-condition.
- * Each InterpreterContext has all the necessary states, such as local variables,
+ * Each InterpreterLocalContext has all the necessary states, such as local variables,
  * the current stack, etc. that is relevant to the specific execution that a thread
  * is working on. In this way, a single Interpreter can be used by multiple threads,
  * and it is easier to transfer the current state to the another Interpreter (for example,
@@ -22,20 +23,27 @@ import java.util.concurrent.ConcurrentHashMap;
  * the copy of the context.
  */
 public class InterpreterLocalContext {
+    /**
+     * Simple lock to ensure only one thread to access the context at a time.
+     * Each Thread that is running the trigger script must have their own context, and
+     * they should not be shared.
+     * <p>
+     * Even though this attempt to avoid any concurrent access to the local context, it
+     * does not know if the same context is used by two or more threads in a non-concurrent
+     * manner.
+     */
+    private final Lock lock = new ReentrantLock();
     private final Stack<Token> stack = new Stack<>();
 
-    //TODO later, do not allow multiple threads to access any of the fields.
-    //TODO for now, just keep it as it is. (ConcurrentHashMap will keep it safe... for now)
-    private final Map<String, Class<?>> importMap = new ConcurrentHashMap<>();
-    private Map<String, Object> vars = new VarMap();
+    private final Map<String, Class<?>> importMap = new HashMap<>();
+    /**
+     * Extra context information to be used only internally.
+     */
+    private final Map<String, Object> extras = new HashMap<>();
 
-    //TODO this is very dangerous situation because we have only one local context per each thread.
-    //TODO but for now, this is not a problem since in Trigger#initInterpreter(), we create
-    //TODO new Interpreter every time for each execution, so we don't technically share any
-    //TODO local context. But later we will refactor the Interpreter
-
-    private Object triggerCause = null;
-    private Timings.Timing timing = null;
+    private final Map<String, Object> vars = new VarMap();
+    private final Timings.Timing timing;
+    private final ProcessInterrupter interrupter;
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
@@ -43,6 +51,15 @@ public class InterpreterLocalContext {
     private boolean continueFlag = false;
 
     private int callArgsSize = 0;
+
+    public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter) {
+        this.timing = timing;
+        this.interrupter = interrupter;
+    }
+
+    public InterpreterLocalContext(Timings.Timing timing) {
+        this(timing, null);
+    }
 
     /**
      * Copy current state, except for the current stack
@@ -53,96 +70,118 @@ public class InterpreterLocalContext {
      * @return copied context.
      */
     public InterpreterLocalContext copyState(String timingsName) {
-        InterpreterLocalContext context = new InterpreterLocalContext();
+        return tryOrThrow(() -> {
+            // attach lambda timings to the caller timings
+            InterpreterLocalContext context = new InterpreterLocalContext(
+                    Optional.ofNullable(timing).map(t -> t.getTiming(timingsName)).orElse(Timings.LIMBO), interrupter);
 
-        context.importMap.putAll(importMap);
-        context.vars.putAll(vars);
+            context.importMap.putAll(importMap);
+            context.vars.putAll(vars);
 
-        context.triggerCause = triggerCause;
-        context.timing = Optional.ofNullable(timing)
-                .map(t -> t.getTiming(timingsName))
-                .orElse(Timings.LIMBO); // attach lambda timings to the caller timings
+            return context;
+        });
+    }
 
-        return context;
+    private <R> R tryOrThrow(Supplier<R> fn) {
+        try {
+            if (lock.tryLock()) {
+                return fn.get();
+            } else {
+                throw new ConcurrentModificationException();
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     int getCallArgsSize() {
-        return callArgsSize;
+        return tryOrThrow(() -> callArgsSize);
     }
 
     void setCallArgsSize(int callArgsSize) {
-        this.callArgsSize = callArgsSize;
+        tryOrThrow(() -> this.callArgsSize = callArgsSize);
     }
 
     Map<String, Class<?>> getImportMap() {
-        return importMap;
+        return tryOrThrow(() -> importMap);
     }
 
     Timings.Timing getTiming() {
-        return timing;
+        return tryOrThrow(() -> timing);
     }
 
-    void setTiming(Timings.Timing timing) {
-        this.timing = timing;
+    public Object getVar(String key) {
+        return tryOrThrow(() -> vars.get(key));
     }
 
-    public Object getTriggerCause() {
-        return triggerCause;
+    void setVar(String key, Object val) {
+        tryOrThrow(() -> vars.put(key, val));
     }
 
-    void setTriggerCause(Object triggerCause) {
-        this.triggerCause = triggerCause;
+    public void putAllVars(Map<String, Object> scriptVars) {
+        tryOrThrow(() -> {
+            vars.putAll(scriptVars);
+            return null;
+        });
     }
 
-    public Map<String, Object> getVars() {
-        return vars;
+    public Object getExtra(String key) {
+        return tryOrThrow(() -> extras.get(key));
     }
 
-    void setVars(Map<String, Object> vars) {
-        this.vars = vars;
+    public void setExtra(String key, Object val) {
+        tryOrThrow(() -> extras.put(key, val));
     }
 
     boolean isBreakFlag() {
-        return breakFlag;
+        return tryOrThrow(() -> breakFlag);
     }
 
     void setBreakFlag(boolean breakFlag) {
-        this.breakFlag = breakFlag;
+        tryOrThrow(() -> this.breakFlag = breakFlag);
     }
 
     boolean isContinueFlag() {
-        return continueFlag;
+        return tryOrThrow(() -> continueFlag);
     }
 
     void setContinueFlag(boolean continueFlag) {
-        this.continueFlag = continueFlag;
+        tryOrThrow(() -> this.continueFlag = continueFlag);
     }
 
     boolean isStopFlag() {
-        return stopFlag;
+        return tryOrThrow(() -> stopFlag);
     }
 
     void setStopFlag(boolean stopFlag) {
-        this.stopFlag = stopFlag;
+        tryOrThrow(() -> this.stopFlag = stopFlag);
     }
 
     boolean isWaitFlag() {
-        return waitFlag;
+        return tryOrThrow(() -> waitFlag);
     }
 
     void setWaitFlag(boolean waitFlag) {
-        this.waitFlag = waitFlag;
+        tryOrThrow(() -> this.waitFlag = waitFlag);
     }
 
     Token popToken() {
-        return this.stack.pop();
+        return tryOrThrow(this.stack::pop);
     }
 
     Token pushToken(Token token) {
-        return this.stack.push(token);
+        return tryOrThrow(() -> this.stack.push(token));
     }
 
     boolean stackEmpty() {
-        return this.stack.empty();
+        return tryOrThrow(this.stack::empty);
+    }
+
+    public Map<String, Object> getVars() {
+        return tryOrThrow(() -> new HashMap<>(vars));
+    }
+
+    public ProcessInterrupter getInterrupter() {
+        return tryOrThrow(() -> interrupter);
     }
 }

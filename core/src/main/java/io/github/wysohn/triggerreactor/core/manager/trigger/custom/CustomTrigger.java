@@ -1,37 +1,37 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
-import io.github.wysohn.triggerreactor.core.main.ITriggerReactorAPI;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class CustomTrigger extends Trigger implements AbstractCustomTriggerManager.EventHook {
+public class CustomTrigger extends Trigger implements CustomTriggerManager.EventHook {
     final Class<?> event;
     final String eventName;
 
-    public CustomTrigger(ITriggerReactorAPI api,
-                         TriggerInfo info,
-                         String script,
-                         Class<?> event,
-                         String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(api, info, script);
+    @AssistedInject
+    CustomTrigger(@Assisted TriggerInfo info,
+                  @Assisted String script,
+                  @Assisted Class<?> event,
+                  @Assisted("eventName") String eventName) {
+        super(info, script);
         this.event = event;
         this.eventName = eventName;
 
-        init();
     }
 
-    @Override
-    public CustomTrigger clone() {
-        try {
-            return new CustomTrigger(api, info, script, event, eventName);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public CustomTrigger(Trigger o) {
+        super(o);
+        ValidationUtil.assertTrue(o, v -> v instanceof CustomTrigger);
+        CustomTrigger other = (CustomTrigger) o;
+
+        this.event = other.event;
+        this.eventName = other.eventName;
     }
 
     @Override
@@ -49,23 +49,29 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         CustomTrigger other = (CustomTrigger) obj;
         if (getInfo() == null) {
             return other.getInfo() == null;
-        } else return getInfo().equals(other.getInfo());
+        } else
+            return getInfo().equals(other.getInfo());
     }
 
     @Override
     public void onEvent(Object e) {
         if (e.getClass() != event
                 // temporary way to deal with sponge events
-                && !e.getClass().getSimpleName().contains(event.getSimpleName())) return;
+                && !e.getClass().getSimpleName().contains(event.getSimpleName()))
+            return;
 
         Map<String, Object> vars = new HashMap<>();
-        this.activate(e, vars);
+        vars.put(Trigger.VAR_NAME_EVENT, e);
+        this.activate(vars);
     }
 
     public String getEventName() {

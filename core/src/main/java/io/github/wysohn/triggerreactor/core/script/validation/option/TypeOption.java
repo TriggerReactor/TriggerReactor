@@ -62,9 +62,12 @@ public class TypeOption extends ValidationOption {
                 }
                 return "%name% must be a boolean";
             default:
-                throw new ValidationException("Unrecognized option type option: " + arg + ", this should *never* happen.  Report this immediately.");
+                throw new ValidationException(
+                        "Unrecognized option type option: " + arg + ", this should *never* happen.  Report this "
+                                + "immediately.");
         }
 
     }
+
     private static final String[] types = {"int", "number", "boolean", "string"};
 }

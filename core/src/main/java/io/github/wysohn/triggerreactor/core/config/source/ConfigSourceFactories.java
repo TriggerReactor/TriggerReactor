@@ -37,13 +37,17 @@ public class ConfigSourceFactories {
      * @return the new config source responsible for the given folder and fileName
      */
     public IConfigSource create(String type, File folder, String fileName) {
-        if (!folder.exists()) folder.mkdirs();
+        if (!folder.exists())
+            folder.mkdirs();
 
-        if (!folder.isDirectory()) throw new RuntimeException(folder + " must be a directory.");
+        if (!folder.isDirectory())
+            throw new RuntimeException(folder + " must be a directory.");
 
-        if (fileName.lastIndexOf('.') != -1) throw new RuntimeException("fileName must not include dot(.).");
+        if (fileName.lastIndexOf('.') != -1)
+            throw new RuntimeException("fileName must not include dot(.).");
 
-        if (!factories.containsKey(type)) throw new RuntimeException(type + " is not a registered type.");
+        if (!factories.containsKey(type))
+            throw new RuntimeException(type + " is not a registered type.");
 
         return factories.get(type).create(type, folder, fileName);
     }
