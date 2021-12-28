@@ -153,11 +153,6 @@ public class BukkitEventRegistryManager extends Manager implements IEventRegistr
         }
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<?
             extends Event>>() {{
         put("onJoin", PlayerJoinEvent.class);

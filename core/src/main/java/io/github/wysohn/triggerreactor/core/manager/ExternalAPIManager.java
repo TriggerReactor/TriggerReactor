@@ -2,12 +2,14 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.scope.APIScope;
 
 import javax.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.logging.Logger;
 
+@APIScope
 public class ExternalAPIManager extends Manager {
     @Inject
     Logger logger;
@@ -75,11 +77,6 @@ public class ExternalAPIManager extends Manager {
         apiSupport.onEnable();
 
         return apiSupport;
-    }
-
-    @Override
-    public void saveAll() {
-
     }
 
     /**

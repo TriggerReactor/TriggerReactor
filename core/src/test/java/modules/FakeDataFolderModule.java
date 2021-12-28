@@ -11,6 +11,6 @@ public abstract class FakeDataFolderModule {
     @Provides
     @Named("DataFolder")
     static File provideDataFolder() {
-        return new File(".");
+        return new File("");
     }
 }

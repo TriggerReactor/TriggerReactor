@@ -2,7 +2,9 @@ package io.github.wysohn.triggerreactor.bukkit.listeners;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.manager.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.areaselection.ClickAction;
+import io.github.wysohn.triggerreactor.core.manager.areaselection.ClickResult;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -28,7 +30,7 @@ public final class AreaSelectionListener extends AbstractBukkitListener {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (!areaSelectionManager.hasSelection(uuid))
+        if (!areaSelectionManager.isSelecting(uuid))
             return;
 
         e.setCancelled(true);
@@ -38,11 +40,11 @@ public final class AreaSelectionListener extends AbstractBukkitListener {
 
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getClickedBlock().getLocation());
 
-        AreaSelectionManager.ClickResult result = null;
+        ClickResult result = null;
         if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
-            result = areaSelectionManager.onClick(AreaSelectionManager.ClickAction.LEFT_CLICK_BLOCK, uuid, sloc);
+            result = areaSelectionManager.onClick(ClickAction.LEFT_CLICK_BLOCK, uuid, sloc);
         } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            result = areaSelectionManager.onClick(AreaSelectionManager.ClickAction.RIGHT_CLICK_BLOCK, uuid, sloc);
+            result = areaSelectionManager.onClick(ClickAction.RIGHT_CLICK_BLOCK, uuid, sloc);
         }
 
         if (result != null) {

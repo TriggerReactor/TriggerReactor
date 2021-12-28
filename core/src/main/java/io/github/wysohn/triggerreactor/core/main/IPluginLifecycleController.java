@@ -56,6 +56,8 @@ public interface IPluginLifecycleController {
 
     boolean isDebugging();
 
+    void setDebugging(boolean bool);
+
     /**
      * Check if the target plugin is available and enabled.
      *

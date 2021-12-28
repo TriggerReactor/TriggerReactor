@@ -1,11 +1,10 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.components.DaggerScriptEngineComponent;
-import io.github.wysohn.triggerreactor.core.components.ScriptEngineComponent;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.ExternalAPIManager;
+import io.github.wysohn.triggerreactor.core.manager.IScriptEngineProvider;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterGlobalContext;
@@ -23,7 +22,6 @@ import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.inject.Inject;
-import javax.script.ScriptEngineManager;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
@@ -44,12 +42,10 @@ public abstract class Trigger implements IObservable {
     @Inject
     ExternalAPIManager externalAPIManager;
     @Inject
-    ScriptEngineManager scriptEngineManager;
+    IScriptEngineProvider scriptEngineProvider;
+
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     protected final TriggerInfo info;
-    protected final ScriptEngineComponent SCRIPT_ENGINE_COMPONENT = DaggerScriptEngineComponent.builder()
-            .scriptEngineManager(scriptEngineManager)
-            .build();
     protected IObserver observer;
     protected String script;
     protected Node abstractSyntaxTree;
@@ -206,7 +202,7 @@ public abstract class Trigger implements IObservable {
         InterpreterLocalContext localContext = new InterpreterLocalContext(timing,
                 gameController.createInterrupter(cooldowns));
         localContext.putAllVars(scriptVars);
-        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, SCRIPT_ENGINE_COMPONENT.engine());
+        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, scriptEngineProvider.getEngine());
 
         try {
             interpreter.start(localContext, globalContext);

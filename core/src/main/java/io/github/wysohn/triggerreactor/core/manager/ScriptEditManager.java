@@ -69,6 +69,7 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
                     lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
                 } catch (NumberFormatException ex) {
                     throwableHandler.handleException((ICommandSender) null, ex);
+                    return true;
                 }
 
                 editor.up(lines);
@@ -85,6 +86,7 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
                     lines = split.length > 1 ? Integer.parseInt(split[1]) : 1;
                 } catch (NumberFormatException ex) {
                     throwableHandler.handleException((ICommandSender) null, ex);
+                    return true;
                 }
 
                 editor.down(lines);
@@ -119,11 +121,6 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
 
     @Override
     public void onReload() throws RuntimeException {
-
-    }
-
-    @Override
-    public void saveAll() {
 
     }
 

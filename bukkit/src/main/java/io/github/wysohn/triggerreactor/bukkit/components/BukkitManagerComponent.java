@@ -5,6 +5,7 @@ import io.github.wysohn.triggerreactor.bukkit.modules.BukkitManagerModule;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitManager;
 import io.github.wysohn.triggerreactor.core.components.ManagerComponent;
 import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
 
 import java.util.Set;
 

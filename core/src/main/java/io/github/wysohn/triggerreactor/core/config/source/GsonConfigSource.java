@@ -119,7 +119,7 @@ public class GsonConfigSource implements IConfigSource {
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
     public void shutdown() {
-        exec.shutdownNow().forEach(Runnable::run);
+        exec.shutdown();
         try {
             exec.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {

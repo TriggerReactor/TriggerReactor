@@ -42,7 +42,6 @@ public class PlaceholderManager extends AbstractJavascriptBasedManager implement
 
     @Override
     public void onEnable() throws Exception {
-        super.onEnable();
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
         this.placeholderFolder = new File(dataFolder, "Placeholder");
 
@@ -71,11 +70,6 @@ public class PlaceholderManager extends AbstractJavascriptBasedManager implement
                 continue;
             }
         }
-    }
-
-    @Override
-    public void saveAll() {
-
     }
 
     @Override

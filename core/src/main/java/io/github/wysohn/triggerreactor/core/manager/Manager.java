@@ -25,8 +25,4 @@ import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
  * @author wysohn
  */
 public abstract class Manager implements IPluginProcedure {
-    /**
-     * Save all triggers
-     */
-    public abstract void saveAll();
 }

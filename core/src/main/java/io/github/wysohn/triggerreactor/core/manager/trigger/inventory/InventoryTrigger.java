@@ -5,6 +5,7 @@ import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.ThrowableHandler;
+import io.github.wysohn.triggerreactor.core.manager.IScriptEngineProvider;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
@@ -22,6 +23,8 @@ public class InventoryTrigger extends Trigger {
     IGameController gameController;
     @Inject
     ThrowableHandler throwableHandler;
+    @Inject
+    IScriptEngineProvider scriptEngineProvider;
 
     @AssistedInject
     InventoryTrigger(@Assisted TriggerInfo info, @Assisted String script, @Assisted IItemStack[] items) {
@@ -45,7 +48,7 @@ public class InventoryTrigger extends Trigger {
         InterpreterLocalContext localContext = new InterpreterLocalContext(timing,
                 gameController.createInterrupterForInv(cooldowns, InventoryTriggerManager.inventoryMap));
         localContext.putAllVars(scriptVars);
-        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, SCRIPT_ENGINE_COMPONENT.engine());
+        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, scriptEngineProvider.getEngine());
         try {
 
         } catch (Exception ex) {

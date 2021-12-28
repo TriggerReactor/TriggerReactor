@@ -28,7 +28,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 public abstract class AbstractAPISupport implements IPluginProcedure {
     protected final Object targetPluginInstance;
 
-    protected AbstractAPISupport(Object targetPluginInstance) {
+    public AbstractAPISupport(Object targetPluginInstance) {
         this.targetPluginInstance = targetPluginInstance;
     }
 

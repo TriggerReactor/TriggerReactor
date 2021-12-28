@@ -35,10 +35,6 @@ public class InventoryEditManager extends Manager {
     public void onReload() {
     }
 
-    @Override
-    public void saveAll() {
-    }
-
     public void onContinueEdit(IPlayer player) {
         UUID u = player.getUniqueId();
         if (!suspended.containsKey(u)) {

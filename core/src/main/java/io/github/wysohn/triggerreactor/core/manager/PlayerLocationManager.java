@@ -59,11 +59,6 @@ public class PlayerLocationManager extends Manager {
         locations.put(uuid, sloc);
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     /**
      * get location of player
      *

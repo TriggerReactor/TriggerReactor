@@ -28,7 +28,6 @@ public class PluginConfigManager extends Manager implements IMigratable, IConfig
 
     }
 
-    @Override
     public void saveAll() {
         configSource.saveAll();
     }

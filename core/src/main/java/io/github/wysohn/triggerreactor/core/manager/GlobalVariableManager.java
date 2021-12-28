@@ -102,11 +102,6 @@ public final class GlobalVariableManager extends Manager implements IMigratable 
     }
 
     @Override
-    public void saveAll() {
-        configSource.saveAll();
-    }
-
-    @Override
     public void onDisable() {
         configSource.onDisable();
     }

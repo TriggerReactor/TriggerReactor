@@ -17,7 +17,9 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -33,7 +35,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-public class ExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
+@ManagerScope
+public class ExecutorManager extends AbstractJavascriptBasedManager implements IPluginProcedure, KeyValueManager<Executor> {
     @Inject
     Logger logger;
     @Inject
@@ -45,6 +48,10 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements K
     IWrapper wrapper;
     protected Map<String, Executor> jsExecutors = new HashMap<>();
     private File executorFolder;
+
+    @Inject
+    ExecutorManager() {
+    }
 
     /* (non-Javadoc)
      * @see KeyValueManager#containsKey(java.lang.Object)
@@ -84,8 +91,6 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements K
 
     @Override
     public void onEnable() throws Exception {
-        super.onEnable();
-
         JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
         this.executorFolder = new File(dataFolder, "Executor");
 
@@ -144,11 +149,6 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements K
             }
 
         });
-    }
-
-    @Override
-    public void saveAll() {
-
     }
 
     /**

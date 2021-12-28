@@ -96,13 +96,6 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return prev;
     }
 
-    @Override
-    public void saveAll() {
-        for (T trigger : triggers.values()) {
-            save(trigger);
-        }
-    }
-
     public File getFolder() {
         return folder;
     }

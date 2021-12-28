@@ -14,15 +14,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager;
+package io.github.wysohn.triggerreactor.core.manager.areaselection;
 
+import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
 import javax.inject.Inject;
 import java.util.*;
 
-public class AreaSelectionManager extends Manager {
+@ManagerScope
+public class AreaSelectionManager extends Manager implements IPluginProcedure {
     protected final Set<UUID> selecting = new HashSet<>();
     protected final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();
     protected final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
@@ -46,14 +50,9 @@ public class AreaSelectionManager extends Manager {
 
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     /**
-     * @return null if invalid selection; Area if done
-     */
+         * @return null if invalid selection; Area if done
+         */
     public Area getSelection(UUID uuid) {
         SimpleLocation left = leftPosition.get(uuid);
         SimpleLocation right = rightPosition.get(uuid);
@@ -72,7 +71,7 @@ public class AreaSelectionManager extends Manager {
         }
     }
 
-    public boolean hasSelection(UUID uuid) {
+    public boolean isSelecting(UUID uuid) {
         return selecting.contains(uuid);
     }
 
@@ -85,15 +84,18 @@ public class AreaSelectionManager extends Manager {
     }
 
     /**
-     * gets called when player clicks on a block.
-     * <b>This should be called manually by the child class upon player interaction event.</b>
-     *
-     * @param action the {@link ClickAction} associated with this player interaction.
-     * @param uuid   the uuid of player
-     * @param sloc   location where interaction occurred
-     * @return the result as {@link ClickResult}
-     */
+         * gets called when player clicks on a block.
+         * <b>This should be called manually by the child class upon player interaction event.</b>
+         *
+         * @param action the {@link ClickAction} associated with this player interaction.
+         * @param uuid   the uuid of player
+         * @param sloc   location where interaction occurred
+         * @return the result as {@link ClickResult}
+         */
     public ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
+        if(!isSelecting(uuid))
+            return null;
+
         if (action == ClickAction.LEFT_CLICK_BLOCK) {
             leftPosition.put(uuid, sloc);
         } else if (action == ClickAction.RIGHT_CLICK_BLOCK) {
@@ -113,13 +115,13 @@ public class AreaSelectionManager extends Manager {
         } else if (right != null) {
             return ClickResult.RIGHTSET;
         } else {
-            return null;
+            throw new RuntimeException();
         }
     }
 
     /**
-     * @return true if on; false if off
-     */
+         * @return true if on; false if off
+         */
     public boolean toggleSelection(UUID uuid) {
         if (selecting.contains(uuid)) {
             selecting.remove(uuid);
@@ -137,33 +139,4 @@ public class AreaSelectionManager extends Manager {
         rightPosition.remove(uuid);
     }
 
-    public enum ClickAction {
-        /**
-         * Left clicked on block
-         **/
-        LEFT_CLICK_BLOCK,
-        /**
-         * Right clicked on block
-         **/
-        RIGHT_CLICK_BLOCK
-    }
-
-    public enum ClickResult {
-        /**
-         * When two selections are in different worlds
-         **/
-        DIFFERENTWORLD,
-        /**
-         * Two coordinates are ready
-         **/
-        COMPLETE,
-        /**
-         * Only left clicked coordinate is ready
-         **/
-        LEFTSET,
-        /**
-         * Only right clicked coordinated is ready
-         **/
-        RIGHTSET
-    }
 }

@@ -57,7 +57,7 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
         ExampleClass e = (ExampleClass) fn.newInstance(example, 1);
         assertEquals(0, e.marker);
 
-        e = (ExampleClass) fn.newInstance(example, new Double(1.1));
+        e = (ExampleClass) fn.newInstance(example, 1.1);
         assertEquals(2, e.marker);
 
         File file = (File) fn.newInstance("java.io.File", "test.txt");

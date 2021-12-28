@@ -24,8 +24,7 @@ import io.github.wysohn.triggerreactor.core.modules.CoreUtilModule;
 import io.github.wysohn.triggerreactor.core.scope.MainScope;
 
 @Component(modules = {ConfigSourceFactoryModule.class, CoreExternalAPIModule.class, CoreUtilModule.class,},
-           dependencies = {ScriptEngineComponent.class,
-                           PluginLifecycleComponent.class,
+           dependencies = {PluginLifecycleComponent.class,
                            ManagerComponent.class,
                            TriggerComponent.class,
                            BootstrapComponent.class,})
@@ -34,9 +33,6 @@ public interface PluginMainComponent {
     @Component.Builder
     interface Builder {
         PluginMainComponent build();
-
-        // dependency
-        Builder scriptEngineComponent(ScriptEngineComponent component);
 
         Builder pluginLifecycleComponent(PluginLifecycleComponent component);
 
