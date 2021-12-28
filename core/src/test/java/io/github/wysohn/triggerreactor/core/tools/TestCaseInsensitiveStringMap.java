@@ -3,7 +3,7 @@ package io.github.wysohn.triggerreactor.core.tools;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class TestCaseInsensitiveStringMap {
     @SuppressWarnings("unlikely-arg-type")
@@ -11,13 +11,13 @@ public class TestCaseInsensitiveStringMap {
     public void test() {
         CaseInsensitiveStringMap<Integer> map = new CaseInsensitiveStringMap<>();
 
-        assertEquals(map.put("merp", 3), null);
-        assertEquals(map.put("MERP", 4), new Integer(3));
-        assertEquals(map.containsKey("MeRp"), true);
-        assertEquals(map.containsKey("derp"), false);
-        assertEquals(map.containsKey(42), false);
-        assertEquals(map.get(42), null);
-        assertEquals(map.get("merp"), new Integer(4));
-        assertEquals(map.get("MERP"), new Integer(4));
+        assertNull(map.put("merp", 3));
+        assertEquals(map.put("MERP", 4), Integer.valueOf(3));
+        assertTrue(map.containsKey("MeRp"));
+        assertFalse(map.containsKey("derp"));
+        assertFalse(map.containsKey(42));
+        assertNull(map.get(42));
+        assertEquals(map.get("merp"), Integer.valueOf(4));
+        assertEquals(map.get("MERP"), Integer.valueOf(4));
     }
 }
