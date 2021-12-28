@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 
 public class CustomTriggerManager extends AbstractCustomTriggerManager {
     private Map<EventHook, EventListener> registeredListeners = new HashMap<>();
+
     public CustomTriggerManager(TriggerReactorCore plugin) {
         super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new EventRegistry() {
             @Override
@@ -72,10 +73,6 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         }
     }
 
-    public Collection<String> getAbbreviations() {
-        return ABBREVIATIONS.keySet();
-    }
-
     protected void initEvents() throws IOException {
         for (String clazzName : ReflectionUtil.getAllClasses(Sponge.class.getClassLoader(), basePackageName)) {
             Class<?> test = null;
@@ -85,13 +82,19 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
                 e1.printStackTrace();
             }
 
-            if (!Event.class.isAssignableFrom(test)) continue;
+            if (!Event.class.isAssignableFrom(test))
+                continue;
 
             Class<? extends Event> clazz = (Class<? extends Event>) test;
-            if (clazz.equals(Event.class)) continue;
+            if (clazz.equals(Event.class))
+                continue;
 
             EVENTS.put(clazz.getSimpleName(), clazz);
         }
+    }
+
+    public Collection<String> getAbbreviations() {
+        return ABBREVIATIONS.keySet();
     }
 
     @SuppressWarnings("unchecked")
@@ -125,8 +128,12 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
             Sponge.getEventManager().unregisterListeners(listener);
         }
     }
+    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(
+            String.CASE_INSENSITIVE_ORDER);
+    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
     @SuppressWarnings("serial")
-    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<? extends Event>>() {{
+    private static final Map<String, Class<? extends Event>> ABBREVIATIONS = new HashMap<String, Class<?
+            extends Event>>() {{
         put("onJoin", ClientConnectionEvent.Join.class);
         put("onQuit", ClientConnectionEvent.Disconnect.class);
         //put("onPlayerDeath", DestructEntityEvent.Death.class); same as entity death event
@@ -145,6 +152,4 @@ public class CustomTriggerManager extends AbstractCustomTriggerManager {
         put("onStop", TriggerReactorStopEvent.class);
     }};
     private static final String basePackageName = "org.spongepowered.api.event";
-    static final Map<String, Class<? extends Event>> EVENTS = new TreeMap<String, Class<? extends Event>>(String.CASE_INSENSITIVE_ORDER);
-    static final List<Class<? extends Event>> BASEEVENTS = new ArrayList<Class<? extends Event>>();
 }

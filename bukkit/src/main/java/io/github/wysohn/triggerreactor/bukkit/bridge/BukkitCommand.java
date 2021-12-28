@@ -24,7 +24,7 @@ public class BukkitCommand implements ICommand {
     public void setTabCompleter(ITabCompleter[] tabCompleters) {
         command.setTabCompleter((sender, command12, alias, args) -> {
             int index = args.length - 1;
-            if(index >= tabCompleters.length)
+            if (index >= tabCompleters.length)
                 return new ArrayList<>();
 
             ITabCompleter tabCompleter = tabCompleters[index];

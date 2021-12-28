@@ -27,7 +27,8 @@ public class VariableMigrationHelper implements IMigrationHelper {
     public void migrate(IConfigSource current) {
         traversal(oldConfig.getChildrenMap(), current::put);
 
-        if (oldFile.exists()) oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+        if (oldFile.exists())
+            oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
 
         current.saveAll();
     }
@@ -50,7 +51,8 @@ public class VariableMigrationHelper implements IMigrationHelper {
 
             try {
                 if (!keyNode.isVirtual() && !valueNode.isVirtual()) {
-                    Class<? extends DataSerializable> clazz = (Class<? extends DataSerializable>) Class.forName(keyNode.getString());
+                    Class<? extends DataSerializable> clazz = (Class<? extends DataSerializable>) Class.forName(
+                            keyNode.getString());
                     Sponge.getDataManager().getBuilder(clazz).ifPresent(dataBuilder -> {
                         DataContainer container = translator.translate(valueNode);
                         consumer.accept(ConfigurationUtil.asDottedPath(o), dataBuilder.build(container).orElse(null));

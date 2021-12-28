@@ -29,10 +29,36 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         super(fn);
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+    @Test(expected = UnsupportedOperationException.class)
+    public void testTakeItem() {
+        ItemStack IS = new ItemStack(Material.STONE, 64);
+        ItemStack IS2 = new ItemStack(Material.GRANITE, 64);
+        FakeInventory inv = fInventory(this, IS, IS2);
+
+        Player mockPlayer = Mockito.mock(Player.class);
+        PlayerInventory mockInventory = preparePlayerInventory(mockPlayer, inv);
+        Mockito.when(mockPlayer.getInventory()).thenReturn(mockInventory);
+
+        fn.takeItem(mockPlayer, "STONE", 1);
+        Assert.assertEquals(63, IS.getAmount());
+
+        fn.takeItem(mockPlayer, "GRANITE", 2);
+        Assert.assertEquals(62, IS2.getAmount());
+
+        fn.takeItem(mockPlayer, 1, 5);
+        fn.takeItem(mockPlayer, 1, 5, 1);
+    }
+
+    @Parameterized.Parameters
+    public static Iterable<Object[]> data() {
+        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
+    }    @Override
     protected boolean isEqual(ItemStack IS1, ItemStack IS2) {
         return IS1.getType() == IS2.getType() && IS1.getAmount() == IS2.getAmount();
     }
+
+
 
     @Override
     protected boolean isSimilar(ItemStack IS1, ItemStack IS2) {
@@ -72,29 +98,5 @@ public class TestCommonFunctions extends AbstractTestCommonFunctions {
         //TODO: not testable?
     }
 
-    @SuppressWarnings("deprecation")
-    @Test(expected = UnsupportedOperationException.class)
-    public void testTakeItem() {
-        ItemStack IS = new ItemStack(Material.STONE, 64);
-        ItemStack IS2 = new ItemStack(Material.GRANITE, 64);
-        FakeInventory inv = fInventory(this, IS, IS2);
 
-        Player mockPlayer = Mockito.mock(Player.class);
-        PlayerInventory mockInventory = preparePlayerInventory(mockPlayer, inv);
-        Mockito.when(mockPlayer.getInventory()).thenReturn(mockInventory);
-
-        fn.takeItem(mockPlayer, "STONE", 1);
-        Assert.assertEquals(63, IS.getAmount());
-
-        fn.takeItem(mockPlayer, "GRANITE", 2);
-        Assert.assertEquals(62, IS2.getAmount());
-
-        fn.takeItem(mockPlayer, 1, 5);
-        fn.takeItem(mockPlayer, 1, 5, 1);
-    }
-
-    @Parameterized.Parameters
-    public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{{new CommonFunctions()}});
-    }
 }

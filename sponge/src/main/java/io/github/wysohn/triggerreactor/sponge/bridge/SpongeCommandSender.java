@@ -31,13 +31,18 @@ public class SpongeCommandSender implements ICommandSender {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         SpongeCommandSender other = (SpongeCommandSender) obj;
         if (sender == null) {
-            if (other.sender != null) return false;
-        } else if (!sender.equals(other.sender)) return false;
+            if (other.sender != null)
+                return false;
+        } else if (!sender.equals(other.sender))
+            return false;
         return true;
     }
 

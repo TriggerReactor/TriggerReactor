@@ -19,7 +19,7 @@ import static org.mockito.Mockito.mock;
 public abstract class JSTestModule {
     @Provides
     @ScriptEngineScope
-    static ScriptEngineManager engineManager(){
+    static ScriptEngineManager engineManager() {
         return new ScriptEngineManager();
     }
 

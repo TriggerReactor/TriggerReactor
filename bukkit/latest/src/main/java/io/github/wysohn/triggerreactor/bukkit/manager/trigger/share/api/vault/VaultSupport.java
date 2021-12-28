@@ -58,21 +58,47 @@ public class VaultSupport extends APISupport {
 
     }
 
+    private boolean setupPermissions() {
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
+        ;
+        RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if (permissionProvider != null) {
+            permission = permissionProvider.getProvider();
+        }
+        return (permission != null);
+    }
+
+    private boolean setupChat() {
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
+        ;
+        RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.chat.Chat.class);
+        if (chatProvider != null) {
+            chat = chatProvider.getProvider();
+        }
+
+        return (chat != null);
+    }
+
+    private boolean setupEconomy() {
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
+        ;
+        RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyProvider != null) {
+            economy = economyProvider.getProvider();
+        }
+
+        return (economy != null);
+    }
+
     @Override
     public String getVariableName() {
         return "vault";
-    }
-
-    /**
-     * Get current balance of the player.
-     *
-     * @param player
-     * @return balance of the player. It can be negative if the economy plugin allows it.
-     */
-    public double balance(Player player) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
-
-        return economy.getBalance(player);
     }
 
     /**
@@ -81,7 +107,8 @@ public class VaultSupport extends APISupport {
      * @return
      */
     public Object chat() {
-        if (chat == null) throw new APISupportException("Vault", "Chat");
+        if (chat == null)
+            throw new APISupportException("Vault", "Chat");
 
         return chat;
     }
@@ -92,7 +119,8 @@ public class VaultSupport extends APISupport {
      * @return
      */
     public Object economy() {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
         return economy;
     }
@@ -106,7 +134,8 @@ public class VaultSupport extends APISupport {
      * @return true on success; false on fail
      */
     public boolean give(Player player, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
         return economy.depositPlayer(player, amount).transactionSuccess();
     }
@@ -119,7 +148,8 @@ public class VaultSupport extends APISupport {
      * @return true if has; false if not enough fund
      */
     public boolean has(Player offp, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
         return economy.has(offp, amount);
     }
@@ -130,7 +160,8 @@ public class VaultSupport extends APISupport {
      * @return
      */
     public Object permission() {
-        if (permission == null) throw new APISupportException("Vault", "Permission");
+        if (permission == null)
+            throw new APISupportException("Vault", "Permission");
 
         return permission;
     }
@@ -142,7 +173,8 @@ public class VaultSupport extends APISupport {
      * @param perm
      */
     public void permit(Player player, String perm) {
-        if (permission == null) throw new APISupportException("Vault", "Permission");
+        if (permission == null)
+            throw new APISupportException("Vault", "Permission");
 
         permission.playerAdd(null, player, perm);
     }
@@ -154,7 +186,8 @@ public class VaultSupport extends APISupport {
      * @param perm
      */
     public void revoke(Player player, String perm) {
-        if (permission == null) throw new APISupportException("Vault", "Permission");
+        if (permission == null)
+            throw new APISupportException("Vault", "Permission");
 
         permission.playerRemove(null, player, perm);
     }
@@ -167,7 +200,8 @@ public class VaultSupport extends APISupport {
      * @return true most of time; false if something unexpected happen.
      */
     public boolean set(Player player, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
         if (!economy.withdrawPlayer(player, balance(player)).transactionSuccess())
             throw new APISupportException("Vault", "Economy withdraw");
@@ -175,39 +209,17 @@ public class VaultSupport extends APISupport {
         return economy.depositPlayer(player, amount).transactionSuccess();
     }
 
-    private boolean setupChat() {
-        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
-        RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer()
-                .getServicesManager()
-                .getRegistration(net.milkbowl.vault.chat.Chat.class);
-        if (chatProvider != null) {
-            chat = chatProvider.getProvider();
-        }
+    /**
+     * Get current balance of the player.
+     *
+     * @param player
+     * @return balance of the player. It can be negative if the economy plugin allows it.
+     */
+    public double balance(Player player) {
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
-        return (chat != null);
-    }
-
-    private boolean setupEconomy() {
-        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
-        RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer()
-                .getServicesManager()
-                .getRegistration(net.milkbowl.vault.economy.Economy.class);
-        if (economyProvider != null) {
-            economy = economyProvider.getProvider();
-        }
-
-        return (economy != null);
-    }
-
-    private boolean setupPermissions() {
-        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
-        RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer()
-                .getServicesManager()
-                .getRegistration(net.milkbowl.vault.permission.Permission.class);
-        if (permissionProvider != null) {
-            permission = permissionProvider.getProvider();
-        }
-        return (permission != null);
+        return economy.getBalance(player);
     }
 
     /**
@@ -218,7 +230,8 @@ public class VaultSupport extends APISupport {
      * @return true on success; false if not enough fund or any other reason depends on economy plugin.
      */
     public boolean take(Player player, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
         return economy.withdrawPlayer(player, amount).transactionSuccess();
     }

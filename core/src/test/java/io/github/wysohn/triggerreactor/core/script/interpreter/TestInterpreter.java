@@ -64,7 +64,8 @@ public class TestInterpreter {
     @Test
     public void testArray() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "args[0] = \"arg1\"\n" + "args[1] = \"arg2\"\n" + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
+        String text = "" + "args[0] = \"arg1\"\n" + "args[1] = \"arg2\"\n"
+                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -98,7 +99,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + TestEnum.class.getName() + ";" + "enumVal = TestEnum.IMTEST;" + "arr = array(1);" + "arr[0] = enumVal;" + "#TEST arr[0];";
+        String text = "" + "IMPORT " + TestEnum.class.getName() + ";" + "enumVal = TestEnum.IMTEST;" + "arr = array(1);"
+                + "arr[0] = enumVal;" + "#TEST arr[0];";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -140,7 +142,10 @@ public class TestInterpreter {
     @Test
     public void testBitwiseAndBitshift() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = -129;" + "y = true;" + "#TEST1 x << 1;" + "#TEST2 x >> 1;" + "#TEST3 x >>> 1;" + "#TEST4 x | 67;" + "#TEST5 x & 67;" + "#TEST6 x ^ 67;" + "#TEST7 ~x;" + "#TEST8 y | true;" + "#TEST9 y & true;" + "#TEST10 y ^ true;";
+        String text =
+                "x = -129;" + "y = true;" + "#TEST1 x << 1;" + "#TEST2 x >> 1;" + "#TEST3 x >>> 1;" + "#TEST4 x | 67;"
+                        + "#TEST5 x & 67;" + "#TEST6 x ^ 67;" + "#TEST7 ~x;" + "#TEST8 y | true;" + "#TEST9 y & true;"
+                        + "#TEST10 y ^ true;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -152,7 +157,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-258, args[0]);
                 return null;
@@ -164,7 +170,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-65, args[0]);
                 return null;
@@ -176,7 +183,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2147483583, args[0]);
                 return null;
@@ -188,7 +196,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-129, args[0]);
                 return null;
@@ -200,7 +209,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(67, args[0]);
                 return null;
@@ -212,7 +222,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-196, args[0]);
                 return null;
@@ -224,7 +235,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(128, args[0]);
                 return null;
@@ -236,7 +248,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
                 return null;
@@ -248,7 +261,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
                 return null;
@@ -260,7 +274,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(false, args[0]);
                 return null;
@@ -288,9 +303,7 @@ public class TestInterpreter {
 
             Node root = parser.parse();
             Interpreter interpreter = new Interpreter(root);
-            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                    .task(mockTask)
-                    .build();
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin().task(mockTask).build();
             interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         }
     }
@@ -306,9 +319,7 @@ public class TestInterpreter {
 
             Node root = parser.parse();
             Interpreter interpreter = new Interpreter(root);
-            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                    .task(mockTask)
-                    .build();
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin().task(mockTask).build();
             interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         }
     }
@@ -324,9 +335,7 @@ public class TestInterpreter {
 
             Node root = parser.parse();
             Interpreter interpreter = new Interpreter(root);
-            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                    .task(mockTask)
-                    .build();
+            InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin().task(mockTask).build();
             interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
         }
     }
@@ -334,7 +343,9 @@ public class TestInterpreter {
     @Test
     public void testBreak() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 0;" + "WHILE x < 5;" + "x = x + 1;" + "IF x > 1;" + "#BREAK;" + "ENDIF;" + "ENDWHILE;" + "#TEST x;" + "" + "FOR x = 0:10;" + "IF x == 2;" + "#BREAK;" + "ENDIF;" + "ENDFOR;" + "#TEST2 x";
+        String text =
+                "x = 0;" + "WHILE x < 5;" + "x = x + 1;" + "IF x > 1;" + "#BREAK;" + "ENDIF;" + "ENDWHILE;" + "#TEST x;"
+                        + "" + "FOR x = 0:10;" + "IF x == 2;" + "#BREAK;" + "ENDIF;" + "ENDFOR;" + "#TEST2 x";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -343,7 +354,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -353,7 +365,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -379,8 +392,7 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor mockExecutor = mock(Executor.class);
-        when(mockExecutor.execute(any(), any(), anyMap(), ArgumentMatchers.any()))
-                .thenReturn(null);
+        when(mockExecutor.execute(any(), any(), anyMap(), ArgumentMatchers.any())).thenReturn(null);
         executorMap.put("TEST", mockExecutor);
 
         Interpreter interpreter = new Interpreter(root);
@@ -391,8 +403,7 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(mockExecutor, times(3))
-                .execute(any(), any(), anyMap(), ArgumentMatchers.any());
+        verify(mockExecutor, times(3)).execute(any(), any(), anyMap(), ArgumentMatchers.any());
     }
 
     @Test
@@ -428,7 +439,9 @@ public class TestInterpreter {
     @Test
     public void testComparison() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "#TEST 1 < 2, 2 < 1;" + "#TEST2 5 > 4, 4 > 5;" + "#TEST3 1 <= 1, 3 <= 2;" + "#TEST4 1 >= 1, 2 >= 3;" + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";" + "#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
+        String text =
+                "#TEST 1 < 2, 2 < 1;" + "#TEST2 5 > 4, 4 > 5;" + "#TEST3 1 <= 1, 3 <= 2;" + "#TEST4 1 >= 1, 2 >= 3;"
+                        + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";" + "#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -440,7 +453,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(true, args[0]);
                 assertEquals(false, args[1]);
@@ -467,7 +481,8 @@ public class TestInterpreter {
     @Test
     public void testConstructorCustom() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + Vector.class.getName() + ";" + "v = Vector();" + "v2 = Vector(4,4,2);" + "v3 = Vector(4.2,4.4,2.3);" + "v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));";
+        String text = "" + "IMPORT " + Vector.class.getName() + ";" + "v = Vector();" + "v2 = Vector(4,4,2);"
+                + "v3 = Vector(4.2,4.4,2.3);" + "v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -590,7 +605,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(2, 5.0, \"hoho\");" + "#TEST obj;";
+        String text =
+                "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(2, 5.0, \"hoho\");" + "#TEST obj;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -634,7 +650,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(1, 2, 3, 4, 5);" + "#TEST obj;";
+        String text =
+                "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(1, 2, 3, 4, 5);" + "#TEST obj;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -676,7 +693,9 @@ public class TestInterpreter {
     @Test
     public void testContinue() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 0;" + "i = 0;" + "WHILE i < 5;" + "i = i + 1;" + "IF x > 1;" + "#CONTINUE;" + "ENDIF;" + "x = x + 1;" + "ENDWHILE;" + "#TEST x, i;" + "" + "x = 0;" + "FOR i = 0:6;" + "IF x > 1;" + "#CONTINUE;" + "ENDIF;" + "x = x + 1;" + "ENDFOR;" + "#TEST2 x, i;";
+        String text = "x = 0;" + "i = 0;" + "WHILE i < 5;" + "i = i + 1;" + "IF x > 1;" + "#CONTINUE;" + "ENDIF;"
+                + "x = x + 1;" + "ENDWHILE;" + "#TEST x, i;" + "" + "x = 0;" + "FOR i = 0:6;" + "IF x > 1;"
+                + "#CONTINUE;" + "ENDIF;" + "x = x + 1;" + "ENDFOR;" + "#TEST2 x, i;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -685,7 +704,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 assertEquals(5, args[1]);
@@ -696,7 +716,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 assertEquals(5, args[1]);
@@ -715,7 +736,9 @@ public class TestInterpreter {
     @Test
     public void testContinueIterator() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "sum = 0;" + "FOR val = arr;" + "IF val == 1 || val == 5;" + "#CONTINUE;" + "ENDIF;" + "sum = sum + val;" + "ENDFOR;" + "#TEST sum;" + "" + "sum = 0;" + "FOR val = iter;" + "IF val == 1 || val == 5;" + "#CONTINUE;" + "ENDIF;" + "sum = sum + val;" + "ENDFOR;" + "#TEST2 sum;";
+        String text = "sum = 0;" + "FOR val = arr;" + "IF val == 1 || val == 5;" + "#CONTINUE;" + "ENDIF;"
+                + "sum = sum + val;" + "ENDFOR;" + "#TEST sum;" + "" + "sum = 0;" + "FOR val = iter;"
+                + "IF val == 1 || val == 5;" + "#CONTINUE;" + "ENDIF;" + "sum = sum + val;" + "ENDFOR;" + "#TEST2 sum;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -724,7 +747,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(9, args[0]);
                 return null;
@@ -734,7 +758,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(9, args[0]);
                 return null;
@@ -758,7 +783,8 @@ public class TestInterpreter {
     @Test
     public void testCustomArray() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "args = array(2)\n" + "args[0] = \"arg1\"\n" + "args[1] = \"arg2\"\n" + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
+        String text = "" + "args = array(2)\n" + "args[0] = \"arg1\"\n" + "args[1] = \"arg2\"\n"
+                + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -789,7 +815,10 @@ public class TestInterpreter {
     @Test
     public void testEnumParse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter\\$TestEnum\"," + " \"IMTEST\");";
+        String text = ""
+                + "result = parseEnum(\"io.github.wysohn.triggerreactor.core.script.interpreter"
+                + ".TestInterpreter\\$TestEnum\","
+                + " \"IMTEST\");";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -884,7 +913,8 @@ public class TestInterpreter {
 
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
                 return null;
@@ -896,7 +926,8 @@ public class TestInterpreter {
 
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 Assert.assertNull(args[0]);
                 return null;
@@ -920,7 +951,8 @@ public class TestInterpreter {
     @Test
     public void testISStatement() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "IMPORT " + TheTest.class.getName() + ";" + "IMPORT " + InTest.class.getName() + ";" + "" + "#TEST test IS TheTest, test IS InTest;" + "#TEST test2 IS InTest, test2 IS TheTest;";
+        String text = "IMPORT " + TheTest.class.getName() + ";" + "IMPORT " + InTest.class.getName() + ";" + ""
+                + "#TEST test IS TheTest, test IS InTest;" + "#TEST test2 IS InTest, test2 IS TheTest;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -929,7 +961,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 Assert.assertTrue((boolean) args[0]);
                 Assert.assertFalse((boolean) args[1]);
@@ -955,7 +988,10 @@ public class TestInterpreter {
     @Test
     public void testImport() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;" + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;" + "#TEST TheTest;" + "#TEST2 TheTest.staticTest();" + "#TEST3 TheTest().localTest();" + "#TEST4 TheTest.staticField;" + "#TEST5 TestEnum.IMTEST;";
+        String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
+                + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
+                + "#TEST TheTest;" + "#TEST2 TheTest.staticTest();" + "#TEST3 TheTest().localTest();"
+                + "#TEST4 TheTest.staticField;" + "#TEST5 TestEnum.IMTEST;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -967,7 +1003,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(TheTest.class, args[0]);
                 return null;
@@ -979,7 +1016,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("static", args[0]);
                 return null;
@@ -991,7 +1029,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("local", args[0]);
                 return null;
@@ -1003,7 +1042,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("staticField", args[0]);
                 return null;
@@ -1015,7 +1055,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(TestEnum.IMTEST, args[0]);
                 return null;
@@ -1047,7 +1088,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-2, args[0]);
                 return null;
@@ -1059,7 +1101,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -1071,7 +1114,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(3, args[0]);
                 return null;
@@ -1083,7 +1127,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(3, args[0]);
                 return null;
@@ -1095,7 +1140,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -1127,7 +1173,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-2.1, args[0]);
                 return null;
@@ -1139,7 +1186,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2.1, args[0]);
                 return null;
@@ -1151,7 +1199,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(3.1, args[0]);
                 return null;
@@ -1163,7 +1212,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(3.1, args[0]);
                 return null;
@@ -1175,7 +1225,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2.1, args[0]);
                 return null;
@@ -1346,7 +1397,9 @@ public class TestInterpreter {
         }).when(obj).twoArg(any(BiFunction.class));
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "abc = 33\n" + "instance.noArg(LAMBDA =>\n" + "    abc * 3\n" + "ENDLAMBDA)\n" + "" + "instance.oneArg(LAMBDA str => \n" + "    added = str + \" Hi\"\n" + "    added\n" + "ENDLAMBDA)\n" + "" + "instance.twoArg(LAMBDA a, b => \n" + "    a + b\n" + "ENDLAMBDA)\n";
+        String text = "" + "abc = 33\n" + "instance.noArg(LAMBDA =>\n" + "    abc * 3\n" + "ENDLAMBDA)\n" + ""
+                + "instance.oneArg(LAMBDA str => \n" + "    added = str + \" Hi\"\n" + "    added\n" + "ENDLAMBDA)\n"
+                + "" + "instance.twoArg(LAMBDA a, b => \n" + "    a + b\n" + "ENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1383,7 +1436,9 @@ public class TestInterpreter {
         }).when(obj).oneArg(any(Function.class));
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "instance.oneArg(LAMBDA x => \n" + "    IF x == \"Something\"\n" + "        50\n" + "    ELSE\n" + "        100\n" + "    ENDIF\n" + "ENDLAMBDA)\n";
+        String text =
+                "" + "instance.oneArg(LAMBDA x => \n" + "    IF x == \"Something\"\n" + "        50\n" + "    ELSE\n"
+                        + "        100\n" + "    ENDIF\n" + "ENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1415,7 +1470,9 @@ public class TestInterpreter {
         }).when(obj).oneArg(any(Function.class));
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "instance.oneArg(LAMBDA x => \n" + "    IF x == \"Something\"\n" + "        50\n" + "    ELSE\n" + "        100\n" + "    ENDIF\n" + "ENDLAMBDA)\n";
+        String text =
+                "" + "instance.oneArg(LAMBDA x => \n" + "    IF x == \"Something\"\n" + "        50\n" + "    ELSE\n"
+                        + "        100\n" + "    ENDIF\n" + "ENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1481,7 +1538,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("abcd\nABCD", args[0]);
                 return null;
@@ -1500,7 +1558,8 @@ public class TestInterpreter {
     @Test
     public void testMethod() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "rand = common.random(3);" + "IF rand == 0\n" + "#MESSAGE 0\n" + "ENDIF;" + "IF rand == 1;\n" + "#MESSAGE 1;\n" + "ENDIF\n" + "IF rand == 2;" + "#MESSAGE 2\n" + "ENDIF\n";
+        String text = "" + "rand = common.random(3);" + "IF rand == 0\n" + "#MESSAGE 0\n" + "ENDIF;" + "IF rand == 1;\n"
+                + "#MESSAGE 1;\n" + "ENDIF\n" + "IF rand == 2;" + "#MESSAGE 2\n" + "ENDIF\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1535,7 +1594,8 @@ public class TestInterpreter {
     @Test
     public void testMethodReturnValue() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "{\"temp1\"} = random(0, 10);" + "{\"temp2\"} = random(0.0, 10.0);" + "{\"temp3\"} = random(0, 10.0);";
+        String text =
+                "{\"temp1\"} = random(0, 10);" + "{\"temp2\"} = random(0.0, 10.0);" + "{\"temp3\"} = random(0, 10.0);";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1564,7 +1624,9 @@ public class TestInterpreter {
     @Test
     public void testMethodWithEnumParameter() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");" + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");" + "{\"temp3\"} = random(0, 10.0);";
+        String text =
+                "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");" + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");"
+                        + "{\"temp3\"} = random(0, 10.0);";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1593,14 +1655,18 @@ public class TestInterpreter {
 
         // the only method matching is the one with enum parameter. Expect it to be converted
         assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
-        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher priority.
+        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher
+        // priority.
         assertEquals("Something", gvars.get("temp2"));
     }
 
     @Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "arr = array(6)\n" + "arr[0] = true\n" + "arr[1] = !true\n" + "arr[2] = !true || false\n" + "arr[3] = true && !false\n" + "arr[4] = true && 1 < 2 && 5 > 4 && 1 != 2 && 2 == 2 && (false || 2*2 > 3)\n" + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)";
+        String text = "" + "arr = array(6)\n" + "arr[0] = true\n" + "arr[1] = !true\n" + "arr[2] = !true || false\n"
+                + "arr[3] = true && !false\n"
+                + "arr[4] = true && 1 < 2 && 5 > 4 && 1 != 2 && 2 == 2 && (false || 2*2 > 3)\n"
+                + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1652,7 +1718,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIf() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "IF x < 0.0;" + "    #TEST \"no\";" + "ELSEIF x > 0.0;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"no\";" + "ENDIF;";
+        String text =
+                "x = 4.0;" + "IF x < 0.0;" + "    #TEST \"no\";" + "ELSEIF x > 0.0;" + "    #TEST \"pass\";" + "ELSE;"
+                        + "    #TEST \"no\";" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1664,7 +1732,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -1684,7 +1753,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIf2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "IF x < 0.0;" + "    #TEST \"no\";" + "ELSEIF x < -5.0;" + "    #TEST \"no\";" + "ELSE;" + "    #TEST \"pass\";" + "ENDIF;";
+        String text =
+                "x = 4.0;" + "IF x < 0.0;" + "    #TEST \"no\";" + "ELSEIF x < -5.0;" + "    #TEST \"no\";" + "ELSE;"
+                        + "    #TEST \"pass\";" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1696,7 +1767,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -1716,7 +1788,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF x > 999;" + "    result = \"test1\";" + "ELSEIF x > 99;" + "    result = \"test2\";" + "ELSEIF x > 9;" + "    IF x < 11;" + "        result = \"test5\";" + "    ENDIF;" + "ELSEIF x > 4;" + "    result = \"test3\";" + "ELSE;" + "    result = \"test4\";" + "ENDIF;";
+        String text = "" + "IF x > 999;" + "    result = \"test1\";" + "ELSEIF x > 99;" + "    result = \"test2\";"
+                + "ELSEIF x > 9;" + "    IF x < 11;" + "        result = \"test5\";" + "    ENDIF;" + "ELSEIF x > 4;"
+                + "    result = \"test3\";" + "ELSE;" + "    result = \"test4\";" + "ENDIF;";
 
         Map<Integer, String> testMap = new HashMap<>();
         testMap.put(1000, "test1");
@@ -1756,7 +1830,8 @@ public class TestInterpreter {
     @Test
     public void testNestedIf4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        #TEST 1;" + "    ELSE;" + "        #TEST 2;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
+        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        #TEST 1;" + "    ELSE;"
+                + "        #TEST 2;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1768,7 +1843,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
                 return null;
@@ -1788,7 +1864,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIf5() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        IF x == 3.0;" + "        ELSEIF x == 4.0;" + "            #TEST 1;" + "        ELSE;" + "        ENDIF;" + "    ELSE;" + "        #TEST 2;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
+        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        IF x == 3.0;"
+                + "        ELSEIF x == 4.0;" + "            #TEST 1;" + "        ELSE;" + "        ENDIF;" + "    ELSE;"
+                + "        #TEST 2;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1800,7 +1878,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(1, args[0]);
                 return null;
@@ -1820,7 +1899,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIfNoElse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        IF x == 3.0;" + "        ELSEIF x == 2.0;" + "            #TEST 1;" + "        ELSEIF x == 4.0;" + "            #TEST 2;" + "        ENDIF;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
+        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        IF x == 3.0;"
+                + "        ELSEIF x == 2.0;" + "            #TEST 1;" + "        ELSEIF x == 4.0;"
+                + "            #TEST 2;" + "        ENDIF;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1832,7 +1913,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(2, args[0]);
                 return null;
@@ -1904,7 +1986,8 @@ public class TestInterpreter {
     @Test
     public void testPlaceholder() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 100.0;" + "returnvalue = $test:0:x:true:\"hoho\";" + "#MESSAGE $playername returnvalue;" + "#TESTSTRING $string;" + "#TESTINTEGER $integer;" + "#TESTDOUBLE $double;" + "#TESTBOOLEAN $boolean;";
+        String text = "x = 100.0;" + "returnvalue = $test:0:x:true:\"hoho\";" + "#MESSAGE $playername returnvalue;"
+                + "#TESTSTRING $string;" + "#TESTINTEGER $integer;" + "#TESTDOUBLE $double;" + "#TESTBOOLEAN $boolean;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1916,7 +1999,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("testplayer", args[0]);
                 assertEquals("testwithargs", args[1]);
@@ -1930,7 +2014,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof String);
                 return null;
@@ -1943,7 +2028,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Integer);
                 return null;
@@ -1956,7 +2042,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Double);
                 return null;
@@ -1969,7 +2056,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 Assert.assertTrue(args[0] instanceof Boolean);
                 return null;
@@ -2102,7 +2190,12 @@ public class TestInterpreter {
     @Test
     public void testReference() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "X = 5\n" + "str = \"abc\"\n" + "WHILE 1 > 0\n" + "    str = str + X\n" + "    IF player.in.health > 2 && player.in.health > 0\n" + "        #MESSAGE 3*4\n" + "    ELSE\n" + "        #MESSAGE str\n" + "    ENDIF\n" + "    #MESSAGE text\n" + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n" + "    #MESSAGE player.in.hasPermission(\"t\")\n" + "    X = X - 1\n" + "    IF X < 0\n" + "        #STOP\n" + "    ENDIF\n" + "ENDWHILE";
+        String text = "" + "X = 5\n" + "str = \"abc\"\n" + "WHILE 1 > 0\n" + "    str = str + X\n"
+                + "    IF player.in.health > 2 && player.in.health > 0\n" + "        #MESSAGE 3*4\n" + "    ELSE\n"
+                + "        #MESSAGE str\n" + "    ENDIF\n" + "    #MESSAGE text\n"
+                + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
+                + "    #MESSAGE player.in.hasPermission(\"t\")\n" + "    X = X - 1\n" + "    IF X < 0\n"
+                + "        #STOP\n" + "    ENDIF\n" + "ENDWHILE";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2137,7 +2230,8 @@ public class TestInterpreter {
     @Test
     public void testShortCircuit() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF player != null && player.health == 0.82;" + "    #TEST1 \"work\";" + "ENDIF;" + "IF player2 == null || player2.health == 0.82;" + "    #TEST2 \"work2\";" + "ENDIF;";
+        String text = "" + "IF player != null && player.health == 0.82;" + "    #TEST1 \"work\";" + "ENDIF;"
+                + "IF player2 == null || player2.health == 0.82;" + "    #TEST2 \"work2\";" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2150,7 +2244,8 @@ public class TestInterpreter {
                     @Override
                     public Integer execute(Timings.Timing timing,
                                            InterpreterLocalContext localContext,
-                                           Map<String, Object> vars, Object... args) throws Exception {
+                                           Map<String, Object> vars,
+                                           Object... args) throws Exception {
                         assertEquals("work", args[0]);
                         return null;
                     }
@@ -2161,7 +2256,8 @@ public class TestInterpreter {
                     @Override
                     public Integer execute(Timings.Timing timing,
                                            InterpreterLocalContext localContext,
-                                           Map<String, Object> vars, Object... args) throws Exception {
+                                           Map<String, Object> vars,
+                                           Object... args) throws Exception {
                         assertEquals("work2", args[0]);
                         return null;
                     }
@@ -2190,7 +2286,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "IF x > 0.0;" + "    #TEST1 \"pass\";" + "ELSE;" + "    #TEST2 \"failed\";" + "ENDIF;";
+        String text =
+                "x = 4.0;" + "IF x > 0.0;" + "    #TEST1 \"pass\";" + "ELSE;" + "    #TEST2 \"failed\";" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2239,7 +2336,8 @@ public class TestInterpreter {
     @Test
     public void testSimpleIf2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF someunknown != 0.0;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
+        String text =
+                "" + "IF someunknown != 0.0;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2251,7 +2349,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -2271,7 +2370,8 @@ public class TestInterpreter {
     @Test
     public void testSimpleIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF 0.0 != someunknown;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
+        String text =
+                "" + "IF 0.0 != someunknown;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2283,7 +2383,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -2303,7 +2404,8 @@ public class TestInterpreter {
     @Test
     public void testSimpleIf4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF someunknown == someunknown;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
+        String text = "" + "IF someunknown == someunknown;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";"
+                + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2315,7 +2417,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals("pass", args[0]);
                 return null;
@@ -2335,7 +2438,9 @@ public class TestInterpreter {
     @Test
     public void testStringAppend() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "arr = array(4)\n" + "arr[0] = \"beh\"+player.in.health\n" + "arr[1] = player.in.health+\"beh\"\n" + "arr[2] = \"beh\"+1+1\n" + "arr[3] = \"beh\"+(1+1)\n" + "#MESSAGE arr\n";
+        String text =
+                "" + "arr = array(4)\n" + "arr[0] = \"beh\"+player.in.health\n" + "arr[1] = player.in.health+\"beh\"\n"
+                        + "arr[2] = \"beh\"+1+1\n" + "arr[3] = \"beh\"+(1+1)\n" + "#MESSAGE arr\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2440,7 +2545,8 @@ public class TestInterpreter {
                     }
 
                     /* (non-Javadoc)
-                     * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
+                     * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java
+                     * .util.concurrent.Callable)
                      */
                     @Override
                     public <T> Future<T> submitSync(Callable<T> call) {
@@ -2469,7 +2575,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "SYNC;" + "FOR i = 0:1;" + "#TEST1;" + "ENDFOR;" + "ENDSYNC;" + "ASYNC;" + "FOR j = 0:1;" + "#TEST2;" + "ENDFOR;" + "ENDASYNC;";
+        String text = "" + "SYNC;" + "FOR i = 0:1;" + "#TEST1;" + "ENDFOR;" + "ENDSYNC;" + "ASYNC;" + "FOR j = 0:1;"
+                + "#TEST2;" + "ENDFOR;" + "ENDASYNC;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -2533,7 +2640,8 @@ public class TestInterpreter {
                     }
 
                     /* (non-Javadoc)
-                     * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
+                     * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java
+                     * .util.concurrent.Callable)
                      */
                     @Override
                     public <T> Future<T> submitSync(Callable<T> call) {
@@ -2560,7 +2668,8 @@ public class TestInterpreter {
     @Test
     public void testTempGlobalVariable() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "{?text+\".something\"} = 12.54;" + "#MESSAGE {?text+\".something\"};" + "{?text+\".something\"} = null;" + "#MESSAGE2 {?text+\".something\"};";
+        String text = "" + "{?text+\".something\"} = 12.54;" + "#MESSAGE {?text+\".something\"};"
+                + "{?text+\".something\"} = null;" + "#MESSAGE2 {?text+\".something\"};";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2633,7 +2742,9 @@ public class TestInterpreter {
     public void testTryCatch2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "" + "TRY;" + "   #TEST;" + "   error.cause();" + "   #TEST;" + "   #TEST;" + "CATCH e;" + "   #TEST;" + "   #TEST;" + "   #TEST;" + "ENDTRY;";
+        String text =
+                "" + "TRY;" + "   #TEST;" + "   error.cause();" + "   #TEST;" + "   #TEST;" + "CATCH e;" + "   #TEST;"
+                        + "   #TEST;" + "   #TEST;" + "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2689,7 +2800,9 @@ public class TestInterpreter {
     public void testTryCatchFinally2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "" + "TRY;" + "   #TEST;" + "   error.cause();" + "   #TEST;" + "CATCH e;" + "   #TEST;" + "FINALLY;" + "   #TEST;" + "ENDTRY;";
+        String text =
+                "" + "TRY;" + "   #TEST;" + "   error.cause();" + "   #TEST;" + "CATCH e;" + "   #TEST;" + "FINALLY;"
+                        + "   #TEST;" + "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2756,7 +2869,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-6, args[0]);
                 return null;
@@ -2768,7 +2882,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(3.0, args[0]);
                 return null;
@@ -2780,7 +2895,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-8, args[0]);
                 return null;
@@ -2792,7 +2908,8 @@ public class TestInterpreter {
             @Override
             public Integer execute(Timings.Timing timing,
                                    InterpreterLocalContext localContext,
-                                   Map<String, Object> vars, Object... args) throws Exception {
+                                   Map<String, Object> vars,
+                                   Object... args) throws Exception {
 
                 assertEquals(-9.0, args[0]);
                 return null;
@@ -2895,6 +3012,7 @@ public class TestInterpreter {
         public TestEnum testEnumMethod(TestEnum val) {
             return val;
         }
+
         public static String staticField = "staticField";
 
         public static String staticTest() {
@@ -3033,8 +3151,10 @@ public class TestInterpreter {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             Vector vector = (Vector) o;
             return key == vector.key;
         }

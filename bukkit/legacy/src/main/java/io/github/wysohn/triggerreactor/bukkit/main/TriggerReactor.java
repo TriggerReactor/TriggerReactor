@@ -30,11 +30,16 @@ public class TriggerReactor extends AbstractJavaPlugin {
     private CustomCommandHandle customCommandHandle = new CustomCommandHandle();
 
     @Override
+    protected TriggerReactorMain getMainComponent() {
+        return component.main();
+    }
+
+    @Override
     public void onEnable() {
         component = DaggerLegacyBukkitPluginMainComponent.builder()
                 .bukkitPluginMainComponent(DaggerBukkitPluginMainComponent.builder()
-                                                   .pluginMainComponent(DaggerPluginMainComponent.create())
-                                                   .build())
+                        .pluginMainComponent(DaggerPluginMainComponent.create())
+                        .build())
                 .build();
         component.inject(this);
 
@@ -47,8 +52,8 @@ public class TriggerReactor extends AbstractJavaPlugin {
     }
 
     @Override
-    protected TriggerReactorMain getMainComponent() {
-        return component.main();
+    public void synchronizeCommandMap() {
+        // do nothing. Not really necessary atm for legacy versions
     }
 
     @Override
@@ -74,16 +79,12 @@ public class TriggerReactor extends AbstractJavaPlugin {
 //        } catch (Exception ex) {
 //            ex.printStackTrace();
 //
-//            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very old" +
+//            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very
+//            old" +
 //                    " version of Bukkit. Please report this to TR team, so we can work on it.");
 //            core.getLogger().warning("Use /trg debug to see more details.");
 //            return null;
 //        }
-    }
-
-    @Override
-    public void synchronizeCommandMap() {
-        // do nothing. Not really necessary atm for legacy versions
     }
 
     private class CustomCommandHandle extends HashMap<String, Command> implements Listener {
@@ -130,8 +131,10 @@ public class TriggerReactor extends AbstractJavaPlugin {
                 args[i] = split[i + 1];
 
             Command command = super.get(cmd);
-            if (command == null) command = Optional.of(cmd).map(aliasesMap::get).map(super::get).orElse(null);
-            if (command == null) return;
+            if (command == null)
+                command = Optional.of(cmd).map(aliasesMap::get).map(super::get).orElse(null);
+            if (command == null)
+                return;
             e.setCancelled(true);
 
             command.execute(player, cmd, args);
@@ -149,8 +152,10 @@ public class TriggerReactor extends AbstractJavaPlugin {
                 args[i] = split[i + 1];
 
             Command command = super.get(cmd);
-            if (command == null) command = Optional.of(cmd).map(aliasesMap::get).map(super::get).orElse(null);
-            if (command == null) return;
+            if (command == null)
+                command = Optional.of(cmd).map(aliasesMap::get).map(super::get).orElse(null);
+            if (command == null)
+                return;
 
             e.getTabCompletions().addAll(command.tabComplete(sender, cmd, args));
         }

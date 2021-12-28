@@ -6,8 +6,9 @@ import org.junit.Test;
 
 public class AreaSelectionManagerTest {
     AreaSelectionComponent component;
+
     @Before
-    public void init(){
+    public void init() {
 
     }
 

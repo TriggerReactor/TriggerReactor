@@ -83,5 +83,6 @@ public class Utf8YamlConfiguration extends CopyYamlConfiguration {
 
         loadFromString(builder.toString());
     }
+
     public static Charset UTF8_CHARSET = Charset.forName("UTF-8");
 }

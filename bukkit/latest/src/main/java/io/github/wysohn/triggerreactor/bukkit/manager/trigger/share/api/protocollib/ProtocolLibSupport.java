@@ -49,10 +49,7 @@ public class ProtocolLibSupport extends APISupport {
     @Override
     public void onEnable() throws Exception {
         Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
-        String packageName = bukkitPlugin.getServer()
-                .getClass()
-                .getPackage()
-                .getName();
+        String packageName = bukkitPlugin.getServer().getClass().getPackage().getName();
         nmsVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
 
         protocolManager = ProtocolLibrary.getProtocolManager();
@@ -69,49 +66,14 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
-     * create empty data watcher. Use this for fake entities.
+     * Send destroy packet for an entity.
      *
-     * @return
+     * @param p        player to send packet
+     * @param entityId entity id
+     * @throws InvocationTargetException
      */
-    public WrappedDataWatcher createEmptyWatcher() {
-        return new WrappedDataWatcher();
-    }
-
-    /**
-     * Create empty packet.
-     *
-     * @param packetType type of packet as String. Should match with any
-     *                   <a href="https://aadnk.github.io/ProtocolLib/Javadoc/com/comphenix/protocol/package-frame.html">PacketType</a>.
-     *                   For example, ENTITY is under PacketType.Play.Server.
-     * @return
-     */
-    public PacketContainer createPacket(String packetType) {
-        ValidationUtil.notNull(packetType);
-
-        Collection<PacketType> types = PacketType.fromName(packetType);
-        if (types.isEmpty()) throw new RuntimeException("Cannot find packet type " + packetType);
-
-        PacketType type = types.iterator().next();
-        return protocolManager.createPacket(type);
-    }
-
-    public double[] getAngle(double fromX, double fromY, double fromZ, double toX, double toY, double toZ) {
-        double[] result = new double[2];
-
-        double relX = toX - fromX;
-        double relY = toY - fromY;
-        double relZ = toZ - fromZ;
-
-        double r = Math.sqrt(relX * relX + relY * relY + relZ * relZ);
-
-        double yaw = -Math.atan2(relX, relZ) / Math.PI * 180;
-        while (yaw < 0) yaw += 360;
-        double pitch = -Math.asin(relY / r) / Math.PI * 180;
-
-        result[0] = yaw * 256 / 360;
-        result[1] = pitch * 256 / 360;
-
-        return result;
+    public void sendEntityDestroy(Player p, int entityId) throws InvocationTargetException {
+        sendEntitiesDestroy(p, entityId);
     }
 
     /**
@@ -138,14 +100,36 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
-     * Send destroy packet for an entity.
+     * Create empty packet.
      *
-     * @param p        player to send packet
-     * @param entityId entity id
+     * @param packetType type of packet as String. Should match with any
+     *                   <a href="https://aadnk.github.io/ProtocolLib/Javadoc/com/comphenix/protocol/package-frame.html">PacketType</a>.
+     *                   For example, ENTITY is under PacketType.Play.Server.
+     * @return
+     */
+    public PacketContainer createPacket(String packetType) {
+        ValidationUtil.notNull(packetType);
+
+        Collection<PacketType> types = PacketType.fromName(packetType);
+        if (types.isEmpty())
+            throw new RuntimeException("Cannot find packet type " + packetType);
+
+        PacketType type = types.iterator().next();
+        return protocolManager.createPacket(type);
+    }
+
+    /**
+     * send packet.
+     *
+     * @param p         player to send packet
+     * @param container the packet
      * @throws InvocationTargetException
      */
-    public void sendEntityDestroy(Player p, int entityId) throws InvocationTargetException {
-        sendEntitiesDestroy(p, entityId);
+    public void sendPacket(Player p, PacketContainer container) throws InvocationTargetException {
+        ValidationUtil.notNull(p);
+        ValidationUtil.notNull(container);
+
+        ProtocolLibrary.getProtocolManager().sendServerPacket(p, container);
     }
 
     /**
@@ -156,14 +140,14 @@ public class ProtocolLibSupport extends APISupport {
      * @param slot     the slot name. String must be same as one of the enum in {@link EnumItemSlot}
      * @param item     the item to equip.
      * @throws ClassNotFoundException    This throws if EnumItemSlot doesn't exist in nms package. This can be the case
-     *                                   where you are trying to use this method in somewhere 1.8 version environment. It's advised to create your own with
-     *                                   {@link #createPacket(String)} as PacketPlayoutEntityEquipment.class around 1.8 version specify everything using primitive types.
+     *                                   where you are trying to use this method in somewhere 1.8 version environment
+     *                                   . It's advised to create your own with
+     *                                   {@link #createPacket(String)} as PacketPlayoutEntityEquipment.class around 1
+     *                                   .8 version specify everything using primitive types.
      * @throws InvocationTargetException
      */
-    public void sendEntityEquip(Player p,
-                                int entityId,
-                                String slot,
-                                ItemStack item) throws ClassNotFoundException, InvocationTargetException {
+    public void sendEntityEquip(Player p, int entityId, String slot, ItemStack item) throws ClassNotFoundException,
+            InvocationTargetException {
         PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_EQUIPMENT.name());
 
         container.getIntegers().write(0, entityId);
@@ -172,33 +156,6 @@ public class ProtocolLibSupport extends APISupport {
         container.getEnumModifier(EnumItemSlot.class, clazz).write(0, EnumItemSlot.valueOf(slot));
 
         container.getItemModifier().write(0, item);
-
-        this.sendPacket(p, container);
-    }
-
-    /**
-     * Send entity look packet
-     *
-     * @param p
-     * @param entityId
-     * @param yaw      A rotation angle in steps of 1/256 of a full turn
-     * @param pitch    A rotation angle in steps of 1/256 of a full turn
-     * @throws InvocationTargetException
-     */
-    public void sendEntityLook(Player p, int entityId, int yaw, int pitch) throws InvocationTargetException {
-        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_LOOK.name());
-
-        container.getIntegers().write(0, entityId);
-
-        container.getBytes().write(0, (byte) (yaw % 256)).write(1, (byte) (pitch % 256));
-
-        this.sendPacket(p, container);
-
-        container = createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION.name());
-
-        container.getIntegers().write(0, entityId);
-
-        container.getBytes().write(0, (byte) (yaw % 256));
 
         this.sendPacket(p, container);
     }
@@ -229,29 +186,49 @@ public class ProtocolLibSupport extends APISupport {
         this.sendEntityLook(p, entityId, (int) result[0], (int) result[1]);
     }
 
+    public double[] getAngle(double fromX, double fromY, double fromZ, double toX, double toY, double toZ) {
+        double[] result = new double[2];
+
+        double relX = toX - fromX;
+        double relY = toY - fromY;
+        double relZ = toZ - fromZ;
+
+        double r = Math.sqrt(relX * relX + relY * relY + relZ * relZ);
+
+        double yaw = -Math.atan2(relX, relZ) / Math.PI * 180;
+        while (yaw < 0)
+            yaw += 360;
+        double pitch = -Math.asin(relY / r) / Math.PI * 180;
+
+        result[0] = yaw * 256 / 360;
+        result[1] = pitch * 256 / 360;
+
+        return result;
+    }
+
     /**
-     * send entity movement packet.
+     * Send entity look packet
      *
-     * @param p        player to send packet
-     * @param entityId entity id of entity to move
-     * @param dX       delta x
-     * @param dY       delta y
-     * @param dZ       delta z
-     * @param onGround no documentation
+     * @param p
+     * @param entityId
+     * @param yaw      A rotation angle in steps of 1/256 of a full turn
+     * @param pitch    A rotation angle in steps of 1/256 of a full turn
      * @throws InvocationTargetException
      */
-    public void sendEntityMove(Player p,
-                               int entityId,
-                               int dX,
-                               int dY,
-                               int dZ,
-                               boolean onGround) throws InvocationTargetException {
-        PacketContainer container = createPacket(PacketType.Play.Server.REL_ENTITY_MOVE.name());
+    public void sendEntityLook(Player p, int entityId, int yaw, int pitch) throws InvocationTargetException {
+        PacketContainer container = createPacket(PacketType.Play.Server.ENTITY_LOOK.name());
 
-        container.getIntegers().write(0, entityId).write(1, dX).write(2, dY).write(3, dZ);
+        container.getIntegers().write(0, entityId);
 
+        container.getBytes().write(0, (byte) (yaw % 256)).write(1, (byte) (pitch % 256));
 
-        container.getBooleans().write(0, onGround);
+        this.sendPacket(p, container);
+
+        container = createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION.name());
+
+        container.getIntegers().write(0, entityId);
+
+        container.getBytes().write(0, (byte) (yaw % 256));
 
         this.sendPacket(p, container);
     }
@@ -285,6 +262,71 @@ public class ProtocolLibSupport extends APISupport {
         int dZ = (int) ((toZ * 32 - fromZ * 32) * 128);
 
         this.sendEntityMove(p, entityId, dX, dY, dZ, onGround);
+    }
+
+    /**
+     * send entity movement packet.
+     *
+     * @param p        player to send packet
+     * @param entityId entity id of entity to move
+     * @param dX       delta x
+     * @param dY       delta y
+     * @param dZ       delta z
+     * @param onGround no documentation
+     * @throws InvocationTargetException
+     */
+    public void sendEntityMove(Player p, int entityId, int dX, int dY, int dZ, boolean onGround) throws
+            InvocationTargetException {
+        PacketContainer container = createPacket(PacketType.Play.Server.REL_ENTITY_MOVE.name());
+
+        container.getIntegers().write(0, entityId).write(1, dX).write(2, dY).write(3, dZ);
+
+
+        container.getBooleans().write(0, onGround);
+
+        this.sendPacket(p, container);
+    }
+
+    /**
+     * Spawn entity at location
+     *
+     * @param p        player to send packet
+     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param x
+     * @param y
+     * @param z
+     * @throws InvocationTargetException
+     */
+    public void sendEntitySpawn(Player p, int entityId, int type, double x, double y, double z) throws
+            InvocationTargetException {
+        this.sendEntitySpawn(p, entityId, type, x, y, z, 0, 0, 0);
+    }
+
+    /**
+     * Spawn fake entity without velocity set and with random UUID set.
+     *
+     * @param p         player to send packet
+     * @param entityId  entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type      type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param x
+     * @param y
+     * @param z
+     * @param yaw       in degree
+     * @param pitch     in degree
+     * @param headPitch in degree
+     * @throws InvocationTargetException
+     */
+    public void sendEntitySpawn(Player p,
+                                int entityId,
+                                int type,
+                                double x,
+                                double y,
+                                double z,
+                                double yaw,
+                                double pitch,
+                                double headPitch) throws InvocationTargetException {
+        this.sendEntitySpawn(p, entityId, UUID.randomUUID(), type, x, y, z, yaw, pitch, headPitch, 0, 0, 0);
     }
 
     /**
@@ -337,70 +379,12 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
-     * Spawn fake entity without velocity set and with random UUID set.
+     * create empty data watcher. Use this for fake entities.
      *
-     * @param p         player to send packet
-     * @param entityId  entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type      type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param x
-     * @param y
-     * @param z
-     * @param yaw       in degree
-     * @param pitch     in degree
-     * @param headPitch in degree
-     * @throws InvocationTargetException
+     * @return
      */
-    public void sendEntitySpawn(Player p,
-                                int entityId,
-                                int type,
-                                double x,
-                                double y,
-                                double z,
-                                double yaw,
-                                double pitch,
-                                double headPitch) throws InvocationTargetException {
-        this.sendEntitySpawn(p, entityId, UUID.randomUUID(), type, x, y, z, yaw, pitch, headPitch, 0, 0, 0);
-    }
-
-    /**
-     * Spawn entity at location
-     *
-     * @param p        player to send packet
-     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param location the Location
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p, int entityId, int type, Location location) throws InvocationTargetException {
-        this.sendEntitySpawn(p,
-                             entityId,
-                             type,
-                             location.getX(),
-                             location.getY(),
-                             location.getZ(),
-                             location.getYaw(),
-                             location.getPitch(),
-                             location.getPitch());
-    }
-
-    /**
-     * Spawn entity at location
-     *
-     * @param p        player to send packet
-     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
-     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
-     * @param x
-     * @param y
-     * @param z
-     * @throws InvocationTargetException
-     */
-    public void sendEntitySpawn(Player p,
-                                int entityId,
-                                int type,
-                                double x,
-                                double y,
-                                double z) throws InvocationTargetException {
-        this.sendEntitySpawn(p, entityId, type, x, y, z, 0, 0, 0);
+    public WrappedDataWatcher createEmptyWatcher() {
+        return new WrappedDataWatcher();
     }
 
     /**
@@ -416,17 +400,17 @@ public class ProtocolLibSupport extends APISupport {
     }
 
     /**
-     * send packet.
+     * Spawn entity at location
      *
-     * @param p         player to send packet
-     * @param container the packet
+     * @param p        player to send packet
+     * @param entityId entity id to use. Usually you use negative number to distinguish entity id with real entities.
+     * @param type     type number of <a href="http://wiki.vg/Entities#Mobs">entity</a>.
+     * @param location the Location
      * @throws InvocationTargetException
      */
-    public void sendPacket(Player p, PacketContainer container) throws InvocationTargetException {
-        ValidationUtil.notNull(p);
-        ValidationUtil.notNull(container);
-
-        ProtocolLibrary.getProtocolManager().sendServerPacket(p, container);
+    public void sendEntitySpawn(Player p, int entityId, int type, Location location) throws InvocationTargetException {
+        this.sendEntitySpawn(p, entityId, type, location.getX(), location.getY(), location.getZ(), location.getYaw(),
+                location.getPitch(), location.getPitch());
     }
 
     public enum EnumItemSlot {

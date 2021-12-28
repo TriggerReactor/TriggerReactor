@@ -1749,8 +1749,7 @@ public class TriggerReactorMain implements IPluginProcedure {
                     "  &7the last argument (codes ...) are just like any script, so you can imagine that a" + " "
                             + "temporary trigger will be made, the codes will run, and then the Named Trigger will be"
                             + " called, just like how you do with #CALL. This can be useful if you have variables in "
-                            + "the Named Trigger"
-                            + " that has to be initialized.");
+                            + "the Named Trigger" + " that has to be initialized.");
         });
         add((sender -> {
             sender.sendMessage(

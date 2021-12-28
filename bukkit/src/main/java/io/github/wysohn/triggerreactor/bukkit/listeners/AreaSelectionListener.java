@@ -19,7 +19,7 @@ public final class AreaSelectionListener extends AbstractBukkitListener {
     AreaSelectionManager areaSelectionManager;
 
     @Inject
-    AreaSelectionListener(){
+    AreaSelectionListener() {
 
     }
 
@@ -28,14 +28,15 @@ public final class AreaSelectionListener extends AbstractBukkitListener {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();
 
-        if (!areaSelectionManager.hasSelection(uuid)) return;
+        if (!areaSelectionManager.hasSelection(uuid))
+            return;
 
         e.setCancelled(true);
 
-        if (!BukkitUtil.isLeftHandClick(e)) return;
+        if (!BukkitUtil.isLeftHandClick(e))
+            return;
 
-        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getClickedBlock()
-                .getLocation());
+        SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getClickedBlock().getLocation());
 
         AreaSelectionManager.ClickResult result = null;
         if (e.getAction() == Action.LEFT_CLICK_BLOCK) {

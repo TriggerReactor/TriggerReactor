@@ -35,9 +35,10 @@ public class TestUtil {
         try {
             run.run();
         } catch (Exception e) {
-            if (exceptionType.isAssignableFrom(e.getClass())) return;
-            Assert.fail("Wrong type of exception thrown: " + e.getClass()
-                    .getSimpleName() + ", expected: " + exceptionType.getClass().getSimpleName());
+            if (exceptionType.isAssignableFrom(e.getClass()))
+                return;
+            Assert.fail("Wrong type of exception thrown: " + e.getClass().getSimpleName() + ", expected: "
+                    + exceptionType.getClass().getSimpleName());
         }
         Assert.fail("runnable did not throw any exception");
     }

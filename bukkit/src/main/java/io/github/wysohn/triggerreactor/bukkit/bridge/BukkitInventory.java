@@ -49,13 +49,17 @@ public class BukkitInventory implements IInventory {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         BukkitInventory other = (BukkitInventory) obj;
         if (inventory == null) {
             return other.inventory == null;
-        } else return inventory.equals(other.inventory);
+        } else
+            return inventory.equals(other.inventory);
     }
 
     @Override
@@ -72,11 +76,11 @@ public class BukkitInventory implements IInventory {
     public void setContents(IItemStack[] items, boolean colorItems) {
         ItemStack[] contents = new ItemStack[items.length];
         for (int i = 0; i < items.length; i++) {
-            if(items[i] == null)
+            if (items[i] == null)
                 continue;
 
             contents[i] = items[i].get();
-            if(colorItems)
+            if (colorItems)
                 contents[i] = getColoredItem(contents[i]);
         }
         inventory.setContents(contents);

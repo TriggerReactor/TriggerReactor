@@ -77,7 +77,8 @@ public class ScriptEditManager extends AbstractScriptEditManager {
                     editorUser.sendMessage("&7Done");
                 } else {
                     exitDoublecheck.add(editorUser);
-                    editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! " + "&dType &6exit &done more time to confirm.");
+                    editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! "
+                            + "&dType &6exit &done more time to confirm.");
                 }
                 return;
             } else if (arg1.equals("il")) {
@@ -121,7 +122,8 @@ public class ScriptEditManager extends AbstractScriptEditManager {
                 MessageReceiver receiver = iter.next();
                 if (receiver instanceof Player) {
                     SpongeScriptEditorUser receivingUser = new SpongeScriptEditorUser((Player) receiver);
-                    if (!editings.containsKey(receivingUser)) copy.add(receiver);
+                    if (!editings.containsKey(receivingUser))
+                        copy.add(receiver);
                 }
             }
 
@@ -142,7 +144,8 @@ public class ScriptEditManager extends AbstractScriptEditManager {
     public void onTab(TabCompleteEvent e, @First Player player) {
         SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(player);
 
-        if (!editings.containsKey(editorUser)) return;
+        if (!editings.containsKey(editorUser))
+            return;
         ScriptEditor editor = editings.get(editorUser);
 
         e.getTabCompletions().clear();
@@ -163,7 +166,8 @@ public class ScriptEditManager extends AbstractScriptEditManager {
     public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler) {
         SpongeScriptEditorUser editorUser = new SpongeScriptEditorUser(sender.get());
 
-        if (editings.containsKey(editorUser)) return;
+        if (editings.containsKey(editorUser))
+            return;
 
         ScriptEditor editor = new ScriptEditor(title, script, saveHandler);
         editings.put(editorUser, editor);
@@ -181,9 +185,11 @@ public class ScriptEditManager extends AbstractScriptEditManager {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null) return false;
+            if (obj == null)
+                return false;
 
-            if (!(obj instanceof SpongeScriptEditorUser)) return false;
+            if (!(obj instanceof SpongeScriptEditorUser))
+                return false;
 
             SpongeScriptEditorUser other = (SpongeScriptEditorUser) obj;
             return receiver.getUniqueId().equals(other.receiver.getUniqueId());

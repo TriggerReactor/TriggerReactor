@@ -52,13 +52,13 @@ public class InterpreterLocalContext {
 
     private int callArgsSize = 0;
 
+    public InterpreterLocalContext(Timings.Timing timing) {
+        this(timing, null);
+    }
+
     public InterpreterLocalContext(Timings.Timing timing, ProcessInterrupter interrupter) {
         this.timing = timing;
         this.interrupter = interrupter;
-    }
-
-    public InterpreterLocalContext(Timings.Timing timing) {
-        this(timing, null);
     }
 
     /**

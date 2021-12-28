@@ -45,18 +45,6 @@ public class CommonFunctions extends AbstractCommonFunctions {
     }
 
     @Override
-    public ItemStack headForName(String targetName, int amount) {
-        OfflinePlayer offp = oplayer(targetName);
-        ItemStack head = BukkitUtil.getPlayerHeadItem();
-        head.setAmount(amount);
-        ItemMeta IM = head.getItemMeta();
-        SkullMeta SM = (SkullMeta) IM;
-        SM.setOwningPlayer(offp);
-        head.setItemMeta(SM);
-        return head;
-    }
-
-    @Override
     public ItemStack headForValue(String textureValue) {
         ItemStack head = BukkitUtil.getPlayerHeadItem();
         ItemMeta IM = head.getItemMeta();
@@ -174,6 +162,18 @@ public class CommonFunctions extends AbstractCommonFunctions {
         @SuppressWarnings("deprecation") ItemStack IS = new ItemStack(Material.valueOf(id), amount, (short) data);
         return takeItem(player, IS, amount);
     }
+
+    @Override
+    public ItemStack headForName(String targetName, int amount) {
+        OfflinePlayer offp = oplayer(targetName);
+        ItemStack head = BukkitUtil.getPlayerHeadItem();
+        head.setAmount(amount);
+        ItemMeta IM = head.getItemMeta();
+        SkullMeta SM = (SkullMeta) IM;
+        SM.setOwningPlayer(offp);
+        head.setItemMeta(SM);
+        return head;
+    }
 //Eventually, this has to be created either as Executor or Placeholder
 //    public BossBar makeBossBar(String title, String color, String style) {
 //        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
@@ -181,7 +181,8 @@ public class CommonFunctions extends AbstractCommonFunctions {
 //
 //        BossBar BarObj = null;
 //        try {
-//            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title, colorEnum, styleEnum);
+//            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title,
+//            colorEnum, styleEnum);
 //        } catch (NoSuchMethodException e) {
 //            return null;
 //        } catch (InvocationTargetException | IllegalAccessException e) {

@@ -81,6 +81,16 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
         IS.offer(Keys.ITEM_LORE, texts);
     }
 
+    /**
+     * convert plain String to Sponge usable Text.
+     *
+     * @param str String to convert
+     * @return Text
+     */
+    public Text text(String str) {
+        return TextSerializers.FORMATTING_CODE.deserialize(str);
+    }
+
     public BossBarColor barColor(String name) throws IllegalArgumentException, NoSuchFieldException {
         try {
             return (BossBarColor) BossBarColors.class.getField(name).get(null);
@@ -170,27 +180,14 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
     public List<Entity> getEntitiesInArea(String areaTriggerName) {
         AbstractAreaTriggerManager areaManager = plugin.getAreaManager();
         AreaTrigger trigger = areaManager.get(areaTriggerName);
-        if (trigger == null) return null;
+        if (trigger == null)
+            return null;
 
         List<Entity> entities = new ArrayList<>();
         for (IEntity ie : trigger.getEntities())
             entities.add(ie.get());
 
         return entities;
-    }
-
-    /**
-     * Get title of the specified ItemStack. Empty Text if not exist.
-     * <p>
-     * Example) /trg run #MESSAGE "item name is:
-     * "+getItemTitle(player.getItemInHand())
-     * </p>
-     *
-     * @param IS
-     * @return
-     */
-    public Text getItemTitle(ItemStack IS) {
-        return IS.get(Keys.DISPLAY_NAME).orElse(Text.EMPTY);
     }
 
     /*
@@ -214,6 +211,20 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
 
     /**
+     * Get title of the specified ItemStack. Empty Text if not exist.
+     * <p>
+     * Example) /trg run #MESSAGE "item name is:
+     * "+getItemTitle(player.getItemInHand())
+     * </p>
+     *
+     * @param IS
+     * @return
+     */
+    public Text getItemTitle(ItemStack IS) {
+        return IS.get(Keys.DISPLAY_NAME).orElse(Text.EMPTY);
+    }
+
+    /**
      * get Lore at the specified index
      *
      * @param IS
@@ -221,10 +232,12 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return String of lore; null if not found
      */
     public Text getLore(ItemStack IS, int index) {
-        if (!IS.get(Keys.ITEM_LORE).isPresent()) return null;
+        if (!IS.get(Keys.ITEM_LORE).isPresent())
+            return null;
 
         List<Text> texts = IS.get(Keys.ITEM_LORE).orElse(null);
-        if (texts == null) return null;
+        if (texts == null)
+            return null;
 
         return texts.get(index);
     }
@@ -267,10 +280,12 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return true if 'lore' is in IS; false if not
      */
     public boolean hasLore(ItemStack IS, String lore) {
-        if (!IS.get(Keys.ITEM_LORE).isPresent()) return false;
+        if (!IS.get(Keys.ITEM_LORE).isPresent())
+            return false;
 
         for (Text txt : IS.get(Keys.ITEM_LORE).orElse(new ArrayList<Text>())) {
-            if (txt.toPlain().equals(lore)) return true;
+            if (txt.toPlain().equals(lore))
+                return true;
         }
 
         return false;
@@ -352,7 +367,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
 
     public Location<World> location(String world, int x, int y, int z) {
         World w = Sponge.getServer().getWorld(world).orElse(null);
-        if (world == null) throw new RuntimeException("world " + world + " does not exists!");
+        if (world == null)
+            throw new RuntimeException("world " + world + " does not exists!");
         return new Location<World>(w, x, y, z);
     }
 
@@ -368,8 +384,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return true if equal; false if not
      */
     public boolean locationEqual(Location<World> loc1, Location<World> loc2) {
-        return loc1.getExtent()
-                .equals(loc2.getExtent()) && loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
+        return loc1.getExtent().equals(loc2.getExtent()) && loc1.getBlockX() == loc2.getBlockX()
+                && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
     }
 
     /**
@@ -472,7 +488,8 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public Object plugin(String name) {
         PluginContainer container = Sponge.getPluginManager().getPlugin(name).orElse(null);
-        if (container == null) return null;
+        if (container == null)
+            return null;
 
         return container.getInstance();
     }
@@ -556,12 +573,14 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      */
     public boolean takeItem(Player player, String id, int amount) {
         ItemStack IS = ItemStack.of(itemType(id), amount);
-        if (!player.getInventory().contains(IS)) return false;
+        if (!player.getInventory().contains(IS))
+            return false;
 
         Optional<ItemStack> result = player.getInventory()
                 .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
                 .peek(amount);
-        if (result.isPresent() && result.orElse(null).getQuantity() < amount) return false;
+        if (result.isPresent() && result.orElse(null).getQuantity() < amount)
+            return false;
 
         return player.getInventory()
                 .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
@@ -583,27 +602,19 @@ public class CommonFunctions extends io.github.wysohn.triggerreactor.core.manage
      * @return true if took it; false if player doesn't have it
      */
     public boolean takeItem(Player player, ItemStack IS, int amount) {
-        if (!player.getInventory().contains(IS)) return false;
+        if (!player.getInventory().contains(IS))
+            return false;
 
         Optional<ItemStack> result = player.getInventory()
                 .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
                 .peek(amount);
-        if (result.isPresent() && result.orElse(null).getQuantity() < amount) return false;
+        if (result.isPresent() && result.orElse(null).getQuantity() < amount)
+            return false;
 
         return player.getInventory()
                 .query(QueryOperationTypes.ITEM_STACK_IGNORE_QUANTITY.of(IS))
                 .poll(amount)
                 .orElse(null)
                 .getQuantity() == amount;
-    }
-
-    /**
-     * convert plain String to Sponge usable Text.
-     *
-     * @param str String to convert
-     * @return Text
-     */
-    public Text text(String str) {
-        return TextSerializers.FORMATTING_CODE.deserialize(str);
     }
 }

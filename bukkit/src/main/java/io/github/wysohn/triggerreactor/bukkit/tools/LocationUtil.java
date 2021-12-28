@@ -25,12 +25,8 @@ import org.bukkit.World;
 
 public class LocationUtil {
     public static SimpleLocation convertToSimpleLocation(Location loc) {
-        return new SimpleLocation(loc.getWorld().getName(),
-                                  loc.getBlockX(),
-                                  loc.getBlockY(),
-                                  loc.getBlockZ(),
-                                  loc.getPitch(),
-                                  loc.getYaw());
+        return new SimpleLocation(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(),
+                loc.getPitch(), loc.getYaw());
     }
 
     public static Location convertToBukkitLocation(SimpleLocation sloc) {

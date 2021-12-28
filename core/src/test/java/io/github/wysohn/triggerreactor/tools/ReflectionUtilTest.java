@@ -24,10 +24,10 @@ public class ReflectionUtilTest {
         assertEquals(new OtherValue(1, 2.5), ReflectionUtil.constructNew(OtherValue.class, 1, 2.5));
 
         assertEquals(new OtherValue(3, 4, new SomeValue("v1"), new SomeValue("v2")),
-                     ReflectionUtil.constructNew(OtherValue.class, 3, 4, new SomeValue("v1"), new SomeValue("v2")));
+                ReflectionUtil.constructNew(OtherValue.class, 3, 4, new SomeValue("v1"), new SomeValue("v2")));
 
         assertEquals(new OtherValue(7, 8, new SomeValue("v1"), "str"),
-                     ReflectionUtil.constructNew(OtherValue.class, 7, 8, new SomeValue("v1"), "str"));
+                ReflectionUtil.constructNew(OtherValue.class, 7, 8, new SomeValue("v1"), "str"));
     }
 
     @Test
@@ -36,7 +36,7 @@ public class ReflectionUtilTest {
         assertEquals(new OtherValue(1, 55.55), ReflectionUtil.constructNew(OtherValue.class, 1, 2.5, 3.5, 6.5, 9.9));
 
         assertEquals(new OtherValue(3, -33.33, null, new SomeValue("v2")),
-                     ReflectionUtil.constructNew(OtherValue.class, 3, 4, new Object(), new SomeValue("v2")));
+                ReflectionUtil.constructNew(OtherValue.class, 3, 4, new Object(), new SomeValue("v2")));
     }
 
     @Test
@@ -120,35 +120,22 @@ public class ReflectionUtilTest {
         assertEquals(2, ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", 7, 7, 7.0));
 
         assertEquals(3,
-                     ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                                                 (Object) null,
-                                                 "method1",
-                                                 new SomeValue("v1"),
-                                                 new SomeValue("v2"),
-                                                 new SomeValue("v3")));
+                ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", new SomeValue("v1"),
+                        new SomeValue("v2"), new SomeValue("v3")));
 
         assertEquals(4,
-                     ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                                                 (Object) null,
-                                                 "method1",
-                                                 new SomeValue("v1"),
-                                                 1,
-                                                 new SomeValue("v2")));
+                ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", new SomeValue("v1"), 1,
+                        new SomeValue("v2")));
 
-        assertEquals(4,
-                     ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                                                 (Object) null,
-                                                 "method1",
-                                                 7,
-                                                 7.0,
-                                                 new SomeValue("v1")));
+        assertEquals(4, ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", 7, 7.0,
+                new SomeValue("v1")));
     }
 
     @Test
     public void invokeMethod2() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         // test varargs
         assertArrayEquals(new int[0],
-                          (int[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1"));
+                (int[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1"));
 
         // ambiguous call
 //        assertArrayEquals(new int[]{}, (int[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
@@ -175,38 +162,24 @@ public class ReflectionUtilTest {
 //                1, 2, 3, 4));
 
         assertArrayEquals(new double[]{6.0, 7.0, 8.0},
-                          (double[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                                                                 (Object) null,
-                                                                 "method1",
-                                                                 5.0,
-                                                                 6.0,
-                                                                 7.0,
-                                                                 8.0),
-                          0.00001);
+                (double[]) ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", 5.0, 6.0,
+                        7.0, 8.0), 0.00001);
     }
 
     @Test
     public void invokeMethod3() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         // test String to Enum conversion
         assertEquals(5,
-                     ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", SomeEnum.VALUE1));
+                ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", SomeEnum.VALUE1));
 
         assertEquals(5, ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", "VALUE1"));
 
-        assertEquals(6,
-                     ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                                                 (Object) null,
-                                                 "method1",
-                                                 SomeEnum.VALUE1,
-                                                 SomeEnum.VALUE2));
+        assertEquals(6, ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", SomeEnum.VALUE1,
+                SomeEnum.VALUE2));
 
 
-        assertEquals(7,
-                     ReflectionUtil.invokeMethod(ReflectionUtilTest.class,
-                                                 (Object) null,
-                                                 "method1",
-                                                 SomeEnum.VALUE1,
-                                                 "VALUE2"));
+        assertEquals(7, ReflectionUtil.invokeMethod(ReflectionUtilTest.class, (Object) null, "method1", SomeEnum.VALUE1,
+                "VALUE2"));
     }
 
     @Test(expected = NoSuchMethodException.class)
@@ -286,8 +259,10 @@ public class ReflectionUtilTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             SomeValue someValue = (SomeValue) o;
             return value.equals(someValue.value);
         }
@@ -345,11 +320,13 @@ public class ReflectionUtilTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
             OtherValue that = (OtherValue) o;
             return a == that.a && Double.compare(that.b, b) == 0 && Objects.equals(c, that.c) && Objects.equals(d,
-                                                                                                                that.d);
+                    that.d);
         }
     }
 

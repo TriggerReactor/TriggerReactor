@@ -42,7 +42,8 @@ public abstract class BukkitScriptEngineModule {
     static ScriptEngineManager bindScriptEngineManager(Server server) {
         ScriptEngineManager scriptEngineManager = server.getServicesManager().load(ScriptEngineManager.class);
 
-        if (scriptEngineManager == null) scriptEngineManager = new ScriptEngineManager();
+        if (scriptEngineManager == null)
+            scriptEngineManager = new ScriptEngineManager();
 
         return scriptEngineManager;
     }

@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 public class TestCommonFunctions<FN extends CommonFunctions> {
     protected final FN fn;
     private final int trials = 100;
+
     public TestCommonFunctions(FN fn) {
         this.fn = fn;
     }
@@ -125,6 +126,7 @@ public class TestCommonFunctions<FN extends CommonFunctions> {
         assertEquals("TriggerReactor", fn.staticMethod(example, "add", "Trigger", "Reactor"));
 
     }
+
     private static final String example = "io.github.wysohn.triggerreactor.core.manager.trigger.share.ExampleClass";
 
     @Parameterized.Parameters

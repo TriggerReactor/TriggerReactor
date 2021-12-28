@@ -66,116 +66,16 @@ public class VaultSupport extends APISupport {
 
     }
 
-    /**
-     * Get current balance of the player.
-     *
-     * @param player
-     * @return balance of the player. It can be negative if the economy plugin allows it.
-     */
-    public double balance(Player player) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
-
-        return economy.getBalance(player);
-    }
-
-    /**
-     * This allows the direct access to the object.
-     *
-     * @return
-     */
-    public Object chat() {
-        if (chat == null) throw new APISupportException("Vault", "Chat");
-
-        return chat;
-    }
-
-    /**
-     * This allows the direct access to the object.
-     *
-     * @return
-     */
-    public Object economy() {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
-
-        return economy;
-    }
-
-    /**
-     * Give amount to the player. This return true most of the time, but it might be false if your economy
-     * plugin has maximum limit, or any other reason to not allow adding more money to the player.
-     *
-     * @param player
-     * @param amount
-     * @return true on success; false on fail
-     */
-    public boolean give(Player player, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
-
-        return economy.depositPlayer(player, amount).transactionSuccess();
-    }
-
-    /**
-     * Check if player has the specified amount.
-     *
-     * @param offp
-     * @param amount
-     * @return true if has; false if not enough fund
-     */
-    public boolean has(Player offp, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
-
-        return economy.has(offp, amount);
-    }
-
-    /**
-     * This allows the direct access to the object.
-     *
-     * @return
-     */
-    public Object permission() {
-        if (permission == null) throw new APISupportException("Vault", "Permission");
-
-        return permission;
-    }
-
-    /**
-     * Add permission to specified player.
-     *
-     * @param player
-     * @param perm
-     */
-    public void permit(Player player, String perm) {
-        if (permission == null) throw new APISupportException("Vault", "Permission");
-
-        permission.playerAdd(null, player, perm);
-    }
-
-    /**
-     * Remove player from specified player.
-     *
-     * @param player
-     * @param perm
-     */
-    public void revoke(Player player, String perm) {
-        if (permission == null) throw new APISupportException("Vault", "Permission");
-
-        permission.playerRemove(null, player, perm);
-    }
-
-    /**
-     * Set exact amount of money for specified player.
-     *
-     * @param player
-     * @param amount
-     * @return true most of time; false if something unexpected happen.
-     */
-    public boolean set(Player player, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
-
-        if (!economy.withdrawPlayer(player, balance(player)).transactionSuccess())
-            throw new APISupportException("Vault", "Economy withdraw");
-
-        return economy.depositPlayer(player, amount).transactionSuccess();
+    private boolean setupPermissions() {
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
+        ;
+        RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if (permissionProvider != null) {
+            permission = permissionProvider.getProvider();
+        }
+        return (permission != null);
     }
 
     private boolean setupChat() {
@@ -191,7 +91,8 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupEconomy() {
-        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
+        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();
+        ;
         RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer()
                 .getServicesManager()
                 .getRegistration(net.milkbowl.vault.economy.Economy.class);
@@ -202,15 +103,125 @@ public class VaultSupport extends APISupport {
         return (economy != null);
     }
 
-    private boolean setupPermissions() {
-        Plugin bukkitPlugin = (Plugin) TriggerReactorAPI.pluginInstance();;
-        RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer()
-                .getServicesManager()
-                .getRegistration(net.milkbowl.vault.permission.Permission.class);
-        if (permissionProvider != null) {
-            permission = permissionProvider.getProvider();
-        }
-        return (permission != null);
+    /**
+     * This allows the direct access to the object.
+     *
+     * @return
+     */
+    public Object chat() {
+        if (chat == null)
+            throw new APISupportException("Vault", "Chat");
+
+        return chat;
+    }
+
+    /**
+     * This allows the direct access to the object.
+     *
+     * @return
+     */
+    public Object economy() {
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
+
+        return economy;
+    }
+
+    /**
+     * Give amount to the player. This return true most of the time, but it might be false if your economy
+     * plugin has maximum limit, or any other reason to not allow adding more money to the player.
+     *
+     * @param player
+     * @param amount
+     * @return true on success; false on fail
+     */
+    public boolean give(Player player, double amount) {
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
+
+        return economy.depositPlayer(player, amount).transactionSuccess();
+    }
+
+    /**
+     * Check if player has the specified amount.
+     *
+     * @param offp
+     * @param amount
+     * @return true if has; false if not enough fund
+     */
+    public boolean has(Player offp, double amount) {
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
+
+        return economy.has(offp, amount);
+    }
+
+    /**
+     * This allows the direct access to the object.
+     *
+     * @return
+     */
+    public Object permission() {
+        if (permission == null)
+            throw new APISupportException("Vault", "Permission");
+
+        return permission;
+    }
+
+    /**
+     * Add permission to specified player.
+     *
+     * @param player
+     * @param perm
+     */
+    public void permit(Player player, String perm) {
+        if (permission == null)
+            throw new APISupportException("Vault", "Permission");
+
+        permission.playerAdd(null, player, perm);
+    }
+
+    /**
+     * Remove player from specified player.
+     *
+     * @param player
+     * @param perm
+     */
+    public void revoke(Player player, String perm) {
+        if (permission == null)
+            throw new APISupportException("Vault", "Permission");
+
+        permission.playerRemove(null, player, perm);
+    }
+
+    /**
+     * Set exact amount of money for specified player.
+     *
+     * @param player
+     * @param amount
+     * @return true most of time; false if something unexpected happen.
+     */
+    public boolean set(Player player, double amount) {
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
+
+        if (!economy.withdrawPlayer(player, balance(player)).transactionSuccess())
+            throw new APISupportException("Vault", "Economy withdraw");
+
+        return economy.depositPlayer(player, amount).transactionSuccess();
+    }
+
+    /**
+     * Get current balance of the player.
+     *
+     * @param player
+     * @return balance of the player. It can be negative if the economy plugin allows it.
+     */
+    public double balance(Player player) {
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
+
+        return economy.getBalance(player);
     }
 
     /**
@@ -221,7 +232,8 @@ public class VaultSupport extends APISupport {
      * @return true on success; false if not enough fund or any other reason depends on economy plugin.
      */
     public boolean take(Player player, double amount) {
-        if (economy == null) throw new APISupportException("Vault", "Economy");
+        if (economy == null)
+            throw new APISupportException("Vault", "Economy");
 
         return economy.withdrawPlayer(player, amount).transactionSuccess();
     }

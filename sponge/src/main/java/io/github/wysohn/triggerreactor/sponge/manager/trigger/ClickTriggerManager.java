@@ -63,31 +63,20 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         });
     }
 
+    private static ClickTrigger getTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
+        return new ClickTrigger(info, script, context -> {
+            if (context instanceof InteractBlockEvent) {
+                return context instanceof InteractBlockEvent.Primary.MainHand
+                        || context instanceof InteractBlockEvent.Secondary.MainHand;
+            }
+
+            return true;
+        });
+    }
+
     @Override
     protected String getTriggerTypeName() {
         return "Click";
-    }
-
-    private void handleClick(InteractBlockEvent e) {
-        Player player = e.getCause().first(Player.class).orElse(null);
-        BlockSnapshot clicked = e.getTargetBlock();
-
-        Location<World> loc = clicked.getLocation().orElse(null);
-        if (loc == null) return;
-
-        ClickTrigger trigger = getTriggerForLocation(loc);
-        if (trigger == null) return;
-
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player);
-        varMap.put("block", clicked);
-        varMap.put("item", player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.of(ItemTypes.AIR, 1)));
-        if (e instanceof InteractBlockEvent.Primary.MainHand) varMap.put("click", "left");
-        else if (e instanceof InteractBlockEvent.Secondary.MainHand) varMap.put("click", "right");
-        else varMap.put("click", "unknown");
-
-        trigger.activate(e, varMap);
-        return;
     }
 
     @Override
@@ -101,13 +90,30 @@ public class ClickTriggerManager extends LocationBasedTriggerManager<AbstractLoc
         handleClick(e);
     }
 
-    private static ClickTrigger getTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return new ClickTrigger(info, script, context -> {
-            if (context instanceof InteractBlockEvent) {
-                return context instanceof InteractBlockEvent.Primary.MainHand || context instanceof InteractBlockEvent.Secondary.MainHand;
-            }
+    private void handleClick(InteractBlockEvent e) {
+        Player player = e.getCause().first(Player.class).orElse(null);
+        BlockSnapshot clicked = e.getTargetBlock();
 
-            return true;
-        });
+        Location<World> loc = clicked.getLocation().orElse(null);
+        if (loc == null)
+            return;
+
+        ClickTrigger trigger = getTriggerForLocation(loc);
+        if (trigger == null)
+            return;
+
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", player);
+        varMap.put("block", clicked);
+        varMap.put("item", player.getItemInHand(HandTypes.MAIN_HAND).orElse(ItemStack.of(ItemTypes.AIR, 1)));
+        if (e instanceof InteractBlockEvent.Primary.MainHand)
+            varMap.put("click", "left");
+        else if (e instanceof InteractBlockEvent.Secondary.MainHand)
+            varMap.put("click", "right");
+        else
+            varMap.put("click", "unknown");
+
+        trigger.activate(e, varMap);
+        return;
     }
 }

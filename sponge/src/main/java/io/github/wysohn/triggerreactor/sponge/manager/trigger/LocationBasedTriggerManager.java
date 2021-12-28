@@ -95,7 +95,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         IPlayer player = new SpongePlayer(p);
 
         Location<World> loc = clicked.getLocation().orElse(null);
-        if (loc == null) return;
+        if (loc == null)
+            return;
 
         T trigger = getTriggerForLocation(loc);
         if (trigger != null) {
@@ -120,8 +121,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             p.sendMessage(Text.builder("Encounterd an error!").color(TextColors.RED).build());
             p.sendMessage(Text.builder(e1.getMessage()).color(TextColors.RED).build());
             p.sendMessage(Text.builder("If you are an administrator, check console to see details.")
-                                  .color(TextColors.RED)
-                                  .build());
+                    .color(TextColors.RED)
+                    .build());
             e1.printStackTrace();
 
             stopLocationSet(player);
@@ -140,22 +141,20 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     private void handleScriptEdit(Player player, T trigger) {
 
         plugin.getScriptEditManager()
-                .startEdit(new SpongePlayer(player),
-                           trigger.getInfo().getTriggerName(),
-                           trigger.getScript(),
-                           new SaveHandler() {
-                               @Override
-                               public void onSave(String script) {
-                                   try {
-                                       trigger.setScript(script);
-                                   } catch (TriggerInitFailedException e) {
-                                       plugin.handleException(new SpongePlayer(player), e);
-                                   }
+                .startEdit(new SpongePlayer(player), trigger.getInfo().getTriggerName(), trigger.getScript(),
+                        new SaveHandler() {
+                            @Override
+                            public void onSave(String script) {
+                                try {
+                                    trigger.setScript(script);
+                                } catch (TriggerInitFailedException e) {
+                                    plugin.handleException(new SpongePlayer(player), e);
+                                }
 
-                                   plugin.saveAsynchronously(LocationBasedTriggerManager.this);
-                               }
+                                plugin.saveAsynchronously(LocationBasedTriggerManager.this);
+                            }
 
-                           });
+                        });
     }
 
     @Listener
@@ -164,10 +163,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             BlockSnapshot block = transaction.getOriginal();
 
             Location<World> loc = block.getLocation().orElse(null);
-            if (loc == null) return;
+            if (loc == null)
+                return;
 
             T trigger = getTriggerForLocation(loc);
-            if (trigger == null) return;
+            if (trigger == null)
+                return;
 
             Player player = e.getCause().first(Player.class).orElse(null);
 
@@ -182,14 +183,17 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public void onClick(InteractBlockEvent e) {
         Player player = e.getCause().first(Player.class).orElse(null);
         //maybe something other than a player can interact with a block?
-        if (player == null) return;
+        if (player == null)
+            return;
 
         ItemStack IS = player.getItemInHand(HandTypes.MAIN_HAND).orElse(null);
         BlockSnapshot clicked = e.getTargetBlock();
-        if (clicked == null) return;
+        if (clicked == null)
+            return;
 
         Location<World> loc = clicked.getLocation().orElse(null);
-        if (loc == null) return;
+        if (loc == null)
+            return;
 
         T trigger = getTriggerForLocation(loc);
 
@@ -213,9 +217,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             } else if (IS.getType() == CUT_TOOL) {
                 if (e instanceof InteractBlockEvent.Primary) {
                     if (pasteTrigger(player, loc)) {
-                        player.sendMessage(Text.builder("Successfully pasted the trigger!")
-                                                   .color(TextColors.GREEN)
-                                                   .build());
+                        player.sendMessage(
+                                Text.builder("Successfully pasted the trigger!").color(TextColors.GREEN).build());
                         this.showTriggerInfo(new SpongePlayer(player), clicked);
                         e.setCancelled(true);
                     }
@@ -223,17 +226,16 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                     if (cutTrigger(player, loc)) {
                         player.sendMessage(Text.builder("Cut Complete!").color(TextColors.GREEN).build());
                         player.sendMessage(Text.builder("Now you can paste it by left click on any block!")
-                                                   .color(TextColors.GREEN)
-                                                   .build());
+                                .color(TextColors.GREEN)
+                                .build());
                         e.setCancelled(true);
                     }
                 }
             } else if (IS.getType() == COPY_TOOL) {
                 if (e instanceof InteractBlockEvent.Primary) {
                     if (pasteTrigger(player, loc)) {
-                        player.sendMessage(Text.builder("Successfully pasted the trigger!")
-                                                   .color(TextColors.GREEN)
-                                                   .build());
+                        player.sendMessage(
+                                Text.builder("Successfully pasted the trigger!").color(TextColors.GREEN).build());
                         this.showTriggerInfo(new SpongePlayer(player), clicked);
                         e.setCancelled(true);
                     }
@@ -241,8 +243,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                     if (trigger != null && copyTrigger(player, loc)) {
                         player.sendMessage(Text.builder("Copy Complete!").color(TextColors.GREEN).build());
                         player.sendMessage(Text.builder("Now you can paste it by left click on any block!")
-                                                   .color(TextColors.GREEN)
-                                                   .build());
+                                .color(TextColors.GREEN)
+                                .build());
                         e.setCancelled(true);
                     }
                 }
@@ -262,7 +264,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     @Listener(order = Order.LATE)
     public void onSignBreak(ChangeBlockEvent.Break e) {
-        if (e.isCancelled()) return;
+        if (e.isCancelled())
+            return;
 
         for (Transaction<BlockSnapshot> transaction : e.getTransactions()) {
             BlockSnapshot snapshot = transaction.getOriginal();
@@ -271,7 +274,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             BlockState state = snapshot.getState();
             BlockState above = loc.getExtent().getBlock(0, 1, 0);
 
-            if (above.getType() != BlockTypes.STANDING_SIGN && above.getType() != BlockTypes.WALL_SIGN) return;
+            if (above.getType() != BlockTypes.STANDING_SIGN && above.getType() != BlockTypes.WALL_SIGN)
+                return;
 
             ChangeBlockEvent.Break bbe = new ChangeBlockEvent.Break() {
                 private boolean cancelled = false;
@@ -309,7 +313,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public void onTnTBreaK(ExplosionEvent.Detonate e) {
         for (Iterator<Location<World>> iter = e.getAffectedLocations().iterator(); iter.hasNext(); ) {
             T trigger = getTriggerForLocation(iter.next());
-            if (trigger == null) continue;
+            if (trigger == null)
+                continue;
 
             iter.remove();
         }
@@ -336,8 +341,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     protected void showTriggerInfo(ICommandSender sender, BlockSnapshot clicked) {
-        Trigger trigger = getTriggerForLocation(LocationUtil.convertToSimpleLocation(clicked.getLocation()
-                                                                                             .orElse(null)));
+        Trigger trigger = getTriggerForLocation(
+                LocationUtil.convertToSimpleLocation(clicked.getLocation().orElse(null)));
         if (trigger == null) {
             return;
         }
@@ -346,8 +351,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage("- - - - - - - - - - - - - -");
         sender.sendMessage("Trigger: " + getTriggerTypeName());
         sender.sendMessage("Block Type: " + clicked.getState().getType().getName());
-        sender.sendMessage("Location: " + loc.getExtent()
-                .getName() + "@" + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        sender.sendMessage(
+                "Location: " + loc.getExtent().getName() + "@" + loc.getBlockX() + "," + loc.getBlockY() + ","
+                        + loc.getBlockZ());
         sender.sendMessage("");
         sender.sendMessage("Script:");
         sender.sendMessage(trigger.getScript());
@@ -367,13 +373,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage("- - - - - - - - - - - - - -");
         sender.sendMessage("Trigger: " + getTriggerTypeName());
         sender.sendMessage("Block Type: " + clicked.getType().getName());
-        sender.sendMessage("Location: " + loc.getExtent()
-                .getName() + "@" + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+        sender.sendMessage(
+                "Location: " + loc.getExtent().getName() + "@" + loc.getBlockX() + "," + loc.getBlockY() + ","
+                        + loc.getBlockZ());
         sender.sendMessage("");
         sender.sendMessage("Script:");
         sender.sendMessage(trigger.getScript());
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
+
     public static final ItemType INSPECTION_TOOL = ItemTypes.BONE;
     public static final ItemType CUT_TOOL = ItemTypes.SHEARS;
     public static final ItemType COPY_TOOL = ItemTypes.PAPER;

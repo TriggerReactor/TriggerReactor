@@ -43,8 +43,6 @@ public abstract class JsTest {
         this.args = new Object[]{};
     }
 
-    public abstract int getOverload(Object... args);
-
     public abstract Object test() throws Exception;
 
     public JsTest addVariable(String name, Object value) {
@@ -57,13 +55,15 @@ public abstract class JsTest {
         return this;
     }
 
+    public boolean isValid(Object... args) {
+        return getOverload(args) != -1;
+    }
+
+    public abstract int getOverload(Object... args);
+
     public JsTest assertValid(Object... args) {
         assertTrue(isValid(args));
         return this;
-    }
-
-    public boolean isValid(Object... args) {
-        return getOverload(args) != -1;
     }
 
     public JsTest withArgs(Object... args) {

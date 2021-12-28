@@ -66,16 +66,21 @@ subprojects {
     dependencies {
         TestDependNashorn 'org.openjdk.nashorn:nashorn-core:15.3'
         // https://mvnrepository.com/artifact/org.graalvm.js/js
-        TestDependGraal group: 'org.graalvm.js', name: 'js', version: '21.1.0'
+        TestDependGraal group
+        : 'org.graalvm.js' , name: 'js' ,
+        version: '21.1.0'
         // https://mvnrepository.com/artifact/org.graalvm.js/js-scriptengine
-        TestDependGraal group: 'org.graalvm.js', name: 'js-scriptengine', version: '21.1.0'
+        TestDependGraal group
+        : 'org.graalvm.js' ,
+        name: 'js-scriptengine' ,
+        version: '21.1.0'
     }
 
-    task testWithNashorn(type: Test){
+    task testWithNashorn(type: Test) {
         classpath += configurations.TestDependNashorn
     }
 
-    task testWithGraal(type: Test){
+    task testWithGraal(type: Test) {
         classpath += configurations.TestDependGraal
     }
 }

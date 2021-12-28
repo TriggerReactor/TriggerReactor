@@ -20,17 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 public abstract class AbstractTestJavaScripts {
-    protected static final ScriptEngineComponent component = DaggerScriptEngineComponent.create();
-
     protected Server server;
     protected IGameController mockMain;
     protected PluginManager mockPluginManager;
-
     protected InterpreterLocalContext localContext;
-
-    protected void before() throws Exception {
-
-    }
 
     @Before
     public void init() throws Exception {
@@ -71,6 +64,10 @@ public abstract class AbstractTestJavaScripts {
         });
     }
 
+    protected void before() throws Exception {
+
+    }
+
     @Test
     public void testWithCompilation() throws Exception {
         ScriptEngineManager sem = component.manager();
@@ -83,7 +80,7 @@ public abstract class AbstractTestJavaScripts {
             bindings.put("b", i);
 
             Object result = compiled.eval(bindings);
-            assertEquals(result, (double)i + i);
+            assertEquals(result, (double) i + i);
         }
     }
 
@@ -99,7 +96,7 @@ public abstract class AbstractTestJavaScripts {
             bindings.put("b", i);
 
             Object result = engine.eval("a + b");
-            assertEquals(result, (double)i + i);
+            assertEquals(result, (double) i + i);
         }
     }
 
@@ -107,4 +104,6 @@ public abstract class AbstractTestJavaScripts {
         engine.put("Temp", clazz);
         engine.eval("var " + clazz.getSimpleName() + " = Temp.static;");
     }
+
+    protected static final ScriptEngineComponent component = DaggerScriptEngineComponent.create();
 }

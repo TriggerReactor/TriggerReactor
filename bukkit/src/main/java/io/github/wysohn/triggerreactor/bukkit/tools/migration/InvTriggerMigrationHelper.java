@@ -19,6 +19,13 @@ public class InvTriggerMigrationHelper extends AbstractInvTriggerMingrationHelpe
     }
 
     @Override
+    protected Optional<Integer> getSize() {
+        return Optional.of(oldConfig)
+                .map(config -> config.getInt(InventoryTriggerManager.SIZE, -1))
+                .filter(val -> val > 0);
+    }
+
+    @Override
     protected Map<Integer, ItemStack> getItems() {
         Map<Integer, ItemStack> out = new LinkedHashMap<>();
         Optional.of(oldConfig)
@@ -36,12 +43,5 @@ public class InvTriggerMigrationHelper extends AbstractInvTriggerMingrationHelpe
                     }
                 });
         return out;
-    }
-
-    @Override
-    protected Optional<Integer> getSize() {
-        return Optional.of(oldConfig)
-                .map(config -> config.getInt(InventoryTriggerManager.SIZE, -1))
-                .filter(val -> val > 0);
     }
 }

@@ -5,6 +5,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.share;
  */
 public class ExampleClass {
     public int marker;
+
     public ExampleClass(int x) {
         this.marker = 0;
     }
@@ -20,6 +21,7 @@ public class ExampleClass {
     public ExampleClass(Object x) {
         this.marker = 3;
     }
+
     public static int foo;
     public static boolean bar;
 

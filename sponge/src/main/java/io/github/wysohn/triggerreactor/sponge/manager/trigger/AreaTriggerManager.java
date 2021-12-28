@@ -77,9 +77,11 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
                                 e1.printStackTrace();
                             }
 
-                            if (!valid) continue;
+                            if (!valid)
+                                continue;
 
-                            if (!entityLocationMap.containsKey(uuid)) continue;
+                            if (!entityLocationMap.containsKey(uuid))
+                                continue;
 
                             SimpleLocation previous = entityLocationMap.get(uuid);
                             SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
@@ -106,6 +108,15 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
         entityTrackingThread.start();
     }
 
+    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
+        getAreaForLocation(from).stream()
+                .map(Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(new SpongeEntity(entity)));
+    }
+
     @Listener
     public void onDeath(DestructEntityEvent.Death e) {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetEntity().getLocation());
@@ -116,15 +127,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
         getAreaForLocation(sloc).stream()
                 .map(Entry::getValue)
                 .forEach((trigger) -> trigger.removeEntity(e.getTargetEntity().getUniqueId()));
-    }
-
-    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
-        getAreaForLocation(from).stream()
-                .map(Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
-        getAreaForLocation(current).stream()
-                .map(Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new SpongeEntity(entity)));
     }
 
     @Listener(order = Order.POST)
@@ -164,7 +166,7 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(e.getTargetEntity().getLocation());
 
         entityTrackMap.put(e.getTargetEntity().getUniqueId(),
-                           new WeakReference<IEntity>(new SpongeEntity(e.getTargetEntity())));
+                new WeakReference<IEntity>(new SpongeEntity(e.getTargetEntity())));
         entityLocationMap.put(e.getTargetEntity().getUniqueId(), sloc);
 
         getAreaForLocation(sloc).stream()
@@ -181,7 +183,8 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager {
             for (Entity e : w.getEntities()) {
                 UUID uuid = e.getUniqueId();
 
-                if (e.isRemoved() || !e.isLoaded()) continue;
+                if (e.isRemoved() || !e.isLoaded())
+                    continue;
 
                 SimpleLocation previous = null;
                 SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());

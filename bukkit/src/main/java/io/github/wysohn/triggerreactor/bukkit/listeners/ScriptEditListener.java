@@ -21,7 +21,7 @@ public final class ScriptEditListener extends AbstractBukkitListener {
     IWrapper wrapper;
 
     @Inject
-    ScriptEditListener(){
+    ScriptEditListener() {
 
     }
 
@@ -31,7 +31,7 @@ public final class ScriptEditListener extends AbstractBukkitListener {
         ScriptEditorUser editorUser = new ScriptEditorUser(player);
 
         ScriptEditor editor = scriptEditManager.getEditor(editorUser);
-        if(editor != null){
+        if (editor != null) {
             e.setCancelled(true);
 
             scriptEditManager.onChat(editorUser, editor, e.getMessage());

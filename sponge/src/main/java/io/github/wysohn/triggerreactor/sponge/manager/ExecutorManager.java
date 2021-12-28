@@ -23,23 +23,15 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
 
     public ExecutorManager(TriggerReactorCore plugin) throws ScriptException, IOException {
         super(plugin);
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION,
-                                  plugin.getDataFolder(),
-                                  CopyOption.REPLACE_IF_EXIST,
-                                  (original) -> {
-                                      return original.substring(0, original.indexOf("!" + JarUtil.JAR_SEPARATOR))
-                                              .replace("." + JarUtil.JAR_SEPARATOR, "");
-                                  });
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST,
+                (original) -> {
+                    return original.substring(0, original.indexOf("!" + JarUtil.JAR_SEPARATOR))
+                            .replace("." + JarUtil.JAR_SEPARATOR, "");
+                });
 
         this.executorFolder = new File(plugin.getDataFolder(), "Executor");
 
         reload();
-    }
-
-    @Override
-    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
-        super.initScriptEngine(sem);
-        SpongeScriptEngineInitializer.super.initScriptEngine(sem);
     }
 
     @Override
@@ -72,7 +64,8 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
                                       Object e,
                                       Object... args) throws Exception {
                 Object player = variables.get("player");
-                if (player == null || !(player instanceof Player)) return null;
+                if (player == null || !(player instanceof Player))
+                    return null;
 
                 if (args.length > 0) {
                     if (plugin.isServerThread()) {
@@ -86,6 +79,12 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
             }
 
         });
+    }
+
+    @Override
+    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
+        super.initScriptEngine(sem);
+        SpongeScriptEngineInitializer.super.initScriptEngine(sem);
     }
 
     @Override
@@ -113,6 +112,7 @@ public class ExecutorManager extends AbstractExecutorManager implements SpongeSc
         }
 
     }
+
     private static final String JAR_FOLDER_LOCATION = "Executor";
 
 }

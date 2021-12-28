@@ -44,16 +44,6 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
         commandManager = Sponge.getCommandManager();
     }
 
-    private void execute(Object e, Player player, String cmd, String[] args, CommandTrigger trigger) {
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player);
-        varMap.put("command", cmd);
-        varMap.put("args", args);
-        varMap.put("argslength", args.length);
-
-        trigger.activate(e, varMap);
-    }
-
     @Override
     protected boolean registerCommand(String triggerName, CommandTrigger trigger) {
         String[] commandArr = new String[1 + trigger.getAliases().length];
@@ -110,11 +100,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
 
                 ICommandSender commandSender = plugin.getPlayer(source.getName());
                 String[] args = arguments.split(" ");
-                execute(plugin.createPlayerCommandEvent(commandSender, triggerName, args),
-                        (Player) source,
-                        triggerName,
-                        args,
-                        trigger);
+                execute(plugin.createPlayerCommandEvent(commandSender, triggerName, args), (Player) source, triggerName,
+                        args, trigger);
 
                 return CommandResult.success();
             }
@@ -122,12 +109,23 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
             @Override
             public boolean testPermission(CommandSource source) {
                 for (String permission : trigger.getPermissions()) {
-                    if (!source.hasPermission(permission)) return false;
+                    if (!source.hasPermission(permission))
+                        return false;
                 }
                 return true;
             }
         }, commandArr).ifPresent(commandMapping -> mappings.put(triggerName, commandMapping));
         return false;
+    }
+
+    private void execute(Object e, Player player, String cmd, String[] args, CommandTrigger trigger) {
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", player);
+        varMap.put("command", cmd);
+        varMap.put("args", args);
+        varMap.put("argslength", args.length);
+
+        trigger.activate(e, varMap);
     }
 
     @Override
@@ -155,7 +153,8 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager {
     protected boolean unregisterCommand(String triggerName) {
         // CommandMapping instance seems like an unique entity regardless of the commands being same
         CommandMapping mapping = commandManager.get(triggerName).orElse(null);
-        if (mapping == null) return false;
+        if (mapping == null)
+            return false;
 
         commandManager.removeMapping(mapping);
         return true;

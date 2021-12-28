@@ -50,15 +50,6 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         player.openInventory(inv);
     }
 
-    //adapted from InventoryTriggerManager
-    private Inventory createInventory(int size, String name) {
-        return Inventory.builder()
-                .of(InventoryArchetypes.CHEST)
-                .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
-                .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(name)))
-                .build(plugin);
-    }
-
     @Override
     public void discardEdit(IPlayer player) {
         UUID u = player.getUniqueId();
@@ -68,37 +59,6 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
         stopEdit(player);
         player.sendMessage("Discarded Edits");
-    }
-
-    //adapted from InventoryTriggerManager
-    private void fillInventory(InventoryTrigger trigger, int size, Inventory inv) {
-        GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
-
-        for (int i = 0; i < size; i++) {
-            IItemStack item = trigger.getItems()[i];
-            if (item != null) {
-                Slot slot = gridInv.getSlot(SlotIndex.of(i)).orElse(null);
-                slot.set(getColoredItem(item.get()));
-            }
-        }
-    }
-
-    //copied from InventoryTriggerManager
-    private ItemStack getColoredItem(ItemStack item) {
-        item = item.copy();
-
-        Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
-        if (displayName != null) item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
-
-        List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
-        if (lores != null) {
-            for (int i = 0; i < lores.size(); i++) {
-                lores.set(i, TextUtil.colorStringToText(lores.get(i).toPlain()));
-            }
-            item.offer(Keys.ITEM_LORE, lores);
-        }
-
-        return item;
     }
 
     @Listener
@@ -131,6 +91,15 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
 
         suspended.put(u, new SpongeInventory(newGrid, null));
         p.sendMessage(savePrompt);
+    }
+
+    //adapted from InventoryTriggerManager
+    private Inventory createInventory(int size, String name) {
+        return Inventory.builder()
+                .of(InventoryArchetypes.CHEST)
+                .property(InventoryDimension.PROPERTY_NAME, InventoryDimension.of(9, size / 9))
+                .property(InventoryTitle.PROPERTY_NAME, InventoryTitle.of(Text.of(name)))
+                .build(plugin);
     }
 
     @Listener
@@ -188,6 +157,38 @@ public class InventoryEditManager extends AbstractInventoryEditManager {
         Inventory inv = createInventory(size, trigger.getInfo().getTriggerName());
         fillInventory(trigger, size, inv);
         player.openInventory(new SpongeInventory(inv, null));
+    }
+
+    //adapted from InventoryTriggerManager
+    private void fillInventory(InventoryTrigger trigger, int size, Inventory inv) {
+        GridInventory gridInv = inv.query(QueryOperationTypes.INVENTORY_TYPE.of(GridInventory.class));
+
+        for (int i = 0; i < size; i++) {
+            IItemStack item = trigger.getItems()[i];
+            if (item != null) {
+                Slot slot = gridInv.getSlot(SlotIndex.of(i)).orElse(null);
+                slot.set(getColoredItem(item.get()));
+            }
+        }
+    }
+
+    //copied from InventoryTriggerManager
+    private ItemStack getColoredItem(ItemStack item) {
+        item = item.copy();
+
+        Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
+        if (displayName != null)
+            item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
+
+        List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
+        if (lores != null) {
+            for (int i = 0; i < lores.size(); i++) {
+                lores.set(i, TextUtil.colorStringToText(lores.get(i).toPlain()));
+            }
+            item.offer(Keys.ITEM_LORE, lores);
+        }
+
+        return item;
     }
     private static Text savePrompt;
 

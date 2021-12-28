@@ -251,6 +251,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
 
         trigger.activate(varMap);
     }
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     public static final String ITEMS = "Items";

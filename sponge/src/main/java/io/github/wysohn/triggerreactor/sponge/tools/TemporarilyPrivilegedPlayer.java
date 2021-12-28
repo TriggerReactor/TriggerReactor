@@ -1127,8 +1127,8 @@ public class TemporarilyPrivilegedPlayer implements Player {
     }
 
     @Override
-    public <E> DataTransactionResult tryOffer(Key<? extends BaseValue<E>> key,
-                                              E value) throws IllegalArgumentException {
+    public <E> DataTransactionResult tryOffer(Key<? extends BaseValue<E>> key, E value) throws
+            IllegalArgumentException {
         return player.tryOffer(key, value);
     }
 
@@ -1143,8 +1143,8 @@ public class TemporarilyPrivilegedPlayer implements Player {
     }
 
     @Override
-    public DataTransactionResult tryOffer(DataManipulator<?, ?> valueContainer,
-                                          MergeFunction function) throws IllegalArgumentException {
+    public DataTransactionResult tryOffer(DataManipulator<?, ?> valueContainer, MergeFunction function) throws
+            IllegalArgumentException {
         return player.tryOffer(valueContainer, function);
     }
 

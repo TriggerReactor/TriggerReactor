@@ -18,7 +18,8 @@ public class BukkitConfigurationSerializer implements Serializer<ConfigurationSe
         JsonObject ser = (JsonObject) json;
 
         // ignore Map without SERIALIZED_TYPE_KEY (they are simple map in such case)
-        if (ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY) == null) return null;
+        if (ser.get(ConfigurationSerialization.SERIALIZED_TYPE_KEY) == null)
+            return null;
 
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(ConfigurationSerialization.SERIALIZED_TYPE_KEY,

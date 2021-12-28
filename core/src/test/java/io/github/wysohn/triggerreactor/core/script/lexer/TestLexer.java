@@ -92,6 +92,14 @@ public class TestLexer {
         testEnd(lexer);
     }
 
+    private static void testToken(Lexer lexer, Type id, String s) throws IOException, LexerException {
+        assertEquals(new Token(id, s), lexer.getToken());
+    }
+
+    private static void testEnd(Lexer lexer) throws IOException, LexerException {
+        assertNull(lexer.getToken());
+    }
+
     @Test
     public void testBitwiseAndBitshift() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
@@ -268,7 +276,8 @@ public class TestLexer {
         String text;
         Lexer lexer;
 
-        text = "a = 2\n" + "a = ++a * --a - a++ / a-- -(--a) -(++a) -(a++) -(a--) - -(--a) - -(++a) - -(a++) - -(a--)\n";
+        text = "a = 2\n"
+                + "a = ++a * --a - a++ / a-- -(--a) -(++a) -(a++) -(a--) - -(--a) - -(++a) - -(a++) - -(a--)\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, "=");
@@ -582,13 +591,5 @@ public class TestLexer {
         testToken(lexer, Type.OPERATOR, "$");
         testToken(lexer, Type.ID, "playername");
         testEnd(lexer);
-    }
-
-    private static void testToken(Lexer lexer, Type id, String s) throws IOException, LexerException {
-        assertEquals(new Token(id, s), lexer.getToken());
-    }
-
-    private static void testEnd(Lexer lexer) throws IOException, LexerException {
-        assertNull(lexer.getToken());
     }
 }

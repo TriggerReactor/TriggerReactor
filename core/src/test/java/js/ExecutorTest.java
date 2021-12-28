@@ -25,21 +25,18 @@ public class ExecutorTest extends JsTest {
     }
 
     @Override
-    public int getOverload(Object... args) {
-        return executor.validate(args).getOverload();
-    }
-
-    @Override
     public Object test() throws Exception {
         coverage.put(this.name, true);
         executor.execute(Timings.LIMBO, localContext, localContext.getVars(), args);
         return null;
     }
 
+    @Override
+    public int getOverload(Object... args) {
+        return executor.validate(args).getOverload();
+    }
     private static final ExecutorTestComponent component = DaggerExecutorTestComponent.builder()
-            .engineComponent(DaggerScriptEngineComponent.builder()
-                    .initializer(new HashSet<>())
-                    .build())
+            .engineComponent(DaggerScriptEngineComponent.builder().initializer(new HashSet<>()).build())
             .build();
     public static final Map<String, Boolean> coverage = new TreeMap<>();
 }

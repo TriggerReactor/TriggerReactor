@@ -50,7 +50,7 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     @Override
     public void sendMessage(String message, boolean raw) {
         String colored = ChatColor.translateAlternateColorCodes('&', message);
-        if(raw)
+        if (raw)
             player.sendRawMessage(colored);
         else
             player.sendMessage(colored);
@@ -78,11 +78,6 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     }
 
     @Override
-    public ILocation getLocation() {
-        return new BukkitLocation(player.getLocation());
-    }
-
-    @Override
     public void openInventory(IInventory inventory) {
         Inventory inv = inventory.get();
         player.openInventory(inv);
@@ -101,5 +96,10 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     @Override
     public void dispatchCommand(String command) {
         player.performCommand(command);
+    }
+
+    @Override
+    public ILocation getLocation() {
+        return new BukkitLocation(player.getLocation());
     }
 }

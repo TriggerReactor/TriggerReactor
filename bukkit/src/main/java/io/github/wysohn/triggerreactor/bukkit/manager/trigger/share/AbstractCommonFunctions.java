@@ -457,7 +457,8 @@ public abstract class AbstractCommonFunctions
         if (trigger == null)
             return null;
 
-        return trigger.getEntities().stream()
+        return trigger.getEntities()
+                .stream()
                 .filter(Entity.class::isInstance)
                 .map(Entity.class::cast)
                 .collect(Collectors.toList());
@@ -575,7 +576,8 @@ public abstract class AbstractCommonFunctions
      * @return true if equal; false if not
      */
     public boolean locationEqual(Location loc1, Location loc2) {
-        return loc1.getWorld() == loc2.getWorld() && loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
+        return loc1.getWorld() == loc2.getWorld() && loc1.getBlockX() == loc2.getBlockX()
+                && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
     }
 
     /**

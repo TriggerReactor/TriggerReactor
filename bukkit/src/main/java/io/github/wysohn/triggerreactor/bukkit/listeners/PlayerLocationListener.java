@@ -25,7 +25,7 @@ public final class PlayerLocationListener extends AbstractBukkitListener {
     IWrapper wrapper;
 
     @Inject
-    PlayerLocationListener(){
+    PlayerLocationListener() {
 
     }
 
@@ -51,12 +51,8 @@ public final class PlayerLocationListener extends AbstractBukkitListener {
         playerLocationManager.checkIfCancelled(new BukkitPlayerBlockLocationEvent(wrapper, pble));
         if (pble.isCancelled()) {
             Location loc = LocationUtil.convertToBukkitLocation(from);
-            loc.setPitch(e.getPlayer()
-                    .getLocation()
-                    .getPitch());
-            loc.setYaw(e.getPlayer()
-                    .getLocation()
-                    .getPitch());
+            loc.setPitch(e.getPlayer().getLocation().getPitch());
+            loc.setYaw(e.getPlayer().getLocation().getPitch());
             e.setFrom(loc);
             e.setTo(loc);
         }
@@ -73,20 +69,14 @@ public final class PlayerLocationListener extends AbstractBukkitListener {
         if (e.getFrom() == e.getTo())
             return;
 
-        if (e.getVehicle()
-                .getPassengers()
-                .size() < 1)
+        if (e.getVehicle().getPassengers().size() < 1)
             return;
 
-        if (e.getVehicle()
-                .getPassengers()
-                .get(0)
-                .getType() != EntityType.PLAYER)
+        if (e.getVehicle().getPassengers().get(0).getType() != EntityType.PLAYER)
             return;
 
         Vehicle vehicle = e.getVehicle();
-        Player player = (Player) vehicle.getPassengers()
-                .get(0);
+        Player player = (Player) vehicle.getPassengers().get(0);
 
         SimpleLocation from = playerLocationManager.getCurrentBlockLocation(player.getUniqueId());
         SimpleLocation to = LocationUtil.convertToSimpleLocation(e.getTo());

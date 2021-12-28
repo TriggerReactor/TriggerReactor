@@ -15,7 +15,8 @@ public class ConfigurationUtil {
 
     public static String asDottedPath(ConfigurationNode config) {
         Object[] objs = config.getPath();
-        if (objs.length < 1) return null;
+        if (objs.length < 1)
+            return null;
 
         StringBuilder pathBuilder = new StringBuilder();
         pathBuilder.append(objs[0]);

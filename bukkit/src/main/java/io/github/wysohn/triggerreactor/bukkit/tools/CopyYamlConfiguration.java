@@ -134,6 +134,7 @@ public class CopyYamlConfiguration extends YamlConfiguration {
 
         return result.toString();
     }
+
     protected static final String COMMENT_PREFIX = "# ";
     protected static final String BLANK_CONFIG = "{}\n";
 

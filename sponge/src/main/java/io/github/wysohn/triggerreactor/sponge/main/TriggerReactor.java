@@ -143,7 +143,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     protected void addItemLore(IItemStack iS, String lore) {
         ItemStack IS = iS.get();
         List<Text> lores = IS.get(Keys.ITEM_LORE).orElse(null);
-        if (lores == null) lores = new ArrayList<Text>();
+        if (lores == null)
+            lores = new ArrayList<Text>();
         lores.add(Text.of(lore));
         IS.offer(Keys.ITEM_LORE, lores);
     }
@@ -201,7 +202,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
                 if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1) throw new RuntimeException("Need parameter [String] or [String, boolean]");
+                    if (args.length < 1)
+                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
                         Trigger trigger = getNamedTriggerManager().get((String) args[0]);
@@ -222,10 +224,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
                         return true;
                     } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String." + " Make sure to put double quotes, if you provided String literal.");
+                        throw new RuntimeException("Parameter type not match; it should be a String."
+                                + " Make sure to put double quotes, if you provided String literal.");
                     }
                 } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync()) throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+                    if (!interpreter.isSync())
+                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
                     if (context instanceof Cancellable) {
                         ((Cancellable) context).setCancelled(true);
@@ -234,7 +238,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException(context + " is not a Cancellable event!");
                     }
                 } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+                    if (!(args[0] instanceof Number))
+                        throw new RuntimeException(args[0] + " is not a number!");
 
                     long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
                     if (e instanceof Event) {
@@ -275,6 +280,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
+    public AbstractNamedTriggerManager getNamedTriggerManager() {
+        return namedTriggerManager;
+    }
+
+    @Override
     public ProcessInterrupter createInterrupterForInv(Object e,
                                                       Interpreter interpreter,
                                                       Map<UUID, Long> cooldowns,
@@ -283,7 +293,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             @Override
             public boolean onCommand(Object context, String command, Object[] args) {
                 if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1) throw new RuntimeException("Need parameter [String] or [String, boolean]");
+                    if (args.length < 1)
+                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                     if (args[0] instanceof String) {
                         Trigger trigger = getNamedTriggerManager().get((String) args[0]);
@@ -304,10 +315,12 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
                         return true;
                     } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String." + " Make sure to put double quotes, if you provided String literal.");
+                        throw new RuntimeException("Parameter type not match; it should be a String."
+                                + " Make sure to put double quotes, if you provided String literal.");
                     }
                 } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync()) throw new RuntimeException("CANCELEVENT is illegal in async mode!");
+                    if (!interpreter.isSync())
+                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
                     if (context instanceof Cancellable) {
                         ((Cancellable) context).setCancelled(true);
@@ -316,7 +329,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                         throw new RuntimeException(context + " is not a Cancellable event!");
                     }
                 } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+                    if (!(args[0] instanceof Number))
+                        throw new RuntimeException(args[0] + " is not a number!");
 
                     long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
                     if (e instanceof Event) {
@@ -337,12 +351,14 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
                 //  is still running after the inventory is closed.
                 if (e instanceof InteractInventoryEvent.Open || e instanceof InteractInventoryEvent.Close) {
                     Inventory inv = ((InteractInventoryEvent) e).getTargetInventory();
-                    if (!(inv instanceof CarriedInventory)) return false;
+                    if (!(inv instanceof CarriedInventory))
+                        return false;
 
                     CarriedInventory inventory = (CarriedInventory) inv;
                     Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
 
-                    if (carrier == null) return false;
+                    if (carrier == null)
+                        return false;
 
                     //it's not GUI so stop execution
                     return !inventoryMap.containsKey(new SpongeInventory(inv, carrier));
@@ -433,15 +449,11 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public void disablePlugin() {
-        //Sponge doesn't disable plugins at runtime
-    }
-
-    @Override
     public IPlayer extractPlayerFromContext(Object e) {
         if (e instanceof Event) {
             Player player = ((Event) e).getCause().first(Player.class).orElse(null);
-            if (player != null) return new SpongePlayer(player);
+            if (player != null)
+                return new SpongePlayer(player);
         }
 
         return null;
@@ -455,8 +467,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public String getAuthor() {
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
-        if (plugin != null) return plugin.getAuthors().toString();
-        else return "?";
+        if (plugin != null)
+            return plugin.getAuthors().toString();
+        else
+            return "?";
     }
 
     @Override
@@ -508,23 +522,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public File getDataFolder() {
-        return this.privateConfigDir.toFile();
-    }
-
-    @Override
-    public AbstractExecutorManager getExecutorManager() {
-        return executorManager;
-    }
-
-    @Override
     public AbstractInventoryEditManager getInvEditManager() {
         return invEditManager;
-    }
-
-    @Override
-    public AbstractInventoryTriggerManager getInvManager() {
-        return invManager;
     }
 
     @Override
@@ -533,18 +532,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public Logger getLogger() {
-        return logger;
-    }
-
-    @Override
     public <T> T getMain() {
         return (T) this;
-    }
-
-    @Override
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
-        return namedTriggerManager;
     }
 
     @Override
@@ -553,14 +542,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     }
 
     @Override
-    public AbstractPlaceholderManager getPlaceholderManager() {
-        return placeholderManager;
-    }
-
-    @Override
     public IPlayer getPlayer(String string) {
         Player player = Sponge.getServer().getPlayer(string).orElse(null);
-        if (player == null) return null;
+        if (player == null)
+            return null;
 
         return new SpongePlayer(player);
     }
@@ -568,8 +553,10 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public String getPluginDescription() {
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
-        if (plugin != null) return plugin.getDescription().orElse(ID + " v[?]");
-        else return ID + " v[?]";
+        if (plugin != null)
+            return plugin.getDescription().orElse(ID + " v[?]");
+        else
+            return ID + " v[?]";
     }
 
     @Override
@@ -599,20 +586,15 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
     @Override
     public String getVersion() {
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(ID).orElse(null);
-        if (plugin != null) return plugin.getVersion().orElse("?");
-        else return "?";
+        if (plugin != null)
+            return plugin.getVersion().orElse("?");
+        else
+            return "?";
     }
 
     @Override
     public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
         return walkManager;
-    }
-
-    private void initFailed(Exception e) {
-        e.printStackTrace();
-        getLogger().severe("Initialization failed!");
-        getLogger().severe(e.getMessage());
-        disablePlugin();
     }
 
     @Override
@@ -635,82 +617,6 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         }
 
         return result;
-    }
-
-    private void migrateOldConfig() {
-        new ContinuingTasks.Builder().append(() -> {
-//                    if (getPluginConfigManager().isMigrationNeeded()) {
-//                        File file = new File(getDataFolder(), "config.yml");
-//                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
-//                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
-//                        ConfigurationNode confFileConfig = null;
-//                        try {
-//                            confFileConfig = varFileConfigLoader.load();
-//                        } catch (IOException e) {
-//                            e.printStackTrace();
-//                            return;
-//                        }
-//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(confFileConfig, file));
-//                    }
-                })
-                .append(() -> {
-                    if (getVariableManager().isMigrationNeeded()) {
-                        File file = new File(getDataFolder(), "var.yml");
-                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader = HoconConfigurationLoader.builder()
-                                .setPath(file.toPath())
-                                .build();
-                        ConfigurationNode varFileConfig = null;
-                        try {
-                            varFileConfig = varFileConfigLoader.load();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            return;
-                        }
-                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
-                    }
-                })
-                .append(() -> Optional.of(getInvManager())
-                        .map(AbstractTriggerManager::getTriggerInfos)
-                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
-                                .filter(TriggerInfo::isMigrationNeeded)
-                                .forEach(triggerInfo -> {
-                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-                                            .setPath(oldFile.toPath())
-                                            .build();
-                                    ConfigurationNode oldConfig = null;
-                                    try {
-                                        oldConfig = loader.load();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        return;
-                                    }
-                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
-                                })))
-                .append(() -> Manager.getManagers()
-                        .stream()
-                        .filter(AbstractTriggerManager.class::isInstance)
-                        .map(AbstractTriggerManager.class::cast)
-                        .map(AbstractTriggerManager::getTriggerInfos)
-                        .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                                .filter(TriggerInfo::isMigrationNeeded)
-                                .forEach(triggerInfo -> {
-                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                    ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder()
-                                            .setPath(oldFile.toPath())
-                                            .build();
-                                    ConfigurationNode oldConfig = null;
-                                    try {
-                                        oldConfig = loader.load();
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        return;
-                                    }
-                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
-                                })))
-                .run();
     }
 
     @Listener
@@ -752,6 +658,23 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
         tpsHelper = new Lag();
         Sponge.getScheduler().createTaskBuilder().execute(tpsHelper).delayTicks(100L).intervalTicks(1L).submit(this);
+    }
+
+    private void initFailed(Exception e) {
+        e.printStackTrace();
+        getLogger().severe("Initialization failed!");
+        getLogger().severe(e.getMessage());
+        disablePlugin();
+    }
+
+    @Override
+    public Logger getLogger() {
+        return logger;
+    }
+
+    @Override
+    public void disablePlugin() {
+        //Sponge doesn't disable plugins at runtime
     }
 
     @Listener
@@ -874,6 +797,95 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         migrateOldConfig();
     }
 
+    private void migrateOldConfig() {
+        new ContinuingTasks.Builder().append(() -> {
+//                    if (getPluginConfigManager().isMigrationNeeded()) {
+//                        File file = new File(getDataFolder(), "config.yml");
+//                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader
+//                                = HoconConfigurationLoader.builder().setPath(file.toPath()).build();
+//                        ConfigurationNode confFileConfig = null;
+//                        try {
+//                            confFileConfig = varFileConfigLoader.load();
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                            return;
+//                        }
+//                        getPluginConfigManager().migrate(new SpongeMigrationHelper(confFileConfig, file));
+//                    }
+                })
+                .append(() -> {
+                    if (getVariableManager().isMigrationNeeded()) {
+                        File file = new File(getDataFolder(), "var.yml");
+                        ConfigurationLoader<CommentedConfigurationNode> varFileConfigLoader =
+                                HoconConfigurationLoader.builder()
+                                .setPath(file.toPath())
+                                .build();
+                        ConfigurationNode varFileConfig = null;
+                        try {
+                            varFileConfig = varFileConfigLoader.load();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            return;
+                        }
+                        getVariableManager().migrate(new VariableMigrationHelper(varFileConfig, file));
+                    }
+                })
+                .append(() -> Optional.of(getInvManager())
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader =
+                                            HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldConfig));
+                                })))
+                .append(() -> Manager.getManagers()
+                        .stream()
+                        .filter(AbstractTriggerManager.class::isInstance)
+                        .map(AbstractTriggerManager.class::cast)
+                        .map(AbstractTriggerManager::getTriggerInfos)
+                        .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                                .filter(TriggerInfo::isMigrationNeeded)
+                                .forEach(triggerInfo -> {
+                                    File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                    File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                    ConfigurationLoader<CommentedConfigurationNode> loader =
+                                            HoconConfigurationLoader.builder()
+                                            .setPath(oldFile.toPath())
+                                            .build();
+                                    ConfigurationNode oldConfig = null;
+                                    try {
+                                        oldConfig = loader.load();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                        return;
+                                    }
+                                    triggerInfo.migrate(new NaiveMigrationHelper(oldConfig, oldFile));
+                                })))
+                .run();
+    }
+
+    @Override
+    public File getDataFolder() {
+        return this.privateConfigDir.toFile();
+    }
+
+    @Override
+    public AbstractInventoryTriggerManager getInvManager() {
+        return invManager;
+    }
+
     @Listener
     public void onLoadComplete(GameAboutToStartServerEvent e) {
         for (Entry<String, Class<? extends AbstractAPISupport>> entry : APISupport.getSharedVars().entrySet()) {
@@ -890,6 +902,16 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
         getPlaceholderManager().reload();
     }
 
+    @Override
+    public AbstractExecutorManager getExecutorManager() {
+        return executorManager;
+    }
+
+    @Override
+    public AbstractPlaceholderManager getPlaceholderManager() {
+        return placeholderManager;
+    }
+
     @Listener
     public void onTabComplete(TabCompleteEvent.Command e) {
         e.getCause().allOf(Player.class).stream().findFirst().map(SpongeCommandSender::new).ifPresent(sender -> {
@@ -900,8 +922,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             String[] args = e.getArguments().split(" ", -1);
             List<String> completions = e.getTabCompletions();
             completions.clear();
-            Optional.ofNullable(io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(sender,
-                                                                                                           args))
+            Optional.ofNullable(
+                            io.github.wysohn.triggerreactor.core.main.TriggerReactorCore.onTabComplete(sender, args))
                     .ifPresent(completions::addAll);
         });
     }
@@ -936,7 +958,8 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
     @Override
     public void saveAsynchronously(Manager manager) {
-        if (savings.contains(manager.getClass())) return;
+        if (savings.contains(manager.getClass()))
+            return;
 
         new Thread(new Runnable() {
             @Override
@@ -1015,6 +1038,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
             }
         }
     }
+
     protected static final String ID = "triggerreactor";
     private static SpongeExecutorService SYNC_EXECUTOR = null;
     private static SpongeWrapper WRAPPER = null;

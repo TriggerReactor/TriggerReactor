@@ -86,7 +86,8 @@ public class BukkitUtil {
                 Object out = method.invoke(e);
 
                 //how is it possible ?_?
-                if (out == null) return false; // just process it as noo left hand click
+                if (out == null)
+                    return false; // just process it as noo left hand click
 
                 Class<?> clazz = Class.forName("org.bukkit.inventory.EquipmentSlot");
                 if (!clazz.isEnum()) {//This is not likely the case but just for safety

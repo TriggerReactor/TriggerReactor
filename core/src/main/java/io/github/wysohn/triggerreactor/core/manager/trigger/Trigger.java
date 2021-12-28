@@ -299,6 +299,7 @@ public abstract class Trigger implements IObservable {
 
         return null;
     }
+
     private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();
     public static final String VAR_NAME_EVENT = "event";
     public static final String VAR_NAME_PLAYER = "player";

@@ -35,14 +35,16 @@ public class PlayerLocationManager extends AbstractPlayerLocationManager {
     @Listener(order = Order.FIRST)
     public void onMove(MoveEntityEvent e) {
         Entity entity = e.getTargetEntity();
-        if (!(entity instanceof Player)) return;
+        if (!(entity instanceof Player))
+            return;
 
         Player player = (Player) e.getTargetEntity();
 
         Transform<World> transformFrom = e.getFromTransform();
         Transform<World> transformTo = e.getToTransform();
 
-        if (transformFrom.equals(transformTo)) return;
+        if (transformFrom.equals(transformTo))
+            return;
 
         SimpleLocation from = getCurrentBlockLocation(player.getUniqueId());
         SimpleLocation to = LocationUtil.convertToSimpleLocation(transformTo.getLocation());

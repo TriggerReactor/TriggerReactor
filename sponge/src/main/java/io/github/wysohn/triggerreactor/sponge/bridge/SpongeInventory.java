@@ -32,7 +32,8 @@ public class SpongeInventory implements IInventory {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof SpongeInventory)) return false;
+        if (!(obj instanceof SpongeInventory))
+            return false;
 
         return carrier.equals(((SpongeInventory) obj).carrier);
     }

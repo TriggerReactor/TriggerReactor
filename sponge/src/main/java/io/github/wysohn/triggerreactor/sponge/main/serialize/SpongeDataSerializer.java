@@ -13,9 +13,8 @@ import java.util.Map;
 
 public class SpongeDataSerializer implements Serializer<DataSerializable> {
     @Override
-    public DataSerializable deserialize(JsonElement json,
-                                        Type typeOfT,
-                                        JsonDeserializationContext context) throws JsonParseException {
+    public DataSerializable deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws
+            JsonParseException {
         JsonObject ser = (JsonObject) json;
 
         DataContainer container = DataContainer.createNew();

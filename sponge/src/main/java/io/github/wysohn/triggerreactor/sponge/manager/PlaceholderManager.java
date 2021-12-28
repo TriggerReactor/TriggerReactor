@@ -16,23 +16,15 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Sp
 
     public PlaceholderManager(TriggerReactorCore plugin) throws ScriptException, IOException {
         super(plugin);
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION,
-                                  plugin.getDataFolder(),
-                                  CopyOption.REPLACE_IF_EXIST,
-                                  (original) -> {
-                                      return original.substring(0, original.indexOf("!" + JarUtil.JAR_SEPARATOR))
-                                              .replace("." + JarUtil.JAR_SEPARATOR, "");
-                                  });
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), CopyOption.REPLACE_IF_EXIST,
+                (original) -> {
+                    return original.substring(0, original.indexOf("!" + JarUtil.JAR_SEPARATOR))
+                            .replace("." + JarUtil.JAR_SEPARATOR, "");
+                });
 
         this.placeholderFolder = new File(plugin.getDataFolder(), "Placeholder");
 
         reload();
-    }
-
-    @Override
-    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
-        super.initScriptEngine(sem);
-        SpongeScriptEngineInitializer.super.initScriptEngine(sem);
     }
 
     @Override
@@ -57,10 +49,17 @@ public class PlaceholderManager extends AbstractPlaceholderManager implements Sp
     }
 
     @Override
+    public void initScriptEngine(ScriptEngineManager sem) throws ScriptException {
+        super.initScriptEngine(sem);
+        SpongeScriptEngineInitializer.super.initScriptEngine(sem);
+    }
+
+    @Override
     public void saveAll() {
         // TODO Auto-generated method stub
 
     }
+
     private static final String JAR_FOLDER_LOCATION = "Placeholder";
 
 }

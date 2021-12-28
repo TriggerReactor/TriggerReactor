@@ -37,7 +37,7 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
     WalkTriggerManager walkTriggerManager;
 
     @Inject
-    LocationTriggerListener(){
+    LocationTriggerListener() {
 
     }
 
@@ -46,11 +46,6 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onClickForClickTrigger(PlayerInteractEvent e) {
         onClick(e, clickTriggerManager);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onClickForWalkTrigger(PlayerInteractEvent e) {
-        onClick(e, walkTriggerManager);
     }
 
     private void onClick(PlayerInteractEvent e, AbstractLocationBasedTriggerManager<?> manager) {
@@ -62,13 +57,13 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
         if (clicked == null)
             return;
 
-        if(e.isCancelled())
+        if (e.isCancelled())
             return;
 
         AbstractLocationBasedTriggerManager.ClickType type;
-        if(e.getAction() == Action.LEFT_CLICK_BLOCK)
+        if (e.getAction() == Action.LEFT_CLICK_BLOCK)
             type = AbstractLocationBasedTriggerManager.ClickType.LEFT_CLICK;
-        else if(e.getAction() == Action.RIGHT_CLICK_BLOCK)
+        else if (e.getAction() == Action.RIGHT_CLICK_BLOCK)
             type = AbstractLocationBasedTriggerManager.ClickType.RIGHT_CLICK;
         else
             return;
@@ -76,6 +71,11 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
         e.setCancelled(
                 !manager.onClick(LocationUtil.convertToSimpleLocation(clicked.getLocation()), wrapper.wrap(player),
                         type));
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onClickForWalkTrigger(PlayerInteractEvent e) {
+        onClick(e, walkTriggerManager);
     }
 
     @EventHandler
@@ -96,14 +96,6 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
         onSignBreak(e, clickTriggerManager);
     }
 
-    @EventHandler(priority = EventPriority.LOW)
-    public void onSignBreakWalkTrigger(BlockBreakEvent e) {
-        if (e.isCancelled())
-            return;
-
-        onSignBreak(e, walkTriggerManager);
-    }
-
     public void onSignBreak(BlockBreakEvent e, AbstractLocationBasedTriggerManager<?> manager) {
         Block block = e.getBlock();
         Block above = block.getRelative(BlockFace.UP);
@@ -118,20 +110,35 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
         e.setCancelled(bbe.isCancelled());
     }
 
+    public void onBreak(BlockBreakEvent e, AbstractLocationBasedTriggerManager<?> manager) {
+        if (e.isCancelled())
+            return;
+
+        if (!manager.isTrigger(LocationUtil.convertToSimpleLocation(e.getBlock().getLocation())))
+            return;
+
+        Player player = e.getPlayer();
+
+        player.sendMessage(ChatColor.GRAY + "Cannot break trigger block.");
+        player.sendMessage(
+                ChatColor.GRAY + "To remove trigger, hold inspection tool " + BukkitItemStack.INSPECTION_TOOL.name());
+        e.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onSignBreakWalkTrigger(BlockBreakEvent e) {
+        if (e.isCancelled())
+            return;
+
+        onSignBreak(e, walkTriggerManager);
+    }
+
     @EventHandler(priority = EventPriority.LOW)
     public void onWallSignBreakClick(BlockBreakEvent e) {
         if (e.isCancelled())
             return;
 
         onWallSignBreak(e, clickTriggerManager);
-    }
-
-    @EventHandler(priority = EventPriority.LOW)
-    public void onWallSignBreakWalk(BlockBreakEvent e) {
-        if (e.isCancelled())
-            return;
-
-        onWallSignBreak(e, walkTriggerManager);
     }
 
     public void onWallSignBreak(BlockBreakEvent e, AbstractLocationBasedTriggerManager<?> manager) {
@@ -146,30 +153,6 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
                 break;
             }
         }
-    }
-
-    @EventHandler
-    public void onBreakClickTrigger(BlockBreakEvent e) {
-        onBreak(e, clickTriggerManager);
-    }
-
-    @EventHandler
-    public void onBreakWalkTrigger(BlockBreakEvent e) {
-        onBreak(e, walkTriggerManager);
-    }
-
-    public void onBreak(BlockBreakEvent e, AbstractLocationBasedTriggerManager<?> manager) {
-        if (e.isCancelled())
-            return;
-
-        if (!manager.isTrigger(LocationUtil.convertToSimpleLocation(e.getBlock().getLocation())))
-            return;
-
-        Player player = e.getPlayer();
-
-        player.sendMessage(ChatColor.GRAY + "Cannot break trigger block.");
-        player.sendMessage(ChatColor.GRAY + "To remove trigger, hold inspection tool " + BukkitItemStack.INSPECTION_TOOL.name());
-        e.setCancelled(true);
     }
 
     private Collection<Block> getSurroundingBlocks(Block block, Predicate<Block> pred) {
@@ -201,6 +184,24 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
         return blocks;
     }
 
+    @EventHandler(priority = EventPriority.LOW)
+    public void onWallSignBreakWalk(BlockBreakEvent e) {
+        if (e.isCancelled())
+            return;
+
+        onWallSignBreak(e, walkTriggerManager);
+    }
+
+    @EventHandler
+    public void onBreakClickTrigger(BlockBreakEvent e) {
+        onBreak(e, clickTriggerManager);
+    }
+
+    @EventHandler
+    public void onBreakWalkTrigger(BlockBreakEvent e) {
+        onBreak(e, walkTriggerManager);
+    }
+
     /// click trigger
     @EventHandler(ignoreCancelled = true)
     public void onClickTrigger(PlayerInteractEvent e) {
@@ -215,7 +216,7 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
 
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(clicked.getLocation());
         AbstractLocationBasedTriggerManager.ClickType type;
-        switch (e.getAction()){
+        switch (e.getAction()) {
             case LEFT_CLICK_BLOCK:
                 type = AbstractLocationBasedTriggerManager.ClickType.LEFT_CLICK;
                 break;

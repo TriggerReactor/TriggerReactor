@@ -57,11 +57,22 @@ public class McMmoSupport extends APISupport {
      */
     public void addLevel(Player player, String skillType, int levels) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 
         mmoPlayer.addLevels(type, levels);
+    }
+
+    /**
+     * get MCMMOPlayer object directly.
+     *
+     * @param name
+     * @return
+     */
+    public Object player(String name) {
+        return UserManager.getOfflinePlayer(name);
     }
 
     /**
@@ -73,7 +84,8 @@ public class McMmoSupport extends APISupport {
      */
     public void addXp(Player player, String skillType, int xp) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 
@@ -89,7 +101,8 @@ public class McMmoSupport extends APISupport {
      */
     public int cooldown(Player player, String abilityType) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         SuperAbilityType type = SuperAbilityType.valueOf(abilityType);
 
@@ -105,21 +118,12 @@ public class McMmoSupport extends APISupport {
      */
     public int level(Player player, String skillType) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 
         return mmoPlayer.getSkillLevel(type);
-    }
-
-    /**
-     * get MCMMOPlayer object directly.
-     *
-     * @param name
-     * @return
-     */
-    public Object player(String name) {
-        return UserManager.getOfflinePlayer(name);
     }
 
     /**
@@ -131,7 +135,8 @@ public class McMmoSupport extends APISupport {
      */
     public void removeXp(Player player, String skillType, int xp) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 
@@ -147,7 +152,8 @@ public class McMmoSupport extends APISupport {
      */
     public void setLevel(Player player, String skillType, int level) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 
@@ -163,7 +169,8 @@ public class McMmoSupport extends APISupport {
      */
     public double xp(Player player, String skillType) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 
@@ -179,7 +186,8 @@ public class McMmoSupport extends APISupport {
      */
     public double xpRemain(Player player, String skillType) {
         McMMOPlayer mmoPlayer = (McMMOPlayer) player(player.getName());
-        if (mmoPlayer == null) throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
+        if (mmoPlayer == null)
+            throw new RuntimeException("Could not find MCMMO info for player " + player.getName());
 
         PrimarySkillType type = PrimarySkillType.getSkill(skillType);
 

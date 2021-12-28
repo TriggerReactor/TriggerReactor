@@ -39,11 +39,16 @@ public class TriggerReactor extends AbstractJavaPlugin {
     private boolean notFound = false;
 
     @Override
+    protected TriggerReactorMain getMainComponent() {
+        return component.main();
+    }
+
+    @Override
     public void onEnable() {
         component = DaggerLatestBukkitPluginMainComponent.builder()
                 .bukkitPluginMainComponent(DaggerBukkitPluginMainComponent.builder()
-                                                   .pluginMainComponent(DaggerPluginMainComponent.create())
-                                                   .build())
+                        .pluginMainComponent(DaggerPluginMainComponent.create())
+                        .build())
                 .build();
         component.inject(this);
 
@@ -51,8 +56,32 @@ public class TriggerReactor extends AbstractJavaPlugin {
     }
 
     @Override
-    protected TriggerReactorMain getMainComponent() {
-        return component.main();
+    public void synchronizeCommandMap() {
+        if (notFound) // in case of the syncCommands method doesn't exist, just skip it
+            return; // command still works without synchronization anyway
+
+        Server server = Bukkit.getServer();
+        if (syncMethod == null) {
+            try {
+                syncMethod = server.getClass().getDeclaredMethod("syncCommands");
+                syncMethod.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                if (isDebugging())
+                    e.printStackTrace();
+
+                getLogger().warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer"
+                        + " may not work with this error. Report to us if you believe this version has to support it.");
+                getLogger().warning("Use /trg debug to see more details.");
+                notFound = true;
+                return;
+            }
+        }
+
+        try {
+            syncMethod.invoke(server);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -73,38 +102,13 @@ public class TriggerReactor extends AbstractJavaPlugin {
             Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
             return (Map<String, Command>) knownCommands.invoke(scm);
         } catch (Exception ex) {
-            if (component.pluginLifecycle().isDebugging()) ex.printStackTrace();
+            if (component.pluginLifecycle().isDebugging())
+                ex.printStackTrace();
 
-            getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old" + " version of Bukkit. Please report this to TR team, so we can work on it.");
+            getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old"
+                    + " version of Bukkit. Please report this to TR team, so we can work on it.");
             getLogger().warning("Use /trg debug to see more details.");
             return null;
-        }
-    }
-
-    @Override
-    public void synchronizeCommandMap() {
-        if (notFound) // in case of the syncCommands method doesn't exist, just skip it
-            return; // command still works without synchronization anyway
-
-        Server server = Bukkit.getServer();
-        if (syncMethod == null) {
-            try {
-                syncMethod = server.getClass().getDeclaredMethod("syncCommands");
-                syncMethod.setAccessible(true);
-            } catch (NoSuchMethodException e) {
-                if (isDebugging()) e.printStackTrace();
-
-                getLogger().warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer" + " may not work with this error. Report to us if you believe this version has to support it.");
-                getLogger().warning("Use /trg debug to see more details.");
-                notFound = true;
-                return;
-            }
-        }
-
-        try {
-            syncMethod.invoke(server);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
         }
     }
 }

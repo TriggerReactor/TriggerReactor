@@ -141,7 +141,8 @@ public class TestParser {
     @Test
     public void testIf() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "" + "IF i == 0;" + "    #MESSAGE 0;" + "ELSEIF i == 1;" + "    #MESSAGE 1;" + "ELSEIF i == 2;" + "    #MESSAGE 2;" + "ELSE;" + "    #MESSAGE 3;" + "ENDIF;";
+        String text = "" + "IF i == 0;" + "    #MESSAGE 0;" + "ELSEIF i == 1;" + "    #MESSAGE 1;" + "ELSEIF i == 2;"
+                + "    #MESSAGE 2;" + "ELSE;" + "    #MESSAGE 3;" + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -195,7 +196,8 @@ public class TestParser {
     @Test
     public void testIncrementAndDecrement() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "a = 2\n" + "a = ++a * --a - a++ / a--\n" + "a = -(--a) -(++a) -(a++) -(a--)\n" + "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
+        String text = "a = 2\n" + "a = ++a * --a - a++ / a--\n" + "a = -(--a) -(++a) -(a++) -(a--)\n"
+                + "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -294,7 +296,8 @@ public class TestParser {
     @Test
     public void testNegation() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "" + "IF !(true && false && true || 2 < 1 && 1 < 2)\n" + "    #MESSAGE \"test i=\"+i\n" + "ENDIF\n";
+        String text =
+                "" + "IF !(true && false && true || 2 < 1 && 1 < 2)\n" + "    #MESSAGE \"test i=\"+i\n" + "ENDIF\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);

@@ -14,7 +14,7 @@ public interface ExecutorTestComponent {
     ExecutorManager executorManager();
 
     @Component.Builder
-    interface Builder{
+    interface Builder {
         ExecutorTestComponent build();
 
         Builder engineComponent(ScriptEngineComponent component);

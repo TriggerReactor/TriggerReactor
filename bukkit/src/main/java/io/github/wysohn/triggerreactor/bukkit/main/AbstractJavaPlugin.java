@@ -144,9 +144,13 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         return getServer().getPluginManager().isPluginEnabled(pluginName);
     }
 
+    protected abstract BukkitPluginMainComponent getMainComponent();
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return this.getMainComponent().main().onCommand(getMainComponent().main().getWrapper().wrap(sender), command.getName(), args);
+        return this.getMainComponent()
+                .main()
+                .onCommand(getMainComponent().main().getWrapper().wrap(sender), command.getName(), args);
     }
 
     @Override
@@ -174,9 +178,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
                 .builder();
 
-        apiComponent = DaggerAPIComponent.builder()
-                .bootstrapComponent(getBootstrapComponent())
-                .build();
+        apiComponent = DaggerAPIComponent.builder().bootstrapComponent(getBootstrapComponent()).build();
 
         initBungeeHelper();
         initMysql();
@@ -198,6 +200,91 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
     }
 
     protected abstract BootstrapComponent getBootstrapComponent();
+
+    private void initBungeeHelper() {
+        bungeeHelper = new BungeeCordHelper();
+        bungeeConnectionThread = new Thread(bungeeHelper);
+        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
+        bungeeConnectionThread.start();
+    }
+
+    private void initMysql() {
+        FileConfiguration config = getConfig();
+        if (config.getBoolean("Mysql.Enable", false)) {
+            try {
+                getLogger().info("Initializing Mysql support...");
+                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"), config.getString("Mysql.DbName"),
+                        "data", config.getString("Mysql.UserName"), config.getString("Mysql.Password"));
+                getLogger().info(mysqlHelper.toString());
+                getLogger().info("Done!");
+            } catch (SQLException e) {
+                e.printStackTrace();
+                getLogger().warning("Failed to initialize Mysql. Check for the error above.");
+            }
+        } else {
+            String path = "Mysql.Enable";
+            if (!config.isSet(path))
+                config.set(path, false);
+            path = "Mysql.Address";
+            if (!config.isSet(path))
+                config.set(path, "127.0.0.1:3306");
+            path = "Mysql.DbName";
+            if (!config.isSet(path))
+                config.set(path, "TriggerReactor");
+            path = "Mysql.UserName";
+            if (!config.isSet(path))
+                config.set(path, "root");
+            path = "Mysql.Password";
+            if (!config.isSet(path))
+                config.set(path, "1234");
+
+            saveConfig();
+        }
+    }
+
+    private void migrateOldConfig() {
+        new ContinuingTasks.Builder().append(() -> {
+            if (api.getPluginConfigManager().isMigrationNeeded()) {
+                api.getPluginConfigManager()
+                        .migrate(new NaiveMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
+            }
+        }).append(() -> {
+            if (api.getGlobalVariableManager().isMigrationNeeded()) {
+                File file = new File(getDataFolder(), "var.yml");
+                FileConfiguration conf = new Utf8YamlConfiguration();
+                try {
+                    conf.load(file);
+                } catch (IOException | InvalidConfigurationException e) {
+                    e.printStackTrace();
+                }
+                api.getGlobalVariableManager().migrate(new NaiveMigrationHelper(conf, file));
+            }
+        }).append(() -> {
+            Optional.of(api.getInventoryTriggerManager())
+                    .map(AbstractTriggerManager::getTriggerInfos)
+                    .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
+                            .filter(TriggerInfo::isMigrationNeeded)
+                            .forEach(triggerInfo -> {
+                                File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldFileConfig));
+                            }));
+        }).append(() -> {
+            getManagers().stream()
+                    .filter(AbstractTriggerManager.class::isInstance)
+                    .map(AbstractTriggerManager.class::cast)
+                    .map(AbstractTriggerManager::getTriggerInfos)
+                    .forEach(triggerInfos -> Arrays.stream(triggerInfos)
+                            .filter(TriggerInfo::isMigrationNeeded)
+                            .forEach(triggerInfo -> {
+                                File folder = triggerInfo.getSourceCodeFile().getParentFile();
+                                File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
+                                FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
+                                triggerInfo.migrate(new NaiveMigrationHelper(oldFileConfig, oldFile));
+                            }));
+        }).run();
+    }
 
     public void runTask(Runnable runnable) {
         Bukkit.getScheduler().runTask(this, runnable);
@@ -287,7 +374,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
             return getMainComponent().main().getWrapper().wrap(player);
         } else if (e instanceof InventoryInteractEvent) {
             HumanEntity he = ((InventoryInteractEvent) e).getWhoClicked();
-            if (he instanceof Player) return getMainComponent().main().getWrapper().wrap(he);
+            if (he instanceof Player)
+                return getMainComponent().main().getWrapper().wrap(he);
         }
 
         return null;
@@ -338,8 +426,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
     public IPlayer getPlayer(String string) {
         Player player = Bukkit.getPlayer(string);
-        if (player != null) return getMainComponent().main().getWrapper().wrap(player);
-        else return null;
+        if (player != null)
+            return getMainComponent().main().getWrapper().wrap(player);
+        else
+            return null;
     }
 
     public boolean removeLore(IItemStack iS, int index) {
@@ -347,7 +437,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
         ItemMeta IM = IS.getItemMeta();
         List<String> lores = IM.getLore();
-        if (lores == null || index < 0 || index > lores.size() - 1) return false;
+        if (lores == null || index < 0 || index > lores.size() - 1)
+            return false;
 
         lores.remove(index);
         IM.setLore(lores);
@@ -368,7 +459,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
         ItemMeta IM = IS.getItemMeta();
         List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        if (lore == null || index < 0 || index > lores.size() - 1) return false;
+        if (lore == null || index < 0 || index > lores.size() - 1)
+            return false;
 
         lores.set(index, lore);
         IM.setLore(lores);
@@ -381,16 +473,16 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         for (Map.Entry<SimpleLocation, Trigger> entry : set) {
             SimpleLocation sloc = entry.getKey();
             Player player = sender.get();
-            player.sendBlockChange(new Location(Bukkit.getWorld(sloc.getWorld()),
-                                                sloc.getX(),
-                                                sloc.getY(),
-                                                sloc.getZ()), Material.GLOWSTONE, (byte) 0);
+            player.sendBlockChange(
+                    new Location(Bukkit.getWorld(sloc.getWorld()), sloc.getX(), sloc.getY(), sloc.getZ()),
+                    Material.GLOWSTONE, (byte) 0);
         }
     }
 
     @Override
     public Iterable<? extends IPlayer> getOnlinePlayers() {
-        return getServer().getOnlinePlayers().stream()
+        return getServer().getOnlinePlayers()
+                .stream()
                 .map(wrapper::wrap)
                 .map(IPlayer.class::cast)
                 .collect(Collectors.toList());
@@ -402,33 +494,12 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         return wrapper.wrap(Bukkit.createInventory(null, size, name));
     }
 
-    public boolean isServerThread() {
-        boolean result = false;
-
-        synchronized (this) {
-            result = Bukkit.isPrimaryThread();
-        }
-
-        return result;
-    }
-
-    @Override
-    public void submitAsync(Runnable run) {
-        getServer().getScheduler().runTaskAsynchronously(this, run);
-    }
-
-    @Override
-    public <T> Future<T> submitSync(Callable<T> call) {
-        return getServer().getScheduler().callSyncMethod(this, call);
-    }
-
-    protected abstract BukkitPluginMainComponent getMainComponent();
-
     private ProcessInterrupter.Builder appendCooldownInterrupter(ProcessInterrupter.Builder builder,
                                                                  Map<UUID, Long> cooldowns) {
         return builder.perExecutor(((context, command, args) -> {
             if ("COOLDOWN".equalsIgnoreCase(command)) {
-                if (!(args[0] instanceof Number)) throw new RuntimeException(args[0] + " is not a number!");
+                if (!(args[0] instanceof Number))
+                    throw new RuntimeException(args[0] + " is not a number!");
 
                 Player player = (Player) context.getVar(Trigger.VAR_NAME_PLAYER);
                 if (player != null) {
@@ -443,7 +514,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         })).perPlaceholder((context, placeholder, args) -> {
 //            if ("cooldown".equals(placeholder)) {
 //                if (context.getTriggerCause() instanceof PlayerEvent) {
-//                    return cooldowns.getOrDefault(((PlayerEvent) context.getTriggerCause()).getPlayer().getUniqueId(), 0L);
+//                    return cooldowns.getOrDefault(((PlayerEvent) context.getTriggerCause()).getPlayer().getUniqueId
+//                    (), 0L);
 //                } else {
 //                    return 0;
 //                }
@@ -452,109 +524,16 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         });
     }
 
-    public BungeeCordHelper getBungeeHelper() {
-        return bungeeHelper;
-    }
-
-    public File getJarFile() {
-        return super.getFile();
-    }
-
-    public MysqlSupport getMysqlHelper() {
-        return mysqlHelper;
-    }
-
-    private void initBungeeHelper() {
-        bungeeHelper = new BungeeCordHelper();
-        bungeeConnectionThread = new Thread(bungeeHelper);
-        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
-        bungeeConnectionThread.start();
-    }
-
-    private void initMysql() {
-        FileConfiguration config = getConfig();
-        if (config.getBoolean("Mysql.Enable", false)) {
-            try {
-                getLogger().info("Initializing Mysql support...");
-                mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
-                                               config.getString("Mysql.DbName"),
-                                               "data",
-                                               config.getString("Mysql.UserName"),
-                                               config.getString("Mysql.Password"));
-                getLogger().info(mysqlHelper.toString());
-                getLogger().info("Done!");
-            } catch (SQLException e) {
-                e.printStackTrace();
-                getLogger().warning("Failed to initialize Mysql. Check for the error above.");
-            }
-        } else {
-            String path = "Mysql.Enable";
-            if (!config.isSet(path)) config.set(path, false);
-            path = "Mysql.Address";
-            if (!config.isSet(path)) config.set(path, "127.0.0.1:3306");
-            path = "Mysql.DbName";
-            if (!config.isSet(path)) config.set(path, "TriggerReactor");
-            path = "Mysql.UserName";
-            if (!config.isSet(path)) config.set(path, "root");
-            path = "Mysql.Password";
-            if (!config.isSet(path)) config.set(path, "1234");
-
-            saveConfig();
-        }
-    }
-
-    private void migrateOldConfig() {
-        new ContinuingTasks.Builder().append(() -> {
-            if (api.getPluginConfigManager().isMigrationNeeded()) {
-                api.getPluginConfigManager()
-                        .migrate(new NaiveMigrationHelper(getConfig(), new File(getDataFolder(), "config.yml")));
-            }
-        }).append(() -> {
-            if (api.getGlobalVariableManager().isMigrationNeeded()) {
-                File file = new File(getDataFolder(), "var.yml");
-                FileConfiguration conf = new Utf8YamlConfiguration();
-                try {
-                    conf.load(file);
-                } catch (IOException | InvalidConfigurationException e) {
-                    e.printStackTrace();
-                }
-                api.getGlobalVariableManager().migrate(new NaiveMigrationHelper(conf, file));
-            }
-        }).append(() -> {
-            Optional.of(api.getInventoryTriggerManager())
-                    .map(AbstractTriggerManager::getTriggerInfos)
-                    .ifPresent(triggerInfos -> Arrays.stream(triggerInfos)
-                            .filter(TriggerInfo::isMigrationNeeded)
-                            .forEach(triggerInfo -> {
-                                File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                                triggerInfo.migrate(new InvTriggerMigrationHelper(oldFile, oldFileConfig));
-                            }));
-        }).append(() -> {
-            getManagers().stream()
-                    .filter(AbstractTriggerManager.class::isInstance)
-                    .map(AbstractTriggerManager.class::cast)
-                    .map(AbstractTriggerManager::getTriggerInfos)
-                    .forEach(triggerInfos -> Arrays.stream(triggerInfos)
-                            .filter(TriggerInfo::isMigrationNeeded)
-                            .forEach(triggerInfo -> {
-                                File folder = triggerInfo.getSourceCodeFile().getParentFile();
-                                File oldFile = new File(folder, triggerInfo.getTriggerName() + ".yml");
-                                FileConfiguration oldFileConfig = YamlConfiguration.loadConfiguration(oldFile);
-                                triggerInfo.migrate(new NaiveMigrationHelper(oldFileConfig, oldFile));
-                            }));
-        }).run();
-    }
-
     private ProcessInterrupter.Builder newInterrupterBuilder() {
         return ProcessInterrupter.Builder.begin().perExecutor((context, command, args) -> {
             if ("CALL".equalsIgnoreCase(command)) {
-                if (args.length < 1) throw new RuntimeException("Need parameter [String] or [String, boolean]");
+                if (args.length < 1)
+                    throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
                 if (args[0] instanceof String) {
                     Trigger trigger = api.getNamedTriggerManager().get((String) args[0]);
-                    if (trigger == null) throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
+                    if (trigger == null)
+                        throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
                     boolean sync = true;
                     if (args.length > 1 && args[1] instanceof Boolean) {
@@ -569,7 +548,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
                     return true;
                 } else {
-                    throw new RuntimeException("Parameter type not match; it should be a String." + " Make sure to put double quotes, if you provided String literal.");
+                    throw new RuntimeException("Parameter type not match; it should be a String."
+                            + " Make sure to put double quotes, if you provided String literal.");
                 }
             }
 
@@ -592,8 +572,41 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         });
     }
 
+    public boolean isServerThread() {
+        boolean result = false;
+
+        synchronized (this) {
+            result = Bukkit.isPrimaryThread();
+        }
+
+        return result;
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        getServer().getScheduler().runTaskAsynchronously(this, run);
+    }
+
+    @Override
+    public <T> Future<T> submitSync(Callable<T> call) {
+        return getServer().getScheduler().callSyncMethod(this, call);
+    }
+
+    public BungeeCordHelper getBungeeHelper() {
+        return bungeeHelper;
+    }
+
+    public File getJarFile() {
+        return super.getFile();
+    }
+
+    public MysqlSupport getMysqlHelper() {
+        return mysqlHelper;
+    }
+
     public void registerEvents(Manager manager) {
-        if (manager instanceof Listener) Bukkit.getPluginManager().registerEvents((Listener) manager, this);
+        if (manager instanceof Listener)
+            Bukkit.getPluginManager().registerEvents((Listener) manager, this);
     }
 
     public class MysqlSupport {
@@ -607,13 +620,12 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         private final String tablename;
 
         private final String address;
-        private final String CREATETABLEQUARY = "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY + " CHAR(128) PRIMARY KEY," + "" + VALUE + " MEDIUMBLOB" + ")";
+        private final String CREATETABLEQUARY =
+                "" + "CREATE TABLE IF NOT EXISTS %s (" + "" + KEY + " CHAR(128) PRIMARY KEY," + "" + VALUE
+                        + " MEDIUMBLOB" + ")";
 
-        private MysqlSupport(String address,
-                             String dbName,
-                             String tablename,
-                             String userName,
-                             String password) throws SQLException {
+        private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws
+                SQLException {
             this.dbName = dbName;
             this.tablename = tablename;
             this.address = address;
@@ -638,11 +650,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
             conn.close();
         }
 
-        @Override
-        public String toString() {
-            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
-        }
-
         private Connection createConnection() {
             Connection conn = null;
 
@@ -651,21 +658,35 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
             } catch (SQLException e) {
                 // e.printStackTrace();
             } finally {
-                if (conn == null) conn = pool.getValidConnection();
+                if (conn == null)
+                    conn = pool.getValidConnection();
             }
 
             return conn;
+        }
+
+        private void initTable(Connection conn) throws SQLException {
+            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
+            pstmt.executeUpdate();
+            pstmt.close();
+        }
+
+        @Override
+        public String toString() {
+            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
         }
 
         public Object get(String key) throws SQLException {
             Object out = null;
 
             try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
+                 PreparedStatement pstmt = conn.prepareStatement(
+                         "SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
                 pstmt.setString(1, key);
                 ResultSet rs = pstmt.executeQuery();
 
-                if (!rs.next()) return null;
+                if (!rs.next())
+                    return null;
                 InputStream is = rs.getBinaryStream(VALUE);
 
                 try (ObjectInputStream ois = new ObjectInputStream(is)) {
@@ -677,12 +698,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
             }
 
             return out;
-        }
-
-        private void initTable(Connection conn) throws SQLException {
-            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
-            pstmt.executeUpdate();
-            pstmt.close();
         }
 
         public void set(String key, Serializable value) throws SQLException {
@@ -736,12 +751,14 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
                 Set<String> serverListSet = Sets.newHashSet(serverList);
 
                 for (String server : serverListSet) {
-                    if (!playerCounts.containsKey(server)) playerCounts.put(server, -1);
+                    if (!playerCounts.containsKey(server))
+                        playerCounts.put(server, -1);
                 }
 
                 Set<String> deleteServer = new HashSet<>();
                 for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
-                    if (!serverListSet.contains(entry.getKey())) deleteServer.add(entry.getKey());
+                    if (!serverListSet.contains(entry.getKey()))
+                        deleteServer.add(entry.getKey());
                 }
 
                 for (String delete : deleteServer) {
@@ -759,7 +776,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
         public void run() {
             while (!Thread.interrupted()) {
                 Player player = Iterables.getFirst(BukkitUtil.getOnlinePlayers(), null);
-                if (player == null) return;
+                if (player == null)
+                    return;
 
                 ByteArrayDataOutput out = ByteStreams.newDataOutput();
                 out.writeUTF(SUB_SERVERLIST);

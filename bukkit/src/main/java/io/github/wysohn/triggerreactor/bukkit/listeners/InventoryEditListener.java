@@ -39,19 +39,28 @@ public final class InventoryEditListener extends AbstractBukkitListener {
         sendMessage((Player) e.getPlayer());
     }
 
+    private void sendMessage(Player player) {
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), message.replace("@p", player.getName()));
+    }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         inventoryEditManager.stopEdit(wrapper.wrap(event.getPlayer()));
-    }
-
-    private void sendMessage(Player player) {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), message.replace("@p", player.getName()));
     }
 
     protected static final char X = '\u2718';
     protected static final char CHECK = '\u2713';
     protected static final char PENCIL = '\u270E';
 
-    private static final String message = "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},{\"text\":\"\\n\"},{\"text\":\"" + PENCIL + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},{\"text\":\"\\n\"},{\"text\":\"" + X + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
+    private static final String message =
+            "tellraw @p [\"\",{\"text\":\"" + CHECK + " Save\",\"bold\":true,\"underlined\":false,\"color\":\"green\","
+                    + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditsave\"}},"
+                    + "{\"text\":\"\\n\"},"
+                    + "{\"text\":\"" + PENCIL
+                    + " Continue Editing\",\"bold\":true,\"underlined\":false,\"color\":\"yellow\","
+                    + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditcontinue\"}},"
+                    + "{\"text\":\"\\n\"},{\"text\":\"" + X
+                    + " Cancel\",\"bold\":true,\"underlined\":false,\"color\":\"red\","
+                    + "\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/trg links inveditdiscard\"}}]";
 
 }

@@ -17,7 +17,7 @@ public class BukkitGUIOpenHelper implements IGUIOpenHelper {
     InventoryTriggerManager inventoryTriggerManager;
 
     @Inject
-    BukkitGUIOpenHelper(){
+    BukkitGUIOpenHelper() {
 
     }
 

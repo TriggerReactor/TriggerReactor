@@ -75,7 +75,8 @@ public class WorldguardSupport extends APISupport {
 
         RegionContainer container = wg.getPlatform().getRegionContainer();
         ProtectedRegion region = container.get(BukkitAdapter.adapt(world)).getRegion(regionName);
-        if (region == null) return null;
+        if (region == null)
+            return null;
 
         BlockVector3 min = region.getMinimumPoint();
         BlockVector3 max = region.getMaximumPoint();
@@ -105,12 +106,12 @@ public class WorldguardSupport extends APISupport {
         return names;
     }
 
+    private BlockVector3 toVector3(Location loc) {
+        return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
+    }
+
     public boolean regionExists(World world, String regionName) {
         RegionContainer container = wg.getPlatform().getRegionContainer();
         return container.get(BukkitAdapter.adapt(world)).getRegion(regionName) != null;
-    }
-
-    private BlockVector3 toVector3(Location loc) {
-        return BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
     }
 }

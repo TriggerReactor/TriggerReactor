@@ -38,7 +38,7 @@ public interface BukkitGameControllerComponent {
     TaskSupervisor task();
 
     @Component.Builder
-    interface Builder{
+    interface Builder {
         BukkitGameControllerComponent build();
 
         // injects

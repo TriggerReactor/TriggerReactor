@@ -52,8 +52,6 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
     protected abstract boolean isEqual(ItemStack IS1, ItemStack IS2);
 
-    protected abstract boolean isSimilar(ItemStack IS1, ItemStack IS2);
-
     @Test
     public abstract void testGetPlayers();
 
@@ -111,11 +109,14 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
             int count = 0;
             for (ItemStack IS : inv.contents) {
-                if (IS == null) continue;
+                if (IS == null)
+                    continue;
 
-                if (isSimilar(IS, target)) count += IS.getAmount();
+                if (isSimilar(IS, target))
+                    count += IS.getAmount();
 
-                if (count >= amount) return true;
+                if (count >= amount)
+                    return true;
             }
 
             return false;
@@ -165,6 +166,8 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
         return mockInventory;
     }
+
+    protected abstract boolean isSimilar(ItemStack IS1, ItemStack IS2);
 
     @Test
     public void testAddLore() {
@@ -390,7 +393,8 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
             }
             ItemStack[] inventory = contents;
             for (int i = 0; i < inventory.length; i++) {
-                if (inventory[i] == null) continue;
+                if (inventory[i] == null)
+                    continue;
 
                 if (withAmount ? item.equals(inventory[i]) : isSimilar(item, inventory[i])) {
                     return i;

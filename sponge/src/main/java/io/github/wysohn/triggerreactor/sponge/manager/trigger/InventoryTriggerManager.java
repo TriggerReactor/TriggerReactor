@@ -87,7 +87,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         item = item.copy();
 
         Text displayName = item.get(Keys.DISPLAY_NAME).orElse(null);
-        if (displayName != null) item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
+        if (displayName != null)
+            item.offer(Keys.DISPLAY_NAME, TextUtil.colorStringToText(displayName.toPlain()));
 
         List<Text> lores = item.get(Keys.ITEM_LORE).orElse(null);
         if (lores != null) {
@@ -103,21 +104,25 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     @Listener
     public void onClick(ClickInventoryEvent e) {
         Inventory inv = e.getTargetInventory();
-        if (!(inv instanceof CarriedInventory)) return;
+        if (!(inv instanceof CarriedInventory))
+            return;
 
         CarriedInventory inventory = (CarriedInventory) inv;
         Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
 
-        if (carrier == null) return;
+        if (carrier == null)
+            return;
 
-        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier))) return;
+        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier)))
+            return;
         InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
 
         // just always cancel if it's GUI
         e.setCancelled(true);
 
         Player player = e.getCause().first(Player.class).orElse(null);
-        if (player == null) return;
+        if (player == null)
+            return;
 
         int rawSlot = -1;
         SlotTransaction slotTransaction = null;
@@ -131,7 +136,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
         }
 
         Map<String, Object> varMap = getSharedVarsForInventory(new SpongeInventory(inventory, carrier));
-        ItemStackSnapshot clickedItemOpt = slotTransaction == null ? ItemStackSnapshot.NONE : slotTransaction.getOriginal();
+        ItemStackSnapshot clickedItemOpt =
+                slotTransaction == null ? ItemStackSnapshot.NONE : slotTransaction.getOriginal();
         varMap.put("item", clickedItemOpt.createStack());
         varMap.put("slot", rawSlot);
         varMap.put("click", e.getClass().getSimpleName());
@@ -145,15 +151,18 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
 
     @Listener
     public void onClose(InteractInventoryEvent.Close e, @First Player player) {
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Inventory inv = e.getTargetInventory();
-        if (!(inv instanceof CarriedInventory)) return;
+        if (!(inv instanceof CarriedInventory))
+            return;
 
         CarriedInventory inventory = (CarriedInventory) inv;
         Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
 
-        if (carrier == null) return;
+        if (carrier == null)
+            return;
 
         onInventoryClose(e, new SpongePlayer(player), new SpongeInventory(inv, carrier));
     }
@@ -161,14 +170,17 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
     @Listener
     public void onOpen(InteractInventoryEvent.Open e) {
         Inventory inv = e.getTargetInventory();
-        if (!(inv instanceof CarriedInventory)) return;
+        if (!(inv instanceof CarriedInventory))
+            return;
 
         CarriedInventory inventory = (CarriedInventory) inv;
         Carrier carrier = (Carrier) inventory.getCarrier().orElse(null);
 
-        if (carrier == null) return;
+        if (carrier == null)
+            return;
 
-        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier))) return;
+        if (!this.hasInventoryOpen(new SpongeInventory(inventory, carrier)))
+            return;
 
         InventoryTrigger trigger = getTriggerForOpenInventory(new SpongeInventory(inventory, carrier));
 
@@ -197,7 +209,8 @@ public class InventoryTriggerManager extends AbstractInventoryTriggerManager<Ite
 
         @Override
         public boolean equals(Object obj) {
-            if (!(obj instanceof DummyCarrier)) return false;
+            if (!(obj instanceof DummyCarrier))
+                return false;
 
             return uniqueObject.equals(((DummyCarrier) obj).uniqueObject);
         }

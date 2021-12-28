@@ -22,7 +22,8 @@ public class NaiveMigrationHelper implements IMigrationHelper {
     public void migrate(IConfigSource current) {
         traversal(null, oldConfig.getValues(false), current::put);
 
-        if (oldFile.exists()) oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
+        if (oldFile.exists())
+            oldFile.renameTo(new File(oldFile.getParentFile(), oldFile.getName() + ".bak"));
 
         current.saveAll();
     }

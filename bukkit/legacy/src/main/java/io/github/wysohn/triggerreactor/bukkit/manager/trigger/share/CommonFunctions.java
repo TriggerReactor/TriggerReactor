@@ -55,16 +55,6 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
         return BukkitUtil.getOnlinePlayers();
     }
 
-    public ItemStack headForName(String targetName, int amount) {
-        ItemStack head = BukkitUtil.getPlayerHeadItem();
-        head.setAmount(amount);
-        ItemMeta IM = head.getItemMeta();
-        SkullMeta SM = (SkullMeta) IM;
-        SM.setOwner(targetName);
-        head.setItemMeta(SM);
-        return head;
-    }
-
     /**
      * Create a player head with given textureValue(base64 encoded).
      *
@@ -233,7 +223,8 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, 0, 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
+     * Example) /trg run IF takeItem(player, 0, 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a
+     * stone"; ENDIF;
      * </p>
      *
      * @param player
@@ -245,7 +236,8 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
     @Deprecated
     public boolean takeItem(Player player, int id, int amount) {
         ItemStack IS = new ItemStack(id, amount);
-        if (!player.getInventory().containsAtLeast(IS, amount)) return false;
+        if (!player.getInventory().containsAtLeast(IS, amount))
+            return false;
 
         player.getInventory().removeItem(IS);
         return true;
@@ -254,9 +246,11 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't have a stone"; ENDIF;
+     * Example) /trg run IF takeItem(player, "STONE", 1); #MESSAGE "Removed one stone."; ELSE; #MESSAGE "You don't
+     * have a stone"; ENDIF;
      * </p>
-     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
+     * You can find item names in
+     * <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      *
      * @param player target player
      * @param id     item id
@@ -271,7 +265,8 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, 0, 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
+     * Example) /trg run IF takeItem(player, 0, 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't
+     * have a granite"; ENDIF;
      * </p>
      *
      * @param player target player
@@ -290,9 +285,11 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
     /**
      * take item from player.
      * <p>
-     * Example) /trg run IF takeItem(player, "STONE", 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You don't have a granite"; ENDIF;
+     * Example) /trg run IF takeItem(player, "STONE", 1, 1); #MESSAGE "Removed one granite."; ELSE; #MESSAGE "You
+     * don't have a granite"; ENDIF;
      * </p>
-     * You can find item names in <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
+     * You can find item names in
+     * <a href="https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html">Material</a>
      *
      * @param player target player
      * @param id     item id
@@ -305,6 +302,16 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
         return takeItem(player, IS, amount);
     }
 
+    public ItemStack headForName(String targetName, int amount) {
+        ItemStack head = BukkitUtil.getPlayerHeadItem();
+        head.setAmount(amount);
+        ItemMeta IM = head.getItemMeta();
+        SkullMeta SM = (SkullMeta) IM;
+        SM.setOwner(targetName);
+        head.setItemMeta(SM);
+        return head;
+    }
+
     //Eventually, this has to be created either as Executor or Placeholder
 //    public BossBar makeBossBar(String title, String color, String style) {
 //        BarColor colorEnum = BarColor.valueOf(color.toUpperCase());
@@ -312,7 +319,8 @@ public class CommonFunctions extends AbstractCommonFunctions implements SelfRefe
 //
 //        BossBar BarObj = null;
 //        try {
-//            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title, colorEnum, styleEnum);
+//            BarObj = (BossBar) ReflectionUtil.invokeMethod(Bukkit.class, (Object) null, "createBossBar", title,
+//            colorEnum, styleEnum);
 //        } catch (NoSuchMethodException e) {
 //            return null;
 //        } catch (InvocationTargetException | IllegalAccessException e) {

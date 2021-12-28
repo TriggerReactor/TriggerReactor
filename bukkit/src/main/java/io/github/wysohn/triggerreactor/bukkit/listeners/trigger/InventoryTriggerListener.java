@@ -21,7 +21,7 @@ public final class InventoryTriggerListener extends AbstractBukkitListener {
     IWrapper wrapper;
 
     @Inject
-    InventoryTriggerListener(){
+    InventoryTriggerListener() {
 
     }
 
@@ -29,7 +29,7 @@ public final class InventoryTriggerListener extends AbstractBukkitListener {
     public void onClick(InventoryClickEvent e) {
         IInventory inventory = wrapper.wrap(e.getInventory());
 
-        if(!inventoryTriggerManager.isTrackedInventory(inventory))
+        if (!inventoryTriggerManager.isTrackedInventory(inventory))
             return;
 
         if (!(e.getWhoClicked() instanceof Player))
@@ -47,7 +47,7 @@ public final class InventoryTriggerListener extends AbstractBukkitListener {
         IPlayer bukkitPlayer = wrapper.wrap(e.getPlayer());
         IInventory inventory = wrapper.wrap(e.getInventory());
 
-        if(!inventoryTriggerManager.isTrackedInventory(inventory))
+        if (!inventoryTriggerManager.isTrackedInventory(inventory))
             return;
 
         inventoryTriggerManager.onClose(e, bukkitPlayer, inventory);
@@ -57,7 +57,7 @@ public final class InventoryTriggerListener extends AbstractBukkitListener {
     public void onDrag(InventoryDragEvent e) {
         IInventory inventory = wrapper.wrap(e.getInventory());
 
-        if(!inventoryTriggerManager.isTrackedInventory(inventory))
+        if (!inventoryTriggerManager.isTrackedInventory(inventory))
             return;
 
         e.setCancelled(true);
@@ -67,7 +67,7 @@ public final class InventoryTriggerListener extends AbstractBukkitListener {
     public void onOpen(InventoryOpenEvent e) {
         IInventory inventory = wrapper.wrap(e.getInventory());
 
-        if(!inventoryTriggerManager.isTrackedInventory(inventory))
+        if (!inventoryTriggerManager.isTrackedInventory(inventory))
             return;
 
         inventoryTriggerManager.onOpen(e, e.getPlayer(), inventory);

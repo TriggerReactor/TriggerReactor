@@ -111,6 +111,13 @@ public class BukkitEventRegistryManager extends Manager implements IEventRegistr
         }
     }
 
+    public void unregisterAll() {
+        for (Map.Entry<CustomTriggerManager.EventHook, Listener> entry : registeredListeners.entrySet()) {
+            HandlerList.unregisterAll(entry.getValue());
+        }
+        registeredListeners.clear();
+    }
+
     @Override
     public void onDisable() {
 
@@ -124,13 +131,6 @@ public class BukkitEventRegistryManager extends Manager implements IEventRegistr
     @Override
     public void onReload() throws RuntimeException {
 
-    }
-
-    public void unregisterAll(){
-        for (Map.Entry<CustomTriggerManager.EventHook, Listener> entry : registeredListeners.entrySet()) {
-            HandlerList.unregisterAll(entry.getValue());
-        }
-        registeredListeners.clear();
     }
 
     protected void initEvents() throws IOException {

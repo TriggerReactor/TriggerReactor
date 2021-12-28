@@ -31,7 +31,8 @@ public class LocationUtil {
 
     public static Location<World> convertToBukkitLocation(SimpleLocation sloc) {
         World world = Sponge.getServer().getWorld(sloc.getWorld()).get();
-        if (world == null) return null;
+        if (world == null)
+            return null;
 
         int x = sloc.getX();
         int y = sloc.getY();
@@ -46,7 +47,8 @@ public class LocationUtil {
 
     public static Chunk convertToBukkitChunk(SimpleChunkLocation scloc) {
         World world = Sponge.getServer().getWorld(scloc.getWorld()).get();
-        if (world == null) return null;
+        if (world == null)
+            return null;
 
         return world.getChunkAtBlock(scloc.getI(), 0, scloc.getJ()).get();
     }

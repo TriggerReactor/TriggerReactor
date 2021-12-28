@@ -31,7 +31,7 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
     private Constructor<PluginCommand> pluginCommandConstructor;
 
     @Inject
-    BukkitCommandMapHandler(){
+    BukkitCommandMapHandler() {
 
     }
 
@@ -43,7 +43,7 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
     @Override
     public boolean unregister(String triggerName) {
         Command command = commandMap.remove(triggerName);
-        if(command == null)
+        if (command == null)
             return false;
 
         if (overridens.containsKey(triggerName))
@@ -63,8 +63,13 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
     }
 
     @Override
+    public boolean commandExist(String triggerName) {
+        return commandMap.containsKey(triggerName);
+    }
+
+    @Override
     public ICommand register(String triggerName, String[] aliases) throws Duplicated {
-        if(commandExist(triggerName))
+        if (commandExist(triggerName))
             throw new Duplicated();
 
         PluginCommand command = createCommand(triggerName);
@@ -81,14 +86,9 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
         return iCommand;
     }
 
-    @Override
-    public boolean commandExist(String triggerName) {
-        return commandMap.containsKey(triggerName);
-    }
-
     private PluginCommand createCommand(String commandName) {
         try {
-            if(pluginCommandConstructor == null){
+            if (pluginCommandConstructor == null) {
                 pluginCommandConstructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
                 pluginCommandConstructor.setAccessible(true);
             }

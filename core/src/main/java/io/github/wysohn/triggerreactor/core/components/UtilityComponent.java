@@ -14,7 +14,7 @@ public interface UtilityComponent {
     IThrowableHandler throwableHandler();
 
     @Component.Builder
-    interface Builder{
+    interface Builder {
         UtilityComponent build();
 
         Builder lifecycleComponent(PluginLifecycleComponent component);

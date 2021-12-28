@@ -30,6 +30,7 @@ import java.util.Map;
 public abstract class APISupport extends AbstractAPISupport {
     private final String targetPluginName;
     protected PluginContainer target;
+
     public APISupport(TriggerReactorCore plugin, String targetPluginName) {
         super(plugin);
         ValidationUtil.notNull(plugin);
@@ -41,16 +42,19 @@ public abstract class APISupport extends AbstractAPISupport {
     @Override
     public void init() throws APISupportException {
         PluginContainer plugin = Sponge.getPluginManager().getPlugin(targetPluginName).orElse(null);
-        if (plugin == null) throw new APISupportException(targetPluginName);
+        if (plugin == null)
+            throw new APISupportException(targetPluginName);
 
         target = plugin;
 
         this.plugin.getLogger()
-                .info("Enabled support for " + targetPluginName + " " + target.getDescription()
-                        .orElse("No description") + " " + target.getVersion().orElse("v. ?"));
+                .info("Enabled support for " + targetPluginName + " " + target.getDescription().orElse("No description")
+                        + " " + target.getVersion().orElse("v. ?"));
     }
+
     @SuppressWarnings("serial")
-    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<? extends AbstractAPISupport>>() {{
+    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars = new HashMap<String, Class<?
+            extends AbstractAPISupport>>() {{
         put("nucleus", NucleusSupport.class);
     }};
 

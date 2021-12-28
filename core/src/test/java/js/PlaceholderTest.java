@@ -17,16 +17,11 @@ import java.util.TreeMap;
 public class PlaceholderTest extends JsTest {
     private final PlaceholderManager manager = component.manager();
     private final JSPlaceholder placeholder;
-    public PlaceholderTest(InterpreterLocalContext localContext,
-                           String name,
-                           String... directories) throws ScriptException, IOException {
+
+    public PlaceholderTest(InterpreterLocalContext localContext, String name, String... directories) throws
+            ScriptException, IOException {
         super(localContext, name, "Placeholder", directories);
         placeholder = manager.new JSPlaceholder(name, stream);
-    }
-
-    @Override
-    public int getOverload(Object... args) {
-        return placeholder.validate(args).getOverload();
     }
 
     @Override
@@ -35,10 +30,13 @@ public class PlaceholderTest extends JsTest {
 
         return placeholder.parse(Timings.LIMBO, localContext, localContext.getVars(), null, args);
     }
+
+    @Override
+    public int getOverload(Object... args) {
+        return placeholder.validate(args).getOverload();
+    }
     private static final PlaceholderTestComponent component = DaggerPlaceholderTestComponent.builder()
-            .scriptEngineComponent(DaggerScriptEngineComponent.builder()
-                    .initializer(new HashSet<>())
-                    .build())
+            .scriptEngineComponent(DaggerScriptEngineComponent.builder().initializer(new HashSet<>()).build())
             .build();
     public static final Map<String, Boolean> coverage = new TreeMap<>();
 }

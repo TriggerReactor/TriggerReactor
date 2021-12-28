@@ -204,8 +204,10 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         String loreString = "";
         for (int k = 0; k < lores.size(); k++) {
             String lore = lores.get(k);
-            if (k == (lores.size() - 1)) loreString = loreString + lore;
-            else loreString = loreString + lore + "\n";
+            if (k == (lores.size() - 1))
+                loreString = loreString + lore;
+            else
+                loreString = loreString + lore + "\n";
         }
 
         PlaceholderTest test = new PlaceholderTest(localContext, "lore");
@@ -311,8 +313,7 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         Runnable run1 = () -> {
             JsTest test = null;
             try {
-                test = new PlaceholderTest(context1, "playername")
-                        .addVariable("player", mockPlayer);
+                test = new PlaceholderTest(context1, "playername").addVariable("player", mockPlayer);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -332,12 +333,11 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         InterpreterLocalContext context2 = new InterpreterLocalContext();
         context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
         assertNotEquals(context1.getExtra(Interpreter.SCRIPT_ENGINE_KEY),
-                        context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
+                context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
         Runnable run2 = () -> {
             JsTest test = null;
             try {
-                test = new PlaceholderTest(context2, "playername")
-                        .addVariable("player", mockPlayer);
+                test = new PlaceholderTest(context2, "playername").addVariable("player", mockPlayer);
             } catch (Exception e) {
                 e.printStackTrace();
             }

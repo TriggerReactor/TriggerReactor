@@ -612,15 +612,6 @@ public class DelegatedPlayer implements Player {
     }
 
     @Override
-    public World getWorld() {
-        for (World world : Sponge.getServer().getWorlds()) {
-            if (world.getDimension().getType() == DimensionTypes.OVERWORLD) return world;
-        }
-
-        return null;
-    }
-
-    @Override
     public Optional<WorldBorder> getWorldBorder() {
         return Optional.empty();
     }
@@ -628,6 +619,16 @@ public class DelegatedPlayer implements Player {
     @Override
     public Optional<UUID> getWorldUniqueId() {
         return Optional.of(getWorld().getUniqueId());
+    }
+
+    @Override
+    public World getWorld() {
+        for (World world : Sponge.getServer().getWorlds()) {
+            if (world.getDimension().getType() == DimensionTypes.OVERWORLD)
+                return world;
+        }
+
+        return null;
     }
 
     @Override
@@ -1122,8 +1123,8 @@ public class DelegatedPlayer implements Player {
     }
 
     @Override
-    public <E> DataTransactionResult tryOffer(Key<? extends BaseValue<E>> key,
-                                              E value) throws IllegalArgumentException {
+    public <E> DataTransactionResult tryOffer(Key<? extends BaseValue<E>> key, E value) throws
+            IllegalArgumentException {
         return null;
     }
 
@@ -1138,8 +1139,8 @@ public class DelegatedPlayer implements Player {
     }
 
     @Override
-    public DataTransactionResult tryOffer(DataManipulator<?, ?> valueContainer,
-                                          MergeFunction function) throws IllegalArgumentException {
+    public DataTransactionResult tryOffer(DataManipulator<?, ?> valueContainer, MergeFunction function) throws
+            IllegalArgumentException {
         return null;
     }
 

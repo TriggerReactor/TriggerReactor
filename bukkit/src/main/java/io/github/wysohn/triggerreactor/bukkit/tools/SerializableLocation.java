@@ -14,12 +14,8 @@ import java.util.Map;
 public class SerializableLocation extends Location implements ConfigurationSerializable {
 
     public SerializableLocation(Location location) {
-        super(location.getWorld(),
-              location.getX(),
-              location.getY(),
-              location.getZ(),
-              location.getYaw(),
-              location.getPitch());
+        super(location.getWorld(), location.getX(), location.getY(), location.getZ(), location.getYaw(),
+                location.getPitch());
     }
 
     @Override
@@ -43,12 +39,9 @@ public class SerializableLocation extends Location implements ConfigurationSeria
             throw new IllegalArgumentException("unknown world");
         }
 
-        return new SerializableLocation(new Location(world,
-                                                     NumberConversions.toDouble(args.get("x")),
-                                                     NumberConversions.toDouble(args.get("y")),
-                                                     NumberConversions.toDouble(args.get("z")),
-                                                     NumberConversions.toFloat(args.get("yaw")),
-                                                     NumberConversions.toFloat(args.get("pitch"))));
+        return new SerializableLocation(new Location(world, NumberConversions.toDouble(args.get("x")),
+                NumberConversions.toDouble(args.get("y")), NumberConversions.toDouble(args.get("z")),
+                NumberConversions.toFloat(args.get("yaw")), NumberConversions.toFloat(args.get("pitch"))));
     }
 
 

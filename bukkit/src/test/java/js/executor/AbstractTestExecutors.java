@@ -108,15 +108,15 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(server.getPlayer("merp")).thenReturn(null);
         assertJSError(() -> test.withArgs(-1).test(), "The number of seconds to burn should be positive");
         assertJSError(() -> test.withArgs().test(),
-                      "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
+                "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
         assertJSError(() -> test.withArgs(1, 1, 1).test(),
-                      "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
+                "Invalid number of parameters. Need [Number] or [Entity<entity or string>, Number]");
         assertJSError(() -> test.withArgs(true).test(), "Invalid number for seconds to burn: true");
         assertJSError(() -> test.withArgs(null, 4).test(), "player to burn should not be null");
         assertJSError(() -> test.withArgs("merp", 3).test(), "player to burn does not exist");
         assertJSError(() -> test.withArgs(3, 3).test(), "invalid entity to burn: 3");
         assertJSError(() -> test.withArgs(mockEntity, "merp").test(),
-                      "The number of seconds to burn should be a number");
+                "The number of seconds to burn should be a number");
         assertJSError(() -> test.withArgs(mockEntity, -1).test(), "The number of seconds to burn should be positive");
     }
 
@@ -138,7 +138,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         //Unexpected Cases
         assertJSError(() -> test.withArgs(nullP).test(), "Found unexpected parameter - player: null");
         assertJSError(() -> test.withArgs(1, 2).test(),
-                      "Too many parameters found! CLEARCHAT accept up to one parameter.");
+                "Too many parameters found! CLEARCHAT accept up to one parameter.");
     }
 
     @Test
@@ -257,7 +257,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getWorld()).thenReturn(world);
 
-        new ExecutorTest(localContext, "FALLINGBLOCK").addVariable("player", player).withArgs("STONE", 44.5, 6, 78.9).test();
+        new ExecutorTest(localContext, "FALLINGBLOCK").addVariable("player", player)
+                .withArgs("STONE", 44.5, 6, 78.9)
+                .test();
 
         verify(world).spawnFallingBlock(new Location(world, 44.5, 6, 78.9), Material.STONE, (byte) 0);
     }
@@ -321,7 +323,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
             verify((ItemFrame) entity).setRotation(Rotation.valueOf("NOne".toUpperCase()));
         }
         assertJSError(() -> test.withArgs().test(),
-                      "Invalid parameters. Need [Rotation<string>, Location<location or number number number>]");
+                "Invalid parameters. Need [Rotation<string>, Location<location or number number number>]");
 
         //TODO - need test for the situation of args.length == 4
     }
@@ -367,7 +369,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.assertInvalid(null, "msg");
         test.assertInvalid(nullP);
         assertJSError(() -> test.withArgs().test(),
-                      "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
+                "Too few arguments! You should enter at least on argument if you use KICK executor from console.");
     }
 
     @Test
@@ -395,7 +397,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(vLever).setPowered(false);
 
         assertJSError(() -> test.withArgs().test(),
-                      "Invalid parameters. Need [Location<location or number number number>]");
+                "Invalid parameters. Need [Location<location or number number number>]");
         //TODO - need test for the situation of args.length == 3
     }
 
@@ -415,7 +417,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(vLever).setPowered(true);
 
         assertJSError(() -> test.withArgs().test(),
-                      "Invalid parameters. Need [Location<location or number number number>]");
+                "Invalid parameters. Need [Location<location or number number number>]");
         //TODO - need test for the situation of args.length == 3
     }
 
@@ -442,7 +444,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(vLever).setPowered(false);
 
         assertJSError(() -> test.withArgs().test(),
-                      "Invalid parameters. Need [Location<location or number number number>]");
+                "Invalid parameters. Need [Location<location or number number number>]");
         //TODO - need test for the situation of args.length == 3
     }
 
@@ -457,9 +459,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(vWorld).strikeLightning(vLoc);
 
         assertJSError(() -> test.withArgs().test(),
-                      "Invalid parameters! [String, Number, Number, Number] or [Location]");
+                "Invalid parameters! [String, Number, Number, Number] or [Location]");
         assertJSError(() -> test.withArgs("hff").test(),
-                      "Invalid parameters! [String, Number, Number, Number] or [Location]");
+                "Invalid parameters! [String, Number, Number, Number] or [Location]");
         //TODO - need test for the situation of args.length == 4
     }
 
@@ -495,8 +497,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Runnable run1 = () -> {
             JsTest test = null;
             try {
-                test = new ExecutorTest(context1, "MESSAGE")
-                        .addVariable("player", mockPlayer)
+                test = new ExecutorTest(context1, "MESSAGE").addVariable("player", mockPlayer)
                         .withArgs("&cTest Message");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -514,12 +515,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         InterpreterLocalContext context2 = new InterpreterLocalContext();
         context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
         assertNotEquals(context1.getExtra(Interpreter.SCRIPT_ENGINE_KEY),
-                        context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
+                context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
         Runnable run2 = () -> {
             JsTest test = null;
             try {
-                test = new ExecutorTest(context2, "MESSAGE")
-                        .addVariable("player", mockPlayer)
+                test = new ExecutorTest(context2, "MESSAGE").addVariable("player", mockPlayer)
                         .withArgs("&cTest Message");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -572,7 +572,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(held.getType()).thenReturn(Material.STONE);
         when(held.getItemMeta()).thenReturn(meta);
 
-        new ExecutorTest(localContext, "MODIFYHELDITEM").addVariable("player", player).withArgs("TITLE", "some title").test();
+        new ExecutorTest(localContext, "MODIFYHELDITEM").addVariable("player", player)
+                .withArgs("TITLE", "some title")
+                .test();
 
         verify(meta).setDisplayName("some title");
     }
@@ -704,7 +706,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertJSError(() -> test.withArgs(20, 33).test(), "Incorrect Number of arguments for Executor SETMAXHEALTH");
         assertJSError(() -> test.withArgs("NONO").test(), "Invalid argument for SETMAXHEALTH: NONO");
         assertJSError(() -> test.withArgs(-30).test(),
-                      "Argument for Executor SETMAXHEALTH should not be negative or zero");
+                "Argument for Executor SETMAXHEALTH should not be negative or zero");
         assertJSError(() -> test.withArgs(2098).test(), "Maximum health cannot be greater than 2048");
     }
 
@@ -743,7 +745,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertJSError(() -> test.withArgs().test(), "Incorrect Number of arguments for Executor SETWALKSPEED");
         assertJSError(() -> test.withArgs("NUU").test(), "Invalid argument for SETWALKSPEED: NUU");
         assertJSError(() -> test.withArgs(-3).test(),
-                      "Argument for Executor SETWALKSPEED is outside of the allowable range -1..1");
+                "Argument for Executor SETWALKSPEED is outside of the allowable range -1..1");
     }
 
     @Test
@@ -763,7 +765,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         assertJSError(() -> test.withArgs().test(), "Incorrect number of arguments for executor SETXP");
         assertJSError(() -> test.withArgs("lmao").test(), "Invalid argument for SETXP: lmao");
         assertJSError(() -> test.withArgs(33).test(),
-                      "33 is outside of the allowable range of 0..1 for executor SETXP");
+                "33 is outside of the allowable range of 0..1 for executor SETXP");
 
     }
 
@@ -843,7 +845,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(server.getWorld("world")).thenReturn(mockWorld);
 
         assertJSError(() -> new ExecutorTest(localContext, "SETBLOCK").withArgs("STONE", 22, 80, 33).test(),
-                      "cannot use #SETBLOCK in non-player related event. Or use Location instance.");
+                "cannot use #SETBLOCK in non-player related event. Or use Location instance.");
     }
 
     @Test
@@ -873,7 +875,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(mockWorld.getBlockAt(any(Location.class))).thenReturn(block);
         when(server.getWorld("world")).thenReturn(mockWorld);
 
-        new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player).withArgs("GLASS", 3, 33, 96, -15).test();
+        new ExecutorTest(localContext, "SETBLOCK").addVariable("player", player)
+                .withArgs("GLASS", 3, 33, 96, -15)
+                .test();
 
         verify(block).setType(eq(Material.GLASS));
     }
@@ -1063,7 +1067,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getLocation()).thenReturn(location);
 
-        new ExecutorTest(localContext, "SOUND").withArgs(location, "BOO", 1.0, 1.0).addVariable("player", player).test();
+        new ExecutorTest(localContext, "SOUND").withArgs(location, "BOO", 1.0, 1.0)
+                .addVariable("player", player)
+                .test();
 
         verify(player).playSound(location, "BOO", 1.0f, 1.0f);
     }
@@ -1077,7 +1083,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         when(player.getLocation()).thenReturn(location);
         when(location.getWorld()).thenReturn(world);
 
-        new ExecutorTest(localContext, "SOUNDALL").withArgs(location, "BOO", 1.0, 1.0).addVariable("player", player).test();
+        new ExecutorTest(localContext, "SOUNDALL").withArgs(location, "BOO", 1.0, 1.0)
+                .addVariable("player", player)
+                .test();
 
         verify(world).playSound(location, "BOO", 1.0f, 1.0f);
     }
