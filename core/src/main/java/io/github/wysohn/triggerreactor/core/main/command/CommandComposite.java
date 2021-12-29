@@ -30,9 +30,14 @@ public class CommandComposite implements TriggerCommand{
     @Override
     public boolean onCommand(ICommandSender sender, Queue<String> args) {
         // always delegate to children if root
-        // or check if this composite is appropriate for the command
-        if(!root && !command.equals(args.peek()))
-            return false;
+        if(!root){
+            // or check if this composite is appropriate for the command
+            if(!command.equals(args.peek())){
+                return false;
+            }
+            // consume the command
+            args.poll();
+        }
 
         // delegate to the children to handle the command
         for (TriggerCommand child : children) {
@@ -50,7 +55,7 @@ public class CommandComposite implements TriggerCommand{
         if(depth <= 0)
             return;
 
-        usage.printUsage(sender);
+        usage.printUsage(sender, INDENT * Math.max(0, 2 - depth));
         for (TriggerCommand child : children) {
             child.printUsage(sender, depth - 1);
         }

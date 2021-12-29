@@ -4,5 +4,5 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 
 @FunctionalInterface
 public interface Usage {
-    void printUsage(ICommandSender sender);
+    void printUsage(ICommandSender sender, int spaces);
 }

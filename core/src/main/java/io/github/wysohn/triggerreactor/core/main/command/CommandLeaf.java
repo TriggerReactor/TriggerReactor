@@ -27,6 +27,6 @@ public class CommandLeaf implements TriggerCommand{
 
     @Override
     public void printUsage(ICommandSender sender, int depth) {
-        usage.printUsage(sender);
+        usage.printUsage(sender, INDENT * Math.max(0, 2 - depth));
     }
 }

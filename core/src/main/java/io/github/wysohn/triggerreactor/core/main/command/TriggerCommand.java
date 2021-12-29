@@ -42,4 +42,6 @@ public interface TriggerCommand {
     static Queue<String> toQueue(String[] args){
         return Arrays.stream(args).collect(Collectors.toCollection(LinkedList::new));
     }
+
+    int INDENT = 2;
 }
