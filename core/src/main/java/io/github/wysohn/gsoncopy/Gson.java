@@ -278,8 +278,7 @@ public final class Gson {
     static void checkValidFloatingPoint(double value) {
         if (Double.isNaN(value) || Double.isInfinite(value)) {
             throw new IllegalArgumentException(
-                    value + " is not a valid double value as per JSON specification. To override this"
-                            + " behavior, use GsonBuilder.serializeSpecialFloatingPointValues() method.");
+                    value + " is not a valid double value as per JSON specification. To override this behavior, use GsonBuilder.serializeSpecialFloatingPointValues() method.");
         }
     }
 

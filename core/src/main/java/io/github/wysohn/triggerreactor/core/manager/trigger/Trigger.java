@@ -249,8 +249,7 @@ public abstract class Trigger implements IObservable {
         try {
             if (script == null) {
                 throw new NullPointerException(
-                        "compile() was invoked, yet 'script' was null. Make sure to override " + "init() method to in"
-                                + " order to construct a customized Trigger.");
+                        "compile() was invoked, yet 'script' was null. Make sure to override init() method to in order to construct a customized Trigger.");
             }
 
             Charset charset = StandardCharsets.UTF_8;

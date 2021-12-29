@@ -224,8 +224,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
                         return true;
                     } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
+                        throw new RuntimeException("Parameter type not match; it should be a String. Make sure to put double quotes, if you provided String literal.");
                     }
                 } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
                     if (!interpreter.isSync())
@@ -315,8 +314,7 @@ public class TriggerReactor extends io.github.wysohn.triggerreactor.core.main.Tr
 
                         return true;
                     } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
+                        throw new RuntimeException("Parameter type not match; it should be a String. Make sure to put double quotes, if you provided String literal.");
                     }
                 } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
                     if (!interpreter.isSync())

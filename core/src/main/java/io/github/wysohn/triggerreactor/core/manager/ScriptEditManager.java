@@ -52,8 +52,7 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
                 } else {
                     beginDoubleChecking(user);
                     user.sendMessage(
-                            "&6Are you sure to exit? &cUnsaved data will be all discard! &dType &6exit &done more "
-                                    + "time to confirm.");
+                            "&6Are you sure to exit? &cUnsaved data will be all discard! &dType &6exit &done more time to confirm.");
                 }
             }))
             .chain(new SimpleScriptCommandChain("il", (user, editor, command) -> editor.insertNewLine()))
@@ -129,10 +128,20 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
      *
      * @param sender      the sender to start editor
      * @param title       title to be shown on the editor
-     * @param script      the actual script. It can be empty string
+     * @param script      the actual script.
      * @param saveHandler the callback interface that allows you to save the script written by editor.
+     * @param saveNow ignore the editor and call saveHandler immediately
      */
-    public void startEdit(ICommandSender sender, String title, String script, Consumer<String> saveHandler) {
+    public void startEdit(ICommandSender sender,
+                          String title,
+                          String script,
+                          Consumer<String> saveHandler,
+                          boolean saveNow) {
+        if (saveNow) {
+            saveHandler.accept(script);
+            return;
+        }
+
         ScriptEditorUser editorUser = new ScriptEditorUser(sender);
 
         if (editings.containsKey(editorUser))

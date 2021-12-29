@@ -2,27 +2,38 @@ package io.github.wysohn.triggerreactor.core.main.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class CommandComposite implements TriggerCommand{
-    final String command;
+public class CommandComposite implements ITriggerCommand {
+    final String[] commands;
     final Usage usage;
     final boolean root;
-    protected List<TriggerCommand> children = new LinkedList<>();
+    protected List<ITriggerCommand> children = new LinkedList<>();
 
     public CommandComposite(String command, Usage usage) {
         this(command, usage, false);
     }
 
-    CommandComposite(String command, Usage usage, boolean root) {
-        this.command = command;
-        this.usage = usage;
-        this.root = root;
+    public CommandComposite(String[] commands, Usage usage) {
+        this(commands, usage, false);
     }
 
-    void addChild(TriggerCommand command){
+    CommandComposite(String command, Usage usage, boolean root) {
+        this(new String[]{command}, usage, root);
+    }
+
+    CommandComposite(String[] commands, Usage usage, boolean root) {
+        this.commands = commands;
+        this.usage = usage;
+        this.root = root;
+
+        Arrays.sort(commands);
+    }
+
+    void addChild(ITriggerCommand command){
         children.add(command);
     }
 
@@ -30,9 +41,9 @@ public class CommandComposite implements TriggerCommand{
     @Override
     public boolean onCommand(ICommandSender sender, Queue<String> args) {
         // always delegate to children if root
-        if(!root){
+        if (!root) {
             // or check if this composite is appropriate for the command
-            if(!command.equals(args.peek())){
+            if (Arrays.binarySearch(commands, args.peek()) < 0) {
                 return false;
             }
             // consume the command
@@ -40,7 +51,7 @@ public class CommandComposite implements TriggerCommand{
         }
 
         // delegate to the children to handle the command
-        for (TriggerCommand child : children) {
+        for (ITriggerCommand child : children) {
             if(child.onCommand(sender, args))
                 return true;
         }
@@ -56,7 +67,7 @@ public class CommandComposite implements TriggerCommand{
             return;
 
         usage.printUsage(sender, INDENT * Math.max(0, 2 - depth));
-        for (TriggerCommand child : children) {
+        for (ITriggerCommand child : children) {
             child.printUsage(sender, depth - 1);
         }
     }

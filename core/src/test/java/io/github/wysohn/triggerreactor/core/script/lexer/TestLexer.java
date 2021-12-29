@@ -35,7 +35,7 @@ public class TestLexer {
         String text;
         Lexer lexer;
 
-        text = "a = 1\n" + "a += 2\n" + "a -= 3\n" + "a *= 4\n" + "a /= 5\n" + "a %= 6\n";
+        text = "a = 1\na += 2\na -= 3\na *= 4\na /= 5\na %= 6\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, "=");
@@ -63,7 +63,7 @@ public class TestLexer {
         testToken(lexer, Type.ENDL, null);
         testEnd(lexer);
 
-        text = "a &= 1\n" + "a ^= 2\n" + "a |= 3\n" + "a <<= 4\n" + "a >>= 5\n" + "a >>>= 6\n";
+        text = "a &= 1\na ^= 2\na |= 3\na <<= 4\na >>= 5\na >>>= 6\n";
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.ID, "a");
         testToken(lexer, Type.OPERATOR, "&=");
@@ -191,7 +191,7 @@ public class TestLexer {
     @Test
     public void testGetToken() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n" + "#MESSAGE \"text\" \"test\"\n";
+        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n#MESSAGE \"text\" \"test\"\n";
 
         Lexer lexer = new Lexer(text, charset);
 

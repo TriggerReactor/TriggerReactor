@@ -7,13 +7,12 @@ import java.util.Queue;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class CommandTest {
     @Test
     public void test() {
-        TriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---")
+        ITriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---")
                 .composite("cmd", "/trg cmd ddd <name> [script]",
                         ddd -> ddd.leaf("ddd", "/trg cmd ddd <name> [script]", (sender, args) -> {
                             String name = args.poll();
@@ -32,15 +31,45 @@ public class CommandTest {
                 .build();
 
         ICommandSender sender = mock(ICommandSender.class);
-        Queue<String> args = TriggerCommand.toQueue("cmd ddd myCommand #MESSAGE 1 + 3 + 4;");
+        Queue<String> args = ITriggerCommand.toQueue("cmd ddd myCommand #MESSAGE 1 + 3 + 4;");
 
         assertTrue(command.onCommand(sender, args));
         verify(sender).sendMessage("#MESSAGE 1 + 3 + 4; ");
     }
 
     @Test
+    public void testAlias() {
+        ITriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---")
+                .composite(new String[]{"cmd", "c"}, "/trg cmd ddd <name> [script]",
+                        ddd -> ddd.leaf("ddd", "/trg cmd ddd <name> [script]", (sender, args) -> {
+                            String name = args.poll();
+                            if (name == null)
+                                return false;
+
+                            StringBuilder script = new StringBuilder();
+                            while (!args.isEmpty()){
+                                script.append(args.poll());
+                                script.append(' ');
+                            }
+
+                            sender.sendMessage(script.toString());
+                            return true;
+                        }))
+                .build();
+
+        ICommandSender sender = mock(ICommandSender.class);
+
+        Queue<String> args = ITriggerCommand.toQueue("cmd ddd myCommand #MESSAGE 1 + 3 + 4;");
+        assertTrue(command.onCommand(sender, args));
+        args = ITriggerCommand.toQueue("c ddd myCommand #MESSAGE 1 + 3 + 4;");
+        assertTrue(command.onCommand(sender, args));
+
+        verify(sender, times(2)).sendMessage("#MESSAGE 1 + 3 + 4; ");
+    }
+
+    @Test
     public void testInvalidCommand1() {
-        TriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---")
+        ITriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---")
                 .composite("cmd", "/trg cmd",
                         ddd -> ddd.leaf("ddd", "/trg cmd ddd <name> [script]", (sender, args) -> {
                             String name = args.poll();
@@ -60,7 +89,7 @@ public class CommandTest {
                 .build();
 
         ICommandSender sender = mock(ICommandSender.class);
-        Queue<String> args = TriggerCommand.toQueue("cmdd myCommand #MESSAGE 1 + 3 + 4;");
+        Queue<String> args = ITriggerCommand.toQueue("cmdd myCommand #MESSAGE 1 + 3 + 4;");
 
         assertFalse(command.onCommand(sender, args));
         verify(sender).sendMessage("--- TriggerReactor ---");
@@ -70,7 +99,7 @@ public class CommandTest {
 
     @Test
     public void testInvalidCommand2() {
-        TriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---").composite("cmd", "/trg cmd", cmd -> {
+        ITriggerCommand command = CommandBuilder.begin("--- TriggerReactor ---").composite("cmd", "/trg cmd", cmd -> {
             cmd.leaf("ddd", "/trg cmd ddd <name> [script]", (sender, args) -> {
                 String name = args.poll();
                 if (name == null)
@@ -88,7 +117,7 @@ public class CommandTest {
         }).build();
 
         ICommandSender sender = mock(ICommandSender.class);
-        Queue<String> args = TriggerCommand.toQueue("cmd fff myCommand #MESSAGE 1 + 3 + 4;");
+        Queue<String> args = ITriggerCommand.toQueue("cmd fff myCommand #MESSAGE 1 + 3 + 4;");
 
         assertFalse(command.onCommand(sender, args));
         verify(sender).sendMessage("/trg cmd");

@@ -49,7 +49,7 @@ public class AreaTrigger extends Trigger {
 
     @Override
     public String toString() {
-        return super.toString() + "{" + "area=" + area + '}';
+        return super.toString() + "{area=" + area + '}';
     }
 
     //we don't need interpreter for area trigger but enter and exit trigger

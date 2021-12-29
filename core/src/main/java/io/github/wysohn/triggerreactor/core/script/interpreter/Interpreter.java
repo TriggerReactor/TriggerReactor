@@ -363,8 +363,7 @@ public class Interpreter {
                         if (right == null || !left.isNumeric() || left.isDecimal() || !right.isNumeric()
                                 || right.isDecimal())
                             throw new InterpreterException(
-                                    "Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! "
-                                            + "Operands should both be boolean or integer.");
+                                    "Cannot execute bitwise operation on value [" + left + "] and [" + right + "]! Operands should both be boolean or integer.");
 
                         int result;
                         switch (tokenValue) {
@@ -701,7 +700,7 @@ public class Interpreter {
                                     callFunction(right, new Token(Type.EPS, var, node.getToken()), args);
                                 } else {
                                     throw new InterpreterException(
-                                            "Unexpected value " + left + " for target of " + right + ". " + "Is " + left
+                                            "Unexpected value " + left + " for target of " + right + ". Is " + left
                                                     + "." + right + " what you were trying to do?");
                                 }
                             }
@@ -1049,8 +1048,7 @@ public class Interpreter {
                     long timeTook = System.currentTimeMillis() - start;
                     if (timeTook > 3000L)
                         throw new InterpreterException(
-                                "WHILE loop took more than 3 seconds in Server Thread. This is usually "
-                                        + "considered as 'too long' and can crash the server.");
+                                "WHILE loop took more than 3 seconds in Server Thread. This is usually considered as 'too long' and can crash the server.");
                 }
             } while (!context.isStopFlag());
         } else if ("FOR".equals(node.getToken().value)) {
@@ -1159,8 +1157,7 @@ public class Interpreter {
         } else if (node.getToken().getType() == Type.LAMBDA) {
             if (node.getChildren().size() != 2)
                 throw new InterpreterException(
-                        "The LAMBDA node has " + node.getChildren().size() + " children instead of 2. "
-                                + "Report this to us: " + node);
+                        "The LAMBDA node has " + node.getChildren().size() + " children instead of 2. Report this to us: " + node);
 
             Node parameters = node.getChildren().get(0);
             if (parameters.getToken().getType() != Type.PARAMETERS)
@@ -1302,7 +1299,7 @@ public class Interpreter {
 
     public static void main(String[] ar) throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = null;" + "y = null;" + "x.y.hoho();";
+        String text = "x = null;y = null;x.y.hoho();";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);

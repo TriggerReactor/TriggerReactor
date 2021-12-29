@@ -204,8 +204,7 @@ public class Parser {
         if (bitwiseAnd != null) {
             if (bitwiseAnd.getChildren().size() != 2)
                 throw new ParserException(
-                        "Operator " + bitwiseAnd.getToken() + " requires number or variable on the left and right of "
-                                + "it. " + token);
+                        "Operator " + bitwiseAnd.getToken() + " requires number or variable on the left and right of it. " + token);
             parsedNode = bitwiseAnd;
         }
 
@@ -217,8 +216,7 @@ public class Parser {
         if (bitwiseXor != null) {
             if (bitwiseXor.getChildren().size() != 2)
                 throw new ParserException(
-                        "Operator " + bitwiseXor.getToken() + " requires number or variable on the left and right of "
-                                + "it. " + token);
+                        "Operator " + bitwiseXor.getToken() + " requires number or variable on the left and right of it. " + token);
             parsedNode = bitwiseXor;
         }
 
@@ -229,8 +227,7 @@ public class Parser {
         if (bitwiseOr != null) {
             if (bitwiseOr.getChildren().size() != 2)
                 throw new ParserException(
-                        "Operator " + bitwiseOr.getToken() + " requires number or variable on the left and right of "
-                                + "it. " + token);
+                        "Operator " + bitwiseOr.getToken() + " requires number or variable on the left and right of it. " + token);
             parsedNode = bitwiseOr;
         }
 
@@ -377,8 +374,7 @@ public class Parser {
                 node.getChildren().add(right);
                 if (node.getChildren().size() != 2)
                     throw new ParserException(
-                            "Comparison " + node.getToken() + " requires number or variable on the left and right of "
-                                    + "it. " + token);
+                            "Comparison " + node.getToken() + " requires number or variable on the left and right of it. " + token);
 
                 return node;
             }
@@ -1236,7 +1232,7 @@ public class Parser {
 //                "a = ++a * --a - a++ / a--\n" +
 //                "a = -(--a) -(++a) -(a++) -(a--)\n" +
 //                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
-        String text = "" + "abc = LAMBDA =>\n" + "    3\n" + "ENDLAMBDA\n" + "cdf = 55";
+        String text = "abc = LAMBDA =>\n    3\nENDLAMBDA\ncdf = 55";
         System.out.println("original: \n" + text);
 
         Lexer lexer = new Lexer(text, charset);

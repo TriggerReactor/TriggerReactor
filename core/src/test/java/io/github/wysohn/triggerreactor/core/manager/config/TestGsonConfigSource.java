@@ -21,17 +21,17 @@ import static org.junit.Assert.assertEquals;
 
 public class TestGsonConfigSource {
     private final String jsonString =
-            "{\n" + "   \"string\":\"teststring\",\n" + "   \"number\":8,\n" + "   \"number2\":9.9,\n"
-                    + "   \"boolean\":true,\n" + "   \"list\":[\n" + "      \"a\",\n" + "      \"b\",\n"
-                    + "      \"c\"\n" + "   ],\n" + "   \"object\":{\n" + "      \"value\":\"abc\"\n" + "   },\n"
-                    + "   \"uuid\":{\n" + "      \"" + Serializer.SER_KEY + "\":\"java.util.UUID\",\n" + "      \""
-                    + Serializer.SER_VALUE + "\":\"968cee8d-ec72-4a2f-a3bc-09a521a06f89\"\n" + "   },\n"
-                    + "   \"hashset\":{\n" + "      \"" + Serializer.SER_KEY + "\":\"java.util.HashSet\",\n"
-                    + "      \"" + Serializer.SER_VALUE + "\":[\n" + "         \"e\",\n" + "         \"f\",\n"
-                    + "         \"g\"\n" + "      ]\n" + "   },\n" + "   \"myobj1\":{\n" + "      \""
-                    + Serializer.SER_KEY + "\":\"" + CustomObject.class.getName() + "\",\n" + "      \""
-                    + Serializer.SER_VALUE + "\":{\n" + "         \"s\":\"some string\",\n" + "         \"i\":22,\n"
-                    + "         \"d\":88.8,\n" + "         \"b\":false\n" + "      }\n" + "   }\n" + "}";
+            "{\n   \"string\":\"teststring\",\n   \"number\":8,\n   \"number2\":9.9,\n"
+                    + "   \"boolean\":true,\n   \"list\":[\n      \"a\",\n      \"b\",\n"
+                    + "      \"c\"\n   ],\n   \"object\":{\n      \"value\":\"abc\"\n   },\n"
+                    + "   \"uuid\":{\n      \"" + Serializer.SER_KEY + "\":\"java.util.UUID\",\n      \""
+                    + Serializer.SER_VALUE + "\":\"968cee8d-ec72-4a2f-a3bc-09a521a06f89\"\n   },\n"
+                    + "   \"hashset\":{\n      \"" + Serializer.SER_KEY + "\":\"java.util.HashSet\",\n"
+                    + "      \"" + Serializer.SER_VALUE + "\":[\n         \"e\",\n         \"f\",\n"
+                    + "         \"g\"\n      ]\n   },\n   \"myobj1\":{\n      \""
+                    + Serializer.SER_KEY + "\":\"" + CustomObject.class.getName() + "\",\n      \""
+                    + Serializer.SER_VALUE + "\":{\n         \"s\":\"some string\",\n         \"i\":22,\n"
+                    + "         \"d\":88.8,\n         \"b\":false\n      }\n   }\n}";
 
     private TriggerReactorMain mockMain;
     private File mockFile;

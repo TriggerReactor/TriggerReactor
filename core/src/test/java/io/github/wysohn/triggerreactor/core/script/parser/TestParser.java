@@ -110,7 +110,7 @@ public class TestParser {
     @Test
     public void testFor() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "" + "FOR i = 0:10;" + "    #MESSAGE \"test i=\"+i;" + "ENDFOR;";
+        String text = "FOR i = 0:10;    #MESSAGE \"test i=\"+i;ENDFOR;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -141,8 +141,8 @@ public class TestParser {
     @Test
     public void testIf() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "" + "IF i == 0;" + "    #MESSAGE 0;" + "ELSEIF i == 1;" + "    #MESSAGE 1;" + "ELSEIF i == 2;"
-                + "    #MESSAGE 2;" + "ELSE;" + "    #MESSAGE 3;" + "ENDIF;";
+        String text = "IF i == 0;    #MESSAGE 0;ELSEIF i == 1;    #MESSAGE 1;ELSEIF i == 2;"
+                + "    #MESSAGE 2;ELSE;    #MESSAGE 3;ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -196,7 +196,7 @@ public class TestParser {
     @Test
     public void testIncrementAndDecrement() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "a = 2\n" + "a = ++a * --a - a++ / a--\n" + "a = -(--a) -(++a) -(a++) -(a--)\n"
+        String text = "a = 2\na = ++a * --a - a++ / a--\na = -(--a) -(++a) -(a++) -(a--)\n"
                 + "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -297,7 +297,7 @@ public class TestParser {
     public void testNegation() throws Exception {
         Charset charset = Charset.forName("UTF-8");
         String text =
-                "" + "IF !(true && false && true || 2 < 1 && 1 < 2)\n" + "    #MESSAGE \"test i=\"+i\n" + "ENDIF\n";
+                "IF !(true && false && true || 2 < 1 && 1 < 2)\n    #MESSAGE \"test i=\"+i\nENDIF\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -362,7 +362,7 @@ public class TestParser {
     @Test
     public void testParse() throws IOException, LexerException, ParserException {
         Charset charset = Charset.forName("UTF-8");
-        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n" + "#MESSAGE \"text\"\n";
+        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n#MESSAGE \"text\"\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -402,7 +402,7 @@ public class TestParser {
         Parser.addDeprecationSupervisor((type, value) -> type == Type.ID && "#MODIFYPLAYER".equals(value));
 
         Charset charset = Charset.forName("UTF-8");
-        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n" + "#MODIFYPLAYER \"text\"\n";
+        String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n#MODIFYPLAYER \"text\"\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -443,7 +443,7 @@ public class TestParser {
     @Test
     public void testPlaceholder() throws Exception {
         Charset charset = Charset.forName("UTF-8");
-        String text = "" + "x = 10;" + "#MESSAGE $placeholdertest@main:0:x:5:true;";
+        String text = "x = 10;#MESSAGE $placeholdertest@main:0:x:5:true;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);

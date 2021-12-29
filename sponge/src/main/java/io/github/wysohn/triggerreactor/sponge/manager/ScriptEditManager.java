@@ -77,8 +77,7 @@ public class ScriptEditManager extends AbstractScriptEditManager {
                     editorUser.sendMessage("&7Done");
                 } else {
                     exitDoublecheck.add(editorUser);
-                    editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! "
-                            + "&dType &6exit &done more time to confirm.");
+                    editorUser.sendMessage("&6Are you sure to exit? &cUnsaved data will be all discared! &dType &6exit &done more time to confirm.");
                 }
                 return;
             } else if (arg1.equals("il")) {

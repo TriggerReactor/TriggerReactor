@@ -159,8 +159,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                         throw new Exception(identifier + functionName + " encountered error.", e1);
                     } catch (TimeoutException e1) {
                         throw new Exception(
-                                identifier + functionName + " was stopped. It took longer than 5 seconds to process. "
-                                        + "Is the server lagging?", e1);
+                                identifier + functionName + " was stopped. It took longer than 5 seconds to process. Is the server lagging?", e1);
                     }
                     return result;
                 }

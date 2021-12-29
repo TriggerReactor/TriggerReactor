@@ -313,9 +313,7 @@ public class ReflectionUtil {
                             args[i] = Enum.valueOf((Class<? extends Enum>) parameterTypes[i], (String) args[i]);
                         } catch (IllegalArgumentException ex1) {
                             throw new RuntimeException(
-                                    "Tried to convert value [" + args[i] + "] to Enum [" + parameterTypes[i] + "] or "
-                                            + "find appropriate method but found nothing. Make sure" + " that the value"
-                                            + " [" + args[i] + "] matches exactly with one of the Enums in ["
+                                    "Tried to convert value [" + args[i] + "] to Enum [" + parameterTypes[i] + "] or find appropriate method but found nothing. Make sure that the value [" + args[i] + "] matches exactly with one of the Enums in ["
                                             + parameterTypes[i] + "] or the method you are looking exists.");
                         }
                     }

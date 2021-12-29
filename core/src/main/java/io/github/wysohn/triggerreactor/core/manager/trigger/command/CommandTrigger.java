@@ -31,7 +31,7 @@ public class CommandTrigger extends Trigger {
 
     @Override
     public String toString() {
-        return super.toString() + "{" + "permissions=" + Arrays.toString(permissions) + ", aliases=" + Arrays.toString(
+        return super.toString() + "{permissions=" + Arrays.toString(permissions) + ", aliases=" + Arrays.toString(
                 aliases) + '}';
     }
 
@@ -45,6 +45,8 @@ public class CommandTrigger extends Trigger {
         } else {
             this.aliases = aliases;
         }
+
+        notifyObservers();
     }
 
     public String[] getPermissions() {
@@ -57,6 +59,8 @@ public class CommandTrigger extends Trigger {
         } else {
             this.permissions = permissions;
         }
+
+        notifyObservers();
     }
 
     public ITabCompleter[] getTabCompleters() {
@@ -69,5 +73,7 @@ public class CommandTrigger extends Trigger {
         } else {
             this.tabCompleters = tabCompleters;
         }
+
+        notifyObservers();
     }
 }

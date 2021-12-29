@@ -36,7 +36,7 @@ public class CustomTrigger extends Trigger implements CustomTriggerManager.Event
 
     @Override
     public String toString() {
-        return super.toString() + "{" + "event=" + (event == null ? null : event.getName()) + '}';
+        return super.toString() + "{event=" + (event == null ? null : event.getName()) + '}';
     }
 
     @Override

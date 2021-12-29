@@ -143,7 +143,7 @@ public final class $Gson$Types {
 
         } else {
             String className = type == null ? "null" : type.getClass().getName();
-            throw new IllegalArgumentException("Expected a Class, ParameterizedType, or " + "GenericArrayType, but <"
+            throw new IllegalArgumentException("Expected a Class, ParameterizedType, or GenericArrayType, but <"
                     + type + "> is of type " + className);
         }
     }

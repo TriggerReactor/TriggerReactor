@@ -64,7 +64,7 @@ public class TestInterpreter {
     @Test
     public void testArray() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "args[0] = \"arg1\"\n" + "args[1] = \"arg2\"\n"
+        String text = "args[0] = \"arg1\"\nargs[1] = \"arg2\"\n"
                 + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -99,8 +99,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + TestEnum.class.getName() + ";" + "enumVal = TestEnum.IMTEST;" + "arr = array(1);"
-                + "arr[0] = enumVal;" + "#TEST arr[0];";
+        String text = "IMPORT " + TestEnum.class.getName() + ";enumVal = TestEnum.IMTEST;arr = array(1);"
+                + "arr[0] = enumVal;#TEST arr[0];";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -143,8 +143,8 @@ public class TestInterpreter {
     public void testBitwiseAndBitshift() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "x = -129;" + "y = true;" + "#TEST1 x << 1;" + "#TEST2 x >> 1;" + "#TEST3 x >>> 1;" + "#TEST4 x | 67;"
-                        + "#TEST5 x & 67;" + "#TEST6 x ^ 67;" + "#TEST7 ~x;" + "#TEST8 y | true;" + "#TEST9 y & true;"
+                "x = -129;y = true;#TEST1 x << 1;#TEST2 x >> 1;#TEST3 x >>> 1;#TEST4 x | 67;"
+                        + "#TEST5 x & 67;#TEST6 x ^ 67;#TEST7 ~x;#TEST8 y | true;#TEST9 y & true;"
                         + "#TEST10 y ^ true;";
 
         Lexer lexer = new Lexer(text, charset);
@@ -344,8 +344,8 @@ public class TestInterpreter {
     public void testBreak() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "x = 0;" + "WHILE x < 5;" + "x = x + 1;" + "IF x > 1;" + "#BREAK;" + "ENDIF;" + "ENDWHILE;" + "#TEST x;"
-                        + "" + "FOR x = 0:10;" + "IF x == 2;" + "#BREAK;" + "ENDIF;" + "ENDFOR;" + "#TEST2 x";
+                "x = 0;WHILE x < 5;x = x + 1;IF x > 1;#BREAK;ENDIF;ENDWHILE;#TEST x;"
+                        + "FOR x = 0:10;IF x == 2;#BREAK;ENDIF;ENDFOR;#TEST2 x";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -385,7 +385,7 @@ public class TestInterpreter {
     @Test
     public void testBreak2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "FOR i = 0:5;" + "IF i == 3;" + "#BREAK;" + "ENDIF;" + "#TEST;" + "ENDFOR;";
+        String text = "FOR i = 0:5;IF i == 3;#BREAK;ENDIF;#TEST;ENDFOR;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -440,8 +440,8 @@ public class TestInterpreter {
     public void testComparison() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "#TEST 1 < 2, 2 < 1;" + "#TEST2 5 > 4, 4 > 5;" + "#TEST3 1 <= 1, 3 <= 2;" + "#TEST4 1 >= 1, 2 >= 3;"
-                        + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";" + "#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
+                "#TEST 1 < 2, 2 < 1;#TEST2 5 > 4, 4 > 5;#TEST3 1 <= 1, 3 <= 2;#TEST4 1 >= 1, 2 >= 3;"
+                        + "#TEST5 \"tt\" == \"tt\", \"bb\" == \"bt\";#TEST6 \"tt\" != \"bb\", \"bb\" != \"bb\";";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -481,8 +481,8 @@ public class TestInterpreter {
     @Test
     public void testConstructorCustom() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + Vector.class.getName() + ";" + "v = Vector();" + "v2 = Vector(4,4,2);"
-                + "v3 = Vector(4.2,4.4,2.3);" + "v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));";
+        String text = "IMPORT " + Vector.class.getName() + ";v = Vector();v2 = Vector(4,4,2);"
+                + "v3 = Vector(4.2,4.4,2.3);v4 = Vector(toFloat(3.2), toFloat(4.3), toFloat(5.4));";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -517,7 +517,7 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest();" + "#TEST obj;";
+        String text = "IMPORT " + ConstTest.class.getName() + ";obj = ConstTest();#TEST obj;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -561,7 +561,7 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(1);" + "#TEST obj;";
+        String text = "IMPORT " + ConstTest.class.getName() + ";obj = ConstTest(1);#TEST obj;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -606,7 +606,7 @@ public class TestInterpreter {
 
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(2, 5.0, \"hoho\");" + "#TEST obj;";
+                "IMPORT " + ConstTest.class.getName() + ";obj = ConstTest(2, 5.0, \"hoho\");#TEST obj;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -651,7 +651,7 @@ public class TestInterpreter {
 
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "IMPORT " + ConstTest.class.getName() + ";" + "obj = ConstTest(1, 2, 3, 4, 5);" + "#TEST obj;";
+                "IMPORT " + ConstTest.class.getName() + ";obj = ConstTest(1, 2, 3, 4, 5);#TEST obj;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -693,9 +693,9 @@ public class TestInterpreter {
     @Test
     public void testContinue() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 0;" + "i = 0;" + "WHILE i < 5;" + "i = i + 1;" + "IF x > 1;" + "#CONTINUE;" + "ENDIF;"
-                + "x = x + 1;" + "ENDWHILE;" + "#TEST x, i;" + "" + "x = 0;" + "FOR i = 0:6;" + "IF x > 1;"
-                + "#CONTINUE;" + "ENDIF;" + "x = x + 1;" + "ENDFOR;" + "#TEST2 x, i;";
+        String text = "x = 0;i = 0;WHILE i < 5;i = i + 1;IF x > 1;#CONTINUE;ENDIF;"
+                + "x = x + 1;ENDWHILE;#TEST x, i;x = 0;FOR i = 0:6;IF x > 1;"
+                + "#CONTINUE;ENDIF;x = x + 1;ENDFOR;#TEST2 x, i;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -736,9 +736,9 @@ public class TestInterpreter {
     @Test
     public void testContinueIterator() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "sum = 0;" + "FOR val = arr;" + "IF val == 1 || val == 5;" + "#CONTINUE;" + "ENDIF;"
-                + "sum = sum + val;" + "ENDFOR;" + "#TEST sum;" + "" + "sum = 0;" + "FOR val = iter;"
-                + "IF val == 1 || val == 5;" + "#CONTINUE;" + "ENDIF;" + "sum = sum + val;" + "ENDFOR;" + "#TEST2 sum;";
+        String text = "sum = 0;FOR val = arr;IF val == 1 || val == 5;#CONTINUE;ENDIF;"
+                + "sum = sum + val;ENDFOR;#TEST sum;sum = 0;FOR val = iter;"
+                + "IF val == 1 || val == 5;#CONTINUE;ENDIF;sum = sum + val;ENDFOR;#TEST2 sum;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -783,7 +783,7 @@ public class TestInterpreter {
     @Test
     public void testCustomArray() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "args = array(2)\n" + "args[0] = \"arg1\"\n" + "args[1] = \"arg2\"\n"
+        String text = "args = array(2)\nargs[0] = \"arg1\"\nargs[1] = \"arg2\"\n"
                 + "#MESSAGE args[0]+\", \"+args[1*-1*-1+1-1- -1-1]\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -841,7 +841,7 @@ public class TestInterpreter {
     @Test
     public void testGlobalVariable() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "{text+\".something\"} = 12.54\n" + "#MESSAGE {text+\".something\"}\n";
+        String text = "{text+\".something\"} = 12.54\n#MESSAGE {text+\".something\"}\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -877,7 +877,7 @@ public class TestInterpreter {
     @Test
     public void testGlobalVariableAsFactor() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "result = {\"some.temp.var\"} - 4;" + "result2 = {?\"some.temp.var\"} - 5;";
+        String text = "result = {\"some.temp.var\"} - 4;result2 = {?\"some.temp.var\"} - 5;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -902,7 +902,7 @@ public class TestInterpreter {
     @Test
     public void testGlobalVariableDeletion() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "key = \"temp\";" + "{key} = 1;" + "#TEST1 {key};" + "{key} = null;" + "#TEST2 {key};";
+        String text = "key = \"temp\";{key} = 1;#TEST1 {key};{key} = null;#TEST2 {key};";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -951,8 +951,8 @@ public class TestInterpreter {
     @Test
     public void testISStatement() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "IMPORT " + TheTest.class.getName() + ";" + "IMPORT " + InTest.class.getName() + ";" + ""
-                + "#TEST test IS TheTest, test IS InTest;" + "#TEST test2 IS InTest, test2 IS TheTest;";
+        String text = "IMPORT " + TheTest.class.getName() + ";IMPORT " + InTest.class.getName() + ";"
+                + "#TEST test IS TheTest, test IS InTest;#TEST test2 IS InTest, test2 IS TheTest;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -990,8 +990,8 @@ public class TestInterpreter {
         Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
                 + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum;"
-                + "#TEST TheTest;" + "#TEST2 TheTest.staticTest();" + "#TEST3 TheTest().localTest();"
-                + "#TEST4 TheTest.staticField;" + "#TEST5 TestEnum.IMTEST;";
+                + "#TEST TheTest;#TEST2 TheTest.staticTest();#TEST3 TheTest().localTest();"
+                + "#TEST4 TheTest.staticField;#TEST5 TestEnum.IMTEST;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1076,7 +1076,7 @@ public class TestInterpreter {
     @Test
     public void testIncrementAndDecrement1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "a = 2;" + "#TEST1 -a;" + "#TEST2 a++;" + "#TEST3 a--;" + "#TEST4 ++a;" + "#TEST5 --a;";
+        String text = "a = 2;#TEST1 -a;#TEST2 a++;#TEST3 a--;#TEST4 ++a;#TEST5 --a;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1161,7 +1161,7 @@ public class TestInterpreter {
     @Test
     public void testIncrementAndDecrement2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "a = 2.1;" + "#TEST1 -a;" + "#TEST2 a++;" + "#TEST3 a--;" + "#TEST4 ++a;" + "#TEST5 --a;";
+        String text = "a = 2.1;#TEST1 -a;#TEST2 a++;#TEST3 a--;#TEST4 ++a;#TEST5 --a;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1246,7 +1246,7 @@ public class TestInterpreter {
     @Test
     public void testIteration2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "FOR i = 0:10\n" + "    #MESSAGE i\n" + "ENDFOR\n";
+        String text = "FOR i = 0:10\n    #MESSAGE i\nENDFOR\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1280,7 +1280,7 @@ public class TestInterpreter {
     @Test
     public void testIteration3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "start=0;" + "stop=10;" + "FOR i = start:stop\n" + "    #MESSAGE i\n" + "ENDFOR\n";
+        String text = "start=0;stop=10;FOR i = start:stop\n    #MESSAGE i\nENDFOR\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1313,7 +1313,7 @@ public class TestInterpreter {
     @Test
     public void testIteration4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "start=0;" + "stop=10;" + "FOR i = start*10-0:stop-10*0\n" + "    #MESSAGE i\n" + "ENDFOR\n";
+        String text = "start=0;stop=10;FOR i = start*10-0:stop-10*0\n    #MESSAGE i\nENDFOR\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1346,7 +1346,7 @@ public class TestInterpreter {
     @Test
     public void testIteration5() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "FOR i = 0:getPlayers().size()\n" + "    #MESSAGE i\n" + "ENDFOR\n";
+        String text = "FOR i = 0:getPlayers().size()\n    #MESSAGE i\nENDFOR\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1397,9 +1397,9 @@ public class TestInterpreter {
         }).when(obj).twoArg(any(BiFunction.class));
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "abc = 33\n" + "instance.noArg(LAMBDA =>\n" + "    abc * 3\n" + "ENDLAMBDA)\n" + ""
-                + "instance.oneArg(LAMBDA str => \n" + "    added = str + \" Hi\"\n" + "    added\n" + "ENDLAMBDA)\n"
-                + "" + "instance.twoArg(LAMBDA a, b => \n" + "    a + b\n" + "ENDLAMBDA)\n";
+        String text = "abc = 33\ninstance.noArg(LAMBDA =>\n    abc * 3\nENDLAMBDA)\n"
+                + "instance.oneArg(LAMBDA str => \n    added = str + \" Hi\"\n    added\nENDLAMBDA)\n"
+                + "instance.twoArg(LAMBDA a, b => \n    a + b\nENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1437,8 +1437,8 @@ public class TestInterpreter {
 
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "instance.oneArg(LAMBDA x => \n" + "    IF x == \"Something\"\n" + "        50\n" + "    ELSE\n"
-                        + "        100\n" + "    ENDIF\n" + "ENDLAMBDA)\n";
+                "instance.oneArg(LAMBDA x => \n    IF x == \"Something\"\n        50\n    ELSE\n"
+                        + "        100\n    ENDIF\nENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1471,8 +1471,8 @@ public class TestInterpreter {
 
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "instance.oneArg(LAMBDA x => \n" + "    IF x == \"Something\"\n" + "        50\n" + "    ELSE\n"
-                        + "        100\n" + "    ENDIF\n" + "ENDLAMBDA)\n";
+                "instance.oneArg(LAMBDA x => \n    IF x == \"Something\"\n        50\n    ELSE\n"
+                        + "        100\n    ENDIF\nENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1505,7 +1505,7 @@ public class TestInterpreter {
         }).when(obj).twoArg(any(BiFunction.class));
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "instance.twoArg(LAMBDA a, b => \n" + "    a + b\n" + "    null\n" + "ENDLAMBDA)\n";
+        String text = "instance.twoArg(LAMBDA a, b => \n    a + b\n    null\nENDLAMBDA)\n";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1558,8 +1558,8 @@ public class TestInterpreter {
     @Test
     public void testMethod() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "rand = common.random(3);" + "IF rand == 0\n" + "#MESSAGE 0\n" + "ENDIF;" + "IF rand == 1;\n"
-                + "#MESSAGE 1;\n" + "ENDIF\n" + "IF rand == 2;" + "#MESSAGE 2\n" + "ENDIF\n";
+        String text = "rand = common.random(3);IF rand == 0\n#MESSAGE 0\nENDIF;IF rand == 1;\n"
+                + "#MESSAGE 1;\nENDIF\nIF rand == 2;#MESSAGE 2\nENDIF\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1595,7 +1595,7 @@ public class TestInterpreter {
     public void testMethodReturnValue() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "{\"temp1\"} = random(0, 10);" + "{\"temp2\"} = random(0.0, 10.0);" + "{\"temp3\"} = random(0, 10.0);";
+                "{\"temp1\"} = random(0, 10);{\"temp2\"} = random(0.0, 10.0);{\"temp3\"} = random(0, 10.0);";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1625,7 +1625,7 @@ public class TestInterpreter {
     public void testMethodWithEnumParameter() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");" + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");"
+                "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");{\"temp2\"} = temp2.testEnumMethod(\"Something\");"
                         + "{\"temp3\"} = random(0, 10.0);";
 
         Lexer lexer = new Lexer(text, charset);
@@ -1663,7 +1663,7 @@ public class TestInterpreter {
     @Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "arr = array(6)\n" + "arr[0] = true\n" + "arr[1] = !true\n" + "arr[2] = !true || false\n"
+        String text = "arr = array(6)\narr[0] = true\narr[1] = !true\narr[2] = !true || false\n"
                 + "arr[3] = true && !false\n"
                 + "arr[4] = true && 1 < 2 && 5 > 4 && 1 != 2 && 2 == 2 && (false || 2*2 > 3)\n"
                 + "arr[5] = false || false || (2 < 3 && 6+5*3 > 1*2+3)";
@@ -1695,7 +1695,7 @@ public class TestInterpreter {
     @Test
     public void testNestedAccessor() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IMPORT java.lang.Long;" + "id = Long.valueOf(\"123456789123456789\").longValue()";
+        String text = "IMPORT java.lang.Long;id = Long.valueOf(\"123456789123456789\").longValue()";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1719,8 +1719,8 @@ public class TestInterpreter {
     public void testNestedIf() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "x = 4.0;" + "IF x < 0.0;" + "    #TEST \"no\";" + "ELSEIF x > 0.0;" + "    #TEST \"pass\";" + "ELSE;"
-                        + "    #TEST \"no\";" + "ENDIF;";
+                "x = 4.0;IF x < 0.0;    #TEST \"no\";ELSEIF x > 0.0;    #TEST \"pass\";ELSE;"
+                        + "    #TEST \"no\";ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1754,8 +1754,8 @@ public class TestInterpreter {
     public void testNestedIf2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "x = 4.0;" + "IF x < 0.0;" + "    #TEST \"no\";" + "ELSEIF x < -5.0;" + "    #TEST \"no\";" + "ELSE;"
-                        + "    #TEST \"pass\";" + "ENDIF;";
+                "x = 4.0;IF x < 0.0;    #TEST \"no\";ELSEIF x < -5.0;    #TEST \"no\";ELSE;"
+                        + "    #TEST \"pass\";ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1788,9 +1788,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF x > 999;" + "    result = \"test1\";" + "ELSEIF x > 99;" + "    result = \"test2\";"
-                + "ELSEIF x > 9;" + "    IF x < 11;" + "        result = \"test5\";" + "    ENDIF;" + "ELSEIF x > 4;"
-                + "    result = \"test3\";" + "ELSE;" + "    result = \"test4\";" + "ENDIF;";
+        String text = "IF x > 999;    result = \"test1\";ELSEIF x > 99;    result = \"test2\";"
+                + "ELSEIF x > 9;    IF x < 11;        result = \"test5\";    ENDIF;ELSEIF x > 4;"
+                + "    result = \"test3\";ELSE;    result = \"test4\";ENDIF;";
 
         Map<Integer, String> testMap = new HashMap<>();
         testMap.put(1000, "test1");
@@ -1830,8 +1830,8 @@ public class TestInterpreter {
     @Test
     public void testNestedIf4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        #TEST 1;" + "    ELSE;"
-                + "        #TEST 2;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
+        String text = "x = 4.0;IF x > 0.0;    IF x == 4.0;        #TEST 1;    ELSE;"
+                + "        #TEST 2;    ENDIF;ELSE;    #TEST 3;ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1864,9 +1864,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIf5() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        IF x == 3.0;"
-                + "        ELSEIF x == 4.0;" + "            #TEST 1;" + "        ELSE;" + "        ENDIF;" + "    ELSE;"
-                + "        #TEST 2;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
+        String text = "x = 4.0;IF x > 0.0;    IF x == 4.0;        IF x == 3.0;"
+                + "        ELSEIF x == 4.0;            #TEST 1;        ELSE;        ENDIF;    ELSE;"
+                + "        #TEST 2;    ENDIF;ELSE;    #TEST 3;ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1899,9 +1899,9 @@ public class TestInterpreter {
     @Test
     public void testNestedIfNoElse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "" + "IF x > 0.0;" + "    IF x == 4.0;" + "        IF x == 3.0;"
-                + "        ELSEIF x == 2.0;" + "            #TEST 1;" + "        ELSEIF x == 4.0;"
-                + "            #TEST 2;" + "        ENDIF;" + "    ENDIF;" + "ELSE;" + "    #TEST 3;" + "ENDIF;";
+        String text = "x = 4.0;IF x > 0.0;    IF x == 4.0;        IF x == 3.0;"
+                + "        ELSEIF x == 2.0;            #TEST 1;        ELSEIF x == 4.0;"
+                + "            #TEST 2;        ENDIF;    ENDIF;ELSE;    #TEST 3;ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1934,7 +1934,7 @@ public class TestInterpreter {
     @Test
     public void testNullComparison() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "IF {\"temp\"} == null;" + "{\"temp\"} = true;" + "ENDIF;";
+        String text = "IF {\"temp\"} == null;{\"temp\"} = true;ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1959,7 +1959,7 @@ public class TestInterpreter {
     public void testOnlyTry() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "" + "TRY;" + "   #TEST;" + "ENDTRY;";
+        String text = "TRY;   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -1986,8 +1986,8 @@ public class TestInterpreter {
     @Test
     public void testPlaceholder() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 100.0;" + "returnvalue = $test:0:x:true:\"hoho\";" + "#MESSAGE $playername returnvalue;"
-                + "#TESTSTRING $string;" + "#TESTINTEGER $integer;" + "#TESTDOUBLE $double;" + "#TESTBOOLEAN $boolean;";
+        String text = "x = 100.0;returnvalue = $test:0:x:true:\"hoho\";#MESSAGE $playername returnvalue;"
+                + "#TESTSTRING $string;#TESTINTEGER $integer;#TESTDOUBLE $double;#TESTBOOLEAN $boolean;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2190,12 +2190,12 @@ public class TestInterpreter {
     @Test
     public void testReference() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "X = 5\n" + "str = \"abc\"\n" + "WHILE 1 > 0\n" + "    str = str + X\n"
-                + "    IF player.in.health > 2 && player.in.health > 0\n" + "        #MESSAGE 3*4\n" + "    ELSE\n"
-                + "        #MESSAGE str\n" + "    ENDIF\n" + "    #MESSAGE text\n"
+        String text = "X = 5\nstr = \"abc\"\nWHILE 1 > 0\n    str = str + X\n"
+                + "    IF player.in.health > 2 && player.in.health > 0\n        #MESSAGE 3*4\n    ELSE\n"
+                + "        #MESSAGE str\n    ENDIF\n    #MESSAGE text\n"
                 + "    player.getTest().in.health = player.getTest().in.getHealth() + 1.2\n"
-                + "    #MESSAGE player.in.hasPermission(\"t\")\n" + "    X = X - 1\n" + "    IF X < 0\n"
-                + "        #STOP\n" + "    ENDIF\n" + "ENDWHILE";
+                + "    #MESSAGE player.in.hasPermission(\"t\")\n    X = X - 1\n    IF X < 0\n"
+                + "        #STOP\n    ENDIF\nENDWHILE";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2230,8 +2230,8 @@ public class TestInterpreter {
     @Test
     public void testShortCircuit() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF player != null && player.health == 0.82;" + "    #TEST1 \"work\";" + "ENDIF;"
-                + "IF player2 == null || player2.health == 0.82;" + "    #TEST2 \"work2\";" + "ENDIF;";
+        String text = "IF player != null && player.health == 0.82;    #TEST1 \"work\";ENDIF;"
+                + "IF player2 == null || player2.health == 0.82;    #TEST2 \"work2\";ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2287,7 +2287,7 @@ public class TestInterpreter {
 
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "x = 4.0;" + "IF x > 0.0;" + "    #TEST1 \"pass\";" + "ELSE;" + "    #TEST2 \"failed\";" + "ENDIF;";
+                "x = 4.0;IF x > 0.0;    #TEST1 \"pass\";ELSE;    #TEST2 \"failed\";ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2337,7 +2337,7 @@ public class TestInterpreter {
     public void testSimpleIf2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "IF someunknown != 0.0;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
+                "IF someunknown != 0.0;    #TEST \"pass\";ELSE;    #TEST \"failed\";ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2371,7 +2371,7 @@ public class TestInterpreter {
     public void testSimpleIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "IF 0.0 != someunknown;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";" + "ENDIF;";
+                "IF 0.0 != someunknown;    #TEST \"pass\";ELSE;    #TEST \"failed\";ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2404,7 +2404,7 @@ public class TestInterpreter {
     @Test
     public void testSimpleIf4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "IF someunknown == someunknown;" + "    #TEST \"pass\";" + "ELSE;" + "    #TEST \"failed\";"
+        String text = "IF someunknown == someunknown;    #TEST \"pass\";ELSE;    #TEST \"failed\";"
                 + "ENDIF;";
 
         Lexer lexer = new Lexer(text, charset);
@@ -2439,8 +2439,8 @@ public class TestInterpreter {
     public void testStringAppend() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text =
-                "" + "arr = array(4)\n" + "arr[0] = \"beh\"+player.in.health\n" + "arr[1] = player.in.health+\"beh\"\n"
-                        + "arr[2] = \"beh\"+1+1\n" + "arr[3] = \"beh\"+(1+1)\n" + "#MESSAGE arr\n";
+                "arr = array(4)\narr[0] = \"beh\"+player.in.health\narr[1] = player.in.health+\"beh\"\n"
+                        + "arr[2] = \"beh\"+1+1\narr[3] = \"beh\"+(1+1)\n#MESSAGE arr\n";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2481,7 +2481,7 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "SYNC;" + "#TEST1;" + "ENDSYNC;" + "ASYNC;" + "#TEST2;" + "ENDASYNC;";
+        String text = "SYNC;#TEST1;ENDSYNC;ASYNC;#TEST2;ENDASYNC;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -2575,8 +2575,8 @@ public class TestInterpreter {
         Set<String> set = new HashSet<>();
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "SYNC;" + "FOR i = 0:1;" + "#TEST1;" + "ENDFOR;" + "ENDSYNC;" + "ASYNC;" + "FOR j = 0:1;"
-                + "#TEST2;" + "ENDFOR;" + "ENDASYNC;";
+        String text = "SYNC;FOR i = 0:1;#TEST1;ENDFOR;ENDSYNC;ASYNC;FOR j = 0:1;"
+                + "#TEST2;ENDFOR;ENDASYNC;";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -2668,8 +2668,8 @@ public class TestInterpreter {
     @Test
     public void testTempGlobalVariable() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "{?text+\".something\"} = 12.54;" + "#MESSAGE {?text+\".something\"};"
-                + "{?text+\".something\"} = null;" + "#MESSAGE2 {?text+\".something\"};";
+        String text = "{?text+\".something\"} = 12.54;#MESSAGE {?text+\".something\"};"
+                + "{?text+\".something\"} = null;#MESSAGE2 {?text+\".something\"};";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2714,7 +2714,7 @@ public class TestInterpreter {
     public void testTryCatch1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "" + "TRY;" + "   #TEST;" + "   #TEST;" + "   #TEST;" + "CATCH e;" + "   #TEST;" + "ENDTRY;";
+        String text = "TRY;   #TEST;   #TEST;   #TEST;CATCH e;   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2743,8 +2743,8 @@ public class TestInterpreter {
         Charset charset = StandardCharsets.UTF_8;
 
         String text =
-                "" + "TRY;" + "   #TEST;" + "   error.cause();" + "   #TEST;" + "   #TEST;" + "CATCH e;" + "   #TEST;"
-                        + "   #TEST;" + "   #TEST;" + "ENDTRY;";
+                "TRY;   #TEST;   error.cause();   #TEST;   #TEST;CATCH e;   #TEST;"
+                        + "   #TEST;   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2772,7 +2772,7 @@ public class TestInterpreter {
     public void testTryCatchFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "" + "TRY;" + "   #TEST;" + "CATCH e;" + "   #TEST;" + "FINALLY;" + "   #TEST;" + "ENDTRY;";
+        String text = "TRY;   #TEST;CATCH e;   #TEST;FINALLY;   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2801,8 +2801,8 @@ public class TestInterpreter {
         Charset charset = StandardCharsets.UTF_8;
 
         String text =
-                "" + "TRY;" + "   #TEST;" + "   error.cause();" + "   #TEST;" + "CATCH e;" + "   #TEST;" + "FINALLY;"
-                        + "   #TEST;" + "ENDTRY;";
+                "TRY;   #TEST;   error.cause();   #TEST;CATCH e;   #TEST;FINALLY;"
+                        + "   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2830,7 +2830,7 @@ public class TestInterpreter {
     public void testTryFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "" + "TRY;" + "   #TEST;" + "FINALLY;" + "   #TEST;" + "ENDTRY;";
+        String text = "TRY;   #TEST;FINALLY;   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2857,7 +2857,7 @@ public class TestInterpreter {
     @Test
     public void testUnaryMinus() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 4.0;" + "#TEST1 -1+-5;" + "#TEST2 -2.0- -5;" + "#TEST3 -$test3-5;" + "#TEST4 -x-5;";
+        String text = "x = 4.0;#TEST1 -1+-5;#TEST2 -2.0- -5;#TEST3 -$test3-5;#TEST4 -x-5;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2944,7 +2944,7 @@ public class TestInterpreter {
     @Test
     public void testWhile() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "" + "number = 1;" + "WHILE number < 3;" + "number = number + 1;" + "ENDWHILE;";
+        String text = "number = 1;WHILE number < 3;number = number + 1;ENDWHILE;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -3161,7 +3161,7 @@ public class TestInterpreter {
 
         @Override
         public String toString() {
-            return "Vector{" + "key=" + key + '}';
+            return "Vector{key=" + key + '}';
         }
     }
 }

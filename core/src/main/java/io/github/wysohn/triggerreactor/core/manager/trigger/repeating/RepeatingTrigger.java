@@ -43,7 +43,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
     @Override
     public String toString() {
-        return super.toString() + "{" + "interval=" + interval + ", autoStart=" + autoStart + ", paused=" + paused
+        return super.toString() + "{interval=" + interval + ", autoStart=" + autoStart + ", paused=" + paused
                 + '}';
     }
 

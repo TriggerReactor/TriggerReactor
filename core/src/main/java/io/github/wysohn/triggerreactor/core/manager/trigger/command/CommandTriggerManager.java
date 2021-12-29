@@ -257,7 +257,7 @@ public class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger
      * @param script script to be executed
      * @return true on success; false if cmd already binded.
      */
-    public boolean addCommandTrigger(String cmd, String script) throws TriggerInitFailedException {
+    public boolean addCommandTrigger(String cmd, String script) {
         if (has(cmd))
             return false;
 

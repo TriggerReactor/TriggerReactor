@@ -84,7 +84,7 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public String toString() {
-        return "TriggerInfo{" + "triggerName=" + triggerName + ", config='" + config + '\'' + '}';
+        return "TriggerInfo{triggerName=" + triggerName + ", config='" + config + '\'' + '}';
     }
 
     /**

@@ -31,7 +31,7 @@ public class Pair<K, V> {
 
     @Override
     public String toString() {
-        return "Pair{" + "key=" + key + ", value=" + value + '}';
+        return "Pair{key=" + key + ", value=" + value + '}';
     }
 
     public static <K, V> Pair<K, V> of(K key, V value) {
