@@ -6,11 +6,16 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.*;
 
 public class CommandHandler {
-    public static final String PERMISSION = "triggerreactor.admin";
-
+    @Inject
+    @Named("CommandName")
+    String commandName;
+    @Inject
+    @Named("Permission")
+    String permission;
     @Inject
     ITriggerCommand triggerCommand;
     @Inject
@@ -22,8 +27,8 @@ public class CommandHandler {
     }
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
-        if (command.equalsIgnoreCase("triggerreactor")) {
-            if (!sender.hasPermission(PERMISSION))
+        if (command.equalsIgnoreCase(commandName)) {
+            if (!sender.hasPermission(permission))
                 return true;
 
             if (!pluginLifecycleController.isEnabled()) {
@@ -56,7 +61,7 @@ public class CommandHandler {
 
     //only for /trg command
     public List<String> onTabComplete(ICommandSender sender, String[] args) {
-        if (!sender.hasPermission(PERMISSION))
+        if (!sender.hasPermission(permission))
             return Collections.singletonList("permission denied.");
 
         switch (args.length) {

@@ -34,6 +34,7 @@ import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.script.ScriptEditor;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.File;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
@@ -42,6 +43,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
+    @Inject
+    @Named("Permission")
+    String permission;
     @Inject
     Logger logger;
     @Inject
@@ -104,16 +108,14 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     protected abstract T newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException;
 
     private void handleScriptEdit(IPlayer player, T trigger) {
-        IPlayer bukkitPlayer = wrapper.wrap(player);
-
-        scriptEditManager.startEdit(bukkitPlayer, trigger.getInfo().getTriggerName(), trigger.getScript(),
+        scriptEditManager.startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
                 (ScriptEditor.SaveHandler) script -> {
                     try {
                         trigger.setScript(script);
                     } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-                        throwableHandler.handleException(bukkitPlayer, e);
+                        throwableHandler.handleException(player, e);
                     }
-                });
+                }, false);
     }
 
     protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc, Trigger trigger) {
@@ -327,7 +329,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         IItemStack itemInHand = player.getItemInMainHand();
 
         // no business here unless something in the hand and has permission
-        if (itemInHand == null || !player.hasPermission("triggerreactor.admin"))
+        if (itemInHand == null || !player.hasPermission(permission))
             return true;
 
         // finish the trigger setting
