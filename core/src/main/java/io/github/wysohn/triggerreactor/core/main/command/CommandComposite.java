@@ -2,10 +2,8 @@ package io.github.wysohn.triggerreactor.core.main.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CommandComposite implements ITriggerCommand {
     final String[] commands;
@@ -33,7 +31,7 @@ public class CommandComposite implements ITriggerCommand {
         Arrays.sort(commands);
     }
 
-    void addChild(ITriggerCommand command){
+    void addChild(ITriggerCommand command) {
         children.add(command);
     }
 
@@ -52,7 +50,7 @@ public class CommandComposite implements ITriggerCommand {
 
         // delegate to the children to handle the command
         for (ITriggerCommand child : children) {
-            if(child.onCommand(sender, args))
+            if (child.onCommand(sender, args))
                 return true;
         }
 
@@ -62,8 +60,53 @@ public class CommandComposite implements ITriggerCommand {
     }
 
     @Override
+    public List<String> onTab(ListIterator<String> args) {
+        if (root) {
+            List<String> tabs = new LinkedList<>();
+            for (ITriggerCommand child : children) {
+                List<String> childTabs = child.onTab(args);
+                if (childTabs == null)
+                    continue;
+                tabs.addAll(childTabs);
+            }
+            return tabs;
+        }
+
+        if (args.hasNext()) {
+            String current = args.next();
+
+            // it's not for this composite
+            if (Arrays.binarySearch(commands, current) < -1) {
+                args.previous();
+                return null;
+            }
+
+            List<String> tabs;
+            if (args.hasNext()) {
+                tabs = new LinkedList<>();
+                for (ITriggerCommand child : children) {
+                    List<String> childTabs = child.onTab(args);
+                    if (childTabs == null)
+                        continue;
+                    tabs.addAll(childTabs);
+                }
+            } else {
+                // treat this composite as leaf node
+                tabs = Arrays.stream(commands)
+                        .filter(c -> c.startsWith(current))
+                        .collect(Collectors.toCollection(LinkedList::new));
+            }
+
+            args.previous();
+            return tabs;
+        } else {
+            return new LinkedList<>();
+        }
+    }
+
+    @Override
     public void printUsage(ICommandSender sender, int depth) {
-        if(depth <= 0)
+        if (depth <= 0)
             return;
 
         usage.printUsage(sender, INDENT * Math.max(0, 2 - depth));

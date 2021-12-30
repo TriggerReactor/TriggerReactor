@@ -27,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.inject.Inject;
@@ -36,7 +37,7 @@ import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
+@ManagerScope
 public class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
     @Inject
     CommandTriggerFactory factory;
@@ -58,7 +59,8 @@ public class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger
         tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
     }
 
-    public CommandTriggerManager() {
+    @Inject
+    CommandTriggerManager() {
         super("CommandTrigger");
     }
 

@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.inject.Inject;
@@ -30,11 +31,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@ManagerScope
 public class NamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
     @Inject
     NamedTriggerFactory factory;
 
-    public NamedTriggerManager(String folderName) {
+    @Inject
+    NamedTriggerManager(String folderName) {
         super(folderName);
     }
 

@@ -21,6 +21,10 @@ public class InventoryEditManager extends Manager {
     //inventories currently awaiting a save/discard/continue command
     protected Map<UUID, IInventory> suspended = new HashMap<>();
 
+    @Inject
+    InventoryEditManager() {
+    }
+
     @Override
     public void onDisable() {
 

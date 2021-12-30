@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -43,6 +44,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+@ManagerScope
 public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
     @Inject
     AreaTriggerFactory factory;
@@ -71,7 +73,8 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
     private final EntityTrackingThread entityTrackingThread = new EntityTrackingThread(this);
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
 
-    public AreaTriggerManager() {
+    @Inject
+    AreaTriggerManager() {
         super("AreaTrigger");
 
         Thread referenceCleaningThread = new Thread(() -> {

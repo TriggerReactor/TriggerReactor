@@ -56,11 +56,12 @@ public class TriggerCommand {
     @Inject
     IGameController gameController;
     @Inject
+    IThrowableHandler throwableHandler;
+
+    @Inject
     ScriptEditManager scriptEditManager;
     @Inject
     GlobalVariableManager globalVariableManager;
-    @Inject
-    IThrowableHandler throwableHandler;
     @Inject
     InventoryEditManager invEditManager;
     @Inject
@@ -88,8 +89,6 @@ public class TriggerCommand {
     RepeatingTriggerManager repeatManager;
 
     @Inject
-    Set<Manager> managers;
-    @Inject
     @Named("DataFolder")
     File dataFolder;
 
@@ -100,13 +99,13 @@ public class TriggerCommand {
     private final CommandBuilder commandBuilder = CommandBuilder.begin(this::showPluginDesc)
             .leaf("debug", "&b/triggerreactor[trg] debug &8- &7Toggle debug mode to see detailed error messages.",
                     (sender, args) -> {
-                        pluginLifecycleController.setDebugging(!pluginLifecycleController.isDebugging());
-                        String color = pluginLifecycleController.isDebugging() ? "a" : "c";
-                        sender.sendMessage("Debugging is set to &" + color + pluginLifecycleController.isDebugging());
+                pluginLifecycleController.setDebugging(!pluginLifecycleController.isDebugging());
+                String color = pluginLifecycleController.isDebugging() ? "a" : "c";
+                sender.sendMessage("Debugging is set to &" + color + pluginLifecycleController.isDebugging());
 
-                        logger.info("Debugging state: " + pluginLifecycleController.isDebugging());
-                        return true;
-                    })
+                logger.info("Debugging state: " + pluginLifecycleController.isDebugging());
+                return true;
+            })
             .leaf("version", "&b/triggerreactor[trg] version &8- &7Check current version of the plugin.", (sender,
                                                                                                            args) -> {
                 sender.sendMessage("Current version: " + pluginLifecycleController.getVersion());
@@ -155,34 +154,34 @@ public class TriggerCommand {
             .composite(new String[]{"command",
                                     "cmd"}, "&b/triggerreactor[trg] command[cmd]", builder -> builder.leaf("new",
                             (sender, spaces) -> {
-                                sender.sendMessage(StringUtils.spaces(spaces)
-                                        + "&b/triggerreactor[trg] command[cmd] new <command name> [...] &8- &7create a "
-                                        + "command trigg&b/triggerreactor[trg] command[cmd] new <command name> [...] &8- " +
-                                        "&7er"
-                                        + ".");
-                                sender.sendMessage(
-                                        StringUtils.spaces(spaces) + "  &7/trg cmd new test #MESSAGE \"I'M test COMMAND" +
-                                                "!\"");
-                                sender.sendMessage(StringUtils.spaces(spaces)
-                                        + "  &7To create lines of script, simply type &b/trg cmd new <command name> &7without"
-                                        + " extra parameters.");
-                            }, (sender, args) -> {
-                                String name = args.poll();
-                                if (cmdManager.has(name)) {
-                                    sender.sendMessage("&cCommand is already bound.");
-                                    return true;
-                                }
+                        sender.sendMessage(StringUtils.spaces(spaces)
+                                + "&b/triggerreactor[trg] command[cmd] new <command name> [...] &8- &7create a "
+                                + "command trigg&b/triggerreactor[trg] command[cmd] new <command name> [...] &8- " +
+                                "&7er"
+                                + ".");
+                        sender.sendMessage(
+                                StringUtils.spaces(spaces) + "  &7/trg cmd new test #MESSAGE \"I'M test COMMAND" +
+                                        "!\"");
+                        sender.sendMessage(StringUtils.spaces(spaces)
+                                + "  &7To create lines of script, simply type &b/trg cmd new <command name> &7without"
+                                + " extra parameters.");
+                    }, (sender, args) -> {
+                        String name = args.poll();
+                        if (cmdManager.has(name)) {
+                            sender.sendMessage("&cCommand is already bound.");
+                            return true;
+                        }
 
-                                String script = ITriggerCommand.consumeAllArguments(args);
-                                scriptEditManager.startEdit(sender, "Command Trigger", script, edits -> {
-                                    if (cmdManager.addCommandTrigger(name, edits)) {
-                                        sender.sendMessage("&aCommand trigger is bound!");
-                                    } else {
-                                        sender.sendMessage("&cCommand is already binded.");
-                                    }
-                                }, script.length() > 0);
-                                return true;
-                            })
+                        String script = ITriggerCommand.consumeAllArguments(args);
+                        scriptEditManager.startEdit(sender, "Command Trigger", script, edits -> {
+                            if (cmdManager.addCommandTrigger(name, edits)) {
+                                sender.sendMessage("&aCommand trigger is bound!");
+                            } else {
+                                sender.sendMessage("&cCommand is already binded.");
+                            }
+                        }, script.length() > 0);
+                        return true;
+                    })
                     .leaf("edit", "&b/triggerreactor[trg] command[cmd] edit <command name>&8- &7Open the editor and "
                             + "edit the script.", (sender, args) -> {
                         String name = args.poll();
@@ -535,53 +534,52 @@ public class TriggerCommand {
                     .composite(new String[]{"inventory",
                                             "i"}, "&b/triggerreactor[trg] inventory[i]", inner -> inner.leaf("create"
                                     , (sender, spaces) -> {
-                                        sender.sendMessage(
-                                                "&b/triggerreactor[trg] inventory[i] create <inventory name> " + "<size> [...] "
-                                                        + "&8- &7create a new inventory. <size> must be multiple of 9. The "
-                                                        + "<size> "
-                                                        + "cannot be " + "larger than 54");
-                                        sender.sendMessage("  &7/trg i MyInventory create 54");
-                                    }, (sender, args) -> {
-                                        String name = args.poll();
-                                        if (name == null)
-                                            return false;
-                                        String sizeStr = args.poll();
-                                        if (sizeStr == null)
-                                            return false;
+                                sender.sendMessage(
+                                        "&b/triggerreactor[trg] inventory[i] create <inventory name> " + "<size> [...] "
+                                                + "&8- &7create a new inventory. <size> must be multiple of 9. The " + "<size> "
+                                                + "cannot be " + "larger than 54");
+                                sender.sendMessage("  &7/trg i MyInventory create 54");
+                            }, (sender, args) -> {
+                                String name = args.poll();
+                                if (name == null)
+                                    return false;
+                                String sizeStr = args.poll();
+                                if (sizeStr == null)
+                                    return false;
 
-                                        int size = -1;
-                                        try {
-                                            size = Integer.parseInt(sizeStr);
-                                        } catch (NumberFormatException e) {
-                                            sender.sendMessage("&c" + sizeStr + " is not a valid number");
-                                            return true;
-                                        }
-                                        if (size > 54 || size < 9) {
-                                            sender.sendMessage("&csize must be between 9 and 54");
-                                            return true;
-                                        }
-                                        if (size % 9 != 0) {
-                                            sender.sendMessage("&csize must be a multiple of 9");
-                                            return true;
-                                        }
+                                int size = -1;
+                                try {
+                                    size = Integer.parseInt(sizeStr);
+                                } catch (NumberFormatException e) {
+                                    sender.sendMessage("&c" + sizeStr + " is not a valid number");
+                                    return true;
+                                }
+                                if (size > 54 || size < 9) {
+                                    sender.sendMessage("&csize must be between 9 and 54");
+                                    return true;
+                                }
+                                if (size % 9 != 0) {
+                                    sender.sendMessage("&csize must be a multiple of 9");
+                                    return true;
+                                }
 
-                                        String script = ITriggerCommand.consumeAllArguments(args);
-                                        int finalSize = size;
-                                        scriptEditManager.startEdit(sender, "Inventory Trigger", script, edits -> {
-                                            try {
-                                                if (invManager.createTrigger(finalSize, name, edits)) {
-                                                    sender.sendMessage("&aInventory Trigger created!");
-                                                } else {
-                                                    sender.sendMessage(
-                                                            "&7Another Inventory Trigger with that name already " + "exists");
-                                                }
-                                            } catch (Exception e) {
-                                                throwableHandler.handleException(sender, e);
-                                            }
-                                        }, script.length() > 0);
+                                String script = ITriggerCommand.consumeAllArguments(args);
+                                int finalSize = size;
+                                scriptEditManager.startEdit(sender, "Inventory Trigger", script, edits -> {
+                                    try {
+                                        if (invManager.createTrigger(finalSize, name, edits)) {
+                                            sender.sendMessage("&aInventory Trigger created!");
+                                        } else {
+                                            sender.sendMessage(
+                                                    "&7Another Inventory Trigger with that name already " + "exists");
+                                        }
+                                    } catch (Exception e) {
+                                        throwableHandler.handleException(sender, e);
+                                    }
+                                }, script.length() > 0);
 
-                                        return true;
-                                    })
+                                return true;
+                            })
                             .leaf("delete", (sender, spaces) -> {
                                 sender.sendMessage("&b/triggerreactor[trg] inventory[i] delete <inventory name>&8- &7"
                                         + "delete this inventory");
@@ -1077,53 +1075,53 @@ public class TriggerCommand {
                     .composite("custom", "&b/triggerreactor[trg] custom", inner -> inner.leaf(new String[]{"create",
                                                                                                            "edit"},
                                     (sender, spaces) -> {
-                                        sender.sendMessage(
-                                                "&b/triggerreactor[trg] custom create <event> <name> [...] &8- " + "&7Create a "
-                                                        + "custom trigger.");
-                                        sender.sendMessage(
-                                                "&b/triggerreactor[trg] custom edit <event> <name> &8- &Edit a custom " +
-                                                        "trigger.");
-                                        sender.sendMessage(
-                                                "  &7/trg custom create onJoin Greet #BROADCAST \"Please welcome " + "\"+player"
-                                                        + ".getName()+\"!\"");
-                                    }, (sender, args) -> {
-                                        String eventName = args.poll();
-                                        if (eventName == null)
-                                            return false;
-                                        String name = args.poll();
-                                        if (name == null)
-                                            return false;
+                                sender.sendMessage(
+                                        "&b/triggerreactor[trg] custom create <event> <name> [...] &8- " + "&7Create a "
+                                                + "custom trigger.");
+                                sender.sendMessage(
+                                        "&b/triggerreactor[trg] custom edit <event> <name> &8- &Edit a custom " +
+                                                "trigger.");
+                                sender.sendMessage(
+                                        "  &7/trg custom create onJoin Greet #BROADCAST \"Please welcome " + "\"+player"
+                                                + ".getName()+\"!\"");
+                            }, (sender, args) -> {
+                                String eventName = args.poll();
+                                if (eventName == null)
+                                    return false;
+                                String name = args.poll();
+                                if (name == null)
+                                    return false;
 
-                                        CustomTrigger trigger = customManager.get(name);
-                                        String script =
-                                                trigger == null ? ITriggerCommand.consumeAllArguments(args) :
-                                                        trigger.getScript();
-                                        scriptEditManager.startEdit(sender,
-                                                "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10))
-                                                        + "]", script, edits -> {
-                                                    if (trigger == null) {
-                                                        try {
-                                                            customManager.createCustomTrigger(eventName, name, script);
+                                CustomTrigger trigger = customManager.get(name);
+                                String script =
+                                        trigger == null ? ITriggerCommand.consumeAllArguments(args) :
+                                                trigger.getScript();
+                                scriptEditManager.startEdit(sender,
+                                        "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10))
+                                                + "]", script, edits -> {
+                                            if (trigger == null) {
+                                                try {
+                                                    customManager.createCustomTrigger(eventName, name, script);
 
-                                                            sender.sendMessage("&aCustom Trigger created!");
-                                                        } catch (Exception e) {
-                                                            e.printStackTrace();
-                                                            sender.sendMessage("&cCould not save! " + e.getMessage());
-                                                            sender.sendMessage("&cSee console for detailed messages.");
-                                                        }
-                                                    } else {
-                                                        try {
-                                                            trigger.setScript(edits);
-                                                        } catch (Exception e) {
-                                                            throwableHandler.handleException(sender, e);
-                                                        }
+                                                    sender.sendMessage("&aCustom Trigger created!");
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                    sender.sendMessage("&cCould not save! " + e.getMessage());
+                                                    sender.sendMessage("&cSee console for detailed messages.");
+                                                }
+                                            } else {
+                                                try {
+                                                    trigger.setScript(edits);
+                                                } catch (Exception e) {
+                                                    throwableHandler.handleException(sender, e);
+                                                }
 
-                                                        sender.sendMessage("&aScript is updated!");
-                                                    }
-                                                }, trigger == null);
+                                                sender.sendMessage("&aScript is updated!");
+                                            }
+                                        }, trigger == null);
 
-                                        return true;
-                                    })
+                                return true;
+                            })
                             .leaf("delete", "&b/triggerreactor[trg] custom delete <name> &8- &7Delete a custom "
                                     + "trigger.", (sender, args) -> {
                                 String key = args.poll();
@@ -1166,11 +1164,11 @@ public class TriggerCommand {
                                 sender.sendMessage(
                                         "&b/triggerreactor[trg] repeat[r] edit <name> &8- &Edit a Repeating " +
                                                 "Trigger.");
-                                sender.sendMessage("  &7This creates a Repeating Trigger with default settings. You "
-                                        + "probably "
-                                        + "will want to " + "change default values using other commands below. Also, "
-                                        + "creating "
-                                        + "Repeating" + " Trigger doesn't start it automatically.");
+                                sender.sendMessage(
+                                        "  &7This creates a Repeating Trigger with default settings. You " + "probably "
+                                                + "will want to " + "change default values using other commands below"
+                                                + ". Also, " + "creating " + "Repeating" + " Trigger doesn't start it "
+                                                + "automatically.");
                             }, (sender, args) -> {
                                 String name = args.poll();
                                 if (name == null)
@@ -1356,7 +1354,7 @@ public class TriggerCommand {
                         Set<String> filterSet = new HashSet<>(args);
 
                         sender.sendMessage("- - - - - Result - - - - ");
-                        managers.stream()
+                        Manager.ACTIVE_MANAGERS.stream()
                                 .filter(AbstractTriggerManager.class::isInstance)
                                 .map(AbstractTriggerManager.class::cast)
                                 .forEach(manager -> {
@@ -1428,7 +1426,7 @@ public class TriggerCommand {
                             }))
                     .leaf("reload", "&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings"
                             + ".", (sender, args) -> {
-                        for (Manager manager : managers)
+                        for (Manager manager : Manager.ACTIVE_MANAGERS)
                             manager.onReload();
 
                         executorManager.onReload();
@@ -1450,11 +1448,11 @@ public class TriggerCommand {
                     })));
 
     @Inject
-    TriggerCommand(){
+    TriggerCommand() {
 
     }
 
-    public ITriggerCommand createCommand(){
+    public ITriggerCommand createCommand() {
         return commandBuilder.build();
     }
 }

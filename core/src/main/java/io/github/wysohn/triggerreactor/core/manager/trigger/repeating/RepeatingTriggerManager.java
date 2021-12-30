@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ManagerScope
 public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
     @Inject
     RepeatingTriggerFactory factory;
@@ -44,8 +46,9 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    public RepeatingTriggerManager(String folderName) {
-        super(folderName);
+    @Inject
+    RepeatingTriggerManager() {
+        super("RepeatTrigger");
     }
 
     @Override

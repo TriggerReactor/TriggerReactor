@@ -17,6 +17,10 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The base class represents Manager. Child classes are responsible for only one objective per manager.
@@ -24,5 +28,11 @@ import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
  *
  * @author wysohn
  */
+@ManagerScope
 public abstract class Manager implements IPluginProcedure {
+    public static final Set<Manager> ACTIVE_MANAGERS = new HashSet<>();
+
+    protected Manager() {
+        ACTIVE_MANAGERS.add(this);
+    }
 }

@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
@@ -30,6 +31,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
+@ManagerScope
 public class PlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
     @Inject
     Logger logger;
@@ -39,6 +41,10 @@ public class PlaceholderManager extends AbstractJavascriptBasedManager implement
 
     protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
     private File placeholderFolder;
+
+    @Inject
+    PlaceholderManager() {
+    }
 
     @Override
     public void onEnable() throws Exception {

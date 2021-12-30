@@ -7,7 +7,10 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Queue;
 
 public class CommandHandler {
     @Inject
@@ -61,102 +64,102 @@ public class CommandHandler {
 
     //only for /trg command
     public List<String> onTabComplete(ICommandSender sender, String[] args) {
-        if (!sender.hasPermission(permission))
-            return Collections.singletonList("permission denied.");
-
-        switch (args.length) {
-            case 1:
-                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help",
-                        "inventory", "item", "list", "reload", "repeat", "run", "call", "saveall", "search", "sudo",
-                        "synccustom", "timings", "variables", "version", "walk"), args[0]);
-            case 2:
-                switch (args[0].toLowerCase()) {
-                    case "area":
-                    case "a":
-                        List<String> names = triggerNames(areaManager);
-                        // /trg area toggle
-                        names.add("toggle");
-                        return filter(names, args[1]);
-                    case "cmd":
-                    case "command":
-                        return filter(triggerNames(cmdManager), args[1]);
-                    case "custom":
-                        //event list
-                        return filter(new ArrayList<String>(customManager.getAbbreviations()), args[1]);
-                    case "delete":
-                    case "del":
-                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
-                    case "inventory":
-                    case "i":
-                        return filter(triggerNames(invManager), args[1]);
-                    case "item":
-                        return filter(Arrays.asList("lore", "title"), args[1]);
-                    case "repeat":
-                    case "r":
-                        return filter(triggerNames(repeatManager), args[1]);
-                    case "sudo":
-                        return null; //player selection
-                    case "synccustom":
-                        return filter(triggerNames(customManager), args[1]);
-                    case "timings":
-                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
-                    case "call":
-                        return filter(triggerNames(namedTriggerManager), args[1]);
-                }
-            case 3:
-                switch (args[0].toLowerCase()) {
-                    case "area":
-                    case "a":
-                        if (!args[1].equalsIgnoreCase("toggle")) {
-                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
-                        }
-                        return EMPTY;
-                    case "command":
-                    case "cmd":
-                        return filter(Arrays.asList("aliases", "permission", "sync", "settab"), args[2]);
-                    case "custom":
-                        return filter(triggerNames(customManager), args[2]);
-                    case "delete":
-                    case "del":
-                        AbstractTriggerManager manager;
-                        switch (args[1]) {
-                            case "cmd":
-                            case "command":
-                                manager = cmdManager;
-                                break;
-                            case "custom":
-                                manager = customManager;
-                                break;
-                            //"vars" and "variables" also possible, but I won't be offering completions for these
-                            default:
-                                return EMPTY;
-                        }
-                        return filter(triggerNames(manager), args[2]);
-                    case "inventory":
-                    case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open"
-                                , "row", "settitle"), args[2]);
-                    case "item":
-                        if (args[1].equals("lore")) {
-                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
-                        }
-                    case "repeat":
-                    case "r":
-                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"),
-                                args[2]);
-                }
-            case 4:
-                switch (args[0].toLowerCase()) {
-                    case "inventory":
-                    case "i":
-                        if (args[2].equalsIgnoreCase("open")) {
-                            return null; //player selection
-                        }
-                        if (args[2].equalsIgnoreCase("create")) {
-                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
-                        }
-                }
-        }
+//        if (!sender.hasPermission(permission))
+//            return Collections.singletonList("permission denied.");
+//
+//        switch (args.length) {
+//            case 1:
+//                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help",
+//                        "inventory", "item", "list", "reload", "repeat", "run", "call", "saveall", "search", "sudo",
+//                        "synccustom", "timings", "variables", "version", "walk"), args[0]);
+//            case 2:
+//                switch (args[0].toLowerCase()) {
+//                    case "area":
+//                    case "a":
+//                        List<String> names = triggerNames(areaManager);
+//                        // /trg area toggle
+//                        names.add("toggle");
+//                        return filter(names, args[1]);
+//                    case "cmd":
+//                    case "command":
+//                        return filter(triggerNames(cmdManager), args[1]);
+//                    case "custom":
+//                        //event list
+//                        return filter(new ArrayList<String>(customManager.getAbbreviations()), args[1]);
+//                    case "delete":
+//                    case "del":
+//                        return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
+//                    case "inventory":
+//                    case "i":
+//                        return filter(triggerNames(invManager), args[1]);
+//                    case "item":
+//                        return filter(Arrays.asList("lore", "title"), args[1]);
+//                    case "repeat":
+//                    case "r":
+//                        return filter(triggerNames(repeatManager), args[1]);
+//                    case "sudo":
+//                        return null; //player selection
+//                    case "synccustom":
+//                        return filter(triggerNames(customManager), args[1]);
+//                    case "timings":
+//                        return filter(Arrays.asList("print", "toggle", "reset"), args[1]);
+//                    case "call":
+//                        return filter(triggerNames(namedTriggerManager), args[1]);
+//                }
+//            case 3:
+//                switch (args[0].toLowerCase()) {
+//                    case "area":
+//                    case "a":
+//                        if (!args[1].equalsIgnoreCase("toggle")) {
+//                            return filter(Arrays.asList("create", "delete", "enter", "exit", "sync"), args[2]);
+//                        }
+//                        return EMPTY;
+//                    case "command":
+//                    case "cmd":
+//                        return filter(Arrays.asList("aliases", "permission", "sync", "settab"), args[2]);
+//                    case "custom":
+//                        return filter(triggerNames(customManager), args[2]);
+//                    case "delete":
+//                    case "del":
+//                        AbstractTriggerManager manager;
+//                        switch (args[1]) {
+//                            case "cmd":
+//                            case "command":
+//                                manager = cmdManager;
+//                                break;
+//                            case "custom":
+//                                manager = customManager;
+//                                break;
+//                            //"vars" and "variables" also possible, but I won't be offering completions for these
+//                            default:
+//                                return EMPTY;
+//                        }
+//                        return filter(triggerNames(manager), args[2]);
+//                    case "inventory":
+//                    case "i":
+//                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open"
+//                                , "row", "settitle"), args[2]);
+//                    case "item":
+//                        if (args[1].equals("lore")) {
+//                            return filter(Arrays.asList("add", "set", "remove"), args[2]);
+//                        }
+//                    case "repeat":
+//                    case "r":
+//                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"),
+//                                args[2]);
+//                }
+//            case 4:
+//                switch (args[0].toLowerCase()) {
+//                    case "inventory":
+//                    case "i":
+//                        if (args[2].equalsIgnoreCase("open")) {
+//                            return null; //player selection
+//                        }
+//                        if (args[2].equalsIgnoreCase("create")) {
+//                            return filter(Arrays.asList("9", "18", "27", "36", "45", "54"), args[3]);
+//                        }
+//                }
+//        }
         return EMPTY;
     }
 
