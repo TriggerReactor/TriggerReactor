@@ -206,24 +206,24 @@ public class CommandHandler {
                     + "permission[p] x.y x.z interpreter.start(new InterpreterLocalContext(Timings.LIMBO), "
                     + "globalContext);y.y ...&7.");
             sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some"
-                    + " thing ..interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);.&7.");
+                    + " thing ...&7.");
             sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
             sender.sendMessage("  &7- To add tab-completer, type &b/trg cmd <command name> settab[tab] <a/b/c>:a,b,c "
                     + "<player>:$playerlist this,it,that");
             sender.sendMessage("    &6*&7The parameter has following format: hint:val1,val2,...");
             sender.sendMessage("    &6*&7Not providing any tab-completer will remove it instead.");
             sender.sendMessage("    &7Hint shows up as simple string when a user is about to type something, and "
-                    + "values interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);will start"
+                    + "values will start"
                     + " to show up as a form of tab-completers as soon as their first characters interpreter.start"
                     + "(new InterpreterLocalContext(Timings.LIMBO), globalContext);matching with the characters typed"
                     + " by the user.");
             sender.sendMessage("    &7You may omit the hint, yet you cannot omit the values. To use only hint but no "
-                    + "values, interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);edit the "
+                    + "values, edit the "
                     + "config file manually.");
         });
         add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory "
-                    + "trigger named interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);"
+                    + "trigger named "
                     + "<inventory name>");
             sender.sendMessage("  &7/trg i to see more commands...");
 
@@ -251,7 +251,7 @@ public class CommandHandler {
             sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
 
             sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in "
-                    + "<variable interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);name>. "
+                    + "<variable name>. "
                     + "null if nothing.");
         });
         add((sender) -> {
@@ -291,10 +291,10 @@ public class CommandHandler {
         }));
         add((sender -> {
             sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also "
-                    + "analysis will be interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);"
+                    + "analysis will be "
                     + "reset.");
             sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also "
-                    + "analysis will be interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);"
+                    + "analysis will be "
                     + "reset.");
             sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
             sender.sendMessage(

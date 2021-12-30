@@ -98,7 +98,7 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
                 ex.printStackTrace();
 
             logger.warning(
-                    "Couldn't construct 'PluginCommand'. This may indicate that you are using very very old interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);version of Bukkit. Please report this to TR team, so we can work on it.");
+                    "Couldn't construct 'PluginCommand'. This may indicate that you are using very very old version of Bukkit. Please report this to TR team, so we can work on it.");
             logger.warning("Use /trg debug to see more details.");
             return null;
         }

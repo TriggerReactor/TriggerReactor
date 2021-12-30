@@ -548,7 +548,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin
 
                     return true;
                 } else {
-                    throw new RuntimeException("Parameter type not match; it should be a String.interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext); Make sure to put double quotes, if you provided String literal.");
+                    throw new RuntimeException("Parameter type not match; it should be a String. Make sure to put double quotes, if you provided String literal.");
                 }
             }
 
