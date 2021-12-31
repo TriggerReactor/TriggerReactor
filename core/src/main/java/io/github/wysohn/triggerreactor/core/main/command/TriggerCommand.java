@@ -98,10 +98,6 @@ public class TriggerCommand {
         sender.sendMessage("&7-----     &6" + pluginLifecycleController.getPluginDescription() + "&7    ----");
     }
 
-    // TODO check on script edit 'saveNow' argument
-    // TODO spacing for usages
-    // TODO rearrange code as needed
-    // TODO create/edit command clarification
     // TODO make sure all setters properly notify the manager (so updated info are persisted)
     private final CommandBuilder commandBuilder = CommandBuilder.begin(this::showPluginDesc)
             .leaf(new String[]{"click", "c"}, (sender, spaces) -> {
@@ -275,9 +271,9 @@ public class TriggerCommand {
 
                             return true;
                         })
-                        .leaf(new String[]{"permission", "p"}, (sender, lines) -> {
-                            sender.sendMessage("&b/trg cmd permission[p] <command name> x.y x.z y.y ...&7.");
-                            sender.sendMessage("    &6*&7Not providing any permission will remove them instead.");
+                        .leaf(new String[]{"permission", "p"}, (sender, spaces) -> {
+                            sender.sendMessage(StringUtils.spaces(spaces)+"&b/trg cmd permission[p] <command name> x.y x.z y.y ...&7.");
+                            sender.sendMessage(StringUtils.spaces(spaces)+"    &6*&7Not providing any permission will remove them instead.");
                         }, (sender, args) -> {
                             String name = args.poll();
                             if (name == null)
