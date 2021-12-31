@@ -199,8 +199,7 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
      * @param interval    interval in milliseconds.
      * @return true on success; false if already exists.
      */
-    public boolean createTrigger(String triggerName, File file, String script, long interval) throws
-            TriggerInitFailedException, IOException {
+    public boolean createTrigger(String triggerName, File file, String script, long interval) {
         if (get(triggerName) != null) {
             return false;
         }
