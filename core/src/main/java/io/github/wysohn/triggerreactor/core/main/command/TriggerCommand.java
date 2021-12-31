@@ -178,6 +178,11 @@ public class TriggerCommand {
             })
             .leaf("search", "&b/triggerreactor[trg] search &8- &7Show all click/walk trigger blocks in this chunk as "
                     + "glowing stones.", (sender, args) -> {
+                if (!(sender instanceof IPlayer)) {
+                    sender.sendMessage("In game only.");
+                    return true;
+                }
+
                 SimpleChunkLocation scloc = ((IPlayer) sender).getChunk();
                 gameController.showGlowStones(sender, clickManager.getTriggersInChunk(scloc));
                 gameController.showGlowStones(sender, walkManager.getTriggersInChunk(scloc));

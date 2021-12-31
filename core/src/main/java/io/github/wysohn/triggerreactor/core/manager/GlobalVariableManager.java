@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-public final class GlobalVariableManager extends Manager implements IMigratable {
+public class GlobalVariableManager extends Manager implements IMigratable {
     @Inject
     ConfigSourceFactories configSourceFactories;
     @Inject

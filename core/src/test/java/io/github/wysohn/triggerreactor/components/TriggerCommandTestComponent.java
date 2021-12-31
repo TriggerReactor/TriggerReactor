@@ -2,6 +2,9 @@ package io.github.wysohn.triggerreactor.components;
 
 import dagger.BindsInstance;
 import dagger.Component;
+import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
+import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.main.command.ITriggerCommand;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
@@ -15,26 +18,16 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTr
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.modules.CommandModule;
-import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
-import io.github.wysohn.triggerreactor.core.modules.CoreUtilModule;
 import io.github.wysohn.triggerreactor.core.scope.APIScope;
 import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 import io.github.wysohn.triggerreactor.core.scope.UtilityScope;
-import modules.DummyGameControllerModule;
 import modules.DummyLoggerModule;
-import modules.DummyPluginLifecycleModule;
 import modules.FakeDataFolderModule;
 
 import javax.inject.Singleton;
 
-@Component(modules = {CommandModule.class,
-                      DummyLoggerModule.class,
-                      DummyPluginLifecycleModule.class,
-                      DummyGameControllerModule.class,
-                      CoreUtilModule.class,
-                      FakeDataFolderModule.class,
-                      ConfigSourceFactoryModule.class})
+@Component(modules = {CommandModule.class, DummyLoggerModule.class, FakeDataFolderModule.class})
 @Singleton
 @ManagerScope
 @APIScope
@@ -46,6 +39,13 @@ public interface TriggerCommandTestComponent {
     @Component.Builder
     interface Builder{
         TriggerCommandTestComponent build();
+
+        @BindsInstance
+        Builder pluginLifecycle(IPluginLifecycleController controller);
+        @BindsInstance
+        Builder gameController(IGameController controller);
+        @BindsInstance
+        Builder throwableHandler(IThrowableHandler handler);
 
         @BindsInstance
         Builder manager(ScriptEditManager manager);
