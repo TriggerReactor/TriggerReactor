@@ -8,10 +8,10 @@ import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -30,7 +30,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingT
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
-import io.github.wysohn.triggerreactor.tools.script.ScriptEditor;
 import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
@@ -96,6 +95,10 @@ public class TriggerCommand {
         sender.sendMessage("&7-----     &6" + pluginLifecycleController.getPluginDescription() + "&7    ----");
     }
 
+    // TODO check on script edit 'saveNow' argument
+    // TODO spacing for usages
+    // TODO rearrange code as needed
+    // TODO create/edit command clarification
     private final CommandBuilder commandBuilder = CommandBuilder.begin(this::showPluginDesc)
             .leaf("debug", "&b/triggerreactor[trg] debug &8- &7Toggle debug mode to see detailed error messages.",
                     (sender, args) -> {
@@ -122,7 +125,7 @@ public class TriggerCommand {
                         + "delete&7, or &6shift-right click to edit&7.");
             }, (sender, args) -> {
                 String script = ITriggerCommand.consumeAllArguments(args);
-                scriptEditManager.startEdit(sender, "Click Trigger", script, (ScriptEditor.SaveHandler) edits -> {
+                scriptEditManager.startEdit(sender, "Click Trigger", script, edits -> {
                     if (clickManager.startLocationSet((IPlayer) sender, edits)) {
                         sender.sendMessage("&7Now click the block to set click trigger.");
                     } else {

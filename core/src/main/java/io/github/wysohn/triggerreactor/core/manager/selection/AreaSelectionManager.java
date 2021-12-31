@@ -14,7 +14,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.areaselection;
+package io.github.wysohn.triggerreactor.core.manager.selection;
 
 import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
 import io.github.wysohn.triggerreactor.core.manager.Manager;

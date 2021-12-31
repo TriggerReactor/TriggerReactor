@@ -4,7 +4,7 @@ import dagger.BindsInstance;
 import dagger.Component;
 import io.github.wysohn.triggerreactor.core.main.command.ITriggerCommand;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;

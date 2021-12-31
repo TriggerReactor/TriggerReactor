@@ -2,10 +2,10 @@ package io.github.wysohn.triggerreactor.bukkit.listeners;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.ClickAction;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.ClickResult;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickAction;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickResult;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

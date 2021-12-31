@@ -2,11 +2,11 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.components.AreaSelectionTestComponent;
 import io.github.wysohn.triggerreactor.components.DaggerAreaSelectionTestComponent;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.ClickAction;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.ClickResult;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickAction;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickResult;
 import org.junit.Before;
 import org.junit.Test;
 

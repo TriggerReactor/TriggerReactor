@@ -1,4 +1,4 @@
-package io.github.wysohn.triggerreactor.core.manager.areaselection;
+package io.github.wysohn.triggerreactor.core.manager.selection;
 
 public enum ClickResult {
     /**

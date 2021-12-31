@@ -23,7 +23,7 @@ import dagger.multibindings.IntoSet;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.BukkitEventRegistryManager;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitManager;
 import io.github.wysohn.triggerreactor.core.manager.*;
-import io.github.wysohn.triggerreactor.core.manager.areaselection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.IEventRegistry;
 
 @Module
