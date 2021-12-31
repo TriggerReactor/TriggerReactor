@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickType;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -56,8 +57,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     IThrowableHandler throwableHandler;
     @Inject
     IWrapper wrapper;
+    
     protected final Map<SimpleChunkLocation, Map<SimpleLocation, T>> chunkMap = new ConcurrentHashMap<>();
-    private final Map<UUID, String> settingLocation = new HashMap<>();
     private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
     public AbstractLocationBasedTriggerManager(String folderName) {
@@ -107,6 +108,69 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     protected abstract T newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException;
 
+    /**
+     * @param clicked
+     * @param player
+     * @param type
+     * @return true to allow the click event; false to cancel
+     */
+    public boolean onClick(SimpleLocation clicked, IPlayer player, ClickType type) {
+        T trigger = getTriggerForLocation(clicked);
+        IItemStack itemInHand = player.getItemInMainHand();
+
+        // no business here unless something in the hand and has permission
+        if (itemInHand == null || !player.hasPermission(permission))
+            return true;
+        
+        // transition into setting mode if condition is matched
+        if (itemInHand.isInspectionTool()) {
+            if (trigger != null && type == ClickType.LEFT_CLICK) {
+                removeLocationCache(clicked);
+
+                player.sendMessage("&aA trigger has deleted.");
+                return false;
+            } else if (trigger != null && type == ClickType.RIGHT_CLICK) {
+                if (player.isSneaking()) {
+                    handleScriptEdit(player, trigger);
+                } else {
+                    this.showTriggerInfo(player, clicked);
+                }
+                return false;
+            }
+        } else if (itemInHand.isCutTool()) {
+            if (type == ClickType.LEFT_CLICK) {
+                if (pasteTrigger(player, clicked)) {
+                    player.sendMessage("&aSuccessfully pasted the trigger!");
+                    this.showTriggerInfo(player, clicked);
+                    return false;
+                }
+            } else if (trigger != null && type == ClickType.RIGHT_CLICK) {
+                if (cutTrigger(player, clicked)) {
+                    player.sendMessage("&aCut Complete!");
+                    player.sendMessage("&aNow you can paste it by left click on any block!");
+                    return false;
+                }
+            }
+        } else if (itemInHand.isCopyTool()) {
+            if (type == ClickType.LEFT_CLICK) {
+                if (pasteTrigger(player, clicked)) {
+                    player.sendMessage("&aSuccessfully pasted the trigger!");
+                    this.showTriggerInfo(player, clicked);
+                    return false;
+                }
+            } else if (type == ClickType.RIGHT_CLICK) {
+                if (trigger != null && copyTrigger(player, clicked)) {
+                    player.sendMessage("&aCopy Complete!");
+                    player.sendMessage("&aNow you can paste it by left click on any block!");
+                    return false;
+                }
+            }
+        }
+
+        // otherwise, just normal interaction
+        return true;
+    }
+
     private void handleScriptEdit(IPlayer player, T trigger) {
         scriptEditManager.startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
                 (ScriptEditor.SaveHandler) script -> {
@@ -116,6 +180,24 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
                         throwableHandler.handleException(player, e);
                     }
                 }, false);
+    }
+
+    public void put(SimpleLocation clickedLoc, String script) {
+        T trigger = getTriggerForLocation(clickedLoc);
+        if (trigger != null) {
+            throw new RuntimeException("Duplicate");
+        }
+
+        File file = getTriggerFile(folder, clickedLoc.toString(), true);
+        try {
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = configSourceFactories.create(folder, name);
+            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+            trigger = newTrigger(info, script);
+            setLocationCache(clickedLoc, trigger);
+        } catch (AbstractTriggerManager.TriggerInitFailedException e1) {
+            e1.printStackTrace();
+        }
     }
 
     protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc, Trigger trigger) {
@@ -132,48 +214,13 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
-    protected void showTriggerInfo(ICommandSender sender, SimpleLocation sloc) {
+    public void showTriggerInfo(ICommandSender sender, SimpleLocation sloc) {
         Trigger trigger = getTriggerForLocation(sloc);
         if (trigger == null) {
             return;
         }
 
         showTriggerInfo(sender, sloc, trigger);
-    }
-
-    private void handleLocationSetting(SimpleLocation clickedLoc, IPlayer player) {
-        T trigger = getTriggerForLocation(clickedLoc);
-        if (trigger != null) {
-            player.sendMessage("&cAnother trigger is set at there!");
-            showTriggerInfo(player, clickedLoc);
-            return;
-        }
-
-        String script = getSettingLocationScript(player);
-        if (script == null) {
-            player.sendMessage("&cCould not find script... but how?");
-            return;
-        }
-
-        File file = getTriggerFile(folder, clickedLoc.toString(), true);
-        try {
-            String name = TriggerInfo.extractName(file);
-            IConfigSource config = configSourceFactories.create(folder, name);
-            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = newTrigger(info, script);
-        } catch (TriggerInitFailedException e1) {
-            player.sendMessage("&cEncounterd an error!");
-            player.sendMessage("&c" + e1.getMessage());
-            player.sendMessage("&cIf you are an administrator, check console to see details.");
-            e1.printStackTrace();
-
-            stopLocationSet(player);
-            return;
-        }
-
-        setLocationCache(clickedLoc, trigger);
-        showTriggerInfo(player, clickedLoc);
-        stopLocationSet(player);
     }
 
     /**
@@ -206,10 +253,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return true;
     }
 
-    protected String getSettingLocationScript(IPlayer player) {
-        return settingLocation.get(player.getUniqueId());
-    }
-
     public Set<Map.Entry<SimpleLocation, Trigger>> getTriggersInChunk(SimpleChunkLocation scloc) {
         Set<Map.Entry<SimpleLocation, Trigger>> triggers = new HashSet<>();
         if (!chunkMap.containsKey(scloc))
@@ -223,11 +266,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
         return triggers;
     }
-
-    protected boolean isLocationSetting(IPlayer player) {
-        return settingLocation.containsKey(player.getUniqueId());
-    }
-
+    
     public void onItemSwap(IPlayer player) {
         if (player.getUniqueId() == null)
             return;
@@ -300,93 +339,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         put(sloc.toString(), trigger);
     }
 
-    public boolean startLocationSet(IPlayer player, String script) {
-        if (settingLocation.containsKey(player.getUniqueId()))
-            return false;
-
-        settingLocation.put(player.getUniqueId(), script);
-
-        return true;
-    }
-
-    protected boolean stopLocationSet(IPlayer player) {
-        if (!settingLocation.containsKey(player.getUniqueId()))
-            return false;
-
-        settingLocation.remove(player.getUniqueId());
-
-        return true;
-    }
-
-    /**
-     * @param clicked
-     * @param player
-     * @param type
-     * @return true to allow the click event; false to cancel
-     */
-    public boolean onClick(SimpleLocation clicked, IPlayer player, ClickType type) {
-        T trigger = getTriggerForLocation(clicked);
-        IItemStack itemInHand = player.getItemInMainHand();
-
-        // no business here unless something in the hand and has permission
-        if (itemInHand == null || !player.hasPermission(permission))
-            return true;
-
-        // finish the trigger setting
-        if (isLocationSetting(player)) {
-            handleLocationSetting(clicked, player);
-            return true;
-        }
-
-        // transition into setting mode if condition is matched
-        if (itemInHand.isInspectionTool()) {
-            if (trigger != null && type == ClickType.LEFT_CLICK) {
-                removeLocationCache(clicked);
-
-                player.sendMessage("&aA trigger has deleted.");
-                return false;
-            } else if (trigger != null && type == ClickType.RIGHT_CLICK) {
-                if (player.isSneaking()) {
-                    handleScriptEdit(player, trigger);
-                } else {
-                    this.showTriggerInfo(player, clicked);
-                }
-                return false;
-            }
-        } else if (itemInHand.isCutTool()) {
-            if (type == ClickType.LEFT_CLICK) {
-                if (pasteTrigger(player, clicked)) {
-                    player.sendMessage("&aSuccessfully pasted the trigger!");
-                    this.showTriggerInfo(player, clicked);
-                    return false;
-                }
-            } else if (trigger != null && type == ClickType.RIGHT_CLICK) {
-                if (cutTrigger(player, clicked)) {
-                    player.sendMessage("&aCut Complete!");
-                    player.sendMessage("&aNow you can paste it by left click on any block!");
-                    return false;
-                }
-            }
-        } else if (itemInHand.isCopyTool()) {
-            if (type == ClickType.LEFT_CLICK) {
-                if (pasteTrigger(player, clicked)) {
-                    player.sendMessage("&aSuccessfully pasted the trigger!");
-                    this.showTriggerInfo(player, clicked);
-                    return false;
-                }
-            } else if (type == ClickType.RIGHT_CLICK) {
-                if (trigger != null && copyTrigger(player, clicked)) {
-                    player.sendMessage("&aCopy Complete!");
-                    player.sendMessage("&aNow you can paste it by left click on any block!");
-                    return false;
-                }
-            }
-        }
-
-        // otherwise, just normal interaction
-        return true;
-    }
-
     public boolean isTrigger(SimpleLocation sloc) {
         return getTriggerForLocation(sloc) != null;
     }
@@ -402,38 +354,6 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
             return null;
 
         return locationMap.get(sloc);
-    }
-
-    public enum ClickType {
-        LEFT_CLICK("left"),
-        LEFT_CLICK_AIR("left_air"),
-        RIGHT_CLICK("right"),
-        RIGHT_CLICK_AIR("right_air"),
-        UNKNOWN("unknown"),
-        ;
-
-        private final String variable;
-
-        ClickType(String variable) {
-            this.variable = variable;
-        }
-
-        public String getVariable() {
-            return variable;
-        }
-    }
-
-    /**
-     * Stateless logic to check if clicking the trigger block (in-game) is allowed.
-     */
-    public interface ClickHandler {
-        /**
-         * Check if click is allowed for this event. If it were Bukkit API, it will be PlayerInteractEvent.
-         *
-         * @param event the event
-         * @return true if allowed; false if not (the click will be ignored in this case)
-         */
-        boolean allow(Object event);
     }
 
     private static class ClipBoard {

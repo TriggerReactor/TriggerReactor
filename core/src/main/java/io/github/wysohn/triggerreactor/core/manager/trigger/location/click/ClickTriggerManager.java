@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location.click;
 
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickType;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
@@ -90,5 +91,9 @@ public class ClickTriggerManager extends AbstractLocationBasedTriggerManager<Cli
         varMap.put("click", type.getVariable());
 
         trigger.activate(varMap);
+    }
+
+    public Trigger get(SimpleLocation sloc) {
+        return getTriggerForLocation(sloc);
     }
 }

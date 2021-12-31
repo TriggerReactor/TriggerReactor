@@ -7,6 +7,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickType;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTriggerManager;
@@ -60,11 +61,11 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
         if (e.isCancelled())
             return;
 
-        AbstractLocationBasedTriggerManager.ClickType type;
+        ClickType type;
         if (e.getAction() == Action.LEFT_CLICK_BLOCK)
-            type = AbstractLocationBasedTriggerManager.ClickType.LEFT_CLICK;
+            type = ClickType.LEFT_CLICK;
         else if (e.getAction() == Action.RIGHT_CLICK_BLOCK)
-            type = AbstractLocationBasedTriggerManager.ClickType.RIGHT_CLICK;
+            type = ClickType.RIGHT_CLICK;
         else
             return;
 
@@ -215,22 +216,22 @@ public final class LocationTriggerListener extends AbstractBukkitListener {
             return;
 
         SimpleLocation sloc = LocationUtil.convertToSimpleLocation(clicked.getLocation());
-        AbstractLocationBasedTriggerManager.ClickType type;
+        ClickType type;
         switch (e.getAction()) {
             case LEFT_CLICK_BLOCK:
-                type = AbstractLocationBasedTriggerManager.ClickType.LEFT_CLICK;
+                type = ClickType.LEFT_CLICK;
                 break;
             case LEFT_CLICK_AIR:
-                type = AbstractLocationBasedTriggerManager.ClickType.LEFT_CLICK_AIR;
+                type = ClickType.LEFT_CLICK_AIR;
                 break;
             case RIGHT_CLICK_BLOCK:
-                type = AbstractLocationBasedTriggerManager.ClickType.RIGHT_CLICK;
+                type = ClickType.RIGHT_CLICK;
                 break;
             case RIGHT_CLICK_AIR:
-                type = AbstractLocationBasedTriggerManager.ClickType.RIGHT_CLICK_AIR;
+                type = ClickType.RIGHT_CLICK_AIR;
                 break;
             default:
-                type = AbstractLocationBasedTriggerManager.ClickType.UNKNOWN;
+                type = ClickType.UNKNOWN;
                 break;
         }
 

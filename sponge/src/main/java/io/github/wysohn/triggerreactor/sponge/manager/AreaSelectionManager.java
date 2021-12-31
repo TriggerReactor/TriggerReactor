@@ -55,9 +55,9 @@ public class AreaSelectionManager extends AbstractAreaSelectionManager {
 
         ClickResult result = null;
         if (leftClick) {
-            result = onClick(ClickAction.LEFT_CLICK_BLOCK, uuid, sloc);
+            result = onClick(ClickType.LEFT_CLICK, uuid, sloc);
         } else {
-            result = onClick(ClickAction.RIGHT_CLICK_BLOCK, uuid, sloc);
+            result = onClick(ClickType.RIGHT_CLICK, uuid, sloc);
         }
 
         if (result != null) {

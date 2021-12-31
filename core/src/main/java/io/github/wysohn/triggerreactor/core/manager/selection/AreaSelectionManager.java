@@ -51,8 +51,8 @@ public class AreaSelectionManager extends Manager implements IPluginProcedure {
     }
 
     /**
-         * @return null if invalid selection; Area if done
-         */
+     * @return null if invalid selection; Area if done
+     */
     public Area getSelection(UUID uuid) {
         SimpleLocation left = leftPosition.get(uuid);
         SimpleLocation right = rightPosition.get(uuid);
@@ -84,21 +84,21 @@ public class AreaSelectionManager extends Manager implements IPluginProcedure {
     }
 
     /**
-         * gets called when player clicks on a block.
-         * <b>This should be called manually by the child class upon player interaction event.</b>
-         *
-         * @param action the {@link ClickAction} associated with this player interaction.
-         * @param uuid   the uuid of player
-         * @param sloc   location where interaction occurred
-         * @return the result as {@link ClickResult}
-         */
-    public ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
-        if(!isSelecting(uuid))
+     * gets called when player clicks on a block.
+     * <b>This should be called manually by the child class upon player interaction event.</b>
+     *
+     * @param action the {@link ClickType} associated with this player interaction.
+     * @param uuid   the uuid of player
+     * @param sloc   location where interaction occurred
+     * @return the result as {@link ClickResult}
+     */
+    public ClickResult onClick(ClickType action, UUID uuid, SimpleLocation sloc) {
+        if (!isSelecting(uuid))
             return null;
 
-        if (action == ClickAction.LEFT_CLICK_BLOCK) {
+        if (action == ClickType.LEFT_CLICK) {
             leftPosition.put(uuid, sloc);
-        } else if (action == ClickAction.RIGHT_CLICK_BLOCK) {
+        } else if (action == ClickType.RIGHT_CLICK) {
             rightPosition.put(uuid, sloc);
         }
 
@@ -120,8 +120,8 @@ public class AreaSelectionManager extends Manager implements IPluginProcedure {
     }
 
     /**
-         * @return true if on; false if off
-         */
+     * @return true if on; false if off
+     */
     public boolean toggleSelection(UUID uuid) {
         if (selecting.contains(uuid)) {
             selecting.remove(uuid);

@@ -26,7 +26,7 @@ public interface ITriggerCommand {
      *             at the bottom of the queue is partially filled in command.
      *
      *             Note: cursor must be moved to next position only by the children when entering the children,
-     *             and it is moved back to the original position by the children before return to the parent.
+     *             and it is moved back to the original position by the children before returning to the parent.
      * @return list of possible commands; it can be possibly null to show that the top of the queue
      * isn't match with the command node we are looking at.
      */

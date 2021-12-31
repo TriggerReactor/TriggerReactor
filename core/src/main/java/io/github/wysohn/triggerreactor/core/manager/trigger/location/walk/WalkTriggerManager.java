@@ -89,4 +89,8 @@ public class WalkTriggerManager extends AbstractLocationBasedTriggerManager<Walk
 
         trigger.activate(varMap);
     }
+
+    public Trigger get(SimpleLocation clickedLoc) {
+        return getTriggerForLocation(clickedLoc);
+    }
 }

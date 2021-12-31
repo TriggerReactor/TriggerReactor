@@ -4,8 +4,8 @@ import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
-import io.github.wysohn.triggerreactor.core.manager.selection.ClickAction;
 import io.github.wysohn.triggerreactor.core.manager.selection.ClickResult;
+import io.github.wysohn.triggerreactor.core.manager.selection.ClickType;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,9 +42,9 @@ public final class AreaSelectionListener extends AbstractBukkitListener {
 
         ClickResult result = null;
         if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
-            result = areaSelectionManager.onClick(ClickAction.LEFT_CLICK_BLOCK, uuid, sloc);
+            result = areaSelectionManager.onClick(ClickType.LEFT_CLICK, uuid, sloc);
         } else if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            result = areaSelectionManager.onClick(ClickAction.RIGHT_CLICK_BLOCK, uuid, sloc);
+            result = areaSelectionManager.onClick(ClickType.RIGHT_CLICK, uuid, sloc);
         }
 
         if (result != null) {

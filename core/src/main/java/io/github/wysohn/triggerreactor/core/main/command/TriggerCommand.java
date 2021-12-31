@@ -12,6 +12,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.manager.selection.LocationSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -69,6 +70,8 @@ public class TriggerCommand {
     ExecutorManager executorManager;
     @Inject
     PlaceholderManager placeholderManager;
+    @Inject
+    LocationSelectionManager locationSelectionManager;
 
     @Inject
     ClickTriggerManager clickManager;
@@ -124,14 +127,32 @@ public class TriggerCommand {
                         + "  &7Later, you can hold &ba bone &7and &6right click to inspect&7, &6left click to "
                         + "delete&7, or &6shift-right click to edit&7.");
             }, (sender, args) -> {
+                if (!(sender instanceof IPlayer)) {
+                    sender.sendMessage("In game only.");
+                    return true;
+                }
+
                 String script = ITriggerCommand.consumeAllArguments(args);
-                scriptEditManager.startEdit(sender, "Click Trigger", script, edits -> {
-                    if (clickManager.startLocationSet((IPlayer) sender, edits)) {
-                        sender.sendMessage("&7Now click the block to set click trigger.");
-                    } else {
-                        sender.sendMessage("&7Already on progress.");
+                if (locationSelectionManager.startLocationSet((IPlayer) sender, (clickedLoc) -> {
+                    Trigger trigger = clickManager.get(clickedLoc);
+                    if (trigger != null) {
+                        clickManager.showTriggerInfo(sender, clickedLoc);
+                        sender.sendMessage("&cAnother trigger is there. Try somewhere else! &dOr, "
+                                + "&6shift click &dinstead to cancel.");
+                        return false;
                     }
-                }, script.length() > 0);
+
+                    scriptEditManager.startEdit(sender, "Click Trigger", script, edits -> {
+                        clickManager.put(clickedLoc, edits);
+                        sender.sendMessage("&aClick Trigger set!");
+                    }, script.length() > 0);
+                    return true;
+                })) {
+                    sender.sendMessage("&7Click the block where you want to set click trigger on.");
+                } else {
+                    sender.sendMessage("&cSelection already in progress.");
+                }
+
                 return true;
             })
             .leaf(new String[]{"walk", "w"}, (sender, spaces) -> {
@@ -144,14 +165,32 @@ public class TriggerCommand {
                         + "  &7Later, you can hold &ba bone &7and &6right click to inspect&7, &6left click to "
                         + "delete&7, or &6shift-right click to edit&7.");
             }, (sender, args) -> {
+                if (!(sender instanceof IPlayer)) {
+                    sender.sendMessage("In game only.");
+                    return true;
+                }
+
                 String script = ITriggerCommand.consumeAllArguments(args);
-                scriptEditManager.startEdit(sender, "Walk Trigger", script, edits -> {
-                    if (walkManager.startLocationSet((IPlayer) sender, edits)) {
-                        sender.sendMessage("&7Now click the block to set walk trigger.");
-                    } else {
-                        sender.sendMessage("&7Already on progress.");
+                if(locationSelectionManager.startLocationSet((IPlayer) sender, (clickedLoc) -> {
+                    Trigger trigger = walkManager.get(clickedLoc);
+                    if (trigger != null) {
+                        walkManager.showTriggerInfo(sender, clickedLoc);
+                        sender.sendMessage("&cAnother trigger is there. Try somewhere else! &dOr, "
+                                + "&6shift click &dinstead to cancel.");
+                        return false;
                     }
-                }, script.length() > 0);
+
+                    scriptEditManager.startEdit(sender, "Click Trigger", script, edits -> {
+                        walkManager.put(clickedLoc, edits);
+                        sender.sendMessage("&aWalk Trigger set!");
+                    }, script.length() > 0);
+                    return true;
+                })){
+                    sender.sendMessage("&7Click the block where you want to set click trigger on.");
+                } else {
+                    sender.sendMessage("&cSelection already in progress.");
+                }
+
                 return true;
             })
             .composite(new String[]{"command",
