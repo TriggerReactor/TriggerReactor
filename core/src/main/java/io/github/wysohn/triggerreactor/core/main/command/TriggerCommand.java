@@ -203,6 +203,9 @@ public class TriggerCommand {
                                     + "&7without extra parameters.");
                         }, (sender, args) -> {
                             String name = args.poll();
+                            if(name == null)
+                                return false;
+
                             if (cmdManager.has(name)) {
                                 sender.sendMessage("&cCommand '" + name + "' is already bound.");
                                 return true;

@@ -275,4 +275,40 @@ public class TriggerCommandTest {
         verify(walkTriggerManager).getTriggersInChunk(any());
         verify(gameController, times(2)).showGlowStones(eq(sender), anySet());
     }
+
+    @Test
+    public void testCommandTrigger(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+
+        command.onCommand(sender, ITriggerCommand.toQueue("cmd new MyCommand #MESSAGE \"Hi\""));
+        saveHandler.accept("#MESSAGE \"Hi\"");
+
+        verify(commandTriggerManager).addCommandTrigger(eq("MyCommand"), eq("#MESSAGE \"Hi\""));
+        verify(editManager).startEdit(any(), anyString(), eq("#MESSAGE \"Hi\" "), eq(saveHandler), eq(true));
+    }
+
+    @Test
+    public void testCommandTriggerAlreadyExist(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        when(commandTriggerManager.has(anyString())).thenReturn(true);
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+
+        command.onCommand(sender, ITriggerCommand.toQueue("cmd new MyCommand #MESSAGE \"Hi\""));
+
+        verify(commandTriggerManager, never()).addCommandTrigger(eq("MyCommand"), eq("#MESSAGE \"Hi\""));
+        verify(editManager, never()).startEdit(any(), anyString(), eq("#MESSAGE \"Hi\" "), eq(saveHandler), eq(true));
+    }
 }
