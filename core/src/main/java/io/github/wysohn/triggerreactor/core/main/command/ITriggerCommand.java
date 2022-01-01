@@ -62,9 +62,11 @@ public interface ITriggerCommand {
 
     static String consumeAllArguments(Queue<String> args){
         StringBuilder script = new StringBuilder();
-        while (!args.isEmpty()){
+        if(!args.isEmpty())
             script.append(args.poll());
+        while (!args.isEmpty()){
             script.append(' ');
+            script.append(args.poll());
         }
 
         return script.toString();

@@ -57,8 +57,63 @@ public class InventoryTrigger extends Trigger {
         }
     }
 
+    /**
+     * Get a snapshot of the items in this inventory.
+     * @return
+     */
     public IItemStack[] getItems() {
-        return items;
+        return Arrays.copyOf(items, items.length);
+    }
+
+    /**
+     * Get current inventory size
+     * @return
+     */
+    public int size(){
+        return items.length;
+    }
+
+    /**
+     * Number of rows. Same as {@link #size() / 9}
+     * @return
+     */
+    public int rows(){
+        return items.length / 9;
+    }
+
+    public void setItem(IItemStack item, int index){
+        ValidationUtil.assertTrue(index, i -> i < items.length && i >= 0);
+
+        items[index] = item;
+
+        notifyObservers();
+    }
+
+    public void setColumn(IItemStack item, int columnIndex){
+        int rows = items.length / 9;
+        ValidationUtil.assertTrue(columnIndex, index -> index <= 8 && index >= 0);
+
+        for (int row = 0; row < rows; row++) {
+            items[columnIndex + row * 9] = item;
+        }
+
+        notifyObservers();
+    }
+
+    public void setRow(IItemStack item, int rowIndex){
+        int rows = items.length / 9;
+        ValidationUtil.assertTrue(rowIndex, index -> index <= rows && index >= 0);
+
+        for (int col = 0; col < 9; col++) {
+            items[rowIndex * 9 + col] = item;
+        }
+
+        notifyObservers();
+    }
+
+    public void setTitle(String title) {
+        info.getConfig().put(InventoryTriggerManager.TITLE, title);
+        notifyObservers();
     }
 
     public static final int MAXSIZE = 6 * 9;

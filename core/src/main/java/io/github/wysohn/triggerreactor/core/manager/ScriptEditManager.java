@@ -143,6 +143,8 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
                           String script,
                           Consumer<String> saveHandler,
                           boolean saveNow) {
+        script = script == null ? "" : script;
+
         if (saveNow) {
             saveHandler.accept(script);
             return;

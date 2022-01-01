@@ -203,7 +203,7 @@ public class TriggerCommand {
                                     + "&7without extra parameters.");
                         }, (sender, args) -> {
                             String name = args.poll();
-                            if(name == null)
+                            if (name == null)
                                 return false;
 
                             if (cmdManager.has(name)) {
@@ -280,12 +280,19 @@ public class TriggerCommand {
                             return true;
                         })
                         .leaf(new String[]{"permission", "p"}, (sender, spaces) -> {
-                            sender.sendMessage(StringUtils.spaces(spaces)+"&b/trg cmd permission[p] <command name> x.y x.z y.y ...&7.");
-                            sender.sendMessage(StringUtils.spaces(spaces)+"    &6*&7Not providing any permission will remove them instead.");
+                            sender.sendMessage(StringUtils.spaces(spaces)
+                                    + "&b/trg cmd permission[p] <command name> x.y x.z y.y ...&7.");
+                            sender.sendMessage(StringUtils.spaces(spaces)
+                                    + "    &6*&7Not providing any permission will remove them instead.");
                         }, (sender, args) -> {
                             String name = args.poll();
                             if (name == null)
                                 return false;
+
+                            if (!cmdManager.has(name)) {
+                                sender.sendMessage("&cCommand not found.");
+                                return true;
+                            }
 
                             CommandTrigger trigger = cmdManager.get(name);
 
@@ -313,6 +320,11 @@ public class TriggerCommand {
                             String name = args.poll();
                             if (name == null)
                                 return false;
+
+                            if (!cmdManager.has(name)) {
+                                sender.sendMessage("&cCommand not found.");
+                                return true;
+                            }
 
                             CommandTrigger trigger = cmdManager.get(name);
 
@@ -351,6 +363,11 @@ public class TriggerCommand {
                             String name = args.poll();
                             if (name == null)
                                 return false;
+
+                            if (!cmdManager.has(name)) {
+                                sender.sendMessage("&cCommand not found.");
+                                return true;
+                            }
 
                             TriggerInfo info = Optional.of(cmdManager)
                                     .map(man -> man.get(name))
@@ -425,7 +442,28 @@ public class TriggerCommand {
 
                             return true;
                         })
-                        .leaf("delete", (sender, spaces) -> {
+                        .leaf("edit", (sender, spaces) -> {
+                            sender.sendMessage(StringUtils.spaces(spaces)
+                                    + "&b/triggerreactor[trg] inventory[i] edit <inventory name>&8- &7open editor for"
+                                    + " the existing inventory trigger");
+                            sender.sendMessage(StringUtils.spaces(spaces) + "  &7/trg i edit MyInventory");
+                        }, (sender, args) -> {
+                            String name = args.poll();
+                            if (name == null)
+                                return false;
+
+                            Trigger trigger = invManager.get(name);
+                            scriptEditManager.startEdit(sender, "Inventory Trigger", trigger.getScript(), (edits) -> {
+                                try {
+                                    trigger.setScript(edits);
+                                } catch (AbstractTriggerManager.TriggerInitFailedException e) {
+                                    throwableHandler.handleException(sender, e);
+                                }
+                            }, false);
+
+                            return true;
+                        })
+                        .leaf(new String[]{"delete", "del", "remove"}, (sender, spaces) -> {
                             sender.sendMessage(StringUtils.spaces(spaces)
                                     + "&b/triggerreactor[trg] inventory[i] delete <inventory name>&8- &7delete this "
                                     + "inventory");
@@ -449,6 +487,11 @@ public class TriggerCommand {
                                     + ".");
                             sender.sendMessage(StringUtils.spaces(spaces) + "  &7/trg i item MyInventory 0");
                         }, (sender, args) -> {
+                            if (!(sender instanceof IPlayer)) {
+                                sender.sendMessage("In game only.");
+                                return true;
+                            }
+
                             String name = args.poll();
                             if (name == null)
                                 return false;
@@ -473,22 +516,27 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            if (index > trigger.getItems().length || index < 1) {
+                            if (index > trigger.size() || index < 1) {
                                 sender.sendMessage(
                                         "&c" + index + " is out of bounds. (Size: " + (trigger.getItems().length)
                                                 + ")");
                                 return true;
                             }
 
-                            trigger.getItems()[index - 1] = IS;
+                            trigger.setItem(IS, index - 1);
 
                             sender.sendMessage("Successfully set item " + index);
                             return true;
                         })
                         .leaf("column",
                                 "&b/triggerreactor[trg] inventory[i] column <inventory name> <index> &8- &7same "
-                                        + "as the item subcommand, but applied to an entire column.Clears the "
+                                        + "as the item subcommand, but applied to an entire column. Clears the "
                                         + "slot if you are holding nothing.", (sender, args) -> {
+                                    if (!(sender instanceof IPlayer)) {
+                                        sender.sendMessage("In game only.");
+                                        return true;
+                                    }
+
                                     String name = args.poll();
                                     if (name == null)
                                         return false;
@@ -513,21 +561,23 @@ public class TriggerCommand {
                                         return true;
                                     }
 
-                                    int rows = trigger.getItems().length / 9;
                                     if (index > 9 || index < 1) {
                                         sender.sendMessage("&c" + index + " is out of bounds. (Maximum: 9)");
                                         return true;
                                     }
 
-                                    for (int i = 0; i < rows; i++) {
-                                        trigger.getItems()[index - 1 + i * 9] = IS;
-                                    }
+                                    trigger.setColumn(IS, index - 1);
 
                                     sender.sendMessage("Successfully filled column " + index);
                                     return true;
                                 })
                         .leaf("row", "&b/triggerreactor[trg] inventory[i] row <inventory name> <index> &8- &7same as "
                                 + "the item subcommand, but applied to an entire row.", (sender, args) -> {
+                            if (!(sender instanceof IPlayer)) {
+                                sender.sendMessage("In game only.");
+                                return true;
+                            }
+
                             String name = args.poll();
                             if (name == null)
                                 return false;
@@ -552,15 +602,13 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            int rows = trigger.getItems().length / 9;
+                            int rows = trigger.rows();
                             if (index > rows || index < 1) {
                                 sender.sendMessage("&c" + index + " is out of bounds. (Maximum: " + rows + ")");
                                 return true;
                             }
 
-                            for (int i = 0; i < 9; i++) {
-                                trigger.getItems()[(index - 1) * 9 + i] = IS;
-                            }
+                            trigger.setRow(IS, index - 1);
 
                             sender.sendMessage("Successfully filled row " + index);
                             return true;
@@ -600,32 +648,6 @@ public class TriggerCommand {
                             }
                             return true;
                         })
-                        .leaf("edit",
-                                "&b/triggerreactor[trg] inventory[i] edit <inventory name>&8- &7Edit the inventory"
-                                        + " trigger.", (sender, args) -> {
-                                    String name = args.poll();
-                                    if (name == null)
-                                        return false;
-
-                                    InventoryTrigger trigger = invManager.get(name);
-                                    if (trigger == null) {
-                                        sender.sendMessage("&7No such Inventory Trigger named " + name);
-                                        return true;
-                                    }
-
-                                    scriptEditManager.startEdit(sender, trigger.getInfo()
-                                            .getTriggerName(), trigger.getScript(), edits -> {
-                                        try {
-                                            trigger.setScript(edits);
-                                        } catch (Exception e) {
-                                            throwableHandler.handleException(sender, e);
-                                        }
-
-                                        sender.sendMessage("&aScript is updated!");
-                                    }, false);
-
-                                    return true;
-                                })
                         .leaf("edititems",
                                 "&b/triggerreactor[trg] inventory[i] edititems <inventory name>&8- &7open an "
                                         + "interactable GUI where you can edit the contents of the inventory "
@@ -657,10 +679,7 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            TriggerInfo info = trigger.getInfo();
-                            info.getConfig().put(InventoryTriggerManager.TITLE, title);
-
-                            invManager.reload(name);
+                            trigger.setTitle(title);
 
                             sender.sendMessage("Successfully changed title");
 
