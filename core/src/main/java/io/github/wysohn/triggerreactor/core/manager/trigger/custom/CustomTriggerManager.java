@@ -51,7 +51,6 @@ public class CustomTriggerManager extends AbstractTriggerManager<CustomTrigger> 
                 .orElseThrow(
                         () -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event",
                                 info.getConfig()));
-        boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -59,17 +58,6 @@ public class CustomTriggerManager extends AbstractTriggerManager<CustomTrigger> 
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
-        }
-    }
-
-    @Override
-    public void save(CustomTrigger trigger) {
-        try {
-            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-            trigger.getInfo().getConfig().put(EVENT, trigger.getEventName());
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -110,8 +98,7 @@ public class CustomTriggerManager extends AbstractTriggerManager<CustomTrigger> 
      * @throws LexerException
      * @throws IOException
      */
-    public boolean createCustomTrigger(String eventName, String name, String script) throws ClassNotFoundException,
-            TriggerInitFailedException {
+    public boolean createCustomTrigger(String eventName, String name, String script) throws ClassNotFoundException {
         if (has(name))
             return false;
 

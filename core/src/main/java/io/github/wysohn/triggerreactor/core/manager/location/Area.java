@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.location;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class Area {
@@ -77,6 +78,19 @@ public class Area {
                 && sloc.getY() <= largest.getY() && smallest.getZ() <= sloc.getZ() && sloc.getZ() <= largest.getZ())
             return true;
         return false;
+    }
+
+    public boolean isDefective(){
+        if(smallest.getX() > largest.getX())
+            return true;
+
+        if(smallest.getY() > largest.getY())
+            return true;
+
+        if(smallest.getZ() > largest.getZ())
+            return true;
+
+        return !Objects.equals(smallest.world, largest.world);
     }
 
     public static boolean isConflicting(Area area1, Area area2) {

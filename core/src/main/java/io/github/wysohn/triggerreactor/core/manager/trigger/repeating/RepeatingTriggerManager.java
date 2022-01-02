@@ -53,30 +53,12 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
 
     @Override
     public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-        boolean autoStart = info.getConfig().get(AUTOSTART, Boolean.class).orElse(false);
-        int interval = info.getConfig().get(INTERVAL, Integer.class).orElse(1000);
-
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            RepeatingTrigger trigger = factory.create(info, script, interval);
-            trigger.setAutoStart(autoStart);
-            trigger.setInterval(interval);
-            return trigger;
+            return factory.create(info, script);
         } catch (IOException e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    @Override
-    public void save(RepeatingTrigger trigger) {
-        try {
-            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-            trigger.getInfo().getConfig().put(AUTOSTART, trigger.isAutoStart());
-            trigger.getInfo().getConfig().put(INTERVAL, trigger.getInterval());
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -99,7 +81,7 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
             //start 1 tick later so other managers can be initialized.
             taskSupervisor.runTask(() -> {
                 if (triggerCopy.isAutoStart()) {
-                    startTrigger(trigger.getInfo().getTriggerName());
+                    startTrigger(trigger.getTriggerName());
                 }
             });
         }
@@ -110,8 +92,8 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
         RepeatingTrigger remove = super.remove(name);
 
         // stop the thread if it's running
-        if (runningThreads.containsKey(remove.getInfo().getTriggerName())) {
-            this.stopTrigger(remove.getInfo().getTriggerName());
+        if (runningThreads.containsKey(remove.getTriggerName())) {
+            this.stopTrigger(remove.getTriggerName());
         }
 
         return remove;
@@ -153,7 +135,7 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
 
         if (!isRunning(triggerName)) {
             Map<String, Object> vars = new HashMap<>();
-            vars.put(TRIGGER, "init");
+            vars.put(RepeatingTrigger.TRIGGER, "init");
 
             trigger.activate(vars, true);
 
@@ -207,32 +189,23 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
         String name = TriggerInfo.extractName(file);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger trigger = new RepeatingTrigger(info, script, interval);
-        put(triggerName, trigger);
+        RepeatingTrigger repeatingTrigger = put(triggerName, new RepeatingTrigger(info, script));
+        repeatingTrigger.setInterval(interval);
 
         return true;
     }
 
     public void showTriggerInfo(ICommandSender sender, RepeatingTrigger trigger) {
         sender.sendMessage("- - - - - - - - - - - - - -");
-        sender.sendMessage("Trigger: " + trigger.getInfo());
+        sender.sendMessage("Trigger: " + trigger);
         sender.sendMessage("Auto Start: " + trigger.isAutoStart());
         sender.sendMessage("Interval: " + TimeUtil.milliSecondsToString(trigger.getInterval()));
         sender.sendMessage("");
         sender.sendMessage("Paused: " + trigger.isPaused());
-        sender.sendMessage("Running: " + isRunning(trigger.getInfo().getTriggerName()));
+        sender.sendMessage("Running: " + isRunning(trigger.getTriggerName()));
         sender.sendMessage("");
         sender.sendMessage("Script:");
         sender.sendMessage(trigger.getScript());
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
-
-    private static final String AUTOSTART = "AutoStart";
-    private static final String INTERVAL = "Interval";
-    protected static final String TRIGGER = "trigger";
-
-    protected interface ThrowableHandler {
-        void onFail(Throwable throwable);
-    }
-
 }

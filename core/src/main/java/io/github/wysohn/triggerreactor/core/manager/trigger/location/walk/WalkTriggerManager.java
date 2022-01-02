@@ -61,15 +61,6 @@ public class WalkTriggerManager extends AbstractLocationBasedTriggerManager<Walk
         }
     }
 
-    @Override
-    public void save(WalkTrigger trigger) {
-        try {
-            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void onMove(Object event,
                        Object player,
                        SimpleLocation from,

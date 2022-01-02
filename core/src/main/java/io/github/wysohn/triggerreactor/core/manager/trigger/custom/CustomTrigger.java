@@ -77,4 +77,15 @@ public class CustomTrigger extends Trigger implements CustomTriggerManager.Event
     public String getEventName() {
         return eventName;
     }
+
+    public boolean isSync() {
+        return info.isSync();
+    }
+
+
+    public void setSync(boolean bool) {
+        info.setSync(bool);
+
+        notifyObservers();
+    }
 }

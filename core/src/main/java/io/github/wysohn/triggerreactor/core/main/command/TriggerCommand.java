@@ -15,7 +15,6 @@ import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManag
 import io.github.wysohn.triggerreactor.core.manager.selection.LocationSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
@@ -65,7 +64,7 @@ public class TriggerCommand {
     @Inject
     InventoryEditManager invEditManager;
     @Inject
-    AreaSelectionManager selectionManager;
+    AreaSelectionManager areaSelectionManager;
     @Inject
     ExecutorManager executorManager;
     @Inject
@@ -272,10 +271,8 @@ public class TriggerCommand {
                             }
 
                             CommandTrigger trigger = cmdManager.get(name);
-                            trigger.getInfo().setSync(!trigger.getInfo().isSync());
-                            sender.sendMessage(
-                                    "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
-                                            .isSync());
+                            trigger.setSync(!trigger.isSync());
+                            sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
 
                             return true;
                         })
@@ -346,19 +343,11 @@ public class TriggerCommand {
                         })
                         .leaf(new String[]{"settab", "tab"}, (sender, spaces) -> {
                             sender.sendMessage(StringUtils.spaces(spaces)
-                                    + "&b/trg cmd settab[tab] <command name> <a/b/c>:a,b,c <player>:$playerlist this,"
-                                    + "it,that");
+                                    + "&b/trg cmd settab[tab] <command name> a,b,c $playerlist this," + "it,that");
                             sender.sendMessage(StringUtils.spaces(spaces)
-                                    + "    &6*&7The parameter has following format&8: &6hint&d:&6val1,val2,...");
+                                    + "    &6*&7The parameter has following format&8: &6val1,val2,...");
                             sender.sendMessage(StringUtils.spaces(spaces)
                                     + "    &6*&7Not providing any tab-completer will remove it instead.");
-                            sender.sendMessage(StringUtils.spaces(spaces)
-                                    + "    &7Hint shows up as simple string when a user is about to type something, "
-                                    + "and values will start to show up as a form of tab-completers as soon as their "
-                                    + "first characters matching with the characters typed by the user.");
-                            sender.sendMessage(StringUtils.spaces(spaces)
-                                    + "    &7You may omit the hint, yet you cannot omit the values. To use only hint "
-                                    + "but no values, edit the config file manually.");
                         }, (sender, args) -> {
                             String name = args.poll();
                             if (name == null)
@@ -369,25 +358,13 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            TriggerInfo info = Optional.of(cmdManager)
-                                    .map(man -> man.get(name))
-                                    .map(Trigger::getInfo)
-                                    .orElseThrow(() -> new RuntimeException("Missing TriggerInfo"));
-
-                            List<Map<String, Object>> tabs = new ArrayList<>();
+                            CommandTrigger trigger = cmdManager.get(name);
+                            List<String> tabs = new ArrayList<>();
                             while (!args.isEmpty()) {
-                                String[] split = args.poll().split(":", 2);
-                                String hint = split.length == 2 ? split[0] : null;
-                                String values = split.length == 2 ? split[1] : split[0];
-
-                                Map<String, Object> tab = new LinkedHashMap<>();
-                                if (hint != null)
-                                    tab.put(CommandTriggerManager.HINT, hint);
-                                tab.put(CommandTriggerManager.CANDIDATES, values);
-                                tabs.add(tab);
+                                tabs.add(args.poll());
                             }
 
-                            info.getConfig().put(CommandTriggerManager.TABS, tabs);
+                            trigger.setTabCompleters(tabs);
                             cmdManager.reload(name);
 
                             sender.sendMessage("&7Set tab-completer");
@@ -602,7 +579,7 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            int rows = trigger.rows();
+                            int rows = trigger.size() / 9;
                             if (index > rows || index < 1) {
                                 sender.sendMessage("&c" + index + " is out of bounds. (Maximum: " + rows + ")");
                                 return true;
@@ -689,7 +666,12 @@ public class TriggerCommand {
             .composite(new String[]{"area", "a"}, "&b/triggerreactor[trg] area[a]", builder -> {
                 builder.leaf("toggle", "&b/triggerreactor[trg] area[a] toggle &8- &7"
                                 + "Enable/Disable area selection mode.", (sender, args) -> {
-                            boolean result = selectionManager.toggleSelection(((IPlayer) sender).getUniqueId());
+                            if (!(sender instanceof IPlayer)) {
+                                sender.sendMessage("In game only.");
+                                return true;
+                            }
+
+                            boolean result = areaSelectionManager.toggleSelection(((IPlayer) sender).getUniqueId());
 
                             sender.sendMessage("&7Area selection mode enabled: &6" + result);
                             return true;
@@ -713,7 +695,7 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            Area selected = selectionManager.getSelection(((IPlayer) sender).getUniqueId());
+                            Area selected = areaSelectionManager.getSelection(((IPlayer) sender).getUniqueId());
                             if (selected == null) {
                                 sender.sendMessage("&7Invalid or incomplete area selection.");
                                 return true;
@@ -731,8 +713,7 @@ public class TriggerCommand {
                             if (areaManager.createArea(name, selected.getSmallest(), selected.getLargest())) {
                                 sender.sendMessage("&aCreated area trigger: " + name);
 
-
-                                selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
+                                areaSelectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                             } else {
                                 sender.sendMessage("&7Area Trigger " + name + " already exists.");
                             }
@@ -748,8 +729,7 @@ public class TriggerCommand {
                             if (areaManager.remove(name) != null) {
                                 sender.sendMessage("&aArea Trigger deleted");
 
-
-                                selectionManager.resetSelections(((IPlayer) sender).getUniqueId());
+                                areaSelectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                             } else {
                                 sender.sendMessage("&7Area Trigger " + name + " does not exist.");
                             }
@@ -839,11 +819,9 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            trigger.getInfo().setSync(!trigger.getInfo().isSync());
+                            trigger.toggleSync();
 
-                            sender.sendMessage(
-                                    "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
-                                            .isSync());
+                            sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
 
                             return true;
                         });
@@ -868,35 +846,29 @@ public class TriggerCommand {
                                 return false;
 
                             CustomTrigger trigger = customManager.get(name);
-                            String script = trigger == null ? ITriggerCommand.consumeAllArguments(args) :
-                                    trigger.getScript();
+                            if (trigger != null) {
+                                sender.sendMessage("&c" + name + " is a name already in use.");
+                                return true;
+                            }
+
+                            String script = ITriggerCommand.consumeAllArguments(args);
                             scriptEditManager.startEdit(sender,
                                     "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 20))
                                             + "]", script, edits -> {
-                                        if (trigger == null) {
-                                            try {
-                                                customManager.createCustomTrigger(eventName, name, script);
+                                        try {
+                                            customManager.createCustomTrigger(eventName, name, edits);
 
-                                                sender.sendMessage("&aCustom Trigger created!");
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                                sender.sendMessage("&cCould not save! " + e.getMessage());
-                                                sender.sendMessage("&cSee console for detailed messages.");
-                                            }
-                                        } else {
-                                            try {
-                                                trigger.setScript(edits);
-                                            } catch (Exception e) {
-                                                throwableHandler.handleException(sender, e);
-                                            }
-
-                                            sender.sendMessage("&aScript is updated!");
+                                            sender.sendMessage("&aCustom Trigger created!");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            sender.sendMessage("&cCould not save! " + e.getMessage());
+                                            sender.sendMessage("&cSee console for detailed messages.");
                                         }
-                                    }, trigger == null);
+                                    }, script.length() > 0);
 
                             return true;
                         })
-                        .leaf("edit", "&b/triggerreactor[trg] custom create <name>", (sender, args) -> {
+                        .leaf("edit", "&b/triggerreactor[trg] custom edit <name>", (sender, args) -> {
                             String name = args.poll();
                             if (name == null)
                                 return false;
@@ -944,11 +916,9 @@ public class TriggerCommand {
                                 return true;
                             }
 
-                            trigger.getInfo().setSync(!trigger.getInfo().isSync());
+                            trigger.setSync(!trigger.isSync());
 
-                            sender.sendMessage(
-                                    "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
-                                            .isSync());
+                            sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
                             return true;
                         });
             })

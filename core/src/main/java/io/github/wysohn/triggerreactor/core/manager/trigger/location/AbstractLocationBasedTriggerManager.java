@@ -79,7 +79,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         for (T trigger : getAllTriggers()) {
             SimpleLocation sloc = null;
             try {
-                sloc = SimpleLocation.valueOf(trigger.getInfo().getTriggerName());
+                sloc = SimpleLocation.valueOf(trigger.getTriggerName());
             } catch (Exception e) {
                 e.printStackTrace();
                 continue;
@@ -96,8 +96,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
             if (locationMap.containsKey(sloc)) {
                 Trigger previous = locationMap.get(sloc);
                 logger.warning("Found a duplicating " + trigger.getClass().getSimpleName());
-                logger.warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
-                logger.warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
+                logger.warning("Existing: " + previous.getSourceCodeFile().getAbsolutePath());
+                logger.warning("Skipped: " + trigger.getSourceCodeFile().getAbsolutePath());
             } else {
                 locationMap.put(sloc, trigger);
             }
@@ -172,7 +172,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
     }
 
     private void handleScriptEdit(IPlayer player, T trigger) {
-        scriptEditManager.startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
+        scriptEditManager.startEdit(player, trigger.getTriggerName(), trigger.getScript(),
                 (ScriptEditor.SaveHandler) script -> {
                     try {
                         trigger.setScript(script);

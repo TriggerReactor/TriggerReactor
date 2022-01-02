@@ -17,16 +17,14 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @Inject
     IThrowableHandler throwableHandler;
 
-    private long interval = 1000L;
     private boolean autoStart = false;
     private Map<String, Object> vars;
     //////////////////////////////////////////////////////////////////////////////////////
     private boolean paused;
 
     @AssistedInject
-    RepeatingTrigger(@Assisted TriggerInfo info, @Assisted String script, @Assisted long interval) {
+    RepeatingTrigger(@Assisted TriggerInfo info, @Assisted String script) {
         super(info, script);
-        this.interval = interval;
     }
 
     public RepeatingTrigger(Trigger o) {
@@ -35,16 +33,9 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         RepeatingTrigger other = (RepeatingTrigger) o;
 
         this.throwableHandler = other.throwableHandler;
-        this.interval = other.interval;
         this.autoStart = other.autoStart;
         this.vars = vars == null ? null : new HashMap<>(vars);
         this.paused = other.paused;
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "{interval=" + interval + ", autoStart=" + autoStart + ", paused=" + paused
-                + '}';
     }
 
     /**
@@ -89,13 +80,13 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                     }
                 }
 
-                vars.put(RepeatingTriggerManager.TRIGGER, "repeat");
+                vars.put(TRIGGER, "repeat");
 
                 // we re-use the variables over and over.
                 activate(vars);
 
                 try {
-                    Thread.sleep(interval);
+                    Thread.sleep(getInterval());
                 } catch (InterruptedException e) {
                     break;
                 }
@@ -105,7 +96,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
 
         try {
-            vars.put(RepeatingTriggerManager.TRIGGER, "stop");
+            vars.put(TRIGGER, "stop");
             activate(vars);
         } catch (Exception e) {
             throwableHandler.handleException((ICommandSender) null, e);
@@ -113,19 +104,19 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     public long getInterval() {
-        return interval;
+        return info.getConfig().get(INTERVAL, Integer.class).orElse(1000);
     }
 
     public void setInterval(long interval) {
-        this.interval = interval;
+        info.getConfig().put(INTERVAL, interval);
     }
 
     public boolean isAutoStart() {
-        return autoStart;
+        return info.getConfig().get(AUTOSTART, Boolean.class).orElse(false);
     }
 
     public void setAutoStart(boolean autoStart) {
-        this.autoStart = autoStart;
+        info.getConfig().put(AUTOSTART, autoStart);
     }
 
     public boolean isPaused() {
@@ -141,4 +132,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
             }
         }
     }
+
+    private static final String AUTOSTART = "AutoStart";
+    private static final String INTERVAL = "Interval";
+    protected static final String TRIGGER = "trigger";
 }

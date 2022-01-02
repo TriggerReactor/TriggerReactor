@@ -73,7 +73,7 @@ public class InventoryEditManager extends Manager {
 
         IItemStack[] iitems = inv.getStorageContents();
 
-        invManager.replaceItems(trigger, iitems);
+        trigger.setItems(iitems);
         stopEdit(player);
         player.sendMessage("Saved edits");
     }
@@ -87,7 +87,7 @@ public class InventoryEditManager extends Manager {
 
         IItemStack[] iitems = trigger.getItems();
 
-        IInventory inv = inventoryModifier.createInventory(trigger.getInfo().getTriggerName(), iitems);
+        IInventory inv = inventoryModifier.createInventory(trigger.getTriggerName(), iitems);
         player.openInventory(inv);
     }
 

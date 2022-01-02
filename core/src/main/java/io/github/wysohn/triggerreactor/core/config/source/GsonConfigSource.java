@@ -260,8 +260,29 @@ public class GsonConfigSource implements IConfigSource {
     @Override
     public String toString() {
         synchronized (cache) {
-            return cache.toString();
+            return toString(cache, 2);
         }
+    }
+
+    private String toString(Map<String, Object> cache, int depth) {
+        if (depth < 1)
+            return "...";
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        for (Map.Entry<String, Object> entry : cache.entrySet()) {
+            if (entry.getValue() instanceof Map) {
+                builder.append(entry.getKey())
+                        .append(": ")
+                        .append(toString((Map<String, Object>) cache.get(entry.getKey()), depth - 1))
+                        .append(' ');
+            } else {
+                builder.append(entry.getKey()).append(": ").append(entry.getValue()).append(' ');
+            }
+        }
+        builder.append("}");
+
+        return builder.toString();
     }
 
     private static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithModifiers(Modifier.TRANSIENT,
@@ -270,21 +291,21 @@ public class GsonConfigSource implements IConfigSource {
             .setPrettyPrinting()
             .serializeNulls()
             .registerTypeAdapterFactory(TypeAdapters.newFactory(String.class, NullTypeAdapters.NULL_ADOPTER_STRING))
-            .registerTypeAdapterFactory(
-                    TypeAdapters.newFactory(boolean.class, Boolean.class, NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
-            .registerTypeAdapterFactory(
-                    TypeAdapters.newFactory(int.class, Integer.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(
-                    TypeAdapters.newFactory(long.class, Long.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
-            .registerTypeAdapterFactory(
-                    TypeAdapters.newFactory(float.class, Float.class, NullTypeAdapters.NULL_ADOPTER_FLOAT))
-            .registerTypeAdapterFactory(
-                    TypeAdapters.newFactory(double.class, Double.class, NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(boolean.class, Boolean.class,
+                    NullTypeAdapters.NULL_ADOPTER_BOOLEAN))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(int.class, Integer.class,
+                    NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(long.class, Long.class,
+                    NullTypeAdapters.NULL_ADOPTER_NUMBER))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(float.class, Float.class,
+                    NullTypeAdapters.NULL_ADOPTER_FLOAT))
+            .registerTypeAdapterFactory(TypeAdapters.newFactory(double.class, Double.class,
+                    NullTypeAdapters.NULL_ADOPTER_NUMBER))
             .registerTypeAdapter(UUID.class, new UUIDSerializer())
             .registerTypeAdapter(SimpleLocation.class, new SimpleLocationSerializer())
             .registerTypeAdapter(SimpleChunkLocation.class, new SimpleChunkLocationSerializer());
-    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER = new TypeValidatorChain.Builder().addChain(
-                    new DefaultValidator())
+    private static final TypeValidatorChain.Builder VALIDATOR_BUILDER =
+            new TypeValidatorChain.Builder().addChain(new DefaultValidator())
             .addChain(new UUIDValidator())
             .addChain(new SimpleLocationValidator())
             .addChain(new SimpleChunkLocationValidator());

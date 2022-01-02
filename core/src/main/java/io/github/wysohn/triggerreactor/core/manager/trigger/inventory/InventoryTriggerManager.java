@@ -30,9 +30,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -45,12 +43,9 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
     @Inject
     ConfigSourceFactories configSourceFactories;
     @Inject
-    IWrapper wrapper;
-    @Inject
     IGameController gameController;
     @Inject
-    @Named("ItemStack")
-    Class<?> itemClass;
+    IWrapper wrapper;
 
     @Inject
     InventoryTriggerManager() {
@@ -59,62 +54,12 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
 
     @Override
     public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-        int size = info.getConfig()
-                .get(SIZE, Integer.class)
-                .filter(s -> s != 0 && s % 9 == 0)
-                .filter(s -> s <= InventoryTrigger.MAXSIZE)
-                .orElseThrow(
-                        () -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
-        Map<Integer, IItemStack> items = new HashMap<>();
-
-        if (info.getConfig().has(ITEMS)) {
-            if (!info.getConfig().isSection(ITEMS)) {
-                throw new InvalidTrgConfigurationException("Items should be an object", info.getConfig());
-            }
-
-            for (int i = 0; i < size; i++) {
-                final int itemIndex = i;
-                info.getConfig()
-                        .get(ITEMS + "." + i, itemClass)
-                        .ifPresent(item -> items.put(itemIndex, wrapper.wrap(item)));
-            }
-        }
-
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            IItemStack[] itemArray = new IItemStack[size];
-            for (int i = 0; i < size; i++)
-                itemArray[i] = items.getOrDefault(i, null);
-            return factory.create(info, script, itemArray);
+            return factory.create(info, script);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    @Override
-    public void save(InventoryTrigger trigger) {
-        try {
-            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-            IItemStack[] items = trigger.items;
-            int size = trigger.items.length;
-
-            trigger.getInfo().getConfig().put(SIZE, size);
-            trigger.getInfo().getConfig().put(TITLE, trigger.getInfo().getTriggerName());
-            updateItemConfig(trigger, items);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void updateItemConfig(InventoryTrigger trigger, IItemStack[] items) {
-        for (int i = 0; i < items.length; i++) {
-            IItemStack item = items[i];
-            if (item == null)
-                continue;
-
-            trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
         }
     }
 
@@ -135,7 +80,8 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        put(name, factory.create(info, script, new IItemStack[size]));
+        InventoryTrigger trigger = put(name, factory.create(info, script));
+        trigger.setItems(new IItemStack[size]);
 
         return true;
     }
@@ -168,9 +114,11 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         if (trigger == null)
             return null;
 
-        String title = trigger.getInfo().getConfig().get(TITLE, String.class).orElse(name);
+        String title = trigger.getInventoryTitle();
+        if (title == null)
+            title = name;
 
-        IInventory inventory = createInventory(trigger.getItems().length, title);
+        IInventory inventory = createInventory(trigger.size(), title);
         inventoryMap.put(inventory, trigger);
 
         Map<String, Object> varMap = new HashMap<>();
@@ -195,16 +143,6 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
     protected IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
         return wrapper.wrap(gameController.createInventory(size, name));
-    }
-
-    //helper method to replace all the items in an inventory trigger
-    public void replaceItems(InventoryTrigger trigger, IItemStack[] items) {
-        IItemStack[] triggerItems = trigger.getItems();
-        for (int i = 0; i < triggerItems.length; i++) {
-            triggerItems[i] = items[i];
-        }
-
-        updateItemConfig(trigger, items);
     }
 
     public void onClick(Object event,
@@ -254,8 +192,4 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
-    public static final String ITEMS = "Items";
-    public static final String SIZE = "Size";
-    public static final String TITLE = "Title";
-
 }

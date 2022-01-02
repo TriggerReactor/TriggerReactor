@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedInject;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -16,7 +17,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AreaTrigger extends Trigger {
-    final Area area;
     final File folder;
     private final Map<UUID, WeakReference<Object>> trackedEntities = new ConcurrentHashMap<>();
     private EnterTrigger enterTrigger;
@@ -24,9 +24,8 @@ public class AreaTrigger extends Trigger {
     private AreaTriggerManager.EventType type = null;
 
     @AssistedInject
-    AreaTrigger(@Assisted TriggerInfo info, @Assisted Area area, @Assisted File folder) {
+    AreaTrigger(@Assisted TriggerInfo info, @Assisted File folder) {
         super(info, null); // area trigger has scripts in its folder
-        this.area = area;
         this.folder = folder;
     }
 
@@ -35,7 +34,6 @@ public class AreaTrigger extends Trigger {
         ValidationUtil.assertTrue(o, v -> v instanceof AreaTrigger);
         AreaTrigger other = (AreaTrigger) o;
 
-        this.area = other.area;
         this.folder = other.folder;
         this.enterTrigger = new EnterTrigger(other.enterTrigger);
         this.exitTrigger = new ExitTrigger(other.exitTrigger);
@@ -49,7 +47,7 @@ public class AreaTrigger extends Trigger {
 
     @Override
     public String toString() {
-        return super.toString() + "{area=" + area + '}';
+        return super.toString() + "{area=" + getArea() + '}';
     }
 
     //we don't need interpreter for area trigger but enter and exit trigger
@@ -76,13 +74,34 @@ public class AreaTrigger extends Trigger {
 
     @Override
     protected String getTimingId() {
-        return StringUtils.dottedPath(super.getTimingId(), area.toString());
+        return StringUtils.dottedPath(super.getTimingId(), getArea().toString());
     }
 
     @Override
     protected void compile() throws AbstractTriggerManager.TriggerInitFailedException {
         this.enterTrigger.compile();
         this.exitTrigger.compile();
+    }
+
+    public Area getArea(){
+        SimpleLocation smallest = info.getConfig()
+                .get(SMALLEST, String.class)
+                .map(SimpleLocation::valueOf)
+                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+        SimpleLocation largest = info.getConfig()
+                .get(LARGEST, String.class)
+                .map(SimpleLocation::valueOf)
+                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+
+        return new Area(smallest, largest);
+    }
+
+    public void setArea(Area area){
+        if(area.isDefective())
+            throw new RuntimeException("Defective area detected: "+area);
+
+        info.getConfig().put(SMALLEST, area.getSmallest().toString());
+        info.getConfig().put(LARGEST, area.getLargest().toString());
     }
 
     public EnterTrigger getEnterTrigger() {
@@ -118,10 +137,6 @@ public class AreaTrigger extends Trigger {
     public void addEntity(UUID entityUuid, Object entity) {
         WeakReference<Object> ref = new WeakReference<>(entity);
         this.trackedEntities.put(entityUuid, ref);
-    }
-
-    public Area getArea() {
-        return area;
     }
 
     public List<Object> getEntities() {
@@ -162,6 +177,19 @@ public class AreaTrigger extends Trigger {
     public void removeEntity(UUID uuid) {
         this.trackedEntities.remove(uuid);
     }
+
+    public void toggleSync() {
+        info.setSync(!info.isSync());
+
+        notifyObservers();
+    }
+
+    public boolean isSync() {
+        return info.isSync();
+    }
+    protected static final String SMALLEST = "Smallest";
+    protected static final String LARGEST = "Largest";
+    protected static final String SYNC = "Sync";
 
     public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;

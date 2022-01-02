@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
@@ -54,7 +55,7 @@ public abstract class Trigger implements IObservable {
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #compile()} method
      * in order to make the Trigger work properly. If you want to create a Trigger with customized
      * behavior, it's not necessary to call {@link #compile()} but need to override {@link #createInterpreter()} ()},
-     * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as
+     * {@link #startInterpretation)}, or {@link #activate} method as
      * your need
      */
     public Trigger(TriggerInfo info, String script) {
@@ -69,6 +70,7 @@ public abstract class Trigger implements IObservable {
         this.gameController = other.gameController;
         this.throwableHandler = other.throwableHandler;
         this.externalAPIManager = other.externalAPIManager;
+        this.scriptEngineProvider = other.scriptEngineProvider;
 
         this.info = other.info;
         this.observer = other.observer;
@@ -80,7 +82,7 @@ public abstract class Trigger implements IObservable {
 
     @Override
     public String toString() {
-        return "[" + getClass().getSimpleName() + "=" + info + "]";
+        return "{Type: " + getClass().getSimpleName() + ", Info: " + info + "}";
     }
 
     /**
@@ -212,7 +214,7 @@ public abstract class Trigger implements IObservable {
         }
     }
 
-    public TriggerInfo getInfo() {
+    protected TriggerInfo getInfo() {
         return info;
     }
 
@@ -293,6 +295,14 @@ public abstract class Trigger implements IObservable {
         }
 
         return null;
+    }
+
+    public String getTriggerName() {
+        return info.getTriggerName();
+    }
+
+    public File getSourceCodeFile() {
+        return info.getSourceCodeFile();
     }
 
     private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();

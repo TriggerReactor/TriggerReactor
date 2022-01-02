@@ -179,7 +179,7 @@ public class CommandHandler {
     private List<String> triggerNames(AbstractTriggerManager<? extends Trigger> manager) {
         List<String> names = new ArrayList<String>();
         for (Trigger trigger : manager.getAllTriggers()) {
-            names.add(trigger.getInfo().getTriggerName());
+            names.add(trigger.getTriggerName());
         }
         return names;
     }

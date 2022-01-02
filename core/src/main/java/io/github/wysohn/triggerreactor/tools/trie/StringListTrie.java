@@ -32,4 +32,12 @@ public class StringListTrie extends Trie {
 
         return list;
     }
+
+    public List<String> getAll() {
+        List<String> list = new ArrayList<>();
+
+        addAll(list, root, "");
+
+        return list;
+    }
 }

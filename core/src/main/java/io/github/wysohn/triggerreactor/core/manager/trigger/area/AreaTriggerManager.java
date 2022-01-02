@@ -109,16 +109,6 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
 
     @Override
     public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-        SimpleLocation smallest = info.getConfig()
-                .get(SMALLEST, String.class)
-                .map(SimpleLocation::valueOf)
-                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-        SimpleLocation largest = info.getConfig()
-                .get(LARGEST, String.class)
-                .map(SimpleLocation::valueOf)
-                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-        boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
-
         File scriptFolder = new File(folder, info.getTriggerName());
         if (!scriptFolder.exists()) {
             scriptFolder.mkdirs();
@@ -148,9 +138,7 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
             return null;
         }
 
-        Area area = new Area(smallest, largest);
-        AreaTrigger trigger = factory.create(info, area, scriptFolder);
-
+        AreaTrigger trigger = factory.create(info, scriptFolder);
         try {
             trigger.setEnterTrigger(enterScript);
             trigger.setExitTrigger(exitScript);
@@ -164,11 +152,10 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
 
     @Override
     public void save(AreaTrigger trigger) {
-        Area area = trigger.getArea();
-        trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
-        trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
+        // area trigger doesn't have script itself but its children does
+        //super.save(trigger);
 
-        File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
+        File triggerFolder = new File(folder, trigger.getTriggerName());
         if (!triggerFolder.exists()) {
             triggerFolder.mkdirs();
         }
@@ -179,7 +166,7 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
                         trigger.getEnterTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
-                logger.warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
+                logger.warning("Could not save Area Trigger [Enter] " + trigger);
             }
         }
 
@@ -188,7 +175,7 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
                 FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
-                logger.warning("Could not save Area Trigger [Exit] " + trigger.getInfo());
+                logger.warning("Could not save Area Trigger [Exit] " + trigger);
             }
         }
     }
@@ -259,9 +246,10 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
         AreaTrigger remove = super.remove(name);
 
         Optional.ofNullable(remove).ifPresent(areaTrigger -> {
-            for (SimpleChunkLocation scloc : Area.getAllChunkLocations(areaTrigger.area)) {
+            Area area = areaTrigger.getArea();
+            for (SimpleChunkLocation scloc : Area.getAllChunkLocations(area)) {
                 Map<Area, AreaTrigger> map = areaTriggersByLocation.get(scloc);
-                map.remove(areaTrigger.area);
+                map.remove(area);
             }
         });
 
@@ -274,7 +262,7 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
      * @param trigger
      */
     protected void setupArea(AreaTrigger trigger) {
-        Area area = trigger.area;
+        Area area = trigger.getArea();
 
         Set<SimpleChunkLocation> sclocs = Area.getAllChunkLocations(area);
         for (SimpleChunkLocation scloc : sclocs) {
@@ -340,7 +328,8 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
 
         File areaFolder = new File(folder, name);
         IConfigSource config = configSourceFactories.create(folder, name);
-        AreaTrigger trigger = factory.create(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
+        AreaTrigger trigger = factory.create(new AreaTriggerInfo(areaFolder, config, name), areaFolder);
+        trigger.setArea(area);
         put(name, trigger);
 
         setupArea(trigger);
@@ -439,10 +428,6 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
                     trigger.activate(varMap, AreaTriggerManager.EventType.ENTER);
                 });
     }
-
-    protected static final String SMALLEST = "Smallest";
-    protected static final String LARGEST = "Largest";
-    protected static final String SYNC = "Sync";
 
     public enum EventType {
         ENTER,

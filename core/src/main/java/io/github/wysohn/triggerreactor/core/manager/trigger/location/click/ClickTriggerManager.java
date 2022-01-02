@@ -64,15 +64,6 @@ public class ClickTriggerManager extends AbstractLocationBasedTriggerManager<Cli
         }
     }
 
-    @Override
-    public void save(ClickTrigger trigger) {
-        try {
-            FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void onClickTrigger(Object event,
                                Object player,
                                Object clicked,
