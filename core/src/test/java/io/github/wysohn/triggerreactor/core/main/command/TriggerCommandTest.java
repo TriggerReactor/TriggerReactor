@@ -9,25 +9,35 @@ import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
+import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.selection.LocationSelectionManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.tools.TimeUtil;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -89,7 +99,7 @@ public class TriggerCommandTest {
     }
 
     @Test
-    public void printHierarchy(){
+    public void printHierarchy() {
         TriggerCommand triggerCommand = new TriggerCommand();
         ITriggerCommand command = triggerCommand.createCommand();
         ICommandSender sender = mock(ICommandSender.class);
@@ -127,7 +137,7 @@ public class TriggerCommandTest {
     public void testClickTriggerLocationClicked() {
         ITriggerCommand command = builder.build().triggerCommand();
         IPlayer sender = mock(IPlayer.class);
-        SimpleLocation clickedLoc = new SimpleLocation("World", 4 , 55, 22);
+        SimpleLocation clickedLoc = new SimpleLocation("World", 4, 55, 22);
 
         when(locationSelectionManager.startLocationSet(any(), any())).then(invocation -> {
             player = invocation.getArgument(0);
@@ -154,7 +164,7 @@ public class TriggerCommandTest {
     public void testClickTriggerLocationClickedDuplicate() {
         ITriggerCommand command = builder.build().triggerCommand();
         IPlayer sender = mock(IPlayer.class);
-        SimpleLocation clickedLoc = new SimpleLocation("World", 4 , 55, 22);
+        SimpleLocation clickedLoc = new SimpleLocation("World", 4, 55, 22);
         Trigger trigger = mock(Trigger.class);
 
         when(locationSelectionManager.startLocationSet(any(), any())).then(invocation -> {
@@ -200,7 +210,7 @@ public class TriggerCommandTest {
     public void testWalkTriggerLocationClicked() {
         ITriggerCommand command = builder.build().triggerCommand();
         IPlayer sender = mock(IPlayer.class);
-        SimpleLocation clickedLoc = new SimpleLocation("World", 8 , 12, -88);
+        SimpleLocation clickedLoc = new SimpleLocation("World", 8, 12, -88);
 
         when(locationSelectionManager.startLocationSet(any(), any())).then(invocation -> {
             player = invocation.getArgument(0);
@@ -227,7 +237,7 @@ public class TriggerCommandTest {
     public void testWalkTriggerLocationClickedDuplicate() {
         ITriggerCommand command = builder.build().triggerCommand();
         IPlayer sender = mock(IPlayer.class);
-        SimpleLocation clickedLoc = new SimpleLocation("World", 8 , 12, -88);
+        SimpleLocation clickedLoc = new SimpleLocation("World", 8, 12, -88);
         Trigger trigger = mock(Trigger.class);
 
         when(locationSelectionManager.startLocationSet(any(), any())).then(invocation -> {
@@ -260,7 +270,7 @@ public class TriggerCommandTest {
     }
 
     @Test
-    public void testSearchPlayerOnly(){
+    public void testSearchPlayerOnly() {
         ITriggerCommand command = builder.build().triggerCommand();
         ICommandSender sender = mock(ICommandSender.class);
 
@@ -270,7 +280,7 @@ public class TriggerCommandTest {
     }
 
     @Test
-    public void testSearch(){
+    public void testSearch() {
         ITriggerCommand command = builder.build().triggerCommand();
         IPlayer sender = mock(IPlayer.class);
 
@@ -282,7 +292,7 @@ public class TriggerCommandTest {
     }
 
     @Test
-    public void testCommandTriggerNew(){
+    public void testCommandTriggerNew() {
         ITriggerCommand command = builder.build().triggerCommand();
         ICommandSender sender = mock(ICommandSender.class);
 
@@ -295,12 +305,12 @@ public class TriggerCommandTest {
         command.onCommand(sender, ITriggerCommand.toQueue("cmd new MyCommand #MESSAGE \"Hi\""));
         saveHandler.accept("#MESSAGE \"Hi\"");
 
-        verify(commandTriggerManager).addCommandTrigger(eq("MyCommand"), eq("#MESSAGE \"Hi\""));
+        verify(commandTriggerManager).createCommandTrigger(eq("MyCommand"), eq("#MESSAGE \"Hi\""));
         verify(editManager).startEdit(any(), anyString(), eq("#MESSAGE \"Hi\""), eq(saveHandler), eq(true));
     }
 
     @Test
-    public void testCommandTriggerNewAlreadyExist(){
+    public void testCommandTriggerNewAlreadyExist() {
         ITriggerCommand command = builder.build().triggerCommand();
         ICommandSender sender = mock(ICommandSender.class);
 
@@ -313,7 +323,7 @@ public class TriggerCommandTest {
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd new MyCommand #MESSAGE \"Hi\""));
 
-        verify(commandTriggerManager, never()).addCommandTrigger(eq("MyCommand"), eq("#MESSAGE \"Hi\""));
+        verify(commandTriggerManager, never()).createCommandTrigger(eq("MyCommand"), eq("#MESSAGE \"Hi\""));
         verify(editManager, never()).startEdit(any(), anyString(), eq("#MESSAGE \"Hi\" "), eq(saveHandler), eq(true));
     }
 
@@ -364,14 +374,14 @@ public class TriggerCommandTest {
             return null;
         }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
         when(trigger.getScript()).thenReturn("");
-        doThrow(new AbstractTriggerManager.TriggerInitFailedException("", null))
-                .when(trigger).setScript(anyString());
+        doThrow(new AbstractTriggerManager.TriggerInitFailedException("", null)).when(trigger).setScript(anyString());
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd edit MyCommand"));
         saveHandler.accept("#MESSAGE \"Hello\"");
 
         verify(trigger).setScript(eq("#MESSAGE \"Hello\""));
-        verify(throwableHandler).handleException(eq(sender), any(AbstractTriggerManager.TriggerInitFailedException.class));
+        verify(throwableHandler).handleException(eq(sender),
+                any(AbstractTriggerManager.TriggerInitFailedException.class));
     }
 
     @Test
@@ -404,15 +414,13 @@ public class TriggerCommandTest {
         ITriggerCommand command = builder.build().triggerCommand();
         ICommandSender sender = mock(ICommandSender.class);
         CommandTrigger trigger = mock(CommandTrigger.class);
-        TriggerInfo info = mock(TriggerInfo.class);
 
         when(commandTriggerManager.has(anyString())).thenReturn(true);
         when(commandTriggerManager.get(anyString())).thenReturn(trigger);
-        when(trigger.getInfo()).thenReturn(info);
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd sync MyCommand"));
 
-        verify(info).setSync(true);
+        verify(trigger).setSync(true);
     }
 
     @Test
@@ -420,11 +428,9 @@ public class TriggerCommandTest {
         ITriggerCommand command = builder.build().triggerCommand();
         ICommandSender sender = mock(ICommandSender.class);
         CommandTrigger trigger = mock(CommandTrigger.class);
-        TriggerInfo info = mock(TriggerInfo.class);
 
         when(commandTriggerManager.has(anyString())).thenReturn(true);
         when(commandTriggerManager.get(anyString())).thenReturn(trigger);
-        when(trigger.getInfo()).thenReturn(info);
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd p MyCommand x.y x.z y.y"));
 
@@ -440,7 +446,6 @@ public class TriggerCommandTest {
 
         when(commandTriggerManager.has(anyString())).thenReturn(true);
         when(commandTriggerManager.get(anyString())).thenReturn(trigger);
-        when(trigger.getInfo()).thenReturn(info);
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd p MyCommand"));
 
@@ -456,7 +461,6 @@ public class TriggerCommandTest {
 
         when(commandTriggerManager.has(anyString())).thenReturn(true);
         when(commandTriggerManager.get(anyString())).thenReturn(trigger);
-        when(trigger.getInfo()).thenReturn(info);
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd a MyCommand alias1 alias2"));
 
@@ -473,7 +477,6 @@ public class TriggerCommandTest {
 
         when(commandTriggerManager.has(anyString())).thenReturn(true);
         when(commandTriggerManager.get(anyString())).thenReturn(trigger);
-        when(trigger.getInfo()).thenReturn(info);
 
         command.onCommand(sender, ITriggerCommand.toQueue("cmd a MyCommand"));
 
@@ -483,7 +486,20 @@ public class TriggerCommandTest {
 
     @Test
     public void testCommandTriggerTabs() {
-        //TODO tab completion will be reworked soon
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+        CommandTrigger trigger = mock(CommandTrigger.class);
+
+        when(commandTriggerManager.has(anyString())).thenReturn(true);
+        when(commandTriggerManager.get(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("cmd tab MyCommand aaa,bb,ccc $playerlist"));
+
+        List<String> expected = new LinkedList<>();
+        expected.add("aaa,bb,ccc");
+        expected.add("$playerlist");
+        verify(trigger).setTabCompleters(eq(expected));
+        verify(commandTriggerManager).reload(eq("MyCommand"));
     }
 
     @Test
@@ -581,7 +597,7 @@ public class TriggerCommandTest {
         when(sender.getItemInMainHand()).thenReturn(item);
         when(inventoryTriggerManager.get(anyString())).thenReturn(trigger);
         when(item.clone()).thenReturn(item);
-        when(trigger.rows()).thenReturn(6);
+        when(trigger.size()).thenReturn(54);
 
         command.onCommand(sender, ITriggerCommand.toQueue("i row MyCommand 6"));
 
@@ -635,5 +651,300 @@ public class TriggerCommandTest {
         command.onCommand(sender, ITriggerCommand.toQueue("i settitle MyCommand newTitle"));
 
         verify(trigger).setTitle(eq("newTitle"));
+    }
+
+    @Test
+    public void testAreaTriggerToggle() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        UUID uuid = UUID.randomUUID();
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("a toggle"));
+
+        verify(areaSelectionManager).toggleSelection(eq(uuid));
+    }
+
+    @Test
+    public void testAreaTriggerCreate() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        UUID uuid = UUID.randomUUID();
+        SimpleLocation from = new SimpleLocation("world", 0, 0, 0);
+        SimpleLocation to = new SimpleLocation("world", 50, 50, 50);
+        Area area = new Area(from, to);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(areaSelectionManager.getSelection(eq(uuid))).thenReturn(area);
+        when(areaTriggerManager.getConflictingAreas(area, area::equals)).thenReturn(new HashSet<>());
+        when(areaTriggerManager.createArea(anyString(), any(), any())).thenReturn(true);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("a create SomeArea"));
+
+        verify(areaTriggerManager).createArea(eq("SomeArea"), eq(from), eq(to));
+        verify(areaSelectionManager).resetSelections(eq(uuid));
+    }
+
+    @Test
+    public void testAreaTriggerDelete() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        UUID uuid = UUID.randomUUID();
+        AreaTrigger area = mock(AreaTrigger.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(areaTriggerManager.remove(eq("SomeArea"))).thenReturn(area);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("a delete SomeArea"));
+
+        verify(areaTriggerManager).remove("SomeArea");
+        verify(areaSelectionManager).resetSelections(eq(uuid));
+    }
+
+    @Test
+    public void testAreaTriggerEnter() throws AbstractTriggerManager.TriggerInitFailedException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        AreaTrigger areaTrigger = mock(AreaTrigger.class);
+
+        when(areaTriggerManager.get(eq("SomeArea"))).thenReturn(areaTrigger);
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+
+        command.onCommand(sender, ITriggerCommand.toQueue("a enter SomeArea"));
+        saveHandler.accept("edits");
+
+        verify(areaTrigger).setEnterTrigger(eq("edits"));
+    }
+
+    @Test
+    public void testAreaTriggerExit() throws AbstractTriggerManager.TriggerInitFailedException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        AreaTrigger areaTrigger = mock(AreaTrigger.class);
+
+        when(areaTriggerManager.get(eq("SomeArea"))).thenReturn(areaTrigger);
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+
+        command.onCommand(sender, ITriggerCommand.toQueue("a exit SomeArea"));
+        saveHandler.accept("edits2");
+
+        verify(areaTrigger).setExitTrigger(eq("edits2"));
+    }
+
+    @Test
+    public void testAreaTriggerSync() throws AbstractTriggerManager.TriggerInitFailedException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        AreaTrigger areaTrigger = mock(AreaTrigger.class);
+
+        when(areaTriggerManager.get(eq("SomeArea"))).thenReturn(areaTrigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("a sync SomeArea"));
+
+        verify(areaTrigger).toggleSync();
+    }
+
+    @Test
+    public void testCustomTriggerCreate() throws ClassNotFoundException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+
+        command.onCommand(sender, ITriggerCommand.toQueue("custom create onJoin onJoinDoSomething"));
+        saveHandler.accept("MyScript edits");
+
+        verify(customTriggerManager).createCustomTrigger(eq("onJoin"), eq("onJoinDoSomething"), eq("MyScript edits"));
+    }
+
+    @Test
+    public void testCustomTriggerEdit() throws ClassNotFoundException,
+            AbstractTriggerManager.TriggerInitFailedException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        CustomTrigger trigger = mock(CustomTrigger.class);
+
+        when(customTriggerManager.get(anyString())).thenReturn(trigger);
+        when(trigger.getScript()).thenReturn("");
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+
+        command.onCommand(sender, ITriggerCommand.toQueue("custom edit onJoinDoSomething"));
+        saveHandler.accept("MyScript edits");
+
+        verify(trigger).setScript(eq("MyScript edits"));
+    }
+
+    @Test
+    public void testCustomTriggerDelete() throws ClassNotFoundException,
+            AbstractTriggerManager.TriggerInitFailedException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        CustomTrigger trigger = mock(CustomTrigger.class);
+
+        when(customTriggerManager.remove(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("custom delete onJoinDoSomething"));
+
+        verify(sender).sendMessage(eq("&aRemoved the custom trigger &6onJoinDoSomething"));
+    }
+
+    @Test
+    public void testCustomTriggerSync() throws ClassNotFoundException,
+            AbstractTriggerManager.TriggerInitFailedException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        CustomTrigger trigger = mock(CustomTrigger.class);
+
+        when(customTriggerManager.get(anyString())).thenReturn(trigger);
+        when(trigger.getScript()).thenReturn("");
+        when(trigger.isSync()).thenReturn(false);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("custom sync onJoinDoSomething"));
+
+        verify(trigger).setSync(eq(true));
+    }
+
+    @Test
+    public void testRepeatTriggerCreate() throws AbstractTriggerManager.TriggerInitFailedException, IOException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+        when(repeatingTriggerManager.createTrigger(anyString(), anyString())).thenReturn(true);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("r create myRepeat"));
+        saveHandler.accept("some edits here");
+
+        verify(repeatingTriggerManager).createTrigger(eq("myRepeat"), eq("some edits here"));
+        verify(repeatingTriggerManager).showTriggerInfo(eq(sender), any());
+    }
+
+    @Test
+    public void testRepeatTriggerEdit() throws AbstractTriggerManager.TriggerInitFailedException, IOException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(trigger.getScript()).thenReturn("");
+        doAnswer(invocation -> {
+            assertEquals(sender, invocation.getArgument(0));
+            saveHandler = invocation.getArgument(3);
+            return null;
+        }).when(editManager).startEdit(any(), anyString(), anyString(), any(), anyBoolean());
+        when(repeatingTriggerManager.createTrigger(anyString(), anyString())).thenReturn(true);
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("r edit myRepeat"));
+        saveHandler.accept("some edits here");
+
+        verify(trigger).setScript(eq("some edits here"));
+    }
+
+    @Test
+    public void testRepeatTriggerDelete() throws AbstractTriggerManager.TriggerInitFailedException, IOException {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("r delete myRepeat"));
+
+        verify(repeatingTriggerManager).remove(eq("myRepeat"));
+    }
+
+    @Test
+    public void testRepeatTriggerInterval() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("r interval myRepeat 30m20s"));
+
+        verify(trigger).setInterval(eq(TimeUtil.parseTime("30m20s")));
+    }
+
+    @Test
+    public void testRepeatTriggerAutostart() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(trigger.isAutoStart()).thenReturn(false);
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("r autostart myRepeat"));
+
+        verify(trigger).setAutoStart(eq(true));
+    }
+
+    @Test
+    public void testRepeatTriggerToggle() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        when(repeatingTriggerManager.isRunning(anyString())).thenReturn(false);
+        command.onCommand(sender, ITriggerCommand.toQueue("r toggle myRepeat"));
+        verify(repeatingTriggerManager).startTrigger(eq("myRepeat"));
+
+        when(repeatingTriggerManager.isRunning(anyString())).thenReturn(true);
+        command.onCommand(sender, ITriggerCommand.toQueue("r toggle myRepeat"));
+        verify(repeatingTriggerManager).stopTrigger(eq("myRepeat"));
+    }
+
+    @Test
+    public void testRepeatTriggerPause() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        when(trigger.isPaused()).thenReturn(false);
+        command.onCommand(sender, ITriggerCommand.toQueue("r pause myRepeat"));
+        verify(trigger).setPaused(eq(true));
+
+        when(trigger.isPaused()).thenReturn(true);
+        command.onCommand(sender, ITriggerCommand.toQueue("r pause myRepeat"));
+        verify(trigger).setPaused(eq(false));
+    }
+
+    @Test
+    public void testRepeatTriggerStatus() {
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        RepeatingTrigger trigger = mock(RepeatingTrigger.class);
+
+        when(repeatingTriggerManager.get(anyString())).thenReturn(trigger);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("r status myRepeat"));
+
+        verify(repeatingTriggerManager).showTriggerInfo(eq(sender), eq(trigger));
     }
 }

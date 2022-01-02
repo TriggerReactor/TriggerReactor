@@ -214,7 +214,7 @@ public class TriggerCommand {
                             String script = trigger == null ? ITriggerCommand.consumeAllArguments(args) :
                                     trigger.getScript();
                             scriptEditManager.startEdit(sender, "Command Trigger", script, edits -> {
-                                if (cmdManager.addCommandTrigger(name, edits)) {
+                                if (cmdManager.createCommandTrigger(name, edits)) {
                                     sender.sendMessage("&aCommand trigger is bound!");
                                 } else {
                                     sender.sendMessage("&cThe command is already bound.");

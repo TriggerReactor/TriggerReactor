@@ -80,7 +80,8 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        InventoryTrigger trigger = put(name, factory.create(info, script));
+        InventoryTrigger trigger = factory.create(info, script);
+        put(name, trigger);
         trigger.setItems(new IItemStack[size]);
 
         return true;

@@ -168,29 +168,30 @@ public class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTri
      * @param script      the code.
      * @return true on success; false if already exists.
      */
-    public boolean createTrigger(String triggerName, String script) throws TriggerInitFailedException, IOException {
-        File triggerFile = getTriggerFile(folder, triggerName, true);
-        return createTrigger(triggerName, triggerFile, script, 1000L);
+    public boolean createTrigger(String triggerName, String script) {
+        return createTrigger(triggerName, script, 1000L);
     }
 
     /**
      * Create trigger.
      *
-     * @param triggerName name of the trigger.
+     * @param name name of the trigger.
      * @param script      the code.
      * @param interval    interval in milliseconds.
      * @return true on success; false if already exists.
      */
-    public boolean createTrigger(String triggerName, File file, String script, long interval) {
-        if (get(triggerName) != null) {
+    public boolean createTrigger(String name, String script, long interval) {
+        if (has(name)) {
             return false;
         }
 
-        String name = TriggerInfo.extractName(file);
+        File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactories.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger repeatingTrigger = put(triggerName, new RepeatingTrigger(info, script));
-        repeatingTrigger.setInterval(interval);
+        RepeatingTrigger trigger = new RepeatingTrigger(info, script);
+        trigger.setInterval(interval);
+
+        put(name, trigger);
 
         return true;
     }

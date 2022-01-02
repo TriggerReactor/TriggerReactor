@@ -82,9 +82,12 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return triggers.containsKey(name);
     }
 
-    public T put(String name, T t) {
+    public boolean put(String name, T t) {
+        if(triggers.containsKey(name))
+            return false;
+
+        triggers.put(name, t);
         t.setObserver(observer);
-        T prev = triggers.put(name, t);
         save(t);
 
         try {
@@ -93,7 +96,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             throw new RuntimeException(name + " has error. The script is still saved.", e);
         }
 
-        return prev;
+        return true;
     }
 
     public File getFolder() {
