@@ -947,4 +947,102 @@ public class TriggerCommandTest {
 
         verify(repeatingTriggerManager).showTriggerInfo(eq(sender), eq(trigger));
     }
+
+    @Test
+    public void testVariableLocation(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        SimpleLocation sloc = new SimpleLocation("world", 3, 6, -33);
+
+        when(sender.getLocation()).thenReturn(sloc);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars loc test"));
+
+        verify(variableManager).put(eq("test"), eq(sloc));
+    }
+
+    @Test
+    public void testVariableItem(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        IItemStack itemStack = mock(IItemStack.class);
+        Object instance = mock(Object.class);
+
+        when(sender.getItemInMainHand()).thenReturn(itemStack);
+        doReturn(instance).when(itemStack).get();
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars item test"));
+
+        verify(variableManager).put(eq("test"), eq(instance));
+    }
+
+    @Test
+    public void testVariableItemNull(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        IItemStack itemStack = null;
+
+        when(sender.getItemInMainHand()).thenReturn(itemStack);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars item test"));
+
+        verify(variableManager, never()).put(eq("test"), any());
+    }
+
+    @Test
+    public void testVariableLiteralBoolean(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars lit test true"));
+        command.onCommand(sender, ITriggerCommand.toQueue("vars lit test2 false"));
+        verify(variableManager).put(eq("test"), eq(true));
+        verify(variableManager).put(eq("test2"), eq(false));
+    }
+
+    @Test
+    public void testVariableLiteralNumber(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars lit test 55"));
+        command.onCommand(sender, ITriggerCommand.toQueue("vars lit test2 885.223"));
+        verify(variableManager).put(eq("test"), eq(55));
+        verify(variableManager).put(eq("test2"), eq(885.223));
+    }
+
+    @Test
+    public void testVariableLiteralOther(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars lit test 5555a"));
+        command.onCommand(sender, ITriggerCommand.toQueue("vars lit test2 heyho"));
+        verify(variableManager).put(eq("test"), eq("5555a"));
+        verify(variableManager).put(eq("test2"), eq("heyho"));
+    }
+
+    @Test
+    public void testVariableRead(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        when(variableManager.get(eq("test"))).thenReturn("this is test");
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars read test"));
+
+        verify(sender).sendMessage(eq("&7Value of test: this is test"));
+    }
+
+    @Test
+    public void testVariableDelete(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        when(variableManager.has(eq("test"))).thenReturn(true);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("vars delete test"));
+
+        verify(variableManager).remove(eq("test"));
+    }
 }

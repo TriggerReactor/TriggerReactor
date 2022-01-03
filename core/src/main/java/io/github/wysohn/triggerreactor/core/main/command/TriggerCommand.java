@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 
 public class TriggerCommand {
     private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
-    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]*$");
+    private static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]+$");
     private static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
 
     @Inject
@@ -1123,6 +1123,11 @@ public class TriggerCommand {
             }, builder -> builder.leaf(new String[]{"location", "loc"},
                             "&7/trg vars location[loc] test &8- &7save current "
                                     + "location into global variable 'test'.", (sender, args) -> {
+                                if (!(sender instanceof IPlayer)) {
+                                    sender.sendMessage("In game only.");
+                                    return true;
+                                }
+
                                 String name = args.poll();
                                 if (!GlobalVariableManager.isValidName(name)) {
                                     sender.sendMessage("&c" + name + " is not a valid key!");
@@ -1142,6 +1147,11 @@ public class TriggerCommand {
                     .leaf(new String[]{"item", "i"},
                             "&7/trg vars item[i] gifts.item1 &8- &7save hand held item into global "
                                     + "variable 'gifts.item1'.", (sender, args) -> {
+                                if (!(sender instanceof IPlayer)) {
+                                    sender.sendMessage("In game only.");
+                                    return true;
+                                }
+
                                 String name = args.poll();
                                 if (!GlobalVariableManager.isValidName(name)) {
                                     sender.sendMessage("&c" + name + " is not a valid key!");
