@@ -1045,4 +1045,61 @@ public class TriggerCommandTest {
 
         verify(variableManager).remove(eq("test"));
     }
+
+    @Test
+    public void testItemTitle(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        IItemStack itemStack = mock(IItemStack.class);
+
+        when(sender.getItemInMainHand()).thenReturn(itemStack);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("item title abcde"));
+
+        verify(gameController).setItemTitle(eq(itemStack), eq("abcde"));
+    }
+
+    @Test
+    public void testItemLoreAdd(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        IItemStack itemStack = mock(IItemStack.class);
+
+        when(sender.getItemInMainHand()).thenReturn(itemStack);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("item lore add eeff"));
+
+        verify(gameController).addItemLore(eq(itemStack), eq("eeff"));
+        verify(sender).setItemInMainHand(eq(itemStack));
+    }
+
+    @Test
+    public void testItemLoreSet(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        IItemStack itemStack = mock(IItemStack.class);
+
+        when(sender.getItemInMainHand()).thenReturn(itemStack);
+        when(gameController.setLore(any(), anyInt(), anyString())).thenReturn(true);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("item lore set 3 eeff"));
+
+        verify(gameController).setLore(eq(itemStack), eq(2), eq("eeff"));
+        verify(sender).setItemInMainHand(eq(itemStack));
+    }
+
+    @Test
+    public void testItemLoreRemove(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+        IItemStack itemStack = mock(IItemStack.class);
+
+        when(sender.getItemInMainHand()).thenReturn(itemStack);
+        when(gameController.removeLore(any(), anyInt())).thenReturn(true);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("item lore remove 5"));
+
+        verify(gameController).removeLore(eq(itemStack), eq(4));
+        verify(sender).setItemInMainHand(eq(itemStack));
+    }
 }
