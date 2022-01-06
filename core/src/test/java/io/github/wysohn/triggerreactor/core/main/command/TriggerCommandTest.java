@@ -26,10 +26,12 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -1101,5 +1103,148 @@ public class TriggerCommandTest {
 
         verify(gameController).removeLore(eq(itemStack), eq(4));
         verify(sender).setItemInMainHand(eq(itemStack));
+    }
+
+    @Test
+    public void testTimingsToggle(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        boolean before = Timings.on;
+        command.onCommand(sender, ITriggerCommand.toQueue("timings toggle"));
+
+        assertEquals(!before, Timings.on);
+    }
+
+    @Test
+    public void testDebug(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("debug"));
+
+        verify(pluginLifecycleController).setDebugging(eq(true));
+    }
+
+    @Test
+    public void testVersion(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("version"));
+
+        verify(pluginLifecycleController).getVersion();
+    }
+
+    @Test
+    public void testRun(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+        CommandTrigger trigger = mock(CommandTrigger.class);
+        Object event = mock(Object.class);
+
+        when(commandTriggerManager.createTempCommandTrigger(anyString())).thenReturn(trigger);
+        when(gameController.createEmptyPlayerEvent(eq(sender))).thenReturn(event);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("run #MESSAGE player.getName()"));
+
+        verify(commandTriggerManager).createTempCommandTrigger(eq("#MESSAGE player.getName()"));
+        verify(trigger).activate(anyMap());
+    }
+
+    @Test
+    public void testSudo(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+        IPlayer target = mock(IPlayer.class);
+        CommandTrigger trigger = mock(CommandTrigger.class);
+        Object event = mock(Object.class);
+
+        when(gameController.getPlayer(eq("wysohn"))).thenReturn(target);
+        when(commandTriggerManager.createTempCommandTrigger(anyString())).thenReturn(trigger);
+        when(gameController.createEmptyPlayerEvent(eq(target))).thenReturn(event);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("sudo wysohn #MESSAGE player.getName()"));
+
+        verify(gameController).createEmptyPlayerEvent(eq(target));
+        verify(commandTriggerManager).createTempCommandTrigger(eq("#MESSAGE player.getName()"));
+        verify(trigger).activate(anyMap());
+    }
+
+    @Test
+    public void testCall(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+        CommandTrigger trigger = mock(CommandTrigger.class);
+        NamedTrigger targetTrigger = mock(NamedTrigger.class);
+        Object event = mock(Object.class);
+
+        when(commandTriggerManager.createTempCommandTrigger(anyString())).thenReturn(trigger);
+        when(namedTriggerManager.get(eq("MyNamedTrigger"))).thenReturn(targetTrigger);
+        when(gameController.createEmptyPlayerEvent(eq(sender))).thenReturn(event);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("call MyNamedTrigger abc = 4434;"));
+
+        verify(commandTriggerManager).createTempCommandTrigger(eq("abc = 4434;"));
+        verify(trigger).activate(anyMap());
+        verify(targetTrigger).activate(anyMap());
+    }
+
+    @Test
+    public void testList(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        Manager.ACTIVE_MANAGERS.add(commandTriggerManager);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("list CommandTrigger"));
+
+        verify(commandTriggerManager).getTriggerList(any());
+    }
+
+    @Test
+    public void testReload(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        ICommandSender sender = mock(ICommandSender.class);
+
+        Manager.ACTIVE_MANAGERS.add(commandTriggerManager);
+        Manager.ACTIVE_MANAGERS.add(placeholderManager);
+        Manager.ACTIVE_MANAGERS.add(executorManager);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("reload"));
+
+        verify(commandTriggerManager).onReload();
+        verify(executorManager).onReload();
+        verify(placeholderManager).onReload();
+    }
+
+    @Test
+    public void testLinkSave(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("links inveditsave"));
+
+        verify(inventoryEditManager).onSaveEdit(eq(sender));
+    }
+
+    @Test
+    public void testLinkContinue(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("links inveditcontinue"));
+
+        verify(inventoryEditManager).onContinueEdit(eq(sender));
+    }
+
+    @Test
+    public void testLinkDiscard(){
+        ITriggerCommand command = builder.build().triggerCommand();
+        IPlayer sender = mock(IPlayer.class);
+
+        command.onCommand(sender, ITriggerCommand.toQueue("links inveditdiscard"));
+
+        verify(inventoryEditManager).onDiscardEdit(eq(sender));
     }
 }

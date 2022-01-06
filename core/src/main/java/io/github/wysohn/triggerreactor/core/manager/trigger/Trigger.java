@@ -86,10 +86,8 @@ public abstract class Trigger implements IObservable {
     }
 
     /**
+     * overloaded {@link #activate(Map, boolean)}
      * The only difference is that it determines sync/async from the trigger config.
-     *
-     * @param scriptVars
-     * @return
      */
     public boolean activate(Map<String, Object> scriptVars) {
         return activate(scriptVars, Optional.of(info).map(TriggerInfo::isSync).orElse(false));
@@ -100,7 +98,7 @@ public abstract class Trigger implements IObservable {
      * the name of fields of Event class.
      *
      * @param scriptVars the temporary local variables
-     * @param sync       choose whether to run this trigger in the current thread or spawn a new thread
+     * @param sync       choose whether to run this trigger in the main thread or spawn a new thread
      *                   and run in there.
      * @return true if activated; false if on cooldown
      */

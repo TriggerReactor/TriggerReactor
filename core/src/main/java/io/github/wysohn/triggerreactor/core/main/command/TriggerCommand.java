@@ -1235,6 +1235,11 @@ public class TriggerCommand {
             .composite("item", "&b/triggerreactor[trg] item", builder -> {
                 builder.leaf("title", "&b/triggerreactor[trg] item title <item title> &8- &7Change the title of "
                         + "holding item", (sender, args) -> {
+                    if (!(sender instanceof IPlayer)) {
+                        sender.sendMessage("In game only.");
+                        return true;
+                    }
+
                     IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                     if (IS == null) {
                         sender.sendMessage("&cYou are holding nothing.");
@@ -1249,6 +1254,11 @@ public class TriggerCommand {
                 }).composite("lore", "&b/triggerreactor[trg] item lore", inner -> {
                     inner.leaf("add", "&b/triggerreactor[trg] item lore add <line> &8- &7Append lore to the holding "
                                     + "item", (sender, args) -> {
+                                if (!(sender instanceof IPlayer)) {
+                                    sender.sendMessage("In game only.");
+                                    return true;
+                                }
+
                                 IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                                 if (IS == null) {
                                     sender.sendMessage("&cYou are holding nothing.");
@@ -1263,6 +1273,11 @@ public class TriggerCommand {
                             })
                             .leaf("set", "&b/triggerreactor[trg] item lore set <index> <line> &8- &7Replace lore at "
                                     + "the specified index.(Index start from 0)", (sender, args) -> {
+                                if (!(sender instanceof IPlayer)) {
+                                    sender.sendMessage("In game only.");
+                                    return true;
+                                }
+
                                 String indexStr = args.poll();
                                 if (indexStr == null)
                                     return false;
@@ -1293,6 +1308,11 @@ public class TriggerCommand {
                             })
                             .leaf("remove", "&b/triggerreactor[trg] item lore remove <index> &8- &7Delete lore at the"
                                     + " specified index.", (sender, args) -> {
+                                if (!(sender instanceof IPlayer)) {
+                                    sender.sendMessage("In game only.");
+                                    return true;
+                                }
+
                                 String indexStr = args.poll();
                                 if (indexStr == null)
                                     return false;
@@ -1482,7 +1502,9 @@ public class TriggerCommand {
                 return true;
             })
             .leaf("list", "", (sender, args) -> {
-                Set<String> filterSet = new HashSet<>(args);
+                Set<String> filterSet = new HashSet<>();
+                while(!args.isEmpty())
+                    filterSet.add(args.poll());
 
                 sender.sendMessage("- - - - - Result - - - - ");
                 Manager.ACTIVE_MANAGERS.stream()
@@ -1502,21 +1524,33 @@ public class TriggerCommand {
                 for (Manager manager : Manager.ACTIVE_MANAGERS)
                     manager.onReload();
 
-                executorManager.onReload();
-                placeholderManager.onReload();
-
                 sender.sendMessage("Reload Complete!");
 
                 return true;
             })
             .composite("links", "", builder -> {
                 builder.leaf("inveditsave", "", (sender, args) -> {
+                    if (!(sender instanceof IPlayer)) {
+                        sender.sendMessage("In game only.");
+                        return true;
+                    }
+
                     invEditManager.onSaveEdit((IPlayer) sender);
                     return true;
                 }).leaf("inveditcontinue", "", (sender, args) -> {
+                    if (!(sender instanceof IPlayer)) {
+                        sender.sendMessage("In game only.");
+                        return true;
+                    }
+
                     invEditManager.onContinueEdit((IPlayer) sender);
                     return true;
                 }).leaf("inveditdiscard", "", (sender, args) -> {
+                    if (!(sender instanceof IPlayer)) {
+                        sender.sendMessage("In game only.");
+                        return true;
+                    }
+
                     invEditManager.onDiscardEdit((IPlayer) sender);
                     return true;
                 });
