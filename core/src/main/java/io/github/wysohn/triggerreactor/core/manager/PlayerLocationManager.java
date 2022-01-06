@@ -21,15 +21,13 @@ import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEve
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
-import javax.inject.Inject;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerLocationManager extends Manager {
     private final transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
-    @Inject
-    protected IGameController gameController;
+    IGameController gameController;
 
     @Override
     public void onDisable() {
