@@ -114,8 +114,12 @@ public class InterpreterLocalContext {
         return tryOrThrow(() -> vars.get(key));
     }
 
-    void setVar(String key, Object val) {
+    public void setVar(String key, Object val) {
         tryOrThrow(() -> vars.put(key, val));
+    }
+
+    public void removeVar(String key){
+        tryOrThrow(() -> vars.remove(key));
     }
 
     public void putAllVars(Map<String, Object> scriptVars) {
@@ -177,11 +181,11 @@ public class InterpreterLocalContext {
         return tryOrThrow(this.stack::empty);
     }
 
-    public Map<String, Object> getVars() {
-        return tryOrThrow(() -> new HashMap<>(vars));
-    }
-
     public ProcessInterrupter getInterrupter() {
         return tryOrThrow(() -> interrupter);
+    }
+
+    public Map<String, Object> getVarCopy() {
+        return tryOrThrow(() -> new HashMap<>(vars));
     }
 }

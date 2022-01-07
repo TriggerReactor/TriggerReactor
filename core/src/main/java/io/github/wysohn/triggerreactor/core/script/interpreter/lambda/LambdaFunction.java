@@ -24,13 +24,8 @@ public class LambdaFunction implements InvocationHandler {
         this.body = body;
         this.lambdaBody = new Interpreter(body);
 
-        this.localContext = localContext.copyState("LAMBDA");
+        this.localContext = localContext;
         this.globalContext = globalContext;
-
-        // if duplicated variable name is found, parameter name always has priority
-        for (LambdaParameter parameter : parameters) {
-            this.lambdaBody.getVars().put(parameter.id, parameter.defValue);
-        }
     }
 
     @Override
@@ -41,12 +36,20 @@ public class LambdaFunction implements InvocationHandler {
             throw new InterpreterException(
                     "Number of Lambda parameters doesn't match. Caller provided " + args.length + " arguments, yet the LAMBDA only has " + parameters.length + " ids. " + body);
 
-        // initialize arguments as variables in the lambda
-        for (int i = 0; i < parameters.length; i++) {
-            lambdaBody.getVars().put(parameters[i].id, args[i]);
+        // copy the local context
+        InterpreterLocalContext copiedContext = this.localContext.copyState("LAMBDA");
+
+        // if duplicated variable name is found, parameter name always has priority
+        for (LambdaParameter parameter : parameters) {
+            copiedContext.setVar(parameter.id, parameter.defValue);
         }
 
-        lambdaBody.start(localContext, globalContext);
+        // initialize arguments as variables in the lambda
+        for (int i = 0; i < parameters.length; i++) {
+            copiedContext.setVar(parameters[i].id, args[i]);
+        }
+
+        lambdaBody.start(copiedContext, globalContext);
 
         return lambdaBody.result();
     }

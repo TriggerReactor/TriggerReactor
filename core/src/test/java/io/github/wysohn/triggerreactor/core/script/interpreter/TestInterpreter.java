@@ -16,8 +16,6 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.components.DaggerPluginMainComponent;
-import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -51,14 +49,10 @@ import static org.mockito.Mockito.*;
 public class TestInterpreter {
 
     private TaskSupervisor mockTask;
-    private PluginMainComponent pluginMainComponent;
 
     @Before
     public void init() {
         mockTask = mock(TaskSupervisor.class);
-        pluginMainComponent = DaggerPluginMainComponent.builder()
-
-                .build();
     }
 
     @Test
@@ -88,10 +82,11 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
 
         String[] args = new String[]{"item1", "item2"};
-        interpreter.getVars().put("args", args);
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        localContext.setVar("args", args);
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -501,15 +496,14 @@ public class TestInterpreter {
                     }
                 })
                 .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        
+        interpreter.start(localContext, globalContext);
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-
-        Map<String, Object> vars = interpreter.getVars();
-
-        assertEquals(new Vector(), vars.get("v"));
-        assertEquals(new Vector(4, 4, 2), vars.get("v2"));
-        assertEquals(new Vector(4.2, 4.4, 2.3), vars.get("v3"));
-        assertEquals(new Vector(3.2f, 4.3f, 5.4f), vars.get("v4"));
+        assertEquals(new Vector(), localContext.getVar("v"));
+        assertEquals(new Vector(4, 4, 2), localContext.getVar("v2"));
+        assertEquals(new Vector(4.2, 4.4, 2.3), localContext.getVar("v3"));
+        assertEquals(new Vector(3.2f, 4.3f, 5.4f), localContext.getVar("v4"));
     }
 
     @Test
@@ -833,9 +827,10 @@ public class TestInterpreter {
                 .selfReference(new CommonFunctions())
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
 
-        assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
+        assertEquals(TestEnum.IMTEST, localContext.getVar("result"));
     }
 
     @Test
@@ -866,9 +861,10 @@ public class TestInterpreter {
                 .task(mockTask)
                 .putGlobalVariables(gvars)
                 .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
 
-        interpreter.getVars().put("text", "someplayername");
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        localContext.setVar("text", "someplayername");
+        interpreter.start(localContext, globalContext);
 
         Assert.assertTrue(gvars.containsKey("someplayername.something"));
         assertEquals(12.54, gvars.get("someplayername.something"));
@@ -894,9 +890,10 @@ public class TestInterpreter {
                 .putGlobalVariables(gvars)
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-        assertEquals(18, interpreter.getVars().get("result"));
-        assertEquals(17, interpreter.getVars().get("result2"));
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
+        assertEquals(18, localContext.getVar("result"));
+        assertEquals(17, localContext.getVar("result2"));
     }
 
     @Test
@@ -1377,7 +1374,7 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testLambdaFunction() throws Exception {
+    public void testLambdaFunctionNoArg() throws Exception {
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
 
@@ -1387,19 +1384,9 @@ public class TestInterpreter {
             Supplier run = invocation.getArgument(0);
             return run.get();
         }).when(obj).noArg(any(Supplier.class));
-        doAnswer(invocation -> {
-            Function run = invocation.getArgument(0);
-            return run.apply("Something");
-        }).when(obj).oneArg(any(Function.class));
-        doAnswer(invocation -> {
-            BiFunction run = invocation.getArgument(0);
-            return run.apply(456, 78);
-        }).when(obj).twoArg(any(BiFunction.class));
 
         Charset charset = StandardCharsets.UTF_8;
-        String text = "abc = 33\ninstance.noArg(LAMBDA =>\n    abc * 3\nENDLAMBDA)\n"
-                + "instance.oneArg(LAMBDA str => \n    added = str + \" Hi\"\n    added\nENDLAMBDA)\n"
-                + "instance.twoArg(LAMBDA a, b => \n    a + b\nENDLAMBDA)\n";
+        String text = "abc = 33\ninstance.noArg(LAMBDA =>\n    abc * 3\nENDLAMBDA)";
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
@@ -1409,17 +1396,78 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
-        interpreter.getVars().put("instance", instance);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("instance", instance);
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-        assertEquals(33, interpreter.getVars().get("abc"));
-        assertNull(interpreter.getVars().get("str"));
-        assertNull(interpreter.getVars().get("added"));
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        interpreter.start(localContext, globalContext);
+        assertEquals(33, localContext.getVar("abc"));
 
         assertEquals(99, instance.noArgResult);
+    }
+
+    @Test
+    public void testLambdaFunctionOneArg() throws Exception {
+        SomeInterface obj = mock(SomeInterface.class);
+        SomeClass instance = new SomeClass();
+
+        instance.obj = obj;
+
+        doAnswer(invocation -> {
+            Function run = invocation.getArgument(0);
+            return run.apply("Something");
+        }).when(obj).oneArg(any(Function.class));
+
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "instance.oneArg(LAMBDA str => \n    added = str + \" Hi\"\n    added\nENDLAMBDA)\n";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("instance", instance);
+
+        interpreter.start(localContext, globalContext);
+        assertNull(localContext.getVar("str"));
+        assertNull(localContext.getVar("added"));
+
         assertEquals("Something Hi", instance.oneArgResult);
+    }
+
+    @Test
+    public void testLambdaFunctionTwoArg() throws Exception {
+        SomeInterface obj = mock(SomeInterface.class);
+        SomeClass instance = new SomeClass();
+
+        instance.obj = obj;
+
+        doAnswer(invocation -> {
+            BiFunction run = invocation.getArgument(0);
+            return run.apply(456, 78);
+        }).when(obj).twoArg(any(BiFunction.class));
+
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "instance.twoArg(LAMBDA a, b => \n    a + b\nENDLAMBDA)\n";
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Interpreter interpreter = new Interpreter(root);
+        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
+                .putExecutors(executorMap)
+                .task(mockTask)
+                .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("instance", instance);
+
+        interpreter.start(localContext, globalContext);
+        assertNull(localContext.getVar("a"));
+        assertNull(localContext.getVar("b"));
+
         assertEquals(456 + 78, instance.twoArgResult);
     }
 
@@ -1448,11 +1496,12 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
-        interpreter.getVars().put("instance", instance);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("instance", instance);
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        interpreter.start(localContext, globalContext);
+        assertNull(localContext.getVar("a"));
+        assertNull(localContext.getVar("b"));
 
         assertEquals(50, instance.oneArgResult);
     }
@@ -1482,11 +1531,12 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
-        interpreter.getVars().put("instance", instance);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("instance", instance);
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        interpreter.start(localContext, globalContext);
+        assertNull(localContext.getVar("a"));
+        assertNull(localContext.getVar("b"));
 
         assertEquals(100, instance.oneArgResult);
     }
@@ -1515,11 +1565,12 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
-        interpreter.getVars().put("instance", instance);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("instance", instance);
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-        assertNull(interpreter.getVars().get("a"));
-        assertNull(interpreter.getVars().get("b"));
+        interpreter.start(localContext, globalContext);
+        assertNull(localContext.getVar("a"));
+        assertNull(localContext.getVar("b"));
 
         assertNull(instance.twoArgResult);
     }
@@ -1585,10 +1636,10 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("common", new CommonFunctions());
 
-        interpreter.getVars().put("common", new CommonFunctions());
-
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -1681,9 +1732,10 @@ public class TestInterpreter {
                 .selfReference(new CommonFunctions())
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
 
-        Object arr = interpreter.getVars().get("arr");
+        Object arr = localContext.getVar("arr");
         Assert.assertTrue((boolean) Array.get(arr, 0));
         Assert.assertFalse((boolean) Array.get(arr, 1));
         Assert.assertFalse((boolean) Array.get(arr, 2));
@@ -1711,8 +1763,9 @@ public class TestInterpreter {
                 .task(mockTask)
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
-        assertEquals(123456789123456789L, interpreter.getVars().get("id"));
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
+        assertEquals(123456789123456789L, localContext.getVar("id"));
     }
 
     @Test
@@ -2149,9 +2202,10 @@ public class TestInterpreter {
                 .task(mockTask)
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
 
-        assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
+        assertEquals("testwithargs", localContext.getVar("returnvalue"));
     }
 
     @Test
@@ -2182,9 +2236,10 @@ public class TestInterpreter {
                 .task(mockTask)
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
 
-        assertNull(interpreter.getVars().get("a"));
+        assertNull(localContext.getVar("a"));
     }
 
     @Test
@@ -2218,11 +2273,11 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("player", reference);
+        localContext.setVar("text", "hello");
 
-        interpreter.getVars().put("player", reference);
-        interpreter.getVars().put("text", "hello");
-
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        interpreter.start(localContext, globalContext);
 
         assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
     }
@@ -2271,14 +2326,15 @@ public class TestInterpreter {
                 .putExecutors(executorMap)
                 .task(mockTask)
                 .build();
-        interpreter.getVars().put("player", new InTest());
-        interpreter.getVars().put("player2", new InTest());
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("player", new InTest());
+        localContext.setVar("player2", new InTest());
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        interpreter.start(localContext, globalContext);
 
-        interpreter.getVars().remove("player");
-        interpreter.getVars().remove("player2");
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        localContext.removeVar("player");
+        localContext.removeVar("player2");
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -2470,10 +2526,11 @@ public class TestInterpreter {
                 .selfReference(new CommonFunctions())
                 .build();
 
-        interpreter.getVars().put("player", reference);
-        interpreter.getVars().put("text", "hello");
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("player", reference);
+        localContext.setVar("text", "hello");
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -2706,8 +2763,9 @@ public class TestInterpreter {
                 .putGlobalVariables(avm.getGlobalVariableAdapter())
                 .build();
 
-        interpreter.getVars().put("text", "someplayername");
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setVar("text", "someplayername");
+        interpreter.start(localContext, globalContext);
     }
 
     @Test
@@ -2958,9 +3016,10 @@ public class TestInterpreter {
                 .task(mockTask)
                 .build();
 
-        interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
+        InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
+        interpreter.start(localContext, globalContext);
 
-        assertEquals(3, interpreter.getVars().get("number"));
+        assertEquals(3, localContext.getVar("number"));
     }
 
     private class SomeClass {

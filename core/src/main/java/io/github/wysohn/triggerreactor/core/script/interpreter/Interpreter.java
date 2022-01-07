@@ -138,7 +138,7 @@ public class Interpreter {
                 value = unwrapVariable(value);
             }
 
-            context.getVars().put(id.value.toString(), value.value);
+            context.setVar(id.value.toString(), value.value);
         } else {
             throw new InterpreterException(
                     "Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
@@ -217,15 +217,6 @@ public class Interpreter {
     }
 
     /**
-     * Map of local variables. Fill this map with necessary pairs depends on the context.
-     *
-     * @return
-     */
-    public Map<String, Object> getVars() {
-        return context.getVars();
-    }
-
-    /**
      * @param node
      * @return return codes in Executor. null if execution continues.
      * @throws InterpreterException
@@ -276,14 +267,14 @@ public class Interpreter {
                     return null;
                 } else {
                     if ("WAIT".equalsIgnoreCase(command)) {
-                        return EXECUTOR_WAIT.execute(context.getTiming(), context, context.getVars(), args);
+                        return EXECUTOR_WAIT.execute(context.getTiming(), context, context.getVarCopy(), args);
                     }
 
                     if (!globalContext.executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
                     return globalContext.executorMap.get(command)
-                            .execute(context.getTiming(), context, context.getVars(), args);
+                            .execute(context.getTiming(), context, context.getVarCopy(), args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -309,7 +300,7 @@ public class Interpreter {
 
                 if (replaced == null) {
                     replaced = globalContext.placeholderMap.get(placeholderName)
-                            .parse(context.getTiming(), context, context.getVars());
+                            .parse(context.getTiming(), context, context.getVarCopy());
                 }
 
                 if (replaced instanceof Number) {
@@ -857,7 +848,7 @@ public class Interpreter {
                 return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
             }
 
-            Object var = context.getVars().get(varToken.value);
+            Object var = context.getVar((String) varToken.value);
 
             return parseValue(var, varToken);
         } else if (varToken.type == Type.GID) {
