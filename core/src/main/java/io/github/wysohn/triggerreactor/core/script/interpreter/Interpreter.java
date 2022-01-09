@@ -1115,7 +1115,11 @@ public class Interpreter {
                  context.pushToken(new Token(node.getToken().type, null, node.getToken()));
             } else if (node.getToken().type == Type.IMPORT) {
                 Class<?> clazz = Class.forName((String) node.getToken().getValue());
-                context.getImportMap().put(clazz.getSimpleName(), clazz);
+                String name = clazz.getSimpleName();
+                if (node.getChildren().size() == 1) {
+                    name = (String) node.getChildren().get(0).getToken().value;
+                }
+                context.getImportMap().put(name, clazz);
             } else {
                 throw new InterpreterException("Cannot interpret the unknown node " + node.getToken().type.name());
             }

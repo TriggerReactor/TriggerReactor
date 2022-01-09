@@ -446,10 +446,10 @@ public class Lexer {
             if (classNameBuilder.charAt(classNameBuilder.length() - 1) == '.')
                 classNameBuilder.deleteCharAt(classNameBuilder.length() - 1);
 
-            skipWhiteSpaces();
-            if (!eos && c != '\n' && c != ';') {
-                throw new LexerException("IMPORT expected end of line or ; at the end but found [" + c + "]", this);
-            }
+//            skipWhiteSpaces();
+//            if (!eos && c != '\n' && c != ';') {
+//                throw new LexerException("IMPORT expected end of line or ; at the end but found [" + c + "]", this);
+//            }
 
             return new Token(Type.IMPORT, classNameBuilder.toString(), row, col);
         } else {
