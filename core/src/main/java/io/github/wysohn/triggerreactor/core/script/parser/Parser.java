@@ -1187,6 +1187,8 @@ public class Parser {
 
             node.getChildren().add(new Node(token));
             nextToken();
+        } else {
+            throw new ParserException("IMPORT expected end of line or ; at the end but found " + token);
         }
 
         return node;
