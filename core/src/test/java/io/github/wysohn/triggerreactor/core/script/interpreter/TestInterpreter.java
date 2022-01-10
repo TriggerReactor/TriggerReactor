@@ -1983,80 +1983,33 @@ public class TestInterpreter {
     @Test
     public void testImportAs() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest as testClass;"
-            + "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TestEnum as testEnum;"
-            + "#TEST testClass;"
-            + "#TEST2 testClass.staticTest();"
-            + "#TEST3 testClass().localTest();"
-            + "#TEST4 testClass.staticField;"
-            + "#TEST5 testEnum.IMTEST;";
+        String text = "IMPORT " + TheTest.class.getName() + " as SomeClass;"
+            + "IMPORT " + TestEnum.class.getName() + " as SomeEnum;"
+            + "class = SomeClass;"
+            + "staticMethod = SomeClass.staticTest();"
+            + "instanceMethod = SomeClass().localTest();"
+            + "staticField = SomeClass.staticField;"
+            + "enumValue = SomeEnum.IMTEST;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-
-                assertEquals(TheTest.class, args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST2", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-
-                assertEquals("static", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST3", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-
-                assertEquals("local", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST4", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-
-                assertEquals("staticField", args[0]);
-                return null;
-            }
-
-        });
-        executorMap.put("TEST5", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                   Object... args) throws Exception {
-
-                assertEquals(TestEnum.IMTEST, args[0]);
-                return null;
-            }
-
-        });
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
+
+        Map<String, Object> vars = interpreter.getVars();
+
+        assertEquals(TheTest.class, vars.get("class"));
+        assertEquals("static", vars.get("staticMethod"));
+        assertEquals("local", vars.get("instanceMethod"));
+        assertEquals("staticField", vars.get("staticField"));
+        assertEquals(TestEnum.IMTEST, vars.get("enumValue"));
     }
 
     @Test
