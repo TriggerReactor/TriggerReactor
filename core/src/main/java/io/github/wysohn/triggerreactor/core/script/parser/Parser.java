@@ -1178,7 +1178,7 @@ public class Parser {
         }
 
         String attribute = (String) token.value;
-        if (attribute.equalsIgnoreCase("AS")) {
+        if ("AS".equalsIgnoreCase(attribute)) {
             nextToken();
 
             if (token == null || token.type != Type.ID || ((String) token.value).charAt(0) == '#') {
