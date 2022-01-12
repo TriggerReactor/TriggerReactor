@@ -107,10 +107,9 @@ public class Parser {
         skipEndLines();
         if (token != null) {
             if (token.type == Type.IMPORT) {
-                Node node = new Node(token);
+                Token importToken = token;
                 nextToken();
-                return node;
-
+                return parseImport(importToken);
             } else if ("TRY".equals(token.value)) {
                 Token tryToken = token;
                 nextToken();
@@ -1169,6 +1168,30 @@ public class Parser {
         }
 
         return stack.pop();
+    }
+
+    private Node parseImport(Token importToken) throws IOException, ParserException {
+        Node node = new Node(importToken);
+
+        if (token.type == Type.ENDL) {
+            return node;
+        }
+
+        String attribute = (String) token.value;
+        if ("AS".equalsIgnoreCase(attribute)) {
+            nextToken();
+
+            if (token == null || token.type != Type.ID || ((String) token.value).charAt(0) == '#') {
+                throw new ParserException("Expected an alphabetic characters or _ after import.as but found " + token);
+            }
+
+            node.getChildren().add(new Node(token));
+            nextToken();
+        } else {
+            throw new ParserException("IMPORT expected end of line or ; at the end but found " + token);
+        }
+
+        return node;
     }
 
     public List<Warning> getWarnings() {

@@ -31,6 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -1978,6 +1979,40 @@ public class TestInterpreter {
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testImportAs() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "IMPORT " + TheTest.class.getName() + " as SomeClass;"
+            + "IMPORT " + TestEnum.class.getName() + " as SomeEnum;"
+            + "#TEST SomeClass;"
+            + "#TEST SomeClass.staticTest();"
+            + "#TEST SomeClass().localTest();"
+            + "#TEST SomeClass.staticField;"
+            + "#TEST SomeEnum.IMTEST;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", mockExecutor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TheTest.class));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("static"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("local"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("staticField"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TestEnum.IMTEST));
     }
 
     @Test
