@@ -20,13 +20,13 @@ function isnumber(args) {
 
     if(typeof args[0] !== "string") {
         if(typeof args[0] === "number")
-            return true;    
-        
+            return true;
+
         throw new Error("Invalid parameter type. $isnumber only accepts String value.");
     }
-    
+
     var arg = args[0];
 
-    var r = /^[-]{0,1}[0-9]+[.]{0,1}[0-9]+$/
-    return r.test(args[0])
+    var r = /^[-]{0,1}[0-9]+[.]{0,1}(?:[0-9]+){0,1}$/
+    return r.test(arg)
 }
