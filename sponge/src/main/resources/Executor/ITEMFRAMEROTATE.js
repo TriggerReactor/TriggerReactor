@@ -14,37 +14,41 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function ITEMFRAMEROTATE(args) {
-	if (args.length == 2 || args.length == 4) {
-		var location;
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var EntityTypes = Java.type('org.spongepowered.api.entity.EntityTypes')
+var Location = Java.type('org.spongepowered.api.world.Location')
+var Direction = Java.type('org.spongepowered.api.util.Direction')
 
-		if(args.length == 2){
-			location = args[1];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
-		}
+function ITEMFRAMEROTATE(args) {
+  if (args.length == 2 || args.length == 4) {
+    var location
 
-		var Direction = Java.type('org.spongepowered.api.util.Direction');
-		var dir = Direction.valueOf(args[0].toUpperCase());
-		
-		var entities = location.getExtent().getEntities();
-		for(var i = 0; i < entities.size(); i++){
-			var entity = entities[i];
-			if(entity.getType() != EntityTypes.ITEM_FRAME)
-				continue;
-			
-			var dist = entity.getLocation().getPosition().distance(location.getPosition());
-			if(dist <= 1){
-				if(entity.get(Keys.DIRECTION).isPresent()){
-					entity.offer(Keys.DIRECTION, dir);
-				}
-				break;
-			}
-		}
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Rotation<string>, Location<location or number number number>]');
-	}
-	return null;
+    if (args.length == 2) {
+      location = args[1]
+    } else {
+      var world = player.getWorld()
+      location = new Location(world, args[1], args[2], args[3])
+    }
+
+    var dir = Direction.valueOf(args[0].toUpperCase())
+
+    var entities = location.getExtent().getEntities()
+    for (var i = 0; i < entities.size(); i++) {
+      var entity = entities[i]
+      if (entity.getType() != EntityTypes.ITEM_FRAME) continue
+
+      var dist = entity.getLocation().getPosition().distance(location.getPosition())
+      if (dist <= 1) {
+        if (entity.get(Keys.DIRECTION).isPresent()) {
+          entity.offer(Keys.DIRECTION, dir)
+        }
+        break
+      }
+    }
+  } else {
+    throw new Error(
+      'Invalid parameters. Need [Rotation<string>, Location<location or number number number>]'
+    )
+  }
+  return null
 }
