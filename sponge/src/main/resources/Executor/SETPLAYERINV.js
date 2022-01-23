@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,33 +15,38 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-validation = {
-    "overloads": [
-       [{"name": "slot", "type": "int", "minimum": 0, "maximum": 44},
-            {"name": "item"}]
-    ]
-}
-var QueryOperationTypes = Java.type('org.spongepowered.api.item.inventory.query.QueryOperationTypes')
-var MainPlayerInventory = Java.type('org.spongepowered.api.item.inventory.entity.MainPlayerInventory')
+var QueryOperationTypes = Java.type(
+  'org.spongepowered.api.item.inventory.query.QueryOperationTypes'
+)
+var MainPlayerInventory = Java.type(
+  'org.spongepowered.api.item.inventory.entity.MainPlayerInventory'
+)
 var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
-function SETPLAYERINV(args){
-    if(player == null)
-        return null;
 
-    if(overload === 0){
-        var itemStack = args[1];
-        if(!(itemStack instanceof ItemStack))
-            throw new Error("Invalid item: " + itemStack)
+validation = {
+  overloads: [
+    [
+      { name: 'slot', type: 'int', minimum: 0, maximum: 44 },
+      { name: 'itemStack', type: ItemStack.class }
+    ]
+  ]
+}
 
-        var carriedInv = player.getInventory();
-        var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class));
+function SETPLAYERINV(args) {
+  if (player == null) return null
 
-        var y = args[0] / 9;
-        var x = args[0] % 9;
+  if (overload === 0) {
+    var itemStack = args[1]
 
-        var result = grids.set(x, y, itemStack);
-        //should we return result?
+    var carriedInv = player.getInventory()
+    var grids = carriedInv.query(QueryOperationTypes.INVENTORY_TYPE.of(MainPlayerInventory.class))
 
-        return null;
-    }
+    var y = args[0] / 9
+    var x = args[0] % 9
+
+    var result = grids.set(x, y, itemStack)
+    //should we return result?
+
+    return null
+  }
 }

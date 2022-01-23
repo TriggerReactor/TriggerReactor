@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,27 +15,31 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Sponge = Java.type('org.spongepowered.api.Sponge')
+var Player = Java.type('org.spongepowered.api.entity.living.player.Player')
+var Text = Java.type('org.spongepowered.api.text.Text')
+
 function CLEARCHAT(args) {
-    if (player === null) {
-        return null;
+  var target
+  if (args.length === 0) {
+    target = player
+  } else if (args.length === 1) {
+    if (args[0] instanceof Player) {
+      target = args[0]
+    } else {
+      target = Sponge.getGame().getServer().getPlayer(args[0]).orElse(null)
     }
-    if (args.length === 0) {
-        for (var i = 0; i < 30; i++) {
-            player.sendMessage(Text.of(""));
-        }
-        return null;
-    } else if (args.length === 1) {
-        var plType = Java.type("org.spongepowered.api.entity.living.player.Player")
-        if (args[0] instanceof plType) {
-            var pl = args[0];
-        } else {
-            throw new Error("Found unexpected parameter - player: null")
-        }
-        for (var i = 0; i < 30; i++) {
-            pl.sendMessage(Text.of(""));
-        }
-        return null;
-    } else if (args.length >= 2) {
-        throw new Error("Too many parameters found! CLEARCHAT accept up to one parameter.")
-    }
+  } else if (args.length >= 2) {
+    throw new Error('Too many parameters found! CLEARCHAT accept up to one parameter.')
+  }
+
+  if (!target) {
+    throw new Error('Player not found.')
+  }
+
+  for (var i = 0; i < 30; i++) {
+    target.sendMessage(Text.of(''))
+  }
+
+  return null
 }
