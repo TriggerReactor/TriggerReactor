@@ -866,8 +866,8 @@ public class TestInterpreter {
         localContext.setVar("text", "someplayername");
         interpreter.start(localContext, globalContext);
 
-        Assert.assertTrue(gvars.containsKey("someplayername.something"));
-        assertEquals(12.54, gvars.get("someplayername.something"));
+        Assert.assertTrue(globalContext.gvars.containsKey("someplayername.something"));
+        assertEquals(12.54, globalContext.gvars.get("someplayername.something"));
     }
 
     @Test
@@ -942,7 +942,7 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        Assert.assertNull(gvars.get("temp"));
+        Assert.assertNull(globalContext.gvars.get("temp"));
     }
 
     @Test
@@ -1667,9 +1667,9 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        Assert.assertTrue(gvars.get("temp1") instanceof Integer);
-        Assert.assertTrue(gvars.get("temp2") instanceof Double);
-        Assert.assertTrue(gvars.get("temp3") instanceof Double);
+        Assert.assertTrue(globalContext.gvars.get("temp1") instanceof Integer);
+        Assert.assertTrue(globalContext.gvars.get("temp2") instanceof Double);
+        Assert.assertTrue(globalContext.gvars.get("temp3") instanceof Double);
     }
 
     @Test
@@ -1705,10 +1705,10 @@ public class TestInterpreter {
         interpreter.start(localContext, globalContext);
 
         // the only method matching is the one with enum parameter. Expect it to be converted
-        assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
+        assertEquals(TestEnum.IMTEST, globalContext.gvars.get("temp1"));
         // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher
         // priority.
-        assertEquals("Something", gvars.get("temp2"));
+        assertEquals("Something", globalContext.gvars.get("temp2"));
     }
 
     @Test
@@ -1841,9 +1841,19 @@ public class TestInterpreter {
     @Test
     public void testNestedIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "IF x > 999;    result = \"test1\";ELSEIF x > 99;    result = \"test2\";"
-                + "ELSEIF x > 9;    IF x < 11;        result = \"test5\";    ENDIF;ELSEIF x > 4;"
-                + "    result = \"test3\";ELSE;    result = \"test4\";ENDIF;";
+        String text = "IF x > 999;"
+                + "    result = \"test1\";"
+                + "ELSEIF x > 99;"
+                + "    result = \"test2\";"
+                + "ELSEIF x > 9;"
+                + "    IF x < 11;"
+                + "        result = \"test5\";"
+                + "    ENDIF;"
+                + "ELSEIF x > 4;"
+                + "    result = \"test3\";"
+                + "ELSE;"
+                + "    result = \"test4\";"
+                + "ENDIF;";
 
         Map<Integer, String> testMap = new HashMap<>();
         testMap.put(1000, "test1");
@@ -1855,6 +1865,7 @@ public class TestInterpreter {
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
         Node root = parser.parse();
+        Interpreter interpreter = new Interpreter(root);
 
         int x = 0;
         Map<String, Executor> executorMap = new HashMap<>();
@@ -1865,7 +1876,6 @@ public class TestInterpreter {
             Map<String, Object> localVars = new HashMap<>();
             localVars.put("x", x);
 
-            Interpreter interpreter = new Interpreter(root);
             InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
                     .putExecutors(executorMap)
                     .task(mockTask)
@@ -1876,7 +1886,7 @@ public class TestInterpreter {
 
             interpreter.start(localContext, globalContext);
 
-            assertEquals(testMap.get(x), localVars.get("result"));
+            assertEquals(testMap.get(x), localContext.getVar("result"));
         }
     }
 
@@ -2005,7 +2015,7 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        assertEquals(true, gvars.get("temp"));
+        assertEquals(true, globalContext.gvars.get("temp"));
     }
 
     @Test(expected = InterpreterException.class)
@@ -2039,160 +2049,63 @@ public class TestInterpreter {
     @Test
     public void testPlaceholder() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "x = 100.0;returnvalue = $test:0:x:true:\"hoho\";#MESSAGE $playername returnvalue;"
-                + "#TESTSTRING $string;#TESTINTEGER $integer;#TESTDOUBLE $double;#TESTBOOLEAN $boolean;";
+        String text = "x = 100.0;"
+                + "returnvalue = $test:0:x:true:\"hoho\";"
+                + "#MESSAGE $playername returnvalue;"
+                + "#TESTSTRING $string;"
+                + "#TESTINTEGER $integer;"
+                + "#TESTDOUBLE $double;"
+                + "#TESTBOOLEAN $boolean;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
+        Executor eMessage = mock(Executor.class);
+        when(eMessage.execute(any(), any(), anyMap(), any())).thenReturn(null);
+        executorMap.put("MESSAGE", eMessage);
 
-            @Override
-            public Integer execute(Timings.Timing timing,
-                                   InterpreterLocalContext localContext,
-                                   Map<String, Object> vars,
-                                   Object... args) throws Exception {
+        Executor eTestString = mock(Executor.class);
+        when(eTestString.execute(any(), any(), anyMap(), any())).thenReturn(null);
+        executorMap.put("TESTSTRING", eTestString);
 
-                assertEquals("testplayer", args[0]);
-                assertEquals("testwithargs", args[1]);
-                return null;
-            }
+        Executor eTestInteger = mock(Executor.class);
+        when(eTestInteger.execute(any(), any(), anyMap(), any())).thenReturn(null);
+        executorMap.put("TESTINTEGER", eTestInteger);
 
-        });
+        Executor eTestDouble = mock(Executor.class);
+        when(eTestDouble.execute(any(), any(), anyMap(), any())).thenReturn(null);
+        executorMap.put("TESTDOUBLE", eTestDouble);
 
-        executorMap.put("TESTSTRING", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing,
-                                   InterpreterLocalContext localContext,
-                                   Map<String, Object> vars,
-                                   Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof String);
-                return null;
-            }
-
-        });
-
-        executorMap.put("TESTINTEGER", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing,
-                                   InterpreterLocalContext localContext,
-                                   Map<String, Object> vars,
-                                   Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof Integer);
-                return null;
-            }
-
-        });
-
-        executorMap.put("TESTDOUBLE", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing,
-                                   InterpreterLocalContext localContext,
-                                   Map<String, Object> vars,
-                                   Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof Double);
-                return null;
-            }
-
-        });
-
-        executorMap.put("TESTBOOLEAN", new Executor() {
-
-            @Override
-            public Integer execute(Timings.Timing timing,
-                                   InterpreterLocalContext localContext,
-                                   Map<String, Object> vars,
-                                   Object... args) throws Exception {
-
-                Assert.assertTrue(args[0] instanceof Boolean);
-                return null;
-            }
-
-        });
+        Executor eTestBoolean = mock(Executor.class);
+        when(eTestBoolean.execute(any(), any(), anyMap(), any())).thenReturn(null);
+        executorMap.put("TESTBOOLEAN", eTestBoolean);
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
-        placeholderMap.put("playername", new Placeholder() {
+        Placeholder pPlayerName = mock(Placeholder.class);
+        when(pPlayerName.parse(any(), any(), anyMap(), any())).thenReturn("testplayer");
+        placeholderMap.put("playername", pPlayerName);
 
-            @Override
-            public Object parse(Timings.Timing timing,
-                                InterpreterLocalContext localContext,
-                                Map<String, Object> vars,
-                                Object... args) throws Exception {
-                return "testplayer";
-            }
+        Placeholder pTest = mock(Placeholder.class);
+        when(pTest.parse(any(), any(), anyMap(), any())).thenReturn("testwithargs");
+        placeholderMap.put("test", pTest);
 
-        });
-        placeholderMap.put("test", new Placeholder() {
+        Placeholder pString = mock(Placeholder.class);
+        when(pString.parse(any(), any(), anyMap(), any())).thenReturn("testplayer");
+        placeholderMap.put("string", pString);
 
-            @Override
-            public Object parse(Timings.Timing timing,
-                                InterpreterLocalContext localContext,
-                                Map<String, Object> vars,
-                                Object... args) throws Exception {
-                assertEquals(0, args[0]);
-                assertEquals(100.0, args[1]);
-                assertEquals(true, args[2]);
-                assertEquals("hoho", args[3]);
-                return "testwithargs";
-            }
+        Placeholder pInteger = mock(Placeholder.class);
+        when(pInteger.parse(any(), any(), anyMap(), any())).thenReturn(1);
+        placeholderMap.put("integer",pInteger);
 
-        });
+        Placeholder pDouble = mock(Placeholder.class);
+        when(pDouble.parse(any(), any(), anyMap(), any())).thenReturn(1.5);
+        placeholderMap.put("double",pDouble);
 
-        placeholderMap.put("string", new Placeholder() {
-
-            @Override
-            public Object parse(Timings.Timing timing,
-                                InterpreterLocalContext localContext,
-                                Map<String, Object> vars,
-                                Object... args) throws Exception {
-                return "testplayer";
-            }
-
-        });
-
-        placeholderMap.put("integer", new Placeholder() {
-
-            @Override
-            public Object parse(Timings.Timing timing,
-                                InterpreterLocalContext localContext,
-                                Map<String, Object> vars,
-                                Object... args) throws Exception {
-                return 1;
-            }
-
-        });
-
-        placeholderMap.put("double", new Placeholder() {
-
-            @Override
-            public Object parse(Timings.Timing timing,
-                                InterpreterLocalContext localContext,
-                                Map<String, Object> vars,
-                                Object... args) throws Exception {
-                return 1.5;
-            }
-
-        });
-
-        placeholderMap.put("boolean", new Placeholder() {
-
-            @Override
-            public Object parse(Timings.Timing timing,
-                                InterpreterLocalContext localContext,
-                                Map<String, Object> vars,
-                                Object... args) throws Exception {
-                return false;
-            }
-
-        });
+        Placeholder pBoolean = mock(Placeholder.class);
+        when(pBoolean.parse(any(), any(), anyMap(), any())).thenReturn(false);
+        placeholderMap.put("boolean", pBoolean);
 
         Interpreter interpreter = new Interpreter(root);
         InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
@@ -2206,6 +2119,17 @@ public class TestInterpreter {
         interpreter.start(localContext, globalContext);
 
         assertEquals("testwithargs", localContext.getVar("returnvalue"));
+        verify(eMessage).execute(any(), any(), anyMap(), eq("testplayer"), eq("testwithargs"));
+        verify(eTestString).execute(any(), any(), anyMap(), isA(String.class));
+        verify(eTestInteger).execute(any(), any(), anyMap(), isA(Integer.class));
+        verify(eTestDouble).execute(any(), any(), anyMap(), isA(Double.class));
+        verify(eTestBoolean).execute(any(), any(), anyMap(), isA(Boolean.class));
+        verify(pString).parse(any(), any(), anyMap(), any());
+        verify(pInteger).parse(any(), any(), anyMap(), any());
+        verify(pDouble).parse(any(), any(), anyMap(), any());
+        verify(pBoolean).parse(any(), any(), anyMap(), any());
+
+        verify(pTest).parse(any(), any(), anyMap(), eq(0), eq(100.0), eq(true), eq("hoho"));
     }
 
     @Test
@@ -2772,7 +2696,12 @@ public class TestInterpreter {
     public void testTryCatch1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "TRY;   #TEST;   #TEST;   #TEST;CATCH e;   #TEST;ENDTRY;";
+        String text = "TRY;"
+                + "   #TEST;"
+                + "   #TEST;"
+                + "   #TEST;"
+                + "CATCH e;"
+                + "   #TEST;ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2781,7 +2710,7 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), any())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
@@ -2793,16 +2722,23 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(3)).execute(any(), any(), anyMap(), anyInt());
+        verify(executor, times(3)).execute(any(), any(), anyMap(), any());
     }
 
     @Test
     public void testTryCatch2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text =
-                "TRY;   #TEST;   error.cause();   #TEST;   #TEST;CATCH e;   #TEST;"
-                        + "   #TEST;   #TEST;ENDTRY;";
+        String text = "TRY;"
+                + "   #TEST;"
+                + "   error.cause();"
+                + "   #TEST;"
+                + "   #TEST;"
+                + "CATCH e;"
+                + "   #TEST;"
+                + "   #TEST;"
+                + "   #TEST;"
+                + "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2811,7 +2747,7 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), any())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
@@ -2823,14 +2759,20 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(4)).execute(any(), any(), anyMap(), anyInt());
+        verify(executor, times(4)).execute(any(), any(), anyMap(), any());
     }
 
     @Test
     public void testTryCatchFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "TRY;   #TEST;CATCH e;   #TEST;FINALLY;   #TEST;ENDTRY;";
+        String text = "TRY;"
+                + "   #TEST;"
+                + "CATCH e;"
+                + "   #TEST;"
+                + "FINALLY;"
+                + "   #TEST;"
+                + "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2839,7 +2781,7 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), any())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
@@ -2851,16 +2793,22 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(2)).execute(any(), any(), anyMap(), anyInt());
+        verify(executor, times(2)).execute(any(), any(), anyMap(), any());
     }
 
     @Test
     public void testTryCatchFinally2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text =
-                "TRY;   #TEST;   error.cause();   #TEST;CATCH e;   #TEST;FINALLY;"
-                        + "   #TEST;ENDTRY;";
+        String text = "TRY;"
+                + "   #TEST;"
+                + "   error.cause();"
+                + "   #TEST;"
+                + "CATCH e;"
+                + "   #TEST;"
+                + "FINALLY;"
+                + "   #TEST;"
+                + "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2869,7 +2817,7 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), any())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
@@ -2881,14 +2829,18 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(3)).execute(any(), any(), anyMap(), anyInt());
+        verify(executor, times(3)).execute(any(), any(), anyMap(), any());
     }
 
     @Test
     public void testTryFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
-        String text = "TRY;   #TEST;FINALLY;   #TEST;ENDTRY;";
+        String text = "TRY;"
+                + "   #TEST;"
+                + "FINALLY;"
+                + "   #TEST;"
+                + "ENDTRY;";
 
         Lexer lexer = new Lexer(text, charset);
         Parser parser = new Parser(lexer);
@@ -2897,7 +2849,7 @@ public class TestInterpreter {
 
         Map<String, Executor> executorMap = new HashMap<>();
         Executor executor = mock(Executor.class);
-        when(executor.execute(any(), any(), anyMap(), anyInt())).thenReturn(null);
+        when(executor.execute(any(), any(), anyMap(), any())).thenReturn(null);
         executorMap.put("TEST", executor);
 
         Interpreter interpreter = new Interpreter(root);
@@ -2909,7 +2861,7 @@ public class TestInterpreter {
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
-        verify(executor, times(2)).execute(any(), any(), anyMap(), anyInt());
+        verify(executor, times(2)).execute(any(), any(), anyMap(), any());
     }
 
     @Test

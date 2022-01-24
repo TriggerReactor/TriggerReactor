@@ -300,7 +300,7 @@ public class Interpreter {
 
                 if (replaced == null) {
                     replaced = globalContext.placeholderMap.get(placeholderName)
-                            .parse(context.getTiming(), context, context.getVarCopy());
+                            .parse(context.getTiming(), context, context.getVarCopy(), args);
                 }
 
                 if (replaced instanceof Number) {
