@@ -78,6 +78,8 @@ public class TriggerCommandTest {
 
     @Before
     public void setUp() throws Exception {
+        Manager.ACTIVE_MANAGERS.clear();
+
         builder = DaggerTriggerCommandTestComponent.builder()
                 .pluginLifecycle(pluginLifecycleController)
                 .gameController(gameController)
@@ -97,7 +99,6 @@ public class TriggerCommandTest {
                 .manager(areaTriggerManager)
                 .manager(customTriggerManager)
                 .manager(repeatingTriggerManager);
-
     }
 
     @Test
