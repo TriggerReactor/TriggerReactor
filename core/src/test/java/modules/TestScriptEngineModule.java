@@ -3,11 +3,13 @@ package modules;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoSet;
+import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineProvider;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineProvider;
 
 import javax.inject.Singleton;
-import javax.script.ScriptEngineManager;
+import java.util.function.Function;
 
 @Module
 public abstract class TestScriptEngineModule {
@@ -17,7 +19,8 @@ public abstract class TestScriptEngineModule {
 
     @Provides
     @Singleton
-    static ScriptEngineManager provideManager(){
-        return new ScriptEngineManager();
+    @IntoSet
+    static IScriptEngineInitializer provideCharFn() {
+        return (sem) -> sem.put("Char", (Function<String, Character>) t -> t.charAt(0));
     }
 }
