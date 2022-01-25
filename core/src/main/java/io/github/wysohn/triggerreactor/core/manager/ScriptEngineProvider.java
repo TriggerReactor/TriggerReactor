@@ -6,8 +6,11 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class ScriptEngineProvider extends Manager implements IScriptEngineProvider{
+    @Inject
+    Logger logger;
     @Inject
     ScriptEngineManager scriptEngineManager;
     @Inject
@@ -24,6 +27,14 @@ public class ScriptEngineProvider extends Manager implements IScriptEngineProvid
 
     @Override
     public void onEnable() throws Exception {
+        // Warmup
+        if(getEngine() == null){
+            logger.severe("No java script engine was available. If you are using Java version above 11, the stock Java does not"
+                    + " contain the java script engine as it used to be. Install GraalVM instead of the stock Java,"
+                    + " or you have to download third-party plugin, such as JShader.");
+            throw new RuntimeException("Script engine not found.");
+        }
+
         for (IScriptEngineInitializer init : initializerSet) {
             init.initScriptEngine(scriptEngineManager);
         }
@@ -48,10 +59,7 @@ public class ScriptEngineProvider extends Manager implements IScriptEngineProvid
             return engine;
         }
 
-        throw new RuntimeException(
-                "No java script engine was available. If you are using Java version above 11, the stock Java does not"
-                        + " contain the java script engine as it used to be. Install GraalVM instead of the stock Java,"
-                        + " or you have to download third-party plugin, such as JShader.");
+        return null;
     }
 
 }
