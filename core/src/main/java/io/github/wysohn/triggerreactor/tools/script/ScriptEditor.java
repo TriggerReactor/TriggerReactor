@@ -77,7 +77,7 @@ public class ScriptEditor {
             lines.add(currentCursor + 1, "");
     }
 
-    public void intput(String input) {
+    public void input(String input) {
         lines.set(currentCursor, input);
     }
 

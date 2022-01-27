@@ -94,8 +94,10 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
                 return true;
             })
             .chain((user, editor, command) -> {
-                if (!isDoubleChecking(user)) {
-                    editor.intput(command.replaceAll("\\^", " "));
+                if(!isEditing(user)) {
+                    return false;
+                } else if (!isDoubleChecking(user)) {
+                    editor.input(command.replaceAll("\\^", " "));
                 }
 
                 return true;

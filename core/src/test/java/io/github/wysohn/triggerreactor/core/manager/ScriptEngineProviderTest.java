@@ -1,7 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.components.DaggerScriptEngineProviderTestComponent;
-import io.github.wysohn.triggerreactor.components.ScriptEngineProviderTestComponent;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,8 +18,6 @@ public class ScriptEngineProviderTest {
 
     Logger logger;
     ScriptEngineManager scriptEngineManager;
-
-    ScriptEngineProviderTestComponent component;
 
     @Before
     public void init(){
