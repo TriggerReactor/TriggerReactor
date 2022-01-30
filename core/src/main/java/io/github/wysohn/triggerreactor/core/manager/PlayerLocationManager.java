@@ -20,14 +20,24 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IPlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ManagerScope
 public class PlayerLocationManager extends Manager {
     private final transient Map<UUID, SimpleLocation> locations = new ConcurrentHashMap<>();
+
+    @Inject
     IGameController gameController;
+
+    @Inject
+    PlayerLocationManager() {
+
+    }
 
     @Override
     public void onDisable() {
@@ -76,9 +86,7 @@ public class PlayerLocationManager extends Manager {
             return;
 
         gameController.callEvent(event);
-        if (event.isCancelled()) {
-            event.setCancelled(true);
-        } else {
+        if (!event.isCancelled()) {
             setCurrentBlockLocation(event.getIPlayer().getUniqueId(), event.getTo());
         }
     }
