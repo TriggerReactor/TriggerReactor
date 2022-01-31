@@ -50,6 +50,7 @@ public class ScriptEditManager extends Manager implements IScriptCommandChain {
             .chain(new SimpleScriptCommandChain("exit", (user, editor, command) -> {
                 if (isDoubleChecking(user)) {
                     endDoubleChecking(user);
+                    stopEditing(user);
                     user.sendMessage("&7Done");
                 } else {
                     beginDoubleChecking(user);

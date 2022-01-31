@@ -60,7 +60,7 @@ public class ScriptEditManagerTest {
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "exit"));
         assertTrue(manager.isDoubleChecking(user));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         assertTrue(manager.onChat(user, editor, "exit"));
         assertFalse(manager.isDoubleChecking(user));
@@ -83,7 +83,7 @@ public class ScriptEditManagerTest {
 
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "il"));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         verify(editor).insertNewLine();
     }
@@ -102,7 +102,7 @@ public class ScriptEditManagerTest {
 
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "dl"));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         verify(editor).deleteLine();
     }
@@ -121,7 +121,7 @@ public class ScriptEditManagerTest {
 
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "u"));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         verify(editor).up(eq(1));
     }
@@ -140,7 +140,7 @@ public class ScriptEditManagerTest {
 
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "u 23"));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         verify(editor).up(eq(23));
     }
@@ -159,7 +159,7 @@ public class ScriptEditManagerTest {
 
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "d"));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         verify(editor).down(eq(1));
     }
@@ -178,7 +178,7 @@ public class ScriptEditManagerTest {
 
         manager.startEdit(sender, "title", "content", handler, false);
         assertTrue(manager.onChat(user, editor, "d 23"));
-        assertFalse(manager.isEditing(user));
+        assertTrue(manager.isEditing(user));
 
         verify(editor).down(eq(23));
     }
