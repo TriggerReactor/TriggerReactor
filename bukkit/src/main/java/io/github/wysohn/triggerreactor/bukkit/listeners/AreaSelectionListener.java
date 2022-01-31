@@ -14,8 +14,10 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.UUID;
 
+@Singleton
 public final class AreaSelectionListener extends AbstractBukkitListener {
     @Inject
     AreaSelectionManager areaSelectionManager;

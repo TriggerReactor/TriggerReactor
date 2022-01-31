@@ -100,6 +100,8 @@ public class AreaSelectionManager extends Manager implements IPluginProcedure {
             leftPosition.put(uuid, sloc);
         } else if (action == ClickType.RIGHT_CLICK) {
             rightPosition.put(uuid, sloc);
+        } else {
+            throw new IllegalArgumentException("Unknown ClickType: " + action);
         }
 
         SimpleLocation left = leftPosition.get(uuid);
