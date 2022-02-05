@@ -43,6 +43,8 @@ public interface ICommandMapHandler {
 
 
     class Duplicated extends Exception {
-
+        public Duplicated(String message) {
+            super(message);
+        }
     }
 }

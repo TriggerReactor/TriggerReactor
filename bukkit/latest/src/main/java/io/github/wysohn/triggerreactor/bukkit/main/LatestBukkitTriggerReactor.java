@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommand;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.components.BukkitTriggerReactorComponent;
 import io.github.wysohn.triggerreactor.core.bridge.ICommand;
@@ -27,6 +28,7 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
@@ -107,17 +109,24 @@ public class LatestBukkitTriggerReactor extends JavaPlugin implements ICommandMa
 
     @Override
     public boolean unregister(String commandName) {
-        return false;
+        return rawCommandMap.remove(commandName) != null;
     }
 
     @Override
     public boolean commandExist(String commandName) {
-        return false;
+        return rawCommandMap.containsKey(commandName);
     }
 
     @Override
     public ICommand register(String commandName, String[] aliases) throws Duplicated {
-        return null;
+        if(rawCommandMap.containsKey(commandName))
+            throw new Duplicated(commandName);
+
+        PluginCommand pluginCommand = this.getCommand("triggerreactor");
+        ICommand command = new BukkitCommand(pluginCommand);
+        rawCommandMap.put(commandName, pluginCommand);
+
+        return command;
     }
 
     private Map<String, Command> getCommandMap() {

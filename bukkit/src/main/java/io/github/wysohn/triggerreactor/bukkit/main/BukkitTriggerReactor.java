@@ -166,7 +166,6 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
 
     @Override
     public void onEnable() {
-        //TODO PluginCommand trg = this.getCommand("triggerreactor");
         command.setExecutor(commandExecutor);
 
         initBungeeHelper();

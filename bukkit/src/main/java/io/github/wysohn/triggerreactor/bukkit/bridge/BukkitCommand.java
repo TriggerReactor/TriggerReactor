@@ -29,11 +29,7 @@ public class BukkitCommand implements ICommand {
 
             ITabCompleter tabCompleter = tabCompleters[index];
             String partial = args[index];
-            if (partial.length() < 1) { // show hint if nothing is entered yet
-                return tabCompleter.getHint();
-            } else {
-                return tabCompleter.getCandidates(partial);
-            }
+            return tabCompleter.getCandidates(partial);
         });
     }
 
