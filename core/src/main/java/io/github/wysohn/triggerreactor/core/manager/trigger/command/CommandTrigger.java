@@ -84,6 +84,16 @@ public class CommandTrigger extends Trigger {
         return permissions.toArray(new String[0]);
     }
 
+    public void setPermissions(String[] permissions) {
+        if (permissions == null) {
+            info.getConfig().put(PERMISSION, new String[0]);
+        } else {
+            info.getConfig().put(PERMISSION, permissions);
+        }
+
+        notifyObservers();
+    }
+
     public String[] getAliases() {
         List<String> aliases = info.getConfig().get(ALIASES, List.class).orElse(new ArrayList<>());
         return aliases.toArray(new String[0]);
@@ -94,16 +104,6 @@ public class CommandTrigger extends Trigger {
             info.getConfig().put(ALIASES, new String[0]);
         } else {
             info.getConfig().put(ALIASES, aliases);
-        }
-
-        notifyObservers();
-    }
-
-    public void setPermissions(String[] permissions) {
-        if (permissions == null) {
-            info.getConfig().put(PERMISSION, new String[0]);
-        } else {
-            info.getConfig().put(PERMISSION, permissions);
         }
 
         notifyObservers();
@@ -125,7 +125,7 @@ public class CommandTrigger extends Trigger {
         notifyObservers();
     }
 
-    public void setTabCompleters(List<String> tabcompleterStrs){
+    public void setTabCompleters(List<String> tabcompleterStrs) {
         setTabCompleters(completerListToCompleters(tabcompleterStrs));
     }
 
@@ -143,15 +143,6 @@ public class CommandTrigger extends Trigger {
         notifyObservers();
     }
 
-    private List<Map<String, Object>> fromTabCompleters(ITabCompleter[] completers) {
-        throw new RuntimeException();
-    }
-
-    private Map<String, Object> fromTabCompleter(ITabCompleter completer) {
-        Map<String, Object> out = new LinkedHashMap<>();
-        //completer.
-        return out;
-    }
     static final String PERMISSION = "permissions";
     static final String ALIASES = "aliases";
     static final String TABCOMPLETER = "tabcompleter";
