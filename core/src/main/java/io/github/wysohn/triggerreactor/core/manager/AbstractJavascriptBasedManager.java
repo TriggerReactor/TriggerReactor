@@ -131,7 +131,7 @@ public abstract class AbstractJavascriptBasedManager extends Manager {
                 return (R) result;
             };
 
-            if (gameController.isServerThread()) {
+            if (taskSupervisor.isServerThread()) {
                 R result = null;
 
                 try {

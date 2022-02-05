@@ -9,6 +9,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterGlobalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -39,6 +40,8 @@ public abstract class Trigger implements IObservable {
     @Inject
     IGameController gameController;
     @Inject
+    TaskSupervisor taskSupervisor;
+    @Inject
     IThrowableHandler throwableHandler;
     @Inject
     ExternalAPIManager externalAPIManager;
@@ -68,6 +71,7 @@ public abstract class Trigger implements IObservable {
     protected Trigger(Trigger other) {
         this.globalContext = other.globalContext;
         this.gameController = other.gameController;
+        this.taskSupervisor = other.taskSupervisor;
         this.throwableHandler = other.throwableHandler;
         this.externalAPIManager = other.externalAPIManager;
         this.scriptEngineProvider = other.scriptEngineProvider;
@@ -159,7 +163,7 @@ public abstract class Trigger implements IObservable {
         };
 
         if (sync) {
-            if (gameController.isServerThread()) {
+            if (taskSupervisor.isServerThread()) {
                 try {
                     call.call();
                 } catch (Exception e1) {
