@@ -19,7 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.components;
 
 import dagger.BindsInstance;
 import dagger.Component;
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitGameControllerModule;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
 import io.github.wysohn.triggerreactor.core.components.UtilityComponent;
@@ -43,6 +43,6 @@ public interface BukkitGameControllerComponent {
 
         // injects
         @BindsInstance
-        Builder plugin(AbstractJavaPlugin plugin);
+        Builder plugin(BukkitTriggerReactor plugin);
     }
 }

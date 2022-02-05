@@ -1,12 +1,11 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.bukkit.components.DaggerLegacyBukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.bukkit.components.LegacyBukkitPluginMainComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.BukkitTriggerReactorComponent;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
-import io.github.wysohn.triggerreactor.core.components.DaggerPluginMainComponent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.bridge.ICommand;
+import io.github.wysohn.triggerreactor.core.main.CommandHandler;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.ICommandMapHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -18,37 +17,37 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-public class TriggerReactor extends AbstractJavaPlugin {
-    private LegacyBukkitPluginMainComponent component;
+public class LegacyBukkitTriggerReactor extends JavaPlugin implements ICommandMapHandler {
+    private BukkitTriggerReactorComponent component = DaggerLegacyBukkitTriggerReactorComponent.builder().build();
+    private BukkitTriggerReactor bukkitTriggerReactor;
+    private CommandHandler commandHandler;
+    private IWrapper wrapper;
 
     private CustomCommandHandle customCommandHandle = new CustomCommandHandle();
 
     @Override
-    protected TriggerReactorMain getMainComponent() {
-        return component.main();
-    }
-
-    @Override
     public void onEnable() {
-        component = DaggerLegacyBukkitPluginMainComponent.builder()
-                .bukkitPluginMainComponent(DaggerBukkitPluginMainComponent.builder()
-                        .pluginMainComponent(DaggerPluginMainComponent.create())
-                        .build())
-                .build();
-        component.inject(this);
+        bukkitTriggerReactor = component.bukkitTriggerReactor();
+        commandHandler = component.commandHandler();
+        wrapper = component.wrapper();
 
         if (!ConfigurationSerializable.class.isAssignableFrom(Location.class)) {
             ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");
         }
         Bukkit.getPluginManager().registerEvents(customCommandHandle, this);
 
-        super.onEnable();
+        bukkitTriggerReactor.onEnable();
+    }
+
+    @Override
+    public void onDisable() {
+        bukkitTriggerReactor.onDisable();
     }
 
     @Override
@@ -57,34 +56,18 @@ public class TriggerReactor extends AbstractJavaPlugin {
     }
 
     @Override
-    protected Set<Manager> getManagers() {
-        return null;
+    public boolean unregister(String triggerName) {
+        return customCommandHandle.remove(triggerName) != null;
     }
 
     @Override
-    public Map<String, Command> getCommandMap(TriggerReactorMain plugin) {
-        return customCommandHandle;
-//        try {
-//            Server server = Bukkit.getServer();
-//
-//            Field f = server.getClass().getDeclaredField("commandMap");
-//            f.setAccessible(true);
-//
-//            CommandMap scm = (CommandMap) f.get(server);
-//
-//            Field f2 = scm.getClass().getDeclaredField("knownCommands");
-//            f2.setAccessible(true);
-//
-//            return (Map<String, Command>) f2.get(scm);
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//
-//            core.getLogger().warning("Couldn't bind 'commandMap'. This may indicate that you are using very very
-//            old" +
-//                    " version of Bukkit. Please report this to TR team, so we can work on it.");
-//            core.getLogger().warning("Use /trg debug to see more details.");
-//            return null;
-//        }
+    public boolean commandExist(String triggerName) {
+        return customCommandHandle.containsKey(triggerName);
+    }
+
+    @Override
+    public ICommand register(String triggerName, String[] aliases) throws Duplicated {
+        return null;
     }
 
     private class CustomCommandHandle extends HashMap<String, Command> implements Listener {

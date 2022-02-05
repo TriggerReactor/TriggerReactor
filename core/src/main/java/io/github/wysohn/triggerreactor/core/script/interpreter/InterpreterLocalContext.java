@@ -94,6 +94,13 @@ public class InterpreterLocalContext {
         }
     }
 
+    private void tryOrThrow(Runnable fn) {
+        tryOrThrow(() -> {
+            fn.run();
+            return null;
+        });
+    }
+
     int getCallArgsSize() {
         return tryOrThrow(() -> callArgsSize);
     }
@@ -120,6 +127,10 @@ public class InterpreterLocalContext {
 
     public void removeVar(String key){
         tryOrThrow(() -> vars.remove(key));
+    }
+
+    public void clearVars(){
+        tryOrThrow(vars::clear);
     }
 
     public void putAllVars(Map<String, Object> scriptVars) {

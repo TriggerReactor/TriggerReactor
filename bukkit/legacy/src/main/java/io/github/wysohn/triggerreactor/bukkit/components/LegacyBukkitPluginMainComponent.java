@@ -18,20 +18,17 @@
 package io.github.wysohn.triggerreactor.bukkit.components;
 
 import dagger.Component;
-import io.github.wysohn.triggerreactor.bukkit.module.LegacyBukkitExternalAPIModule;
-import io.github.wysohn.triggerreactor.bukkit.module.LegacyBukkitModule;
-import io.github.wysohn.triggerreactor.bukkit.module.LegacyBukkitPluginMainModule;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginBootstrapScope;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import org.bukkit.plugin.java.JavaPlugin;
+import io.github.wysohn.triggerreactor.core.main.CommandHandler;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
 
-@Component(modules = {LegacyBukkitModule.class,
-                      LegacyBukkitPluginMainModule.class,
-                      LegacyBukkitExternalAPIModule.class,},
-           dependencies = {BukkitPluginMainComponent.class,})
+@Component(dependencies = {BukkitTriggerReactorComponent.class,})
 @BukkitPluginBootstrapScope
 public interface LegacyBukkitPluginMainComponent {
-    void inject(JavaPlugin javaPlugin);
+    BukkitTriggerReactor bukkitTriggerReactor();
 
-    TriggerReactorMain main();
+    CommandHandler commandHandler();
+
+    IWrapper wrapper();
 }

@@ -16,43 +16,64 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.bukkit.components.DaggerLatestBukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.bukkit.components.LatestBukkitPluginMainComponent;
-import io.github.wysohn.triggerreactor.core.components.DaggerPluginMainComponent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
-import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
+import io.github.wysohn.triggerreactor.bukkit.components.BukkitTriggerReactorComponent;
+import io.github.wysohn.triggerreactor.core.bridge.ICommand;
+import io.github.wysohn.triggerreactor.core.main.CommandHandler;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.ICommandMapHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public class TriggerReactor extends AbstractJavaPlugin {
-    private LatestBukkitPluginMainComponent component;
+public class LatestBukkitTriggerReactor extends JavaPlugin implements ICommandMapHandler {
+    private BukkitTriggerReactorComponent component = DaggerLatestBukkitTriggerReactorComponent.builder().build();
+    private BukkitTriggerReactor bukkitTriggerReactor;
+    private CommandHandler commandHandler;
+    private IWrapper wrapper;
+
     private Method syncMethod = null;
     private boolean notFound = false;
 
-    @Override
-    protected TriggerReactorMain getMainComponent() {
-        return component.main();
-    }
+    /**
+     * Reference to the command map of Bukkit API. Accessing this
+     * map has direct effect on the Bukkit API.
+     */
+    private Map<String, Command> rawCommandMap;
 
     @Override
     public void onEnable() {
-        component = DaggerLatestBukkitPluginMainComponent.builder()
-                .bukkitPluginMainComponent(DaggerBukkitPluginMainComponent.builder()
-                        .pluginMainComponent(DaggerPluginMainComponent.create())
-                        .build())
-                .build();
-        component.inject(this);
+        bukkitTriggerReactor = component.bukkitTriggerReactor();
+        commandHandler = component.commandHandler();
+        wrapper = component.wrapper();
 
-        super.onEnable();
+        bukkitTriggerReactor.onEnable();
+
+        rawCommandMap = getCommandMap();
+    }
+
+    @Override
+    public void onDisable() {
+        bukkitTriggerReactor.onDisable();
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return commandHandler.onCommand(wrapper.wrap(sender), command.getName(), args);
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return commandHandler.onTabComplete(new BukkitCommandSender(sender), args);
     }
 
     @Override
@@ -66,7 +87,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
                 syncMethod = server.getClass().getDeclaredMethod("syncCommands");
                 syncMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
-                if (isDebugging())
+                if (bukkitTriggerReactor.isDebugging())
                     e.printStackTrace();
 
                 getLogger().warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer"
@@ -85,12 +106,21 @@ public class TriggerReactor extends AbstractJavaPlugin {
     }
 
     @Override
-    protected Set<Manager> getManagers() {
-        return component.managers();
+    public boolean unregister(String commandName) {
+        return false;
     }
 
     @Override
-    public Map<String, Command> getCommandMap(TriggerReactorMain plugin) {
+    public boolean commandExist(String commandName) {
+        return false;
+    }
+
+    @Override
+    public ICommand register(String commandName, String[] aliases) throws Duplicated {
+        return null;
+    }
+
+    private Map<String, Command> getCommandMap() {
         try {
             Server server = Bukkit.getServer();
 
@@ -102,7 +132,7 @@ public class TriggerReactor extends AbstractJavaPlugin {
             Method knownCommands = scm.getClass().getDeclaredMethod("getKnownCommands");
             return (Map<String, Command>) knownCommands.invoke(scm);
         } catch (Exception ex) {
-            if (component.pluginLifecycle().isDebugging())
+            if (bukkitTriggerReactor.isDebugging())
                 ex.printStackTrace();
 
             getLogger().warning("Couldn't find 'commandMap'. This may indicate that you are using very very old"

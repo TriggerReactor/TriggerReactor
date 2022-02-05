@@ -20,6 +20,7 @@ package io.github.wysohn.triggerreactor.core.main;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 
 import javax.inject.Inject;
 
@@ -28,6 +29,8 @@ public class ThrowableHandler implements IThrowableHandler {
     IPluginLifecycleController pluginLifecycleController;
     @Inject
     IGameController gameController;
+    @Inject
+    TaskSupervisor taskSupervisor;
 
     @Inject
     public ThrowableHandler() {
@@ -86,7 +89,7 @@ public class ThrowableHandler implements IThrowableHandler {
     }
 
     private void sendExceptionMessage(ICommandSender sender, Throwable e) {
-        gameController.runTask(() -> {
+        taskSupervisor.runTask(() -> {
             Throwable ex = e;
             sender.sendMessage("&cCould not execute this trigger.");
             while (ex != null) {

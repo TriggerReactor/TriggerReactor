@@ -20,8 +20,8 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTaskSupervisor;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -35,11 +35,11 @@ public abstract class BukkitGameControllerModule {
     @Binds
     @BukkitPluginScope
     @Named("PluginInstance")
-    abstract Object providePluginInstance(AbstractJavaPlugin plugin);
+    abstract Object providePluginInstance(BukkitTriggerReactor plugin);
 
     @Binds
     @BukkitPluginScope
-    abstract IGameController bindGameController(AbstractJavaPlugin plugin);
+    abstract IGameController bindGameController(BukkitTriggerReactor plugin);
 
     @Binds
     @BukkitPluginScope

@@ -26,7 +26,6 @@ import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 
 import java.util.Map;
@@ -39,14 +38,7 @@ import java.util.concurrent.Future;
  * The controller responsible for any interaction with the game aspect.
  * Do not put plugin specific methods here. Put them in the TriggerReactorMain instead.
  */
-public interface IGameController extends TaskSupervisor {
-    /**
-     * Run task on the server thread. Usually it happens via scheduler.
-     *
-     * @param runnable the Runnable to run
-     */
-    void runTask(Runnable runnable);
-
+public interface IGameController {
     void addItemLore(IItemStack iS, String lore);
 
     /**

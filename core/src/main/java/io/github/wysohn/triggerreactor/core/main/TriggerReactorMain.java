@@ -122,6 +122,7 @@ public class TriggerReactorMain implements IPluginProcedure {
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private boolean debugging = false;
 
+    @Inject
     TriggerReactorMain() {
         instance = this;
     }

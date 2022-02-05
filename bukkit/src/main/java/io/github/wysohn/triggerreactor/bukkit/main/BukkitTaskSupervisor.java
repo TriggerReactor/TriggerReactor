@@ -62,7 +62,7 @@ public class BukkitTaskSupervisor implements TaskSupervisor {
         try {
             new Thread(run).start();
         } catch (Exception ex) {
-            throwableHandler.handleException(null, ex);
+            throwableHandler.handleException((Object) null, ex);
         }
     }
 
