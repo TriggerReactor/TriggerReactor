@@ -490,7 +490,7 @@ public class ReflectionUtil {
         return classes;
     }
 
-    public static Object constructNew(Class<?> clazz, Object... args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException {
+    public static Object constructNew(Class<?> clazz, Object... args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         if (args.length < 1) {
             return clazz.newInstance();
         } else {
@@ -508,13 +508,7 @@ public class ReflectionUtil {
                 args = mergeVarargs(args, target.getParameterTypes());
             }
 
-            try {
-                return target.newInstance(args);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-
-            return null;
+            return target.newInstance(args);
         }
     }
 
