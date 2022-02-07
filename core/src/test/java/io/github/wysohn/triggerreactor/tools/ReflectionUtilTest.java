@@ -123,7 +123,7 @@ public class ReflectionUtilTest {
     }
 
     @Test
-    public void constructNew1() throws NoSuchMethodException, IllegalAccessException, InstantiationException {
+    public void constructNew1() throws NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
         assertEquals(new OtherValue(), ReflectionUtil.constructNew(OtherValue.class));
 
         assertEquals(new OtherValue(1, 1), ReflectionUtil.constructNew(OtherValue.class,
@@ -140,7 +140,7 @@ public class ReflectionUtilTest {
     }
 
     @Test
-    public void constructNew2() throws NoSuchMethodException, IllegalAccessException, InstantiationException {
+    public void constructNew2() throws NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException {
         //varargs in constructors
         assertEquals(new OtherValue(1, 55.55),
                 ReflectionUtil.constructNew(OtherValue.class, 1, 2.5, 3.5, 6.5, 9.9));
