@@ -771,6 +771,42 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testTryCatchInvokedMethod() throws IOException, ParserException, LexerException, InterpreterException {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "" +
+                "import java.io.FileReader;" +
+                "import java.lang.AssertionError;" +
+                "" +
+                "TRY;" +
+                "    FileReader(\"./no-exist-file.data\");" +
+                "    #VERIFY false;" +
+                "CATCH e;" +
+                "    IF e.getClass() == AssertionError;" +
+                "        #VERIFY false;" +
+                "    ENDIF;" +
+                "" +
+                "    #VERIFY true;" +
+                "ENDTRY";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+
+        Map<String, Executor> executorMap = new HashMap<>();
+        executorMap.put("VERIFY", (timing, vars, context, args) -> {
+            Assert.assertEquals(true, args[0]);
+            return null;
+        });
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
