@@ -771,20 +771,15 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testTryCatchInvokedMethod() throws IOException, ParserException, LexerException, InterpreterException {
+    public void testTryCatchInvokedMethod() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "" +
                 "import java.io.FileReader;" +
-                "import java.lang.AssertionError;" +
                 "" +
                 "TRY;" +
                 "    FileReader(\"./no-exist-file.data\");" +
                 "    #VERIFY false;" +
                 "CATCH e;" +
-                "    IF e.getClass() == AssertionError;" +
-                "        #VERIFY false;" +
-                "    ENDIF;" +
-                "" +
                 "    #VERIFY true;" +
                 "ENDTRY";
 
@@ -794,16 +789,18 @@ public class TestInterpreter {
         Node root = parser.parse();
 
         Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("VERIFY", (timing, vars, context, args) -> {
-            Assert.assertEquals(true, args[0]);
-            return null;
-        });
+
+        Executor executor = mock(Executor.class);
+        when(executor.execute(any(), anyMap(), any(), anyBoolean())).thenReturn(null);
+        executorMap.put("VERIFY", executor);
 
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
+
+        verify(executor, times(1)).execute(any(), anyMap(), any(), eq(true));
     }
 
     @Test
