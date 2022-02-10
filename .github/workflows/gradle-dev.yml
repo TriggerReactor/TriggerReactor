@@ -124,10 +124,10 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
       - name: Cache Build
-      uses: actions/cache@v2
-      with:
-        path: build
-        key: build
+      - uses: actions/cache@v2
+        with:
+          path: build
+          key: build
 
   upload_artifact:
     needs: [ build ]
