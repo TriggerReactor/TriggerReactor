@@ -121,10 +121,12 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+        
       - name: Build with Gradle
         run: ./gradlew build -x test
+        
       - name: Cache Build
-      - uses: actions/cache@v2
+        uses: actions/cache@v2
         with:
           path: build
           key: build
