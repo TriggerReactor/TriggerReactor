@@ -252,6 +252,35 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
+    @Test(expected = InterpreterException.class)
+    public void testLiteralStringTrueOrFalseParse() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+            + "temp = \"true\"\n"
+            + "IF temp == true\n"
+            + "  #TEST\n"
+            + "ELSE\n"
+            + "  error.cause()\n"
+            + "ENDIF;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", mockExecutor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+
+        verify(mockExecutor, times(0)).execute(any(), anyMap(), any(), any());
+    }
+
     @Test
     public void testGlobalVariable() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
