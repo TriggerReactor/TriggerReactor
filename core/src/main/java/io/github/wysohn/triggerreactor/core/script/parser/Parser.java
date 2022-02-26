@@ -901,7 +901,7 @@ public class Parser {
             return lambda;
         }
 
-        if ("true".equals(token.value) || "false".equals(token.value)) {
+        if (token.type == Type.ID && ("true".equals(token.value) || "false".equals(token.value))) {
             Node node = new Node(new Token(Type.BOOLEAN, token.value, token.row, token.col));
             nextToken();
             return node;

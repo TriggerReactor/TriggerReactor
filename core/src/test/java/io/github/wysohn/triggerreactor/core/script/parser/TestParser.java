@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -481,6 +482,37 @@ public class TestParser {
         assertEquals(1, parser.getWarnings().size());
         assertEquals(new DeprecationWarning(2, "#MODIFYPLAYER", "#MODIFYPLAYER \"text\""),
                 parser.getWarnings().get(0));
+    }
+
+    @Test
+    public void testLiteralStringTrueOrFalse() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = ""
+            + "temp1 = \"true\";"
+            + "temp2 = true;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "temp1")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+
+      assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+      assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
+      assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+      assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+      assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertEquals(0, queue.size());
     }
 
     private void serializeNode(Queue<Node> queue, Node node) {
