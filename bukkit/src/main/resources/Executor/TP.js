@@ -17,6 +17,8 @@
 var Bukkit = Java.type('org.bukkit.Bukkit')
 var Location = Java.type('org.bukkit.Location')
 
+var Executor = Java.type('io.github.wysohn.triggerreactor.core.script.interpreter.Executor')
+
 function TP(args){
     if(args.length == 3){
         var world;
