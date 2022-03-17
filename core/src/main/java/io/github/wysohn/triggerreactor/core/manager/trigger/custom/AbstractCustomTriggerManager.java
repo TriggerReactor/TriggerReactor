@@ -32,7 +32,6 @@ import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
     private static final String EVENT = "Event";
-    private static final String SYNC = "Sync";
 
     protected final EventRegistry registry;
 
@@ -43,7 +42,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 String eventName = info.getConfig().get(EVENT, String.class)
                         .filter(registry::eventExist)
                         .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));
-                boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
+                // boolean isSync = info.isSync();
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
