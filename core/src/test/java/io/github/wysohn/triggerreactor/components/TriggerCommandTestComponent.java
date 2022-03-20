@@ -23,13 +23,15 @@ import modules.FakeDataFolderModule;
 
 import javax.inject.Singleton;
 
-@Component(modules = {CommandModule.class, DummyLoggerModule.class, FakeDataFolderModule.class})
+@Component(modules = {CommandModule.class,
+                      DummyLoggerModule.class,
+                      FakeDataFolderModule.class})
 @Singleton
 public interface TriggerCommandTestComponent {
     ITriggerCommand triggerCommand();
 
     @Component.Builder
-    interface Builder{
+    interface Builder {
         TriggerCommandTestComponent build();
 
         @BindsInstance
@@ -38,6 +40,8 @@ public interface TriggerCommandTestComponent {
         Builder gameController(IGameController controller);
         @BindsInstance
         Builder throwableHandler(IThrowableHandler handler);
+        @BindsInstance
+        Builder inventoryModifier(IInventoryModifier inventoryModifier);
 
         @BindsInstance
         Builder manager(ScriptEditManager manager);

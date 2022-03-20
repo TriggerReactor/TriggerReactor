@@ -16,16 +16,9 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.main.serialize.BukkitConfigurationSerializer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -35,6 +28,7 @@ import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.main.*;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.IInventoryModifier;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -44,32 +38,23 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerMa
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
-import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Server;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.inject.Inject;
-import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleController {
+public class BukkitTriggerReactor implements IPluginProcedure {
     @Inject
     Logger logger;
     @Inject
@@ -84,6 +69,10 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
     IWrapper wrapper;
     @Inject
     IGameController gameController;
+    @Inject
+    IInventoryModifier inventoryModifier;
+    @Inject
+    IPluginLifecycleController pluginLifecycle;
     
     @Inject
     TriggerReactorMain main;
@@ -96,60 +85,13 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
 
     private final Lag tpsHelper = new Lag();
 
-    private BungeeCordHelper bungeeHelper;
-    private MysqlSupport mysqlHelper;
+    private BukkitBungeeCordHelper bungeeHelper;
+    private BukkitMysqlSupport mysqlHelper;
     private Thread bungeeConnectionThread;
-
-    private boolean debugging = false;
 
     @Inject
     public BukkitTriggerReactor() {
 
-    }
-
-    @Override
-    public void disablePlugin() {
-        server.getPluginManager().disablePlugin(plugin);
-    }
-
-    @Override
-    public String getAuthor() {
-        return String.join(", ", plugin.getDescription().getAuthors());
-    }
-
-    @Override
-    public <T> T getPlugin(String pluginName) {
-        return (T) server.getPluginManager().getPlugin(pluginName);
-    }
-
-    @Override
-    public String getPluginDescription() {
-        return plugin.getDescription().getFullName();
-    }
-
-    @Override
-    public String getVersion() {
-        return plugin.getDescription().getVersion();
-    }
-
-    @Override
-    public boolean isDebugging() {
-        return debugging;
-    }
-
-    @Override
-    public void setDebugging(boolean bool) {
-        BukkitTriggerReactor.this.debugging = bool;
-    }
-
-    @Override
-    public boolean isEnabled(String pluginName) {
-        return server.getPluginManager().isPluginEnabled(pluginName);
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return plugin.isEnabled();
     }
 
     @Override
@@ -190,7 +132,7 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
     }
 
     private void initBungeeHelper() {
-        bungeeHelper = new BungeeCordHelper();
+        bungeeHelper = new BukkitBungeeCordHelper(this);
         bungeeConnectionThread = new Thread(bungeeHelper);
         bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
         bungeeConnectionThread.start();
@@ -200,7 +142,7 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
         if (configManager.get("Mysql.Enable", Boolean.class).orElse(false)) {
             try {
                 logger.info("Initializing Mysql support...");
-                mysqlHelper = new MysqlSupport(
+                mysqlHelper = new BukkitMysqlSupport(
                         configManager.get("Mysql.Address", String.class).orElse(null),
                         configManager.get("Mysql.DbName", String.class).orElse(null),
                         "data",
@@ -231,11 +173,11 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
         }
     }
 
-    public BungeeCordHelper getBungeeHelper() {
+    public BukkitBungeeCordHelper getBungeeHelper() {
         return bungeeHelper;
     }
 
-    public MysqlSupport getMysqlHelper() {
+    public BukkitMysqlSupport getMysqlHelper() {
         return mysqlHelper;
     }
 
@@ -291,15 +233,15 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
     }
 
     public boolean removeLore(IItemStack iS, int index) {
-        return gameController.removeLore(iS, index);
+        return inventoryModifier.removeLore(iS, index);
     }
 
     public void setItemTitle(IItemStack iS, String title) {
-        gameController.setItemTitle(iS, title);
+        inventoryModifier.setItemTitle(iS, title);
     }
 
     public boolean setLore(IItemStack iS, int index, String lore) {
-        return gameController.setLore(iS, index, lore);
+        return inventoryModifier.setLore(iS, index, lore);
     }
 
     public void showGlowStones(ICommandSender sender,
@@ -316,218 +258,43 @@ public class BukkitTriggerReactor implements IPluginProcedure, IPluginLifecycleC
     }
 
     public IInventory createInventory(int size, String name) {
-        return gameController.createInventory(size, name);
+        return inventoryModifier.createInventory(size, name);
     }
 
-    public class MysqlSupport {
-        private final String KEY = "dbkey";
-        private final String VALUE = "dbval";
-
-        private final MysqlConnectionPoolDataSource ds;
-        private final MiniConnectionPoolManager pool;
-
-        private final String dbName;
-        private final String tablename;
-
-        private final String address;
-        private final String CREATETABLEQUARY =
-                "CREATE TABLE IF NOT EXISTS %s (" + KEY + " CHAR(128) PRIMARY KEY," + VALUE
-                        + " MEDIUMBLOB)";
-
-        private MysqlSupport(String address, String dbName, String tablename, String userName, String password) throws
-                SQLException {
-            this.dbName = dbName;
-            this.tablename = tablename;
-            this.address = address;
-
-            ds = new MysqlConnectionPoolDataSource();
-            ds.setURL("jdbc:mysql://" + address + "/" + dbName);
-            ds.setUser(userName);
-            ds.setPassword(password);
-            ds.setCharacterEncoding("UTF-8");
-            ds.setUseUnicode(true);
-            ds.setAutoReconnectForPools(true);
-            ds.setAutoReconnect(true);
-            ds.setAutoReconnectForConnectionPools(true);
-
-            ds.setCachePreparedStatements(true);
-            ds.setCachePrepStmts(true);
-
-            pool = new MiniConnectionPoolManager(ds, 2);
-
-            Connection conn = createConnection();
-            initTable(conn);
-            conn.close();
-        }
-
-        private Connection createConnection() {
-            Connection conn = null;
-
-            try {
-                conn = pool.getConnection();
-            } catch (SQLException e) {
-                // e.printStackTrace();
-            } finally {
-                if (conn == null)
-                    conn = pool.getValidConnection();
-            }
-
-            return conn;
-        }
-
-        private void initTable(Connection conn) throws SQLException {
-            PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
-            pstmt.executeUpdate();
-            pstmt.close();
-        }
-
-        @Override
-        public String toString() {
-            return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
-        }
-
-        public Object get(String key) throws SQLException {
-            Object out = null;
-
-            try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(
-                         "SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
-                pstmt.setString(1, key);
-                ResultSet rs = pstmt.executeQuery();
-
-                if (!rs.next())
-                    return null;
-                InputStream is = rs.getBinaryStream(VALUE);
-
-                try (ObjectInputStream ois = new ObjectInputStream(is)) {
-                    out = ois.readObject();
-                } catch (IOException | ClassNotFoundException e1) {
-                    e1.printStackTrace();
-                    return null;
-                }
-            }
-
-            return out;
-        }
-
-        public void set(String key, Serializable value) throws SQLException {
-            try (Connection conn = createConnection();
-                 PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)")) {
-
-
-                try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                     ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-                    oos.writeObject(value);
-
-                    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-
-                    pstmt.setString(1, key);
-                    pstmt.setBinaryStream(2, bais);
-
-                    pstmt.executeUpdate();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+    public void disablePlugin() {
+        pluginLifecycle.disablePlugin();
     }
 
-    public class BungeeCordHelper implements PluginMessageListener, Runnable {
-        private final String CHANNEL = "BungeeCord";
+    public String getAuthor() {
+        return pluginLifecycle.getAuthor();
+    }
 
-        private final String SUB_SERVERLIST = "ServerList";
-        private final String SUB_USERCOUNT = "UserCount";
+    public <T> T getPlugin(String pluginName) {
+        return pluginLifecycle.getPlugin(pluginName);
+    }
 
-        private final Map<String, Integer> playerCounts = new ConcurrentHashMap<>();
+    public String getPluginDescription() {
+        return pluginLifecycle.getPluginDescription();
+    }
 
-        /**
-         * constructor should only be called from onEnable()
-         */
-        private BungeeCordHelper() {
-            server.getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL);
-            server.getMessenger().registerIncomingPluginChannel(plugin, CHANNEL, this);
-        }
+    public String getVersion() {
+        return pluginLifecycle.getVersion();
+    }
 
-        @Override
-        public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-            if (!channel.equals(CHANNEL)) {
-                return;
-            }
+    public boolean isDebugging() {
+        return pluginLifecycle.isDebugging();
+    }
 
-            ByteArrayDataInput in = ByteStreams.newDataInput(message);
-            String subchannel = in.readUTF();
-            if (subchannel.equals(SUB_SERVERLIST)) {
-                String[] serverList = in.readUTF().split(", ");
-                Set<String> serverListSet = Sets.newHashSet(serverList);
+    public void setDebugging(boolean bool) {
+        pluginLifecycle.setDebugging(bool);
+    }
 
-                for (String server : serverListSet) {
-                    if (!playerCounts.containsKey(server))
-                        playerCounts.put(server, -1);
-                }
+    public boolean isEnabled(String pluginName) {
+        return pluginLifecycle.isEnabled(pluginName);
+    }
 
-                Set<String> deleteServer = new HashSet<>();
-                for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
-                    if (!serverListSet.contains(entry.getKey()))
-                        deleteServer.add(entry.getKey());
-                }
-
-                for (String delete : deleteServer) {
-                    playerCounts.remove(delete);
-                }
-            } else if (subchannel.equals(SUB_USERCOUNT)) {
-                String server = in.readUTF(); // Name of server, as given in the arguments
-                int playercount = in.readInt();
-
-                playerCounts.put(server, playercount);
-            }
-        }
-
-        @Override
-        public void run() {
-            while (!Thread.interrupted()) {
-                Player player = Iterables.getFirst(BukkitUtil.getOnlinePlayers(), null);
-                if (player == null)
-                    return;
-
-                ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                out.writeUTF(SUB_SERVERLIST);
-                out.writeUTF("GetServers");
-                player.sendPluginMessage(plugin, SUB_SERVERLIST, out.toByteArray());
-
-                if (!playerCounts.isEmpty()) {
-                    for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
-                        ByteArrayDataOutput out2 = ByteStreams.newDataOutput();
-                        out2.writeUTF(SUB_USERCOUNT);
-                        out2.writeUTF("PlayerCount");
-                        out2.writeUTF(entry.getKey());
-                        player.sendPluginMessage(plugin, SUB_USERCOUNT, out2.toByteArray());
-                    }
-                }
-
-                try {
-                    Thread.sleep(5 * 1000L);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public int getPlayerCount(String serverName) {
-            return playerCounts.getOrDefault(serverName, -1);
-        }
-
-        public String[] getServerNames() {
-            String[] servers = playerCounts.keySet().toArray(new String[playerCounts.size()]);
-            return servers;
-        }
-
-        public void sendToServer(Player player, String serverName) {
-            ByteArrayDataOutput out = ByteStreams.newDataOutput();
-            out.writeUTF("Connect");
-            out.writeUTF(serverName);
-
-            player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
-        }
+    public boolean isEnabled() {
+        return pluginLifecycle.isEnabled();
     }
 
     static {

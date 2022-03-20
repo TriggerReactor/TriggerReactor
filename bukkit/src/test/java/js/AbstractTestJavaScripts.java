@@ -3,8 +3,8 @@ package js;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
-import js.components.DaggerScriptEngineComponent;
-import js.components.ScriptEngineComponent;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -22,13 +22,16 @@ import static org.mockito.Mockito.mock;
 public abstract class AbstractTestJavaScripts {
     protected Server server;
     protected IGameController mockMain;
+    protected TaskSupervisor taskSupervisor;
     protected PluginManager mockPluginManager;
     protected InterpreterLocalContext localContext;
 
     @Before
     public void init() throws Exception {
         mockMain = mock(IGameController.class);
-        Mockito.when(mockMain.isServerThread()).thenReturn(true);
+        taskSupervisor = mock(TaskSupervisor.class);
+        ScriptEngineManager manager = new ScriptEngineManager();
+        Mockito.when(taskSupervisor.isServerThread()).thenReturn(true);
 
         mockPluginManager = mock(PluginManager.class);
         Mockito.when(mockPluginManager.isPluginEnabled(Mockito.anyString())).thenAnswer(invocation -> {
@@ -42,8 +45,8 @@ public abstract class AbstractTestJavaScripts {
             return false;
         });
 
-        localContext = new InterpreterLocalContext();
-        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        localContext = new InterpreterLocalContext(Timings.LIMBO);
+        localContext.setExtra(Interpreter.SCRIPT_ENGINE_KEY, manager.getEngineByExtension("js"));
 
         before();
 
@@ -70,7 +73,7 @@ public abstract class AbstractTestJavaScripts {
 
     @Test
     public void testWithCompilation() throws Exception {
-        ScriptEngineManager sem = component.manager();
+        ScriptEngineManager sem = new ScriptEngineManager();
         ScriptEngine engine = sem.getEngineByName("nashorn");
         CompiledScript compiled = ((Compilable) engine).compile("a + b");
 
@@ -86,7 +89,7 @@ public abstract class AbstractTestJavaScripts {
 
     @Test
     public void testWithoutCompilation() throws Exception {
-        ScriptEngineManager sem = component.manager();
+        ScriptEngineManager sem = new ScriptEngineManager();
         ScriptEngine engine = sem.getEngineByName("nashorn");
 
         for (int i = 0; i < 10000; i++) {
@@ -104,6 +107,4 @@ public abstract class AbstractTestJavaScripts {
         engine.put("Temp", clazz);
         engine.eval("var " + clazz.getSimpleName() + " = Temp.static;");
     }
-
-    protected static final ScriptEngineComponent component = DaggerScriptEngineComponent.create();
 }

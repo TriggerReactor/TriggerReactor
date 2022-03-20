@@ -17,7 +17,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location.walk;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -36,7 +35,7 @@ public class WalkTriggerManager extends AbstractLocationBasedTriggerManager<Walk
     WalkTriggerFactory factory;
 
     @Inject
-    public WalkTriggerManager(TriggerReactorMain plugin) {
+    public WalkTriggerManager() {
         super("WalkTrigger");
     }
 

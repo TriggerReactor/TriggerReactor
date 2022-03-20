@@ -216,7 +216,7 @@ public abstract class Trigger implements IObservable {
         }
     }
 
-    protected TriggerInfo getInfo() {
+    public TriggerInfo getInfo() {
         return info;
     }
 

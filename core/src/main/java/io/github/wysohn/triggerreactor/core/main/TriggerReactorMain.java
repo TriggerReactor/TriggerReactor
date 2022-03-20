@@ -65,6 +65,8 @@ public class TriggerReactorMain implements IPluginProcedure {
     @Inject
     IGameController gameController;
     @Inject
+    IInventoryModifier inventoryModifier;
+    @Inject
     TaskSupervisor task;
     @Inject
     IThrowableHandler throwableHandler;

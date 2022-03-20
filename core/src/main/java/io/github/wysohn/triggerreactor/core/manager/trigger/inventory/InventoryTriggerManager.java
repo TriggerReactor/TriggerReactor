@@ -22,8 +22,8 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.manager.IInventoryModifier;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -43,7 +43,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
     @Inject
     ConfigSourceFactories configSourceFactories;
     @Inject
-    IGameController gameController;
+    IInventoryModifier inventoryModifier;
     @Inject
     IWrapper wrapper;
 
@@ -143,7 +143,7 @@ public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTri
      */
     protected IInventory createInventory(int size, String name) {
         name = name.replaceAll("_", " ");
-        return wrapper.wrap(gameController.createInventory(size, name));
+        return wrapper.wrap(inventoryModifier.createInventory(size, name));
     }
 
     public void onClick(Object event,

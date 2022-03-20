@@ -2,12 +2,14 @@ package js.executor;
 
 //import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 
-import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitBungeeCordHelper;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -35,6 +37,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 
+import javax.script.ScriptEngineManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -264,10 +267,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(world).spawnFallingBlock(new Location(world, 44.5, 6, 78.9), Material.STONE, (byte) 0);
     }
 
+    private static class MockAPI{
+        public InventoryTriggerManager getInventoryTriggerManager() {
+            return null;
+        }
+    }
+
     @Test
     public void testGUI() throws Exception {
         IPlayer vip = mock(IPlayer.class);
-        ITriggerReactorAPI api = mock(ITriggerReactorAPI.class);
+        MockAPI api = mock(MockAPI.class);
         InventoryTriggerManager invManager = mock(InventoryTriggerManager.class);
         IInventory iInv = mock(IInventory.class);
         JsTest test = new ExecutorTest(localContext, "GUI").addVariable("player", vip).addVariable("api", api);
@@ -484,20 +493,22 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testMessageMultiThreaded() throws Exception {
         Player mockPlayer = mock(Player.class);
         ExecutorService pool = Executors.newSingleThreadExecutor();
+        ScriptEngineManager manager = new ScriptEngineManager();
 
-        when(mockMain.isServerThread()).thenReturn(false);
+        when(taskSupervisor.isServerThread()).thenReturn(false);
         when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
             Callable call = invocation.getArgument(0);
             return pool.submit(call);
         });
 
         // represents one trigger executing an executor
-        InterpreterLocalContext context1 = new InterpreterLocalContext();
-        context1.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        InterpreterLocalContext context1 = new InterpreterLocalContext(Timings.LIMBO);
+        context1.setExtra(Interpreter.SCRIPT_ENGINE_KEY, manager.getEngineByExtension("js"));
         Runnable run1 = () -> {
             JsTest test = null;
             try {
-                test = new ExecutorTest(context1, "MESSAGE").addVariable("player", mockPlayer)
+                test = new ExecutorTest(context1, "MESSAGE")
+                        .addVariable("player", mockPlayer)
                         .withArgs("&cTest Message");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -512,14 +523,15 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         };
 
         // represents one trigger executing an executor
-        InterpreterLocalContext context2 = new InterpreterLocalContext();
-        context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        InterpreterLocalContext context2 = new InterpreterLocalContext(Timings.LIMBO);
+        context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, manager.getEngineByExtension("js"));
         assertNotEquals(context1.getExtra(Interpreter.SCRIPT_ENGINE_KEY),
                 context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
         Runnable run2 = () -> {
             JsTest test = null;
             try {
-                test = new ExecutorTest(context2, "MESSAGE").addVariable("player", mockPlayer)
+                test = new ExecutorTest(context2, "MESSAGE")
+                        .addVariable("player", mockPlayer)
                         .withArgs("&cTest Message");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -805,8 +817,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testServer() throws Exception {
-        AbstractJavaPlugin plugin = mock(AbstractJavaPlugin.class);
-        AbstractJavaPlugin.BungeeCordHelper helper = mock(AbstractJavaPlugin.BungeeCordHelper.class);
+        BukkitTriggerReactor plugin = mock(BukkitTriggerReactor.class);
+        BukkitBungeeCordHelper helper = mock(BukkitBungeeCordHelper.class);
         Player player = mock(Player.class);
 
         when(plugin.getBungeeHelper()).thenReturn(helper);

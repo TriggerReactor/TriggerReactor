@@ -19,12 +19,18 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import dagger.Module;
 import dagger.Provides;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Logger;
 
 @Module
 public abstract class BukkitPluginMainModule {
+    @Provides
+    static Plugin bindPlugin(JavaPlugin plugin) {
+        return plugin;
+    }
+
     @Provides
     static Logger bindLogger(JavaPlugin javaPlugin) {
         return javaPlugin.getLogger();

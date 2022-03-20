@@ -21,34 +21,42 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitGameController;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitInventoryModifier;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTaskSupervisor;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
+import io.github.wysohn.triggerreactor.core.manager.IInventoryModifier;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 
 import javax.inject.Named;
 
 @Module
 public abstract class BukkitGameControllerModule {
-    @Binds
-    @BukkitPluginScope
+    @Provides
     @Named("PluginInstance")
-    abstract Object providePluginInstance(BukkitTriggerReactor plugin);
+    static Object providePlugin(Plugin plugin) {
+        return plugin;
+    }
 
     @Binds
-    @BukkitPluginScope
     abstract IGameController bindGameController(BukkitGameController plugin);
 
     @Binds
-    @BukkitPluginScope
     abstract TaskSupervisor bindTaskSupervisor(BukkitTaskSupervisor taskSupervisor);
 
+    @Binds
+    abstract IInventoryModifier bindInventoryModifier(BukkitInventoryModifier inventoryModifier);
+
     @Provides
-    @BukkitPluginScope
     static Server provideServer() {
         return Bukkit.getServer();
+    }
+
+    @Provides
+    static PluginManager bindPluginManager(Server server) {
+        return server.getPluginManager();
     }
 }

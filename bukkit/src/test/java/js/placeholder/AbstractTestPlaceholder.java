@@ -2,6 +2,7 @@ package js.placeholder;
 
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import js.AbstractTestJavaScripts;
 import js.JsTest;
 import js.PlaceholderTest;
@@ -24,6 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import javax.script.ScriptEngineManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -299,17 +301,18 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     public void testPlayernameMultiThreaded() throws Exception {
         Player mockPlayer = mock(Player.class);
         ExecutorService pool = Executors.newSingleThreadExecutor();
+        ScriptEngineManager manager = new ScriptEngineManager();
 
         when(mockPlayer.getName()).thenReturn("wysohn");
-        when(mockMain.isServerThread()).thenReturn(false);
+        when(taskSupervisor.isServerThread()).thenReturn(false);
         when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
             Callable call = invocation.getArgument(0);
             return pool.submit(call);
         });
 
         // represents one trigger executing an executor
-        InterpreterLocalContext context1 = new InterpreterLocalContext();
-        context1.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        InterpreterLocalContext context1 = new InterpreterLocalContext(Timings.LIMBO);
+        context1.setExtra(Interpreter.SCRIPT_ENGINE_KEY, manager.getEngineByExtension("js"));
         Runnable run1 = () -> {
             JsTest test = null;
             try {
@@ -330,8 +333,8 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         };
 
         // represents one trigger executing an executor
-        InterpreterLocalContext context2 = new InterpreterLocalContext();
-        context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, component.engine());
+        InterpreterLocalContext context2 = new InterpreterLocalContext(Timings.LIMBO);
+        context2.setExtra(Interpreter.SCRIPT_ENGINE_KEY, manager.getEngineByExtension("js"));
         assertNotEquals(context1.getExtra(Interpreter.SCRIPT_ENGINE_KEY),
                 context2.getExtra(Interpreter.SCRIPT_ENGINE_KEY));
         Runnable run2 = () -> {

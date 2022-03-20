@@ -118,12 +118,6 @@ public interface IGameController {
 
     IPlayer getPlayer(String string);
 
-    boolean removeLore(IItemStack iS, int index);
-
-    void setItemTitle(IItemStack iS, String title);
-
-    boolean setLore(IItemStack iS, int index, String lore);
-
     /**
      * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
      * instead of changing the real block.
@@ -136,6 +130,4 @@ public interface IGameController {
     Iterable<? extends IPlayer> getOnlinePlayers();
 
     Iterable<? extends IWorld> getWorlds();
-
-    IInventory createInventory(int size, String name);
 }

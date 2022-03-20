@@ -141,6 +141,10 @@ public final class TriggerReactorAPI {
         return TriggerReactorMain.instance.pluginLifecycleController;
     }
 
+    public static IInventoryModifier inventoryModifier(){
+        return TriggerReactorMain.instance.inventoryModifier;
+    }
+
     public static IGUIOpenHelper guiOpenHelper() {
         return TriggerReactorMain.instance.guiOpenHelper;
     }

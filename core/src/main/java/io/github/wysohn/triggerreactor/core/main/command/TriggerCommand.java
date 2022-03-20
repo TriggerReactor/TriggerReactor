@@ -55,6 +55,8 @@ public class TriggerCommand {
     @Inject
     IGameController gameController;
     @Inject
+    IInventoryModifier inventoryModifier;
+    @Inject
     IThrowableHandler throwableHandler;
 
     @Inject
@@ -1247,7 +1249,7 @@ public class TriggerCommand {
                     }
 
                     String title = ITriggerCommand.consumeAllArguments(args);
-                    gameController.setItemTitle(IS, title);
+                    inventoryModifier.setItemTitle(IS, title);
 
                     ((IPlayer) sender).setItemInMainHand(IS);
                     return true;
@@ -1298,7 +1300,7 @@ public class TriggerCommand {
 
                                 String lore = ITriggerCommand.consumeAllArguments(args);
 
-                                if (!gameController.setLore(IS, index - 1, lore)) {
+                                if (!inventoryModifier.setLore(IS, index - 1, lore)) {
                                     sender.sendMessage("&c" + index + " is out of bounds.");
                                     return true;
                                 }
@@ -1331,7 +1333,7 @@ public class TriggerCommand {
                                     return true;
                                 }
 
-                                if (!gameController.removeLore(IS, index - 1)) {
+                                if (!inventoryModifier.removeLore(IS, index - 1)) {
                                     sender.sendMessage("&7No lore at index " + index);
                                     return true;
                                 }

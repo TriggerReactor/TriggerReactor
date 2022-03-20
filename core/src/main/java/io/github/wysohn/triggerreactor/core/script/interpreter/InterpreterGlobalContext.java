@@ -4,6 +4,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
+import javax.inject.Inject;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +23,7 @@ public class InterpreterGlobalContext {
     SelfReference selfReference = new SelfReference() {
     };
 
+    @Inject
     InterpreterGlobalContext() {
 
     }

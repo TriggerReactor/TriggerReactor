@@ -70,7 +70,7 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
     @Override
     public ICommand register(String triggerName, String[] aliases) throws Duplicated {
         if (commandExist(triggerName))
-            throw new Duplicated();
+            throw new Duplicated(triggerName);
 
         PluginCommand command = createCommand(triggerName);
         ICommand iCommand = new BukkitCommand(command);

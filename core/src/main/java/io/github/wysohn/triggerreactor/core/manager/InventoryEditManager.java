@@ -103,7 +103,4 @@ public class InventoryEditManager extends Manager {
         suspended.put(u, inv);
     }
 
-    public interface IInventoryModifier {
-        IInventory createInventory(String name, IItemStack[] contents);
-    }
 }

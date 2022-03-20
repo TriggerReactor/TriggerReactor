@@ -1,17 +1,25 @@
 package io.github.wysohn.triggerreactor.core.manager.selection;
 
 import io.github.wysohn.triggerreactor.components.DaggerLocationSelectionManagerTestComponent;
+import io.github.wysohn.triggerreactor.components.LocationSelectionManagerTestComponent;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.junit.Test;
 
 import java.util.function.Function;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 public class LocationSelectionManagerTest {
+    @Test
+    public void testSingleton(){
+        LocationSelectionManagerTestComponent component = DaggerLocationSelectionManagerTestComponent.builder()
+                .permissionString("admin.permission")
+                .build();
+
+        assertSame(component.getLocationSelectionManager(), component.getLocationSelectionManager());
+    }
 
     @Test
     public void testLocationSetNotStarted() {

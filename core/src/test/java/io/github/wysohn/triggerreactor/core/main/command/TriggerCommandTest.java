@@ -51,6 +51,7 @@ import static org.mockito.Mockito.*;
 public class TriggerCommandTest {
     IPluginLifecycleController pluginLifecycleController = mock(IPluginLifecycleController.class);
     IGameController gameController = mock(IGameController.class);
+    IInventoryModifier inventoryModifier = mock(IInventoryModifier.class);
     IThrowableHandler throwableHandler = mock(IThrowableHandler.class);
 
     ScriptEditManager editManager = mock(ScriptEditManager.class);
@@ -84,6 +85,7 @@ public class TriggerCommandTest {
                 .pluginLifecycle(pluginLifecycleController)
                 .gameController(gameController)
                 .throwableHandler(throwableHandler)
+                .inventoryModifier(inventoryModifier)
                 .manager(editManager)
                 .manager(variableManager)
                 .manager(inventoryEditManager)
@@ -1059,7 +1061,7 @@ public class TriggerCommandTest {
 
         command.onCommand(sender, ITriggerCommand.toQueue("item title abcde"));
 
-        verify(gameController).setItemTitle(eq(itemStack), eq("abcde"));
+        verify(inventoryModifier).setItemTitle(eq(itemStack), eq("abcde"));
     }
 
     @Test
@@ -1083,11 +1085,11 @@ public class TriggerCommandTest {
         IItemStack itemStack = mock(IItemStack.class);
 
         when(sender.getItemInMainHand()).thenReturn(itemStack);
-        when(gameController.setLore(any(), anyInt(), anyString())).thenReturn(true);
+        when(inventoryModifier.setLore(any(), anyInt(), anyString())).thenReturn(true);
 
         command.onCommand(sender, ITriggerCommand.toQueue("item lore set 3 eeff"));
 
-        verify(gameController).setLore(eq(itemStack), eq(2), eq("eeff"));
+        verify(inventoryModifier).setLore(eq(itemStack), eq(2), eq("eeff"));
         verify(sender).setItemInMainHand(eq(itemStack));
     }
 
@@ -1098,11 +1100,11 @@ public class TriggerCommandTest {
         IItemStack itemStack = mock(IItemStack.class);
 
         when(sender.getItemInMainHand()).thenReturn(itemStack);
-        when(gameController.removeLore(any(), anyInt())).thenReturn(true);
+        when(inventoryModifier.removeLore(any(), anyInt())).thenReturn(true);
 
         command.onCommand(sender, ITriggerCommand.toQueue("item lore remove 5"));
 
-        verify(gameController).removeLore(eq(itemStack), eq(4));
+        verify(inventoryModifier).removeLore(eq(itemStack), eq(4));
         verify(sender).setItemInMainHand(eq(itemStack));
     }
 

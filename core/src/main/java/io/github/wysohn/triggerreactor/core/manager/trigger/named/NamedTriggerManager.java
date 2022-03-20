@@ -35,8 +35,8 @@ public class NamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
     NamedTriggerFactory factory;
 
     @Inject
-    NamedTriggerManager(String folderName) {
-        super(folderName);
+    NamedTriggerManager() {
+        super("NamedTrigger");
     }
 
     @Override

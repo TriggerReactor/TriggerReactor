@@ -40,7 +40,7 @@ public abstract class AbstractBukkitWrapper implements IWrapper {
     public abstract IPlayer wrap(Player player);
 
     public IEntity wrap(Entity entity) {
-        return new BukkitEntity(this, entity);
+        return new BukkitEntity(entity);
     }
 
     public IPlayerBlockLocationEvent wrap(PlayerBlockLocationEvent pble) {

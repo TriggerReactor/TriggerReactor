@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.core.main;
 
+import dagger.Lazy;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
@@ -30,7 +31,7 @@ public class ThrowableHandler implements IThrowableHandler {
     @Inject
     IGameController gameController;
     @Inject
-    TaskSupervisor taskSupervisor;
+    Lazy<TaskSupervisor> taskSupervisor;
 
     @Inject
     public ThrowableHandler() {
@@ -89,7 +90,7 @@ public class ThrowableHandler implements IThrowableHandler {
     }
 
     private void sendExceptionMessage(ICommandSender sender, Throwable e) {
-        taskSupervisor.runTask(() -> {
+        taskSupervisor.get().runTask(() -> {
             Throwable ex = e;
             sender.sendMessage("&cCould not execute this trigger.");
             while (ex != null) {

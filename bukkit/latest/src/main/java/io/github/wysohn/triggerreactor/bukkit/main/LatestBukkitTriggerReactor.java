@@ -150,4 +150,12 @@ public class LatestBukkitTriggerReactor extends JavaPlugin implements ICommandMa
             return null;
         }
     }
+
+    public BukkitBungeeCordHelper getBungeeHelper() {
+        return bukkitTriggerReactor.getBungeeHelper();
+    }
+
+    public BukkitMysqlSupport getMysqlHelper() {
+        return bukkitTriggerReactor.getMysqlHelper();
+    }
 }

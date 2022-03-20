@@ -14,7 +14,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -56,6 +55,10 @@ public class BukkitGameController implements IGameController {
 
     @Inject
     NamedTriggerManager namedTriggerManager;
+
+    @Inject
+    public BukkitGameController() {
+    }
 
     public void addItemLore(IItemStack iS, String lore) {
         ItemStack IS = iS.get();
@@ -281,43 +284,6 @@ public class BukkitGameController implements IGameController {
             return null;
     }
 
-    public boolean removeLore(IItemStack iS, int index) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.getLore();
-        if (lores == null || index < 0 || index > lores.size() - 1)
-            return false;
-
-        lores.remove(index);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-
-        return true;
-    }
-
-    public void setItemTitle(IItemStack iS, String title) {
-        ItemStack IS = iS.get();
-        ItemMeta IM = IS.getItemMeta();
-        IM.setDisplayName(title);
-        IS.setItemMeta(IM);
-    }
-
-    public boolean setLore(IItemStack iS, int index, String lore) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        if (lore == null || index < 0 || index > lores.size() - 1)
-            return false;
-
-        lores.set(index, lore);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
-
-        return true;
-    }
-
     public void showGlowStones(ICommandSender sender, Set<Map.Entry<SimpleLocation, Trigger>> set) {
         for (Map.Entry<SimpleLocation, Trigger> entry : set) {
             SimpleLocation sloc = entry.getKey();
@@ -343,11 +309,5 @@ public class BukkitGameController implements IGameController {
                 .map(wrapper::wrap)
                 .map(IWorld.class::cast)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public IInventory createInventory(int size, String name) {
-        name = ChatColor.translateAlternateColorCodes('&', name);
-        return wrapper.wrap(server.createInventory(null, size, name));
     }
 }
