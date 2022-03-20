@@ -5,11 +5,6 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTriggerManager;
 
 @Module
 public abstract class CoreManagerModule {
@@ -48,18 +43,4 @@ public abstract class CoreManagerModule {
     @Binds
     @IntoSet
     abstract Manager bindIntoSetScriptEditManager(ScriptEditManager manager);
-
-    @Binds
-    abstract AbstractLocationBasedTriggerManager<ClickTrigger> bindClickTriggerManager(ClickTriggerManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindIntoSetClickTriggerManager(ClickTriggerManager manager);
-
-    @Binds
-    abstract AbstractLocationBasedTriggerManager<WalkTrigger> bindWalkTriggerManager(WalkTriggerManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindIntoSetWalkTriggerManager(WalkTriggerManager manager);
 }

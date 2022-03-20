@@ -27,15 +27,37 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 
 @Module
 public abstract class CoreTriggerModule {
     @Binds
-    @IntoSet
-    abstract Manager bindAreaTriggerIntoSet(AreaTriggerManager manager);
+    abstract AbstractLocationBasedTriggerManager<ClickTrigger> bindClickTriggerManager(ClickTriggerManager manager);
+
+    @Binds
+    abstract AbstractLocationBasedTriggerManager<WalkTrigger> bindWalkTriggerManager(WalkTriggerManager manager);
+
+    @Binds
+    abstract CommandTriggerManager bindCommandTriggerManager(CommandTriggerManager manager);
+
+    @Binds
+    abstract InventoryTriggerManager bindInventoryTriggerManager(InventoryTriggerManager manager);
+
+    @Binds
+    abstract AreaTriggerManager bindAreaTriggerManager(AreaTriggerManager manager);
+
+    @Binds
+    abstract NamedTriggerManager bindNamedTriggerManager(NamedTriggerManager manager);
+
+    @Binds
+    abstract RepeatingTriggerManager bindRepeatingTriggerManager(RepeatingTriggerManager manager);
+
+    @Binds
+    abstract CustomTriggerManager bindCustomTriggerManager(CustomTriggerManager manager);
 
     @Binds
     @IntoSet
@@ -43,7 +65,15 @@ public abstract class CoreTriggerModule {
 
     @Binds
     @IntoSet
+    abstract Manager bindWalkTriggerIntoSet(AbstractLocationBasedTriggerManager<WalkTrigger> manager);
+
+    @Binds
+    @IntoSet
     abstract Manager bindCommandTriggerIntoSet(CommandTriggerManager manager);
+
+    @Binds
+    @IntoSet
+    abstract Manager bindInventoryTriggerIntoSet(InventoryTriggerManager manager);
 
     @Binds
     @IntoSet
@@ -51,7 +81,7 @@ public abstract class CoreTriggerModule {
 
     @Binds
     @IntoSet
-    abstract Manager bindInventoryTriggerIntoSet(InventoryTriggerManager manager);
+    abstract Manager bindAreaTriggerIntoSet(AreaTriggerManager manager);
 
     @Binds
     @IntoSet
@@ -60,8 +90,4 @@ public abstract class CoreTriggerModule {
     @Binds
     @IntoSet
     abstract Manager bindRepeatingTriggerIntoSet(RepeatingTriggerManager manager);
-
-    @Binds
-    @IntoSet
-    abstract Manager bindWalkTriggerIntoSet(AbstractLocationBasedTriggerManager<WalkTrigger> manager);
 }

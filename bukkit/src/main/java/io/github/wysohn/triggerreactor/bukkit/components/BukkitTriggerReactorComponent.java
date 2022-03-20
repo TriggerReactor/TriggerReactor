@@ -25,6 +25,7 @@ import java.util.Map;
                       BukkitGameControllerModule.class,
                       BukkitPluginMainModule.class,
                       BukkitManagerModule.class,
+                      BukkitTriggerModule.class,
                       BukkitScriptEngineModule.class,
                       BukkitUtilModule.class,
                       ConfigSourceFactoryModule.class,
