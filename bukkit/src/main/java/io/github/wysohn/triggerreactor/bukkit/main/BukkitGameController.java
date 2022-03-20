@@ -3,7 +3,6 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 import io.github.wysohn.triggerreactor.bukkit.bridge.event.CommandSenderEvent;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
@@ -31,15 +30,16 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -58,16 +58,6 @@ public class BukkitGameController implements IGameController {
 
     @Inject
     public BukkitGameController() {
-    }
-
-    public void addItemLore(IItemStack iS, String lore) {
-        ItemStack IS = iS.get();
-
-        ItemMeta IM = IS.getItemMeta();
-        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
-        lores.add(lore);
-        IM.setLore(lores);
-        IS.setItemMeta(IM);
     }
 
     public void callEvent(IEvent event) {

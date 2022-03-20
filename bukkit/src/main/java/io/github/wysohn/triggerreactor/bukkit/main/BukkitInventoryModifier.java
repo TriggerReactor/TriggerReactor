@@ -53,6 +53,16 @@ public class BukkitInventoryModifier implements IInventoryModifier {
         return wrapper.wrap(bukkitInventory);
     }
 
+    public void addItemLore(IItemStack iS, String lore) {
+        ItemStack IS = iS.get();
+
+        ItemMeta IM = IS.getItemMeta();
+        List<String> lores = IM.hasLore() ? IM.getLore() : new ArrayList<>();
+        lores.add(lore);
+        IM.setLore(lores);
+        IS.setItemMeta(IM);
+    }
+
     public boolean removeLore(IItemStack iS, int index) {
         ItemStack IS = iS.get();
 

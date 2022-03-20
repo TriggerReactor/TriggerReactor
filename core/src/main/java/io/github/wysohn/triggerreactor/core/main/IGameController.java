@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.main;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
@@ -39,8 +38,6 @@ import java.util.concurrent.Future;
  * Do not put plugin specific methods here. Put them in the TriggerReactorMain instead.
  */
 public interface IGameController {
-    void addItemLore(IItemStack iS, String lore);
-
     /**
      * Call event so that it can be heard by listeners
      *

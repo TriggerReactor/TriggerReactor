@@ -8,6 +8,8 @@ public interface IInventoryModifier {
 
     IInventory createInventory(int size, String name);
 
+    void addItemLore(IItemStack iS, String lore);
+
     boolean removeLore(IItemStack iS, int index);
 
     void setItemTitle(IItemStack iS, String title);
