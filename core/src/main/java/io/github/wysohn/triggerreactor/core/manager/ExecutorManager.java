@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -35,7 +34,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
-@ManagerScope
 public class ExecutorManager extends AbstractJavascriptBasedManager implements IPluginProcedure, KeyValueManager<Executor> {
     @Inject
     Logger logger;

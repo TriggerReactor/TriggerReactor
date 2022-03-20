@@ -18,10 +18,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTr
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.modules.CommandModule;
-import io.github.wysohn.triggerreactor.core.scope.APIScope;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
-import io.github.wysohn.triggerreactor.core.scope.UtilityScope;
 import modules.DummyLoggerModule;
 import modules.FakeDataFolderModule;
 
@@ -29,10 +25,6 @@ import javax.inject.Singleton;
 
 @Component(modules = {CommandModule.class, DummyLoggerModule.class, FakeDataFolderModule.class})
 @Singleton
-@ManagerScope
-@APIScope
-@PluginScope
-@UtilityScope
 public interface TriggerCommandTestComponent {
     ITriggerCommand triggerCommand();
 

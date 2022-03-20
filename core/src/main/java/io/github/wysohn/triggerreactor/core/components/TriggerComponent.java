@@ -29,10 +29,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTr
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.modules.CoreTriggerModule;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
 @Component(modules = CoreTriggerModule.class)
-@ManagerScope
 public interface TriggerComponent {
     AreaTriggerManager areaTrigger();
 

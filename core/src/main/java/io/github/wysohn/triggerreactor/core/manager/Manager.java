@@ -17,7 +17,6 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +27,6 @@ import java.util.Set;
  *
  * @author wysohn
  */
-@ManagerScope
 public abstract class Manager implements IPluginProcedure {
     public static final Set<Manager> ACTIVE_MANAGERS = new HashSet<>();
 

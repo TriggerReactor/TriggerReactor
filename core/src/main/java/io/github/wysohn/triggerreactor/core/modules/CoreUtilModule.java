@@ -21,11 +21,9 @@ import dagger.Binds;
 import dagger.Module;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
 import io.github.wysohn.triggerreactor.core.main.ThrowableHandler;
-import io.github.wysohn.triggerreactor.core.scope.UtilityScope;
 
 @Module
 public abstract class CoreUtilModule {
     @Binds
-    @UtilityScope
     abstract IThrowableHandler provideThrowableHandler(ThrowableHandler throwableHandler);
 }

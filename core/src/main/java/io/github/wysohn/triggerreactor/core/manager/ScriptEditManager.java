@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.IThrowableHandler;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.script.*;
 
@@ -29,7 +28,6 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-@ManagerScope
 public class ScriptEditManager extends Manager implements IScriptCommandChain {
     @Inject
     IThrowableHandler throwableHandler;

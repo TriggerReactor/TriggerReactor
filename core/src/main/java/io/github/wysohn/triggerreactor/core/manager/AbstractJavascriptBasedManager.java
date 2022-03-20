@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.manager.javascript.CompiledEvaluable;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -37,7 +36,6 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.concurrent.*;
 
-@ManagerScope
 public abstract class AbstractJavascriptBasedManager extends Manager {
     @Inject
     IGameController gameController;

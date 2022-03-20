@@ -22,7 +22,6 @@ import dagger.Provides;
 import dagger.multibindings.IntoSet;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
-import io.github.wysohn.triggerreactor.core.scope.ScriptEngineInitScope;
 
 import java.util.function.Function;
 
@@ -30,14 +29,12 @@ import java.util.function.Function;
 public abstract class CoreScriptEngineInitializerModule {
     @Provides
     @IntoSet
-    @ScriptEngineInitScope
     static IScriptEngineInitializer provideAPI() {
         return (sem) -> sem.put("api", TriggerReactorAPI.class);
     }
 
     @Provides
     @IntoSet
-    @ScriptEngineInitScope
     static IScriptEngineInitializer provideCharFn() {
         return (sem) -> sem.put("Char", (Function<String, Character>) t -> t.charAt(0));
     }

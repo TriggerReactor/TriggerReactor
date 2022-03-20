@@ -20,12 +20,10 @@ package io.github.wysohn.triggerreactor.core.components;
 import dagger.Component;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.modules.CoreExternalAPIModule;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 
 import java.util.Map;
 
 @Component(modules = {CoreExternalAPIModule.class})
-@PluginScope
 public interface ExternalAPIComponent {
     Map<String, Class<? extends AbstractAPISupport>> externalAPIProtoMap();
 }

@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
-import io.github.wysohn.triggerreactor.core.scope.PluginScope;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,7 +30,6 @@ import org.bukkit.potion.PotionEffectType;
 import javax.inject.Inject;
 import java.util.Collection;
 
-@PluginScope
 public class CommonFunctions extends AbstractCommonFunctions {
 
     @Inject

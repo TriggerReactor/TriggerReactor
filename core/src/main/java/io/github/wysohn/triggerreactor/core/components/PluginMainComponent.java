@@ -21,14 +21,12 @@ import dagger.Component;
 import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
 import io.github.wysohn.triggerreactor.core.modules.CoreExternalAPIModule;
 import io.github.wysohn.triggerreactor.core.modules.CoreUtilModule;
-import io.github.wysohn.triggerreactor.core.scope.MainScope;
 
 @Component(modules = {ConfigSourceFactoryModule.class, CoreExternalAPIModule.class, CoreUtilModule.class,},
            dependencies = {PluginLifecycleComponent.class,
                            ManagerComponent.class,
                            TriggerComponent.class,
                            BootstrapComponent.class,})
-@MainScope
 public interface PluginMainComponent {
     @Component.Builder
     interface Builder {

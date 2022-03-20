@@ -30,47 +30,38 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.Click
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
-import io.github.wysohn.triggerreactor.core.scope.ManagerScope;
 
 @Module
 public abstract class CoreTriggerModule {
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindAreaTriggerIntoSet(AreaTriggerManager manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindClickTriggerIntoSet(AbstractLocationBasedTriggerManager<ClickTrigger> manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindCommandTriggerIntoSet(CommandTriggerManager manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindCustomTriggerIntoSet(CustomTriggerManager manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindInventoryTriggerIntoSet(InventoryTriggerManager manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindNamedTriggerIntoSet(NamedTriggerManager manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindRepeatingTriggerIntoSet(RepeatingTriggerManager manager);
 
     @Binds
     @IntoSet
-    @ManagerScope
     abstract Manager bindWalkTriggerIntoSet(AbstractLocationBasedTriggerManager<WalkTrigger> manager);
 }
