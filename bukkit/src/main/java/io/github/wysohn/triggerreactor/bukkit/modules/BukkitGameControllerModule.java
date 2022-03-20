@@ -20,6 +20,7 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitGameController;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTaskSupervisor;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginScope;
@@ -39,7 +40,7 @@ public abstract class BukkitGameControllerModule {
 
     @Binds
     @BukkitPluginScope
-    abstract IGameController bindGameController(BukkitTriggerReactor plugin);
+    abstract IGameController bindGameController(BukkitGameController plugin);
 
     @Binds
     @BukkitPluginScope
