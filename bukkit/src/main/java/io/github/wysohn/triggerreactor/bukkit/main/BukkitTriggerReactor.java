@@ -187,7 +187,7 @@ public class BukkitTriggerReactor implements IPluginProcedure {
     }
 
     public void addItemLore(IItemStack iS, String lore) {
-        gameController.addItemLore(iS, lore);
+        inventoryModifier.addItemLore(iS, lore);
     }
 
     public void callEvent(IEvent event) {

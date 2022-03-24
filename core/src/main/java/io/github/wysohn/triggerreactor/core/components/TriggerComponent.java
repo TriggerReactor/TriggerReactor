@@ -17,7 +17,6 @@
 
 package io.github.wysohn.triggerreactor.core.components;
 
-import dagger.BindsInstance;
 import dagger.Component;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
@@ -28,53 +27,52 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.Click
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.modules.ConstantsModule;
 import io.github.wysohn.triggerreactor.core.modules.CoreTriggerModule;
+import io.github.wysohn.triggerreactor.core.modules.CoreUtilModule;
+import io.github.wysohn.triggerreactor.core.scope.ManagerLifetime;
 
-@Component(modules = CoreTriggerModule.class)
+@Component(modules = {CoreTriggerModule.class,
+                      CoreUtilModule.class,
+                      ConstantsModule.class,},
+           dependencies = {BootstrapComponent.class,
+                           ConfigurationComponent.class,
+                           PluginLifecycleComponent.class,
+                           ExternalAPIComponent.class,
+                           TabCompleterComponent.class,
+                           InventoryUtilComponent.class})
+@ManagerLifetime
 public interface TriggerComponent {
-    AreaTriggerManager areaTrigger();
-
     AbstractLocationBasedTriggerManager<ClickTrigger> clickTrigger();
 
+    AbstractLocationBasedTriggerManager<WalkTrigger> walkTrigger();
+
     CommandTriggerManager commandTrigger();
+
+    AreaTriggerManager areaTrigger();
+
+    NamedTriggerManager namedTrigger();
 
     CustomTriggerManager customTrigger();
 
     InventoryTriggerManager inventoryTrigger();
 
-    NamedTriggerManager namedTrigger();
-
     RepeatingTriggerManager repeatingTrigger();
-
-    AbstractLocationBasedTriggerManager<WalkTrigger> walkTrigger();
 
     @Component.Builder
     interface Builder {
-        TriggerComponent build();
+        TriggerComponent builder();
 
-        // injects
-        @BindsInstance
-        Builder areaTrigger(AreaTriggerManager manager);
+        Builder bootstrapComponent(BootstrapComponent bootstrapComponent);
 
-        @BindsInstance
-        Builder clickTrigger(AbstractLocationBasedTriggerManager<ClickTrigger> manager);
+        Builder configurationComponent(ConfigurationComponent configurationComponent);
 
-        @BindsInstance
-        Builder commandTrigger(CommandTriggerManager manager);
+        Builder pluginLifecycleComponent(PluginLifecycleComponent pluginLifecycleComponent);
 
-        @BindsInstance
-        Builder customTrigger(CustomTriggerManager manager);
+        Builder externalAPIComponent(ExternalAPIComponent externalAPIComponent);
 
-        @BindsInstance
-        Builder inventoryTrigger(InventoryTriggerManager manager);
+        Builder tabCompleterComponent(TabCompleterComponent tabCompleterComponent);
 
-        @BindsInstance
-        Builder namedTrigger(NamedTriggerManager manager);
-
-        @BindsInstance
-        Builder repeatingTrigger(RepeatingTriggerManager manager);
-
-        @BindsInstance
-        Builder walkTrigger(AbstractLocationBasedTriggerManager<WalkTrigger> manager);
+        Builder inventoryUtilComponent(InventoryUtilComponent inventoryUtilComponent);
     }
 }

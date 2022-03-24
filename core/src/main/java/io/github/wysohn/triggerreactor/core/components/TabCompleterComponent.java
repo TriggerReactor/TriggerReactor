@@ -18,17 +18,15 @@
 package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Component;
-import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
-import io.github.wysohn.triggerreactor.core.modules.ConfigSourceFactoryModule;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.DynamicTabCompleter;
+import io.github.wysohn.triggerreactor.core.modules.CoreTabCompleterModule;
+import io.github.wysohn.triggerreactor.core.scope.PostPluginLifetime;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import java.util.Map;
 
-@Component(modules = {ConfigSourceFactoryModule.class})
-@Singleton
-public interface ConfigurationComponent {
-    @Named("DefaultConfigType")
-    String defaultType();
-
-    ConfigSourceFactories factories();
+@Component(modules = {CoreTabCompleterModule.class},
+           dependencies = {BootstrapComponent.class})
+@PostPluginLifetime
+public interface TabCompleterComponent {
+    Map<String, DynamicTabCompleter> dynamicTabCompleterProtoMap();
 }

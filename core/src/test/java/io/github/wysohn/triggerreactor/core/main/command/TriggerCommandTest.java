@@ -1074,7 +1074,7 @@ public class TriggerCommandTest {
 
         command.onCommand(sender, ITriggerCommand.toQueue("item lore add eeff"));
 
-        verify(gameController).addItemLore(eq(itemStack), eq("eeff"));
+        verify(inventoryModifier).addItemLore(eq(itemStack), eq("eeff"));
         verify(sender).setItemInMainHand(eq(itemStack));
     }
 

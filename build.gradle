@@ -101,8 +101,8 @@ subprojects {
 //        testImplementation 'org.powermock:powermock-api-mockito2:2.+'
         testImplementation 'org.javassist:javassist:3.20.0-GA'
 
-        testImplementation 'com.google.dagger:dagger:2.40.5'
-        testAnnotationProcessor 'com.google.dagger:dagger-compiler:2.40.5'
+        testImplementation 'com.google.dagger:dagger:2.41'
+        testAnnotationProcessor 'com.google.dagger:dagger-compiler:2.41'
     }
 
     java{

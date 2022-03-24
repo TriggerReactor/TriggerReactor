@@ -19,20 +19,34 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import dagger.Module;
 import dagger.Provides;
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.logging.Logger;
+import javax.inject.Named;
 
 @Module
 public abstract class BukkitPluginMainModule {
     @Provides
-    static Plugin bindPlugin(JavaPlugin plugin) {
+    @Named("PluginInstance")
+    static Object providePlugin(Plugin plugin) {
         return plugin;
     }
 
     @Provides
-    static Logger bindLogger(JavaPlugin javaPlugin) {
-        return javaPlugin.getLogger();
+    static Server provideServer() {
+        return Bukkit.getServer();
+    }
+
+    @Provides
+    static PluginManager bindPluginManager(Server server) {
+        return server.getPluginManager();
+    }
+
+    @Provides
+    static Plugin bindPlugin(JavaPlugin plugin) {
+        return plugin;
     }
 }

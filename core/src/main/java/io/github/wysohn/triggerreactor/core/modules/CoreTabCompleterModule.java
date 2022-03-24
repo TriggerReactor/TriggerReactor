@@ -6,8 +6,8 @@ import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
 import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.DynamicTabCompleter;
+import io.github.wysohn.triggerreactor.core.scope.PostPluginLifetime;
 
-import javax.inject.Singleton;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,7 +16,7 @@ public abstract class CoreTabCompleterModule {
     @Provides
     @IntoMap
     @StringKey("$playerlist")
-    @Singleton
+    @PostPluginLifetime
     static DynamicTabCompleter providePlayerListCompleter(IGameController gameController) {
         return DynamicTabCompleter.Builder.of("$playerlist", () -> {
             List<String> candidates = new LinkedList<>();

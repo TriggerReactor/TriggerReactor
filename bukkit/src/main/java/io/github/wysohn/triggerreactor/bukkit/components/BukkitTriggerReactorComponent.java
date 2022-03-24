@@ -3,34 +3,24 @@ package io.github.wysohn.triggerreactor.bukkit.components;
 import dagger.BindsInstance;
 import dagger.Component;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
-import io.github.wysohn.triggerreactor.bukkit.modules.*;
+import io.github.wysohn.triggerreactor.bukkit.modules.BukkitPluginMainModule;
+import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginLifetime;
+import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.CommandHandler;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
-import io.github.wysohn.triggerreactor.core.modules.*;
+import io.github.wysohn.triggerreactor.core.modules.ConstantsModule;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.inject.Singleton;
 import java.util.Map;
 
-@Component(modules = {CommandModule.class,
-                      CoreUtilModule.class,
-                      CoreScriptEngineInitializerModule.class,
-                      CoreExternalAPIModule.class,
-                      CoreTabCompleterModule.class,
-                      BukkitPluginLifecycleModule.class,
-                      BukkitGameControllerModule.class,
-                      BukkitPluginMainModule.class,
-                      BukkitManagerModule.class,
-                      BukkitTriggerModule.class,
-                      BukkitScriptEngineModule.class,
-                      BukkitUtilModule.class,
-                      ConfigSourceFactoryModule.class,
-                      ConstantsModule.class})
-@Singleton
+@Component(modules = {BukkitPluginMainModule.class,
+                      ConstantsModule.class},
+           dependencies = {PluginMainComponent.class})
+@BukkitPluginLifetime
 public interface BukkitTriggerReactorComponent {
     BukkitTriggerReactor bukkitTriggerReactor();
 
@@ -39,8 +29,10 @@ public interface BukkitTriggerReactorComponent {
     IWrapper wrapper();
 
     @Component.Builder
-    interface Builder{
+    interface Builder {
         BukkitTriggerReactorComponent build();
+
+        Builder mainComponent(PluginMainComponent component);
 
         @BindsInstance
         Builder inject(IWrapper wrapper);

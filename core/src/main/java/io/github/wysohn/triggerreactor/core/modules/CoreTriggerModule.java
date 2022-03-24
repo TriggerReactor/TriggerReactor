@@ -42,24 +42,6 @@ public abstract class CoreTriggerModule {
     abstract AbstractLocationBasedTriggerManager<WalkTrigger> bindWalkTriggerManager(WalkTriggerManager manager);
 
     @Binds
-    abstract CommandTriggerManager bindCommandTriggerManager(CommandTriggerManager manager);
-
-    @Binds
-    abstract InventoryTriggerManager bindInventoryTriggerManager(InventoryTriggerManager manager);
-
-    @Binds
-    abstract AreaTriggerManager bindAreaTriggerManager(AreaTriggerManager manager);
-
-    @Binds
-    abstract NamedTriggerManager bindNamedTriggerManager(NamedTriggerManager manager);
-
-    @Binds
-    abstract RepeatingTriggerManager bindRepeatingTriggerManager(RepeatingTriggerManager manager);
-
-    @Binds
-    abstract CustomTriggerManager bindCustomTriggerManager(CustomTriggerManager manager);
-
-    @Binds
     @IntoSet
     abstract Manager bindClickTriggerIntoSet(AbstractLocationBasedTriggerManager<ClickTrigger> manager);
 

@@ -1268,7 +1268,7 @@ public class TriggerCommand {
                                 }
 
                                 String lore = ITriggerCommand.consumeAllArguments(args);
-                                gameController.addItemLore(IS, lore);
+                                inventoryModifier.addItemLore(IS, lore);
 
                                 ((IPlayer) sender).setItemInMainHand(IS);
                                 return true;

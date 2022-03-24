@@ -21,15 +21,15 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.scope.ManagerLifetime;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Singleton
+@ManagerLifetime
 public class WalkTriggerManager extends AbstractLocationBasedTriggerManager<WalkTrigger> {
     @Inject
     WalkTriggerFactory factory;
