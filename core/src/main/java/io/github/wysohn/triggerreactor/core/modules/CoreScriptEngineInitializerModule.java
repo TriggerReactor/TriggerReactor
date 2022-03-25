@@ -17,22 +17,16 @@
 
 package io.github.wysohn.triggerreactor.core.modules;
 
-import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorAPI;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
-import io.github.wysohn.triggerreactor.core.manager.IScriptEngineProvider;
-import io.github.wysohn.triggerreactor.core.manager.ScriptEngineProvider;
 
 import java.util.function.Function;
 
 @Module
 public abstract class CoreScriptEngineInitializerModule {
-    @Binds
-    abstract IScriptEngineProvider bindProvider(ScriptEngineProvider provider);
-
     @Provides
     @IntoSet
     static IScriptEngineInitializer provideAPI() {

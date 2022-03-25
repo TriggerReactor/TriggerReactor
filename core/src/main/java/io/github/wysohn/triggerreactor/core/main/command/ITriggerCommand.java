@@ -5,6 +5,9 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Handler for the trigger reactor commands.
+ */
 public interface ITriggerCommand {
     /**
      * Handle the command. Each child command will consume the command queue

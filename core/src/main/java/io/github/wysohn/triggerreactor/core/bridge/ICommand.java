@@ -5,6 +5,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabComplete
 
 import java.util.List;
 
+/**
+ * Wrapper of command instance.
+ */
 public interface ICommand {
     void setAliases(List<String> collect);
 

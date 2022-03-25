@@ -23,9 +23,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigg
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.IGUIOpenHelper;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.click.ClickTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.walk.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -46,8 +45,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
 /**
- * The main abstract class of TriggerReactor. Interacting with any platform should extends this class to
- * create important internal components.
+ * The main abstract class of TriggerReactor.
+ *
+ * This is not a platform dependent implementation, so the caller has to
+ * manually provide the full lifecycle of the plugin, such as when the plugin
+ * starts, when the plugin reloads, and when the plugin stops.
  *
  * @author wysohn
  */
@@ -93,9 +95,9 @@ public class TriggerReactorMain implements IPluginProcedure {
     @Inject
     InventoryEditManager invEditManager;
     @Inject
-    AbstractLocationBasedTriggerManager<ClickTrigger> clickManager;
+    ClickTriggerManager clickManager;
     @Inject
-    AbstractLocationBasedTriggerManager<WalkTrigger> walkManager;
+    WalkTriggerManager walkManager;
     @Inject
     CommandTriggerManager cmdManager;
     @Inject

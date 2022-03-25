@@ -30,12 +30,6 @@ import javax.inject.Named;
 @Module
 public abstract class BukkitPluginMainModule {
     @Provides
-    @Named("PluginInstance")
-    static Object providePlugin(Plugin plugin) {
-        return plugin;
-    }
-
-    @Provides
     static Server provideServer() {
         return Bukkit.getServer();
     }
@@ -43,6 +37,11 @@ public abstract class BukkitPluginMainModule {
     @Provides
     static PluginManager bindPluginManager(Server server) {
         return server.getPluginManager();
+    }
+
+    @Provides
+    static JavaPlugin provideJavaPlugin(@Named("PluginInstance") Object plugin) {
+        return (JavaPlugin) plugin;
     }
 
     @Provides

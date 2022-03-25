@@ -19,7 +19,12 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommand;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.components.BukkitTriggerReactorComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerBukkitTriggerReactorComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.DaggerLatestBukkitUtilComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.LatestBukkitUtilComponent;
 import io.github.wysohn.triggerreactor.core.bridge.ICommand;
+import io.github.wysohn.triggerreactor.core.components.DaggerPluginMainComponent;
+import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.CommandHandler;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ICommandMapHandler;
@@ -38,7 +43,15 @@ import java.util.List;
 import java.util.Map;
 
 public class LatestBukkitTriggerReactor extends JavaPlugin implements ICommandMapHandler {
-    private BukkitTriggerReactorComponent component = DaggerLatestBukkitTriggerReactorComponent.builder().build();
+    private ConstantsComponent constantsComponent;
+    private BootstrapComponent bootstrapComponent;
+    private TriggerComponent triggerComponent;
+    private ManagerComponent managerComponent;
+    private PluginMainComponent mainComponent;
+
+    private LatestBukkitUtilComponent utilComponent;
+    private BukkitTriggerReactorComponent bukkitTriggerReactorComponent;
+
     private BukkitTriggerReactor bukkitTriggerReactor;
     private CommandHandler commandHandler;
     private IWrapper wrapper;
@@ -54,10 +67,60 @@ public class LatestBukkitTriggerReactor extends JavaPlugin implements ICommandMa
 
     @Override
     public void onEnable() {
-        bukkitTriggerReactor = component.bukkitTriggerReactor();
-        commandHandler = component.commandHandler();
-        wrapper = component.wrapper();
+        constantsComponent = DaggerConstantsComponent.create();
+        PluginCommand command = this.getCommand(constantsComponent.commandName());
 
+        mainComponent = DaggerPluginMainComponent.builder()
+                .triggerComponent(triggerComponent)
+                .managerComponent(managerComponent)
+                .build();
+
+        utilComponent = DaggerLatestBukkitUtilComponent.builder()
+                .triggerComponent(triggerComponent)
+                .build();
+
+        bootstrapComponent = DaggerBootstrapComponent.builder()
+                .dataFolder(this.getDataFolder())
+                .eventRegistry(mainComponent.eventRegistry())
+                .commandMapHandler(mainComponent.commandMapHandler())
+                .gameController(mainComponent.gameController())
+                .logger(this.getLogger())
+                .pluginInstance(this)
+                .scriptEngineManager(mainComponent.scriptEngineManager())
+                .scriptEngineProvider(mainComponent.scriptEngineProvider())
+                .selfReference(utilComponent.selfReference())
+                .wrapper(utilComponent.wrapper())
+                .taskSupervisor(mainComponent.taskSupervisor())
+                .build();
+
+        triggerComponent = DaggerTriggerComponent.builder()
+                .bootstrapComponent(bootstrapComponent)
+                .build();
+
+        managerComponent = DaggerManagerComponent.builder()
+                .bootstrapComponent(bootstrapComponent)
+                .build();
+
+        TabCompleterComponent tabCompleterComponent = DaggerTabCompleterComponent.builder()
+                .bootstrapComponent(bootstrapComponent)
+                .build();
+
+        CommandComponent commandComponent = DaggerCommandComponent.builder()
+                .constantsComponent(constantsComponent)
+                .pluginMainComponent(mainComponent)
+                .tabCompleterComponent(tabCompleterComponent)
+                .build();
+
+        bukkitTriggerReactorComponent = DaggerBukkitTriggerReactorComponent.builder()
+                .commandComponent(commandComponent)
+                .tabCompleterComponent(tabCompleterComponent)
+                .constantsComponent(constantsComponent)
+                .pluginCommand(command)
+                .pluginMainComponent(mainComponent)
+                .rawCommands(getCommandMap())
+                .build();
+
+        bukkitTriggerReactor = bukkitTriggerReactorComponent.bukkitTriggerReactor();
         bukkitTriggerReactor.onEnable();
 
         rawCommandMap = getCommandMap();

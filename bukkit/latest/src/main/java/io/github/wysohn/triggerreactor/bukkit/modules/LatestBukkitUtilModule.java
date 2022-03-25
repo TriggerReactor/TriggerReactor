@@ -8,7 +8,7 @@ import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 @Module
-public abstract class LatestBukkitModule {
+public abstract class LatestBukkitUtilModule {
     @Binds
     abstract SelfReference bindSelfReference(CommonFunctions fn);
 

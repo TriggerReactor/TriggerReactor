@@ -39,7 +39,6 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.Process
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import org.bukkit.Server;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.event.Listener;
@@ -63,8 +62,6 @@ public class BukkitTriggerReactor implements IPluginProcedure {
     Plugin plugin;
     @Inject
     PluginCommand command;
-    @Inject
-    CommandExecutor commandExecutor;
     @Inject
     IWrapper wrapper;
     @Inject
@@ -96,7 +93,8 @@ public class BukkitTriggerReactor implements IPluginProcedure {
 
     @Override
     public void onEnable() {
-        command.setExecutor(commandExecutor);
+        command.setExecutor(plugin);
+        command.setTabCompleter(plugin);
 
         initBungeeHelper();
         initMysql();

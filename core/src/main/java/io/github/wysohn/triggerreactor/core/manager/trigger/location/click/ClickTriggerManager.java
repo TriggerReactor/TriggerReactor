@@ -21,7 +21,6 @@ import io.github.wysohn.triggerreactor.core.manager.selection.ClickType;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.scope.ManagerLifetime;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.inject.Inject;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@ManagerLifetime
 public class ClickTriggerManager extends AbstractLocationBasedTriggerManager<ClickTrigger> {
     @Inject
     ClickTriggerFactory factory;

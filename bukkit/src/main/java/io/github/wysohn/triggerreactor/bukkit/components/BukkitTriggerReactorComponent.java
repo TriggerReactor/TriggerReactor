@@ -4,52 +4,55 @@ import dagger.BindsInstance;
 import dagger.Component;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitPluginMainModule;
-import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginLifetime;
+import io.github.wysohn.triggerreactor.bukkit.scope.BukkitPluginChildLifetime;
 import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
 import io.github.wysohn.triggerreactor.core.main.CommandHandler;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
-import io.github.wysohn.triggerreactor.core.modules.ConstantsModule;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
 
-@Component(modules = {BukkitPluginMainModule.class,
-                      ConstantsModule.class},
-           dependencies = {PluginMainComponent.class})
-@BukkitPluginLifetime
+@Component(modules = {BukkitPluginMainModule.class},
+           dependencies = {PluginMainComponent.class,
+                           CommandComponent.class,
+                           TabCompleterComponent.class,
+                           ConstantsComponent.class})
+@BukkitPluginChildLifetime
 public interface BukkitTriggerReactorComponent {
     BukkitTriggerReactor bukkitTriggerReactor();
 
+    // PluginMainComponent
     CommandHandler commandHandler();
 
     IWrapper wrapper();
+
+    SelfReference selfReference();
+
+    JavaPlugin plugin();
+
+    PluginCommand pluginCommand();
+
+    Map<String, Command> commands();
 
     @Component.Builder
     interface Builder {
         BukkitTriggerReactorComponent build();
 
-        Builder mainComponent(PluginMainComponent component);
+        Builder pluginMainComponent(PluginMainComponent pluginMainComponent);
+
+        Builder commandComponent(CommandComponent commandComponent);
+
+        Builder tabCompleterComponent(TabCompleterComponent tabCompleterComponent);
+
+        Builder constantsComponent(ConstantsComponent constantsComponent);
 
         @BindsInstance
-        Builder inject(IWrapper wrapper);
+        Builder pluginCommand(PluginCommand pluginCommand);
 
         @BindsInstance
-        Builder inject(SelfReference selfReference);
-
-        @BindsInstance
-        Builder inject(JavaPlugin plugin);
-
-        @BindsInstance
-        Builder inject(PluginCommand command);
-
-        @BindsInstance
-        Builder inject(CommandExecutor executor);
-
-        @BindsInstance
-        Builder inject(Map<String, Command> rawCommands);
+        Builder rawCommands(Map<String, Command> commands);
     }
 }
