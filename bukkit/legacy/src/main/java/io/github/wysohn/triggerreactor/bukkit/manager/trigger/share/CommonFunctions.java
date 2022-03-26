@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.SkullUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -31,14 +32,12 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import javax.inject.Inject;
 import java.util.Collection;
 
 public class CommonFunctions extends AbstractCommonFunctions implements SelfReference {
 
-    @Inject
-    CommonFunctions() {
-
+    public CommonFunctions(AreaTriggerManager areaManager) {
+        super(areaManager);
     }
 
     /**
