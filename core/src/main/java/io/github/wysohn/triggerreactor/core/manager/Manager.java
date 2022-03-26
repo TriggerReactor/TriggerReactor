@@ -28,6 +28,33 @@ import java.util.List;
  * @author wysohn
  */
 public abstract class Manager {
+    // Config keys for Common
+    public static final String SYNC = "Sync";
+
+    // Config keys for AreaTrigger
+    public static final String SMALLEST = "Smallest";
+    public static final String LARGEST = "Largest";
+
+    // Config keys for CommandTrigger
+    public static final String PERMISSIONS = "Permissions";
+    public static final String ALIASES = "Aliases";
+    public static final String TABS = "Tabs";
+
+    public static final String HINT = "Hint";
+    public static final String CANDIDATES = "Candidates";
+
+    // Config keys for CustomTrigger
+    public static final String EVENT = "Event";
+
+    // Config keys for InventoryTrigger
+    public static final String ITEMS = "Items";
+    public static final String SIZE = "Size";
+    public static final String TITLE = "Title";
+
+    // Config keys for RepeatingTrigger
+    public static final String AUTOSTART = "AutoStart";
+    public static final String INTERVAL = "Interval";
+
     private static final List<Manager> managers = new ArrayList<Manager>();
 
     public static List<Manager> getManagers() {

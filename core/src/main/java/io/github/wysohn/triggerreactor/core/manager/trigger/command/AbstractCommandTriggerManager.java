@@ -35,14 +35,6 @@ import java.util.stream.Collectors;
 
 
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
-    private static final String SYNC = "sync";
-    private static final String PERMISSION = "permissions";
-    private static final String ALIASES = "aliases";
-    public static final String TABS = "tabs";
-
-    public static final String HINT = "hint";
-    public static final String CANDIDATES = "candidates";
-
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
             private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
@@ -82,7 +74,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             @Override
             public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
+                List<String> permissions = info.getConfig().get(PERMISSIONS, List.class).orElse(new ArrayList<>());
                 List<String> aliases = info.getConfig().get(ALIASES, List.class)
                         .map(aliasList -> (((List<String>)aliasList).stream()
                                 .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
@@ -108,7 +100,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                    trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
+                    trigger.getInfo().getConfig().put(PERMISSIONS, trigger.getPermissions());
                     trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
                             .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
                             .toArray());

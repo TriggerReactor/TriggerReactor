@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
-    private static final String EVENT = "Event";
-
     protected final EventRegistry registry;
 
     public AbstractCustomTriggerManager(TriggerReactorCore plugin, File folder, EventRegistry registry) {

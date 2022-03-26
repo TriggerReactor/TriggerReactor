@@ -39,10 +39,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
-    protected static final String SMALLEST = "Smallest";
-    protected static final String LARGEST = "Largest";
-    protected static final String SYNC = "Sync";
-
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
 
     /**
