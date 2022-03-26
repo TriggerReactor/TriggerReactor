@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.File;
@@ -10,7 +11,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
-    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -68,7 +68,7 @@ public abstract class TriggerInfo implements IMigratable {
 
     public boolean isSync(){
         return Optional.ofNullable(config)
-                .flatMap(c -> c.get(KEY_SYNC))
+                .flatMap(c -> c.get(Manager.SYNC))
                 .filter(Boolean.class::isInstance)
                 .map(Boolean.class::cast)
                 .orElse(false);
@@ -77,7 +77,7 @@ public abstract class TriggerInfo implements IMigratable {
     public void setSync(boolean sync){
         ValidationUtil.notNull(config);
 
-        config.put(KEY_SYNC, sync);
+        config.put(Manager.SYNC, sync);
     }
 
     /**
