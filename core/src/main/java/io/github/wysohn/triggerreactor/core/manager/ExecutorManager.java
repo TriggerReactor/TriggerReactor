@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.inject.Inject;
@@ -35,6 +36,8 @@ import java.util.concurrent.Callable;
 import java.util.logging.Logger;
 
 public class ExecutorManager extends AbstractJavascriptBasedManager implements IPluginProcedure, KeyValueManager<Executor> {
+    @Inject
+    IResourceProvider resourceProvider;
     @Inject
     Logger logger;
     @Inject
@@ -89,7 +92,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements I
 
     @Override
     public void onEnable() throws Exception {
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
+        resourceProvider.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
         this.executorFolder = new File(dataFolder, "Executor");
 
         onReload();
@@ -105,7 +108,14 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements I
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         jsExecutors.clear();
-        for (File file : executorFolder.listFiles(filter)) {
+
+        if(!executorFolder.exists())
+            executorFolder.mkdirs();
+
+        File[] folder = executorFolder.listFiles(filter);
+        ValidationUtil.assertTrue(folder, Objects::nonNull, executorFolder + " is not a folder.");
+
+        for (File file : folder) {
             try {
                 reloadExecutors(file, filter);
             } catch (ScriptException | IOException e) {

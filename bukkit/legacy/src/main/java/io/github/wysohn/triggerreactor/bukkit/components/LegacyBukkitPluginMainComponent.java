@@ -18,13 +18,13 @@
 package io.github.wysohn.triggerreactor.bukkit.components;
 
 import dagger.Component;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorMain;
 import io.github.wysohn.triggerreactor.core.main.CommandHandler;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 
-@Component(dependencies = {BukkitTriggerReactorComponent.class,})
+@Component(dependencies = {BukkitPluginMainComponent.class,})
 public interface LegacyBukkitPluginMainComponent {
-    BukkitTriggerReactor bukkitTriggerReactor();
+    BukkitTriggerReactorMain bukkitTriggerReactor();
 
     CommandHandler commandHandler();
 

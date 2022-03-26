@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.components.BukkitTriggerReactorComponent;
+import io.github.wysohn.triggerreactor.bukkit.components.BukkitPluginMainComponent;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import io.github.wysohn.triggerreactor.core.bridge.ICommand;
 import io.github.wysohn.triggerreactor.core.main.CommandHandler;
@@ -24,8 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public class LegacyBukkitTriggerReactor extends JavaPlugin implements ICommandMapHandler {
-    private BukkitTriggerReactorComponent component = DaggerLegacyBukkitTriggerReactorComponent.builder().build();
-    private BukkitTriggerReactor bukkitTriggerReactor;
+    private BukkitPluginMainComponent component = DaggerLegacyBukkitTriggerReactorComponent.builder().build();
+    private BukkitTriggerReactorMain bukkitTriggerReactorMain;
     private CommandHandler commandHandler;
     private IWrapper wrapper;
 
@@ -33,7 +33,7 @@ public class LegacyBukkitTriggerReactor extends JavaPlugin implements ICommandMa
 
     @Override
     public void onEnable() {
-        bukkitTriggerReactor = component.bukkitTriggerReactor();
+        bukkitTriggerReactorMain = component.bukkitTriggerReactor();
         commandHandler = component.commandHandler();
         wrapper = component.wrapper();
 
@@ -42,12 +42,12 @@ public class LegacyBukkitTriggerReactor extends JavaPlugin implements ICommandMa
         }
         Bukkit.getPluginManager().registerEvents(customCommandHandle, this);
 
-        bukkitTriggerReactor.onEnable();
+        bukkitTriggerReactorMain.onEnable();
     }
 
     @Override
     public void onDisable() {
-        bukkitTriggerReactor.onDisable();
+        bukkitTriggerReactorMain.onDisable();
     }
 
     @Override

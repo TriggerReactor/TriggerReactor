@@ -30,7 +30,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingT
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -144,8 +143,9 @@ public class TriggerReactorMain implements IPluginProcedure {
     public void onEnable() throws Exception {
         Thread.currentThread().setContextClassLoader(pluginInstance.getClass().getClassLoader());
 
-        // theoretically, it is perfectly fine to be 0, but we assume that we have at least 1 API support
-        ValidationUtil.assertTrue(sharedVars.size(), v -> v > 0);
+        if(debugging && sharedVars.size() < 1){
+            logger.warning("sharedVars is empty");
+        }
 
         for (IScriptEngineInitializer init : scriptEngineInitializers) {
             init.initScriptEngine(scriptEngineManager);

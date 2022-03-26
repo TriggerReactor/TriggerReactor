@@ -74,35 +74,6 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
     @Inject
     AreaTriggerManager() {
         super("AreaTrigger");
-
-        Thread referenceCleaningThread = new Thread(() -> {
-            while (pluginLifecycleController.isEnabled() && !Thread.interrupted()) {
-                //clean up the reference map
-                Set<UUID> deletes = new HashSet<>();
-                for (Entry<UUID, WeakReference<Object>> entry : entityTrackMap.entrySet()) {
-                    if (entry.getValue().get() == null)
-                        deletes.add(entry.getKey());
-                }
-
-                for (UUID delete : deletes) {
-                    entityTrackMap.remove(delete);
-                    entityLocationMap.remove(delete);
-                }
-
-                //clean up the area trigger tracked entities
-                getAllTriggers().forEach(AreaTrigger::getEntities);
-
-                try {
-                    Thread.sleep(50L);
-                } catch (InterruptedException e) {
-
-                }
-            }
-        });
-
-        referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
-        referenceCleaningThread.setDaemon(true);
-        referenceCleaningThread.start();
     }
 
     @Override
@@ -202,6 +173,35 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
     @Override
     public void onEnable() throws Exception {
         super.onEnable();
+
+        Thread referenceCleaningThread = new Thread(() -> {
+            while (pluginLifecycleController.isEnabled() && !Thread.interrupted()) {
+                //clean up the reference map
+                Set<UUID> deletes = new HashSet<>();
+                for (Entry<UUID, WeakReference<Object>> entry : entityTrackMap.entrySet()) {
+                    if (entry.getValue().get() == null)
+                        deletes.add(entry.getKey());
+                }
+
+                for (UUID delete : deletes) {
+                    entityTrackMap.remove(delete);
+                    entityLocationMap.remove(delete);
+                }
+
+                //clean up the area trigger tracked entities
+                getAllTriggers().forEach(AreaTrigger::getEntities);
+
+                try {
+                    Thread.sleep(50L);
+                } catch (InterruptedException e) {
+
+                }
+            }
+        });
+
+        referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
+        referenceCleaningThread.setDaemon(true);
+        referenceCleaningThread.start();
 
         entityTrackingThread.setName("AreaTriggerManager -- EntityTrackingThread");
         entityTrackingThread.setDaemon(true);

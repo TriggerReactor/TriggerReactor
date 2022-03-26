@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
-    private final BukkitTriggerReactor bukkitTriggerReactor;
+    private final BukkitTriggerReactorMain bukkitTriggerReactorMain;
     private final String CHANNEL = "BungeeCord";
 
     private final String SUB_SERVERLIST = "ServerList";
@@ -26,11 +26,11 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
     /**
      * constructor should only be called from onEnable()
      */
-    BukkitBungeeCordHelper(BukkitTriggerReactor bukkitTriggerReactor) {
-        this.bukkitTriggerReactor = bukkitTriggerReactor;
-        bukkitTriggerReactor.server.getMessenger().registerOutgoingPluginChannel(bukkitTriggerReactor.plugin, CHANNEL);
-        bukkitTriggerReactor.server.getMessenger()
-                .registerIncomingPluginChannel(bukkitTriggerReactor.plugin, CHANNEL, this);
+    BukkitBungeeCordHelper(BukkitTriggerReactorMain bukkitTriggerReactorMain) {
+        this.bukkitTriggerReactorMain = bukkitTriggerReactorMain;
+        bukkitTriggerReactorMain.server.getMessenger().registerOutgoingPluginChannel(bukkitTriggerReactorMain.plugin, CHANNEL);
+        bukkitTriggerReactorMain.server.getMessenger()
+                .registerIncomingPluginChannel(bukkitTriggerReactorMain.plugin, CHANNEL, this);
     }
 
     @Override
@@ -77,7 +77,7 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             out.writeUTF(SUB_SERVERLIST);
             out.writeUTF("GetServers");
-            player.sendPluginMessage(bukkitTriggerReactor.plugin, SUB_SERVERLIST, out.toByteArray());
+            player.sendPluginMessage(bukkitTriggerReactorMain.plugin, SUB_SERVERLIST, out.toByteArray());
 
             if (!playerCounts.isEmpty()) {
                 for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
@@ -85,7 +85,7 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
                     out2.writeUTF(SUB_USERCOUNT);
                     out2.writeUTF("PlayerCount");
                     out2.writeUTF(entry.getKey());
-                    player.sendPluginMessage(bukkitTriggerReactor.plugin, SUB_USERCOUNT, out2.toByteArray());
+                    player.sendPluginMessage(bukkitTriggerReactorMain.plugin, SUB_USERCOUNT, out2.toByteArray());
                 }
             }
 
@@ -111,6 +111,6 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
         out.writeUTF("Connect");
         out.writeUTF(serverName);
 
-        player.sendPluginMessage(bukkitTriggerReactor.plugin, CHANNEL, out.toByteArray());
+        player.sendPluginMessage(bukkitTriggerReactorMain.plugin, CHANNEL, out.toByteArray());
     }
 }

@@ -53,7 +53,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-public class BukkitTriggerReactor implements IPluginProcedure {
+public class BukkitTriggerReactorMain implements IPluginProcedure {
     @Inject
     Logger logger;
     @Inject
@@ -87,7 +87,7 @@ public class BukkitTriggerReactor implements IPluginProcedure {
     private Thread bungeeConnectionThread;
 
     @Inject
-    public BukkitTriggerReactor() {
+    public BukkitTriggerReactorMain() {
 
     }
 

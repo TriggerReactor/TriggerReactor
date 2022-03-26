@@ -6,6 +6,7 @@ import io.github.wysohn.triggerreactor.core.main.IGameController;
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.ExecutorManager;
+import io.github.wysohn.triggerreactor.core.manager.IResourceProvider;
 import io.github.wysohn.triggerreactor.core.manager.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.modules.CoreScriptEngineInitializerModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -38,6 +39,9 @@ public interface BukkitJavascriptTestComponent {
 
         @BindsInstance
         Builder wrapper(IWrapper wrapper);
+
+        @BindsInstance
+        Builder resourceProvider(IResourceProvider resourceProvider);
 
         BukkitJavascriptTestComponent build();
     }

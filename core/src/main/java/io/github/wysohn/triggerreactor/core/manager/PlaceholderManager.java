@@ -32,6 +32,8 @@ import java.util.logging.Logger;
 
 public class PlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
     @Inject
+    IResourceProvider resourceProvider;
+    @Inject
     Logger logger;
     @Inject
     @Named("DataFolder")
@@ -46,7 +48,7 @@ public class PlaceholderManager extends AbstractJavascriptBasedManager implement
 
     @Override
     public void onEnable() throws Exception {
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
+        resourceProvider.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
         this.placeholderFolder = new File(dataFolder, "Placeholder");
 
         onReload();
@@ -62,6 +64,10 @@ public class PlaceholderManager extends AbstractJavascriptBasedManager implement
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         jsPlaceholders.clear();
+
+        if(!placeholderFolder.exists())
+            placeholderFolder.mkdirs();
+
         File[] folder = placeholderFolder.listFiles(filter);
         ValidationUtil.assertTrue(folder, Objects::nonNull, placeholderFolder + " is not a folder.");
 

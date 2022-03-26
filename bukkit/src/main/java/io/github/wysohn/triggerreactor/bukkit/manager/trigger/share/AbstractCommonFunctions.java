@@ -1,29 +1,22 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 
-import javax.inject.Inject;
 import java.text.NumberFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 public abstract class AbstractCommonFunctions
         extends io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions implements SelfReference {
-    @Inject
-    AreaTriggerManager areaManager;
 
     /**
      * Translate money into specified country's currency format. US currency will be used.
@@ -385,84 +378,85 @@ public abstract class AbstractCommonFunctions
         IS.setItemMeta(IM);
     }
 
-    /**
-     * Get the name of area where entity is currently standing on.
-     * <p>
-     * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
-     * </p>
-     *
-     * @param entity any entity(including player)
-     * @return name of area; null if player is not on any area.
-     * @deprecated this returns only one area among the areas where entity is in. Use {@link #currentAreas(Entity)}
-     * instead to get all the areas.
-     */
-    @Deprecated
-    public String currentArea(Entity entity) {
-        String[] areas = currentAreasAt(entity.getLocation());
-        return areas.length > 0 ? areas[0] : null;
-    }
+//    /**
+//     * Get the name of area where entity is currently standing on.
+//     * <p>
+//     * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
+//     * </p>
+//     *
+//     * @param entity any entity(including player)
+//     * @return name of area; null if player is not on any area.
+//     * @deprecated this returns only one area among the areas where entity is in. Use {@link #currentAreas(Entity)}
+//     * instead to get all the areas.
+//     */
+//    @Deprecated
+//    public String currentArea(Entity entity) {
+//        String[] areas = currentAreasAt(entity.getLocation());
+//        return areas.length > 0 ? areas[0] : null;
+//    }
 
-    /**
-     * Get the name of area triggers containing the given location.
-     *
-     * @param location the location to check
-     * @return array of AreaTrigger names. The array can be empty but never null.
-     */
-    public String[] currentAreasAt(Location location) {
-        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location))
-                .stream()
-                .map(Map.Entry::getValue)
-                .map(Trigger::getInfo)
-                .map(TriggerInfo::getTriggerName)
-                .toArray(String[]::new);
-    }
+//    /**
+//     * Get the name of area triggers containing the given location.
+//     *
+//     * @param location the location to check
+//     * @return array of AreaTrigger names. The array can be empty but never null.
+//     */
+//    public String[] currentAreasAt(Location location) {
+//        return areaManager.getAreas(LocationUtil.convertToSimpleLocation(location))
+//                .stream()
+//                .map(Map.Entry::getValue)
+//                .map(Trigger::getInfo)
+//                .map(TriggerInfo::getTriggerName)
+//                .toArray(String[]::new);
+//    }
+//
+//    /**
+//     * Get the name of area trigger at the target location.
+//     * Since 2.1.8, as Area Triggers can overlap each other, there can be multiple result.
+//     * This method is left as is, but it will return only the first area found.
+//     * To get the full list of Area Triggers, use {@link #currentAreasAt(Location)}
+//     *
+//     * @param location the location to check
+//     * @return name of area; null if there is no area trigger at location
+//     * @deprecated this only return one AreaTrigger's name, yet there could be more
+//     */
+//    @Deprecated
+//    public String currentAreaAt(Location location) {
+//        String[] areaNames = currentAreasAt(location);
+//        return areaNames.length > 0 ? areaNames[0] : null;
+//    }
 
-    /**
-     * Get the name of area trigger at the target location.
-     * Since 2.1.8, as Area Triggers can overlap each other, there can be multiple result.
-     * This method is left as is, but it will return only the first area found.
-     * To get the full list of Area Triggers, use {@link #currentAreasAt(Location)}
-     *
-     * @param location the location to check
-     * @return name of area; null if there is no area trigger at location
-     * @deprecated this only return one AreaTrigger's name, yet there could be more
-     */
-    @Deprecated
-    public String currentAreaAt(Location location) {
-        String[] areaNames = currentAreasAt(location);
-        return areaNames.length > 0 ? areaNames[0] : null;
-    }
-
-    /**
-     * Get the name of area where entity is currently standing on.
-     * <p>
-     * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
-     * </p>
-     *
-     * @param entity any entity(including player)
-     * @return array of name of areas; array can be empty but never null.
-     */
-    public String[] currentAreas(Entity entity) {
-        return currentAreasAt(entity.getLocation());
-    }
-
-    /**
-     * Get list of entities tracked by this AreaTrigger.
-     *
-     * @param areaTriggerName name of AreaTrigger to get entities from
-     * @return List of entities. null if the AreaTrigger with specified name doesn't exist.
-     */
-    public List<Entity> getEntitiesInArea(String areaTriggerName) {
-        AreaTrigger trigger = areaManager.get(areaTriggerName);
-        if (trigger == null)
-            return null;
-
-        return trigger.getEntities()
-                .stream()
-                .filter(Entity.class::isInstance)
-                .map(Entity.class::cast)
-                .collect(Collectors.toList());
-    }
+//    /**
+//     * Get the name of area where entity is currently standing on.
+//     * <p>
+//     * Example) /trg run #MESSAGE "You are in the AreaTrigger named: "+currentArea(player)
+//     * </p>
+//     *
+//     * @param entity any entity(including player)
+//     * @return array of name of areas; array can be empty but never null.
+//     */
+//    public String[] currentAreas(Entity entity) {
+//        return currentAreasAt(entity.getLocation());
+//    }
+//
+//    /**
+//     * Get list of entities tracked by this AreaTrigger.
+//     *
+//     * @param areaTriggerName name of AreaTrigger to get entities from
+//     * @return List of entities. null if the AreaTrigger with specified name doesn't exist.
+//     */
+//    public List<Entity> getEntitiesInArea(String areaTriggerName) {
+//        AreaTrigger trigger = areaManager.get(areaTriggerName);
+//
+//        if (trigger == null)
+//            return null;
+//
+//        return trigger.getEntities()
+//                .stream()
+//                .filter(Entity.class::isInstance)
+//                .map(Entity.class::cast)
+//                .collect(Collectors.toList());
+//    }
 
     /**
      * Get title of the specified ItemStack. Empty String if not exist.
