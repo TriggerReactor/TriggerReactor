@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class LatestBukkitTriggerReactorTest {
+public class LegacyBukkitTriggerReactorTest {
     BukkitPluginMainComponent bukkitPluginMainComponent;
     PluginMainComponent pluginMainComponent;
 
@@ -35,7 +35,7 @@ public class LatestBukkitTriggerReactorTest {
         when(plugin.getDataFolder()).thenReturn(new File("build/tmp/test"));
 
         bukkitPluginMainComponent = DaggerBukkitPluginMainComponent.builder()
-                .pluginMainModule(LatestBukkitTriggerReactor.createModule(plugin, rawCommands))
+                .pluginMainModule(LegacyBukkitTriggerReactor.createModule(plugin, mock(CustomCommandHandle.class)))
                 .inject(mock(JavaPlugin.class))
                 .inject(server)
                 .inject(BukkitTestToolbox.createCommand(plugin))

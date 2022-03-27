@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 import static org.mockito.Mockito.mock;
 
-public class TriggerReactorMainTest {
+public class TriggerReactorTest {
 
     PluginMainComponent mainComponent;
 
@@ -43,6 +43,8 @@ public class TriggerReactorMainTest {
                 .scriptEngineManager(new ScriptEngineManager())
                 .selfReference(mock(SelfReference.class))
                 .wrapper(mock(IWrapper.class))
+                .commandName("test")
+                .permission("test")
                 .build();
 
         mainComponent = testComponent.getMainBuilder().build();
@@ -50,7 +52,7 @@ public class TriggerReactorMainTest {
 
     @Test
     public void onEnable() throws Exception {
-        TriggerReactorMain main = mainComponent.getMain();
+        TriggerReactor main = mainComponent.getMain();
 
         main.onEnable();
     }

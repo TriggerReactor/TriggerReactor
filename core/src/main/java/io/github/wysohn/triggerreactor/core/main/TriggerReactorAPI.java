@@ -36,116 +36,116 @@ import java.util.logging.Logger;
 public final class TriggerReactorAPI {
 
     public static AreaTriggerManager getAreaManager() {
-        return TriggerReactorMain.instance.areaManager;
+        return TriggerReactor.instance.areaManager;
     }
 
     public static AbstractLocationBasedTriggerManager<ClickTrigger> getClickManager() {
-        return TriggerReactorMain.instance.clickManager;
+        return TriggerReactor.instance.clickManager;
     }
 
     public static CommandTriggerManager getCmdManager() {
-        return TriggerReactorMain.instance.cmdManager;
+        return TriggerReactor.instance.cmdManager;
     }
 
     public static CustomTriggerManager getCustomManager() {
-        return TriggerReactorMain.instance.customManager;
+        return TriggerReactor.instance.customManager;
     }
 
     public static ExecutorManager getExecutorManager() {
-        return TriggerReactorMain.instance.executorManager;
+        return TriggerReactor.instance.executorManager;
     }
 
 
     public static ExternalAPIManager getExternalAPIManager() {
-        return TriggerReactorMain.instance.externalAPIManager;
+        return TriggerReactor.instance.externalAPIManager;
     }
 
     public static IGameController getGameController() {
-        return TriggerReactorMain.instance.gameController;
+        return TriggerReactor.instance.gameController;
     }
 
     public static InventoryEditManager getInvEditManager() {
-        return TriggerReactorMain.instance.invEditManager;
+        return TriggerReactor.instance.invEditManager;
     }
 
     public static PlayerLocationManager getLocationManager() {
-        return TriggerReactorMain.instance.locationManager;
+        return TriggerReactor.instance.locationManager;
     }
 
     public static NamedTriggerManager getNamedTriggerManager() {
-        return TriggerReactorMain.instance.namedTriggerManager;
+        return TriggerReactor.instance.namedTriggerManager;
     }
 
     public static PlaceholderManager getPlaceholderManager() {
-        return TriggerReactorMain.instance.placeholderManager;
+        return TriggerReactor.instance.placeholderManager;
     }
 
     public static PluginConfigManager getPluginConfigManager() {
-        return TriggerReactorMain.instance.pluginConfigManager;
+        return TriggerReactor.instance.pluginConfigManager;
     }
 
     public static RepeatingTriggerManager getRepeatManager() {
-        return TriggerReactorMain.instance.repeatManager;
+        return TriggerReactor.instance.repeatManager;
     }
 
     public static ScriptEditManager getScriptEditManager() {
-        return TriggerReactorMain.instance.scriptEditManager;
+        return TriggerReactor.instance.scriptEditManager;
     }
 
 
     public static ScriptEngineManager getScriptEngineManager() {
-        return TriggerReactorMain.instance.scriptEngineManager;
+        return TriggerReactor.instance.scriptEngineManager;
     }
 
     public static AreaSelectionManager getSelectionManager() {
-        return TriggerReactorMain.instance.selectionManager;
+        return TriggerReactor.instance.selectionManager;
     }
 
     public static SelfReference getSelfReference() {
-        return TriggerReactorMain.instance.selfReference;
+        return TriggerReactor.instance.selfReference;
     }
 
     public static TaskSupervisor getTaskSupervisor() {
-        return TriggerReactorMain.instance.taskSupervisor;
+        return TriggerReactor.instance.taskSupervisor;
     }
 
 
     public static IThrowableHandler getThrowableHandler() {
-        return TriggerReactorMain.instance.throwableHandler;
+        return TriggerReactor.instance.throwableHandler;
     }
 
     public static GlobalVariableManager getGlobalVariableManager() {
-        return TriggerReactorMain.instance.globalVariableManager;
+        return TriggerReactor.instance.globalVariableManager;
     }
 
     public static AbstractLocationBasedTriggerManager<WalkTrigger> getWalkTriggerManager() {
-        return TriggerReactorMain.instance.walkManager;
+        return TriggerReactor.instance.walkManager;
     }
 
     public static InventoryTriggerManager getInventoryTriggerManager() {
-        return TriggerReactorMain.instance.invManager;
+        return TriggerReactor.instance.invManager;
     }
 
 
     public static Logger logger() {
-        return TriggerReactorMain.instance.logger;
+        return TriggerReactor.instance.logger;
     }
 
 
     public static Object pluginInstance() {
-        return TriggerReactorMain.instance.pluginInstance;
+        return TriggerReactor.instance.pluginInstance;
     }
 
 
     public static IPluginLifecycleController pluginLifecycleController() {
-        return TriggerReactorMain.instance.pluginLifecycleController;
+        return TriggerReactor.instance.pluginLifecycleController;
     }
 
     public static IInventoryModifier inventoryModifier(){
-        return TriggerReactorMain.instance.inventoryModifier;
+        return TriggerReactor.instance.inventoryModifier;
     }
 
     public static IGUIOpenHelper guiOpenHelper() {
-        return TriggerReactorMain.instance.guiOpenHelper;
+        return TriggerReactor.instance.guiOpenHelper;
     }
 }

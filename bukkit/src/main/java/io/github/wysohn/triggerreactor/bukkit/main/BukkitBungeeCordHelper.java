@@ -5,17 +5,27 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import io.github.wysohn.triggerreactor.bukkit.scope.JavaPluginLifetime;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import javax.inject.Inject;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
-    private final BukkitTriggerReactorMain bukkitTriggerReactorMain;
+@JavaPluginLifetime
+public class BukkitBungeeCordHelper extends Manager implements PluginMessageListener, Runnable {
+    @Inject
+    Server server;
+    @Inject
+    Plugin plugin;
+
     private final String CHANNEL = "BungeeCord";
 
     private final String SUB_SERVERLIST = "ServerList";
@@ -23,14 +33,19 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
 
     private final Map<String, Integer> playerCounts = new ConcurrentHashMap<>();
 
-    /**
-     * constructor should only be called from onEnable()
-     */
-    BukkitBungeeCordHelper(BukkitTriggerReactorMain bukkitTriggerReactorMain) {
-        this.bukkitTriggerReactorMain = bukkitTriggerReactorMain;
-        bukkitTriggerReactorMain.server.getMessenger().registerOutgoingPluginChannel(bukkitTriggerReactorMain.plugin, CHANNEL);
-        bukkitTriggerReactorMain.server.getMessenger()
-                .registerIncomingPluginChannel(bukkitTriggerReactorMain.plugin, CHANNEL, this);
+    private Thread bungeeConnectionThread;
+
+    @Inject
+    BukkitBungeeCordHelper() {
+        server.getMessenger().registerOutgoingPluginChannel(plugin, CHANNEL);
+        server.getMessenger()
+                .registerIncomingPluginChannel(plugin, CHANNEL, this);
+    }
+
+    private void initBungeeHelper() {
+        bungeeConnectionThread = new Thread(this);
+        bungeeConnectionThread.setPriority(Thread.MIN_PRIORITY);
+        bungeeConnectionThread.start();
     }
 
     @Override
@@ -77,7 +92,7 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
             ByteArrayDataOutput out = ByteStreams.newDataOutput();
             out.writeUTF(SUB_SERVERLIST);
             out.writeUTF("GetServers");
-            player.sendPluginMessage(bukkitTriggerReactorMain.plugin, SUB_SERVERLIST, out.toByteArray());
+            player.sendPluginMessage(plugin, SUB_SERVERLIST, out.toByteArray());
 
             if (!playerCounts.isEmpty()) {
                 for (Map.Entry<String, Integer> entry : playerCounts.entrySet()) {
@@ -85,7 +100,7 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
                     out2.writeUTF(SUB_USERCOUNT);
                     out2.writeUTF("PlayerCount");
                     out2.writeUTF(entry.getKey());
-                    player.sendPluginMessage(bukkitTriggerReactorMain.plugin, SUB_USERCOUNT, out2.toByteArray());
+                    player.sendPluginMessage(plugin, SUB_USERCOUNT, out2.toByteArray());
                 }
             }
 
@@ -111,6 +126,21 @@ public class BukkitBungeeCordHelper implements PluginMessageListener, Runnable {
         out.writeUTF("Connect");
         out.writeUTF(serverName);
 
-        player.sendPluginMessage(bukkitTriggerReactorMain.plugin, CHANNEL, out.toByteArray());
+        player.sendPluginMessage(plugin, CHANNEL, out.toByteArray());
+    }
+
+    @Override
+    public void onDisable() {
+        bungeeConnectionThread.interrupt();
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+        initBungeeHelper();
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+
     }
 }

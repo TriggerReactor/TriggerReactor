@@ -40,11 +40,9 @@ import org.bukkit.plugin.PluginManager;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
 
-@Singleton
 public class BukkitEventRegistryManager extends Manager implements IEventRegistry {
     @Inject
     PluginManager pluginManager;

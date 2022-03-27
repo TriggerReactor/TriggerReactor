@@ -19,7 +19,10 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import dagger.Module;
 import dagger.Provides;
-import io.github.wysohn.triggerreactor.bukkit.main.*;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitGameController;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitInventoryModifier;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitPluginLifecycle;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTaskSupervisor;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.BukkitEventRegistryManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.BukkitGUIOpenHelper;
 import io.github.wysohn.triggerreactor.core.components.PluginMainComponent;
@@ -32,9 +35,10 @@ import io.github.wysohn.triggerreactor.core.manager.ResourceManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.IGUIOpenHelper;
+import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.modules.*;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -43,34 +47,41 @@ import org.bukkit.plugin.PluginManager;
 import javax.inject.Named;
 import javax.script.ScriptEngineManager;
 import java.io.File;
+import java.util.Map;
 import java.util.logging.Logger;
 
-@Module(subcomponents = PluginMainComponent.class)
+@Module(subcomponents = PluginMainComponent.class,
+        includes = {ConfigSourceFactoryModule.class,
+                    CoreTabCompleterModule.class,
+                    CoreManagerModule.class,
+                    CoreUtilModule.class,
+                    CoreScriptEngineInitializerModule.class})
 public class BukkitPluginMainModule {
     private final Plugin plugin;
     private final IWrapper wrapper;
     private final SelfReference reference;
     private final ScriptEngineManager scriptEngineManager;
+    private final Map<String, Class<? extends AbstractAPISupport>> apiProtoMap;
+    private final ICommandMapHandler commandMapHandler;
 
     public BukkitPluginMainModule(Plugin plugin,
                                   IWrapper wrapper,
                                   SelfReference reference,
-                                  ScriptEngineManager scriptEngineManager) {
+                                  ScriptEngineManager scriptEngineManager,
+                                  Map<String, Class<? extends AbstractAPISupport>> apiProtoMap,
+                                  ICommandMapHandler commandMapHandler) {
         this.plugin = plugin;
         this.wrapper = wrapper;
         this.reference = reference;
         this.scriptEngineManager = scriptEngineManager;
+        this.apiProtoMap = apiProtoMap;
+        this.commandMapHandler = commandMapHandler;
     }
 
     @Provides
     @Named("ItemStack")
     static Class<?> provideItemStackClass(){
         return ItemStack.class;
-    }
-
-    @Provides
-    static Server provideServer() {
-        return Bukkit.getServer();
     }
 
     @Provides
@@ -141,8 +152,13 @@ public class BukkitPluginMainModule {
     }
 
     @Provides
-    public ICommandMapHandler provideCommandMapHandler(BukkitCommandMapHandler handler) {
-        return handler;
+    public Map<String, Class<? extends AbstractAPISupport>> provideApiProtoMap(){
+        return apiProtoMap;
+    }
+
+    @Provides
+    public ICommandMapHandler provideCommandMapHandler() {
+        return commandMapHandler;
     }
 
     @Provides

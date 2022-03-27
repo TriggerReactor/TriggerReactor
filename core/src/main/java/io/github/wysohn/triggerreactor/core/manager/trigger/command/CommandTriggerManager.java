@@ -150,8 +150,17 @@ public class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger
         ICommand command;
         try {
             command = commandMapHandler.register(triggerName, trigger.getAliases());
-        } catch (ICommandMapHandler.Duplicated e) {
-            e.printStackTrace();
+        } catch (ICommandMapHandler.NotInstantiated ex1) {
+            if (pluginLifecycleController.isDebugging())
+                ex1.printStackTrace();
+
+            logger.warning(
+                    "Couldn't construct 'PluginCommand'. This may indicate that you are using very very old version "
+                            + "of Bukkit. Please report this to TR team, so we can work on it.");
+            logger.warning("Use /trg debug to see more details.");
+            return false;
+        } catch (ICommandMapHandler.Duplicated ex2) {
+            ex2.printStackTrace();
             return false;
         }
 
@@ -173,7 +182,16 @@ public class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger
     }
 
     protected void synchronizeCommandMap() {
-        commandMapHandler.synchronizeCommandMap();
+        try {
+            commandMapHandler.synchronizeCommandMap();
+        } catch (NoSuchMethodException e) {
+            if (pluginLifecycleController.isDebugging())
+                e.printStackTrace();
+
+            logger.warning("Couldn't find syncCommands(). This is not an error! Though, tab-completer"
+                    + " may not work with this error. Report to us if you believe this version has to support it.");
+            logger.warning("Use /trg debug to see more details.");
+        }
     }
 
     private void execute(Object event, IPlayer player, String cmd, String[] args, CommandTrigger trigger) {

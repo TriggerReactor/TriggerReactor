@@ -20,7 +20,7 @@ package io.github.wysohn.triggerreactor.core.main;
 /**
  * Provides plugin specific description and lifecycle controls.
  * <p>
- * It sounds like a duplicate of {@link TriggerReactorMain} but this interface
+ * It sounds like a duplicate of {@link TriggerReactor} but this interface
  * is specifically to control the lifecycle of the plugin, not the implementation
  * of the plugin functionality. Think it as if this interface is the 'meta' application
  * of the TriggerReactor plugin.

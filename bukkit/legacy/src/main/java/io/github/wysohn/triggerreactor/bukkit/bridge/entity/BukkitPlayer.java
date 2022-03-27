@@ -17,11 +17,9 @@
 package io.github.wysohn.triggerreactor.bukkit.bridge.entity;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -30,10 +28,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
 public class BukkitPlayer extends BukkitEntity implements IPlayer {
+    private final IWrapper wrapper;
     private final Player player;
 
     public BukkitPlayer(IWrapper wrapper, Player player) {
-        super(wrapper, player);
+        super(player);
+        this.wrapper = wrapper;
         this.player = player;
     }
 
@@ -99,7 +99,12 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     }
 
     @Override
-    public ILocation getLocation() {
-        return new BukkitLocation(player.getLocation());
+    public String getName() {
+        return player.getName();
+    }
+
+    @Override
+    public boolean isSneaking() {
+        return player.isSneaking();
     }
 }

@@ -3,7 +3,7 @@ package js.executor;
 //import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitBungeeCordHelper;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorMain;
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactor;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
@@ -817,7 +817,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testServer() throws Exception {
-        BukkitTriggerReactorMain plugin = mock(BukkitTriggerReactorMain.class);
+        BukkitTriggerReactor plugin = mock(BukkitTriggerReactor.class);
         BukkitBungeeCordHelper helper = mock(BukkitBungeeCordHelper.class);
         Player player = mock(Player.class);
 

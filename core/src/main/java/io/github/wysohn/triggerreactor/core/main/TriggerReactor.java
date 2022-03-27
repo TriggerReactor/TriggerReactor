@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  *
  * @author wysohn
  */
-public class TriggerReactorMain implements IPluginProcedure {
+public class TriggerReactor implements IPluginProcedure {
     @Inject
     @Named("PluginInstance")
     Object pluginInstance;
@@ -126,7 +126,7 @@ public class TriggerReactorMain implements IPluginProcedure {
     private boolean debugging = false;
 
     @Inject
-    TriggerReactorMain() {
+    TriggerReactor() {
         instance = this;
     }
 
@@ -185,5 +185,5 @@ public class TriggerReactorMain implements IPluginProcedure {
         }
     });
     // do not expose this. only to be access by TriggerReactorAPI
-    static TriggerReactorMain instance;
+    static TriggerReactor instance;
 }

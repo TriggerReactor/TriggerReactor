@@ -18,7 +18,9 @@
 package io.github.wysohn.triggerreactor.core.components;
 
 import dagger.Subcomponent;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.CommandHandler;
+import io.github.wysohn.triggerreactor.core.main.IWrapper;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.modules.*;
 import io.github.wysohn.triggerreactor.core.scope.PluginLifetime;
 
@@ -26,7 +28,6 @@ import io.github.wysohn.triggerreactor.core.scope.PluginLifetime;
  * The main component that injects all the dependencies.
  */
 @Subcomponent(modules = {ConfigSourceFactoryModule.class,
-                         ConstantsModule.class,
                          CommandModule.class,
                          CoreTriggerModule.class,
                          CoreManagerModule.class,
@@ -36,7 +37,11 @@ import io.github.wysohn.triggerreactor.core.scope.PluginLifetime;
                          CoreUtilModule.class})
 @PluginLifetime
 public interface PluginMainComponent {
-    TriggerReactorMain getMain();
+    TriggerReactor getMain();
+
+    CommandHandler getCommandHandler();
+
+    IWrapper getWrapper();
 
     @Subcomponent.Builder
     interface Builder{

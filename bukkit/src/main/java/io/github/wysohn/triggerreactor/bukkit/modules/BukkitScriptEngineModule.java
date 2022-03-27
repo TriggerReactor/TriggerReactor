@@ -21,7 +21,7 @@ import dagger.Lazy;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.IScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -56,7 +56,7 @@ public abstract class BukkitScriptEngineModule {
 
     @Provides
     @IntoSet
-    static IScriptEngineInitializer provideSharedVarsInitializer(Lazy<TriggerReactorMain> main) {
+    static IScriptEngineInitializer provideSharedVarsInitializer(Lazy<TriggerReactor> main) {
         return (sem) -> {
             for (Map.Entry<String, AbstractAPISupport> entry : main.get().getSharedVars().entrySet()) {
                 sem.put(entry.getKey(), entry.getValue());

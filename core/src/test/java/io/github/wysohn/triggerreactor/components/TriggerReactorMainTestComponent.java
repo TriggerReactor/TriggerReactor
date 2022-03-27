@@ -14,6 +14,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.IGUIOpenHe
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.modules.TriggerReactorMainTestModule;
+import io.github.wysohn.triggerreactor.scope.TestLifetime;
 
 import javax.inject.Named;
 import javax.script.ScriptEngineManager;
@@ -21,6 +22,7 @@ import java.io.File;
 import java.util.logging.Logger;
 
 @Component(modules = TriggerReactorMainTestModule.class)
+@TestLifetime
 public interface TriggerReactorMainTestComponent {
     PluginMainComponent.Builder getMainBuilder();
 
@@ -73,5 +75,11 @@ public interface TriggerReactorMainTestComponent {
 
         @BindsInstance
         Builder resourceManager(IResourceProvider resourceProvider);
+
+        @BindsInstance
+        Builder commandName(@Named("CommandName") String commandName);
+
+        @BindsInstance
+        Builder permission(@Named("Permission") String permission);
     }
 }

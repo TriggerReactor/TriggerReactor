@@ -1,53 +1,36 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import io.github.wysohn.triggerreactor.bukkit.scope.JavaPluginLifetime;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 
+import javax.inject.Inject;
 import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
-public class BukkitMysqlSupport {
-    private final String KEY = "dbkey";
-    private final String VALUE = "dbval";
+@JavaPluginLifetime
+public class BukkitMysqlSupport extends Manager {
+    @Inject
+    Logger logger;
+    @Inject
+    PluginConfigManager configManager;
 
-    private final MysqlConnectionPoolDataSource ds;
-    private final MiniConnectionPoolManager pool;
+    private String address;
+    private String dbName;
+    private String tableName;
 
-    private final String dbName;
-    private final String tablename;
+    private MysqlConnectionPoolDataSource ds;
+    private MiniConnectionPoolManager pool;
 
-    private final String address;
-    private final String CREATETABLEQUARY =
-            "CREATE TABLE IF NOT EXISTS %s (" + KEY + " CHAR(128) PRIMARY KEY," + VALUE
-                    + " MEDIUMBLOB)";
+    @Inject
+    BukkitMysqlSupport(){
 
-    BukkitMysqlSupport(String address, String dbName, String tablename, String userName, String password) throws
-            SQLException {
-        this.dbName = dbName;
-        this.tablename = tablename;
-        this.address = address;
-
-        ds = new MysqlConnectionPoolDataSource();
-        ds.setURL("jdbc:mysql://" + address + "/" + dbName);
-        ds.setUser(userName);
-        ds.setPassword(password);
-        ds.setCharacterEncoding("UTF-8");
-        ds.setUseUnicode(true);
-        ds.setAutoReconnectForPools(true);
-        ds.setAutoReconnect(true);
-        ds.setAutoReconnectForConnectionPools(true);
-
-        ds.setCachePreparedStatements(true);
-        ds.setCachePrepStmts(true);
-
-        pool = new MiniConnectionPoolManager(ds, 2);
-
-        Connection conn = createConnection();
-        initTable(conn);
-        conn.close();
     }
 
     private Connection createConnection() {
@@ -66,14 +49,14 @@ public class BukkitMysqlSupport {
     }
 
     private void initTable(Connection conn) throws SQLException {
-        PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tablename));
+        PreparedStatement pstmt = conn.prepareStatement(String.format(CREATETABLEQUARY, tableName));
         pstmt.executeUpdate();
         pstmt.close();
     }
 
     @Override
     public String toString() {
-        return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tablename + "]";
+        return "Mysql Connection(" + address + ") to [dbName=" + dbName + ", tablename=" + tableName + "]";
     }
 
     public Object get(String key) throws SQLException {
@@ -81,7 +64,7 @@ public class BukkitMysqlSupport {
 
         try (Connection conn = createConnection();
              PreparedStatement pstmt = conn.prepareStatement(
-                     "SELECT " + VALUE + " FROM " + tablename + " WHERE " + KEY + " = ?")) {
+                     "SELECT " + VALUE + " FROM " + tableName + " WHERE " + KEY + " = ?")) {
             pstmt.setString(1, key);
             ResultSet rs = pstmt.executeQuery();
 
@@ -102,7 +85,7 @@ public class BukkitMysqlSupport {
 
     public void set(String key, Serializable value) throws SQLException {
         try (Connection conn = createConnection();
-             PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tablename + " VALUES (?, ?)")) {
+             PreparedStatement pstmt = conn.prepareStatement("REPLACE INTO " + tableName + " VALUES (?, ?)")) {
 
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -120,4 +103,74 @@ public class BukkitMysqlSupport {
             }
         }
     }
+
+    @Override
+    public void onDisable() {
+
+    }
+
+    @Override
+    public void onEnable() throws Exception {
+
+    }
+
+    @Override
+    public void onReload() throws RuntimeException {
+        logger.info("Initializing Mysql support...");
+
+        if (!configManager.get("Mysql.Enable", Boolean.class).orElse(false)) {
+            String path = "Mysql.Enable";
+            if (!configManager.has(path))
+                configManager.put(path, false);
+            path = "Mysql.Address";
+            if (!configManager.has(path))
+                configManager.put(path, "127.0.0.1:3306");
+            path = "Mysql.DbName";
+            if (!configManager.has(path))
+                configManager.put(path, "TriggerReactor");
+            path = "Mysql.UserName";
+            if (!configManager.has(path))
+                configManager.put(path, "root");
+            path = "Mysql.Password";
+            if (!configManager.has(path))
+                configManager.put(path, "1234");
+        }
+
+        address = configManager.get("Mysql.Address", String.class).orElse(null);
+        dbName = configManager.get("Mysql.DbName", String.class).orElse(null);
+        tableName = "data";
+        String userName = configManager.get("Mysql.UserName", String.class).orElse(null);
+        String password = configManager.get("Mysql.Password", String.class).orElse(null);
+
+        ds = new MysqlConnectionPoolDataSource();
+        ds.setURL("jdbc:mysql://" + address + "/" + dbName);
+        ds.setUser(userName);
+        ds.setPassword(password);
+        ds.setCharacterEncoding("UTF-8");
+        ds.setUseUnicode(true);
+        ds.setAutoReconnectForPools(true);
+        ds.setAutoReconnect(true);
+        ds.setAutoReconnectForConnectionPools(true);
+
+        ds.setCachePreparedStatements(true);
+        ds.setCachePrepStmts(true);
+
+        pool = new MiniConnectionPoolManager(ds, 2);
+
+        Connection conn = createConnection();
+        try{
+            initTable(conn);
+            conn.close();
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+        logger.info("Done!");
+    }
+
+    private static final String KEY = "dbkey";
+    private static final String VALUE = "dbval";
+    private static final String CREATETABLEQUARY =
+            "CREATE TABLE IF NOT EXISTS %s (" + KEY + " CHAR(128) PRIMARY KEY," + VALUE
+                    + " MEDIUMBLOB)";
 }

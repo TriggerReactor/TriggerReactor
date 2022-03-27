@@ -8,7 +8,7 @@ public interface ICommandMapHandler {
      * any effect depending on the underlying implementation (ex. Bukkit API vs Sponge
      * vs etc.)
      */
-    void synchronizeCommandMap();
+    void synchronizeCommandMap() throws NoSuchMethodException;
 
     /**
      * Unregister the command.
@@ -29,7 +29,7 @@ public interface ICommandMapHandler {
      * @param commandName name of the command
      * @return the handle for the registered command.
      */
-    default ICommand register(String commandName) throws Duplicated {
+    default ICommand register(String commandName) throws Duplicated, NotInstantiated {
         return register(commandName, new String[0]);
     }
 
@@ -39,12 +39,18 @@ public interface ICommandMapHandler {
      * @param aliases aliases of the command
      * @return the handle for the registered command.
      */
-    ICommand register(String commandName, String[] aliases) throws Duplicated;
+    ICommand register(String commandName, String[] aliases) throws Duplicated, NotInstantiated;
 
 
     class Duplicated extends Exception {
         public Duplicated(String message) {
             super(message);
+        }
+    }
+
+    class NotInstantiated extends Exception {
+        public NotInstantiated(Throwable cause) {
+            super(cause);
         }
     }
 }

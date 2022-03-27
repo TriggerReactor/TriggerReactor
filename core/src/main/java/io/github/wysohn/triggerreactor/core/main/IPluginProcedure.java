@@ -35,4 +35,13 @@ public interface IPluginProcedure {
      * Invoked every time /trg reload command is used
      */
     void onReload() throws RuntimeException;
+
+    /**
+     * Check if failing {@link #onEnable()} on this instance cause
+     * the entire plugin to be disabled.
+     * @return true if the plugin should be disabled; false to keep running.
+     */
+    default boolean haltWhenOnEnableFailed(){
+        return true;
+    }
 }

@@ -2,42 +2,57 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommand;
 import io.github.wysohn.triggerreactor.core.bridge.ICommand;
-import io.github.wysohn.triggerreactor.core.main.IPluginLifecycleController;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ICommandMapHandler;
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.Plugin;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 
-public class BukkitCommandMapHandler implements ICommandMapHandler {
-    @Inject
-    @Named("PluginInstance")
-    Object pluginInstance;
-    @Inject
-    Logger logger;
-    @Inject
-    Map<String, Command> commandMap;
-    @Inject
-    IPluginLifecycleController pluginLifecycleController;
+public class LatestBukkitCommandMapHandler implements ICommandMapHandler {
+    private final Plugin pluginInstance;
+    private final Map<String, Command> commandMap;
 
     private final Map<String, Command> overridens = new HashMap<>();
     private Constructor<PluginCommand> pluginCommandConstructor;
 
-    @Inject
-    BukkitCommandMapHandler() {
+    private Method syncMethod = null;
+    private boolean notFound = false;
 
+    public LatestBukkitCommandMapHandler(Plugin pluginInstance,
+                                         Map<String, Command> commandMap) {
+        this.pluginInstance = pluginInstance;
+        this.commandMap = commandMap;
     }
 
     @Override
-    public void synchronizeCommandMap() {
+    public void synchronizeCommandMap() throws NoSuchMethodException {
+        if (notFound) // in case of the syncCommands method doesn't exist, just skip it
+            return; // command still works without synchronization anyway
 
+        Server server = Bukkit.getServer();
+        if (syncMethod == null) {
+            try {
+                syncMethod = server.getClass().getDeclaredMethod("syncCommands");
+                syncMethod.setAccessible(true);
+            } catch (NoSuchMethodException e) {
+                notFound = true;
+                throw e;
+            }
+        }
+
+        try {
+            syncMethod.invoke(server);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -68,7 +83,7 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
     }
 
     @Override
-    public ICommand register(String triggerName, String[] aliases) throws Duplicated {
+    public ICommand register(String triggerName, String[] aliases) throws Duplicated, NotInstantiated {
         if (commandExist(triggerName))
             throw new Duplicated(triggerName);
 
@@ -86,21 +101,15 @@ public class BukkitCommandMapHandler implements ICommandMapHandler {
         return iCommand;
     }
 
-    private PluginCommand createCommand(String commandName) {
+    private PluginCommand createCommand(String commandName) throws NotInstantiated {
         try {
             if (pluginCommandConstructor == null) {
                 pluginCommandConstructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
                 pluginCommandConstructor.setAccessible(true);
             }
             return pluginCommandConstructor.newInstance(commandName, pluginInstance);
-        } catch (Exception ex) {
-            if (pluginLifecycleController.isDebugging())
-                ex.printStackTrace();
-
-            logger.warning(
-                    "Couldn't construct 'PluginCommand'. This may indicate that you are using very very old version of Bukkit. Please report this to TR team, so we can work on it.");
-            logger.warning("Use /trg debug to see more details.");
-            return null;
+        } catch (Exception e) {
+            throw new NotInstantiated(e);
         }
     }
 }

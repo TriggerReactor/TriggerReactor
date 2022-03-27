@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.TestCommonFunctions;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.mock;
  */
 @RunWith(Parameterized.class)
 public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<AbstractCommonFunctions> {
-    protected TriggerReactorMain mockMain;
+    protected TriggerReactor mockMain;
     protected PluginManager mockPluginManager;
     protected ItemFactory mockItemFactory;
     protected World mockWorld;
@@ -69,7 +69,7 @@ public abstract class AbstractTestCommonFunctions extends TestCommonFunctions<Ab
 
     @Before
     public void init() throws Exception {
-        mockMain = mock(TriggerReactorMain.class);
+        mockMain = mock(TriggerReactor.class);
         mockItemFactory = mock(ItemFactory.class);
         mockPluginManager = mock(PluginManager.class);
         mockWorld = mock(World.class);

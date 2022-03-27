@@ -17,11 +17,11 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
 import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 
 /**
  * Abstract representation of API support. The child classes must have at least one constructor with one argument,
- * {@link TriggerReactorMain}, to make it work properly.
+ * {@link TriggerReactor}, to make it work properly.
  *
  * @author wysohn
  */

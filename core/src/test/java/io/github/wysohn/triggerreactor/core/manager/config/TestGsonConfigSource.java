@@ -6,7 +6,7 @@ import io.github.wysohn.gsoncopy.internal.LinkedTreeMap;
 import io.github.wysohn.gsoncopy.reflect.TypeToken;
 import io.github.wysohn.triggerreactor.core.config.serialize.Serializer;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorMain;
+import io.github.wysohn.triggerreactor.core.main.TriggerReactor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -33,14 +33,14 @@ public class TestGsonConfigSource {
                     + Serializer.SER_VALUE + "\":{\n         \"s\":\"some string\",\n         \"i\":22,\n"
                     + "         \"d\":88.8,\n         \"b\":false\n      }\n   }\n}";
 
-    private TriggerReactorMain mockMain;
+    private TriggerReactor mockMain;
     private File mockFile;
     private StringWriter stringWriter;
     private GsonConfigSource manager;
 
     @Before
     public void init() {
-        mockMain = Mockito.mock(TriggerReactorMain.class);
+        mockMain = Mockito.mock(TriggerReactor.class);
         mockFile = Mockito.mock(File.class);
         stringWriter = new StringWriter();
 
