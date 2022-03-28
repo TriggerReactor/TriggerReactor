@@ -16,6 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
+import io.github.wysohn.triggerreactor.core.script.interpreter.IPlaceholderMap;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
@@ -28,9 +29,11 @@ import javax.script.ScriptException;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-public class PlaceholderManager extends AbstractJavascriptBasedManager implements KeyValueManager<Placeholder> {
+public class PlaceholderManager extends AbstractJavascriptBasedManager
+        implements KeyValueManager<Placeholder>, IPlaceholderMap {
     @Inject
     IResourceProvider resourceProvider;
     @Inject
@@ -39,7 +42,7 @@ public class PlaceholderManager extends AbstractJavascriptBasedManager implement
     @Named("DataFolder")
     File dataFolder;
 
-    protected Map<String, Placeholder> jsPlaceholders = new HashMap<>();
+    protected Map<String, Placeholder> jsPlaceholders = new ConcurrentHashMap<>();
     private File placeholderFolder;
 
     @Inject

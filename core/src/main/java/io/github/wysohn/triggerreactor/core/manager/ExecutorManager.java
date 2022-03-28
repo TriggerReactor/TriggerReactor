@@ -17,9 +17,9 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
 import io.github.wysohn.triggerreactor.core.main.IWrapper;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.IExecutorMap;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
@@ -33,9 +33,11 @@ import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-public class ExecutorManager extends AbstractJavascriptBasedManager implements IPluginProcedure, KeyValueManager<Executor> {
+public class ExecutorManager extends AbstractJavascriptBasedManager
+        implements KeyValueManager<Executor>, IExecutorMap {
     @Inject
     IResourceProvider resourceProvider;
     @Inject
@@ -47,7 +49,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements I
     File dataFolder;
     @Inject
     IWrapper wrapper;
-    protected Map<String, Executor> jsExecutors = new HashMap<>();
+    protected Map<String, Executor> jsExecutors = new ConcurrentHashMap<>();
     private File executorFolder;
 
     @Inject
@@ -155,8 +157,11 @@ public class ExecutorManager extends AbstractJavascriptBasedManager implements I
 
                 return null;
             }
-
         });
+
+        jsExecutors.put("STOP", (timing, localContext, vars, args) -> Executor.STOP);
+        jsExecutors.put("BREAK", (timing, localContext, vars, args) -> Executor.BREAK);
+        jsExecutors.put("CONTINUE", (timing, localContext, vars, args) -> Executor.CONTINUE);
     }
 
     /**

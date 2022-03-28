@@ -200,16 +200,18 @@ public class Interpreter {
         }
     }
 
+    @Deprecated
     public Map<String, Executor> getExecutorMap() {
-        return globalContext.executorMap;
+        throw new RuntimeException("Deprecated");
     }
 
     public Map<Object, Object> getGvars() {
         return globalContext.gvars;
     }
 
+    @Deprecated
     public Map<String, Placeholder> getPlaceholderMap() {
-        return globalContext.placeholderMap;
+        throw new RuntimeException("Deprecated");
     }
 
     public SelfReference getSelfReference() {
@@ -1307,12 +1309,10 @@ public class Interpreter {
             }
         });
 
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
         InterpreterGlobalContext globalContext = new InterpreterGlobalContext();
-        globalContext.placeholderMap.putAll(placeholderMap);
         globalContext.gvars = gvars;
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO, null), globalContext);

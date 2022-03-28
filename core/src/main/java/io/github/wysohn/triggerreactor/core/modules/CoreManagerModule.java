@@ -5,9 +5,17 @@ import dagger.Module;
 import dagger.multibindings.IntoSet;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.selection.AreaSelectionManager;
+import io.github.wysohn.triggerreactor.core.script.interpreter.IExecutorMap;
+import io.github.wysohn.triggerreactor.core.script.interpreter.IPlaceholderMap;
 
 @Module
 public abstract class CoreManagerModule {
+    @Binds
+    abstract IPlaceholderMap bindPlaceholderMap(PlaceholderManager manager);
+
+    @Binds
+    abstract IExecutorMap bindExecutorMap(ExecutorManager manager);
+
     @Binds
     @IntoSet
     abstract Manager bindIntoSetGlobalVariableManager(GlobalVariableManager manager);
