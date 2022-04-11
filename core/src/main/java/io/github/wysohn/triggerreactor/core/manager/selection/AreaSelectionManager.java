@@ -20,10 +20,12 @@ import io.github.wysohn.triggerreactor.core.main.IPluginProcedure;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.scope.PluginLifetime;
 
 import javax.inject.Inject;
 import java.util.*;
 
+@PluginLifetime
 public class AreaSelectionManager extends Manager implements IPluginProcedure {
     protected final Set<UUID> selecting = new HashSet<>();
     protected final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();

@@ -377,7 +377,7 @@ public class TriggerCommand {
                 builder.leaf("create", (sender, spaces) -> {
                             sender.sendMessage(StringUtils.spaces(spaces) + "&b/triggerreactor[trg] inventory[i] " +
                                     "create "
-                                    + "<inventory name> " + "<size> [...] "
+                                    + "<inventory name> <size> [...] "
                                     + "&8- &7create a new inventory. <size> must be multiple of 9. The " + "<size> "
                                     + "cannot be larger than 54");
                             sender.sendMessage(StringUtils.spaces(spaces) + "  &7/trg i MyInventory create 54");

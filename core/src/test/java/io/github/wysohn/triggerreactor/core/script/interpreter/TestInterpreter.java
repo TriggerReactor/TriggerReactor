@@ -530,15 +530,7 @@ public class TestInterpreter {
 
         prepareExecutorMap(executorMap);
         Interpreter interpreter = new Interpreter(root);
-        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                .putExecutors(executorMap)
-                .task(mockTask)
-                .selfReference(new SelfReference() {
-                    public float toFloat(Number number) {
-                        return number.floatValue();
-                    }
-                })
-                .build();
+        InterpreterGlobalContext globalContext = component.globalContext();
         InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
 
         interpreter.start(localContext, globalContext);
@@ -1634,13 +1626,7 @@ public class TestInterpreter {
 
         prepareExecutorMap(executorMap);
         Interpreter interpreter = new Interpreter(root);
-        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                .putExecutors(executorMap)
-                .putPlaceholders(placeholderMap)
-                .putGlobalVariables(gvars)
-                .selfReference(new CommonFunctions())
-                .task(mockTask)
-                .build();
+        InterpreterGlobalContext globalContext = component.globalContext();
 
         interpreter.start(new InterpreterLocalContext(Timings.LIMBO), globalContext);
 
@@ -1669,13 +1655,7 @@ public class TestInterpreter {
 
         prepareExecutorMap(executorMap);
         Interpreter interpreter = new Interpreter(root);
-        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                .putExecutors(executorMap)
-                .putPlaceholders(placeholderMap)
-                .putGlobalVariables(gvars)
-                .selfReference(new CommonFunctions())
-                .task(mockTask)
-                .build();
+        InterpreterGlobalContext globalContext = component.globalContext();
 
         InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
         localContext.putAllVars(vars);
@@ -1729,15 +1709,7 @@ public class TestInterpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         prepareExecutorMap(executorMap);
         Interpreter interpreter = new Interpreter(root);
-        InterpreterGlobalContext globalContext = InterpreterGlobalContext.Builder.begin()
-                .putExecutors(executorMap)
-                .selfReference(new SelfReference() {
-                    public Object array(int size) {
-                        return new Object[size];
-                    }
-                })
-                .task(mockTask)
-                .build();
+        InterpreterGlobalContext globalContext = component.globalContext();
 
         InterpreterLocalContext localContext = new InterpreterLocalContext(Timings.LIMBO);
         interpreter.start(localContext, globalContext);

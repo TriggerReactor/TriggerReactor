@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.selection;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.scope.PluginLifetime;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+@PluginLifetime
 public class LocationSelectionManager extends Manager {
     @Inject
     @Named("Permission")

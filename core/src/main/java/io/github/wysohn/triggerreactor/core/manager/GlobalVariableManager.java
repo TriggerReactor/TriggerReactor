@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactories;
 import io.github.wysohn.triggerreactor.core.config.source.DelegatedConfigSource;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.scope.PluginLifetime;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TemporaryGlobalVariableKey;
 
 import javax.inject.Inject;
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+@PluginLifetime
 public class GlobalVariableManager extends Manager implements IMigratable {
     @Inject
     ConfigSourceFactories configSourceFactories;
