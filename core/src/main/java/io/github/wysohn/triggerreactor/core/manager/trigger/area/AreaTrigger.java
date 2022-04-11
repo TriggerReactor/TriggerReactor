@@ -21,6 +21,12 @@ public class AreaTrigger extends Trigger {
     private final Map<UUID, WeakReference<Object>> trackedEntities = new ConcurrentHashMap<>();
     private EnterTrigger enterTrigger;
     private ExitTrigger exitTrigger;
+
+    // this is a temporary variable due to the construction of Trigger class.
+    // The execution takes steps: activate -> startInterpretation
+    // so in activate(), we store the type (ENTER or EXIT), we call activate() of the
+    // parent implementation, and the parent implementation will call the startInterpretation()
+    // of this trigger (cause we override it).
     private AreaTriggerManager.EventType type = null;
 
     @AssistedInject
@@ -55,23 +61,6 @@ public class AreaTrigger extends Trigger {
         return null;
     }
 
-    //intercept and pass interpretation to appropriate trigger
-    @Override
-    protected void startInterpretation(Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-        switch (type) {
-            case ENTER:
-                if (getEnterTrigger() != null)
-                    getEnterTrigger().activate(scriptVars);
-                break;
-            case EXIT:
-                if (getExitTrigger() != null)
-                    getExitTrigger().activate(scriptVars);
-                break;
-            default:
-                throw new RuntimeException("Unknown area event type " + type);
-        }
-    }
-
     @Override
     protected String getTimingId() {
         return StringUtils.dottedPath(super.getTimingId(), getArea().toString());
@@ -87,11 +76,11 @@ public class AreaTrigger extends Trigger {
         SimpleLocation smallest = info.getConfig()
                 .get(SMALLEST, String.class)
                 .map(SimpleLocation::valueOf)
-                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+                .orElseGet(() -> new SimpleLocation(null, 0, 0, 0));
         SimpleLocation largest = info.getConfig()
                 .get(LARGEST, String.class)
                 .map(SimpleLocation::valueOf)
-                .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+                .orElseGet(() -> new SimpleLocation(null, 0, 0, 0));
 
         return new Area(smallest, largest);
     }
@@ -128,10 +117,33 @@ public class AreaTrigger extends Trigger {
         this.exitTrigger = exitTrigger;
     }
 
+    /**
+     * Almost delegate of the activate() of Trigger class, but we need to store the type.
+     * @param scriptVars
+     * @param type
+     */
     public void activate(Map<String, Object> scriptVars, AreaTriggerManager.EventType type) {
         this.type = type;
 
+        // This will invoke the startInterpretation() of this trigger.
         super.activate(scriptVars);
+    }
+
+    //intercept and flow the execution to appropriate trigger (enter or exit)
+    @Override
+    protected void startInterpretation(Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+        switch (type) {
+            case ENTER:
+                if (getEnterTrigger() != null)
+                    getEnterTrigger().activate(scriptVars);
+                break;
+            case EXIT:
+                if (getExitTrigger() != null)
+                    getExitTrigger().activate(scriptVars);
+                break;
+            default:
+                throw new RuntimeException("Unknown area event type " + type);
+        }
     }
 
     public void addEntity(UUID entityUuid, Object entity) {
@@ -187,9 +199,8 @@ public class AreaTrigger extends Trigger {
     public boolean isSync() {
         return info.isSync();
     }
-    protected static final String SMALLEST = "Smallest";
-    protected static final String LARGEST = "Largest";
-    protected static final String SYNC = "Sync";
+    protected static final String SMALLEST = "smallest";
+    protected static final String LARGEST = "largest";
 
     public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
