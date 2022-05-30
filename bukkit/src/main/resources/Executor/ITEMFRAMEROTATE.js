@@ -1,43 +1,40 @@
-/*******************************************************************************
- *     Copyright (C) 2017 soliddanii
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
- function ITEMFRAMEROTATE(args) {
-	if (args.length == 2 || args.length == 4) {
-		var Rotation = Java.type('org.bukkit.Rotation');
-		var location;
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var Entity = Java.type('org.bukkit.entity.Entity');
+var Location = Java.type('org.bukkit.Location');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 
-		if(args.length == 2){
-			location = args[1];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
-		}
+var validation = {
+  overloads: [
+    [
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
+      { type: ItemStack.class, name: 'item' },
+    ],
+    [
+      { type: Location.class, name: 'location' },
+      { type: ItemStack.class, name: 'item' },
+    ],
+  ],
+};
 
-		Block = location.getBlock();
+function ITEMFRAMEROTATE(args) {
+  var location, item;
 
-		for each (Entity in Block.getWorld().getNearbyEntities(Block.getLocation(), 2, 2, 2)){
-			if(typeof Entity.setItem == 'function'){
-				Entity.setRotation(Rotation.valueOf(args[0].toUpperCase()));
-			}
-		}
+  if (overload === 0) {
+    location = new Location(
+      player instanceof Entity ? player.getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    item = args[3];
+  } else if (overload === 1) {
+    location = args[0];
+    item = args[1];
+  }
 
-
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Rotation<string>, Location<location or number number number>]');
-	}
-	return null;
+  for each(var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
+    if (entity.getType().getEntityClass().getSimpleName() === 'ItemFrame')
+      entity.setRotation(entity.getRotation().rotateClockwise())
 }

@@ -1,28 +1,28 @@
-validation =  {
-	"overloads" : [
-		[],
-		[{"type": "string", "name": "effect type"}]
-	]
-}
+var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
 
-function CLEARPOTION(args){
-	if(player === null)
-		return null;
+var validation = {
+  overloads: [
+    [],
+    [{ type: 'string', name: 'effect' }],
+    [{ type: PotionEffectType.class, name: 'effect' }],
+  ],
+};
 
-	if(overload === 0){
-		var activeEffects = player.getActivePotionEffects();
-		for(var iter = activeEffects.iterator(); iter.hasNext();){
-			var type = iter.next().getType();
-			player.removePotionEffect(type);
-		}
-	}else{
-		var typeName = args[0].toUpperCase();
-		var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
-		var type = PotionEffectType.getByName(typeName);
-		
-		if(type == null)
-			throw new Error("Invalid PotionEffectType named "+typeName);
-			
-		player.removePotionEffect(type);
-	}
+function CLEARPOTION(args) {
+  var effect;
+
+  if (!(player instanceof Player)) return null;
+
+  if (overload === 0) {
+    for each (var effect in player.getActivePotionEffects())
+      player.removePotionEffect(effect.getType());
+
+    return null;
+  } else if (overload === 1) {
+    effect = PotionEffectType.getByName(args[0]);
+  } else if (overload === 2) {
+    effect = args[0];
+  }
+
+  player.removePotionEffect(effect);
 }

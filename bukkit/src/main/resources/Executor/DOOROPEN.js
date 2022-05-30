@@ -1,48 +1,37 @@
-/*******************************************************************************
- *     Copyright (C) 2017 soliddanii
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
- *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
- function DOOROPEN(args) {
-	if (args.length == 1 || args.length == 3) {
-		var location;
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var Entity = Java.type('org.bukkit.entity.Entity');
+var Location = Java.type('org.bukkit.Location');
+var Openable = Java.type('org.bukkit.block.data.Openable');
 
-		if(args.length == 1){
-			location = args[0];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
-		}
+var validation = {
+  overloads: [
+    [{ type: Location.class, name: 'location' }],
+    [
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
+    ],
+  ],
+};
 
-		try{
-			Block = location.getBlock();
-			BlockState = Block.getState();
-			Openable = BlockState.getData();
-			Openable.setOpen(true);
-			
-			BlockState.setData(Openable);
-			BlockState.update();
+function DOOROPEN(args) {
+  var location;
 
-		}catch(err){
-			throw new Error(
-				'Invalid door. That block is not a valid door!');
-		}
-        
+  if (overload === 0) location = args[0];
+  else if (overload === 1)
+    location = new Location(
+      player instanceof Entity ? player.getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
-	}
-	return null;
+  var block = location.getBlock();
+  var blockData = block.getBlockData();
+
+  if (!(blockData instanceof Openable))
+    throw new Error('This block is not openable block.');
+
+  blockData.setOpen(true);
+  block.setBlockData(blockData);
 }
