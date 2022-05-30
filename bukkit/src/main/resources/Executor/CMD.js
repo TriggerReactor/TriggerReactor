@@ -4,7 +4,7 @@ var PlayerCommandPreprocessEvent = Java.type(
 );
 
 function CMD(args) {
-  if (!(p instanceof Player)) return null;
+  if (!(player instanceof Player)) return null;
 
   var event = new PlayerCommandPreprocessEvent(player, '/' + args[0]);
 

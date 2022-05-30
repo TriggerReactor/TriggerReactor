@@ -11,7 +11,7 @@ var validation = {
 function CLEARPOTION(args) {
   var effect;
 
-  if (!(p instanceof Player)) return null;
+  if (!(player instanceof Player)) return null;
 
   if (overload === 0) {
     for each (var effect in player.getActivePotionEffects())
