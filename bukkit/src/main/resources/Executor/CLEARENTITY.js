@@ -1,12 +1,13 @@
-var validation = {
-  overloads: [[{ type: 'number', minimum: 0, name: 'radius' }]],
-};
+function CLEARENTITY(args){
+	if(player === null)
+		return null;
+		
+	if(args.length != 1 || typeof args[0] !== "number")
+		throw new Error("Invalid parameters! [Number]");
 
-function CLEARENTITY(args) {
-  var radius = args[0];
-
-  if (!(player instanceof Player)) return null;
-
-  for each (var entity in player.getNearbyEntities(args[0], args[0], args[0]))
-    entity.remove();
+	var near = player.getNearbyEntities(args[0], args[0], args[0]);
+	for(var i = 0; i < near.size(); i++){
+		var entity = near.get(i);
+		entity.remove();
+	}
 }

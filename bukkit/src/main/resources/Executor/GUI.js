@@ -1,28 +1,26 @@
-var Player = Java.type('org.bukkit.entity.Player');
-
-var validation = {
-  overloads: [
-    [{ type: 'string', name: 'name' }],
-    [
-      { type: Player.class, name: 'player' },
-      { type: 'string', name: 'name' },
-    ],
-  ],
-};
-
-function GUI(args) {
-  var p = player;
-  var name;
-
-  if (overload === 0)
-    name = args[0];
-  else if (overload === 1) {
-    p = args[0];
-    name = args[1];
-  }
-
-  if (!(p instanceof Player)) return null;
-
-  if (plugin.getInvManager().openGUI(p, name) === null)
-    throw new Error('No such Inventory Trigger named ' + name);
+/*******************************************************************************
+ *     Copyright (C) 2018 wysohn
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
+function GUI(args){
+	if(args.length < 1)
+		throw new Error("Invalid parameters. Need [String]");
+	
+	var guiName = args[0];
+	
+	var inventory = plugin.getInvManager().openGUI(player, guiName);
+	if(inventory == null)
+		throw new Error("No such Inventory Trigger named "+guiName);
 }

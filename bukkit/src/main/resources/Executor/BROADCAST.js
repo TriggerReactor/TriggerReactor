@@ -1,17 +1,45 @@
-var Bukkit = Java.type('org.bukkit.Bukkit');
-var ChatColor = Java.type('org.bukkit.ChatColor');
+/*******************************************************************************
+ *     Copyright (C) 2017 wysohn
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+var ChatColor = Java.type('org.bukkit.ChatColor')
+var Bukkit = Java.type('org.bukkit.Bukkit')
+var BukkitUtil = Java.type('io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil')
 
 function BROADCAST(args) {
-  var PlaceholderAPI;
-  var msg = '';
+	var str = "";
+	for (var i = 0; i < args.length; i++)
+		str += args[i];
 
-  for each (var str in args)
-    msg += str;
-  msg = ChatColor.translateAlternateColorCodes('&', msg);
+	str = ChatColor.translateAlternateColorCodes(Char('&'), str);
 
-  if (Bukkit.getPluginManager().isPluginEnabled('PlaceholderAPI'))
-    PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+	var PlaceholderAPI;
+	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+		PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+	}
 
-  for each (var p in Bukkit.getOnlinePlayers())
-    p.sendMessage(PlaceholderAPI ? PlaceholderAPI.setPlaceholders(p, msg) : msg);
+	var players = BukkitUtil.getOnlinePlayers();
+	for (var iter = players.iterator(); iter.hasNext();) {
+		var p = iter.next();
+		if (PlaceholderAPI) {
+			p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
+		} else {
+			p.sendMessage(str);
+		}
+	}
+
+	return null;
 }
