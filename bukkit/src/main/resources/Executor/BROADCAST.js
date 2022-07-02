@@ -31,10 +31,10 @@ function BROADCAST(args) {
 
   message = ChatColor.translateAlternateColorCodes("&", message);
 
-	for each (var p in Bukkit.getOnlinePlayers()) {
+	for each (var target in Bukkit.getOnlinePlayers()) {
 		if (PlaceholderAPI)
-			message = PlaceholderAPI.setPlaceholders(p, message);
-		p.sendMessage(message);
+			message = PlaceholderAPI.setPlaceholders(target, message);
+		target.sendMessage(message);
 	}
 
   return null;

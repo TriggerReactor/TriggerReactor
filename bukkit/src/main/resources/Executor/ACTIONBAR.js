@@ -32,24 +32,23 @@ var validation = {
 };
 
 function ACTIONBAR(args) {
-  var p, message;
+  var target, message;
 
   if (overload === 0) {
-    p = player;
+    target = player;
     message = args[0];
   } else if (overload === 1) {
-    p = args[0];
+    target = args[0];
     message = args[1];
   }
 
-  if (!p) return null;
+  if (!target) return null;
 
   message = ChatColor.translateAlternateColorCodes("&", message);
 
-  p.spigot().sendMessage(
-    ChatMessageType.ACTION_BAR,
-    new TextComponent(message)
-  );
+  target
+    .spigot()
+    .sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
 
   return null;
 }

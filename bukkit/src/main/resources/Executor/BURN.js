@@ -29,21 +29,21 @@ var validation = {
 };
 
 function BURN(args) {
-  var p, second;
+  var target, second;
 
   if (overload === 0) {
-    p = player;
+    target = player;
     second = args[0];
   } else if (overload === 1) {
-    p = args[0];
+    target = args[0];
     second = args[1];
   }
 
-  if (!p) return null;
+  if (!target) return null;
 
   second *= 20;
 
-  p.setFireTicks(second);
+  target.setFireTicks(second);
 
   return null;
 }
