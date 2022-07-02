@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -15,31 +16,26 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var ChatColor = Java.type('org.bukkit.ChatColor')
-var Bukkit = Java.type('org.bukkit.Bukkit')
-var BukkitUtil = Java.type('io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil')
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ChatColor = Java.type("org.bukkit.ChatColor");
+
+var validation = {
+  overloads: [[{ type: "string", name: "message" }]],
+};
 
 function BROADCAST(args) {
-	var str = "";
-	for (var i = 0; i < args.length; i++)
-		str += args[i];
+  var message = args[0];
 
-	str = ChatColor.translateAlternateColorCodes(Char('&'), str);
+  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
+    var PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
 
-	var PlaceholderAPI;
-	if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-		PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+  message = ChatColor.translateAlternateColorCodes("&", message);
+
+	for each (var p in Bukkit.getOnlinePlayers()) {
+		if (PlaceholderAPI)
+			message = PlaceholderAPI.setPlaceholders(p, message);
+		p.sendMessage(message);
 	}
 
-	var players = BukkitUtil.getOnlinePlayers();
-	for (var iter = players.iterator(); iter.hasNext();) {
-		var p = iter.next();
-		if (PlaceholderAPI) {
-			p.sendMessage(PlaceholderAPI.setPlaceholders(p, str));
-		} else {
-			p.sendMessage(str);
-		}
-	}
-
-	return null;
+  return null;
 }

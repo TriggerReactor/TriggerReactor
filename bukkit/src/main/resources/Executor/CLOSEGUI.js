@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,10 +15,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function CLOSEGUI(args){
-	if(player == null)
-		return null;
-		
-	player.closeInventory();
-	return null;
+
+var validation = {
+  overloads: [[]],
+};
+
+function CLOSEGUI(args) {
+  if (!player) return null;
+
+  player.closeInventory();
+
+  return null;
 }

@@ -1,28 +1,34 @@
-validation =  {
-	"overloads" : [
-		[],
-		[{"type": "string", "name": "effect type"}]
-	]
-}
+/*******************************************************************************
+ *     Copyright (C) 2022 Ioloolo
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
 
-function CLEARPOTION(args){
-	if(player === null)
-		return null;
+var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
 
-	if(overload === 0){
-		var activeEffects = player.getActivePotionEffects();
-		for(var iter = activeEffects.iterator(); iter.hasNext();){
-			var type = iter.next().getType();
-			player.removePotionEffect(type);
-		}
-	}else{
-		var typeName = args[0].toUpperCase();
-		var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
-		var type = PotionEffectType.getByName(typeName);
-		
-		if(type == null)
-			throw new Error("Invalid PotionEffectType named "+typeName);
-			
-		player.removePotionEffect(type);
-	}
+var validation = {
+  overloads: [[], [{ type: "string", name: "effect" }]],
+};
+
+function CLEARPOTION(args) {
+  if (!player) return null;
+
+  if (overload === 0)
+		for each (var effect in player.getActivePotionEffects())
+			player.removePotionEffect(effect.getType());
+  else if (overload === 1)
+    player.removePotionEffect(PotionEffectType.getByName(args[0].toUpperCase()));
+
+  return null;
 }

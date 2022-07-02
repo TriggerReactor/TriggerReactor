@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,30 +15,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var Bukkit = Java.type('org.bukkit.Bukkit')
+
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var PlayerCommandPreprocessEvent = Java.type(
+  "org.bukkit.event.player.PlayerCommandPreprocessEvent"
+);
+
+var validation = {
+  overloads: [[{ type: "string", name: "command" }]],
+};
 
 function CMD(args) {
-    var merged = null;
+  var command = args[0];
 
-    if (args.length == 2 && args[1].equals(true)) {
-        var preCommandSize = args[0].split(" ").length;
-        var split = message.split(" ");
+  var event = new PlayerCommandPreprocessEvent(player, "/" + command);
 
-        var merged = "";
-        for (var i = 1; i < split.length; i++)
-            merged += split[i] + " ";
-    }
+  Bukkit.getPluginManager().callEvent(event);
+  if (!event.isCancelled()) Bukkit.dispatchCommand(player, command);
 
-    var command = args[0];
-    if (merged != null)
-        command += " " + merged;
-
-    var PlayerCommandPreprocessEvent = Java.type('org.bukkit.event.player.PlayerCommandPreprocessEvent');
-    var event = new PlayerCommandPreprocessEvent(player, '/'+command);
-    Bukkit.getPluginManager().callEvent(event)
-    if (!event.isCancelled()) {
-        Bukkit.dispatchCommand(player, command);
-    }
-
-    return null;
+  return null;
 }

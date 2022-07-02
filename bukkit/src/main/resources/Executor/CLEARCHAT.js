@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,27 +15,22 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function CLEARCHAT(args){
-    if(player === null){
-        return null;
-    }
-    if(args.length === 0){
-        for(var i = 0; i < 30; i++){
-            player.sendMessage("");
-        }
-        return null;
-    }else if(args.length === 1){
-        var plType = Java.type("org.bukkit.entity.Player")
-        if(args[0] instanceof plType){
-        var pl = args[0];
-        }else {
-            throw new Error("Found unexpected parameter - player: null")
-        }
-        for(var i = 0; i < 30; i++){
-            pl.sendMessage("");
-        }
-        return null;
-    }else if(args.length >= 2){
-            	throw new Error("Too many parameters found! CLEARCHAT accept up to one parameter.")
-    }
+
+var Player = Java.type("org.bukkit.entity.Player");
+
+var validation = {
+  overloads: [[], [{ type: Player.class, name: "player" }]],
+};
+
+function CLEARCHAT(args) {
+  var p;
+
+  if (overload === 0) p = player;
+  else if (overload === 1) p = args[0];
+
+  if (!p) return null;
+
+  for (var i = 0; i < 64; i++) p.sendMessage("");
+
+  return null;
 }

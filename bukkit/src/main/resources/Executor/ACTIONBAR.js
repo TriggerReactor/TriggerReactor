@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 TheBestNightSky
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,25 +15,41 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var ChatColor = Java.type("org.bukkit.ChatColor");
+var Player = Java.type("org.bukkit.entity.Player");
+var ChatMessageType = Java.type("net.md_5.bungee.api.ChatMessageType");
+var TextComponent = Java.type("net.md_5.bungee.api.chat.TextComponent");
+
+var validation = {
+  overloads: [
+    [{ type: "string", name: "message" }],
+    [
+      { type: Player.class, name: "player" },
+      { type: "string", name: "message" },
+    ],
+  ],
+};
+
 function ACTIONBAR(args) {
-	if(args.length == 1){
-		var ComponentBuilder = Java.type('net.md_5.bungee.api.chat.ComponentBuilder');
-		var component = new ComponentBuilder(args[0]).create();
-		var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
-		var type = ChatMessageType.ACTION_BAR;
-		
-		player.spigot().sendMessage(type,component);
-		return null;
-	}
-	
-	if(args.length == 2){
-		var p = args[0];
-		var ComponentBuilder = Java.type('net.md_5.bungee.api.chat.ComponentBuilder');
-		var component = new ComponentBuilder(args[1]).create();
-		var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
-		var type = ChatMessageType.ACTION_BAR;
-		
-		p.spigot().sendMessage(type,component);
-		return null;
-	}
+  var p, message;
+
+  if (overload === 0) {
+    p = player;
+    message = args[0];
+  } else if (overload === 1) {
+    p = args[0];
+    message = args[1];
+  }
+
+  if (!p) return null;
+
+  message = ChatColor.translateAlternateColorCodes("&", message);
+
+  p.spigot().sendMessage(
+    ChatMessageType.ACTION_BAR,
+    new TextComponent(message)
+  );
+
+  return null;
 }

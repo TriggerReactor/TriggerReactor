@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,21 +15,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var Bukkit = Java.type('org.bukkit.Bukkit')
 
-function CMDCON(args){
-	if(args.length == 2 && args[1].equals(true)){
-		var preCommandSize = args[0].split(" ").length;
-		var split = message.split(" ");
-		
-		var merged = "";
-		for(var i = 1; i < split.length; i++)
-			merged += split[i] + " ";
-		
-		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), args[0]+" "+merged);
-	} else {
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), args[0]);
-	}
+var Bukkit = Java.type("org.bukkit.Bukkit");
 
-    return null;
+var validation = {
+  overloads: [[{ type: "string", name: "command" }]],
+};
+
+function CMDCON(args) {
+  var command = args[0];
+
+  Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+
+  return null;
 }
