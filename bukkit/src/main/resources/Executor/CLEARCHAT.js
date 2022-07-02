@@ -23,14 +23,14 @@ var validation = {
 };
 
 function CLEARCHAT(args) {
-  var p;
+  var target;
 
-  if (overload === 0) p = player;
-  else if (overload === 1) p = args[0];
+  if (overload === 0) target = player;
+  else if (overload === 1) target = args[0];
 
-  if (!p) return null;
+  if (!target) return null;
 
-  for (var i = 0; i < 64; i++) p.sendMessage("");
+  for (var i = 0; i < 64; i++) target.sendMessage("");
 
   return null;
 }
