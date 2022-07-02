@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *	   Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,58 +15,64 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var Location = Java.type('org.bukkit.Location')
-var Material = Java.type('org.bukkit.Material');
+
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var Material = Java.type("org.bukkit.Material");
+var Location = Java.type("org.bukkit.Location");
+
+var validation = {
+  overloads: [
+    [
+      { type: Material.class, name: "material" },
+      { type: Location.class, name: "location" },
+    ],
+    [
+      { type: Material.class, name: "material" },
+      { type: "number", name: "x" },
+      { type: "number", name: "y" },
+      { type: "number", name: "z" },
+    ],
+    [
+      { type: "string", name: "materialName" },
+      { type: Location.class, name: "location" },
+    ],
+    [
+      { type: "string", name: "materialName" },
+      { type: "number", name: "x" },
+      { type: "number", name: "y" },
+      { type: "number", name: "z" },
+    ],
+  ],
+};
 
 function FALLINGBLOCK(args) {
-	if (args.length == 2 || args.length == 4) {
-		var blockID = args[0];
-		var location;
+  var material, location;
 
-		if(args.length == 2){
-			location = args[1];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
-		}
+  if (overload === 0) {
+    material = args[0];
+    location = args[1];
+  } else if (overload === 1) {
+    material = args[0];
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[1],
+      args[2],
+      args[3]
+    );
+  } else if (overload === 2) {
+    material = Material.valueOf(args[0]);
+    location = args[1];
+  } else if (overload === 3) {
+    material = Material.valueOf(args[0]);
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[1],
+      args[2],
+      args[3]
+    );
+  }
 
-		Block = location.getBlock();
+  location.getWorld().spawnFallingBlock(location, material, 0);
 
-		if(typeof blockID==='number' && (blockID%1)===0){
-			location.getWorld().spawnFallingBlock(location, blockID, 0);
-		}else{
-			var someBlock = Material.valueOf(blockID.toUpperCase());
-			if(someBlock.isBlock()){
-				location.getWorld().spawnFallingBlock(location, someBlock, 0);
-			}
-		}
-
-	}else if(args.length == 3 || args.length == 5){ 
-		var blockID = args[0];
-		var blockData = args[1];
-		var location;
-
-		if(args.length == 3){
-			location = args[2];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[2], args[3], args[4]);
-		}
-
-		Block = location.getBlock();
-
-		if(typeof blockID==='number' && (blockID%1)===0){
-			location.getWorld().spawnFallingBlock(location, blockID, blockData);
-		}else{
-			var someBlock = Material.valueOf(blockID.toUpperCase());
-			if(someBlock.isBlock()){
-				location.getWorld().spawnFallingBlock(location, someBlock, blockData);
-			}
-		}
-
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Block<string or number>, Location<location or number number number>] or [Block<string or number>, BlockData<number>, Location<location or number number number>]');
-	}
-	return null;
+  return null;
 }

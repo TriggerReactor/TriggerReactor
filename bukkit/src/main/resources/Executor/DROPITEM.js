@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii, wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,56 +15,88 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
- var Enchantment = Java.type('org.bukkit.enchantments.Enchantment')
- var Location = Java.type('org.bukkit.Location')
- var Material = Java.type('org.bukkit.Material')
- var NamespacedKey = Java.type('org.bukkit.NamespacedKey')
 
- function DROPITEM(args) {
-    var item;
-    var location;
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
+var Material = Java.type("org.bukkit.Material");
+var Location = Java.type("org.bukkit.Location");
 
-    if (args.length == 2){
-		item = args[0];
-		location = args[1];
-    } else if (args.length == 4) {
-        location = args[3];
-    } else if (args.length == 6) {
-		var world = player.getWorld();
-        location = new Location(world, args[3], args[4], args[5]);
-    } else {
-        throw new Error(
-            'Invalid parameters. Need [Location<location or number number number>]');
-    }
+var validation = {
+  overloads: [
+    [
+      { type: ItemStack.class, name: "itemStack" },
+      { type: Location.class, name: "location" },
+    ],
+    [
+      { type: ItemStack.class, name: "itemStack" },
+      { type: "number", name: "x" },
+      { type: "number", name: "y" },
+      { type: "number", name: "z" },
+    ],
+    [
+      { type: "string", name: "materialName" },
+      { type: Location.class, name: "location" },
+    ],
+    [
+      { type: "string", name: "materialName" },
+      { type: "number", name: "x" },
+      { type: "number", name: "y" },
+      { type: "number", name: "z" },
+    ],
+    [
+      { type: "string", name: "materialName" },
+      { type: "number", name: "amount" },
+      { type: Location.class, name: "location" },
+    ],
+    [
+      { type: "string", name: "materialName" },
+      { type: "number", name: "amount" },
+      { type: "number", name: "x" },
+      { type: "number", name: "y" },
+      { type: "number", name: "z" },
+    ],
+  ],
+};
 
-    if(args.length == 4 || args.length == 6){
-		var itemID = args[0];
-		var amount = args[1];
+function DROPITEM(args) {
+  var itemStack, location;
 
-		if(typeof itemID==='number' && (itemID%1)===0){
-			item = new ItemStack(itemID, amount);
-		}else{
-			var someItem = Material.valueOf(itemID.toUpperCase());
-			item = new ItemStack(someItem, amount);
-		}
+  if (overload === 0) {
+    itemStack = args[0];
+    location = args[1];
+  } else if (overload === 1) {
+    itemStack = args[0];
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[1],
+      args[2],
+      args[3]
+    );
+  } else if (overload === 2) {
+    itemStack = new ItemStack(Material.valueOf(args[0]));
+    location = args[1];
+  } else if (overload === 3) {
+    itemStack = new ItemStack(Material.valueOf(args[0]));
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[1],
+      args[2],
+      args[3]
+    );
+  } else if (overload === 4) {
+    itemStack = new ItemStack(Material.valueOf(args[0]), args[1]);
+    location = args[2];
+  } else if (overload === 5) {
+    itemStack = new ItemStack(Material.valueOf(args[0]), args[1]);
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[2],
+      args[3],
+      args[4]
+    );
+  }
 
-		var enchan = args[2];
-		if(enchan.toUpperCase() !== 'NONE'){
-			var encharg = enchan.split(',');
-			for each (en in encharg){
-				var ench = Enchantment.getByName(en.split(':')[0].toUpperCase());
-				var level = parseInt(en.split(':')[1]);
+  location.getWorld().dropItem(location, itemStack);
 
-				if(!ench)
-					throw Error(en.split(':')[0]+" is not a valid Enchantment.");
-
-				item.addUnsafeEnchantment(ench, level);
-			}
-		}
-    }
-
-    location.getWorld().dropItem(location, item);
-
-	return null;
+  return null;
 }

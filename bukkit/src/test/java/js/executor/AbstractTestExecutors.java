@@ -4,15 +4,27 @@ import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.material.Door;
+import org.bukkit.material.MaterialData;
+import org.bukkit.material.Openable;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -226,5 +238,214 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(server).dispatchCommand(sender, command);
 
         Assert.assertEquals(0, test.getOverload(command));
+    }
+
+    @Test
+    public void testDoorClose() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
+        JsTest test = new ExecutorTest(engine, "DOORCLOSE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(false);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testDoorOpen() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
+        JsTest test = new ExecutorTest(engine, "DOOROPEN");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(true);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testDoorToggle1() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isOpen()).thenReturn(false);
+
+        JsTest test = new ExecutorTest(engine, "DOORTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(true);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testDoorToggle2() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Door blockData = mock(Door.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isOpen()).thenReturn(true);
+
+        JsTest test = new ExecutorTest(engine, "DOORTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setOpen(false);
+        verify(blockState).setData(any(Door.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testDropItem() throws Exception {
+        ItemStack itemStack = mock(ItemStack.class);
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "DROPITEM");
+
+        test.withArgs(itemStack, location).test();
+
+        verify(world).dropItem(location, itemStack);
+
+        Assert.assertEquals(0, test.getOverload(itemStack, location));
+    }
+
+    @Test
+    public void testExplosion1() throws Exception {
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "EXPLOSION");
+
+        test.withArgs(location).test();
+
+        verify(world).createExplosion(location, 4.0F);
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testExplosion2() throws Exception {
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+        float power = 4;
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "EXPLOSION");
+
+        test.withArgs(location, power).test();
+
+        verify(world).createExplosion(location, power);
+
+        Assert.assertEquals(1, test.getOverload(location, power));
+    }
+
+    @Test
+    public void testFallingBlock1() throws Exception {
+        Material material = Material.values()[0];
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "FALLINGBLOCK");
+
+        test.withArgs(material, location).test();
+
+        verify(world).spawnFallingBlock(location, material, (byte) 0);
+
+        Assert.assertEquals(0, test.getOverload(material, location));
+    }
+
+    @Test
+    public void testFallingBlock2() throws Exception {
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+        String material = "STONE";
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "FALLINGBLOCK");
+
+        test.withArgs(material, location).test();
+
+        verify(world).spawnFallingBlock(location, Material.valueOf(material), (byte) 0);
+
+        Assert.assertEquals(2, test.getOverload(material, location));
+    }
+
+    @Test
+    public void testGive1() throws Exception {
+        Player player = mock(Player.class);
+        ItemStack itemStack = mock(ItemStack.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "GIVE")
+                .addVariable("player", player);
+
+        test.withArgs(itemStack).test();
+
+        verify(inventory).addItem(itemStack);
+
+        Assert.assertEquals(0, test.getOverload(itemStack));
+    }
+
+    @Test
+    public void testGive2() throws Exception {
+        Player player = mock(Player.class);
+        ItemStack itemStack = mock(ItemStack.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "GIVE");
+
+        test.withArgs(player, itemStack).test();
+
+        verify(inventory).addItem(itemStack);
+
+        Assert.assertEquals(1, test.getOverload(player, itemStack));
     }
 }

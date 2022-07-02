@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,39 +15,41 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function DOORTOGGLE(args) {
-	if (args.length == 1 || args.length == 3) {
-		var location;
 
-		if(args.length == 1){
-			location = args[0];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
-		}
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var Location = Java.type("org.bukkit.Location");
 
-		try{
-			Block = location.getBlock();
-			BlockState = Block.getState();
-			Openable = BlockState.getData();
-			if(Openable.isOpen()){
-				Openable.setOpen(false);
-			}else{
-				Openable.setOpen(true);
-			}
-			
-			BlockState.setData(Openable);
-			BlockState.update();
+var validation = {
+  overloads: [
+    [{ type: Location.class, name: "location" }],
+    [
+      { type: "number", name: "x" },
+      { type: "number", name: "y" },
+      { type: "number", name: "z" },
+    ],
+  ],
+};
 
-		}catch(err){
-			throw new Error(
-				'Invalid door. That block is not a valid door!');
-		}
-        
+function DOORTOGGLE(args) {
+  var location;
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
-	}
-	return null;
+  if (overload === 0) location = args[0];
+  else if (overload === 1)
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[0],
+      args[1],
+      args[2]
+    );
+
+  block = location.getBlock();
+  state = block.getState();
+  data = state.getData();
+
+  data.setOpen(!data.isOpen());
+
+  state.setData(data);
+  state.update();
+
+  return null;
 }
