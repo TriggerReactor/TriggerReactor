@@ -26,6 +26,8 @@ var validation = {
 };
 
 function CMD(args) {
+  if (!player) return null;
+
   var command = args[0];
 
   var event = new PlayerCommandPreprocessEvent(player, "/" + command);
