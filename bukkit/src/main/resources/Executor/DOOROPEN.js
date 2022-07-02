@@ -23,9 +23,9 @@ var validation = {
   overloads: [
     [{ type: Location.class, name: "location" }],
     [
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
   ],
 };

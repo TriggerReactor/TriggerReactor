@@ -25,18 +25,18 @@ var validation = {
     [{ type: Location.class, name: "location" }],
     [
       { type: Location.class, name: "location" },
-      { type: "number", name: "power" },
+      { type: "int", name: "power" },
     ],
     [
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
     [
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
-      { type: "number", name: "power" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+      { type: "int", name: "power" },
     ],
   ],
 };

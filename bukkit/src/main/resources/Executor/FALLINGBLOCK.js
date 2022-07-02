@@ -28,9 +28,9 @@ var validation = {
     ],
     [
       { type: Material.class, name: "material" },
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
     [
       { type: "string", name: "materialName" },
@@ -38,9 +38,9 @@ var validation = {
     ],
     [
       { type: "string", name: "materialName" },
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
   ],
 };

@@ -29,9 +29,9 @@ var validation = {
     ],
     [
       { type: ItemStack.class, name: "itemStack" },
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
     [
       { type: "string", name: "materialName" },
@@ -39,21 +39,21 @@ var validation = {
     ],
     [
       { type: "string", name: "materialName" },
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
     [
       { type: "string", name: "materialName" },
-      { type: "number", name: "amount" },
+      { type: "int", name: "amount" },
       { type: Location.class, name: "location" },
     ],
     [
       { type: "string", name: "materialName" },
-      { type: "number", name: "amount" },
-      { type: "number", name: "x" },
-      { type: "number", name: "y" },
-      { type: "number", name: "z" },
+      { type: "int", name: "amount" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
     ],
   ],
 };
