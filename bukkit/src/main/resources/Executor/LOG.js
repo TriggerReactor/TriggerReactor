@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,8 +15,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function LOG(args){
-    for(var i = 0; i < args.length ; i++)
-        print(args[i]);
-    return null;
+
+var Bukkit = Java.type("org.bukkit.Bukkit");
+
+var validation = {
+  overloads: [[{ type: "string", name: "message" }]],
+};
+
+function LOG(args) {
+  var message = args[0];
+
+  Bukkit.getConsoleSender().sendMessage(message);
+
+  return null;
 }

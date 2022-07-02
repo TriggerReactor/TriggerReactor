@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,39 +15,40 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var plType = Java.type("org.bukkit.entity.Player")
-var ChatColor = Java.type('org.bukkit.ChatColor')
-validation = {
-	overloads: [
-		[],
-		[{"name": "player", "type": plType.class}],
-		[{"name": "reason", "type": "string"}],
-		[{"name": "player", "type": plType.class}, {"name": "reason", "type": "string"}]
-	]
-}
 
- function KICK(args) {
-    switch (overload) {
-    case 0:
-    	if(player === null){
-            throw new Error("Too few arguments! You should enter at least on argument if you use KICK executor from console.")
-        }
-        player.kickPlayer(ChatColor.translateAlternateColorCodes('&', "&c[TR] You've been kicked from the server."))
-        break
+var Player = Java.type("org.bukkit.entity.Player");
+var ChatColor = Java.type("org.bukkit.ChatColor");
 
-    case 1:
-    	args[0].kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), "&c[TR] You've been kicked from the server."))
-    	break
+var validation = {
+  overloads: [
+    [{ type: "string", name: "reason" }],
+    [{ type: Player.class, name: "player" }],
+    [
+      { type: Player.class, name: "player" },
+      { type: "string", name: "reason" },
+    ],
+  ],
+};
 
-    case 2:
-    	if(player === null){
-            throw new Error("player should not be null")
-        }
-    	player.kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), args[0]))
-    	break
+function KICK(args) {
+  var target, reason;
 
-    case 3:
-    	args[0].kickPlayer(ChatColor.translateAlternateColorCodes(Char('&'), args[1]))
-    	break
-    }
+  if (overload === 0) {
+    target = player;
+    reason = args[0];
+  } else if (overload === 1) {
+    target = args[0];
+    reason = "&c[TR] You've been kicked from the server.";
+  } else if (overload === 2) {
+    target = args[0];
+    reason = args[1];
+  }
+
+  if (!target) return null;
+
+  reason = ChatColor.translateAlternateColorCodes("&", reason);
+
+  target.kickPlayer(reason);
+
+  return null;
 }

@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,30 +15,36 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function ITEMFRAMEROTATE(args) {
-	if (args.length == 2 || args.length == 4) {
-		var Rotation = Java.type('org.bukkit.Rotation');
-		var location;
 
-		if(args.length == 2){
-			location = args[1];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
-		}
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var Location = Java.type("org.bukkit.Location");
 
-		Block = location.getBlock();
+var validation = {
+  overloads: [
+    [{ type: Location.class, name: "location" }],
+    [
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+    ],
+  ],
+};
 
-		for each (Entity in Block.getWorld().getNearbyEntities(Block.getLocation(), 2, 2, 2)){
-			if(typeof Entity.setItem == 'function'){
-				Entity.setRotation(Rotation.valueOf(args[0].toUpperCase()));
-			}
-		}
+function ITEMFRAMEROTATE(args) {
+  var location;
 
+  if (overload === 0) location = args[0];
+  else if (overload === 1)
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[0],
+      args[1],
+      args[2]
+    );
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Rotation<string>, Location<location or number number number>]');
-	}
-	return null;
+  for each (var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
+		if (entity.getType().getEntityClass().getName().endsWith('ItemFrame'))
+			entity.setRotation(entity.getRotation().rotateClockwise())
+
+  return null;
 }

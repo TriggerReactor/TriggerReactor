@@ -1,33 +1,33 @@
 package js.executor;
 
+import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Door;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.Openable;
+import org.bukkit.material.Lever;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import static org.mockito.Mockito.*;
 
@@ -54,7 +54,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
                 add(mock(Player.class));
         }};
 
-        String message = "&aHello, world!";
+        String message = "&aMessage";
         String colorized = ChatColor.translateAlternateColorCodes('&', message);
 
         doReturn(players).when(server).getOnlinePlayers();
@@ -447,5 +447,431 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(inventory).addItem(itemStack);
 
         Assert.assertEquals(1, test.getOverload(player, itemStack));
+    }
+
+    @Test
+    public void testGui1() throws Exception {
+        Player player = mock(Player.class);
+        String guiName = "TESTGUI";
+
+        BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
+        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+
+        when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
+
+        JsTest test = new ExecutorTest(engine, "GUI")
+                .addVariable("player", player)
+                .addVariable("plugin", triggerReactorCore);
+
+        test.withArgs(guiName).test();
+
+        verify(inventoryTriggerManager).openGUI(player, guiName);
+
+        Assert.assertEquals(0, test.getOverload(guiName));
+    }
+
+    @Test
+    public void testGui2() throws Exception {
+        Player player = mock(Player.class);
+        String guiName = "TESTGUI";
+
+        BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
+        InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+
+        when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
+
+        JsTest test = new ExecutorTest(engine, "GUI")
+                .addVariable("plugin", triggerReactorCore);
+
+        test.withArgs(player, guiName).test();
+
+        verify(inventoryTriggerManager).openGUI(player, guiName);
+
+        Assert.assertEquals(1, test.getOverload(player, guiName));
+    }
+
+    @Test
+    public void testItemFrameRotate() throws Exception {
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        ItemFrame itemFrame = mock(ItemFrame.class);
+        EntityType entityType = EntityType.ITEM_FRAME;
+        Rotation rotation = Rotation.NONE;
+
+        Collection<Entity> entities = new ArrayList<Entity>() {{
+            add(itemFrame);
+            for (int i = 0; i < 4; i++) {
+                Entity entity = mock(Entity.class);
+                EntityType entityType1 = EntityType.PIG;
+
+                add(entity);
+                when(entity.getType()).thenReturn(entityType1);
+            }
+        }};
+
+        when(location.getWorld()).thenReturn(world);
+        when(world.getNearbyEntities(eq(location), anyDouble(), anyDouble(), anyDouble())).thenReturn(entities);
+        when(itemFrame.getType()).thenReturn(entityType);
+        when(itemFrame.getRotation()).thenReturn(rotation);
+
+        JsTest test = new ExecutorTest(engine, "ITEMFRAMEROTATE");
+
+        test.withArgs(location).test();
+
+        verify(itemFrame).setRotation(any(Rotation.class));
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testItemFrameSet() throws Exception {
+        ItemStack itemStack = mock(ItemStack.class);
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        ItemFrame itemFrame = mock(ItemFrame.class);
+        EntityType entityType = EntityType.ITEM_FRAME;
+
+        Collection<Entity> entities = new ArrayList<Entity>() {{
+            add(itemFrame);
+            for (int i = 0; i < 4; i++) {
+                Entity entity = mock(Entity.class);
+                EntityType entityType1 = EntityType.PIG;
+
+                add(entity);
+                when(entity.getType()).thenReturn(entityType1);
+            }
+        }};
+
+        when(location.getWorld()).thenReturn(world);
+        when(world.getNearbyEntities(eq(location), anyDouble(), anyDouble(), anyDouble())).thenReturn(entities);
+        when(itemFrame.getType()).thenReturn(entityType);
+
+        JsTest test = new ExecutorTest(engine, "ITEMFRAMESET");
+
+        test.withArgs(itemStack, location).test();
+
+        verify(itemFrame).setItem(itemStack);
+
+        Assert.assertEquals(0, test.getOverload(itemStack, location));
+    }
+
+    @Test
+    public void testKick1() throws Exception {
+        Player player = mock(Player.class);
+        String reason = "&cReason";
+        String colorized = ChatColor.translateAlternateColorCodes('&', reason);
+
+        JsTest test = new ExecutorTest(engine, "KICK")
+                .addVariable("player", player);
+
+        test.withArgs(reason).test();
+
+        verify(player).kickPlayer(colorized);
+
+        Assert.assertEquals(0, test.getOverload(reason));
+    }
+
+    @Test
+    public void testKick2() throws Exception {
+        Player player = mock(Player.class);
+        String reason = "&c[TR] You've been kicked from the server.";
+        String colorized = ChatColor.translateAlternateColorCodes('&', reason);
+
+        JsTest test = new ExecutorTest(engine, "KICK");
+
+        test.withArgs(player).test();
+
+        verify(player).kickPlayer(colorized);
+
+        Assert.assertEquals(1, test.getOverload(player));
+    }
+
+    @Test
+    public void testKick3() throws Exception {
+        Player player = mock(Player.class);
+        String reason = "&cReason";
+        String colorized = ChatColor.translateAlternateColorCodes('&', reason);
+
+        JsTest test = new ExecutorTest(engine, "KICK");
+
+        test.withArgs(player, reason).test();
+
+        verify(player).kickPlayer(colorized);
+
+        Assert.assertEquals(2, test.getOverload(player, reason));
+    }
+
+    @Test
+    public void testKill1() throws Exception {
+        Player player = mock(Player.class);
+
+        JsTest test = new ExecutorTest(engine, "KILL")
+                .addVariable("player", player);
+
+        test.test();
+
+        verify(player).setHealth(0);
+
+        Assert.assertEquals(0, test.getOverload());
+    }
+
+    @Test
+    public void testKill2() throws Exception {
+        Player player = mock(Player.class);
+
+        JsTest test = new ExecutorTest(engine, "KILL");
+
+        test.withArgs(player).test();
+
+        verify(player).setHealth(0);
+
+        Assert.assertEquals(1, test.getOverload(player));
+    }
+
+    @Test
+    public void testLeverOff() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
+        JsTest test = new ExecutorTest(engine, "LEVEROFF");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setPowered(false);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testLeverOn() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+
+        JsTest test = new ExecutorTest(engine, "LEVERON");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setPowered(true);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testLeverToggle1() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isPowered()).thenReturn(false);
+
+        JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setPowered(true);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testLeverToggle2() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        BlockState blockState = mock(BlockState.class);
+        Lever blockData = mock(Lever.class);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(blockState);
+        when(blockState.getData()).thenReturn(blockData);
+        when(blockData.isPowered()).thenReturn(true);
+
+        JsTest test = new ExecutorTest(engine, "LEVERTOGGLE");
+
+        test.withArgs(location).test();
+
+        verify(blockData).setPowered(false);
+        verify(blockState).setData(any(Lever.class));
+        verify(blockState).update();
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testLightning() throws Exception {
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "LIGHTNING");
+
+        test.withArgs(location).test();
+
+        verify(world).strikeLightning(location);
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testLog() throws Exception {
+        class FakeConsoleSender {
+            public void sendMessage(String message) {}
+        }
+
+        class FakeBukkit {
+            public synchronized FakeConsoleSender getConsoleSender() {
+                return null;
+            }
+        }
+        class FakeJava {
+            public FakeBukkit type(String name) {
+                return null;
+            }
+        }
+
+        FakeConsoleSender consoleSender = mock(FakeConsoleSender.class);
+        FakeBukkit bukkit = mock(FakeBukkit.class);
+        FakeJava java = mock(FakeJava.class);
+
+        String message = "Message";
+
+        when(java.type("org.bukkit.Bukkit")).thenReturn(bukkit);
+        when(bukkit.getConsoleSender()).thenReturn(consoleSender);
+
+        JsTest test = new ExecutorTest(engine, "LOG")
+                .addVariable("Java", java);
+
+        test.withArgs(message).test();
+
+        verify(consoleSender).sendMessage(message);
+
+        Assert.assertEquals(0, test.getOverload(message));
+    }
+
+    @Test
+    public void testMessage() throws Exception {
+        class ExampleObject {
+            private final String message;
+
+            public ExampleObject(String message) {
+                this.message = message;
+            }
+
+            @Override
+            public String toString() {
+                return "ExampleObject(" + message + ")";
+            }
+        }
+
+        Player player = mock(Player.class);
+        ExampleObject exampleObject = new ExampleObject("Message");
+
+        JsTest test = new ExecutorTest(engine, "MESSAGE")
+                .addVariable("player", player);
+
+        test.withArgs(exampleObject).test();
+
+        verify(player).sendMessage(exampleObject.toString());
+
+        Assert.assertEquals(0, test.getOverload(exampleObject));
+    }
+
+    @Test
+    public void testMoney1() throws Exception {
+        class FakeVault {
+            public void give(Player player, int money) {}
+
+            public void take(Player player, int money) {}
+        }
+
+        Player player = mock(Player.class);
+        FakeVault vault = mock(FakeVault.class);
+        int money = 1000;
+
+        JsTest test = new ExecutorTest(engine, "MONEY")
+                .addVariable("player", player)
+                .addVariable("vault", vault);
+
+        test.withArgs(money).test();
+
+        verify(vault).give(player, money);
+
+        Assert.assertEquals(0, test.getOverload(money));
+    }
+
+    @Test
+    public void testMoney2() throws Exception {
+        class FakeVault {
+            public void give(Player player, int money) {}
+
+            public void take(Player player, int money) {}
+        }
+
+        Player player = mock(Player.class);
+        FakeVault vault = mock(FakeVault.class);
+        int money = -1000;
+
+        JsTest test = new ExecutorTest(engine, "MONEY")
+                .addVariable("vault", vault);
+
+        test.withArgs(player, money).test();
+
+        verify(vault).take(player, -money);
+
+        Assert.assertEquals(1, test.getOverload(player, money));
+    }
+
+    @Test
+    public void testMysql() throws Exception {
+        class FakeMysqlHelper {
+            public void set(String key, Object value) {}
+        }
+
+        class FakePlugin {
+            public FakeMysqlHelper getMysqlHelper() {
+                return null;
+            }
+        }
+
+        FakeMysqlHelper mysqlHelper = mock(FakeMysqlHelper.class);
+        FakePlugin plugin = mock(FakePlugin.class);
+
+        String key = "testKey";
+        Object value = 100D;
+
+        when(plugin.getMysqlHelper()).thenReturn(mysqlHelper);
+
+        JsTest test = new ExecutorTest(engine, "MYSQL")
+                .addVariable("plugin", plugin);
+
+        test.withArgs(key, value).test();
+
+        verify(mysqlHelper).set(key, value);
+
+        Assert.assertEquals(0, test.getOverload(key, value));
     }
 }

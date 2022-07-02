@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,72 +15,45 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function ITEMFRAMESET(args) {
-	if (args.length == 2 || args.length == 4) {
-		var itemID = args[0];
-		var location;
 
-		if(args.length == 2){
-			location = args[1];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[1], args[2], args[3]);
-		}
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
+var Location = Java.type("org.bukkit.Location");
 
-		var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
-		Block = location.getBlock();
+var validation = {
+  overloads: [
+    [
+      { type: ItemStack.class, name: "itemStack" },
+      { type: Location.class, name: "location" },
+    ],
+    [
+      { type: ItemStack.class, name: "itemStack" },
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+    ],
+  ],
+};
 
-		if(typeof itemID==='number' && (itemID%1)===0){
-			for each (Entity in Block.getWorld().getNearbyEntities(Block.getLocation(), 2, 2, 2)){
-				if(typeof Entity.setItem == 'function'){
-					Entity.setItem(new ItemStack(itemID, 1, 0));
-				}
-			}
-		}else{
-			var Material = Java.type('org.bukkit.Material');
-			var someBlock = Material.valueOf(itemID.toUpperCase());
-			for each (Entity in Block.getWorld().getNearbyEntities(Block.getLocation(), 2, 2, 2)){
-				if(typeof Entity.setItem == 'function'){
-					Entity.setItem(new ItemStack(someBlock, 1, 0));
-				}
-			}
-		}
+function ITEMFRAMESET(args) {
+  var itemStack, location;
 
-
-	}else if(args.length == 3 || args.length == 5){ 
-		var itemID = args[0];
-		var itemData = args[1];
-		var location;
-
-		if(args.length == 3){
-			location = args[2];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[2], args[3], args[4]);
-		}
-        
-		var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
-		Block = location.getBlock();
-
-		if(typeof itemID==='number' && (itemID%1)===0){
-			for each (Entity in Block.getWorld().getNearbyEntities(Block.getLocation(), 2, 2, 2)){
-				if(typeof Entity.setItem == 'function'){
-					Entity.setItem(new ItemStack(itemID, 1, 0, itemData));
-				}
-			}
-		}else{
-			var Material = Java.type('org.bukkit.Material');
-			var someBlock = Material.valueOf(itemID.toUpperCase());
-			for each (Entity in Block.getWorld().getNearbyEntities(Block.getLocation(), 2, 2, 2)){
-				if(typeof Entity.setItem == 'function'){
-					Entity.setItem(new ItemStack(someBlock, 1, 0, itemData));
-				}
-			}
-		}
-
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Item<string or number>, Location<location or number number number>] or [Item<string or number>, ItemData<number>, Location<location or number number number>]');
+  if (overload === 0) {
+		itemStack = args[0]
+		location = args[1]
+	} else if (overload === 1) {
+		itemStack = args[0];
+		location = new Location(
+			player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+			args[1],
+			args[2],
+			args[3]
+		);
 	}
-	return null;
+
+  for each (var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
+		if (entity.getType().getEntityClass().getName().endsWith("ItemFrame"))
+			entity.setItem(itemStack);
+
+  return null;
 }

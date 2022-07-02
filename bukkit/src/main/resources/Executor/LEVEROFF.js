@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,36 +15,41 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function LEVEROFF(args) {
-	if (args.length == 1 || args.length == 3) {
-		var location;
 
-		if(args.length == 1){
-			location = args[0];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
-		}
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var Location = Java.type("org.bukkit.Location");
 
-		try{
-			Block = location.getBlock();
-			BlockState = Block.getState();
-			Lever = BlockState.getData();
+var validation = {
+  overloads: [
+    [{ type: Location.class, name: "location" }],
+    [
+      { type: "int", name: "x" },
+      { type: "int", name: "y" },
+      { type: "int", name: "z" },
+    ],
+  ],
+};
 
-			Lever.setPowered(false);
-			BlockState.setData(Lever);
+function LEVEROFF(args) {
+  var location;
 
-			BlockState.update(true);
+  if (overload === 0) location = args[0];
+  else if (overload === 1)
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      args[0],
+      args[1],
+      args[2]
+    );
 
-		}catch(err){
-			throw new Error(
-				'Invalid lever. '+err);
-		}
-        
+  block = location.getBlock();
+  state = block.getState();
+  data = state.getData();
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
-	}
-	return null;
+  data.setPowered(false);
+
+  state.setData(data);
+  state.update();
+
+  return null;
 }
