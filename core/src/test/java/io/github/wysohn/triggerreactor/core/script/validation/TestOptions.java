@@ -17,6 +17,7 @@ public class TestOptions {
         validationOptions = new ValidationOptionsBuilder()
                 .addOption(new MinimumOption(), "minimum")
                 .addOption(new MaximumOption(), "maximum")
+                .addOption(new MatchesOption(), "matches")
                 .addOption(new NameOption(), "name")
                 .addOption(new TypeOption(), "type")
                 .build();
@@ -47,6 +48,16 @@ public class TestOptions {
         assertEquals(max.validate(99, 5), null);
         assertFalse(max.canContain("derp2"));
         assertNotEquals(max.validate(5, 12), null);
+    }
+
+    @Test
+    public void testMatches() {
+        ValidationOption match = validationOptions.forName("matches");
+        assertTrue(match.canContain("test"));
+        assertFalse(match.canContain(10));
+        assertFalse(match.canContain(true));
+        assertNull(match.validate("a|b|c", "b"));
+        assertNotNull(match.validate("a|b|c", "d"));
     }
 
     @Test
