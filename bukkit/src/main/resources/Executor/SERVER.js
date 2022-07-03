@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,10 +15,33 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function SERVER(args){
-	if(args.length < 1)
-		throw Error("Invalid Parameter. [String] required.");
-	
-	var serverName = args[0];
-	plugin.getBungeeHelper().sendToServer(player, serverName);
+
+var Player = Java.type('org.bukkit.entity.Player');
+
+var validation = {
+  overloads: [
+    [{ type: 'string', name: 'server' }],
+    [
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'server' }
+    ]
+  ]
+};
+
+function SERVER(args) {
+  var target, server;
+
+  if (overload === 0) {
+    target = player;
+    server = args[0];
+  } else if (overload === 1) {
+    target = args[0];
+    server = args[1];
+  }
+
+  if (!target) return null;
+
+  plugin.getBungeeHelper().sendToServer(target, server);
+
+  return null;
 }

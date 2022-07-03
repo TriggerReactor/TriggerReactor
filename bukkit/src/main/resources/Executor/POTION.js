@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,39 +15,69 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var Player = Java.type('org.bukkit.entity.Player');
 var PotionEffect = Java.type('org.bukkit.potion.PotionEffect');
 var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
 
-function POTION(args){
-	if(player === null)
-		return null;
-		
-	if(args.length < 2)
-		throw new Error("Invalid parameters. Need [String, Depends on type]");
-		
-	if(typeof args[0] !== "string")
-		throw new Error("Invalid parameters. First parameter wasn't a String");
-		
-	var typeName = args[0].toUpperCase();
-	var type = PotionEffectType.getByName(typeName);
-	
-	if(type == null)
-		throw new Error("Invalid PotionEffectType named "+typeName);
-	
-	if(typeof args[1] !== "number")
-		throw new Error("Second parameter should be a number.");
-	
-	var level = 1;
-	if(args.length > 2){
-		if(typeof args[2] != "number")
-			throw new Error("Third parameter should be a number");
-		else
-			level = args[2];
-	}
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'potionName' },
+      { type: 'int', name: 'second' }
+    ],
+    [
+      { type: 'string', name: 'potionName' },
+      { type: 'int', name: 'second' },
+      { type: 'int', name: 'amplifier' }
+    ],
+    [
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'potionName' },
+      { type: 'int', name: 'second' }
+    ],
+    [
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'potionName' },
+      { type: 'int', name: 'second' },
+      { type: 'int', name: 'amplifier' }
+    ]
+  ]
+};
 
-	var effect = new PotionEffect(type, args[1], level - 1);
+function POTION(args) {
+  var target, potionName, second, amplifier;
 
-	player.addPotionEffect(effect);
+  if (overload === 0) {
+    target = player;
+    potionName = args[0];
+    second = args[1];
+    amplifier = 1;
+  } else if (overload === 2) {
+    target = player;
+    potionName = args[0];
+    second = args[1];
+    amplifier = args[2];
+  } else if (overload === 0) {
+    target = args[0];
+    potionName = args[1];
+    second = args[2];
+    amplifier = 1;
+  } else if (overload === 2) {
+    target = args[0];
+    potionName = args[1];
+    second = args[2];
+    amplifier = args[3];
+  }
 
-	return null;
+  if (!target) return null;
+
+  second *= 20;
+
+  var effectType = PotionEffectType.getByName(potionName);
+  var effect = new PotionEffect(effectType, second, amplifier);
+
+  target.addPotionEffect(effect);
+
+  return null;
 }

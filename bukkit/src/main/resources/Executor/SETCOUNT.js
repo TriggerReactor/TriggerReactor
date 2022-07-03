@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,23 +15,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type("org.bukkit.inventory.ItemStack")
-validation = {
-    "overloads": [
-        [{"name": "amount", "type": "int"}, {"name": "item", "type": itemStackType.class}]
 
+var itemStack = Java.type('org.bukkit.inventory.ItemStack');
+
+var validation = {
+  overloads: [
+    [
+      { name: 'amount', type: 'int' },
+      { name: 'item', type: itemStack.class }
     ]
-}
+  ]
+};
 
 function SETCOUNT(args) {
-    if (overload === 0) {
-        var amount = args[0];
-        var item = args[1];
-        var Material = Java.type("org.bukkit.Material")
-        if (item === null || item.getType() === Material.AIR)
-            throw new Error("Error: item cannot be null or AIR.");
+  if (overload === 0) {
+    var amount = args[0];
+    var item = args[1];
 
-        item.setAmount(amount);
-        return null;
-    }
+    item.setAmount(amount);
+  }
+
+  return null;
 }

@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,23 +15,46 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function PUSH(args){
-	if(args.length == 4){ 
-		var entity = args[0];
-		var motionX = args[1];
-		var motionY = args[2];
-		var motionZ = args[3];
 
-		if(typeof entity == "string"){
-			entity = Bukkit.getPlayer(entity);
-		}
+var Vector = Java.type('org.bukkit.util.Vector');
+var Entity = Java.type('org.bukkit.entity.Entity');
 
-		var Vector = Java.type('org.bukkit.util.Vector');
-		entity.setVelocity(new Vector(motionX.toFixed(2), motionY.toFixed(2), motionZ.toFixed(2)));
+var validation = {
+  overloads: [
+    [
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' }
+    ],
+    [
+      { type: Entity.class, name: 'entity' },
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' }
+    ]
+  ]
+};
 
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Entity<entity or string>, Number, Number, Number]');
-	}
-	return null;
+function PUSH(args) {
+  var target, x, y, z;
+
+  if (overload === 0) {
+    target = player;
+    x = args[0];
+    y = args[1];
+    z = args[2];
+  } else if (overload === 1) {
+    target = args[0];
+    x = args[1];
+    y = args[2];
+    z = args[3];
+  }
+
+  if (!target) return null;
+
+  var vector = new Vector(x.toFixed(2), y.toFixed(2), z.toFixed(2));
+
+  target.setVelocity(vector);
+
+  return null;
 }
