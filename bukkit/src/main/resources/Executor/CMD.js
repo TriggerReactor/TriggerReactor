@@ -16,13 +16,13 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
+var Bukkit = Java.type('org.bukkit.Bukkit');
 var PlayerCommandPreprocessEvent = Java.type(
-  "org.bukkit.event.player.PlayerCommandPreprocessEvent"
+  'org.bukkit.event.player.PlayerCommandPreprocessEvent'
 );
 
 var validation = {
-  overloads: [[{ type: "string", name: "command" }]],
+  overloads: [[{ type: 'string', name: 'command' }]]
 };
 
 function CMD(args) {
@@ -30,9 +30,10 @@ function CMD(args) {
 
   var command = args[0];
 
-  var event = new PlayerCommandPreprocessEvent(player, "/" + command);
+  var event = new PlayerCommandPreprocessEvent(player, '/' + command);
 
   Bukkit.getPluginManager().callEvent(event);
+
   if (!event.isCancelled()) Bukkit.dispatchCommand(player, command);
 
   return null;

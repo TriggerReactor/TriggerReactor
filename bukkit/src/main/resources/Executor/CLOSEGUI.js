@@ -17,7 +17,7 @@
  *******************************************************************************/
 
 var validation = {
-  overloads: [[]],
+  overloads: [[]]
 };
 
 function CLOSEGUI(args) {

@@ -16,13 +16,13 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var ChatColor = Java.type("org.bukkit.ChatColor");
-var Object = Java.type("java.lang.Object");
-var Objects = Java.type("java.util.Objects");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var ChatColor = Java.type('org.bukkit.ChatColor');
+var Object = Java.type('java.lang.Object');
+var Objects = Java.type('java.util.Objects');
 
 var validation = {
-  overloads: [[{ type: Object.class, name: "message" }]],
+  overloads: [[{ type: Object.class, name: 'message' }]]
 };
 
 function MESSAGE(args) {
@@ -30,10 +30,10 @@ function MESSAGE(args) {
 
   var message = Objects.toString(args[0]);
 
-  message = ChatColor.translateAlternateColorCodes("&", message);
+  message = ChatColor.translateAlternateColorCodes('&', message);
 
-  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-    var PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
+  if (Bukkit.getPluginManager().isPluginEnabled('PlaceholderAPI')) {
+    var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
     message = PlaceholderAPI.setPlaceholders(player, message);
   }
 

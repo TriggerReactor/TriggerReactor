@@ -15,20 +15,20 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
+var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
 
 var validation = {
-  overloads: [[], [{ type: "string", name: "effect" }]],
+  overloads: [[], [{type: 'string', name: 'effect'}]],
 };
 
 function CLEARPOTION(args) {
   if (!player) return null;
 
   if (overload === 0)
-		for each (var effect in player.getActivePotionEffects())
-			player.removePotionEffect(effect.getType());
+    for each (var effect in player.getActivePotionEffects())
+      player.removePotionEffect(effect.getType());
   else if (overload === 1)
-    player.removePotionEffect(PotionEffectType.getByName(args[0].toUpperCase()));
+      player.removePotionEffect(PotionEffectType.getByName(args[0].toUpperCase()));
 
   return null;
 }

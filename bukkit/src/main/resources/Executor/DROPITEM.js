@@ -16,46 +16,46 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
-var Material = Java.type("org.bukkit.Material");
-var Location = Java.type("org.bukkit.Location");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var Material = Java.type('org.bukkit.Material');
+var Location = Java.type('org.bukkit.Location');
 
 var validation = {
   overloads: [
     [
-      { type: ItemStack.class, name: "itemStack" },
-      { type: Location.class, name: "location" },
+      { type: ItemStack.class, name: 'itemStack' },
+      { type: Location.class, name: 'location' }
     ],
     [
-      { type: ItemStack.class, name: "itemStack" },
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
+      { type: ItemStack.class, name: 'itemStack' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
     ],
     [
-      { type: "string", name: "materialName" },
-      { type: Location.class, name: "location" },
+      { type: 'string', name: 'materialName' },
+      { type: Location.class, name: 'location' }
     ],
     [
-      { type: "string", name: "materialName" },
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
+      { type: 'string', name: 'materialName' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
     ],
     [
-      { type: "string", name: "materialName" },
-      { type: "int", name: "amount" },
-      { type: Location.class, name: "location" },
+      { type: 'string', name: 'materialName' },
+      { type: 'int', name: 'amount' },
+      { type: Location.class, name: 'location' }
     ],
     [
-      { type: "string", name: "materialName" },
-      { type: "int", name: "amount" },
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
-    ],
-  ],
+      { type: 'string', name: 'materialName' },
+      { type: 'int', name: 'amount' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
+    ]
+  ]
 };
 
 function DROPITEM(args) {
@@ -67,7 +67,7 @@ function DROPITEM(args) {
   } else if (overload === 1) {
     itemStack = args[0];
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[1],
       args[2],
       args[3]
@@ -78,7 +78,7 @@ function DROPITEM(args) {
   } else if (overload === 3) {
     itemStack = new ItemStack(Material.valueOf(args[0]));
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[1],
       args[2],
       args[3]
@@ -89,7 +89,7 @@ function DROPITEM(args) {
   } else if (overload === 5) {
     itemStack = new ItemStack(Material.valueOf(args[0]), args[1]);
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[2],
       args[3],
       args[4]

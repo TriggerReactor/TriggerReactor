@@ -16,18 +16,18 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var Location = Java.type("org.bukkit.Location");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var Location = Java.type('org.bukkit.Location');
 
 var validation = {
   overloads: [
-    [{ type: Location.class, name: "location" }],
+    [{ type: Location.class, name: 'location' }],
     [
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
-    ],
-  ],
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
+    ]
+  ]
 };
 
 function LEVERTOGGLE(args) {
@@ -36,7 +36,7 @@ function LEVERTOGGLE(args) {
   if (overload === 0) location = args[0];
   else if (overload === 1)
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[0],
       args[1],
       args[2]

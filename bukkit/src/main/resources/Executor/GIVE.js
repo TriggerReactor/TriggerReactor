@@ -16,17 +16,17 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Player = Java.type("org.bukkit.entity.Player");
-var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
+var Player = Java.type('org.bukkit.entity.Player');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 
 var validation = {
   overloads: [
-    [{ type: ItemStack.class, name: "itemStack" }],
+    [{ type: ItemStack.class, name: 'itemStack' }],
     [
-      { type: Player.class, name: "player" },
-      { type: ItemStack.class, name: "itemStack" },
-    ],
-  ],
+      { type: Player.class, name: 'player' },
+      { type: ItemStack.class, name: 'itemStack' }
+    ]
+  ]
 };
 
 function GIVE(args) {

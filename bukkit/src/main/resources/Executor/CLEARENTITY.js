@@ -16,18 +16,18 @@
  *******************************************************************************/
 
 var validation = {
-	overloads: [[{ type: "int", name: "radius" }]],
+  overloads: [[{type: 'int', name: 'radius'}]],
 };
 
 function CLEARENTITY(args) {
-	if (!player) return null;
+  if (!player) return null;
 
-	var radius = args[0];
+  var radius = args[0];
 
-	var entities = player.getNearbyEntities(radius, radius, radius);
+  var entities = player.getNearbyEntities(radius, radius, radius);
 
-	for each (var entity in entities)
-		entity.remove();
+  for each (var entity in entities)
+    entity.remove();
 
-	return null;
+  return null;
 }

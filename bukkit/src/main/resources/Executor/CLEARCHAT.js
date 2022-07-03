@@ -16,10 +16,10 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Player = Java.type("org.bukkit.entity.Player");
+var Player = Java.type('org.bukkit.entity.Player');
 
 var validation = {
-  overloads: [[], [{ type: Player.class, name: "player" }]],
+  overloads: [[], [{ type: Player.class, name: 'player' }]]
 };
 
 function CLEARCHAT(args) {
@@ -30,7 +30,7 @@ function CLEARCHAT(args) {
 
   if (!target) return null;
 
-  for (var i = 0; i < 64; i++) target.sendMessage("");
+  for (var i = 0; i < 64; i++) target.sendMessage('');
 
   return null;
 }

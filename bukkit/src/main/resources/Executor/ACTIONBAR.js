@@ -16,19 +16,19 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var ChatColor = Java.type("org.bukkit.ChatColor");
-var Player = Java.type("org.bukkit.entity.Player");
-var ChatMessageType = Java.type("net.md_5.bungee.api.ChatMessageType");
-var TextComponent = Java.type("net.md_5.bungee.api.chat.TextComponent");
+var ChatColor = Java.type('org.bukkit.ChatColor');
+var Player = Java.type('org.bukkit.entity.Player');
+var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
+var TextComponent = Java.type('net.md_5.bungee.api.chat.TextComponent');
 
 var validation = {
   overloads: [
-    [{ type: "string", name: "message" }],
+    [{ type: 'string', name: 'message' }],
     [
-      { type: Player.class, name: "player" },
-      { type: "string", name: "message" },
-    ],
-  ],
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'message' }
+    ]
+  ]
 };
 
 function ACTIONBAR(args) {
@@ -44,7 +44,7 @@ function ACTIONBAR(args) {
 
   if (!target) return null;
 
-  message = ChatColor.translateAlternateColorCodes("&", message);
+  message = ChatColor.translateAlternateColorCodes('&', message);
 
   target
     .spigot()

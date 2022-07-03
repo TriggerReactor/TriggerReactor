@@ -15,30 +15,30 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
-var Material = Java.type("org.bukkit.Material");
-var Location = Java.type("org.bukkit.Location");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var Material = Java.type('org.bukkit.Material');
+var Location = Java.type('org.bukkit.Location');
 
 var validation = {
   overloads: [
-    [{ type: Location.class, name: "location" }],
+    [{ type: Location.class, name: 'location' }],
     [
-      { type: Location.class, name: "location" },
-      { type: "int", name: "power" },
+      { type: Location.class, name: 'location' },
+      { type: 'int', name: 'power' }
     ],
     [
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
     ],
     [
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
-      { type: "int", name: "power" },
-    ],
-  ],
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { type: 'int', name: 'power' }
+    ]
+  ]
 };
 
 function EXPLOSION(args) {
@@ -52,7 +52,7 @@ function EXPLOSION(args) {
     power = args[1];
   } else if (overload === 2) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[0],
       args[1],
       args[2]
@@ -60,7 +60,7 @@ function EXPLOSION(args) {
     power = 4;
   } else if (overload === 3) {
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[0],
       args[1],
       args[2]

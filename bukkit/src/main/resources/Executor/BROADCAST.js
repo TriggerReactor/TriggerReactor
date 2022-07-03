@@ -16,26 +16,26 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var ChatColor = Java.type("org.bukkit.ChatColor");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var ChatColor = Java.type('org.bukkit.ChatColor');
 
 var validation = {
-  overloads: [[{ type: "string", name: "message" }]],
+  overloads: [[{type: 'string', name: 'message'}]],
 };
 
 function BROADCAST(args) {
   var message = args[0];
 
-  if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
-    var PlaceholderAPI = Java.type("me.clip.placeholderapi.PlaceholderAPI");
+  if (Bukkit.getPluginManager().isPluginEnabled('PlaceholderAPI'))
+    var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
 
-  message = ChatColor.translateAlternateColorCodes("&", message);
+  message = ChatColor.translateAlternateColorCodes('&', message);
 
-	for each (var target in Bukkit.getOnlinePlayers()) {
-		if (PlaceholderAPI)
-			message = PlaceholderAPI.setPlaceholders(target, message);
-		target.sendMessage(message);
-	}
+  for each (var target in Bukkit.getOnlinePlayers()) {
+    if (PlaceholderAPI)
+      message = PlaceholderAPI.setPlaceholders(target, message);
+    target.sendMessage(message);
+  }
 
   return null;
 }

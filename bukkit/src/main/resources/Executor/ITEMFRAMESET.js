@@ -16,21 +16,21 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
-var Location = Java.type("org.bukkit.Location");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var Location = Java.type('org.bukkit.Location');
 
 var validation = {
   overloads: [
     [
-      { type: ItemStack.class, name: "itemStack" },
-      { type: Location.class, name: "location" },
+      {type: ItemStack.class, name: 'itemStack'},
+      {type: Location.class, name: 'location'},
     ],
     [
-      { type: ItemStack.class, name: "itemStack" },
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
+      {type: ItemStack.class, name: 'itemStack'},
+      {type: 'int', name: 'x'},
+      {type: 'int', name: 'y'},
+      {type: 'int', name: 'z'},
     ],
   ],
 };
@@ -39,21 +39,21 @@ function ITEMFRAMESET(args) {
   var itemStack, location;
 
   if (overload === 0) {
-		itemStack = args[0]
-		location = args[1]
-	} else if (overload === 1) {
-		itemStack = args[0];
-		location = new Location(
-			player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
-			args[1],
-			args[2],
-			args[3]
-		);
-	}
+    itemStack = args[0];
+    location = args[1];
+  } else if (overload === 1) {
+    itemStack = args[0];
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[1],
+      args[2],
+      args[3]
+    );
+  }
 
   for each (var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
-		if (entity.getType().getEntityClass().getName().endsWith("ItemFrame"))
-			entity.setItem(itemStack);
+    if (entity.getType().getEntityClass().getName().endsWith("ItemFrame"))
+      entity.setItem(itemStack);
 
   return null;
 }

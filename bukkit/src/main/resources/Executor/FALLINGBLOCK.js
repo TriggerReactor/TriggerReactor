@@ -1,6 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
- *	   Copyright (C) 2022 Ioloolo
+ *       Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -16,33 +16,33 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Bukkit = Java.type("org.bukkit.Bukkit");
-var Material = Java.type("org.bukkit.Material");
-var Location = Java.type("org.bukkit.Location");
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var Material = Java.type('org.bukkit.Material');
+var Location = Java.type('org.bukkit.Location');
 
 var validation = {
   overloads: [
     [
-      { type: Material.class, name: "material" },
-      { type: Location.class, name: "location" },
+      { type: Material.class, name: 'material' },
+      { type: Location.class, name: 'location' }
     ],
     [
-      { type: Material.class, name: "material" },
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
+      { type: Material.class, name: 'material' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
     ],
     [
-      { type: "string", name: "materialName" },
-      { type: Location.class, name: "location" },
+      { type: 'string', name: 'materialName' },
+      { type: Location.class, name: 'location' }
     ],
     [
-      { type: "string", name: "materialName" },
-      { type: "int", name: "x" },
-      { type: "int", name: "y" },
-      { type: "int", name: "z" },
-    ],
-  ],
+      { type: 'string', name: 'materialName' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
+    ]
+  ]
 };
 
 function FALLINGBLOCK(args) {
@@ -54,7 +54,7 @@ function FALLINGBLOCK(args) {
   } else if (overload === 1) {
     material = args[0];
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[1],
       args[2],
       args[3]
@@ -65,7 +65,7 @@ function FALLINGBLOCK(args) {
   } else if (overload === 3) {
     material = Material.valueOf(args[0]);
     location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld("world"),
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[1],
       args[2],
       args[3]

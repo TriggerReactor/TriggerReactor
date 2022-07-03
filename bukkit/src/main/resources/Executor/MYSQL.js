@@ -16,21 +16,21 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Object = Java.type("java.lang.Object");
+var Object = Java.type('java.lang.Object');
 
 var validation = {
   overloads: [
     [
-      { type: "string", name: "key" },
-      { type: Object.class, name: "value" },
-    ],
-  ],
+      { type: 'string', name: 'key' },
+      { type: Object.class, name: 'value' }
+    ]
+  ]
 };
 
 function MYSQL(args) {
   var mysqlHelper = plugin.getMysqlHelper();
   if (mysqlHelper == null)
-    throw new Error("Mysql connection is not available. Check your config.yml");
+    throw new Error('Mysql connection is not available. Check your config.yml');
 
   var key = args[0];
   var value = args[1];

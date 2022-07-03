@@ -16,18 +16,18 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Player = Java.type("org.bukkit.entity.Player");
-var ChatColor = Java.type("org.bukkit.ChatColor");
+var Player = Java.type('org.bukkit.entity.Player');
+var ChatColor = Java.type('org.bukkit.ChatColor');
 
 var validation = {
   overloads: [
-    [{ type: "string", name: "reason" }],
-    [{ type: Player.class, name: "player" }],
+    [{ type: 'string', name: 'reason' }],
+    [{ type: Player.class, name: 'player' }],
     [
-      { type: Player.class, name: "player" },
-      { type: "string", name: "reason" },
-    ],
-  ],
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'reason' }
+    ]
+  ]
 };
 
 function KICK(args) {
@@ -46,7 +46,7 @@ function KICK(args) {
 
   if (!target) return null;
 
-  reason = ChatColor.translateAlternateColorCodes("&", reason);
+  reason = ChatColor.translateAlternateColorCodes('&', reason);
 
   target.kickPlayer(reason);
 
