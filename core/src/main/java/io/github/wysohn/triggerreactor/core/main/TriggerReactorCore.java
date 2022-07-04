@@ -640,6 +640,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         getCmdManager().reregisterCommand(args[1]);
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("tab") || args[2].equals("settab"))) {
+                        //TODO - New Command handling logic for new Tab-Completion model.
                         TriggerInfo info = Optional.of(getCmdManager())
                                 .map(man -> man.get(args[1]))
                                 .map(Trigger::getInfo)

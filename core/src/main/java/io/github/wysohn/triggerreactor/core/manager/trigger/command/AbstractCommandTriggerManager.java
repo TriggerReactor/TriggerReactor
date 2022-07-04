@@ -30,6 +30,8 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 
@@ -42,42 +44,95 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
+    public static final String CONDITIONS = "conditions";
+    public static final String INDEX = "index";
+
+    public static final String REGEX = "regex";
 
     public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
         super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
-            private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
+            private final Map<String, Template> PreDefinedCompleterLabelMap = new HashMap<>();
 
             {
-                tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(Template.PLAYER).build());
+                PreDefinedCompleterLabelMap.put("$playerlist", Template.PLAYER);
             }
 
             private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
                 String hint = (String) tabs.get(HINT);
                 String candidates_str = (String) tabs.get(CANDIDATES);
+                List<Map<String, Object>> conditions = tabs.get(CONDITIONS) == null ? (List<Map<String, Object>>) tabs.get(CONDITIONS) : null;
 
-                ITabCompleter tabCompleter;
-                if (candidates_str != null && candidates_str.startsWith("$")) {
-                    tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
-                } else if (candidates_str == null && hint != null) {
-                    tabCompleter = ITabCompleter.Builder.withHint(hint).build();
-                } else if (candidates_str != null && hint == null) {
-                    tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
-                } else {
-                    tabCompleter = ITabCompleter.Builder.withHint(hint)
-                            .setCandidate(
-                                    Optional.ofNullable(candidates_str)
-                                                .map(str -> ITabCompleter.list(str.split(",")))
-                                                .orElseGet(() -> ITabCompleter.list(""))
-                            )
-                            .build();
+                ITabCompleter.Builder builder;
+
+                if(candidates_str == null){
+                    if(hint == null) {
+                        builder = ITabCompleter.Builder.of();
+                    }else{
+                        builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(hint.split(",")));
+                    }
+                }else {
+                    if (candidates_str.startsWith("$") && PreDefinedCompleterLabelMap.containsKey(candidates_str)) {
+                        if (hint == null)
+                            builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str));
+                        else
+                            builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str)).setHint(ITabCompleter.list(hint.split(",")));
+
+                    } else {
+                        if (hint == null)
+                            builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(candidates_str.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+                        else
+                            builder = ITabCompleter.Builder.of(Template.PLAYER).setHint(ITabCompleter.list(hint.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+                    }
                 }
-                return tabCompleter;
+                if(conditions != null){
+                    builder = builder.setCondtions(toTabCompleterConditionMap(conditions));
+                }
+                return builder.build();
             }
 
-            private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
-                return tabs.stream()
-                        .map(this::toTabCompleter)
-                        .toArray(ITabCompleter[]::new);
+            private Map<Integer, Set<ITabCompleter>> toTabCompleterMap(List<Map<String, Object>> tabs) {
+                Map<Integer, Set<ITabCompleter>> tabMap = new HashMap<>();
+                tabs.forEach((t) -> {
+                    int idx;
+                    if(t.containsKey(INDEX) && t.get(INDEX) instanceof Integer){
+                        idx = (int) t.get(INDEX);
+                    }else{
+                        idx = tabs.indexOf(t);
+                    }
+                    if(tabMap.containsKey(idx))
+                        tabMap.get(idx).add(toTabCompleter(t));
+                    else{
+                        Set<ITabCompleter> _set = new HashSet<>();
+                        _set.add(toTabCompleter(t));
+                        tabMap.put(idx, _set);
+                    }
+                });
+                return tabMap;
+            }
+
+            private Map<Integer, Pattern> toTabCompleterConditionMap(List<Map<String, Object>> conditions) {
+                Map<Integer, Pattern> conditionMap = new HashMap<>();
+                conditions.forEach((c) -> {
+                    int idx;
+                    Pattern regexPattern;
+                    if(c.containsKey(INDEX) && c.get(INDEX) instanceof Integer)
+                        idx = (int) c.get(INDEX);
+                    else
+                        return;
+
+                    if(c.containsKey(REGEX) && c.get(REGEX) instanceof String) {
+                        try {
+                            regexPattern = Pattern.compile((String) c.get(REGEX));
+                        }catch(PatternSyntaxException e){
+                            e.printStackTrace();
+                            return;
+                        }
+                    }else {
+                        return;
+                    }
+                    conditionMap.put(idx, regexPattern);
+                });
+                return conditionMap;
             }
 
             @Override
@@ -90,12 +145,13 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                         .orElse(new ArrayList<>());
                 List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
 
+
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
                     CommandTrigger trigger = new CommandTrigger(info, script);
                     trigger.setPermissions(permissions.toArray(new String[0]));
                     trigger.setAliases(aliases.toArray(new String[0]));
-                    trigger.setTabCompleters(toTabCompleters(tabs));
+                    trigger.setTabCompleterMap(toTabCompleterMap(tabs));
                     return trigger;
                 } catch (TriggerInitFailedException | IOException e) {
                     e.printStackTrace();

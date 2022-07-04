@@ -21,18 +21,20 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.TabCompleterPreDefinedValue;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CommandTriggerManager extends AbstractCommandTriggerManager implements BukkitTriggerManager {
@@ -54,19 +56,7 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         PluginCommand command = createCommand(plugin, triggerName);
         command.setAliases(Arrays.stream(trigger.getAliases())
                 .collect(Collectors.toList()));
-        command.setTabCompleter((sender, command12, alias, args) -> {
-            ITabCompleter tabCompleter = Optional.ofNullable(trigger.getTabCompleters())
-                    .filter(iTabCompleters -> iTabCompleters.length >= args.length)
-                    .map(iTabCompleters -> iTabCompleters[args.length - 1])
-                    .orElse(ITabCompleter.Builder.of().build());
-
-            String partial = args[args.length - 1];
-            if (partial.length() < 1) { // show hint if nothing is entered yet
-                return tabCompleter.getHint();
-            } else {
-                return tabCompleter.getCandidates(partial);
-            }
-        });
+        command.setTabCompleter(new BukkitTabCompleterImpl(trigger));
         command.setExecutor((sender, command1, label, args) -> {
             if (!(sender instanceof Player)) {
                 sender.sendMessage("CommandTrigger works only for Players.");
