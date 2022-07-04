@@ -100,7 +100,7 @@ public interface ITabCompleter {
 
         List<String> hint,candidate;
         TabCompleterPreDefinedValue preDefinedValue;
-        Map<Integer, Pattern> condtions;
+        Map<Integer, Pattern> conditions;
 
         private Builder(){
             this.hint = new ArrayList<>();
@@ -190,71 +190,20 @@ public interface ITabCompleter {
             this.hint = new ArrayList<>();
             this.candidate = new ArrayList<>();
             this.preDefinedValue = null;
-            this.condtions = null;
+            this.conditions = null;
 
             return this;
         }
 
-        public Builder setCondtions(Map<Integer, Pattern> conditionMap){
-            this.condtions = conditionMap;
+        public Builder setConditions(Map<Integer, Pattern> conditionMap){
+            this.conditions = conditionMap;
 
             return this;
         }
 
 
         public ITabCompleter build(){
-            return new ITabCompleter() {
-                @Override
-                public List<String> getCandidates(String part) {
-                    if(preDefinedValue != null || candidate == null){
-                        return null;
-                    }else {
-                        return candidate.stream()
-                                .filter(val -> val.startsWith(part))
-                                .collect(Collectors.toList());
-                    }
-                }
-                @Override
-                public List<String> getHint() {
-                    return hint;
-                }
-
-                @Override
-                public boolean isPreDefinedValue() {
-                    return preDefinedValue != null;
-                }
-
-                @Override
-                public TabCompleterPreDefinedValue getPreDefinedValue() {
-                    return preDefinedValue;
-                }
-
-                @Override
-                public boolean hasConditionMap() {
-                    return condtions == null || condtions.size() == 0;
-                }
-
-                @Override
-                public Map<Integer, Pattern> getConditionMap() {
-                    return condtions;
-                }
-
-                @Override
-                public boolean hasCondition(Integer index) {
-                    if(!hasConditionMap())
-                        return false;
-                    else
-                        return condtions.get(index) == null;
-                }
-
-                @Override
-                public Pattern getCondition(Integer index) {
-                    if(!hasConditionMap())
-                        return null;
-                    else
-                        return condtions.get(index);
-                }
-            };
+            return new ITabCompleterImpl(this);
 
         }
 

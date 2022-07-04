@@ -60,7 +60,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
                 String hint = (String) tabs.get(HINT);
                 String candidates_str = (String) tabs.get(CANDIDATES);
-                List<Map<String, Object>> conditions = tabs.get(CONDITIONS) == null ? (List<Map<String, Object>>) tabs.get(CONDITIONS) : null;
+                List<Map<String, Object>> conditions = tabs.get(CONDITIONS) != null ? (List<Map<String, Object>>) tabs.get(CONDITIONS) : null;
 
                 ITabCompleter.Builder builder;
 
@@ -81,11 +81,11 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                         if (hint == null)
                             builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(candidates_str.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
                         else
-                            builder = ITabCompleter.Builder.of(Template.PLAYER).setHint(ITabCompleter.list(hint.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+                            builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(hint.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
                     }
                 }
                 if(conditions != null){
-                    builder = builder.setCondtions(toTabCompleterConditionMap(conditions));
+                    builder = builder.setConditions(toTabCompleterConditionMap(conditions));
                 }
                 return builder.build();
             }

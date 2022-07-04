@@ -61,7 +61,7 @@ public class BukkitTabCompleterImpl implements TabCompleter {
 
                 } else { // provide candidates
                     finalProvideList.addAll(values.stream()
-                            .filter(val -> val.startsWith(partial))
+                            .filter(val -> val.toLowerCase().startsWith(partial.toLowerCase()))
                             .collect(Collectors.toList()));
                 }
             }else{
