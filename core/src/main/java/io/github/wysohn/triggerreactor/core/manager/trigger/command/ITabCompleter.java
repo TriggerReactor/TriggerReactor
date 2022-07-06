@@ -159,6 +159,21 @@ public interface ITabCompleter {
 
             return this;
         }
+        public Builder setCondition(int index, String regex) throws PatternSyntaxException{
+            Pattern ptn = Pattern.compile(regex);
+            if(this.conditions== null){
+                this.conditions = new HashMap<Integer, Pattern>();
+            }
+            this.conditions.put(index, ptn);
+            return this;
+        }
+        public Builder setCondition(int index, Pattern pattern) throws PatternSyntaxException{
+            if(this.conditions== null){
+                this.conditions = new HashMap<Integer, Pattern>();
+            }
+            this.conditions.put(index, pattern);
+            return this;
+        }
         public Builder setHint(String...hints){
             this.hint = list(hints);
 

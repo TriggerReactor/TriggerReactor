@@ -72,7 +72,6 @@ public class BukkitTabCompleterImpl implements TabCompleter {
                     finalProvideList.addAll(finalCompleter.getCandidates(partial));
                 }
             }
-            //TODO - handle Tab Completer
         }
 
         return finalProvideList;
