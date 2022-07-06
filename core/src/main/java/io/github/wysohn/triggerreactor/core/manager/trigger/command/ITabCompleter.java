@@ -4,6 +4,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 /**
@@ -195,7 +196,7 @@ public interface ITabCompleter {
             return this;
         }
 
-        public Builder setConditions(Map<Integer, Pattern> conditionMap){
+        public Builder setConditionMap(Map<Integer, Pattern> conditionMap){
             this.conditions = conditionMap;
 
             return this;
