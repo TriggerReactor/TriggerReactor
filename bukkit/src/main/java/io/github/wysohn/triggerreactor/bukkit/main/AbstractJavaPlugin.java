@@ -32,6 +32,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.Utf8YamlConfiguration;
 import io.github.wysohn.triggerreactor.bukkit.tools.migration.InvTriggerMigrationHelper;
 import io.github.wysohn.triggerreactor.bukkit.tools.migration.NaiveMigrationHelper;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.IConsoleCommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -52,6 +53,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -70,6 +72,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.server.ServerCommandEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -455,8 +458,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
             return null;
     }
 
-    public ICommandSender getConsoleSender() {
+    public IConsoleCommandSender getConsoleSender() {
         return BukkitTriggerReactorCore.WRAPPER.wrap(Bukkit.getConsoleSender());
+
     }
 
     public Object createEmptyPlayerEvent(ICommandSender sender) {
@@ -476,7 +480,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         }
     }
 
-    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+    public Object createCommandEvent(ICommandSender sender, String label, String[] args) {
         Object unwrapped = sender.get();
 
         StringBuilder builder = new StringBuilder("/");
@@ -488,8 +492,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
 
         if (unwrapped instanceof Player) {
             return new PlayerCommandPreprocessEvent((Player) unwrapped, builder.toString());
-        } else {
-            throw new RuntimeException("Cannot create empty PlayerCommandPreprocessEvent for " + sender);
+        } else if (unwrapped instanceof ConsoleCommandSender){
+            return new ServerCommandEvent((CommandSender) unwrapped, builder.toString());
+        }else{
+            throw new RuntimeException("Cannot create empty PlayerCommandPreprocessEvent or ServerCommandEvent for " + sender);
         }
     }
 

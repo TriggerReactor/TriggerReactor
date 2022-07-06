@@ -16,10 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.main;
 
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -140,9 +137,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract IPlayer getPlayer(String string);
 
+    public abstract IConsoleCommandSender getConsoleCommandSender();
+
     public abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
-    public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
+    public abstract Object createCommandEvent(ICommandSender sender, String label, String[] args);
 
     private void showHelp(ICommandSender sender) {
         showHelp(sender, 1);
@@ -592,6 +591,19 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                         sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
+                        saveAsynchronously(getCmdManager());
+                    } else if (args.length == 3 && getCmdManager().has(args[1]) && args[2].equalsIgnoreCase("console")) {
+                        CommandTrigger trigger = getCmdManager().get(args[1]);
+
+                        TriggerInfo info = trigger.getInfo();
+                        //trg cmd <name> console
+                        trigger.setConsoleAvailable(!trigger.isConsoleAvailable());
+
+                        info.getConfig().put(AbstractCommandTriggerManager.CONSOLE_AVAILABLE, trigger.isConsoleAvailable());
+                        getCmdManager().reload(args[1]);
+
+                        sender.sendMessage("&7Now this command would be &"+(trigger.isConsoleAvailable() ? "aable" : "cunable")+" &7to be run by Console.");
+
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {

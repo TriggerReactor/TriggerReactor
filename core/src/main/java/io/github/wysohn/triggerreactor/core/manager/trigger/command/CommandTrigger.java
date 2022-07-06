@@ -10,6 +10,7 @@ public class CommandTrigger extends Trigger {
     String[] permissions = new String[0];
     String[] aliases = new String[0];
     ITabCompleter[] tabCompleters = new ITabCompleter[0];
+    boolean console_available = false; // Default true
 
     public CommandTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
@@ -51,6 +52,14 @@ public class CommandTrigger extends Trigger {
         } else {
             this.tabCompleters = tabCompleters;
         }
+    }
+
+    public boolean isConsoleAvailable(){
+        return console_available;
+    }
+
+    public void setConsoleAvailable(boolean bool){
+        this.console_available = bool;
     }
 
     @Override

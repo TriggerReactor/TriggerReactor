@@ -39,6 +39,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     private static final String PERMISSION = "permissions";
     private static final String ALIASES = "aliases";
     public static final String TABS = "tabs";
+    public static final String CONSOLE_AVAILABLE = "runnable_in_console";
 
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
@@ -89,6 +90,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                                 .collect(Collectors.toList())))
                         .orElse(new ArrayList<>());
                 List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
+                boolean isConsoleAvailable = info.getConfig().get(CONSOLE_AVAILABLE, Boolean.class).orElse(true);
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -96,6 +98,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     trigger.setPermissions(permissions.toArray(new String[0]));
                     trigger.setAliases(aliases.toArray(new String[0]));
                     trigger.setTabCompleters(toTabCompleters(tabs));
+                    trigger.setConsoleAvailable(isConsoleAvailable);
                     return trigger;
                 } catch (TriggerInitFailedException | IOException e) {
                     e.printStackTrace();

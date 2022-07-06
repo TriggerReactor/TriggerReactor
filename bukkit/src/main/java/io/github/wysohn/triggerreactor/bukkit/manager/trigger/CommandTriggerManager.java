@@ -23,6 +23,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigg
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -69,12 +71,20 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         });
         command.setExecutor((sender, command1, label, args) -> {
             if (!(sender instanceof Player)) {
-                sender.sendMessage("CommandTrigger works only for Players.");
-                return true;
+                if(sender instanceof ConsoleCommandSender) {
+                    if (!trigger.isConsoleAvailable()) {
+                        sender.sendMessage("This CommandTrigger cannot be triggered by Console.");
+                        return true;
+                    }
+                    ICommandSender commandSender = plugin.getConsoleCommandSender();
+                    executeAsConsole(plugin.createCommandEvent(commandSender, label, args), sender, triggerName, args, trigger);
+                }else{
+                    sender.sendMessage("This CommandTrigger works only for Players"+(trigger.isConsoleAvailable() ? " and Console" : "")+".");
+                }
+            }else{
+                ICommandSender commandSender = plugin.getPlayer(sender.getName());
+                execute(plugin.createCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
             }
-
-            ICommandSender commandSender = plugin.getPlayer(sender.getName());
-            execute(plugin.createPlayerCommandEvent(commandSender, label, args), (Player) sender, triggerName, args, trigger);
             return true;
         });
 
@@ -150,7 +160,30 @@ public class CommandTriggerManager extends AbstractCommandTriggerManager impleme
         }
 
         Map<String, Object> varMap = new HashMap<>();
+        varMap.put("isByPlayer", true);
         varMap.put("player", player);
+        varMap.put("command", cmd);
+        varMap.put("args", args);
+        varMap.put("argslength", args.length);
+
+        trigger.activate(context, varMap);
+    }
+
+    private void executeAsConsole(Object context, CommandSender sender, String cmd, String[] args, CommandTrigger trigger) {
+        for (String permission : trigger.getPermissions()) {
+            if (!sender.hasPermission(permission)) {
+                sender.sendMessage(ChatColor.RED + "[TR] You don't have permission!");
+                if (plugin.isDebugging()) {
+                    plugin.getLogger().info("Colsole executed command " + cmd
+                            + " but didn't have permission " + permission + "");
+                }
+                return;
+            }
+        }
+
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("isByPlayer", false);
+        varMap.put("sender", sender);
         varMap.put("command", cmd);
         varMap.put("args", args);
         varMap.put("argslength", args.length);

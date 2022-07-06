@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.IConsoleCommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -456,13 +457,18 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
+    public IConsoleCommandSender getConsoleCommandSender() {
+        return bukkit.getConsoleSender();
+    }
+
+    @Override
     public Object createEmptyPlayerEvent(ICommandSender sender) {
         return bukkit.createEmptyPlayerEvent(sender);
     }
 
     @Override
-    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
-        return bukkit.createPlayerCommandEvent(sender, label, args);
+    public Object createCommandEvent(ICommandSender sender, String label, String[] args) {
+        return bukkit.createCommandEvent(sender, label, args);
     }
 
     @Override
