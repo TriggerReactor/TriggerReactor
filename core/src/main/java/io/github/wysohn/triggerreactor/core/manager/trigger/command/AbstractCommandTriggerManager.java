@@ -85,7 +85,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     }
                 }
                 if(conditions != null){
-                    builder = builder.setConditions(toTabCompleterConditionMap(conditions));
+                    builder = builder.setConditionMap(toTabCompleterConditionMap(conditions));
                 }
                 return builder.build();
             }
