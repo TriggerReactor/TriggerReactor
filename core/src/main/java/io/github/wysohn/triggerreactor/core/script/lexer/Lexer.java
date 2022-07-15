@@ -174,10 +174,11 @@ public class Lexer {
                     while (c != '*' && read()) ;
                     read();
 
+                    // Eat stream while cursor meet */, or throw exception if end of stream is reached.
                     if (c == '/') {
                         read();
                         break;
-                    } else {
+                    } else if (eos) {
                         throw new LexerException("Expected '/' but end of stream is reached", this);
                     }
                 }
@@ -488,6 +489,6 @@ public class Lexer {
         System.out.println("result: \n");
         Token tok = null;
         while ((tok = lexer.getToken()) != null)
-            System.out.println(tok.type + "] " + tok.value);
+            System.out.println("[" + tok.type + "] " + tok.value);
     }
 }
