@@ -142,7 +142,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testClearPotion1() throws Exception {
+    public void testClearPotion() throws Exception {
         Collection<PotionEffect> effects = new ArrayList<PotionEffect>() {{
             for (int i = 0; i < 5; i++) {
                 PotionEffect effect = mock(PotionEffect.class);
@@ -164,28 +164,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(player, times(effects.size())).removePotionEffect(any(PotionEffectType.class));
 
         Assert.assertEquals(0, test.getOverload());
-    }
-
-    @Test
-    public void testClearPotion2() throws Exception {
-        Collection<PotionEffect> effects = new ArrayList<PotionEffect>() {{
-            for (int i = 0; i < 5; i++)
-                add(mock(PotionEffect.class));
-        }};
-
-        Player player = mock(Player.class);
-        String effect = "SPEED";
-
-        doReturn(effects).when(player).getActivePotionEffects();
-
-        JsTest test = new ExecutorTest(engine, "CLEARPOTION")
-                .addVariable("player", player);
-
-        test.withArgs(effect).test();
-
-        verify(player).removePotionEffect(any());
-
-        Assert.assertEquals(1, test.getOverload(effect));
     }
 
     @Test
@@ -953,29 +931,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(entity).setVelocity(new Vector(x, y, z));
 
         Assert.assertEquals(1, test.getOverload(entity, x, y, z));
-    }
-
-    @Test
-    public void testRotateBlock() throws Exception {
-        String blockFace = "NORTH";
-        Location location = mock(Location.class);
-        Block block = mock(Block.class);
-        BlockState blockState = mock(BlockState.class);
-        Bed blockData = mock(Bed.class);
-
-        when(location.getBlock()).thenReturn(block);
-        when(block.getState()).thenReturn(blockState);
-        when(blockState.getData()).thenReturn(blockData);
-
-        JsTest test = new ExecutorTest(engine, "ROTATEBLOCK");
-
-        test.withArgs(blockFace, location).test();
-
-        verify(blockData).setFacingDirection(BlockFace.valueOf(blockFace));
-        verify(blockState).setData(any(Bed.class));
-        verify(blockState).update();
-
-        Assert.assertEquals(0, test.getOverload(blockFace, location));
     }
 
     // TODO: create unit test.
