@@ -52,7 +52,7 @@ function PUSH(args) {
 
   if (!target) throw new Error('Player is null.');
 
-  var vector = new Vector(x.toFixed(2), y.toFixed(2), z.toFixed(2));
+  var vector = new Vector(x, y, z);
 
   target.setVelocity(vector);
 
