@@ -18,6 +18,7 @@
 
 var Bukkit = Java.type('org.bukkit.Bukkit');
 var BlockFace = Java.type('org.bukkit.block.BlockFace');
+var Rotatable = Java.type('org.bukkit.block.data.Rotatable');
 var Location = Java.type('org.bukkit.Location');
 
 var validation = {
@@ -53,9 +54,14 @@ function ROTATEBLOCK(args) {
 
   var facing = BlockFace.valueOf(blockFace.toUpperCase());
 
+  if (!facing) throw new Error(args[0] + ' is not valid BlockFacing.');
+
   var block = location.getBlock();
   var state = block.getState();
   var data = state.getData();
+
+  if (!(data instanceof Rotatable))
+    throw new Error('This block is not rotatable.');
 
   data.setFacingDirection(facing);
 

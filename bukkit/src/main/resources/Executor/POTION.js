@@ -70,11 +70,13 @@ function POTION(args) {
     amplifier = args[3];
   }
 
-  if (!target) return null;
+  if (!target) throw new Error('Player is null.');
 
   second *= 20;
 
   var effectType = PotionEffectType.getByName(potionName);
+  if (!effectType) throw new Error(args[0] + ' is not a valid potion.');
+
   var effect = new PotionEffect(effectType, second, amplifier);
 
   target.addPotionEffect(effect);

@@ -17,6 +17,7 @@
  *******************************************************************************/
 
 var Bukkit = Java.type('org.bukkit.Bukkit');
+var ItemFrame = Java.type('org.bukkit.entity.ItemFrame')
 var Location = Java.type('org.bukkit.Location');
 
 var validation = {
@@ -43,7 +44,7 @@ function ITEMFRAMEROTATE(args) {
     );
 
   for each (var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
-    if (entity.getType().getEntityClass().getName().endsWith('ItemFrame'))
+    if (entity instanceof ItemFrame)
       entity.setRotation(entity.getRotation().rotateClockwise())
 
   return null;

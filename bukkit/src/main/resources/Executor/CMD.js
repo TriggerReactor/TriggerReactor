@@ -26,7 +26,7 @@ var validation = {
 };
 
 function CMD(args) {
-  if (!player) return null;
+  if (!player) throw new Error('Player is null.');
 
   var command = args[0];
 

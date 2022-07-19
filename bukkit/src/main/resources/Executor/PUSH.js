@@ -50,7 +50,7 @@ function PUSH(args) {
     z = args[3];
   }
 
-  if (!target) return null;
+  if (!target) throw new Error('Player is null.');
 
   var vector = new Vector(x.toFixed(2), y.toFixed(2), z.toFixed(2));
 

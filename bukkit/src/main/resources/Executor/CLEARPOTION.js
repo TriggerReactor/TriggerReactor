@@ -18,17 +18,24 @@
 var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
 
 var validation = {
-  overloads: [[], [{type: 'string', name: 'effect'}]],
+  overloads: [[], [{ type: 'string', name: 'effect' }]]
 };
 
 function CLEARPOTION(args) {
-  if (!player) return null;
+  if (!player) throw new Error('Player is null.');
 
   if (overload === 0)
     for each (var effect in player.getActivePotionEffects())
       player.removePotionEffect(effect.getType());
-  else if (overload === 1)
-      player.removePotionEffect(PotionEffectType.getByName(args[0].toUpperCase()));
+  else if (overload === 1) {
+    var potion = PotionEffectType.getByName(args[0].toUpperCase());
+
+    if (!potion) throw new Error(args[0] + ' is not a valid potion.');
+
+    player.removePotionEffect(
+      PotionEffectType.getByName(args[0].toUpperCase())
+    );
+  }
 
   return null;
 }

@@ -26,7 +26,7 @@ var validation = {
 };
 
 function MESSAGE(args) {
-  if (!player) return null;
+  if (!player) throw new Error('Player is null.');
 
   var message = Objects.toString(args[0]);
 

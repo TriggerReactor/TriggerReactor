@@ -21,7 +21,7 @@ var validation = {
 };
 
 function CLOSEGUI(args) {
-  if (!player) return null;
+  if (!player) throw new Error('Player is null.');
 
   player.closeInventory();
 

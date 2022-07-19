@@ -51,8 +51,11 @@ function SETBLOCK(args) {
   }
 
   var block = location.getBlock();
+  var material = Material.valueOf(materialName.toUpperCase());
 
-  block.setType(Material.valueOf(materialName.toUpperCase()));
+  if (!material) throw new Error(args[0] + ' is not valid material.');
+
+  block.setType(material);
 
   return null;
 }

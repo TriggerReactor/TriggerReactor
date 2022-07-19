@@ -17,6 +17,7 @@
  *******************************************************************************/
 
 var Bukkit = Java.type('org.bukkit.Bukkit');
+var Door = Java.type('org.bukkit.material.Door');
 var Location = Java.type('org.bukkit.Location');
 
 var validation = {
@@ -45,6 +46,8 @@ function DOORTOGGLE(args) {
   block = location.getBlock();
   state = block.getState();
   data = state.getData();
+
+  if (!(data instanceof Door)) throw new Error('This block is not a door.');
 
   data.setOpen(!data.isOpen());
 

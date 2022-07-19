@@ -42,7 +42,7 @@ function ACTIONBAR(args) {
     message = args[1];
   }
 
-  if (!target) return null;
+  if (!target) throw new Error('Player is null.');
 
   message = ChatColor.translateAlternateColorCodes('&', message);
 

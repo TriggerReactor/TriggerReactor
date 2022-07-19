@@ -72,6 +72,8 @@ function FALLINGBLOCK(args) {
     );
   }
 
+  if (!material) throw new Error(args[0] + ' is not valid material.');
+
   location.getWorld().spawnFallingBlock(location, material, 0);
 
   return null;

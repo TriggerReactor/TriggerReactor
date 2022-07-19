@@ -28,12 +28,14 @@ var validation = {
 };
 
 function SETCOUNT(args) {
-  if (overload === 0) {
-    var amount = args[0];
-    var item = args[1];
+  var amount, item;
 
-    item.setAmount(amount);
+  if (overload === 0) {
+    amount = args[0];
+    item = args[1];
   }
+
+  item.setAmount(amount);
 
   return null;
 }

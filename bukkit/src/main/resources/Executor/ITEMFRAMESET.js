@@ -18,6 +18,7 @@
 
 var Bukkit = Java.type('org.bukkit.Bukkit');
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var ItemFrame = Java.type('org.bukkit.entity.ItemFrame')
 var Location = Java.type('org.bukkit.Location');
 
 var validation = {
@@ -52,7 +53,7 @@ function ITEMFRAMESET(args) {
   }
 
   for each (var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
-    if (entity.getType().getEntityClass().getName().endsWith("ItemFrame"))
+    if (entity instanceof ItemFrame)
       entity.setItem(itemStack);
 
   return null;

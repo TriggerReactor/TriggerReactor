@@ -38,7 +38,7 @@ function SETFLYSPEED(args) {
     speed = args[1];
   }
 
-  if (!target) return null;
+  if (!target) throw new Error('Player is null.');
 
   target.setFlySpeed(speed);
 

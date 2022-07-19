@@ -39,7 +39,8 @@ function PERMISSION(args) {
     permission = args[1];
   }
 
-  if (!target) return null;
+  if (!vault) throw new Error('Vault is not available.');
+  if (!target) throw new Error('Player is null.');
 
   if (permission.startsWith('-')) vault.revoke(target, permission.substring(1));
   else vault.permit(target, permission);

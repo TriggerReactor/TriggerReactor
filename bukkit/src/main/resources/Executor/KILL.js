@@ -28,7 +28,7 @@ function KILL(args) {
   if (overload === 0) target = player;
   else if (overload === 1) target = args[0];
 
-  if (!target) return null;
+  if (!target) throw new Error('Entity is null.');
 
   target.setHealth(0);
 

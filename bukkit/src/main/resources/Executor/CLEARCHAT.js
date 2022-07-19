@@ -28,7 +28,7 @@ function CLEARCHAT(args) {
   if (overload === 0) target = player;
   else if (overload === 1) target = args[0];
 
-  if (!target) return null;
+  if (!target) throw new Error('Player is null.');
 
   for (var i = 0; i < 64; i++) target.sendMessage('');
 
