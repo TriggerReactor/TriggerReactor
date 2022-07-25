@@ -20,7 +20,7 @@ var validation = {
 };
 
 function CLEARENTITY(args) {
-  if (!player) throw new Error("Player is null.");
+  if (!player) throw new Error('Player is null.');
 
   var radius = args[0];
 
