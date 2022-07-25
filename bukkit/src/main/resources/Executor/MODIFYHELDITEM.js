@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,86 +15,65 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function MODIFYHELDITEM(args){
-	if(player === null)
-		return null;
-		
-	if(args.length < 2)
-		throw new Error("Invalid parameters. Need [String, Depends on type]");
-		
-	if(typeof args[0] !== "string")
-		throw new Error("Invalid parameters. First parameter wasn't a String");
-		
-	var type = args[0].toUpperCase();
-	var helditem = player.getItemInHand();
-		
-	if(type === "TITLE"){
-		if(helditem == null || helditem.getType().name() == "AIR")
-			return null;
-			
-		var meta = helditem.getItemMeta();
-		meta.setDisplayName(args[1]);
-		helditem.setItemMeta(meta);
-	}else if(type === "LORE"){
-		if(args.length < 3)
-			throw new Error("Invalid parameters. Need [String, String, Depends on action]");
-		
-		if(typeof args[0] !== "string")
-			throw new Error("Invalid parameters. Second parameter wasn't a String");
-		var action = args[1].toUpperCase();
-		
-		if(helditem == null || helditem.getType().name() == "AIR")
-			return null;
-			
-		var meta = helditem.getItemMeta();
-		var lore = meta.getLore();
-		if(lore == null){
-			var ArrayList = Java.type('java.util.ArrayList');
-			lore = new ArrayList();
-		}
-		
-		if(action === "ADD"){
-			var value = args[2].toString();
-			
-			if(args.length > 3){
-				var index = args[3];
-				if(typeof index !== "number")
-					throw new Error("index should be a number!");
-				
-				if(index > lore.size() - 1)
-					lore.add(value);
-				else
-					lore.add(Math.max(0, Math.min(lore.size() - 1, index)), value);
-			}else{
-				lore.add(value);
-			}
-		}else if(action=== "SET"){
-			if(args.length < 4)
-				throw new Error("Invalid parameters. Need [String, String, Any, Number]");
-			
-			while((lore.size() - 1) < args[3])
-				lore.add("");
-			
-			lore.set(args[3], args[2]);
-		}else if(action ==="REMOVE"){
-			var index = args[2];
-			if(typeof index !== "number")
-				throw new Error("index should be a number!");
-				
-			if(0 <= index && index < lore.size()){
-				lore.remove(index);
-			}
-		}else{
-			throw new Error("Unknown MODIFYHELDITEM LORE action "+action);
-		}
-		
-		meta.setLore(lore);
-		helditem.setItemMeta(meta);
-	}else{
-		throw new Error("Unknown MODIFYHELDITEM type "+type);
-	}
-	
-	player.setItemInHand(helditem);
-		
-	return null;
+
+var ChatColor = Java.type('org.bukkit.ChatColor');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'type', matches: 'TITLE' },
+      { type: 'string', name: 'title' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'LORE' },
+      { type: 'string', name: 'subType', matches: 'ADD' },
+      { type: 'string', name: 'lore' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'LORE' },
+      { type: 'string', name: 'subType', matches: 'ADD' },
+      { type: 'integer', name: 'index' },
+      { type: 'string', name: 'lore' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'LORE' },
+      { type: 'string', name: 'subType', matches: 'SET' },
+      { type: 'integer', name: 'index' },
+      { type: 'string', name: 'lore' }
+    ],
+    [
+      { type: 'string', name: 'type', matches: 'LORE' },
+      { type: 'string', name: 'subType', matches: 'REMOVE' },
+      { type: 'integer', name: 'index' }
+    ]
+  ]
+};
+
+function MODIFYHELDITEM(args) {
+  if (!player) throw new Error('Player is null.');
+
+  var item = player.getInventory().getItemInHand();
+
+  if (!item || item.getType().name === 'AIR')
+    throw new Error('Held item is null or air.');
+
+  var meta = item.getItemMeta();
+
+  if (overload === 0) {
+    meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', args[1]));
+  } else {
+    var lore = meta.getLore();
+
+    if (overload === 1) lore.add(args[2]);
+    else if (overload === 2) lore.add(args[2], args[3]);
+    else if (overload === 3) lore.set(args[2], args[3]);
+    else if (overload === 4) lore.set(args[2]);
+
+    meta.setLore(lore);
+  }
+
+  item.setItemMeta(meta);
+  player.getInventory().setItemInHand(helditem);
+
+  return null;
 }
