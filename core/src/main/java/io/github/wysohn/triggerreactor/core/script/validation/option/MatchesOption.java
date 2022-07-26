@@ -10,7 +10,7 @@ public class MatchesOption extends ValidationOption {
     public String validate(Object arg, Object value) {
         if (((String) value).matches((String) arg))
             return null;
-
-        return "%name% must be matches " + arg;
+            
+        return "%name% must match with " + arg;
     }
 }
