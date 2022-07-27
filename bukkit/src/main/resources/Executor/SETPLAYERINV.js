@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,26 +15,40 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
-validation = {
-    "overloads": [
-        [{"name":"slot", "type": "int"},{"name":"item", "type": itemStackType.class}]
+
+var Player = Java.type('org.bukkit.entity.Player');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+
+var validation = {
+  overloads: [
+    [
+      { name: 'slot', type: 'int', minimum: 0, maximum: 35 },
+      { name: 'item', type: ItemStack.class }
+    ],
+    [
+      { name: 'player', type: Player.class },
+      { name: 'slot', type: 'int', minimum: 0, maximum: 35 },
+      { name: 'item', type: ItemStack.class }
     ]
+  ]
+};
 
-}
-function SETPLAYERINV(args){
-    if(player == null)
-        return null;
+function SETPLAYERINV(args) {
+  var target, slot, item;
 
-    var slot = args[0]
-    var item = args[1];
-    if(slot < 0 || slot >= player.getInventory().getSize())
-        throw new Error('Unexpected token: slot number should be at least 0, up to 35.');
+  if (overload === 0) {
+    target = player;
+    slot = args[0];
+    item = args[1];
+  } else if (overload === 1) {
+    target = args[0];
+    slot = args[1];
+    item = args[2];
+  }
 
-    if(item == null)
-        return null;
+  if (!target) throw new Error('Player is null.');
 
+  target.getInventory().setItem(slot, item);
 
-    player.getInventory().setItem(slot, item);
-    return null;
+  return null;
 }

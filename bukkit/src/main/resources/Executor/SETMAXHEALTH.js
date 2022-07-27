@@ -1,26 +1,46 @@
-function SETMAXHEALTH(args)
-{
-  if (args.length != 1)
-  {
-    throw new Error("Incorrect Number of arguments for Executor SETMAXHEALTH")
+/*******************************************************************************
+ *     Copyright (C) 2022 Ioloolo
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+var Player = Java.type('org.bukkit.entity.Player');
+
+var validation = {
+  overloads: [
+    [{ name: 'health', type: 'number', minimum: 1, maximum: 2048 }],
+    [
+      { name: 'player', type: Player.class },
+      { name: 'health', type: 'number', minimum: 1, maximum: 2048 }
+    ]
+  ]
+};
+
+function SETMAXHEALTH(args) {
+  var target, health;
+
+  if (overload === 0) {
+    target = player;
+    health = args[0];
+  } else if (overload === 1) {
+    target = args[0];
+    health = args[1];
   }
-  
-  var arg = args[0]
-  
-  if (!(typeof arg == "number"))
-  {
-    throw new Error("Invalid argument for SETMAXHEALTH: " + arg)
-  }
-  
-  if (arg <= 0)
-  {
-    throw new Error("Argument for Executor SETMAXHEALTH should not be negative or zero")
-  }
-  
-  if (arg > 2048)
-  {
-    throw new Error("Maximum health cannot be greater than 2048")
-  }
-  
-  player.setMaxHealth(arg)
+
+  if (!target) throw new Error('Player is null.');
+
+  target.setMaxHealth(health);
+
+  return null;
 }

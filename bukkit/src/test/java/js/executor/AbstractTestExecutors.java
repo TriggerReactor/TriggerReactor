@@ -2,18 +2,18 @@ package js.executor;
 
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.material.Bed;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Door;
 import org.bukkit.material.Lever;
 import org.bukkit.potion.PotionEffect;
@@ -25,8 +25,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
+import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.Mockito.*;
 
 /**
@@ -776,6 +778,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(0, test.getOverload(exampleObject));
     }
 
+    // TODO
+    @Test
+    public void testModifyHeldItem() throws Exception {}
+
     @Test
     public void testMoney1() throws Exception {
         class FakeVault {
@@ -896,9 +902,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(1, test.getOverload(player, permission));
     }
 
-    // TODO: create unit test.
-    // @Test
-    // public void testPotion() throws Exception {}
+    // TODO
+     @Test
+     public void testPotion() throws Exception {}
 
     @Test
     public void testPush1() throws Exception {
@@ -933,9 +939,13 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(1, test.getOverload(entity, x, y, z));
     }
 
-    // TODO: create unit test.
-    // @Test
-    // public void testScoreboard() throws Exception {}
+    // TODO
+    @Test
+    public void testRotateBlock() throws Exception {}
+
+    // TODO
+     @Test
+     public void testScoreboard() throws Exception {}
 
     @Test
     public void testServer1() throws Exception {
@@ -1174,5 +1184,248 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         verify(player).setHealth(health);
 
         Assert.assertEquals(1, test.getOverload(player, health));
+    }
+
+    @Test
+    public void testSetHeldItem1() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETHELDITEM")
+                .addVariable("player", player);
+
+        test.withArgs(item).test();
+
+        verify(inventory).setItemInHand(item);
+
+        Assert.assertEquals(0, test.getOverload(item));
+    }
+
+    @Test
+    public void testSetHeldItem2() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETHELDITEM");
+
+        test.withArgs(player, item).test();
+
+        verify(inventory).setItemInHand(item);
+
+        Assert.assertEquals(1, test.getOverload(player, item));
+    }
+
+    @Test
+    public void testSetItemLore() throws Exception {
+        ItemStack item = mock(ItemStack.class);
+        ItemMeta itemMeta = mock(ItemMeta.class);
+        String lore = "&aFirst Line\n&bSecond Line\n\n\n&f5th Line";
+        String colorized = ChatColor.translateAlternateColorCodes('&', lore);
+        String[] lores = colorized.split("\n");
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(item.getItemMeta()).thenReturn(itemMeta);
+
+        JsTest test = new ExecutorTest(engine, "SETITEMLORE");
+
+        test.withArgs(lore, item).test();
+
+        verify(itemMeta).setLore(Arrays.asList(lores));
+
+        Assert.assertEquals(0, test.getOverload(lore, item));
+    }
+
+    @Test
+    public void testSetItemName() throws Exception {
+        ItemStack item = mock(ItemStack.class);
+        ItemMeta itemMeta = mock(ItemMeta.class);
+        String title = "&aCustom Title";
+        String colorized = ChatColor.translateAlternateColorCodes('&', title);
+
+        when(item.getType()).thenReturn(Material.STONE);
+        when(item.getItemMeta()).thenReturn(itemMeta);
+
+        JsTest test = new ExecutorTest(engine, "SETITEMNAME");
+
+        test.withArgs(title, item).test();
+
+        verify(itemMeta).setDisplayName(colorized);
+
+        Assert.assertEquals(0, test.getOverload(title, item));
+    }
+
+    @Test
+    public void testSetMaxHealth1() throws Exception {
+        Player player = mock(Player.class);
+        double health = 100D;
+
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
+                .addVariable("player", player);
+
+        test.withArgs(health).test();
+
+        verify(player).setMaxHealth(health);
+
+        Assert.assertEquals(0, test.getOverload(health));
+    }
+
+    @Test
+    public void testSetMaxHealth2() throws Exception {
+        Player player = mock(Player.class);
+        double health = 100D;
+
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH");
+
+        test.withArgs(player, health).test();
+
+        verify(player).setMaxHealth(health);
+
+        Assert.assertEquals(1, test.getOverload(player, health));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetMaxHealth3() throws Exception {
+        Player player = mock(Player.class);
+        double health = 10000D;
+
+        JsTest test = new ExecutorTest(engine, "SETMAXHEALTH")
+                .addVariable("player", player);
+
+        test.withArgs(health).test();
+    }
+
+    @Test
+    public void testSetOffHand1() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETOFFHAND")
+                .addVariable("player", player);
+
+        test.withArgs(item).test();
+
+        verify(inventory).setItemInOffHand(item);
+
+        Assert.assertEquals(0, test.getOverload(item));
+    }
+
+    @Test
+    public void testSetOffHand2() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETOFFHAND");
+
+        test.withArgs(player, item).test();
+
+        verify(inventory).setItemInOffHand(item);
+
+        Assert.assertEquals(1, test.getOverload(player, item));
+    }
+
+    @Test
+    public void testSetPlayerInv1() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+        int slot = 10;
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETPLAYERINV")
+                .addVariable("player", player);
+
+        test.withArgs(slot, item).test();
+
+        verify(inventory).setItem(slot, item);
+
+        Assert.assertEquals(0, test.getOverload(slot, item));
+    }
+
+    @Test
+    public void testSetPlayerInv2() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+        int slot = 10;
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETPLAYERINV");
+
+        test.withArgs(player, slot, item).test();
+
+        verify(inventory).setItem(slot, item);
+
+        Assert.assertEquals(1, test.getOverload(player, slot, item));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetPlayerInv3() throws Exception {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack item = mock(ItemStack.class);
+        int slot = 100;
+
+        when(player.getInventory()).thenReturn(inventory);
+
+        JsTest test = new ExecutorTest(engine, "SETPLAYERINV")
+                .addVariable("player", player);
+
+        test.withArgs(player, slot, item).test();
+    }
+
+    @Test
+    public void testSetSaturation1() throws Exception {
+        Player player = mock(Player.class);
+        float saturation = 20F;
+
+        JsTest test = new ExecutorTest(engine, "SETSATURATION")
+                .addVariable("player", player);
+
+        test.withArgs(saturation).test();
+
+        verify(player).setSaturation(saturation);
+
+        Assert.assertEquals(0, test.getOverload(saturation));
+    }
+
+    @Test
+    public void testSetSaturation2() throws Exception {
+        Player player = mock(Player.class);
+        float saturation = 20F;
+
+        JsTest test = new ExecutorTest(engine, "SETSATURATION");
+
+        test.withArgs(player, saturation).test();
+
+        verify(player).setSaturation(saturation);
+
+        Assert.assertEquals(1, test.getOverload(player, saturation));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetSaturation3() throws Exception {
+        Player player = mock(Player.class);
+        float saturation = -5F;
+
+        JsTest test = new ExecutorTest(engine, "SETSATURATION")
+                .addVariable("player", player);
+
+        test.withArgs(saturation).test();
     }
 }

@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,23 +15,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
-var ChatColor = Java.type('org.bukkit.ChatColor')
-validation = {
-    "overloads": [
-        [{"name":"name", "type": "string"}, {"name": "item", "type": itemStackType.class}]
-    ]
 
-}
-function SETITEMNAME(args){
-    var item = args[1];
-    var name = ChatColor.translateAlternateColorCodes(Char('&'), args[0]);
-    if(item.getType().name().toLowerCase() === "air" || item == null){
-        return null;
-    } else{
-        var im = item.getItemMeta();
-        im.setDisplayName(name);
-        item.setItemMeta(im);
-        return null;
-    }
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var ChatColor = Java.type('org.bukkit.ChatColor');
+
+var validation = {
+  overloads: [
+    [
+      { name: 'name', type: 'string' },
+      { name: 'item', type: ItemStack.class }
+    ]
+  ]
+};
+
+function SETITEMNAME(args) {
+  var item = args[1];
+  var name = ChatColor.translateAlternateColorCodes(Char('&'), args[0]);
+
+  if (!item || item.getType().name === 'AIR')
+    throw new Error('Item is null or air.');
+
+  var meta = item.getItemMeta();
+  meta.setDisplayName(name);
+  item.setItemMeta(meta);
+
+  return null;
 }
