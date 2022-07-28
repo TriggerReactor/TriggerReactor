@@ -371,6 +371,15 @@ public class TestLexer {
         testToken(lexer, Type.OPERATOR_A, "+");
         testToken(lexer, Type.INTEGER, "3");
         testEnd(lexer);
+
+        text = "4/**\n"
+            + " * heya" +
+            " */+5";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.INTEGER, "4");
+        testToken(lexer, Type.OPERATOR_A, "+");
+        testToken(lexer, Type.INTEGER, "5");
+        testEnd(lexer);
     }
 
     @Test
