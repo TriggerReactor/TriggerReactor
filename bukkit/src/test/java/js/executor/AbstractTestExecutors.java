@@ -9,8 +9,11 @@ import js.JsTest;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -926,9 +929,9 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testPush2() throws Exception {
         Entity entity = mock(Entity.class);
-        float x = 10.0F;
-        float y = 5.75F;
-        float z = -10.5F;
+        int x = 10;
+        int y = 5;
+        int z = -10;
 
         JsTest test = new ExecutorTest(engine, "PUSH");
 
@@ -1427,5 +1430,155 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
                 .addVariable("player", player);
 
         test.withArgs(saturation).test();
+    }
+
+    @Test
+    public void testSetSlot() throws Exception {
+        InventoryClickEvent event = mock(InventoryClickEvent.class);
+        ItemStack item = mock(ItemStack.class);
+        DoubleChestInventory inventory = mock(DoubleChestInventory.class);
+        int index = 1;
+
+        when(event.getInventory()).thenReturn(inventory);
+        when(inventory.getSize()).thenReturn(36);
+
+        JsTest test = new ExecutorTest(engine, "SETSLOT")
+                .addVariable("event", event);
+
+        test.withArgs(index, item).test();
+
+        verify(inventory).setItem(index, item);
+
+        Assert.assertEquals(0, test.getOverload(index, item));
+    }
+
+    @Test
+    public void testSetType() throws Exception {
+        ItemStack item = mock(ItemStack.class);
+        String type = "STONE";
+        Material material = Material.valueOf(type);
+
+        when(item.getType()).thenReturn(material);
+
+        JsTest test = new ExecutorTest(engine, "SETTYPE");
+
+        test.withArgs(type, item).test();
+
+        verify(item).setType(material);
+
+        Assert.assertEquals(0, test.getOverload(type, item));
+    }
+
+    @Test
+    public void testSetWalkSpeed1() throws Exception {
+        Player player = mock(Player.class);
+        Float speed = 0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
+                .addVariable("player", player);
+
+        test.withArgs(speed).test();
+
+        verify(player).setWalkSpeed(speed);
+
+        Assert.assertEquals(0, test.getOverload(speed));
+    }
+
+    @Test
+    public void testSetWalkSpeed2() throws Exception {
+        Player player = mock(Player.class);
+        Float speed = -0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED");
+
+        test.withArgs(player, speed).test();
+
+        verify(player).setWalkSpeed(speed);
+
+        Assert.assertEquals(1, test.getOverload(player, speed));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetWalkSpeed3() throws Exception {
+        Player player = mock(Player.class);
+        Float speed = 10F;
+
+        JsTest test = new ExecutorTest(engine, "SETWALKSPEED")
+                .addVariable("player", player);
+
+        test.withArgs(player, speed).test();
+    }
+
+    @Test
+    public void testSetXp1() throws Exception {
+        Player player = mock(Player.class);
+        Float xp = 0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SETXP")
+                .addVariable("player", player);
+
+        test.withArgs(xp).test();
+
+        verify(player).setExp(xp);
+
+        Assert.assertEquals(0, test.getOverload(xp));
+    }
+
+    @Test
+    public void testSetXp2() throws Exception {
+        Player player = mock(Player.class);
+        Float xp = 1F;
+
+        JsTest test = new ExecutorTest(engine, "SETXP");
+
+        test.withArgs(player, xp).test();
+
+        verify(player).setExp(xp);
+
+        Assert.assertEquals(1, test.getOverload(player, xp));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSetXp3() throws Exception {
+        Player player = mock(Player.class);
+        Float xp = 10F;
+
+        JsTest test = new ExecutorTest(engine, "SETXP")
+                .addVariable("player", player);
+
+        test.withArgs(player, xp).test();
+    }
+
+    @Test
+    public void testSignEdit1() throws Exception {
+        Location location = mock(Location.class);
+        Block block = mock(Block.class);
+        Sign sign = mock(Sign.class);
+        int line = 2;
+        String text = "&aSign Edit Executor";
+        String colorized = ChatColor.translateAlternateColorCodes('&', text);
+
+        when(location.getBlock()).thenReturn(block);
+        when(block.getState()).thenReturn(sign);
+
+        JsTest test = new ExecutorTest(engine, "SIGNEDIT");
+
+        test.withArgs(line, text, location).test();
+
+        verify(sign).setLine(line, colorized);
+        verify(sign).update();
+
+        Assert.assertEquals(0, test.getOverload(line, text, location));
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testSignEdit() throws Exception {
+        Location location = mock(Location.class);
+        int line = 5;
+        String text = "&aSign Edit Executor";
+
+        JsTest test = new ExecutorTest(engine, "SIGNEDIT");
+
+        test.withArgs(line, text, location).test();
     }
 }

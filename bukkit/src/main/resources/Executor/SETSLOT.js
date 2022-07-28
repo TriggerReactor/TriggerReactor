@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,35 +15,33 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack');
-validation = {
+
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var InventoryEvent = Java.type('org.bukkit.event.inventory.InventoryEvent');
+
+var validation = {
   overloads: [
     [
-      { name: 'index', type: 'int' },
-      { name: 'item', type: itemStackType.class }
+      { name: 'index', type: 'int', minimum: 0 },
+      { name: 'item', type: ItemStack.class }
     ]
   ]
 };
+
 function SETSLOT(args) {
-  var invOpenEvent = Java.type('org.bukkit.event.inventory.InventoryOpenEvent');
-  var invClickEvent = Java.type(
-    'org.bukkit.event.inventory.InventoryClickEvent'
-  );
-  var invCloseEvent = Java.type(
-    'org.bukkit.event.inventory.InventoryCloseEvent'
-  );
-  if (
-    event instanceof invOpenEvent ||
-    event instanceof invClickEvent ||
-    event instanceof invCloseEvent
-  ) {
-    if (args[0] < 0 || args[0] >= event.getInventory().getSize())
-      throw new Error(
-        'Unexpected token: slot number should be at least 0, up to its size.'
-      );
-    else var item = event.getInventory().setItem(args[0], args[1]);
-    return null;
-  } else {
-    throw new Error('$slot Placeholder is available only in InventoryTrigger!');
-  }
+  if (!(event instanceof InventoryEvent))
+    throw new Error('#SETSLOT is available only in InventoryTrigger.');
+
+  var index = args[0];
+  var item = args[1];
+  var inventory = event.getInventory();
+
+  if (index >= inventory.getSize())
+    throw new Error(
+      'Unexpected token: slot number should be at least 0, up to its size.'
+    );
+
+  inventory.setItem(index, item);
+
+  return null;
 }

@@ -1,22 +1,46 @@
-var Float = Java.type('java.lang.Float')
-function SETXP(args)
-{
-  if (args.length !== 1)
-  {
-    throw new Error("Incorrect number of arguments for executor SETXP")
+/*******************************************************************************
+ *     Copyright (C) 2022 Ioloolo
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+var Player = Java.type('org.bukkit.entity.Player');
+
+var validation = {
+  overloads: [
+    [{ name: 'xp', type: 'number', minimum: 0, maximum: 1 }],
+    [
+      { name: 'player', type: Player.class },
+      { name: 'xp', type: 'number', minimum: 0, maximum: 1 }
+    ]
+  ]
+};
+
+function SETXP(args) {
+  var target, xp;
+
+  if (overload === 0) {
+    target = player;
+    xp = args[0];
+  } else if (overload === 1) {
+    target = args[0];
+    xp = args[1];
   }
-  
-  var arg = args[0]
-  
-  if (!(typeof arg == "number"))
-  {
-    throw new Error("Invalid argument for SETXP: " + arg)
-  }
-  
-  if (arg < 0 || arg > 1)
-  {
-    throw new Error(arg + " is outside of the allowable range of 0..1 for executor SETXP")
-  }
-  
-  player.setExp(new Float(arg))
+
+  if (!target) throw new Error('Player is null.');
+
+  target.setExp(xp);
+
+  return null;
 }
