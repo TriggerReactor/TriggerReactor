@@ -14,25 +14,187 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var Sound = Java.type('org.bukkit.Sound');
+var Location = Java.type('org.bukkit.Location');
+
+var validation = {
+  overloads: [
+    [
+      { name: 'location', type: Location.class },
+      { name: 'sound', type: 'string' }
+    ],
+    [
+      { name: 'location', type: Location.class },
+      { name: 'sound', type: 'string' },
+      { name: 'volume', type: 'number' }
+    ],
+    [
+      { name: 'location', type: Location.class },
+      { name: 'sound', type: 'string' },
+      { name: 'volume', type: 'number' },
+      { name: 'pitch', type: 'number' }
+    ],
+    [
+      { name: 'location', type: Location.class },
+      { name: 'sound', type: Sound.class }
+    ],
+    [
+      { name: 'location', type: Location.class },
+      { name: 'sound', type: Sound.class },
+      { name: 'volume', type: 'number' }
+    ],
+    [
+      { name: 'location', type: Location.class },
+      { name: 'sound', type: Sound.class },
+      { name: 'volume', type: 'number' },
+      { name: 'pitch', type: 'number' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { name: 'sound', type: 'string' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { name: 'sound', type: 'string' },
+      { name: 'volume', type: 'number' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { name: 'sound', type: 'string' },
+      { name: 'volume', type: 'number' },
+      { name: 'pitch', type: 'number' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { name: 'sound', type: Sound.class }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { name: 'sound', type: Sound.class },
+      { name: 'volume', type: 'number' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { name: 'sound', type: Sound.class },
+      { name: 'volume', type: 'number' },
+      { name: 'pitch', type: 'number' }
+    ]
+  ]
+};
+
 function SOUND(args) {
-	if (args.length == 4) {
-		var Sound = Java.type('org.bukkit.Sound');
+  var location, sound, volume, pitch;
 
-		var location = args[0];
-		var volume = args[2];
-		var pitch = args[3];
+  if (overload === 0) {
+    location = args[0];
+    sound = Sound.valueOf(args[1].toUpperCase());
+    volume = 1;
+    pitch = 1;
+  } else if (overload === 1) {
+    location = args[0];
+    sound = Sound.valueOf(args[1].toUpperCase());
+    volume = args[2];
+    pitch = 1;
+  } else if (overload === 2) {
+    location = args[0];
+    sound = Sound.valueOf(args[1].toUpperCase());
+    volume = args[2];
+    pitch = args[3];
+  } else if (overload === 3) {
+    location = args[0];
+    sound = args[1];
+    volume = 1;
+    pitch = 1;
+  } else if (overload === 4) {
+    location = args[0];
+    sound = args[1];
+    volume = args[2];
+    pitch = 1;
+  } else if (overload === 5) {
+    location = args[0];
+    sound = args[1];
+    volume = args[2];
+    pitch = args[3];
+  } else if (overload === 6) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    sound = Sound.valueOf(args[3].toUpperCase());
+    volume = 1;
+    pitch = 1;
+  } else if (overload === 7) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    sound = Sound.valueOf(args[3].toUpperCase());
+    volume = args[4];
+    pitch = 1;
+  } else if (overload === 8) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    sound = Sound.valueOf(args[3].toUpperCase());
+    volume = args[4];
+    pitch = args[5];
+  } else if (overload === 9) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    sound = args[3];
+    volume = 1;
+    pitch = 1;
+  } else if (overload === 10) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    sound = args[3];
+    volume = args[4];
+    pitch = 1;
+  } else if (overload === 11) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    sound = args[3];
+    volume = args[4];
+    pitch = args[5];
+  }
 
-		var sound;
-		try{
-			sound = Sound.valueOf(args[1]);
-		}catch(ex){
-			sound = args[1];
-		}finally{
-			player.playSound(location, sound, volume, pitch);
-		}
-	} else {
-		throw new Error(
-				"Invalid parameters. Need [Location, Sound, Number, Number]")
-	}
-	return null;
+  if (!player) throw new Error('Player is null.');
+  if (!sound)
+    throw new Error(overload >= 6 ? args[3] : args[1] + ' is not valid sound.');
+
+  player.playSound(location, sound, volume, pitch);
+
+  return null;
 }

@@ -1572,7 +1572,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test(expected = ValidationException.class)
-    public void testSignEdit() throws Exception {
+    public void testSignEdit2() throws Exception {
         Location location = mock(Location.class);
         int line = 5;
         String text = "&aSign Edit Executor";
@@ -1580,5 +1580,356 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         JsTest test = new ExecutorTest(engine, "SIGNEDIT");
 
         test.withArgs(line, text, location).test();
+    }
+
+    @Test
+    public void testSound1() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        String sound = "BLOCK_WOOD_BREAK";
+
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
+
+        test.withArgs(location, sound).test();
+
+        verify(player).playSound(location, Sound.valueOf(sound), 1F, 1F);
+
+        Assert.assertEquals(0, test.getOverload(location, sound));
+    }
+
+    @Test
+    public void testSound2() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        String sound = "BLOCK_WOOD_BREAK";
+        float volume = 0.5F;
+        float pitch = -0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
+
+        test.withArgs(location, sound, volume, pitch).test();
+
+        verify(player).playSound(location, Sound.valueOf(sound), volume, pitch);
+
+        Assert.assertEquals(2, test.getOverload(location, sound, volume, pitch));
+    }
+
+    @Test
+    public void testSound3() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        Sound sound = Sound.BLOCK_WOOD_BREAK;
+        float volume = 0.5F;
+
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
+
+        test.withArgs(location, sound, volume).test();
+
+        verify(player).playSound(location, sound, volume, 1F);
+
+        Assert.assertEquals(4, test.getOverload(location, sound, volume));
+    }
+
+    @Test
+    public void testSound4() throws Exception {
+        Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+        Sound sound = Sound.BLOCK_WOOD_BREAK;
+        float volume = 0.5F;
+        float pitch = -0.5F;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUND")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z, sound, volume, pitch).test();
+
+        verify(player).playSound(any(Location.class), eq(sound), eq(volume), eq(pitch));
+
+        Assert.assertEquals(11, test.getOverload(x, y, z, sound, volume, pitch));
+    }
+
+
+
+
+
+
+    @Test
+    public void testSoundAll1() throws Exception {
+        Location location = mock(Location.class);
+        String sound = "BLOCK_WOOD_BREAK";
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUNDALL");
+
+        test.withArgs(location, sound).test();
+
+        verify(world).playSound(location, Sound.valueOf(sound), 1F, 1F);
+
+        Assert.assertEquals(0, test.getOverload(location, sound));
+    }
+
+    @Test
+    public void testSoundAll2() throws Exception {
+        Location location = mock(Location.class);
+        String sound = "BLOCK_WOOD_BREAK";
+        float volume = 0.5F;
+        float pitch = -0.5F;
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUNDALL");
+
+        test.withArgs(location, sound, volume, pitch).test();
+
+        verify(world).playSound(location, Sound.valueOf(sound), volume, pitch);
+
+        Assert.assertEquals(2, test.getOverload(location, sound, volume, pitch));
+    }
+
+    @Test
+    public void testSoundAll3() throws Exception {
+        Location location = mock(Location.class);
+        Sound sound = Sound.BLOCK_WOOD_BREAK;
+        float volume = 0.5F;
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SOUNDALL");
+
+        test.withArgs(location, sound, volume).test();
+
+        verify(world).playSound(location, sound, volume, 1F);
+
+        Assert.assertEquals(4, test.getOverload(location, sound, volume));
+    }
+
+    @Test
+    public void testSpawn1() throws Exception {
+        Player player = mock(Player.class);
+        String entity = "pig";
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SPAWN")
+                .addVariable("player", player);
+
+        test.withArgs(entity).test();
+
+        verify(world).spawnEntity(location, EntityType.valueOf(entity.toUpperCase()));
+
+        Assert.assertEquals(0, test.getOverload(entity));
+    }
+
+    @Test
+    public void testSpawn2() throws Exception {
+        Location location = mock(Location.class);
+        EntityType entity = EntityType.PIG;
+
+        World world = mock(World.class);
+
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "SPAWN");
+
+        test.withArgs(location, entity).test();
+
+        verify(world).spawnEntity(location, entity);
+
+        Assert.assertEquals(3, test.getOverload(location, entity));
+    }
+
+    @Test
+    public void testTime1() throws Exception {
+        Player player = mock(Player.class);
+        int time = 1000*12;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TIME")
+                .addVariable("player", player);
+
+        test.withArgs(time).test();
+
+        verify(world).setTime(time);
+
+        Assert.assertEquals(0, test.getOverload(time));
+    }
+
+    @Test
+    public void testTime2() throws Exception {
+        World world = mock(World.class);
+        int time = 1000*12;
+
+        JsTest test = new ExecutorTest(engine, "TIME");
+
+        test.withArgs(world, time).test();
+
+        verify(world).setTime(time);
+
+        Assert.assertEquals(2, test.getOverload(world, time));
+    }
+
+    @Test
+    public void testTp1() throws Exception {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TP")
+                .addVariable("player", player);
+
+        test.withArgs(location).test();
+
+        verify(player).teleport(location);
+
+        Assert.assertEquals(0, test.getOverload(location));
+    }
+
+    @Test
+    public void testTp2() throws Exception {
+        Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TP")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z).test();
+
+        verify(player).teleport(new Location(world, x, y, z));
+
+        Assert.assertEquals(2, test.getOverload(x, y, z));
+    }
+
+    @Test
+    public void testTp3() throws Exception {
+        Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+        float yaw = 10.5F;
+        float pitch = -30.0F;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TP");
+
+        test.withArgs(x, y, z, yaw, pitch, player).test();
+
+        verify(player).teleport(new Location(world, x, y, z, yaw, pitch));
+
+        Assert.assertEquals(6, test.getOverload(x, y, z, yaw, pitch, player));
+    }
+
+    // TODO
+    @Test
+    public void testTppos() throws Exception {}
+
+    @Test
+    public void testVelocity1() throws Exception {
+        Player player = mock(Player.class);
+        int x = 10;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "VELOCITY")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z).test();
+
+        verify(player).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(0, test.getOverload(x, y, z));
+    }
+
+    @Test
+    public void testVelocity2() throws Exception {
+        Entity entity = mock(Entity.class);
+        int x = 10;
+        int y = 5;
+        int z = -10;
+
+        JsTest test = new ExecutorTest(engine, "VELOCITY");
+
+        test.withArgs(entity, x, y, z).test();
+
+        verify(entity).setVelocity(new Vector(x, y, z));
+
+        Assert.assertEquals(1, test.getOverload(entity, x, y, z));
+    }
+
+    @Test
+    public void testWeather1() throws Exception {
+        Player player = mock(Player.class);
+        boolean isStorm = true;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "WEATHER")
+                .addVariable("player", player);
+
+        test.withArgs(isStorm).test();
+
+        verify(world).setStorm(isStorm);
+
+        Assert.assertEquals(0, test.getOverload(isStorm));
+    }
+
+    @Test
+    public void testWeather2() throws Exception {
+        World world = mock(World.class);
+        boolean isStorm = true;
+
+        JsTest test = new ExecutorTest(engine, "WEATHER");
+
+        test.withArgs(world, isStorm).test();
+
+        verify(world).setStorm(isStorm);
+
+        Assert.assertEquals(2, test.getOverload(world, isStorm));
     }
 }
