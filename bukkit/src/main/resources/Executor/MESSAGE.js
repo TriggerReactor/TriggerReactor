@@ -23,7 +23,7 @@ function MESSAGE(args){
         var text = Objects.toString(args[i])
         if(Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")){
             var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
-            args[i] = PlaceholderAPI.setPlaceholders(player, text);
+            args[i] = ChatColor.translateAlternateColorCodes(Char('&'), PlaceholderAPI.setPlaceholders(player, text));
         } else {
             args[i] = ChatColor.translateAlternateColorCodes(Char('&'), text);
         }
