@@ -120,7 +120,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
                 Area area = new Area(smallest, largest);
                 AreaTrigger trigger = new AreaTrigger(info, area, scriptFolder);
-                trigger.setSync(isSync);
 
                 try {
                     trigger.setEnterTrigger(enterScript);
@@ -138,7 +137,6 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                 Area area = trigger.getArea();
                 trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
                 trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
-                trigger.getInfo().getConfig().put(SYNC, trigger.isSync());
 
                 File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
                 if (!triggerFolder.exists()) {

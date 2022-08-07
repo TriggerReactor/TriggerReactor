@@ -290,8 +290,8 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public String toString() {
-        return "GsonConfigSource{" +
-                "file=" + file +
-                '}';
+        synchronized (cache){
+            return cache.toString();
+        }
     }
 }

@@ -371,6 +371,15 @@ public class TestLexer {
         testToken(lexer, Type.OPERATOR_A, "+");
         testToken(lexer, Type.INTEGER, "3");
         testEnd(lexer);
+
+        text = "4/**\n"
+            + " * heya" +
+            " */+5";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.INTEGER, "4");
+        testToken(lexer, Type.OPERATOR_A, "+");
+        testToken(lexer, Type.INTEGER, "5");
+        testEnd(lexer);
     }
 
     @Test
@@ -532,6 +541,25 @@ public class TestLexer {
         testToken(lexer, Type.OPERATOR_A, "+");
         testToken(lexer, Type.OPERATOR, "$");
         testToken(lexer, Type.ID, "playername");
+        testEnd(lexer);
+    }
+
+    @Test
+    public void testPlaceholderSubFolder() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "$Refactoring@GAMEMODE:\"TestPlayer\":1";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.OPERATOR, "$");
+        testToken(lexer, Type.ID, "Refactoring");
+        testToken(lexer, Type.OPERATOR, "@");
+        testToken(lexer, Type.ID, "GAMEMODE");
+        testToken(lexer, Type.OPERATOR, ":");
+        testToken(lexer, Type.STRING, "TestPlayer");
+        testToken(lexer, Type.OPERATOR, ":");
+        testToken(lexer, Type.INTEGER, "1");
         testEnd(lexer);
     }
 
