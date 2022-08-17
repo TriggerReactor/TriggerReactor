@@ -46,6 +46,10 @@ public abstract class TriggerInfo implements IMigratable {
         reloadConfig();
     }
 
+    public File getSourceCodeFile() {
+        return sourceCodeFile;
+    }
+
     public void reloadConfig() {
         Optional.ofNullable(config)
                 .ifPresent(IConfigSource::reload);
