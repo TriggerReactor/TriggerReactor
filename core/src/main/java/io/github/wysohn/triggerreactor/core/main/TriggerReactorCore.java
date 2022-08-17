@@ -16,10 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.main;
 
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -66,7 +63,7 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-public abstract class TriggerReactorCore implements TaskSupervisor {
+public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSupervisor {
     public static final String PERMISSION = "triggerreactor.admin";
     static TriggerReactorCore instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
@@ -143,6 +140,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
     public abstract Object createEmptyPlayerEvent(ICommandSender sender);
 
     public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
+
+    @Override
+    public abstract Iterable<IWorld> getWorlds();
 
     private void showHelp(ICommandSender sender) {
         showHelp(sender, 1);

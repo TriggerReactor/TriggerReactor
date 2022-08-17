@@ -1,5 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.bridge.entity;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import org.bukkit.entity.Entity;
 
@@ -21,6 +23,21 @@ public class BukkitEntity implements IEntity {
     @Override
     public UUID getUniqueId() {
         return entity.getUniqueId();
+    }
+
+    @Override
+    public boolean isDead() {
+        return entity.isDead();
+    }
+
+    @Override
+    public boolean isValid() {
+        return entity.isValid();
+    }
+
+    @Override
+    public ILocation getLocation() {
+        return new BukkitLocation(entity.getLocation());
     }
 
 }

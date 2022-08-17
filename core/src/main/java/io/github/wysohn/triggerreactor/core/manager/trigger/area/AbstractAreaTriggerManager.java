@@ -16,17 +16,20 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.IGameStateSupervisor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -34,11 +37,15 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+    TaskSupervisor task;
+    IGameStateSupervisor gameState;
+
+
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
     protected static final String SYNC = "Sync";
@@ -57,7 +64,10 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AbstractAreaTriggerManager(TriggerReactorCore plugin, File folder) {
+    public AbstractAreaTriggerManager(TriggerReactorCore plugin,
+                                      File folder,
+                                      TaskSupervisor task,
+                                      IGameStateSupervisor gameState) {
         super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
             @Override
             public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
@@ -145,7 +155,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
                 if (trigger.getEnterTrigger() != null) {
                     try {
-                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true), trigger.getEnterTrigger().getScript());
+                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Enter", true),
+                                             trigger.getEnterTrigger().getScript());
                     } catch (IOException e) {
                         e.printStackTrace();
                         plugin.getLogger().warning("Could not save Area Trigger [Enter] " + trigger.getInfo());
@@ -154,7 +165,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
                 if (trigger.getExitTrigger() != null) {
                     try {
-                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true), trigger.getExitTrigger().getScript());
+                        FileUtil.writeToFile(getTriggerFile(triggerFolder, "Exit", true),
+                                             trigger.getExitTrigger().getScript());
                     } catch (IOException e) {
                         e.printStackTrace();
                         plugin.getLogger().warning("Could not save Area Trigger [Exit] " + trigger.getInfo());
@@ -162,6 +174,98 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                 }
             }
         });
+
+        this.task = task;
+        this.gameState = gameState;
+
+        Thread entityTrackingThread = new Thread(new Runnable() {
+
+            private Collection<WeakReference<IEntity>> getEntitiesSync(IWorld w) {
+                Collection<WeakReference<IEntity>> entities = new LinkedList<>();
+                try {
+                    task.submitSync(() -> {
+                        for (IEntity e : w.getEntities())
+                            entities.add(new WeakReference<>(e));
+                        return null;
+                    }).get();
+                } catch (InterruptedException | CancellationException e1) {
+                } catch (ExecutionException e1) {
+                    e1.printStackTrace();
+                }
+                return entities;
+            }
+
+            @Override
+            public void run() {
+                while (plugin.isEnabled() && !Thread.interrupted()) {
+                    try {
+                        //track entity locations
+                        for (IWorld w : gameState.getWorlds()) {
+                            Collection<WeakReference<IEntity>> entityCollection = getEntitiesSync(w);
+                            for (WeakReference<IEntity> wr : entityCollection) {
+                                IEntity e = wr.get();
+
+                                //reference disposed so ignore
+                                if (e == null)
+                                    continue;
+
+                                UUID uuid = e.getUniqueId();
+
+                                if (!plugin.isEnabled())
+                                    break;
+
+                                Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
+
+                                    @Override
+                                    public Boolean call() throws Exception {
+                                        return !e.isDead() && e.isValid();
+                                    }
+
+                                });
+
+                                boolean valid = false;
+                                try {
+                                    if (future != null)
+                                        valid = future.get();
+                                } catch (InterruptedException | CancellationException e1) {
+                                } catch (ExecutionException e1) {
+                                    e1.printStackTrace();
+                                }
+
+                                if (!valid)
+                                    continue;
+
+                                if (!entityLocationMap.containsKey(uuid))
+                                    continue;
+
+                                SimpleLocation previous = entityLocationMap.get(uuid);
+                                SimpleLocation current = e.getLocation().toSimpleLocation();
+
+                                //update location if equal
+                                if (!previous.equals(current)) {
+                                    entityLocationMap.put(uuid, current);
+                                    onEntityBlockMoveAsync(e, previous, current);
+                                }
+
+                            }
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        // some other unknown issues.
+                        return;
+                    }
+
+                    try {
+                        Thread.sleep(50L);//same as one tick
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+
+        });
+        entityTrackingThread.setName("AreaTriggerManager -- EntityTrackingThread");
+        entityTrackingThread.setDaemon(true);
+        entityTrackingThread.start();
 
         Thread referenceCleaningThread = new Thread() {
 
@@ -196,6 +300,15 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         referenceCleaningThread.start();
     }
 
+    protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
+        getAreaForLocation(from).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
+        getAreaForLocation(current).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(entity));
+    }
+
     @Override
     public void reload() {
         entityLocationMap.clear();
@@ -207,6 +320,23 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
         for (AreaTrigger trigger : getAllTriggers()) {
             this.setupArea(trigger);
+        }
+
+        //re-register entities
+        for (IWorld w : gameState.getWorlds()) {
+            for (IEntity e : w.getEntities()) {
+                UUID uuid = e.getUniqueId();
+
+                if (e.isDead() || !e.isValid())
+                    continue;
+
+                SimpleLocation previous = null;
+                SimpleLocation current = e.getLocation().toSimpleLocation();
+
+                entityLocationMap.put(uuid, current);
+                entityTrackMap.put(uuid, new WeakReference<>(e));
+                onEntityBlockMoveAsync(e, previous, current);
+            }
         }
     }
 
@@ -353,6 +483,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     public enum EventType {
-        ENTER, EXIT
+        ENTER,
+        EXIT
     }
 }
