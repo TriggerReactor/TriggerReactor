@@ -66,9 +66,13 @@ public abstract class TriggerInfo implements IMigratable {
     }
 
     public <T> T get(TriggerConfigKey key, Class<T> clazz) {
+        return get(key, clazz, null);
+    }
+
+    public <T> T get(TriggerConfigKey key, Class<T> clazz, T def) {
         return Optional.ofNullable(config)
                 .flatMap(c -> c.get(key.getKey(), clazz))
-                .orElse(null);
+                .orElse(def);
     }
 
     public boolean isSync() {
