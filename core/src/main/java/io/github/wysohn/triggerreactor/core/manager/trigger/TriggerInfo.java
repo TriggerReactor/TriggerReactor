@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
-    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -47,16 +46,6 @@ public abstract class TriggerInfo implements IMigratable {
         reloadConfig();
     }
 
-    public File getSourceCodeFile() {
-        return sourceCodeFile;
-    }
-
-    public IConfigSource getConfig() {
-        ValidationUtil.notNull(config);
-
-        return config;
-    }
-
     public void reloadConfig() {
         Optional.ofNullable(config)
                 .ifPresent(IConfigSource::reload);
@@ -66,18 +55,16 @@ public abstract class TriggerInfo implements IMigratable {
         return triggerName;
     }
 
-    public boolean isSync(){
-        return Optional.ofNullable(config)
-                .flatMap(c -> c.get(KEY_SYNC))
-                .filter(Boolean.class::isInstance)
-                .map(Boolean.class::cast)
-                .orElse(false);
-    }
-
-    public void setSync(boolean sync){
+    public void put(TriggerConfigKey key, Object value) {
         ValidationUtil.notNull(config);
 
-        config.put(KEY_SYNC, sync);
+        config.put(key.getKey(), value);
+    }
+
+    public <T> T get(TriggerConfigKey key, Class<T> clazz) {
+        return Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getKey(), clazz))
+                .orElse(null);
     }
 
     /**
@@ -161,7 +148,7 @@ public abstract class TriggerInfo implements IMigratable {
         return new TriggerInfo(sourceCodeFile, config) {
             @Override
             public boolean isValid() {
-                return isTriggerFile(getSourceCodeFile());
+                return isTriggerFile(sourceCodeFile);
             }
         };
     }
