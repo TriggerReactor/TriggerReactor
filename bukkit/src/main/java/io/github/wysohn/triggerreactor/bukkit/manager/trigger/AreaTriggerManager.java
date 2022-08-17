@@ -25,146 +25,23 @@ import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.IllegalPluginAccessException;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AreaTriggerManager extends AbstractAreaTriggerManager implements BukkitTriggerManager {
 
     public AreaTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"));
-
-        Thread entityTrackingThread = new Thread(new Runnable() {
-
-            private Collection<WeakReference<Entity>> getEntitiesSync(World w) {
-                Collection<WeakReference<Entity>> entities = new LinkedList<>();
-                try {
-                    Bukkit.getScheduler().callSyncMethod(plugin.getMain(), new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            for (Entity e : w.getEntities())
-                                entities.add(new WeakReference<>(e));
-                            return null;
-                        }
-                    }).get();
-                } catch (InterruptedException | CancellationException e1) {
-                } catch (ExecutionException e1) {
-                    e1.printStackTrace();
-                }
-                return entities;
-            }
-
-            @Override
-            public void run() {
-                while (plugin.isEnabled() && !Thread.interrupted()) {
-                    try{
-                        //track entity locations
-                        for (World w : Bukkit.getWorlds()) {
-                            Collection<WeakReference<Entity>> entityCollection = getEntitiesSync(w);
-                            for (WeakReference<Entity> wr : entityCollection) {
-                                Entity e = wr.get();
-
-                                //reference disposed so ignore
-                                if (e == null)
-                                    continue;
-
-                                UUID uuid = e.getUniqueId();
-
-                                if (!plugin.isEnabled())
-                                    break;
-
-                                Future<Boolean> future = plugin.callSyncMethod(new Callable<Boolean>() {
-
-                                    @Override
-                                    public Boolean call() throws Exception {
-                                        return !e.isDead() && e.isValid();
-                                    }
-
-                                });
-
-                                boolean valid = false;
-                                try {
-                                    if (future != null)
-                                        valid = future.get();
-                                } catch (InterruptedException | CancellationException e1) {
-                                } catch (ExecutionException e1) {
-                                    e1.printStackTrace();
-                                }
-
-                                if (!valid)
-                                    continue;
-
-                                if (!entityLocationMap.containsKey(uuid))
-                                    continue;
-
-                                SimpleLocation previous = entityLocationMap.get(uuid);
-                                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
-
-                                //update location if equal
-                                if (!previous.equals(current)) {
-                                    entityLocationMap.put(uuid, current);
-                                    onEntityBlockMoveAsync(e, previous, current);
-                                }
-
-                            }
-                        }
-                    } catch (IllegalPluginAccessException ex){
-                        plugin.getLogger().info("Entity tracking has stopped. Plugin is disabling...");
-                        return;
-                    } catch (Exception ex){
-                        ex.printStackTrace();
-                        // some other unknown issues.
-                        return;
-                    }
-
-                    try {
-                        Thread.sleep(50L);//same as one tick
-                    } catch (InterruptedException e) {
-                    }
-                }
-            }
-
-        });
-        entityTrackingThread.setName("AreaTriggerManager -- EntityTrackingThread");
-        entityTrackingThread.setDaemon(true);
-        entityTrackingThread.start();
-    }
-
-    @Override
-    public void reload() {
-        super.reload();
-
-        //re-register entities
-        for (World w : Bukkit.getWorlds()) {
-            for (Entity e : w.getEntities()) {
-                UUID uuid = e.getUniqueId();
-
-                if (e.isDead() || !e.isValid())
-                    continue;
-
-                SimpleLocation previous = null;
-                SimpleLocation current = LocationUtil.convertToSimpleLocation(e.getLocation());
-
-                entityLocationMap.put(uuid, current);
-                entityTrackMap.put(uuid, new WeakReference<IEntity>(new BukkitEntity(e)));
-                onEntityBlockMoveAsync(e, previous, current);
-            }
-        }
+        super(plugin, new File(plugin.getDataFolder(), "AreaTrigger"), plugin, plugin);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -212,15 +89,6 @@ public class AreaTriggerManager extends AbstractAreaTriggerManager implements Bu
         getAreaForLocation(sloc).stream()
                 .map(Map.Entry::getValue)
                 .forEach((trigger) -> trigger.addEntity(new BukkitEntity(e.getEntity())));
-    }
-
-    protected synchronized void onEntityBlockMoveAsync(Entity entity, SimpleLocation from, SimpleLocation current) {
-        getAreaForLocation(from).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.removeEntity(entity.getUniqueId()));
-        getAreaForLocation(current).stream()
-                .map(Map.Entry::getValue)
-                .forEach((trigger) -> trigger.addEntity(new BukkitEntity(entity)));
     }
 
     @EventHandler

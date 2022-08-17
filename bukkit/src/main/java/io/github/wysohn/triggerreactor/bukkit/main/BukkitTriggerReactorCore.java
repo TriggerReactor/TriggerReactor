@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISuppo
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -463,6 +464,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
         return bukkit.createPlayerCommandEvent(sender, label, args);
+    }
+
+    @Override
+    public Iterable<IWorld> getWorlds() {
+        return bukkit.getWorlds();
     }
 
     @Override
