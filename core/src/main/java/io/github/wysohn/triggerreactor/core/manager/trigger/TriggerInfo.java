@@ -65,19 +65,46 @@ public abstract class TriggerInfo implements IMigratable {
         config.put(key.getKey(), value);
     }
 
-    public <T> T get(TriggerConfigKey key, Class<T> clazz) {
-        return get(key, clazz, null);
+    public void put(TriggerConfigKey key, int index, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(index), value);
     }
 
-    public <T> T get(TriggerConfigKey key, Class<T> clazz, T def) {
+    public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getOldKey(), clazz));
+        if(old.isPresent())
+            return old;
+
         return Optional.ofNullable(config)
-                .flatMap(c -> c.get(key.getKey(), clazz))
-                .orElse(def);
+                .flatMap(c -> c.get(key.getKey(), clazz));
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getOldKey(index), clazz));
+        if(old.isPresent())
+            return old;
+
+        return Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getKey(index), clazz));
+    }
+
+    public boolean has(TriggerConfigKey key) {
+        return Optional.ofNullable(config)
+                .map(c -> c.has(key.getOldKey()) || c.has(key.getKey()))
+                .orElse(false);
+    }
+
+    public boolean isSection(TriggerConfigKey key) {
+        return Optional.ofNullable(config)
+                .map(c -> c.isSection(key.getOldKey()) || c.isSection(key.getKey()))
+                .orElse(false);
     }
 
     public boolean isSync() {
-        Boolean b = get(TriggerConfigKey.KEY_SYNC, Boolean.class);
-        return b != null && b;
+        return get(TriggerConfigKey.KEY_SYNC, Boolean.class).orElse(false);
     }
 
     public void setSync(boolean sync) {
