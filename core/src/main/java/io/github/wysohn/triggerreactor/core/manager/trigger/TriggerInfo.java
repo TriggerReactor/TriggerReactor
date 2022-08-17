@@ -67,6 +67,15 @@ public abstract class TriggerInfo implements IMigratable {
                 .orElse(null);
     }
 
+    public boolean isSync() {
+        Boolean b = get(TriggerConfigKey.KEY_SYNC, Boolean.class);
+        return b != null && b;
+    }
+
+    public void setSync(boolean sync) {
+        put(TriggerConfigKey.KEY_SYNC, sync);
+    }
+
     /**
      * Check whether this TriggerInfo is valid or not so that it may can be used to instantiate the Trigger instance.
      *
