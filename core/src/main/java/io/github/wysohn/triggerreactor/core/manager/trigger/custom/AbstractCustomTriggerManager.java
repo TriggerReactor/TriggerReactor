@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
@@ -31,19 +32,17 @@ import java.io.IOException;
 import java.util.Collection;
 
 public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
-    private static final String EVENT = "Event";
-    private static final String SYNC = "Sync";
-
     protected final EventRegistry registry;
 
     public AbstractCustomTriggerManager(TriggerReactorCore plugin, File folder, EventRegistry registry) {
         super(plugin, folder, new ITriggerLoader<CustomTrigger>() {
             @Override
             public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                String eventName = info.getConfig().get(EVENT, String.class)
+                String eventName = info.get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, String.class)
                         .filter(registry::eventExist)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find target Event or is not a valid Event", info.getConfig()));
-                boolean isSync = info.getConfig().get(SYNC, Boolean.class).orElse(false);
+                        .orElseThrow(() -> new InvalidTrgConfigurationException(
+                                "Couldn't find target Event or is not a valid Event",
+                                info));
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -60,7 +59,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
                 try {
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                    trigger.getInfo().getConfig().put(EVENT, trigger.getEventName());
+                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, trigger.getEventName());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

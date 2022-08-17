@@ -20,11 +20,8 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
@@ -33,13 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-
 public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
-    private static final String SYNC = "sync";
-    private static final String PERMISSION = "permissions";
-    private static final String ALIASES = "aliases";
-    public static final String TABS = "tabs";
-
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
 
@@ -66,8 +57,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                     tabCompleter = ITabCompleter.Builder.withHint(hint)
                             .setCandidate(
                                     Optional.ofNullable(candidates_str)
-                                                .map(str -> ITabCompleter.list(str.split(",")))
-                                                .orElseGet(() -> ITabCompleter.list(""))
+                                            .map(str -> ITabCompleter.list(str.split(",")))
+                                            .orElseGet(() -> ITabCompleter.list(""))
                             )
                             .build();
                 }
@@ -82,13 +73,15 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
 
             @Override
             public CommandTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                List<String> permissions = info.getConfig().get(PERMISSION, List.class).orElse(new ArrayList<>());
-                List<String> aliases = info.getConfig().get(ALIASES, List.class)
-                        .map(aliasList -> (((List<String>)aliasList).stream()
+                List<String> permissions = info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, List.class)
+                        .orElse(new ArrayList<>());
+                List<String> aliases = info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, List.class)
+                        .map(aliasList -> (((List<String>) aliasList).stream()
                                 .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
                                 .collect(Collectors.toList())))
                         .orElse(new ArrayList<>());
-                List<Map<String, Object>> tabs = info.getConfig().get(TABS, List.class).orElse(new ArrayList<>());
+                List<Map<String, Object>> tabs = info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_TABS, List.class)
+                        .orElse(new ArrayList<>());
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -108,8 +101,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 try {
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                    trigger.getInfo().getConfig().put(PERMISSION, trigger.getPermissions());
-                    trigger.getInfo().getConfig().put(ALIASES, Arrays.stream(trigger.getAliases())
+                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, trigger.getPermissions());
+                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, Arrays.stream(trigger.getAliases())
                             .filter(alias -> !alias.equalsIgnoreCase(trigger.getInfo().getTriggerName()))
                             .toArray());
                 } catch (IOException e) {
@@ -129,8 +122,9 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         super.reload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
-            if(!registerCommand(trigger.getInfo().getTriggerName(), trigger)){
-                plugin.getLogger().warning("Attempted to register command trigger "+trigger.getInfo()+" but failed.");
+            if (!registerCommand(trigger.getInfo().getTriggerName(), trigger)) {
+                plugin.getLogger()
+                        .warning("Attempted to register command trigger " + trigger.getInfo() + " but failed.");
                 plugin.getLogger().warning("Probably, the command is already in use by another command trigger.");
             }
         }
@@ -176,7 +170,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }
 
         put(cmd, trigger);
-        if(!registerCommand(cmd, trigger))
+        if (!registerCommand(cmd, trigger))
             return false;
 
         synchronizeCommandMap();
@@ -200,7 +194,7 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
      * also overriden by another command trigger, this method does nothing and return false.
      *
      * @param triggerName name of the trigger to register
-     * @param trigger the actual trigger instance
+     * @param trigger     the actual trigger instance
      * @return true if registered; false if the command is already overriden by another command trigger and
      * is also already registered trigger, it will return false.
      */
