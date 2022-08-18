@@ -345,6 +345,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
     /**
      * Start tracking the entity so the area triggers can be notified when the entity moves
      * into/out of an area.
+     *
      * @param entity
      * @param current
      */
@@ -498,6 +499,69 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
 
         deleteInfo(nameMapper.remove(trigger.getTriggerName()));*/
         return false;
+    }
+
+    /**
+     * @deprecated only to be called by listener or test code
+     */
+    public void onJoin(SimpleLocation sloc, IEntity player) {
+        getAreaForLocation(sloc).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(player));
+    }
+
+    /**
+     * @deprecated only to be called by listener or test code
+     */
+    public void onLocationChange(Object eventInstance,
+                                 SimpleLocation slocFrom,
+                                 SimpleLocation slocTo,
+                                 Object playerInstance,
+                                 IEntity player,
+                                 UUID playerUuid) {
+        List<Map.Entry<Area, AreaTrigger>> from = getAreaForLocation(slocFrom);
+        List<Map.Entry<Area, AreaTrigger>> to = getAreaForLocation(slocTo);
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", playerInstance);
+        varMap.put("from", slocFrom);
+        varMap.put("to", slocTo);
+
+        from.stream()
+                .filter((entry) -> !entry.getKey().isInThisArea(slocTo))//only for area leaving
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> {
+                    trigger.removeEntity(playerUuid);
+                    trigger.activate(eventInstance, varMap, AreaTriggerManager.EventType.EXIT);
+                });
+
+
+        to.stream()
+                .filter((entry) -> !entry.getKey().isInThisArea(slocFrom))//only for entering area
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> {
+                    trigger.addEntity(player);
+                    trigger.activate(eventInstance, varMap, AreaTriggerManager.EventType.ENTER);
+                });
+    }
+
+    /**
+     * @deprecated only to be called by listener or test code
+     */
+    public void onSpawn(IEntity entity, SimpleLocation sloc) {
+        startTrackingEntity(entity, sloc);
+        getAreaForLocation(sloc).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.addEntity(entity));
+    }
+
+    /**
+     * @deprecated only to be called by listener or test code
+     */
+    public void onDeath(UUID entity, SimpleLocation sloc) {
+        stopTrackingEntity(entity);
+        getAreaForLocation(sloc).stream()
+                .map(Map.Entry::getValue)
+                .forEach((trigger) -> trigger.removeEntity(entity));
     }
 
     public enum EventType {
