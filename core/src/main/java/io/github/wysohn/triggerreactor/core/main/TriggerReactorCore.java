@@ -26,8 +26,8 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
@@ -102,7 +102,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract AbstractInventoryEditManager getInvEditManager();
 
-    public abstract AbstractAreaTriggerManager getAreaManager();
+    public abstract AreaTriggerManager getAreaManager();
 
     public abstract AbstractCustomTriggerManager getCustomManager();
 
@@ -226,14 +226,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
      * @param set    the set contains location of block and its associated trigger.
      */
     protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
-
-    /**
-     * Register events for Managers. If it was Bukkit API, we can assume that the 'manager' will implement Listener
-     * interface, yet we need to verify it with instanceof to avoid any problems.
-     *
-     * @param manager the object instance of Manager
-     */
-    public abstract void registerEvents(Manager manager);
 
     /**
      * Get folder where the plugin files will be saved.

@@ -41,10 +41,9 @@ import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
     TaskSupervisor task;
     IGameStateSupervisor gameState;
-
 
     protected static final String SMALLEST = "Smallest";
     protected static final String LARGEST = "Largest";
@@ -64,11 +63,10 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
      */
     protected final Map<UUID, WeakReference<IEntity>> entityTrackMap = new ConcurrentHashMap<>();
 
-    public AbstractAreaTriggerManager(TriggerReactorCore plugin,
-                                      File folder,
-                                      TaskSupervisor task,
-                                      IGameStateSupervisor gameState) {
-        super(plugin, folder, new ITriggerLoader<AreaTrigger>() {
+    public AreaTriggerManager(TriggerReactorCore plugin,
+                              TaskSupervisor task,
+                              IGameStateSupervisor gameState) {
+        super(plugin, getFolder(plugin.getDataFolder(), "AreaTrigger"), new ITriggerLoader<AreaTrigger>() {
             @Override
             public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
                 return Optional.ofNullable(folder.listFiles())
@@ -99,7 +97,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                 boolean isSync = info.getConfig().get(SYNC, Boolean.class)
                         .orElse(false);
 
-                File scriptFolder = new File(folder, info.getTriggerName());
+                File scriptFolder = getFolder(plugin.getDataFolder(), info.getTriggerName());
                 if (!scriptFolder.exists()) {
                     scriptFolder.mkdirs();
                 }
@@ -148,7 +146,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
                 trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
                 trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
 
-                File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
+                File triggerFolder = getFolder(plugin.getDataFolder(), trigger.getInfo().getTriggerName());
                 if (!triggerFolder.exists()) {
                     triggerFolder.mkdirs();
                 }
@@ -300,6 +298,10 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         referenceCleaningThread.start();
     }
 
+    private static File getFolder(File plugin, String AreaTrigger) {
+        return new File(plugin, AreaTrigger);
+    }
+
     protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
         getAreaForLocation(from).stream()
                 .map(Map.Entry::getValue)
@@ -341,12 +343,28 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
     }
 
     /**
+     * Start tracking the entity so the area triggers can be notified when the entity moves
+     * into/out of an area.
+     * @param entity
+     * @param current
+     */
+    public void startTrackingEntity(IEntity entity, SimpleLocation current) {
+        entityTrackMap.put(entity.getUniqueId(), new WeakReference<>(entity));
+        entityLocationMap.put(entity.getUniqueId(), current);
+    }
+
+    public void stopTrackingEntity(UUID entity) {
+        entityTrackMap.remove(entity);
+        entityLocationMap.remove(entity);
+    }
+
+    /**
      * Get list of all Area Triggers containing this sloc.
      *
      * @param sloc
      * @return list of Entries containing the given sloc. It may be empty but never null.
      */
-    protected List<Map.Entry<Area, AreaTrigger>> getAreaForLocation(SimpleLocation sloc) {
+    public List<Map.Entry<Area, AreaTrigger>> getAreaForLocation(SimpleLocation sloc) {
         if (sloc == null)
             return new ArrayList<>();
 
@@ -404,7 +422,7 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
         if (!getConflictingAreas(area, area::equals).isEmpty())
             return false;
 
-        File areaFolder = new File(folder, name);
+        File areaFolder = getFolder(folder, name);
         IConfigSource config = configSourceFactory.create(folder, name);
         AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);

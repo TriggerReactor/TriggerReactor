@@ -30,7 +30,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
@@ -95,7 +95,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
     private AbstractCommandTriggerManager cmdManager;
     private AbstractInventoryTriggerManager invManager;
-    private AbstractAreaTriggerManager areaManager;
+    private AreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
     private AbstractNamedTriggerManager namedTriggerManager;
@@ -165,7 +165,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractAreaTriggerManager getAreaManager() {
+    public AreaTriggerManager getAreaManager() {
         return areaManager;
     }
 
@@ -230,6 +230,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             return;
         }
 
+        // managers
         scriptEditManager = new ScriptEditManager(this);
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
@@ -240,12 +241,16 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         walkManager = new WalkTriggerManager(this);
         cmdManager = new CommandTriggerManager(this, bukkit);
         invManager = new InventoryTriggerManager(this);
-        areaManager = new AreaTriggerManager(this);
+        areaManager = new AreaTriggerManager(this, this, this);
         customManager = new CustomTriggerManager(this);
         repeatManager = new RepeatingTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);
 
+        // listeners
+        bukkit.registerEvents(new AreaTriggerListener(areaManager));
+
+        // etc
         tpsHelper = new Lag();
         new Thread() {
             @Override
@@ -353,11 +358,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
         bukkit.showGlowStones(sender, set);
-    }
-
-    @Override
-    public void registerEvents(Manager manager) {
-        bukkit.registerEvents(manager);
     }
 
     @Override

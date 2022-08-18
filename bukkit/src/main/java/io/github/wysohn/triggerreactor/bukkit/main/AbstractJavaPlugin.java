@@ -310,9 +310,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         }
     }
 
-    public void registerEvents(Manager manager) {
-        if (manager instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) manager, this);
+    public void registerEvents(Listener listener) {
+        if (listener != null)
+            Bukkit.getPluginManager().registerEvents(listener, this);
     }
 
     public void runTask(Runnable runnable) {
