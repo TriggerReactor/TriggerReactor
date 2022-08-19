@@ -608,6 +608,13 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
                 .collect(Collectors.toList());
     }
 
+    public IWorld getWorld(String world) {
+        return Optional.ofNullable(world)
+                .map(Bukkit::getWorld)
+                .map(BukkitTriggerReactorCore.WRAPPER::wrap)
+                .orElse(null);
+    }
+
     public class MysqlSupport {
         private final String KEY = "dbkey";
         private final String VALUE = "dbval";

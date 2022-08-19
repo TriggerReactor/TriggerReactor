@@ -20,4 +20,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 public interface ILocation extends IMinecraftObject {
     SimpleLocation toSimpleLocation();
+
+    IWorld getWorld();
 }

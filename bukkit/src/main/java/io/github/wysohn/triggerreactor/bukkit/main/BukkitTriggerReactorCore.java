@@ -35,7 +35,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractComm
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -91,8 +93,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
     private AbstractInventoryEditManager invEditManager;
-    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
-    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
+    private ClickTriggerManager clickManager;
+    private WalkTriggerManager walkManager;
     private AbstractCommandTriggerManager cmdManager;
     private AbstractInventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
@@ -145,12 +147,12 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
+    public LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger> getClickManager() {
         return clickManager;
     }
 
     @Override
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
+    public LocationBasedTriggerManager<LocationBasedTriggerManager.WalkTrigger> getWalkManager() {
         return walkManager;
     }
 
@@ -248,6 +250,9 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         namedTriggerManager = new NamedTriggerManager(this);
 
         // listeners
+        bukkit.registerEvents(new ClickTriggerListener(clickManager));
+        bukkit.registerEvents(new WalkTriggerListener(walkManager));
+
         bukkit.registerEvents(new AreaTriggerListener(areaManager));
 
         // etc
@@ -469,6 +474,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public Iterable<IWorld> getWorlds() {
         return bukkit.getWorlds();
+    }
+
+    @Override
+    public IWorld getWorld(String world) {
+        return bukkit.getWorld(world);
     }
 
     @Override

@@ -8,7 +8,7 @@ import org.bukkit.entity.Entity;
 import java.util.UUID;
 
 public class BukkitEntity implements IEntity {
-    private final Entity entity;
+    protected final Entity entity;
 
     public BukkitEntity(Entity entity) {
         super();

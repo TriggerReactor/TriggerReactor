@@ -9,4 +9,5 @@ import io.github.wysohn.triggerreactor.core.bridge.IWorld;
  */
 public interface IGameStateSupervisor {
     Iterable<IWorld> getWorlds();
+    IWorld getWorld(String world);
 }

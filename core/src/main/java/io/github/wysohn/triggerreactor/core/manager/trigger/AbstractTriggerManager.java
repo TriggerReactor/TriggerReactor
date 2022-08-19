@@ -44,7 +44,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         this.configSourceFactory = ConfigSourceFactory.instance();
     }
 
-    public File getFolder() {
+    public File concatPath() {
         return folder;
     }
 
@@ -185,6 +185,10 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             //TODO need to be done async (file I/O)
             loader.save((T) observable);
         }
+    }
+
+    protected static File concatPath(File dataPath, String fileName) {
+        return new File(dataPath, fileName);
     }
 
     @SuppressWarnings("serial")
