@@ -66,7 +66,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
     public AreaTriggerManager(TriggerReactorCore plugin,
                               TaskSupervisor task,
                               IGameStateSupervisor gameState) {
-        super(plugin, getFolder(plugin.getDataFolder(), "AreaTrigger"), new ITriggerLoader<AreaTrigger>() {
+        super(plugin, concatPath(plugin.getDataFolder(), "AreaTrigger"), new ITriggerLoader<AreaTrigger>() {
             @Override
             public TriggerInfo[] listTriggers(File folder, ConfigSourceFactory fn) {
                 return Optional.ofNullable(folder.listFiles())
@@ -97,7 +97,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
                 boolean isSync = info.getConfig().get(SYNC, Boolean.class)
                         .orElse(false);
 
-                File scriptFolder = getFolder(plugin.getDataFolder(), info.getTriggerName());
+                File scriptFolder = concatPath(plugin.getDataFolder(), info.getTriggerName());
                 if (!scriptFolder.exists()) {
                     scriptFolder.mkdirs();
                 }
@@ -146,7 +146,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
                 trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
                 trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
 
-                File triggerFolder = getFolder(plugin.getDataFolder(), trigger.getInfo().getTriggerName());
+                File triggerFolder = concatPath(plugin.getDataFolder(), trigger.getInfo().getTriggerName());
                 if (!triggerFolder.exists()) {
                     triggerFolder.mkdirs();
                 }
@@ -298,10 +298,6 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
         referenceCleaningThread.start();
     }
 
-    private static File getFolder(File plugin, String AreaTrigger) {
-        return new File(plugin, AreaTrigger);
-    }
-
     protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {
         getAreaForLocation(from).stream()
                 .map(Map.Entry::getValue)
@@ -423,7 +419,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
         if (!getConflictingAreas(area, area::equals).isEmpty())
             return false;
 
-        File areaFolder = getFolder(folder, name);
+        File areaFolder = concatPath(folder, name);
         IConfigSource config = configSourceFactory.create(folder, name);
         AreaTrigger trigger = new AreaTrigger(new AreaTriggerInfo(areaFolder, config, name), area, areaFolder);
         put(name, trigger);

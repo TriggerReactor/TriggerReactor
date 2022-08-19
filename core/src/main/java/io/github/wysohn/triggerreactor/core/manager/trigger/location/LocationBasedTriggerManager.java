@@ -17,7 +17,10 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -31,14 +34,16 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
-public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
+public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
     protected final Map<SimpleChunkLocation, Map<SimpleLocation, T>> chunkMap = new ConcurrentHashMap<>();
     private final Map<UUID, String> settingLocation = new HashMap<>();
-
     private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
-    public AbstractLocationBasedTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
+    public LocationBasedTriggerManager(TriggerReactorCore plugin,
+                                       File folder,
+                                       ITriggerLoader<T> loader) {
         super(plugin, folder, loader);
     }
 
@@ -76,9 +81,14 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         }
     }
 
-    protected abstract String getTriggerTypeName();
+    public abstract String getTriggerTypeName();
 
-    protected T getTriggerForLocation(SimpleLocation sloc) {
+    public T getTriggerForLocation(ILocation loc) {
+        SimpleLocation sloc = loc.toSimpleLocation();
+        return getTriggerForLocation(sloc);
+    }
+
+    public T getTriggerForLocation(SimpleLocation sloc) {
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
         if (!chunkMap.containsKey(scloc))
@@ -91,7 +101,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return locationMap.get(sloc);
     }
 
-    protected void setLocationCache(SimpleLocation sloc, T trigger) {
+    protected void setLocationCache(ILocation loc, T trigger) {
+        SimpleLocation sloc = loc.toSimpleLocation();
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
         Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
@@ -106,7 +117,8 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         plugin.saveAsynchronously(this);
     }
 
-    protected T removeLocationCache(SimpleLocation sloc) {
+    protected T removeLocationCache(ILocation loc) {
+        SimpleLocation sloc = loc.toSimpleLocation();
         SimpleChunkLocation scloc = new SimpleChunkLocation(sloc);
 
         Map<SimpleLocation, T> locationMap = chunkMap.get(scloc);
@@ -123,9 +135,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     protected abstract T newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException;
 
-    protected abstract void showTriggerInfo(ICommandSender sender, SimpleLocation sloc);
-
-    protected boolean isLocationSetting(IPlayer player) {
+    public boolean isLocationSetting(IPlayer player) {
         return settingLocation.containsKey(player.getUniqueId());
     }
 
@@ -151,7 +161,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return settingLocation.get(player.getUniqueId());
     }
 
-    protected void onItemSwap(IPlayer player) {
+    public void onItemSwap(IPlayer player) {
         if (player.getUniqueId() == null)
             return;
 
@@ -160,47 +170,47 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
     /**
      * @param player
-     * @param sloc
+     * @param loc
      * @return true if cut ready; false if no trigger found at the location
      */
-    protected boolean cutTrigger(IPlayer player, SimpleLocation sloc) {
-        T trigger = getTriggerForLocation(sloc);
+    public boolean cutTrigger(IPlayer player, ILocation loc) {
+        T trigger = getTriggerForLocation(loc);
         if (trigger == null) {
             return false;
         }
 
-        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.CUT, sloc));
+        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.CUT, loc));
         return true;
     }
 
 
     /**
      * @param player
-     * @param sloc
+     * @param loc
      * @return true if copy ready; false if no trigger found at the location
      */
-    protected boolean copyTrigger(IPlayer player, SimpleLocation sloc) {
-        T trigger = getTriggerForLocation(sloc);
+    public boolean copyTrigger(IPlayer player, ILocation loc) {
+        T trigger = getTriggerForLocation(loc);
         if (trigger == null) {
             return false;
         }
 
-        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.COPY, sloc));
+        clipboard.put(player.getUniqueId(), new ClipBoard(ClipBoard.BoardType.COPY, loc));
         return true;
     }
 
 
     /**
      * @param player
-     * @param sloc
+     * @param loc
      * @return true if pasted; false if nothing in the clipboard
      */
-    protected boolean pasteTrigger(IPlayer player, SimpleLocation sloc) {
+    public boolean pasteTrigger(IPlayer player, ILocation loc) {
         ClipBoard board = clipboard.get(player.getUniqueId());
         if (board == null)
             return false;
 
-        SimpleLocation from = board.location;
+        ILocation from = board.location;
         if (from == null) {
             return false;
         }
@@ -216,7 +226,7 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
             T copy = (T) trigger.clone();
 
-            setLocationCache(sloc, copy);
+            setLocationCache(loc, copy);
         } catch (Exception e) {
             e.printStackTrace();
             //put it back if failed
@@ -242,17 +252,127 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         return triggers;
     }
 
+    private String asTriggerName(ILocation loc){
+        return loc.toSimpleLocation().toString();
+    }
+
+    public void handleLocationSetting(ILocation loc, IPlayer player) {
+        T trigger = getTriggerForLocation(loc);
+        if (trigger != null) {
+            player.sendMessage("&cAnother trigger is set at there!");
+            showTriggerInfo(player, loc);
+            return;
+        }
+
+        String script = getSettingLocationScript(player);
+        if (script == null) {
+            player.sendMessage("&cCould not find script... but how?");
+            return;
+        }
+
+        File file = getTriggerFile(folder, asTriggerName(loc), true);
+        try {
+            String name = TriggerInfo.extractName(file);
+            IConfigSource config = configSourceFactory.create(folder, name);
+            TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+            trigger = newTrigger(info, script);
+        } catch (TriggerInitFailedException e1) {
+            player.sendMessage("&cEncountered an error!");
+            player.sendMessage("&c" + e1.getMessage());
+            player.sendMessage("&cIf you are an administrator, check console to see details.");
+            e1.printStackTrace();
+
+            stopLocationSet(player);
+            return;
+        }
+
+        setTriggerForLocation(loc, trigger);
+        showTriggerInfo(player, loc);
+        stopLocationSet(player);
+
+        plugin.saveAsynchronously(this);
+    }
+
+    public void handleScriptEdit(IPlayer player, T trigger) {
+        plugin.getScriptEditManager().startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
+                                                script -> {
+                                                    try {
+                                                        trigger.setScript(script);
+                                                    } catch (TriggerInitFailedException e) {
+                                                        plugin.handleException(player, e);
+                                                    }
+
+                                                    plugin.saveAsynchronously(this);
+                                                });
+    }
+
+    public Collection<SimpleLocation> getSurroundingBlocks(SimpleLocation block, Predicate<SimpleLocation> pred) {
+        Collection<SimpleLocation> blocks = new ArrayList<>();
+        Predicate<SimpleLocation> notNull = Objects::nonNull;
+
+        SimpleLocation relative = null;
+
+        relative = block.add(-1, 0, 0);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        relative = block.add(1, 0, 0);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        relative = block.add(0, 0, -1);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        relative = block.add(0, 0, 1);
+        if (notNull.and(pred).test(relative)) {
+            blocks.add(relative);
+        }
+
+        return blocks;
+    }
+
+    protected void setTriggerForLocation(ILocation loc, T trigger) {
+        setLocationCache(loc, trigger);
+    }
+
+    public T removeTriggerForLocation(ILocation loc) {
+        return removeLocationCache(loc);
+    }
+
+    public void showTriggerInfo(ICommandSender sender, ILocation clicked) {
+        Trigger trigger = getTriggerForLocation(clicked);
+        if (trigger == null) {
+            return;
+        }
+
+        IWorld world = clicked.getWorld();
+
+        sender.sendMessage("- - - - - - - - - - - - - -");
+        sender.sendMessage("Trigger: " + getTriggerTypeName());
+        sender.sendMessage("Block Type: " + world.getBlock(clicked).getTypeName());
+        sender.sendMessage("Location: " + clicked);
+        sender.sendMessage("");
+        sender.sendMessage("Script:");
+        sender.sendMessage(trigger.getScript());
+        sender.sendMessage("- - - - - - - - - - - - - -");
+    }
+
     private static class ClipBoard {
         final BoardType type;
-        final SimpleLocation location;
+        final ILocation location;
 
-        public ClipBoard(BoardType type, SimpleLocation location) {
+        public ClipBoard(BoardType type, ILocation location) {
             this.type = type;
             this.location = location;
         }
 
         enum BoardType {
-            CUT, COPY
+            CUT,
+            COPY
         }
     }
 
@@ -287,7 +407,11 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
 
         @Override
         public boolean activate(Object e, Map<String, Object> scriptVars) {
-            if (!handler.allow(e))
+            if(!scriptVars.containsKey(KEY_CONTEXT_ACTIVITY))
+                throw new RuntimeException("ClickTrigger: Context activity not found in script variables");
+
+            Activity activity = (Activity) scriptVars.get(KEY_CONTEXT_ACTIVITY);
+            if (!handler.allow(activity))
                 return true;
 
             return super.activate(e, scriptVars);
@@ -309,9 +433,19 @@ public abstract class AbstractLocationBasedTriggerManager<T extends Trigger> ext
         /**
          * Check if click is allowed for this context. If it were Bukkit API, it will be PlayerInteractEvent.
          *
-         * @param context the context
+         * @param activity the activity involved with this click
          * @return true if allowed; false if not (the click will be ignored in this case)
          */
-        boolean allow(Object context);
+        boolean allow(Activity activity);
     }
+
+    public enum Activity{
+        LEFT_CLICK_AIR,
+        LEFT_CLICK_BLOCK,
+        RIGHT_CLICK_AIR,
+        RIGHT_CLICK_BLOCK,
+        NONE,
+    }
+
+    public static String KEY_CONTEXT_ACTIVITY = "location.activity";
 }

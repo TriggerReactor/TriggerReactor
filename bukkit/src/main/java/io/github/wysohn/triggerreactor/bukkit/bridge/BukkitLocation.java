@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import org.bukkit.Location;
 
@@ -36,5 +37,10 @@ public class BukkitLocation implements ILocation {
     @Override
     public SimpleLocation toSimpleLocation() {
         return LocationUtil.convertToSimpleLocation(location);
+    }
+
+    @Override
+    public IWorld getWorld() {
+        return new BukkitWorld(location.getWorld());
     }
 }

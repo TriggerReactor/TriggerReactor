@@ -22,7 +22,7 @@ import org.bukkit.inventory.Inventory;
 public class BukkitInventory implements IInventory {
     private final Inventory inventory;
 
-    BukkitInventory(Inventory inventory) {
+    public BukkitInventory(Inventory inventory) {
         this.inventory = inventory;
     }
 

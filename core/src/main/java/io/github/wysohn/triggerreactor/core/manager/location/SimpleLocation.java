@@ -1,5 +1,5 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+package io.github.wysohn.triggerreactor.core.manager.location; /*******************************************************************************
+ *     Copyright (C) 2017 wysohn
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,7 +14,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-package io.github.wysohn.triggerreactor.core.manager.location;
+
+import java.util.function.Function;
 
 public class SimpleLocation implements Cloneable {
     String world;
@@ -29,6 +30,14 @@ public class SimpleLocation implements Cloneable {
         this.z = z;
     }
 
+    public SimpleLocation(String world, double x, double y, double z) {
+        super();
+        this.world = world;
+        this.x = (int) x;
+        this.y = (int) y;
+        this.z = (int) z;
+    }
+
     public SimpleLocation(String world, int x, int y, int z, float pitch, float yaw) {
         super();
         this.world = world;
@@ -37,6 +46,21 @@ public class SimpleLocation implements Cloneable {
         this.z = z;
         this.pitch = pitch;
         this.yaw = yaw;
+    }
+
+    public static SimpleLocation valueOf(String str) {
+        String[] splitw = str.split("@", 2);
+        if (splitw.length != 2)
+            throw new SimpleLocationFormatException(str);
+
+        String world = splitw[0];
+
+        String[] splitl = splitw[1].split(",", 3);
+        if (splitl.length != 3)
+            throw new SimpleLocationFormatException(str);
+
+        return new SimpleLocation(world, Integer.parseInt(splitl[0]), Integer.parseInt(splitl[1]),
+                                  Integer.parseInt(splitl[2]));
     }
 
     public String getWorld() {
@@ -55,10 +79,44 @@ public class SimpleLocation implements Cloneable {
         return z;
     }
 
-    public void add(int x, int y, int z) {
-        this.x += x;
-        this.y += y;
-        this.z += z;
+    public float getPitch() {
+        return pitch;
+    }
+
+    public float getYaw() {
+        return yaw;
+    }
+
+    public SimpleLocation add(int x, int y, int z) {
+        return new SimpleLocation(this.world, this.x + x, this.y + y, this.z + z);
+    }
+
+    public SimpleLocation add(Vector vector) {
+        return add((int) vector.getX(), (int) vector.getY(), (int) vector.getZ());
+    }
+
+    public <T> T transform(Function<SimpleLocation, T> fn) {
+        return fn.apply(this.clone());
+    }
+
+    public SimpleLocation add(SimpleLocation r) {
+        return add(r.x, r.y, r.z);
+    }
+
+    public SimpleLocation sub(int x, int y, int z) {
+        return new SimpleLocation(this.world, this.x - x, this.y - y, this.z - z);
+    }
+
+    public SimpleLocation sub(SimpleLocation r) {
+        return sub(r.x, r.y, r.z);
+    }
+
+    public int coordinatesSum() {
+        return x + y + z;
+    }
+
+    public SimpleChunkLocation toChunk() {
+        return new SimpleChunkLocation(this);
     }
 
     @Override
@@ -90,9 +148,7 @@ public class SimpleLocation implements Cloneable {
             return false;
         if (y != other.y)
             return false;
-        if (z != other.z)
-            return false;
-        return true;
+        return z == other.z;
     }
 
     @Override
@@ -103,23 +159,6 @@ public class SimpleLocation implements Cloneable {
     @Override
     public SimpleLocation clone() {
         return new SimpleLocation(world, x, y, z);
-    }
-
-    public static SimpleLocation valueOf(String str) {
-        String[] splitw = str.split("@", 2);
-        if (splitw.length != 2)
-            throw new SimpleLocationFormatException(str);
-
-        String world = splitw[0];
-
-        String[] splitl = splitw[1].split(",", 3);
-        if (splitl.length != 3)
-            throw new SimpleLocationFormatException(str);
-
-        return new SimpleLocation(world,
-                Integer.parseInt(splitl[0]),
-                Integer.parseInt(splitl[1]),
-                Integer.parseInt(splitl[2]));
     }
 
     @SuppressWarnings("serial")
