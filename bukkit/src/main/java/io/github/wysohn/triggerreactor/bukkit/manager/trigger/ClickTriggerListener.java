@@ -23,13 +23,15 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClickTriggerListener
-        extends LocationBasedTriggerListener<LocationBasedTriggerManager.ClickTrigger, LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger>> {
+        extends LocationBasedTriggerListener<LocationBasedTriggerManager.ClickTrigger,
+        LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger>> {
 
 
     public ClickTriggerListener(LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger> manager) {
@@ -58,6 +60,7 @@ public class ClickTriggerListener
             return;
 
         Map<String, Object> varMap = new HashMap<>();
+        varMap.put(LocationBasedTriggerManager.KEY_CONTEXT_ACTIVITY, toActivity(e.getAction()));
         varMap.put("player", e.getPlayer());
         varMap.put("block", clicked);
         varMap.put("item", e.getItem());
@@ -77,5 +80,20 @@ public class ClickTriggerListener
 
         trigger.activate(e, varMap);
         return;
+    }
+
+    private LocationBasedTriggerManager.Activity toActivity(Action action) {
+        switch (action) {
+            case LEFT_CLICK_AIR:
+                return LocationBasedTriggerManager.Activity.LEFT_CLICK_AIR;
+            case LEFT_CLICK_BLOCK:
+                return LocationBasedTriggerManager.Activity.LEFT_CLICK_BLOCK;
+            case RIGHT_CLICK_AIR:
+                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_AIR;
+            case RIGHT_CLICK_BLOCK:
+                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_BLOCK;
+            default:
+                return LocationBasedTriggerManager.Activity.NONE;
+        }
     }
 }
