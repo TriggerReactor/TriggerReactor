@@ -44,7 +44,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         this.configSourceFactory = ConfigSourceFactory.instance();
     }
 
-    public File concatPath() {
+    public File getFolder() {
         return folder;
     }
 
