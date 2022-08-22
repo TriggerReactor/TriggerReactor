@@ -16,18 +16,13 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitBlock;
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ClickTriggerListener
         extends LocationBasedTriggerListener<LocationBasedTriggerManager.ClickTrigger,
@@ -43,57 +38,11 @@ public class ClickTriggerListener
         if (!BukkitUtil.isLeftHandClick(e))
             return;
 
-        handleClick(e);
+        manager.handleClick(e,
+                            new BukkitBlock(e.getClickedBlock()),
+                            new BukkitPlayer(e.getPlayer()),
+                            new BukkitItemStack(e.getItem()),
+                            toActivity(e.getAction()));
     }
 
-    private void handleClick(PlayerInteractEvent e) {
-        Player player = e.getPlayer();
-        Block clicked = e.getClickedBlock();
-
-        if (clicked == null)
-            return;
-
-        Location loc = clicked.getLocation();
-        BukkitLocation locationWrapped = new BukkitLocation(loc);
-        LocationBasedTriggerManager.ClickTrigger trigger = manager.getTriggerForLocation(locationWrapped);
-        if (trigger == null)
-            return;
-
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put(LocationBasedTriggerManager.KEY_CONTEXT_ACTIVITY, toActivity(e.getAction()));
-        varMap.put("player", e.getPlayer());
-        varMap.put("block", clicked);
-        varMap.put("item", e.getItem());
-        switch (e.getAction()) {
-            case LEFT_CLICK_AIR:
-            case LEFT_CLICK_BLOCK:
-                varMap.put("click", "left");
-                break;
-            case RIGHT_CLICK_AIR:
-            case RIGHT_CLICK_BLOCK:
-                varMap.put("click", "right");
-                break;
-            default:
-                varMap.put("click", "unknown");
-        }
-
-
-        trigger.activate(e, varMap);
-        return;
-    }
-
-    private LocationBasedTriggerManager.Activity toActivity(Action action) {
-        switch (action) {
-            case LEFT_CLICK_AIR:
-                return LocationBasedTriggerManager.Activity.LEFT_CLICK_AIR;
-            case LEFT_CLICK_BLOCK:
-                return LocationBasedTriggerManager.Activity.LEFT_CLICK_BLOCK;
-            case RIGHT_CLICK_AIR:
-                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_AIR;
-            case RIGHT_CLICK_BLOCK:
-                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_BLOCK;
-            default:
-                return LocationBasedTriggerManager.Activity.NONE;
-        }
-    }
 }

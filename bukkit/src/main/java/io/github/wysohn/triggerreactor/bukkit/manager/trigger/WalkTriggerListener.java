@@ -16,16 +16,14 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitBlock;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class WalkTriggerListener
         extends LocationBasedTriggerListener<LocationBasedTriggerManager.WalkTrigger,
@@ -38,23 +36,12 @@ public class WalkTriggerListener
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMove(PlayerBlockLocationEvent e) {
-        handleWalk(e, e.getTo());
-    }
+        SimpleLocation bottomLoc = e.getTo().add(0, -1, 0);
 
-    private void handleWalk(PlayerBlockLocationEvent e, SimpleLocation to) {
-        Player player = e.getPlayer();
-        SimpleLocation bottomLoc = to.add(0, -1, 0);
-
-        LocationBasedTriggerManager.WalkTrigger trigger = manager.getTriggerForLocation(bottomLoc);
-        if (trigger == null)
-            return;
-
-        Map<String, Object> varMap = new HashMap<>();
-        varMap.put("player", player);
-        varMap.put("from", e.getFrom());
-        varMap.put("to", e.getTo());
-        varMap.put("block", LocationUtil.convertToBukkitLocation(bottomLoc).getBlock());
-
-        trigger.activate(e, varMap);
+        manager.handleWalk(e,
+                           new BukkitPlayer(e.getPlayer()),
+                           e.getFrom(),
+                           e.getTo(),
+                           new BukkitBlock(LocationUtil.convertToBukkitLocation(bottomLoc).getBlock()));
     }
 }

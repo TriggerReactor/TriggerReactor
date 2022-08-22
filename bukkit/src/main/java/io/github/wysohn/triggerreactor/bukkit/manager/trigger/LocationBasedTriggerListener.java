@@ -202,4 +202,19 @@ abstract class LocationBasedTriggerListener<T extends Trigger, M extends Locatio
                                                             chunk.getZ());
         return manager.getTriggersInChunk(scLoc);
     }
+
+    public static LocationBasedTriggerManager.Activity toActivity(Action action) {
+        switch (action) {
+            case LEFT_CLICK_AIR:
+                return LocationBasedTriggerManager.Activity.LEFT_CLICK_AIR;
+            case LEFT_CLICK_BLOCK:
+                return LocationBasedTriggerManager.Activity.LEFT_CLICK_BLOCK;
+            case RIGHT_CLICK_AIR:
+                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_AIR;
+            case RIGHT_CLICK_BLOCK:
+                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_BLOCK;
+            default:
+                return LocationBasedTriggerManager.Activity.NONE;
+        }
+    }
 }
