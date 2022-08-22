@@ -42,7 +42,6 @@ import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
 public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
     TaskSupervisor task;
     IGameStateSupervisor gameState;
