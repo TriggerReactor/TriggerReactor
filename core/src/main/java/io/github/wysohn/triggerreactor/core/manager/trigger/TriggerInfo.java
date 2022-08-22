@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
-    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -51,12 +50,6 @@ public abstract class TriggerInfo implements IMigratable {
         return sourceCodeFile;
     }
 
-    public IConfigSource getConfig() {
-        ValidationUtil.notNull(config);
-
-        return config;
-    }
-
     public void reloadConfig() {
         Optional.ofNullable(config)
                 .ifPresent(IConfigSource::reload);
@@ -66,18 +59,56 @@ public abstract class TriggerInfo implements IMigratable {
         return triggerName;
     }
 
-    public boolean isSync(){
+    public void put(TriggerConfigKey key, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(), value);
+    }
+
+    public void put(TriggerConfigKey key, int index, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(index), value);
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getOldKey(), clazz));
+        if(old.isPresent())
+            return old;
+
         return Optional.ofNullable(config)
-                .flatMap(c -> c.get(KEY_SYNC))
-                .filter(Boolean.class::isInstance)
-                .map(Boolean.class::cast)
+                .flatMap(c -> c.get(key.getKey(), clazz));
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getOldKey(index), clazz));
+        if(old.isPresent())
+            return old;
+
+        return Optional.ofNullable(config)
+                .flatMap(c -> c.get(key.getKey(index), clazz));
+    }
+
+    public boolean has(TriggerConfigKey key) {
+        return Optional.ofNullable(config)
+                .map(c -> c.has(key.getOldKey()) || c.has(key.getKey()))
                 .orElse(false);
     }
 
-    public void setSync(boolean sync){
-        ValidationUtil.notNull(config);
+    public boolean isSection(TriggerConfigKey key) {
+        return Optional.ofNullable(config)
+                .map(c -> c.isSection(key.getOldKey()) || c.isSection(key.getKey()))
+                .orElse(false);
+    }
 
-        config.put(KEY_SYNC, sync);
+    public boolean isSync() {
+        return get(TriggerConfigKey.KEY_SYNC, Boolean.class).orElse(false);
+    }
+
+    public void setSync(boolean sync) {
+        put(TriggerConfigKey.KEY_SYNC, sync);
     }
 
     /**
@@ -161,7 +192,7 @@ public abstract class TriggerInfo implements IMigratable {
         return new TriggerInfo(sourceCodeFile, config) {
             @Override
             public boolean isValid() {
-                return isTriggerFile(getSourceCodeFile());
+                return isTriggerFile(sourceCodeFile);
             }
         };
     }
