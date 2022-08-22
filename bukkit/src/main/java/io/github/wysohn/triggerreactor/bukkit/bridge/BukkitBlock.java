@@ -1,6 +1,7 @@
 package io.github.wysohn.triggerreactor.bukkit.bridge;
 
 import io.github.wysohn.triggerreactor.core.bridge.IBlock;
+import io.github.wysohn.triggerreactor.core.bridge.ILocation;
 import org.bukkit.block.Block;
 
 public class BukkitBlock implements IBlock {
@@ -13,5 +14,15 @@ public class BukkitBlock implements IBlock {
     @Override
     public String getTypeName() {
         return block.getType().name();
+    }
+
+    @Override
+    public ILocation getLocation() {
+        return new BukkitLocation(block.getLocation());
+    }
+
+    @Override
+    public <T> T get() {
+        return (T) block;
     }
 }

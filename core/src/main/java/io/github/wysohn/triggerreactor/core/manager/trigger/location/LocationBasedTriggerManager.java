@@ -16,9 +16,7 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
-import io.github.wysohn.triggerreactor.core.bridge.IWorld;
+import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -359,6 +357,60 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage("Script:");
         sender.sendMessage(trigger.getScript());
         sender.sendMessage("- - - - - - - - - - - - - -");
+    }
+
+    public void handleClick(Object eventInstance,
+                            IBlock clicked,
+                            IPlayer player,
+                            IItemStack item,
+                            LocationBasedTriggerManager.Activity activity) {
+        if (clicked == null)
+            return;
+
+        ILocation locationWrapped = clicked.getLocation();
+        T trigger = getTriggerForLocation(locationWrapped);
+        if (trigger == null)
+            return;
+
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put(LocationBasedTriggerManager.KEY_CONTEXT_ACTIVITY, activity);
+        varMap.put("player", player.get());
+        varMap.put("block", clicked.get());
+        varMap.put("item", item.get());
+        switch (activity) {
+            case LEFT_CLICK_AIR:
+            case LEFT_CLICK_BLOCK:
+                varMap.put("click", "left");
+                break;
+            case RIGHT_CLICK_AIR:
+            case RIGHT_CLICK_BLOCK:
+                varMap.put("click", "right");
+                break;
+            default:
+                varMap.put("click", "unknown");
+        }
+
+        trigger.activate(eventInstance, varMap);
+    }
+
+    public void handleWalk(Object eventInstance,
+                           IPlayer player,
+                           SimpleLocation from,
+                           SimpleLocation to,
+                           IBlock bottomBlock) {
+        SimpleLocation bottomLoc = to.add(0, -1, 0);
+
+        T trigger = getTriggerForLocation(bottomLoc);
+        if (trigger == null)
+            return;
+
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", player.get());
+        varMap.put("from", from);
+        varMap.put("to", to);
+        varMap.put("block", bottomBlock.get());
+
+        trigger.activate(eventInstance, varMap);
     }
 
     private static class ClipBoard {
