@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitEntity;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationEvent;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -46,9 +47,7 @@ public class AreaTriggerListener implements BukkitTriggerManager {
         manager.onLocationChange(e,
                                  e.getFrom(),
                                  e.getTo(),
-                                 e.getPlayer(),
-                                 new BukkitEntity(e.getPlayer()),
-                                 e.getPlayer().getUniqueId());
+                                 new BukkitPlayer(e.getPlayer()));
     }
 
     @EventHandler

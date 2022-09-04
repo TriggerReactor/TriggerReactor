@@ -116,11 +116,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract IEventRegistry getEventRegistry();
 
-    public final PluginConfigManager getPluginConfigManager() {
+    public PluginConfigManager getPluginConfigManager() {
         return pluginConfigManager;
     }
 
-    public final GlobalVariableManager getVariableManager() {
+    public GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
     public void onCoreEnable() {
