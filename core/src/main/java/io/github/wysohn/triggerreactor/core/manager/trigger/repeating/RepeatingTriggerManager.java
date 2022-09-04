@@ -33,13 +33,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
+public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
     protected static final String TRIGGER = "trigger";
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    public AbstractRepeatingTriggerManager(TriggerReactorCore plugin, File folder) {
-        super(plugin, folder, new ITriggerLoader<RepeatingTrigger>() {
+    public RepeatingTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"), new ITriggerLoader<RepeatingTrigger>() {
             @Override
             public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 boolean autoStart = info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, Boolean.class)
