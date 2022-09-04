@@ -31,10 +31,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class AbstractNamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
+public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigger> {
 
-    public AbstractNamedTriggerManager(TriggerReactorCore plugin, File folder) {
-        super(plugin, folder, new ITriggerLoader<NamedTrigger>() {
+    public NamedTriggerManager(TriggerReactorCore plugin) {
+        super(plugin, new File(plugin.getDataFolder(), "NamedTriggers"), new ITriggerLoader<NamedTrigger>() {
             private File[] getAllFiles(List<File> list, File file){
                 if(file.isDirectory()){
                     File[] files = file.listFiles();

@@ -41,7 +41,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
@@ -104,7 +104,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AreaTriggerManager areaManager;
     private CustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
-    private AbstractNamedTriggerManager namedTriggerManager;
+    private NamedTriggerManager namedTriggerManager;
     private ICommandHandler commandHandler;
     private IEventRegistry eventRegistry;
     private IInventoryHandle<ItemStack> inventoryHandle;
@@ -189,7 +189,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
+    public NamedTriggerManager getNamedTriggerManager() {
         return namedTriggerManager;
     }
 
