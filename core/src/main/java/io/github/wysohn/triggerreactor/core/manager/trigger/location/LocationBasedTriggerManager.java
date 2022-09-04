@@ -359,6 +359,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage("- - - - - - - - - - - - - -");
     }
 
+    /**
+     *
+     * @param eventInstance
+     * @param clicked
+     * @param player
+     * @param item
+     * @param activity
+     * @deprecated Event handler. Do not call this method except from listener or tests.
+     */
     public void handleClick(Object eventInstance,
                             IBlock clicked,
                             IPlayer player,
@@ -393,6 +402,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         trigger.activate(eventInstance, varMap);
     }
 
+    /**
+     *
+     * @param eventInstance
+     * @param player
+     * @param from
+     * @param to
+     * @param bottomBlock
+     * @deprecated Event handler. Do not call this method except from listener or tests.
+     */
     public void handleWalk(Object eventInstance,
                            IPlayer player,
                            SimpleLocation from,
