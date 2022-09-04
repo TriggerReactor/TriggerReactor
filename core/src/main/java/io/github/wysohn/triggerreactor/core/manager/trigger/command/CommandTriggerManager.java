@@ -17,9 +17,12 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.command.ICommand;
+import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter.Template;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -30,12 +33,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public abstract class AbstractCommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
+public final class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
     public static final String HINT = "hint";
     public static final String CANDIDATES = "candidates";
 
-    public AbstractCommandTriggerManager(TriggerReactorCore plugin, File folder) {
-        super(plugin, folder, new ITriggerLoader<CommandTrigger>() {
+    ICommandHandler commandHandler;
+
+    public CommandTriggerManager(TriggerReactorCore plugin, ICommandHandler commandHandler) {
+        super(plugin, new File(plugin.getDataFolder(), "CommandTrigger"), new ITriggerLoader<CommandTrigger>() {
             private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
 
             {
@@ -110,6 +115,8 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
                 }
             }
         });
+
+        this.commandHandler = commandHandler;
     }
 
     @Override
@@ -117,23 +124,24 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         getAllTriggers().stream()
                 .map(Trigger::getInfo)
                 .map(TriggerInfo::getTriggerName)
-                .forEach(this::unregisterCommand);
+                .forEach(commandHandler::unregister);
 
         super.reload();
 
         for (CommandTrigger trigger : getAllTriggers()) {
-            if (!registerCommand(trigger.getInfo().getTriggerName(), trigger)) {
+            if(!registerToAPI(trigger)){
                 plugin.getLogger()
                         .warning("Attempted to register command trigger " + trigger.getInfo() + " but failed.");
                 plugin.getLogger().warning("Probably, the command is already in use by another command trigger.");
             }
         }
 
-        synchronizeCommandMap();
+        commandHandler.sync();
     }
 
     @Override
     public void reload(String triggerName) {
+        commandHandler.unregisterAll();
         super.reload(triggerName);
         reregisterCommand(triggerName);
     }
@@ -141,10 +149,35 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
     @Override
     public CommandTrigger remove(String name) {
         CommandTrigger remove = super.remove(name);
-        unregisterCommand(name);
+        commandHandler.unregister(name);
 
-        synchronizeCommandMap();
         return remove;
+    }
+
+    /**
+     * Register the trigger to the API so that it can be served as a real command.
+     * @param trigger target command trigger
+     * @return true if the command is successfully registered. false if the command is already in use.
+     */
+    private boolean registerToAPI(CommandTrigger trigger) {
+        ICommand command = commandHandler.register(trigger.getInfo().getTriggerName(),
+                                                   trigger.aliases);
+        if(command == null)
+            return false;
+
+        trigger.setCommand(command);
+        command.setTabCompleters(trigger.getTabCompleters());
+        command.setExecutor((sender, label, args) -> {
+            //TODO: remove this if we allow to use the command trigger in the console.
+            if (!(sender instanceof IPlayer)) {
+                sender.sendMessage("CommandTrigger works only for Players.");
+                return;
+            }
+
+            execute(plugin.createPlayerCommandEvent(sender, label, args), sender, label, args, trigger);
+        });
+
+        return true;
     }
 
     /**
@@ -158,22 +191,27 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
             return false;
 
         File file = getTriggerFile(folder, cmd, true);
-        CommandTrigger trigger = null;
+        CommandTrigger trigger;
+        ICommand command;
         try {
             String name = TriggerInfo.extractName(file);
             IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
             trigger = new CommandTrigger(info, script);
+
+            command = commandHandler.register(cmd, trigger.aliases);
+            if (command == null)
+                return false;
+
+            trigger.setCommand(command);
         } catch (TriggerInitFailedException e1) {
+            commandHandler.unregister(cmd);
             plugin.handleException(adding, e1);
             return false;
         }
 
         put(cmd, trigger);
-        if (!registerCommand(cmd, trigger))
-            return false;
-
-        synchronizeCommandMap();
+        commandHandler.sync();
         plugin.saveAsynchronously(this);
         return true;
     }
@@ -187,36 +225,35 @@ public abstract class AbstractCommandTriggerManager extends AbstractTriggerManag
         }, script);
     }
 
-    /**
-     * Register this command to command map. If the command is already in use by another plugin,
-     * the original command will be overriden, and the original command will be recovered when
-     * the trigger is un-registered. However, if the trigger's name is already registered and
-     * also overriden by another command trigger, this method does nothing and return false.
-     *
-     * @param triggerName name of the trigger to register
-     * @param trigger     the actual trigger instance
-     * @return true if registered; false if the command is already overriden by another command trigger and
-     * is also already registered trigger, it will return false.
-     */
-    protected abstract boolean registerCommand(String triggerName, CommandTrigger trigger);
-
-    /**
-     * Unregister this command from command map.
-     *
-     * @param triggerName name of trigger to remove
-     * @return true if unregistered; false if can't find the registered command.
-     */
-    protected abstract boolean unregisterCommand(String triggerName);
-
-    protected abstract void synchronizeCommandMap();
-
     public void reregisterCommand(String triggerName) {
         Optional.ofNullable(get(triggerName))
                 .ifPresent(trigger -> {
-                    unregisterCommand(triggerName);
-                    registerCommand(triggerName, trigger);
+                    commandHandler.unregister(triggerName);
+                    registerToAPI(trigger);
 
-                    synchronizeCommandMap();
+                    commandHandler.sync();
                 });
+    }
+
+    private void execute(Object context, ICommandSender sender, String cmd, String[] args, CommandTrigger trigger) {
+        for (String permission : trigger.getPermissions()) {
+            if (!sender.hasPermission(permission)) {
+                sender.sendMessage("&c[TR] You don't have permission!");
+                if (plugin.isDebugging()) {
+                    plugin.getLogger().info("Player " + sender.getName() + " executed command " + cmd
+                                                    + " but didn't have permission " + permission + "");
+                }
+                return;
+            }
+        }
+
+        Map<String, Object> varMap = new HashMap<>();
+        varMap.put("player", sender.get());
+        varMap.put("sender", sender.get());
+        varMap.put("command", cmd);
+        varMap.put("args", args);
+        varMap.put("argslength", args.length);
+
+        trigger.activate(context, varMap);
     }
 }

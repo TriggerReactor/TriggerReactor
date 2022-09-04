@@ -27,11 +27,12 @@ import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
@@ -95,12 +96,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractInventoryEditManager invEditManager;
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
-    private AbstractCommandTriggerManager cmdManager;
+    private CommandTriggerManager cmdManager;
     private AbstractInventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
     private AbstractCustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
     private AbstractNamedTriggerManager namedTriggerManager;
+    private ICommandHandler commandHandler;
 
     public static AbstractBukkitWrapper getWrapper() {
         return WRAPPER;
@@ -157,7 +159,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractCommandTriggerManager getCmdManager() {
+    public CommandTriggerManager getCmdManager() {
         return cmdManager;
     }
 
@@ -184,6 +186,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public AbstractNamedTriggerManager getNamedTriggerManager() {
         return namedTriggerManager;
+    }
+
+    @Override
+    public ICommandHandler getCommandHandler() {
+        return commandHandler;
     }
 
     public AbstractJavaPlugin.BungeeCordHelper getBungeeHelper() {
@@ -232,6 +239,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             return;
         }
 
+        try {
+            commandHandler = new BukkitCommandHandler(plugin, plugin);
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
         // managers
         scriptEditManager = new ScriptEditManager(this);
         locationManager = new PlayerLocationManager(this);
@@ -241,7 +255,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
-        cmdManager = new CommandTriggerManager(this, bukkit);
+        cmdManager = new CommandTriggerManager(this, commandHandler);
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this, this, this);
         customManager = new CustomTriggerManager(this);
