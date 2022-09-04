@@ -32,8 +32,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
@@ -106,13 +106,15 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract AreaTriggerManager getAreaManager();
 
-    public abstract AbstractCustomTriggerManager getCustomManager();
+    public abstract CustomTriggerManager getCustomManager();
 
     public abstract AbstractRepeatingTriggerManager getRepeatManager();
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
 
     public abstract ICommandHandler getCommandHandler();
+
+    public abstract IEventRegistry getEventRegistry();
 
     public final PluginConfigManager getPluginConfigManager() {
         return pluginConfigManager;
@@ -1886,7 +1888,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         return filter(triggerNames(getInstance().getCmdManager()), args[1]);
                     case "custom":
                         //event list
-                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                        return filter(new ArrayList<>(getInstance().getEventRegistry().getAbbreviations()), args[1]);
                     case "delete":
                     case "del":
                         return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);

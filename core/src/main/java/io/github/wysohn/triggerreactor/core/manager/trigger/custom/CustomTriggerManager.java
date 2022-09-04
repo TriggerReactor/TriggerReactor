@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -29,13 +30,12 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 
-public abstract class AbstractCustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
-    protected final EventRegistry registry;
+public final class CustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
+    protected final IEventRegistry registry;
 
-    public AbstractCustomTriggerManager(TriggerReactorCore plugin, File folder, EventRegistry registry) {
-        super(plugin, folder, new ITriggerLoader<CustomTrigger>() {
+    public CustomTriggerManager(TriggerReactorCore plugin, IEventRegistry registry) {
+        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new ITriggerLoader<CustomTrigger>() {
             @Override
             public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 String eventName = info.get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, String.class)
@@ -71,25 +71,14 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
     @Override
     public void reload() {
+        registry.unregisterAll();
+
         super.reload();
 
         for (CustomTrigger trigger : getAllTriggers()) {
-            registerEvent(plugin, trigger.event, trigger);
+            registry.registerEvent(plugin, trigger.event, trigger);
         }
     }
-
-    /**
-     * Hook event to handle it manually.
-     *
-     * @param plugin
-     * @param clazz
-     * @param eventHook
-     */
-    protected abstract void registerEvent(TriggerReactorCore plugin, Class<?> clazz, EventHook eventHook);
-
-    protected abstract void unregisterEvent(TriggerReactorCore plugin, EventHook eventHook);
-
-    public abstract Collection<String> getAbbreviations();
 
     /**
      * Create a new CustomTrigger.
@@ -119,7 +108,7 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
 
         put(name, trigger);
 
-        this.registerEvent(plugin, event, trigger);
+        registry.registerEvent(plugin, event, trigger);
 
         return true;
     }
@@ -140,29 +129,8 @@ public abstract class AbstractCustomTriggerManager extends AbstractTriggerManage
     @Override
     public CustomTrigger remove(String name) {
         CustomTrigger remove = super.remove(name);
-        unregisterEvent(plugin, remove);
+        registry.unregisterEvent(plugin, remove);
         return remove;
     }
 
-    @FunctionalInterface
-    public interface EventHook {
-        void onEvent(Object e);
-    }
-
-    public interface EventRegistry {
-
-        boolean eventExist(String eventStr);
-
-        /**
-         * First it tries to return Event in ABBREVIATIONS if such name exists. If it wasn't found, then it simply
-         * treat the eventStr as full class name and try to get the Event using {@link Class#forName(String)} method.
-         * ex) 1. onJoin -> 2. org.bukkit.event.player.PlayerJoinEvent
-         *
-         * @param eventStr name of event to search
-         * @return the event class
-         * @throws ClassNotFoundException throws if search fails or the result event is
-         *                                a event that cannot receive events (abstract events).
-         */
-        Class<?> getEvent(String eventStr) throws ClassNotFoundException;
-    }
 }
