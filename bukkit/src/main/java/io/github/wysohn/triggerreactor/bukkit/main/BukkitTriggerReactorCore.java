@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -33,7 +34,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTriggerManager;
@@ -99,10 +100,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private CommandTriggerManager cmdManager;
     private AbstractInventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
-    private AbstractCustomTriggerManager customManager;
+    private CustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
     private AbstractNamedTriggerManager namedTriggerManager;
     private ICommandHandler commandHandler;
+    private IEventRegistry eventRegistry;
 
     public static AbstractBukkitWrapper getWrapper() {
         return WRAPPER;
@@ -174,7 +176,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractCustomTriggerManager getCustomManager() {
+    public CustomTriggerManager getCustomManager() {
         return customManager;
     }
 
@@ -191,6 +193,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public ICommandHandler getCommandHandler() {
         return commandHandler;
+    }
+
+    @Override
+    public IEventRegistry getEventRegistry() {
+        return eventRegistry;
     }
 
     public AbstractJavaPlugin.BungeeCordHelper getBungeeHelper() {
@@ -246,6 +253,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             return;
         }
 
+        try {
+            eventRegistry = new BukkitEventRegistry();
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
         // managers
         scriptEditManager = new ScriptEditManager(this);
         locationManager = new PlayerLocationManager(this);
@@ -258,7 +272,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         cmdManager = new CommandTriggerManager(this, commandHandler);
         invManager = new InventoryTriggerManager(this);
         areaManager = new AreaTriggerManager(this, this, this);
-        customManager = new CustomTriggerManager(this);
+        customManager = new CustomTriggerManager(this, eventRegistry);
         repeatManager = new RepeatingTriggerManager(this);
 
         namedTriggerManager = new NamedTriggerManager(this);

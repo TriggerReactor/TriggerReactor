@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
+import io.github.wysohn.triggerreactor.core.IEventHook;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -7,7 +8,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CustomTrigger extends Trigger implements AbstractCustomTriggerManager.EventHook {
+public class CustomTrigger extends Trigger implements IEventHook {
     final Class<?> event;
     final String eventName;
 
