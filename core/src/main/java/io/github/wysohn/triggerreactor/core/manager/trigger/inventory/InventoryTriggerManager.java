@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
@@ -32,9 +33,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
-public abstract class AbstractInventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
+public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";
@@ -42,9 +42,10 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    public AbstractInventoryTriggerManager(TriggerReactorCore plugin, File folder, Class<ItemStack> itemClass,
-                                           Function<ItemStack, IItemStack> itemWrapper) {
-        super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
+    IInventoryHandle<ItemStack> inventoryHandle;
+
+    public InventoryTriggerManager(TriggerReactorCore plugin, IInventoryHandle<ItemStack> inventoryHandle) {
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), new ITriggerLoader<InventoryTrigger>() {
             @Override
             public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
                 int size = info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)
@@ -60,11 +61,8 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
 
                     for (int i = 0; i < size; i++) {
                         final int itemIndex = i;
-                        info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, i, itemClass).ifPresent(item ->
-                                                                                                               items.put(
-                                                                                                                       itemIndex,
-                                                                                                                       itemWrapper.apply(
-                                                                                                                               item)));
+                        info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, i, inventoryHandle.getItemClass())
+                                .ifPresent(item -> items.put(itemIndex, inventoryHandle.wrapItemStack(item)));
                     }
                 }
 
@@ -103,6 +101,8 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                 }
             }
         });
+
+        this.inventoryHandle = inventoryHandle;
     }
 
     /**
@@ -117,30 +117,19 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
 
         String title = trigger.getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class).orElse(name);
 
-        IInventory inventory = createInventory(trigger.getItems().length, title);
+        IInventory inventory = inventoryHandle.createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
 
         Map<String, Object> varMap = new HashMap<>();
         varMap.put("inventory", inventory.get());
         inventorySharedVars.put(inventory, varMap);
 
-        fillInventory(trigger, trigger.getItems().length, inventory);
+        inventoryHandle.fillInventory(trigger, trigger.getItems().length, inventory);
 
         player.openInventory(inventory);
 
         return inventory;
     }
-
-    /**
-     * Create actual inventory.
-     *
-     * @param size size of inventory. Must be multiple of 9.
-     * @param name name of the inventory. This is the raw name, so the
-     *             implemented method has to translate color code and and
-     *             underscore appropriately.
-     * @return the inventory
-     */
-    protected abstract IInventory createInventory(int size, String name);
 
     /**
      * @param name this can contain color code &, but you should specify exact
@@ -163,15 +152,16 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         return true;
     }
 
-    /**
-     * @param trigger
-     * @param size      mutiple of 9; must be less than or equalt to 54 (exclusive)
-     * @param inventory
-     */
-    protected abstract void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    protected void onInventoryClose(Object e, IPlayer player, IInventory inventory) {
+    /**
+     *
+     * @param e
+     * @param player
+     * @param inventory
+     * @deprecated Event handler. Do not call this method except from listener or tests.
+     */
+    public void onInventoryClose(Object e, IPlayer player, IInventory inventory) {
         if (!inventoryMap.containsKey(inventory))
             return;
         InventoryTrigger trigger = inventoryMap.get(inventory);
