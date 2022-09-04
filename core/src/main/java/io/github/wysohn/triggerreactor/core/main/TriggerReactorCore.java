@@ -38,8 +38,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryT
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
@@ -108,7 +108,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract CustomTriggerManager getCustomManager();
 
-    public abstract AbstractRepeatingTriggerManager getRepeatManager();
+    public abstract RepeatingTriggerManager getRepeatManager();
 
     public abstract NamedTriggerManager getNamedTriggerManager();
 

@@ -18,7 +18,10 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.AbstractBukkitWrapper;
 import io.github.wysohn.triggerreactor.bukkit.manager.*;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
@@ -42,7 +45,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigge
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -103,7 +106,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private InventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
     private CustomTriggerManager customManager;
-    private AbstractRepeatingTriggerManager repeatManager;
+    private RepeatingTriggerManager repeatManager;
     private NamedTriggerManager namedTriggerManager;
     private ICommandHandler commandHandler;
     private IEventRegistry eventRegistry;
@@ -184,7 +187,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractRepeatingTriggerManager getRepeatManager() {
+    public RepeatingTriggerManager getRepeatManager() {
         return repeatManager;
     }
 
