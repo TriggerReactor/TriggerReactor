@@ -187,7 +187,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         }
     }
 
-    protected static File concatPath(File dataPath, String fileName) {
+    public static File concatPath(File dataPath, String fileName) {
         return new File(dataPath, fileName);
     }
 

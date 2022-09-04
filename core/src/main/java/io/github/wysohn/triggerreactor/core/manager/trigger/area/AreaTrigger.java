@@ -14,8 +14,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AreaTrigger extends Trigger {
-    final Area area;
-    final File folder;
+    private final Area area;
+    private final File folder;
     private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
     private EnterTrigger enterTrigger;
     private ExitTrigger exitTrigger;
