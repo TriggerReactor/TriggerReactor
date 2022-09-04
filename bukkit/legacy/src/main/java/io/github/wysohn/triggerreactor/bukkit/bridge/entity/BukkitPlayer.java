@@ -53,6 +53,11 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
     }
 
     @Override
+    public String getName() {
+        return player.getName();
+    }
+
+    @Override
     public IInventory getInventory() {
         return BukkitTriggerReactorCore.getWrapper().wrap(player.getInventory());
     }

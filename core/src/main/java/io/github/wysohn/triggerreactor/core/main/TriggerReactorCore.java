@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.main;
 import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
@@ -29,8 +30,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
@@ -97,7 +98,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract LocationBasedTriggerManager<LocationBasedTriggerManager.WalkTrigger> getWalkManager();
 
-    public abstract AbstractCommandTriggerManager getCmdManager();
+    public abstract CommandTriggerManager getCmdManager();
 
     public abstract AbstractInventoryTriggerManager<? extends IInventory> getInvManager();
 
@@ -111,6 +112,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract AbstractNamedTriggerManager getNamedTriggerManager();
 
+    public abstract ICommandHandler getCommandHandler();
+
     public final PluginConfigManager getPluginConfigManager() {
         return pluginConfigManager;
     }
@@ -118,7 +121,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
     public final GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
-
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
@@ -647,8 +649,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                             Map<String, Object> tab = new LinkedHashMap<>();
                             if (hint != null)
-                                tab.put(AbstractCommandTriggerManager.HINT, hint);
-                            tab.put(AbstractCommandTriggerManager.CANDIDATES, values);
+                                tab.put(CommandTriggerManager.HINT, hint);
+                            tab.put(CommandTriggerManager.CANDIDATES, values);
                             tabs.add(tab);
                         }
 
