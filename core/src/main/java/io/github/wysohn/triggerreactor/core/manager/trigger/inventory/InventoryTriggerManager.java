@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
     public static final String ITEMS = "Items";
@@ -153,6 +154,53 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     *
+     * @param eventInstance
+     * @param inventory
+     * @param player
+     * @deprecated Event handler. Do not call this method except from listener or tests.
+     */
+    public void onOpen(Object eventInstance, IInventory inventory, IPlayer player) {
+        if (!hasInventoryOpen(inventory))
+            return;
+        InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
+
+        Map<String, Object> varMap = getSharedVarsForInventory(inventory);
+        varMap.put("player", player.get());
+        varMap.put("trigger", "open");
+
+        trigger.activate(eventInstance, varMap);
+    }
+
+    /**
+     * @param inventory
+     * @deprecated Event handler. Do not call this method except from listener or tests.
+     */
+    public void onClick(Object eventInstance,
+                        IInventory inventory,
+                        IItemStack clickedItem,
+                        int rawSlot,
+                        String clickName,
+                        int hotbar,
+                        Consumer<Boolean> eventCancelled) {
+        if (!hasInventoryOpen(inventory))
+            return;
+        InventoryTrigger trigger = getTriggerForOpenInventory(inventory);
+
+        // just always cancel if it's GUI
+        eventCancelled.accept(true);
+
+        Map<String, Object> varMap = getSharedVarsForInventory(inventory);
+        varMap.put("item", clickedItem.clone().get());
+        varMap.put("slot", rawSlot);
+        varMap.put("click", clickName);
+        varMap.put("hotbar", hotbar);
+        varMap.put("trigger", "click");
+
+        trigger.activate(eventInstance, varMap);
+    }
 
     /**
      *
