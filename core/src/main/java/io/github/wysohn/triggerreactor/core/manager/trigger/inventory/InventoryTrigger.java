@@ -44,7 +44,7 @@ public class InventoryTrigger extends Trigger {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupterForInv(cooldowns, AbstractInventoryTriggerManager.inventoryMap),
+                    TriggerReactorCore.getInstance().createInterrupterForInv(cooldowns, InventoryTriggerManager.inventoryMap),
                     timing);
         } catch (Exception ex) {
             TriggerReactorCore.getInstance().handleException(e,

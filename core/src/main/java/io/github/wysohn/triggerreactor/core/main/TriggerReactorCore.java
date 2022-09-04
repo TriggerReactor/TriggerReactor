@@ -34,8 +34,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigg
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
@@ -100,7 +100,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract CommandTriggerManager getCmdManager();
 
-    public abstract AbstractInventoryTriggerManager<? extends IInventory> getInvManager();
+    public abstract InventoryTriggerManager<? extends IInventory> getInvManager();
 
     public abstract AbstractInventoryEditManager getInvEditManager();
 
@@ -161,6 +161,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
         sender.sendMessage("");
         sender.sendMessage("&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
+
+    public abstract IInventoryHandle<?> getInventoryHandle();
 
     /**
      * Send command description.

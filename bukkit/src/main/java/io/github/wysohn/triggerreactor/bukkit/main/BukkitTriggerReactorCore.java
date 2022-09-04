@@ -27,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
+import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -35,8 +36,8 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTriggerManager;
@@ -52,6 +53,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
@@ -98,13 +100,14 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
     private CommandTriggerManager cmdManager;
-    private AbstractInventoryTriggerManager invManager;
+    private InventoryTriggerManager invManager;
     private AreaTriggerManager areaManager;
     private CustomTriggerManager customManager;
     private AbstractRepeatingTriggerManager repeatManager;
     private AbstractNamedTriggerManager namedTriggerManager;
     private ICommandHandler commandHandler;
     private IEventRegistry eventRegistry;
+    private IInventoryHandle<ItemStack> inventoryHandle;
 
     public static AbstractBukkitWrapper getWrapper() {
         return WRAPPER;
@@ -166,7 +169,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractInventoryTriggerManager getInvManager() {
+    public InventoryTriggerManager getInvManager() {
         return invManager;
     }
 
@@ -198,6 +201,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public IEventRegistry getEventRegistry() {
         return eventRegistry;
+    }
+
+    @Override
+    public IInventoryHandle<?> getInventoryHandle() {
+        return inventoryHandle;
     }
 
     public AbstractJavaPlugin.BungeeCordHelper getBungeeHelper() {
@@ -270,7 +278,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
         cmdManager = new CommandTriggerManager(this, commandHandler);
-        invManager = new InventoryTriggerManager(this);
+        invManager = new InventoryTriggerManager<>(this, inventoryHandle);
         areaManager = new AreaTriggerManager(this, this, this);
         customManager = new CustomTriggerManager(this, eventRegistry);
         repeatManager = new RepeatingTriggerManager(this);
@@ -280,6 +288,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         // listeners
         bukkit.registerEvents(new ClickTriggerListener(clickManager));
         bukkit.registerEvents(new WalkTriggerListener(walkManager));
+        bukkit.registerEvents(new InventoryTriggerListener(invManager));
 
         bukkit.registerEvents(new AreaTriggerListener(areaManager));
 
