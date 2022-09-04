@@ -17,8 +17,9 @@
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger;
 
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -29,8 +30,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Map;
 
 public class InventoryTriggerListener
         implements BukkitTriggerManager {
@@ -45,17 +44,10 @@ public class InventoryTriggerListener
     public void onOpen(InventoryOpenEvent e) {
         Inventory inventory = e.getInventory();
 
-        if (!manager.hasInventoryOpen(BukkitTriggerReactorCore.getWrapper().wrap(inventory)))
-            return;
-        InventoryTrigger trigger = manager.getTriggerForOpenInventory(BukkitTriggerReactorCore.getWrapper()
-                                                                              .wrap(inventory));
+        IInventory wrappedInventory = BukkitTriggerReactorCore.getWrapper().wrap(inventory);
+        IPlayer wrappedPlayer = BukkitTriggerReactorCore.getWrapper().wrap((Player) e.getPlayer());
 
-        Map<String, Object> varMap = manager.getSharedVarsForInventory(BukkitTriggerReactorCore.getWrapper()
-                                                                               .wrap(inventory));
-        varMap.put("player", e.getPlayer());
-        varMap.put("trigger", "open");
-
-        trigger.activate(e, varMap);
+        manager.onOpen(e, wrappedInventory, wrappedPlayer);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -69,16 +61,6 @@ public class InventoryTriggerListener
 
     @EventHandler(ignoreCancelled = true)
     public void onClick(InventoryClickEvent e) {
-        Inventory inventory = e.getInventory();
-
-        if (!manager.hasInventoryOpen(BukkitTriggerReactorCore.getWrapper().wrap(inventory)))
-            return;
-        InventoryTrigger trigger = manager.getTriggerForOpenInventory(BukkitTriggerReactorCore.getWrapper()
-                                                                              .wrap(inventory));
-
-        // just always cancel if it's GUI
-        e.setCancelled(true);
-
         if (!(e.getWhoClicked() instanceof Player))
             return;
 
@@ -88,16 +70,18 @@ public class InventoryTriggerListener
         ItemStack clickedItem = e.getCurrentItem();
         if (clickedItem == null)
             clickedItem = new ItemStack(Material.AIR);
+        IItemStack wrappedItem = BukkitTriggerReactorCore.getWrapper().wrap(clickedItem);
 
-        Map<String, Object> varMap = manager.getSharedVarsForInventory(BukkitTriggerReactorCore.getWrapper()
-                                                                               .wrap(inventory));
-        varMap.put("item", clickedItem.clone());
-        varMap.put("slot", e.getRawSlot());
-        varMap.put("click", e.getClick().name());
-        varMap.put("hotbar", e.getHotbarButton());
-        varMap.put("trigger", "click");
+        Inventory inventory = e.getInventory();
+        IInventory wrappedInventory = BukkitTriggerReactorCore.getWrapper().wrap(inventory);
 
-        trigger.activate(e, varMap);
+        manager.onClick(e,
+                wrappedInventory,
+                wrappedItem,
+                e.getRawSlot(),
+                e.getClick().name(),
+                e.getHotbarButton(),
+                e::setCancelled);
     }
 
     @EventHandler
