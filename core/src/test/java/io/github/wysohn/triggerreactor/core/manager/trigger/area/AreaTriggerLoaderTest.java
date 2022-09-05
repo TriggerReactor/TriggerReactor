@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,8 +28,6 @@ public class AreaTriggerLoaderTest {
 
     TriggerReactorCore core;
     AreaTriggerLoader loader;
-    File areaTriggerFolder1;
-    File areaTriggerFolder2;
 
     @Before
     public void setUp() throws Exception {
@@ -43,12 +42,13 @@ public class AreaTriggerLoaderTest {
         when(core.getDataFolder()).thenReturn(folder.getRoot());
 
         loader = new AreaTriggerLoader(core);
-        areaTriggerFolder1 = folder.newFolder("trigger1");
-        areaTriggerFolder2 = folder.newFolder("trigger2");
     }
 
     @Test
-    public void listTriggers() {
+    public void listTriggers() throws IOException {
+        File areaTriggerFolder1 = folder.newFolder("trigger1");
+        File areaTriggerFolder2 = folder.newFolder("trigger2");
+
         ConfigSourceFactory factory = mock(ConfigSourceFactory.class);
         IConfigSource source1 = mock(IConfigSource.class);
         IConfigSource source2 = mock(IConfigSource.class);
@@ -64,7 +64,9 @@ public class AreaTriggerLoaderTest {
     }
 
     @Test
-    public void load() throws InvalidTrgConfigurationException {
+    public void load() throws InvalidTrgConfigurationException, IOException {
+        File areaTriggerFolder1 = folder.newFolder("trigger1");
+
         IConfigSource source = mock(IConfigSource.class);
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
                 .thenReturn(Optional.of("world@0,0,0"));
@@ -81,7 +83,9 @@ public class AreaTriggerLoaderTest {
     }
 
     @Test
-    public void save() throws InvalidTrgConfigurationException {
+    public void save() throws InvalidTrgConfigurationException, IOException {
+        File areaTriggerFolder1 = folder.newFolder("trigger1");
+
         IConfigSource source = mock(IConfigSource.class);
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
                 .thenReturn(Optional.of("world@0,0,0"));
