@@ -39,8 +39,8 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
     }
 
     @Override
-    public TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
-        return new AreaTriggerInfo(file, configSource, file.getName());
+    public TriggerInfo toTriggerInfo(File sourceCodeFile, IConfigSource configSource) {
+        return new AreaTriggerInfo(sourceCodeFile, configSource, sourceCodeFile.getName());
     }
 
     @Override
