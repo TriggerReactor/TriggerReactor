@@ -653,8 +653,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                             Map<String, Object> tab = new LinkedHashMap<>();
                             if (hint != null)
-                                tab.put(CommandTriggerManager.HINT, hint);
-                            tab.put(CommandTriggerManager.CANDIDATES, values);
+                                tab.put(CommandTriggerManager.TAB_HINT, hint);
+                            tab.put(CommandTriggerManager.TAB_CANDIDATES, values);
                             tabs.add(tab);
                         }
 

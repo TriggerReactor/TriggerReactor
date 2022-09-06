@@ -9,42 +9,91 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
-    private final Map<String, ITabCompleter> tabCompleterMap = new HashMap<>();
+    private final Map<String, ITabCompleter.Template> PreDefinedCompleterLabelMap = new HashMap<>();
 
     {
-        tabCompleterMap.put("$playerlist", ITabCompleter.Builder.of(ITabCompleter.Template.PLAYER).build());
+        PreDefinedCompleterLabelMap.put("$playerlist", ITabCompleter.Template.PLAYER);
     }
-
     private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
-        String hint = (String) tabs.get(CommandTriggerManager.HINT);
-        String candidates_str = (String) tabs.get(CommandTriggerManager.CANDIDATES);
+        String hint = (String) tabs.get(CommandTriggerManager.TAB_HINT);
+        String candidates_str = (String) tabs.get(CommandTriggerManager.TAB_CANDIDATES);
+        List<Map<String, Object>> conditions = tabs.get(CommandTriggerManager.TAB_CONDITIONS) != null ? (List<Map<String, Object>>) tabs.get(CommandTriggerManager.TAB_CONDITIONS) : null;
 
-        ITabCompleter tabCompleter;
-        if (candidates_str != null && candidates_str.startsWith("$")) {
-            tabCompleter = tabCompleterMap.getOrDefault(candidates_str, ITabCompleter.Builder.of().build());
-        } else if (candidates_str == null && hint != null) {
-            tabCompleter = ITabCompleter.Builder.withHint(hint).build();
-        } else if (candidates_str != null && hint == null) {
-            tabCompleter = ITabCompleter.Builder.of(candidates_str).build();
-        } else {
-            tabCompleter = ITabCompleter.Builder.withHint(hint)
-                    .setCandidate(
-                            Optional.ofNullable(candidates_str)
-                                    .map(str -> ITabCompleter.list(str.split(",")))
-                                    .orElseGet(() -> ITabCompleter.list(""))
-                    )
-                    .build();
+        ITabCompleter.Builder builder;
+
+        if(candidates_str == null){
+            if(hint == null) {
+                builder = ITabCompleter.Builder.of();
+            }else{
+                builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(hint.split(",")));
+            }
+        }else {
+            if (candidates_str.startsWith("$") && PreDefinedCompleterLabelMap.containsKey(candidates_str)) {
+                if (hint == null)
+                    builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str));
+                else
+                    builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str)).setHint(ITabCompleter.list(hint.split(",")));
+
+            } else {
+                if (hint == null)
+                    builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(candidates_str.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+                else
+                    builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(hint.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+            }
         }
-        return tabCompleter;
+        if(conditions != null){
+            builder = builder.setConditionMap(toTabCompleterConditionMap(conditions));
+        }
+        return builder.build();
+    }
+    private Map<Integer, Set<ITabCompleter>> toTabCompleterMap(List<Map<String, Object>> tabs) {
+        Map<Integer, Set<ITabCompleter>> tabMap = new HashMap<>();
+        tabs.forEach((t) -> {
+            int idx;
+            if(t.containsKey(CommandTriggerManager.TAB_INDEX) && t.get(CommandTriggerManager.TAB_INDEX) instanceof Integer){
+                idx = (int) t.get(CommandTriggerManager.TAB_INDEX);
+            }else{
+                idx = tabs.indexOf(t);
+            }
+            if(tabMap.containsKey(idx))
+                tabMap.get(idx).add(toTabCompleter(t));
+            else{
+                Set<ITabCompleter> _set = new HashSet<>();
+                _set.add(toTabCompleter(t));
+                tabMap.put(idx, _set);
+            }
+        });
+        return tabMap;
     }
 
-    private ITabCompleter[] toTabCompleters(List<Map<String, Object>> tabs) {
-        return tabs.stream()
-                .map(this::toTabCompleter)
-                .toArray(ITabCompleter[]::new);
+    private Map<Integer, Pattern> toTabCompleterConditionMap(List<Map<String, Object>> conditions) {
+        Map<Integer, Pattern> conditionMap = new HashMap<>();
+        conditions.forEach((c) -> {
+            int idx;
+            Pattern regexPattern;
+            if(c.containsKey(CommandTriggerManager.TAB_INDEX) && c.get(CommandTriggerManager.TAB_INDEX) instanceof Integer)
+                idx = (int) c.get(CommandTriggerManager.TAB_INDEX);
+            else
+                return;
+
+            if(c.containsKey(CommandTriggerManager.TAB_REGEX) && c.get(CommandTriggerManager.TAB_REGEX) instanceof String) {
+                try {
+                    regexPattern = Pattern.compile((String) c.get(CommandTriggerManager.TAB_REGEX));
+                }catch(PatternSyntaxException e){
+                    e.printStackTrace();
+                    return;
+                }
+            }else {
+                return;
+            }
+            conditionMap.put(idx, regexPattern);
+        });
+        return conditionMap;
     }
 
     @Override
@@ -64,7 +113,7 @@ class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
             CommandTrigger trigger = new CommandTrigger(info, script);
             trigger.setPermissions(permissions.toArray(new String[0]));
             trigger.setAliases(aliases.toArray(new String[0]));
-            trigger.setTabCompleters(toTabCompleters(tabs));
+            trigger.setTabCompleterMap(toTabCompleterMap(tabs));
             return trigger;
         } catch (AbstractTriggerManager.TriggerInitFailedException | IOException e) {
             e.printStackTrace();

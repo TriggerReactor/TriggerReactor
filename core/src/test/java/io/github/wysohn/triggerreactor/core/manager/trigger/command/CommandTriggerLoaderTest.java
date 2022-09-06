@@ -50,8 +50,9 @@ public class CommandTriggerLoaderTest {
                 "test.alias")));
         when(info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_TABS, List.class)).thenReturn(Optional.of(Arrays.asList(
                 new HashMap<String, Object>() {{
-                    put(CommandTriggerManager.HINT, "<hint>");
-                    put(CommandTriggerManager.CANDIDATES, "test,candidates");
+                    put(CommandTriggerManager.TAB_INDEX, 0);
+                    put(CommandTriggerManager.TAB_HINT, "<MyCoolHint>");
+                    put(CommandTriggerManager.TAB_CANDIDATES, "mycoolcandidate,yourcoolcandy");
                 }}
         )));
 
@@ -59,8 +60,12 @@ public class CommandTriggerLoaderTest {
 
         assertEquals("test.permission", trigger.getPermissions()[0]);
         assertEquals("test.alias", trigger.getAliases()[0]);
-        assertEquals(Collections.singletonList("<hint>"), trigger.getTabCompleters()[0].getHint());
-        assertEquals(Collections.singletonList("test"), trigger.getTabCompleters()[0].getCandidates("te"));
+        for(ITabCompleter tab : trigger.getTabCompleterMap().get(0)){
+            assertEquals(Collections.singletonList("<MyCoolHint>"), tab.getHint());
+            assertEquals(Collections.singletonList("mycoolcandidate"), tab.getCandidates("my"));
+
+        }
+
     }
 
     @Test
@@ -72,9 +77,6 @@ public class CommandTriggerLoaderTest {
         CommandTrigger trigger = new CommandTrigger(mockInfo, "#MESSAGE \"Hello world!\"");
         trigger.setAliases(new String[]{"test.alias"});
         trigger.setPermissions(new String[]{"test.permission"});
-        trigger.setTabCompleters(new ITabCompleter[]{
-                ITabCompleter.Builder.of("abc", "def").build()
-        });
 
         loader.save(trigger);
 
@@ -82,6 +84,8 @@ public class CommandTriggerLoaderTest {
                              new String[]{"test.permission"});
         verify(mockInfo).put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES,
                              new String[]{"test.alias"});
-        //TODO should we save the tab completers? or only to be loaded. Need discussion
+        //should we save the tab completers? or only to be loaded. Need discussion
+        // L> no, because tabs json should be directly applied with notepad because user should copy-paste the
+        // JSON code from bLoCk service. Even if they use old-styled tab-completer command, it directly saved
     }
 }

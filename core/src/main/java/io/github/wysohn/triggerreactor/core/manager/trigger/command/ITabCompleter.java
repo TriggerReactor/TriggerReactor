@@ -2,10 +2,9 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 /**
@@ -40,12 +39,69 @@ public interface ITabCompleter {
      */
     List<String> getHint();
 
+    /**
+     * Get whether this tab-completer is expected to tab-complete with pre-defined values like player list. If the
+     * tab-completer instance does have valid {@linkplain PredefinedTabCompleters} value that can be got with
+     * {@link #getPreDefinedValue()} method, this method will return true. If not, returns false.
+     * This method is needed because if the tab-completer have to tab-complete with pre-defined value, Candidate
+     * should be ignored and therefore indicator of it is required.
+     * <br><br>
+     *
+     * @return Whether the tab-completer has valid {@linkplain PredefinedTabCompleters} or not
+     */
+    boolean isPreDefinedValue();
 
+    /**
+     * Get  {@linkplain PredefinedTabCompleters} value of the tab-completer.
+     * This method is needed because if the tab-completer have to tab-complete with pre-defined value, Candidate
+     * should be ignored and therefore indicator of it is required.
+     * <br><br>
+     *
+     * @return {@linkplain PredefinedTabCompleters} of the tab-completer. If not being defined, returns null
+     */
+    PredefinedTabCompleters getPreDefinedValue();
+
+    /**
+     * Get whether there is any condition to satisfy.
+     * <br><br>
+     *
+     * @return whether there is any condition to satisfy or not
+     */
+    boolean hasConditionMap();
+
+
+    /**
+     * Get the Map of condition. The Key is parameter index, and Value is Regex string.
+     * <br><br>
+     *
+     * @return Condtion {@linkplain java.util.Map} of the tab-completer. If not being defined, returns null
+     */
+    Map<Integer, Pattern> getConditionMap();
+
+    /**
+     * Get whether there is a condition to satisfy with the argument of given index.
+     * <br><br>
+     *
+     * @return whether there is any condition to satisfy with the argument of given index or not
+     */
+    boolean hasCondition(Integer index);
+
+
+    /**
+     * Get the Regex {@linkplain java.util.regex.Pattern} of the condition to satisfy with the argument
+     * of given index.
+     * <br><br>
+     *
+     * @return Condtion's Regex {@linkplain java.util.regex.Pattern} of the tab-completer. If not being defined, returns null
+     */
+    Pattern getCondition(Integer index);
 
 
     class Builder{
 
         List<String> hint,candidate;
+        PredefinedTabCompleters preDefinedValue;
+        Map<Integer, Pattern> conditions;
 
         private Builder(){
             this.hint = new ArrayList<>();
@@ -64,8 +120,9 @@ public interface ITabCompleter {
                 this.candidate = new ArrayList<>();
             }
             if(template == Template.PLAYER){
-                this.hint = list("<player>");
-                this.candidate = null; // returning null signals to list online players instead
+                this.hint = null;
+                this.candidate = null;
+                this.preDefinedValue = PredefinedTabCompleters.PLAYERS;
                 //TODO not sure if Sponge does the same
             }
         }
@@ -102,6 +159,21 @@ public interface ITabCompleter {
 
             return this;
         }
+        public Builder setCondition(int index, String regex) throws PatternSyntaxException{
+            Pattern ptn = Pattern.compile(regex);
+            if(this.conditions== null){
+                this.conditions = new HashMap<Integer, Pattern>();
+            }
+            this.conditions.put(index, ptn);
+            return this;
+        }
+        public Builder setCondition(int index, Pattern pattern) throws PatternSyntaxException{
+            if(this.conditions== null){
+                this.conditions = new HashMap<Integer, Pattern>();
+            }
+            this.conditions.put(index, pattern);
+            return this;
+        }
         public Builder setHint(String...hints){
             this.hint = list(hints);
 
@@ -119,34 +191,35 @@ public interface ITabCompleter {
         }
         public Builder setCandidate(Collection<String> candidates){
             if(candidates == null)
-                this.candidate = null;
+                this.candidate = new ArrayList<>();
             else
                 this.candidate = candidates instanceof List ? (List<String>) candidates : new ArrayList<>(candidates);
 
             return this;
         }
-        public Builder setAsPlayerList(){
-            this.hint = list("<player>");
-            this.candidate = null;
+        public Builder setPreDefinedValue(PredefinedTabCompleters val){
+            this.preDefinedValue = val;
+            return this;
+        }
+
+        public Builder reset(){
+            this.hint = new ArrayList<>();
+            this.candidate = new ArrayList<>();
+            this.preDefinedValue = null;
+            this.conditions = null;
+
+            return this;
+        }
+
+        public Builder setConditionMap(Map<Integer, Pattern> conditionMap){
+            this.conditions = conditionMap;
 
             return this;
         }
 
 
-
         public ITabCompleter build(){
-            return new ITabCompleter() {
-                @Override
-                public List<String> getCandidates(String part) {
-                    return candidate.stream()
-                            .filter(val -> val.startsWith(part))
-                            .collect(Collectors.toList());
-                }
-                @Override
-                public List<String> getHint() {
-                    return hint;
-                }
-            };
+            return new ITabCompleterImpl(this);
 
         }
 
