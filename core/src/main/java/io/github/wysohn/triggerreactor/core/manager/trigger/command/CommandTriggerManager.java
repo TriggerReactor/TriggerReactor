@@ -34,8 +34,13 @@ import java.util.Optional;
 
 
 public final class CommandTriggerManager extends AbstractTriggerManager<CommandTrigger> {
-    public static final String HINT = "hint";
-    public static final String CANDIDATES = "candidates";
+    public static final String TAB_HINT = "hint";
+    public static final String TAB_CANDIDATES = "candidates";
+    public static final String TAB_CONDITIONS = "conditions";
+    public static final String TAB_INDEX = "index";
+
+    public static final String TAB_REGEX = "regex";
+
 
     ICommandHandler commandHandler;
 
@@ -96,7 +101,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
             return false;
 
         trigger.setCommand(command);
-        command.setTabCompleters(trigger.getTabCompleters());
+        command.setTabCompleterMap(trigger.getTabCompleterMap());
         command.setExecutor((sender, label, args) -> {
             //TODO: remove this if we allow to use the command trigger in the console.
             if (!(sender instanceof IPlayer)) {

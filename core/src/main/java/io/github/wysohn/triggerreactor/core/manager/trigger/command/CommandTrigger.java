@@ -6,11 +6,14 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class CommandTrigger extends Trigger {
     String[] permissions = new String[0];
     String[] aliases = new String[0];
-    ITabCompleter[] tabCompleters = new ITabCompleter[0];
+    Map<Integer, Set<ITabCompleter>> tabCompleterMap = new HashMap<>();
 
     private ICommand command;
 
@@ -44,15 +47,15 @@ public class CommandTrigger extends Trigger {
         }
     }
 
-    public ITabCompleter[] getTabCompleters() {
-        return tabCompleters;
+    public Map<Integer, Set<ITabCompleter>> getTabCompleterMap() {
+        return tabCompleterMap;
     }
 
-    public void setTabCompleters(ITabCompleter[] tabCompleters) {
-        if (tabCompleters == null) {
-            this.tabCompleters = new ITabCompleter[0];
+    public void setTabCompleterMap(Map<Integer, Set<ITabCompleter>> tabCompleterMap) {
+        if (tabCompleterMap == null) {
+            this.tabCompleterMap = new HashMap<>();
         } else {
-            this.tabCompleters = tabCompleters;
+            this.tabCompleterMap = tabCompleterMap;
         }
     }
 
