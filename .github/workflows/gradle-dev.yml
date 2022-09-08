@@ -149,7 +149,7 @@ jobs:
           path: build
           key: build
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: build/libs/TriggerReactor-${{matrix.file_name}}-*.jar
 
