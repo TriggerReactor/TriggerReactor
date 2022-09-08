@@ -142,6 +142,7 @@ jobs:
           - sponge
 
     steps:
+      - uses: actions/checkout@v3
       - name: Cache Build
         uses: actions/cache@v2
         with:
