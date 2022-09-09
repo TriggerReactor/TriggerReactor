@@ -16,17 +16,14 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
-import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,39 +31,14 @@ import java.io.IOException;
 public final class CustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
     protected final IEventRegistry registry;
 
-    public CustomTriggerManager(TriggerReactorCore plugin, IEventRegistry registry) {
-        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), new ITriggerLoader<CustomTrigger>() {
-            @Override
-            public CustomTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                String eventName = info.get(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, String.class)
-                        .filter(registry::eventExist)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException(
-                                "Couldn't find target Event or is not a valid Event",
-                                info));
-
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    CustomTrigger trigger = new CustomTrigger(info, script, registry.getEvent(eventName), eventName);
-                    return trigger;
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void save(CustomTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_CUSTOM_EVENT, trigger.getEventName());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public CustomTriggerManager(TriggerReactorCore plugin, IEventRegistry registry, ITriggerLoader<CustomTrigger> loader) {
+        super(plugin, new File(plugin.getDataFolder(), "CustomTrigger"), loader);
 
         this.registry = registry;
+    }
+
+    public CustomTriggerManager(TriggerReactorCore plugin, IEventRegistry registry){
+        this(plugin, registry, new CustomTriggerLoader(registry));
     }
 
     @Override
@@ -76,7 +48,7 @@ public final class CustomTriggerManager extends AbstractTriggerManager<CustomTri
         super.reload();
 
         for (CustomTrigger trigger : getAllTriggers()) {
-            registry.registerEvent(plugin, trigger.event, trigger);
+            registry.registerEvent(plugin, trigger.getEvent(), trigger);
         }
     }
 
