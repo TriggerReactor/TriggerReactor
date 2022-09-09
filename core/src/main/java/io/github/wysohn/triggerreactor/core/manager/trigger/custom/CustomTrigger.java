@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CustomTrigger extends Trigger implements IEventHook {
-    final Class<?> event;
-    final String eventName;
+    private final Class<?> event;
+    private final String eventName;
 
     public CustomTrigger(TriggerInfo info, String script, Class<?> event, String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
@@ -57,6 +57,10 @@ public class CustomTrigger extends Trigger implements IEventHook {
         if (getInfo() == null) {
             return other.getInfo() == null;
         } else return getInfo().equals(other.getInfo());
+    }
+
+    public Class<?> getEvent() {
+        return event;
     }
 
     public String getEventName() {
