@@ -19,14 +19,15 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.*;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
+
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";
@@ -45,78 +47,30 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
 
     IInventoryHandle<ItemStack> inventoryHandle;
 
-    public InventoryTriggerManager(TriggerReactorCore plugin, IInventoryHandle<ItemStack> inventoryHandle) {
-        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), new ITriggerLoader<InventoryTrigger>() {
-            @Override
-            public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                int size = info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)
-                        .filter(s -> s != 0 && s % 9 == 0)
-                        .filter(s -> s <= InventoryTrigger.MAXSIZE)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info));
-                Map<Integer, IItemStack> items = new HashMap<>();
-
-                if (info.has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)) {
-                    if (!info.isSection(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)) {
-                        throw new InvalidTrgConfigurationException("Items should be an object", info);
-                    }
-
-                    for (int i = 0; i < size; i++) {
-                        final int itemIndex = i;
-                        info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, i, inventoryHandle.getItemClass())
-                                .ifPresent(item -> items.put(itemIndex, inventoryHandle.wrapItemStack(item)));
-                    }
-                }
-
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    IItemStack[] itemArray = new IItemStack[size];
-                    for (int i = 0; i < size; i++)
-                        itemArray[i] = items.getOrDefault(i, null);
-                    return new InventoryTrigger(info, script, itemArray);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void save(InventoryTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    IItemStack[] items = trigger.items;
-                    int size = trigger.items.length;
-
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, size);
-                    trigger.getInfo()
-                            .put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, trigger.getInfo().getTriggerName());
-                    for (int i = 0; i < items.length; i++) {
-                        IItemStack item = items[i];
-                        if (item == null)
-                            continue;
-
-                        trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, i, item.get());
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public InventoryTriggerManager(TriggerReactorCore plugin,
+                                   InventoryTriggerLoader<ItemStack> loader,
+                                   IInventoryHandle<ItemStack> inventoryHandle) {
+        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), loader);
 
         this.inventoryHandle = inventoryHandle;
     }
 
+    public InventoryTriggerManager(TriggerReactorCore plugin, IInventoryHandle<ItemStack> inventoryHandle) {
+        this(plugin, new InventoryTriggerLoader<>(inventoryHandle), inventoryHandle);
+    }
+
     /**
+     * Open the GUI (of the existing InventoryTrigger) for the target player
      * @param player
-     * @param name
+     * @param inventoryName
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
-    public IInventory openGUI(IPlayer player, String name) {
-        InventoryTrigger trigger = get(name);
+    public IInventory openGUI(IPlayer player, String inventoryName) {
+        InventoryTrigger trigger = get(inventoryName);
         if (trigger == null)
             return null;
 
-        String title = trigger.getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class).orElse(name);
+        String title = trigger.getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class).orElse(inventoryName);
 
         IInventory inventory = inventoryHandle.createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
@@ -228,11 +182,11 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
         return inventoryMap.containsKey(inventory);
     }
 
-    public InventoryTrigger getTriggerForOpenInventory(IInventory inventory) {
+    private InventoryTrigger getTriggerForOpenInventory(IInventory inventory) {
         return inventoryMap.get(inventory);
     }
 
-    public Map<String, Object> getSharedVarsForInventory(IInventory inventory) {
+    private Map<String, Object> getSharedVarsForInventory(IInventory inventory) {
         return inventorySharedVars.get(inventory);
     }
 
