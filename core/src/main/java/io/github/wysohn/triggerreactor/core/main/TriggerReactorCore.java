@@ -36,7 +36,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
@@ -94,9 +96,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract AbstractAreaSelectionManager getSelectionManager();
 
-    public abstract LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger> getClickManager();
+    public abstract LocationBasedTriggerManager<ClickTrigger> getClickManager();
 
-    public abstract LocationBasedTriggerManager<LocationBasedTriggerManager.WalkTrigger> getWalkManager();
+    public abstract LocationBasedTriggerManager<WalkTrigger> getWalkManager();
 
     public abstract CommandTriggerManager getCmdManager();
 

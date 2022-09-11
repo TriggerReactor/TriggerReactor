@@ -22,15 +22,16 @@ import io.github.wysohn.triggerreactor.bukkit.manager.event.PlayerBlockLocationE
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 
 public class WalkTriggerListener
-        extends LocationBasedTriggerListener<LocationBasedTriggerManager.WalkTrigger,
-        LocationBasedTriggerManager<LocationBasedTriggerManager.WalkTrigger>> {
+        extends LocationBasedTriggerListener<WalkTrigger,
+        LocationBasedTriggerManager<WalkTrigger>> {
 
 
-    public WalkTriggerListener(LocationBasedTriggerManager<LocationBasedTriggerManager.WalkTrigger> manager) {
+    public WalkTriggerListener(LocationBasedTriggerManager<WalkTrigger> manager) {
         super(manager);
     }
 
