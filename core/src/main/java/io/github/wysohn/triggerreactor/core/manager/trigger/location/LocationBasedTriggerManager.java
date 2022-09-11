@@ -137,6 +137,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         return settingLocation.containsKey(player.getUniqueId());
     }
 
+    /**
+     * Initiate the trigger creation process. This will set the player into
+     * "location setting" mode, and will cache the trigger script for later use.
+     * {@link #handleLocationSetting(ILocation, IPlayer)}
+     *
+     * @param player the player who is creating the trigger
+     * @param script the script to be used for the trigger
+     * @return true if the player is successfully set into "location setting" mode; false otherwise (already setting).
+     */
     public boolean startLocationSet(IPlayer player, String script) {
         if (settingLocation.containsKey(player.getUniqueId()))
             return false;
@@ -157,13 +166,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
     protected String getSettingLocationScript(IPlayer player) {
         return settingLocation.get(player.getUniqueId());
-    }
-
-    public void onItemSwap(IPlayer player) {
-        if (player.getUniqueId() == null)
-            return;
-
-        clipboard.remove(player.getUniqueId());
     }
 
     /**
@@ -243,17 +245,25 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : chunkMap.entrySet()) {
             for (Entry<SimpleLocation, T> entryIn : entry.getValue().entrySet()) {
-                triggers.add(new SimpleEntry<SimpleLocation, Trigger>(entryIn.getKey(), entryIn.getValue()));
+                triggers.add(new SimpleEntry<>(entryIn.getKey(), entryIn.getValue()));
             }
         }
 
         return triggers;
     }
 
-    private String asTriggerName(ILocation loc){
+    private String asTriggerName(ILocation loc) {
         return loc.toSimpleLocation().toString();
     }
 
+    /**
+     * Finalize the pending trigger creation initiated by {@link #startLocationSet(IPlayer, String)}.
+     * If successful, the trigger will be created with the script provided in
+     * {@link #startLocationSet(IPlayer, String)}.
+     *
+     * @param loc    the location to save the pending trigger
+     * @param player the player who initiated the trigger creation
+     */
     public void handleLocationSetting(ILocation loc, IPlayer player) {
         T trigger = getTriggerForLocation(loc);
         if (trigger != null) {
@@ -291,6 +301,12 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         plugin.saveAsynchronously(this);
     }
 
+    /**
+     * Initiate editing of a trigger. This will open the in-game text editor for the
+     * player to edit the trigger script. (ex. Shift right click with bone to edit)
+     * @param player the player who is editing the trigger
+     * @param trigger the trigger to be edited
+     */
     public void handleScriptEdit(IPlayer player, T trigger) {
         plugin.getScriptEditManager().startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
                                                 script -> {
@@ -360,19 +376,29 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     /**
-     *
+     * @param player
+     * @deprecated Event handler. Do not call this method except from listener or tests.
+     */
+    public void onItemSwap(IPlayer player) {
+        if (player.getUniqueId() == null)
+            return;
+
+        clipboard.remove(player.getUniqueId());
+    }
+
+    /**
      * @param eventInstance
      * @param clicked
      * @param player
-     * @param item
+     * @param itemInHand
      * @param activity
      * @deprecated Event handler. Do not call this method except from listener or tests.
      */
     public void handleClick(Object eventInstance,
                             IBlock clicked,
                             IPlayer player,
-                            IItemStack item,
-                            LocationBasedTriggerManager.Activity activity) {
+                            IItemStack itemInHand,
+                            Activity activity) {
         if (clicked == null)
             return;
 
@@ -385,7 +411,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         varMap.put(LocationBasedTriggerManager.KEY_CONTEXT_ACTIVITY, activity);
         varMap.put("player", player.get());
         varMap.put("block", clicked.get());
-        varMap.put("item", item.get());
+        varMap.put("itemInHand", itemInHand.get());
         switch (activity) {
             case LEFT_CLICK_AIR:
             case LEFT_CLICK_BLOCK:
@@ -403,7 +429,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     }
 
     /**
-     *
      * @param eventInstance
      * @param player
      * @param from
@@ -444,77 +469,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             CUT,
             COPY
         }
-    }
-
-    public static class WalkTrigger extends Trigger {
-        public WalkTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-            super(info, script);
-
-            init();
-
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new WalkTrigger(info, script);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public static class ClickTrigger extends Trigger {
-        private final ClickHandler handler;
-
-        public ClickTrigger(TriggerInfo info, String script, ClickHandler handler) throws TriggerInitFailedException {
-            super(info, script);
-            this.handler = handler;
-
-            init();
-        }
-
-        @Override
-        public boolean activate(Object e, Map<String, Object> scriptVars) {
-            if(!scriptVars.containsKey(KEY_CONTEXT_ACTIVITY))
-                throw new RuntimeException("ClickTrigger: Context activity not found in script variables");
-
-            Activity activity = (Activity) scriptVars.get(KEY_CONTEXT_ACTIVITY);
-            if (!handler.allow(activity))
-                return true;
-
-            return super.activate(e, scriptVars);
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                //TODO: using same handler will be safe?
-                return new ClickTrigger(info, script, handler);
-            } catch (TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    public interface ClickHandler {
-        /**
-         * Check if click is allowed for this context. If it were Bukkit API, it will be PlayerInteractEvent.
-         *
-         * @param activity the activity involved with this click
-         * @return true if allowed; false if not (the click will be ignored in this case)
-         */
-        boolean allow(Activity activity);
-    }
-
-    public enum Activity{
-        LEFT_CLICK_AIR,
-        LEFT_CLICK_BLOCK,
-        RIGHT_CLICK_AIR,
-        RIGHT_CLICK_BLOCK,
-        NONE,
     }
 
     public static String KEY_CONTEXT_ACTIVITY = "location.activity";

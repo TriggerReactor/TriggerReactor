@@ -41,9 +41,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigg
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -157,12 +155,12 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger> getClickManager() {
+    public LocationBasedTriggerManager<ClickTrigger> getClickManager() {
         return clickManager;
     }
 
     @Override
-    public LocationBasedTriggerManager<LocationBasedTriggerManager.WalkTrigger> getWalkManager() {
+    public LocationBasedTriggerManager<WalkTrigger> getWalkManager() {
         return walkManager;
     }
 

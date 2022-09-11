@@ -20,16 +20,17 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitBlock;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public class ClickTriggerListener
-        extends LocationBasedTriggerListener<LocationBasedTriggerManager.ClickTrigger,
-        LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger>> {
+        extends LocationBasedTriggerListener<ClickTrigger,
+        LocationBasedTriggerManager<ClickTrigger>> {
 
 
-    public ClickTriggerListener(LocationBasedTriggerManager<LocationBasedTriggerManager.ClickTrigger> manager) {
+    public ClickTriggerListener(LocationBasedTriggerManager<ClickTrigger> manager) {
         super(manager);
     }
 

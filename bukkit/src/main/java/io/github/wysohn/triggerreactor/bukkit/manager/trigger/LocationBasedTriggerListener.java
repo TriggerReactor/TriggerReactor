@@ -24,6 +24,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.Activity;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -203,18 +204,18 @@ abstract class LocationBasedTriggerListener<T extends Trigger, M extends Locatio
         return manager.getTriggersInChunk(scLoc);
     }
 
-    public static LocationBasedTriggerManager.Activity toActivity(Action action) {
+    public static Activity toActivity(Action action) {
         switch (action) {
             case LEFT_CLICK_AIR:
-                return LocationBasedTriggerManager.Activity.LEFT_CLICK_AIR;
+                return Activity.LEFT_CLICK_AIR;
             case LEFT_CLICK_BLOCK:
-                return LocationBasedTriggerManager.Activity.LEFT_CLICK_BLOCK;
+                return Activity.LEFT_CLICK_BLOCK;
             case RIGHT_CLICK_AIR:
-                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_AIR;
+                return Activity.RIGHT_CLICK_AIR;
             case RIGHT_CLICK_BLOCK:
-                return LocationBasedTriggerManager.Activity.RIGHT_CLICK_BLOCK;
+                return Activity.RIGHT_CLICK_BLOCK;
             default:
-                return LocationBasedTriggerManager.Activity.NONE;
+                return Activity.NONE;
         }
     }
 }
