@@ -349,7 +349,7 @@ public class TestLexer {
     }
 
     @Test
-    public void testComment() throws Exception {
+    public void testLineComment() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
@@ -364,21 +364,63 @@ public class TestLexer {
         lexer = new Lexer(text, charset);
         testToken(lexer, Type.INTEGER, "1");
         testEnd(lexer);
+    }
 
-        text = "2/*hey*/+3";
+    @Test
+    public void testBlockComment() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "1/**/+2";
         lexer = new Lexer(text, charset);
-        testToken(lexer, Type.INTEGER, "2");
+        testToken(lexer, Type.INTEGER, "1");
         testToken(lexer, Type.OPERATOR_A, "+");
-        testToken(lexer, Type.INTEGER, "3");
+        testToken(lexer, Type.INTEGER, "2");
         testEnd(lexer);
 
-        text = "4/**\n"
-            + " * heya" +
-            " */+5";
+        text = "3/*heya*/+4";
         lexer = new Lexer(text, charset);
-        testToken(lexer, Type.INTEGER, "4");
+        testToken(lexer, Type.INTEGER, "3");
         testToken(lexer, Type.OPERATOR_A, "+");
+        testToken(lexer, Type.INTEGER, "4");
+        testEnd(lexer);
+
+        text = "5*/**\n"
+            + " * heya" +
+            " **/6";
+        lexer = new Lexer(text, charset);
         testToken(lexer, Type.INTEGER, "5");
+        testToken(lexer, Type.OPERATOR_A, "*");
+        testToken(lexer, Type.INTEGER, "6");
+        testEnd(lexer);
+
+        text = "7/* /* */ /* */ */";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.INTEGER, "7");
+        testEnd(lexer);
+    }
+
+    @Test(expected = LexerException.class)
+    public void testBlockCommentException() throws IOException, LexerException {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "1/**+2";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.INTEGER, "1");
+        testEnd(lexer);
+    }
+
+    @Test(expected = LexerException.class)
+    public void testBlockCommentException2() throws IOException, LexerException {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "/* /* /* */ /* */ */";
+        lexer = new Lexer(text, charset);
         testEnd(lexer);
     }
 
