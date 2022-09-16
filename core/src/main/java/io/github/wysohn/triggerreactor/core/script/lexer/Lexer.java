@@ -28,7 +28,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Lexer {
+public final class Lexer {
+
+    private static final char EOS_CHAR = '\0';
+    private static final int EOS_INTEGER = 0xffff;
     private static final char[] OPERATORS;
 
     static {
@@ -44,7 +47,7 @@ public class Lexer {
     private char c = 0;
     private boolean showWarnings = false;
 
-    private List<Warning> warnings = new ArrayList<Warning>();
+    private final List<Warning> warnings = new ArrayList<>();
 
     private int row = 1;
     private int col = 1;
@@ -64,7 +67,7 @@ public class Lexer {
     private void initInputStream() throws IOException {
         InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
         reader = new PushbackReader(new BufferedReader(isr), 256);
-        read();//position to first element
+        read(); // Position to first symbol
     }
 
     public int getRow() {
@@ -88,11 +91,19 @@ public class Lexer {
     }
 
     /**
-     * @return false if end of stream is reached.
-     * @throws IOException
+     * Moves to the next character.
+     *
+     * <h2>⚗️ Side Effects</h2>
+     * When this method is called, {@link #c} should be the current symbol that is
+     * freshly baked from the input stream, delegates to {@link Character} implementation.
+     * <p>
+     * It also increments {@link #col} and {@link #row} if is needed.
+     *
+     * @return {@code True} without error, {@code false} if end of stream is reached.
+     * @throws IOException If an I/O error occurs while read stream
      */
     private boolean read() throws IOException {
-        int read = reader.read();
+        final int read = bump();
         if (read == -1) {
             c = 0;
             eos = true;
@@ -100,7 +111,7 @@ public class Lexer {
         } else {
             if (c == '\n') {
                 row++;
-                col = 0;
+                col = 1;
             } else {
                 col++;
             }
@@ -109,9 +120,70 @@ public class Lexer {
         }
     }
 
+    /**
+     * Pushes back a single symbol including clean-up marked as dirty.
+     *
+     * @throws IOException If an I/O error occurs while read stream
+     */
     private void unread() throws IOException {
         col--;
+        if (col == 1) {
+
+        }
         reader.unread(c);
+    }
+
+    private int bump() throws IOException {
+        final int read = reader.read();
+
+        if (read == EOS_INTEGER) {
+            return -1;
+        }
+
+        return read;
+    }
+
+    /**
+     * Peeks the next symbol from the input stream without consuming it.
+     * If requested position doesn't exist, {@link #EOS_CHAR} is returned.
+     * However, getting {@link #EOS_CHAR} doesn't always mean actual end of file,
+     * it should be checked with {@link #eos} field.
+     *
+     * @return The next symbol or {@link #EOS_CHAR} if requested position doesn't exist
+     * @throws IOException If an I/O error occurs while read stream
+     */
+    public char first() throws IOException {
+        final int read = bump();
+
+        // Unrolling read buffer
+        reader.unread(read);
+
+        if (read == -1) {
+            return EOS_CHAR;
+        }
+
+        return (char) read;
+    }
+
+    /**
+     * Peeks the second symbol from the input stream without consuming it.
+     *
+     * @return The second symbol or {@link #EOS_CHAR} if requested position doesn't exist
+     * @throws IOException If an I/O error occurs while read stream
+     */
+    public char second() throws IOException {
+        final int firstRead = bump();
+        final int secondRead = bump();
+
+        // Unrolling read buffer
+        reader.unread(secondRead);
+        reader.unread(firstRead);
+
+        if (firstRead == -1 || secondRead == -1) {
+            return EOS_CHAR;
+        }
+
+        return (char) secondRead;
     }
 
     /**
@@ -164,28 +236,32 @@ public class Lexer {
 
     private void skipComment() throws LexerException, IOException {
         if (c == '/') {
-            read();
+            if (first() == '/') { // CommentKind::Line -- //
+                while (c != '\n' && read()) ; // Skip until next line or end of line
+            } else if (first() == '*') { // CommentKind::Block -- /*
+                read();
 
-            if (c == '/') {
-                //skip until next line or end of line
-                while (c != '\n' && read()) ;
-            } else if (c == '*') {
+                int depth = 1;
+
+                // Eat stream while cursor meet */, or throw exception if end of stream is reached.
                 while (read()) {
-                    while (c != '*' && read()) ;
-                    read();
-
-                    // Eat stream while cursor meet */, or throw exception if end of stream is reached.
-                    if (c == '/') {
+                    if (c == '/' && first() == '*') {
                         read();
-                        break;
-                    } else if (eos) {
-                        throw new LexerException("Expected '/' but end of stream is reached", this);
+                        depth++;
+                    } else if (c == '*' && first() == '/') {
+                        read();
+                        if (--depth == 0) {
+                            read();
+                            break;
+                        }
                     }
                 }
-            } else {
-                //was not comment
-                unread();
-                c = '/';
+
+                // Special Case: DO NOT USE 'eos'. depth condition will check instead.
+                // If we use 'eos' here, Test '/* /* */ /* */ */' would be broken and Runtime too.
+                if (depth > 0) {
+                    throw new LexerException("Expected '/' but end of stream is reached", this);
+                }
             }
         }
     }
@@ -481,14 +557,16 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "";
+        String text = "3/*heya*/+4";
+//        String text = "1/**/+2";
         //String text = "#CMD \"w \"+name ";
-        System.out.println("original: \n" + text);
+        System.out.println("Original >\n" + text);
 
         Lexer lexer = new Lexer(text, charset);
-        System.out.println("result: \n");
-        Token tok = null;
-        while ((tok = lexer.getToken()) != null)
-            System.out.println("[" + tok.type + "] " + tok.value);
+        System.out.println("Result >");
+
+        Token token = null;
+        while ((token = lexer.getToken()) != null)
+            System.out.println("[" + token.type + "] " + token.value);
     }
 }
