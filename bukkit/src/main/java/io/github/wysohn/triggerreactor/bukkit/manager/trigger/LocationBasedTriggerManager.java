@@ -58,6 +58,24 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
+    public static final Material WALL_SIGN;
+
+    static {
+        // Modern Bukkit implementation had been deprecate "WALL_SIGN".  (1.14 ~ latest)
+        Material wallSign = Material.getMaterial("LEGACY_WALL_SIGN");
+        if (wallSign == null) {
+            // Cover legacy Bukkit implementation  (1.8.8 ~ 1.13.2)
+            wallSign = Material.getMaterial("WALL_SIGN");
+        }
+
+        // Should never come to this branch, but who knows?
+        if (wallSign == null) {
+            wallSign = Material.WALL_SIGN;
+        }
+
+        WALL_SIGN = wallSign;
+    }
+
     public LocationBasedTriggerManager(TriggerReactorCore plugin, String folderName, ITriggerLoader<T> loader) {
         super(plugin, new File(plugin.getDataFolder(), folderName), loader);
     }
@@ -227,8 +245,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             return;
 
         Block block = e.getBlock();
-        for (Block surronding : getSurroundingBlocks(block, (b) -> b.getType() == Material.WALL_SIGN)) {
-            BlockBreakEvent bbe = new BlockBreakEvent(surronding, e.getPlayer());
+        for (Block surrounding : getSurroundingBlocks(block, b -> b.getType() == WALL_SIGN)) {
+            BlockBreakEvent bbe = new BlockBreakEvent(surrounding, e.getPlayer());
             onBreak(bbe);
 
             // at least one sign is not breakable, so cancel the event and stop iteration
