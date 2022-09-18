@@ -2078,6 +2078,41 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testNestedImport() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter;"
+            + "#TEST TestInterpreter.TheTest;"
+//            + "#TEST TestInterpreter.TheTest.staticTest();";
+//            + "#TEST TestInterpreter.TheTest().localTest();"
+            + "#TEST TestInterpreter.TheTest.staticField;"
+            + "#TEST TestInterpreter.TestEnum.IMTEST;"
+            + "#TEST TestInterpreter.TheTest.NestedTest;";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.execute(any(), anyMap(), any(), any())).thenReturn(null);
+        executorMap.put("TEST", mockExecutor);
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TheTest.class));
+//        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("static"));
+//        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("local"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("staticField"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TestEnum.IMTEST));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TheTest.NestedTest.class));
+    }
+
+    @Test
     public void testComparison() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST 1 < 2, 2 < 1;"
@@ -3072,6 +3107,31 @@ public class TestInterpreter {
 
         public static String staticTest() {
             return "static";
+        }
+
+        public static class NestedTest {
+            public static String staticField = "nestedStaticField";
+
+            public InTest in = new InTest();
+
+            public NestedTest() {
+            }
+
+            public InTest getTest() {
+                return in;
+            }
+
+            public String localTest() {
+                return "nestedLocal";
+            }
+
+            public TestEnum testEnumMethod(TestEnum val) {
+                return val;
+            }
+
+            public static String staticTest() {
+                return "nestedStatic";
+            }
         }
     }
 
