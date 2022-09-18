@@ -66,6 +66,6 @@ public enum TriggerConfigKey {
      * @deprecated This is for migration purpose only. Use {@link #getOldKey(int)} instead.
      */
     public String getOldKey(int index){
-        return key + "." + index;
+        return oldKey == null ? null : oldKey + "." + index;
     }
 }

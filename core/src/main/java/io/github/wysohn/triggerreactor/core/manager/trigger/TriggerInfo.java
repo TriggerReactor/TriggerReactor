@@ -72,35 +72,39 @@ public abstract class TriggerInfo implements IMigratable {
     }
 
     public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
-        Optional<T> old = Optional.ofNullable(config)
-                .flatMap(c -> c.get(key.getOldKey(), clazz));
+        Optional<T> old = Optional.ofNullable(key.getOldKey())
+                .flatMap(oldKey -> config.get(oldKey, clazz));
         if(old.isPresent())
             return old;
 
-        return Optional.ofNullable(config)
-                .flatMap(c -> c.get(key.getKey(), clazz));
+        return Optional.ofNullable(key.getKey())
+                .flatMap(newKey -> config.get(newKey, clazz));
     }
 
     public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
-        Optional<T> old = Optional.ofNullable(config)
-                .flatMap(c -> c.get(key.getOldKey(index), clazz));
+        Optional<T> old = Optional.ofNullable(key.getOldKey(index))
+                .flatMap(oldKey -> config.get(oldKey, clazz));
         if(old.isPresent())
             return old;
 
-        return Optional.ofNullable(config)
-                .flatMap(c -> c.get(key.getKey(index), clazz));
+        return Optional.of(key.getKey(index))
+                .flatMap(newKey -> config.get(newKey, clazz));
     }
 
     public boolean has(TriggerConfigKey key) {
-        return Optional.ofNullable(config)
-                .map(c -> c.has(key.getOldKey()) || c.has(key.getKey()))
-                .orElse(false);
+        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
+                .map(config::has);
+        Optional<Boolean> current = Optional.ofNullable(key.getKey())
+                .map(config::has);
+        return old.orElse(false) || current.orElse(false);
     }
 
     public boolean isSection(TriggerConfigKey key) {
-        return Optional.ofNullable(config)
-                .map(c -> c.isSection(key.getOldKey()) || c.isSection(key.getKey()))
-                .orElse(false);
+        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
+                .map(config::isSection);
+        Optional<Boolean> current = Optional.ofNullable(key.getKey())
+                .map(config::isSection);
+        return old.orElse(false) || current.orElse(false);
     }
 
     public boolean isSync() {
@@ -140,9 +144,12 @@ public abstract class TriggerInfo implements IMigratable {
             return false;
 
         String name = file.getName();
+        // not ends with .trg and no extension
+        if(!name.endsWith(".trg") && name.indexOf('.') != -1)
+            return false;
 
-        //either ends with .trg or no extension
-        return name.endsWith(".trg") || name.indexOf('.') == -1;
+        String triggerName = extractName(file);
+        return triggerName != null && triggerName.length() >= 1;
     }
 
     /**
@@ -155,10 +162,11 @@ public abstract class TriggerInfo implements IMigratable {
         if (file.isDirectory())
             return null;
 
-        if (file.getName().indexOf('.') == -1)
+        int dotIndex = file.getName().indexOf('.');
+        if (dotIndex == -1)
             return file.getName();
 
-        return file.getName().substring(0, file.getName().indexOf('.'));
+        return file.getName().substring(0, dotIndex);
     }
 
     @Override
