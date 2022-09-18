@@ -20,7 +20,10 @@ import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.*;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -34,6 +37,9 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
+    private static final String AUTOSTART = "AutoStart";
+    private static final String INTERVAL = "Interval";
+
     protected static final String TRIGGER = "trigger";
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
@@ -42,9 +48,8 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
         super(plugin, folder, new ITriggerLoader<RepeatingTrigger>() {
             @Override
             public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                boolean autoStart = info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, Boolean.class)
-                        .orElse(false);
-                int interval = info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Integer.class).orElse(1000);
+                boolean autoStart = info.getConfig().get(AUTOSTART, Boolean.class).orElse(false);
+                int interval = info.getConfig().get(INTERVAL, Integer.class).orElse(1000);
 
                 try {
                     String script = FileUtil.readFromFile(info.getSourceCodeFile());
@@ -63,8 +68,8 @@ public abstract class AbstractRepeatingTriggerManager extends AbstractTriggerMan
                 try {
                     FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, trigger.isAutoStart());
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, trigger.getInterval());
+                    trigger.getInfo().getConfig().put(AUTOSTART, trigger.isAutoStart());
+                    trigger.getInfo().getConfig().put(INTERVAL, trigger.getInterval());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

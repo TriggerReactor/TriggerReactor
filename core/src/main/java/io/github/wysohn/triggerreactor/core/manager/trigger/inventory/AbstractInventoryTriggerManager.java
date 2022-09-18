@@ -22,7 +22,10 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.*;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -47,24 +50,21 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         super(plugin, folder, new ITriggerLoader<InventoryTrigger>() {
             @Override
             public InventoryTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                int size = info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)
+                int size = info.getConfig().get(SIZE, Integer.class)
                         .filter(s -> s != 0 && s % 9 == 0)
                         .filter(s -> s <= InventoryTrigger.MAXSIZE)
-                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info));
+                        .orElseThrow(() -> new InvalidTrgConfigurationException("Couldn't find or invalid Size", info.getConfig()));
                 Map<Integer, IItemStack> items = new HashMap<>();
 
-                if (info.has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)) {
-                    if (!info.isSection(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)) {
-                        throw new InvalidTrgConfigurationException("Items should be an object", info);
+                if (info.getConfig().has(ITEMS)) {
+                    if (!info.getConfig().isSection(ITEMS)) {
+                        throw new InvalidTrgConfigurationException("Items should be an object", info.getConfig());
                     }
 
                     for (int i = 0; i < size; i++) {
                         final int itemIndex = i;
-                        info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, i, itemClass).ifPresent(item ->
-                                                                                                               items.put(
-                                                                                                                       itemIndex,
-                                                                                                                       itemWrapper.apply(
-                                                                                                                               item)));
+                        info.getConfig().get(ITEMS + "." + i, itemClass).ifPresent(item ->
+                                items.put(itemIndex, itemWrapper.apply(item)));
                     }
                 }
 
@@ -88,15 +88,14 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
                     IItemStack[] items = trigger.items;
                     int size = trigger.items.length;
 
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, size);
-                    trigger.getInfo()
-                            .put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, trigger.getInfo().getTriggerName());
+                    trigger.getInfo().getConfig().put(SIZE, size);
+                    trigger.getInfo().getConfig().put(TITLE, trigger.getInfo().getTriggerName());
                     for (int i = 0; i < items.length; i++) {
                         IItemStack item = items[i];
                         if (item == null)
                             continue;
 
-                        trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, i, item.get());
+                        trigger.getInfo().getConfig().put(ITEMS + "." + i, item.get());
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -115,7 +114,7 @@ public abstract class AbstractInventoryTriggerManager<ItemStack> extends Abstrac
         if (trigger == null)
             return null;
 
-        String title = trigger.getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class).orElse(name);
+        String title = trigger.getInfo().getConfig().get(TITLE, String.class).orElse(name);
 
         IInventory inventory = createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);

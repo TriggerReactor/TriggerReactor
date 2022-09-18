@@ -26,7 +26,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
@@ -40,6 +39,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+    protected static final String SMALLEST = "Smallest";
+    protected static final String LARGEST = "Largest";
+    protected static final String SYNC = "Sync";
+
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
 
     /**
@@ -77,12 +80,14 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
 
             @Override
             public AreaTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                SimpleLocation smallest = info.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST, String.class)
+                SimpleLocation smallest = info.getConfig().get(SMALLEST, String.class)
                         .map(SimpleLocation::valueOf)
                         .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
-                SimpleLocation largest = info.get(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST, String.class)
+                SimpleLocation largest = info.getConfig().get(LARGEST, String.class)
                         .map(SimpleLocation::valueOf)
                         .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
+                boolean isSync = info.getConfig().get(SYNC, Boolean.class)
+                        .orElse(false);
 
                 File scriptFolder = new File(folder, info.getTriggerName());
                 if (!scriptFolder.exists()) {
@@ -130,8 +135,8 @@ public abstract class AbstractAreaTriggerManager extends AbstractTaggedTriggerMa
             @Override
             public void save(AreaTrigger trigger) {
                 Area area = trigger.getArea();
-                trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST, area.getSmallest().toString());
-                trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST, area.getLargest().toString());
+                trigger.getInfo().getConfig().put(SMALLEST, area.getSmallest().toString());
+                trigger.getInfo().getConfig().put(LARGEST, area.getLargest().toString());
 
                 File triggerFolder = new File(folder, trigger.getInfo().getTriggerName());
                 if (!triggerFolder.exists()) {

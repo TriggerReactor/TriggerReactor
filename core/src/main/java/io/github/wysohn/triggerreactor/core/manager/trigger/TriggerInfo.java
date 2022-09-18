@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
+    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
@@ -50,6 +51,12 @@ public abstract class TriggerInfo implements IMigratable {
         return sourceCodeFile;
     }
 
+    public IConfigSource getConfig() {
+        ValidationUtil.notNull(config);
+
+        return config;
+    }
+
     public void reloadConfig() {
         Optional.ofNullable(config)
                 .ifPresent(IConfigSource::reload);
@@ -59,60 +66,18 @@ public abstract class TriggerInfo implements IMigratable {
         return triggerName;
     }
 
-    public void put(TriggerConfigKey key, Object value) {
+    public boolean isSync(){
+        return Optional.ofNullable(config)
+                .flatMap(c -> c.get(KEY_SYNC))
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(false);
+    }
+
+    public void setSync(boolean sync){
         ValidationUtil.notNull(config);
 
-        config.put(key.getKey(), value);
-    }
-
-    public void put(TriggerConfigKey key, int index, Object value) {
-        ValidationUtil.notNull(config);
-
-        config.put(key.getKey(index), value);
-    }
-
-    public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
-        Optional<T> old = Optional.ofNullable(key.getOldKey())
-                .flatMap(oldKey -> config.get(oldKey, clazz));
-        if(old.isPresent())
-            return old;
-
-        return Optional.ofNullable(key.getKey())
-                .flatMap(newKey -> config.get(newKey, clazz));
-    }
-
-    public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
-        Optional<T> old = Optional.ofNullable(key.getOldKey(index))
-                .flatMap(oldKey -> config.get(oldKey, clazz));
-        if(old.isPresent())
-            return old;
-
-        return Optional.of(key.getKey(index))
-                .flatMap(newKey -> config.get(newKey, clazz));
-    }
-
-    public boolean has(TriggerConfigKey key) {
-        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
-                .map(config::has);
-        Optional<Boolean> current = Optional.ofNullable(key.getKey())
-                .map(config::has);
-        return old.orElse(false) || current.orElse(false);
-    }
-
-    public boolean isSection(TriggerConfigKey key) {
-        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
-                .map(config::isSection);
-        Optional<Boolean> current = Optional.ofNullable(key.getKey())
-                .map(config::isSection);
-        return old.orElse(false) || current.orElse(false);
-    }
-
-    public boolean isSync() {
-        return get(TriggerConfigKey.KEY_SYNC, Boolean.class).orElse(false);
-    }
-
-    public void setSync(boolean sync) {
-        put(TriggerConfigKey.KEY_SYNC, sync);
+        config.put(KEY_SYNC, sync);
     }
 
     /**
@@ -144,12 +109,9 @@ public abstract class TriggerInfo implements IMigratable {
             return false;
 
         String name = file.getName();
-        // not ends with .trg and no extension
-        if(!name.endsWith(".trg") && name.indexOf('.') != -1)
-            return false;
 
-        String triggerName = extractName(file);
-        return triggerName != null && triggerName.length() >= 1;
+        //either ends with .trg or no extension
+        return name.endsWith(".trg") || name.indexOf('.') == -1;
     }
 
     /**
@@ -162,11 +124,10 @@ public abstract class TriggerInfo implements IMigratable {
         if (file.isDirectory())
             return null;
 
-        int dotIndex = file.getName().indexOf('.');
-        if (dotIndex == -1)
+        if (file.getName().indexOf('.') == -1)
             return file.getName();
 
-        return file.getName().substring(0, dotIndex);
+        return file.getName().substring(0, file.getName().indexOf('.'));
     }
 
     @Override
@@ -200,7 +161,7 @@ public abstract class TriggerInfo implements IMigratable {
         return new TriggerInfo(sourceCodeFile, config) {
             @Override
             public boolean isValid() {
-                return isTriggerFile(sourceCodeFile);
+                return isTriggerFile(getSourceCodeFile());
             }
         };
     }

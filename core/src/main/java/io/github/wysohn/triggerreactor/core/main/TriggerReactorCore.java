@@ -28,7 +28,6 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
@@ -660,7 +659,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             tabs.add(tab);
                         }
 
-                        info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_TABS, tabs);
+                        info.getConfig().put(AbstractCommandTriggerManager.TABS, tabs);
                         getCmdManager().reload(args[1]);
 
                         sender.sendMessage("&7Set tab-completer");
@@ -1066,7 +1065,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         }
 
                         TriggerInfo info = trigger.getInfo();
-                        info.put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, title);
+                        info.getConfig().put(AbstractInventoryTriggerManager.TITLE, title);
 
                         getInvManager().reload(name);
 
