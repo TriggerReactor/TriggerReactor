@@ -144,9 +144,12 @@ public abstract class TriggerInfo implements IMigratable {
             return false;
 
         String name = file.getName();
+        // not ends with .trg and no extension
+        if(!name.endsWith(".trg") && name.indexOf('.') != -1)
+            return false;
 
-        //either ends with .trg or no extension
-        return name.endsWith(".trg") || name.indexOf('.') == -1;
+        String triggerName = extractName(file);
+        return triggerName != null && triggerName.length() >= 1;
     }
 
     /**
@@ -159,10 +162,11 @@ public abstract class TriggerInfo implements IMigratable {
         if (file.isDirectory())
             return null;
 
-        if (file.getName().indexOf('.') == -1)
+        int dotIndex = file.getName().indexOf('.');
+        if (dotIndex == -1)
             return file.getName();
 
-        return file.getName().substring(0, file.getName().indexOf('.'));
+        return file.getName().substring(0, dotIndex);
     }
 
     @Override
