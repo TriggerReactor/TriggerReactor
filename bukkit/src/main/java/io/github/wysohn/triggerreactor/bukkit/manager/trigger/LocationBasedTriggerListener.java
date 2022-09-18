@@ -47,6 +47,24 @@ abstract class LocationBasedTriggerListener<T extends Trigger, M extends Locatio
     public static final Material CUT_TOOL = Material.SHEARS;
     public static final Material COPY_TOOL = Material.PAPER;
 
+    public static final Material WALL_SIGN;
+
+    static {
+        // Modern Bukkit implementation had been deprecate "WALL_SIGN".  (1.14 ~ latest)
+        Material wallSign = Material.getMaterial("LEGACY_WALL_SIGN");
+        if (wallSign == null) {
+            // Cover legacy Bukkit implementation  (1.8.8 ~ 1.13.2)
+            wallSign = Material.getMaterial("WALL_SIGN");
+        }
+
+        // Should never come to this branch, but who knows?
+        if (wallSign == null) {
+            wallSign = Material.WALL_SIGN;
+        }
+
+        WALL_SIGN = wallSign;
+    }
+
     final M manager;
 
     public LocationBasedTriggerListener(M manager) {
@@ -155,7 +173,7 @@ abstract class LocationBasedTriggerListener<T extends Trigger, M extends Locatio
     private boolean isWallSign(SimpleLocation sloc) {
         World world = Bukkit.getWorld(sloc.getWorld());
         Block block = world.getBlockAt(sloc.getX(), sloc.getY(), sloc.getZ());
-        return block.getType() == Material.WALL_SIGN;
+        return block.getType() == WALL_SIGN;
     }
 
     @EventHandler(priority = EventPriority.LOW)
