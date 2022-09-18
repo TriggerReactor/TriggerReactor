@@ -282,7 +282,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         invManager = new InventoryTriggerManager<>(this, inventoryHandle);
         areaManager = new AreaTriggerManager(this, this, this);
         customManager = new CustomTriggerManager(this, eventRegistry);
-        repeatManager = new RepeatingTriggerManager(this);
+        repeatManager = new RepeatingTriggerManager(this, this);
 
         namedTriggerManager = new NamedTriggerManager(this);
 
@@ -542,6 +542,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public boolean isServerThread() {
         return bukkit.isServerThread();
+    }
+
+    @Override
+    public Thread newThread(Runnable runnable, String name, int priority) {
+        Thread thread = new Thread(runnable, name);
+        thread.setPriority(priority);
+        return thread;
     }
 
     @Override
