@@ -16,6 +16,10 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.bridge;
 
-public interface ILocation extends IMinecraftObject {
+import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
+public interface ILocation extends IMinecraftObject {
+    SimpleLocation toSimpleLocation();
+
+    IWorld getWorld();
 }

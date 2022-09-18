@@ -17,6 +17,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
+import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
@@ -79,11 +80,12 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     public void reload(String triggerName) {
-        T trigger = get(triggerName);
-        TriggerInfo info = trigger.info;
+        IConfigSource configSource = configSourceFactory.create(folder, triggerName);
+        File sourceCodeFile = new File(folder, triggerName + ".trg");
+        TriggerInfo info = loader.toTriggerInfo(sourceCodeFile, configSource);
 
         try {
-            trigger = loader.load(info);
+            T trigger = loader.load(info);
             put(triggerName, trigger);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load " + info, e);
@@ -185,6 +187,10 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             //TODO need to be done async (file I/O)
             loader.save((T) observable);
         }
+    }
+
+    public static File concatPath(File dataPath, String fileName) {
+        return new File(dataPath, fileName);
     }
 
     @SuppressWarnings("serial")

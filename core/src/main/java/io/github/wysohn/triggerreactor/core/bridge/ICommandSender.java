@@ -36,4 +36,6 @@ public interface ICommandSender extends IMinecraftObject {
      */
     @Override
     boolean equals(Object obj);
+
+    String getName();
 }
