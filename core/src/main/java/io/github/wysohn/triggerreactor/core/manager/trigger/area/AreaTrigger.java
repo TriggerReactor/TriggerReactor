@@ -14,12 +14,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AreaTrigger extends Trigger {
-    final Area area;
-    final File folder;
+    private final Area area;
+    private final File folder;
     private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
     private EnterTrigger enterTrigger;
     private ExitTrigger exitTrigger;
-    private AbstractAreaTriggerManager.EventType type = null;
+    private AreaTriggerManager.EventType type = null;
 
     public AreaTrigger(TriggerInfo info, Area area, File folder) {
         super(info, null); // area trigger has scripts in its folder
@@ -37,7 +37,7 @@ public class AreaTrigger extends Trigger {
         return null;
     }
 
-    public void activate(Object e, Map<String, Object> scriptVars, AbstractAreaTriggerManager.EventType type) {
+    public void activate(Object e, Map<String, Object> scriptVars, AreaTriggerManager.EventType type) {
         this.type = type;
 
         super.activate(e, scriptVars);

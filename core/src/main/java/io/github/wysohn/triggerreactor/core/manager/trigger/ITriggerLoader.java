@@ -23,8 +23,8 @@ public interface ITriggerLoader<T extends Trigger> {
                 .orElse(new TriggerInfo[0]);
     }
 
-    default TriggerInfo toTriggerInfo(File file, IConfigSource configSource) {
-        return TriggerInfo.defaultInfo(file, configSource);
+    default TriggerInfo toTriggerInfo(File sourceCodeFile, IConfigSource configSource) {
+        return TriggerInfo.defaultInfo(sourceCodeFile, configSource);
     }
 
     T load(TriggerInfo info) throws InvalidTrgConfigurationException;

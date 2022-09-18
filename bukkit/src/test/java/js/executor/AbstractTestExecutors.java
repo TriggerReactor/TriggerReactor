@@ -7,7 +7,7 @@ import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -478,7 +478,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testGUI() throws Exception {
         IPlayer vip = mock(IPlayer.class);
         TriggerReactorCore tr = mock(TriggerReactorCore.class);
-        AbstractInventoryTriggerManager invManager = mock(AbstractInventoryTriggerManager.class);
+        InventoryTriggerManager invManager = mock(InventoryTriggerManager.class);
         IInventory iInv = mock(IInventory.class);
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("player", vip)

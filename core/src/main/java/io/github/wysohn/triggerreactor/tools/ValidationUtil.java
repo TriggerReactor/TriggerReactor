@@ -28,4 +28,9 @@ public class ValidationUtil {
                 throw new RuntimeException("At least one of the element in array is null.");
         }
     }
+
+    public static void validate(boolean test, String msg) {
+        if (!test)
+            throw new RuntimeException(msg);
+    }
 }
