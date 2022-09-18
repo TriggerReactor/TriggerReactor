@@ -87,7 +87,7 @@ public abstract class TriggerInfo implements IMigratable {
         if(old.isPresent())
             return old;
 
-        return Optional.ofNullable(key.getKey())
+        return Optional.of(key.getKey(index))
                 .flatMap(newKey -> config.get(newKey, clazz));
     }
 
