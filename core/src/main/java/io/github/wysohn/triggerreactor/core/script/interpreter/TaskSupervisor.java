@@ -24,4 +24,15 @@ public interface TaskSupervisor {
     void submitAsync(Runnable run);
 
     boolean isServerThread();
+
+    /**
+     * Simply create a new thread yet <b>not</b> start it.
+     * This is extra interface to test the {@link io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager}
+     * without actually starting the thread as needed.
+     * @param runnable the task to be done on separate thread
+     * @param name the name of the thread
+     * @param priority the priority of the thread {@link Thread}.X_PRIORITY
+     * @return the thread instance. Must be started manually.
+     */
+    Thread newThread(Runnable runnable, String name, int priority);
 }
