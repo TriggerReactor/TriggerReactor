@@ -17,13 +17,15 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.trigger.*;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
 import java.io.File;
@@ -38,38 +40,15 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    public RepeatingTriggerManager(TriggerReactorCore plugin) {
-        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"), new ITriggerLoader<RepeatingTrigger>() {
-            @Override
-            public RepeatingTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
-                boolean autoStart = info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, Boolean.class)
-                        .orElse(false);
-                int interval = info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Integer.class).orElse(1000);
+    private final TaskSupervisor task;
 
-                try {
-                    String script = FileUtil.readFromFile(info.getSourceCodeFile());
-                    RepeatingTrigger trigger = new RepeatingTrigger(info, script);
-                    trigger.setAutoStart(autoStart);
-                    trigger.setInterval(interval);
-                    return trigger;
-                } catch (TriggerInitFailedException | IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
+    public RepeatingTriggerManager(TriggerReactorCore plugin, ITriggerLoader<RepeatingTrigger> loader, TaskSupervisor task) {
+        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"), loader);
+        this.task = task;
+    }
 
-            @Override
-            public void save(RepeatingTrigger trigger) {
-                try {
-                    FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
-
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, trigger.isAutoStart());
-                    trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, trigger.getInterval());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public RepeatingTriggerManager(TriggerReactorCore plugin, TaskSupervisor task){
+        this(plugin, new RepeatingTriggerLoader(), task);
     }
 
     @Override
@@ -181,9 +160,9 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
 
             trigger.activate(new Object(), vars, true);
 
-            Thread thread = new Thread(trigger);
-            thread.setName("TRG Repeating Trigger -- " + triggerName);
-            thread.setPriority(Thread.MIN_PRIORITY + 1);
+            Thread thread = task.newThread(trigger,
+                                           "RepeatingTrigger-" + triggerName,
+                                           Thread.MIN_PRIORITY + 1);
             thread.start();
 
             runningThreads.put(triggerName, thread);

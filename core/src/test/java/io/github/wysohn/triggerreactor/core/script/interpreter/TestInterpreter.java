@@ -2486,6 +2486,11 @@ public class TestInterpreter {
                 return true;
             }
 
+            @Override
+            public Thread newThread(Runnable runnable, String name, int priority) {
+                return null;
+            }
+
         });
 
         interpreter.startWithContext(null);
@@ -2571,6 +2576,11 @@ public class TestInterpreter {
             @Override
             public boolean isServerThread() {
                 return true;
+            }
+
+            @Override
+            public Thread newThread(Runnable runnable, String name, int priority) {
+                return null;
             }
 
         });
