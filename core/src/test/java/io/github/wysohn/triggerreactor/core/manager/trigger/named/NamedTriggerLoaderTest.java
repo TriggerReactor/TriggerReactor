@@ -15,6 +15,7 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class NamedTriggerLoaderTest {
@@ -70,8 +71,17 @@ public class NamedTriggerLoaderTest {
         TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), ConfigSourceFactory.instance());
 
         assertEquals(2, loaded.length);
-        assertEquals("sub:test2", loaded[0].getTriggerName());
-        assertEquals("sub:subsub:test3", loaded[1].getTriggerName());
+        assertTrue(isIn(loaded, "sub:test2"));
+        assertTrue(isIn(loaded, "sub:subsub:test3"));
+    }
+
+    private boolean isIn(TriggerInfo[] infos, String name){
+        for(TriggerInfo info : infos){
+            if(info.getTriggerName().equals(name))
+                return true;
+        }
+
+        return false;
     }
 
     @Test
