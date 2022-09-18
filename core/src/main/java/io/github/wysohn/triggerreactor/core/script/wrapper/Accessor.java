@@ -52,6 +52,13 @@ public class Accessor {
                 throw new IllegalArgumentException(target.getClass() + " is not a valid type for array operation.");
             }
         } else if (targetParent instanceof Class) {
+            Class<?>[] nestedClasses = ((Class<?>) targetParent).getClasses();
+            if (nestedClasses.length > 0) {
+                for (Class<?> nestedClass : nestedClasses) {
+                    if (nestedClass.toString().endsWith((String) target)) return nestedClass;
+                }
+            }
+
             return ReflectionUtil.getField((Class<?>) targetParent, (Object) null, (String) target);
         } else {
             return ReflectionUtil.getField(targetParent, (String) target);
