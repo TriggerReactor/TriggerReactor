@@ -53,6 +53,7 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.Listener;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -292,6 +293,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         bukkit.registerEvents(new InventoryTriggerListener(invManager));
 
         bukkit.registerEvents(new AreaTriggerListener(areaManager));
+
+        // TODO: Once managers are refactored, this should be removed.
+        Manager.getManagers().stream()
+                .filter(Listener.class::isInstance)
+                .forEach(listener -> bukkit.registerEvents((Listener) listener));
 
         // etc
         tpsHelper = new Lag();
