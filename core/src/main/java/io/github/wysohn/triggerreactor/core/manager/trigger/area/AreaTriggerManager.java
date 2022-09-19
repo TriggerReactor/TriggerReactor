@@ -59,7 +59,7 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
                               TaskSupervisor task,
                               IGameStateSupervisor gameState,
                               ITriggerLoader<AreaTrigger> loader) {
-        super(plugin, concatPath(plugin.getDataFolder(), "AreaTrigger"), loader);
+        super(plugin, concatPath(plugin.getDataFolder(), FOLDER_NAME), loader);
 
         this.task = task;
         this.gameState = gameState;
@@ -451,6 +451,8 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
                 .map(Map.Entry::getValue)
                 .forEach((trigger) -> trigger.removeEntity(entity));
     }
+
+    public static final String FOLDER_NAME = "AreaTrigger";
 
     public enum EventType {
         ENTER,

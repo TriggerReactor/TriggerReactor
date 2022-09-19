@@ -5,6 +5,7 @@ import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import org.junit.Before;
@@ -15,11 +16,13 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class AreaTriggerLoaderTest {
@@ -46,47 +49,60 @@ public class AreaTriggerLoaderTest {
 
     @Test
     public void listTriggers() throws IOException {
-        File areaTriggerFolder1 = folder.newFolder("trigger1");
-        File areaTriggerFolder2 = folder.newFolder("trigger2");
-
         ConfigSourceFactory factory = mock(ConfigSourceFactory.class);
-        IConfigSource source1 = mock(IConfigSource.class);
-        IConfigSource source2 = mock(IConfigSource.class);
+        File triggerFolder = folder.newFolder("trigger");
+        IConfigSource source = mock(IConfigSource.class);
 
-        when(factory.create(folder.getRoot(), "trigger1")).thenReturn(source1);
-        when(factory.create(folder.getRoot(), "trigger2")).thenReturn(source2);
+        File enterFile = new File(triggerFolder, AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg");
+        enterFile.createNewFile();
+        File exitFile = new File(triggerFolder, AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg");
+        exitFile.createNewFile();
+
+        when(factory.create(folder.getRoot(), "trigger")).thenReturn(source);
 
         TriggerInfo[] triggerInfos = loader.listTriggers(folder.getRoot(), factory);
 
-        verify(factory).create(folder.getRoot(), "trigger1");
-        verify(factory).create(folder.getRoot(), "trigger2");
-        assertEquals(2, triggerInfos.length);
-        // check if triggers in the array
-        assertTrue(Arrays.stream(triggerInfos).anyMatch(info -> info.getTriggerName().equals("trigger1")));
-        assertTrue(Arrays.stream(triggerInfos).anyMatch(info -> info.getTriggerName().equals("trigger2")));
+        assertEquals(1, triggerInfos.length);
+        assertEquals("trigger", triggerInfos[0].getTriggerName());
+        verify(factory).create(folder.getRoot(), "trigger");
+    }
+
+    private void writeContent(File file, String s) throws IOException {
+        Files.write(file.toPath(), s.getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
     public void load() throws InvalidTrgConfigurationException, IOException {
-        File areaTriggerFolder1 = folder.newFolder("trigger1");
+        File areaTrigger = folder.newFolder("trigger1");
+        File configFile = folder.newFile("trigger1.json");
+        configFile.createNewFile();
 
         IConfigSource source = mock(IConfigSource.class);
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
                 .thenReturn(Optional.of("world@0,0,0"));
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), String.class))
                 .thenReturn(Optional.of("world@10,10,10"));
+        File enterFile = new File(areaTrigger, AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg");
+        enterFile.createNewFile();
+        writeContent(enterFile, "#MESSAGE \"enter\"");
+        File exitFile = new File(areaTrigger, AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg");
+        exitFile.createNewFile();
+        writeContent(exitFile, "#MESSAGE \"exit\"");
 
-        TriggerInfo info = new AreaTriggerInfo(areaTriggerFolder1, source, "trigger1");
+        TriggerInfo info = new AreaTriggerInfo(areaTrigger, source, "trigger1");
         AreaTrigger trigger = loader.load(info);
 
         assertNotNull(trigger);
         assertEquals(new SimpleLocation("world", 0, 0, 0), trigger.getArea().getSmallest());
         assertEquals(new SimpleLocation("world", 10, 10, 10), trigger.getArea().getLargest());
 
+        assertEquals("#MESSAGE \"enter\"", trigger.getEnterTrigger().getScript());
+        assertEquals("#MESSAGE \"exit\"", trigger.getExitTrigger().getScript());
     }
 
     @Test
-    public void save() throws InvalidTrgConfigurationException, IOException {
+    public void save() throws InvalidTrgConfigurationException, IOException,
+            AbstractTriggerManager.TriggerInitFailedException {
         File areaTriggerFolder1 = folder.newFolder("trigger1");
 
         IConfigSource source = mock(IConfigSource.class);
@@ -97,10 +113,21 @@ public class AreaTriggerLoaderTest {
 
         TriggerInfo info = new AreaTriggerInfo(areaTriggerFolder1, source, "trigger1");
         AreaTrigger trigger = loader.load(info);
+        trigger.setEnterTrigger("enter");
+        trigger.setExitTrigger("exit");
 
         loader.save(trigger);
 
         verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), "world@0,0,0");
         verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), "world@10,10,10");
+
+        assertEquals("enter", fileContent(new File(areaTriggerFolder1,
+                                                   AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg")));
+        assertEquals("exit", fileContent(new File(areaTriggerFolder1,
+                                                  AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
+    }
+
+    private String fileContent(File file) throws IOException {
+        return new String(Files.readAllBytes(file.toPath()));
     }
 }
