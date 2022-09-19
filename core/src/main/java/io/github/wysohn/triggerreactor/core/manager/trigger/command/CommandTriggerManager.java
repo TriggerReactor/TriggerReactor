@@ -76,7 +76,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     @Override
     public void reload(String triggerName) {
-        commandHandler.unregisterAll();
+        commandHandler.unregister(triggerName);
         super.reload(triggerName);
         reregisterCommand(triggerName);
     }
