@@ -1,12 +1,15 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
+import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandExecutor;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.ITabCompleter;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.PredefinedTabCompleters;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -95,7 +98,15 @@ public class BukkitCommand implements ICommand {
     @Override
     public void setExecutor(ICommandExecutor executor) {
         command.setExecutor((sender, command1, label, args) -> {
-            executor.execute(new BukkitCommandSender(sender), label, args);
+            ICommandSender isender;
+
+            if(sender instanceof Player){
+                isender = new BukkitPlayer((Player) sender);
+            }else{
+                isender = new BukkitCommandSender(sender);
+            }
+
+            executor.execute(isender, label, args);
             return true;
         });
     }
