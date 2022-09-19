@@ -53,10 +53,13 @@ public class AreaTriggerLoaderTest {
         IConfigSource source1 = mock(IConfigSource.class);
         IConfigSource source2 = mock(IConfigSource.class);
 
-        when(factory.create(areaTriggerFolder1, "trigger1")).thenReturn(source1);
-        when(factory.create(areaTriggerFolder2, "trigger2")).thenReturn(source2);
+        when(factory.create(folder.getRoot(), "trigger1")).thenReturn(source1);
+        when(factory.create(folder.getRoot(), "trigger2")).thenReturn(source2);
 
         TriggerInfo[] triggerInfos = loader.listTriggers(folder.getRoot(), factory);
+
+        verify(factory).create(folder.getRoot(), "trigger1");
+        verify(factory).create(folder.getRoot(), "trigger2");
         assertEquals(2, triggerInfos.length);
         // check if triggers in the array
         assertTrue(Arrays.stream(triggerInfos).anyMatch(info -> info.getTriggerName().equals("trigger1")));
