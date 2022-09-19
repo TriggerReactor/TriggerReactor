@@ -76,7 +76,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
     @Override
     public void reload(String triggerName) {
-        commandHandler.unregisterAll();
+        commandHandler.unregister(triggerName);
         super.reload(triggerName);
         reregisterCommand(triggerName);
     }
@@ -127,18 +127,14 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
         File file = getTriggerFile(folder, cmd, true);
         CommandTrigger trigger;
-        ICommand command;
         try {
             String name = TriggerInfo.extractName(file);
             IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
             trigger = new CommandTrigger(info, script);
 
-            command = commandHandler.register(cmd, trigger.aliases);
-            if (command == null)
+            if(!registerToAPI(trigger))
                 return false;
-
-            trigger.setCommand(command);
         } catch (TriggerInitFailedException e1) {
             commandHandler.unregister(cmd);
             plugin.handleException(adding, e1);

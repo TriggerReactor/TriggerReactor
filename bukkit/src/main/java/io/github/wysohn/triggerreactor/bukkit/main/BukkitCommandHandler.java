@@ -15,30 +15,32 @@ import java.util.Optional;
 public class BukkitCommandHandler implements ICommandHandler {
     private final AbstractJavaPlugin plugin;
     private final ICommandMapHandler commandMapHandler;
-    private final Map<String, Command> commandMap;
+    // Disclaimer: This is the actual command map directly from the server.
+    // Do not delete commands from this map unless the commands are what we registered.
+    private final Map<String, Command> rawCommandMap;
     private final Map<String, Command> overridens = new HashMap<>();
 
     public BukkitCommandHandler(AbstractJavaPlugin plugin, ICommandMapHandler commandMapHandler) {
         this.plugin = plugin;
         this.commandMapHandler = commandMapHandler;
-        this.commandMap = commandMapHandler.getCommandMap();
+        this.rawCommandMap = commandMapHandler.getCommandMap();
     }
 
     @Override
     public ICommand register(String name, String[] aliases) {
-        if(commandMap.containsKey(name) && overridens.containsKey(name))
+        if(rawCommandMap.containsKey(name) && overridens.containsKey(name))
             return null;
 
         PluginCommand command = createCommand(plugin, name);
 
-        Optional.ofNullable(commandMap.get(name))
+        Optional.ofNullable(rawCommandMap.get(name))
                 .ifPresent(c -> overridens.put(name, c));
-        commandMap.put(name, command);
+        rawCommandMap.put(name, command);
         // register aliases manually here
         for (String alias : aliases) {
-            Optional.ofNullable(commandMap.get(alias))
+            Optional.ofNullable(rawCommandMap.get(alias))
                     .ifPresent(c -> overridens.put(alias, c));
-            commandMap.put(alias, command);
+            rawCommandMap.put(alias, command);
         }
 
         commandMapHandler.synchronizeCommandMap();
@@ -47,29 +49,24 @@ public class BukkitCommandHandler implements ICommandHandler {
 
     @Override
     public boolean unregister(String name) {
-        Command command = commandMap.remove(name);
+        Command command = rawCommandMap.remove(name);
         if (command == null)
             return false;
 
         if (overridens.containsKey(name))
-            commandMap.put(name, overridens.remove(name));
+            rawCommandMap.put(name, overridens.remove(name));
         else
-            commandMap.remove(name);
+            rawCommandMap.remove(name);
 
         // also un-register aliases manually here
         for (String alias : command.getAliases()) {
             if (overridens.containsKey(alias))
-                commandMap.put(alias, overridens.remove(alias));
+                rawCommandMap.put(alias, overridens.remove(alias));
             else
-                commandMap.remove(alias);
+                rawCommandMap.remove(alias);
         }
 
         return true;
-    }
-
-    @Override
-    public void unregisterAll() {
-        commandMap.clear();
     }
 
     @Override
