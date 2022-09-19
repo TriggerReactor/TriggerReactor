@@ -29,18 +29,19 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         return Optional.ofNullable(folder.listFiles())
                 .map(files -> Arrays.stream(files)
                         .filter(File::isDirectory)
-                        .map(file -> {
-                            String name = file.getName();
+                        .map(triggerFolder -> {
+                            String name = triggerFolder.getName();
                             IConfigSource config = fn.create(folder, name);
-                            return toTriggerInfo(file, config);
+                            return toTriggerInfo(triggerFolder, config);
                         })
                         .toArray(TriggerInfo[]::new))
                 .orElse(new TriggerInfo[0]);
     }
 
     @Override
-    public TriggerInfo toTriggerInfo(File sourceCodeFile, IConfigSource configSource) {
-        return new AreaTriggerInfo(sourceCodeFile, configSource, sourceCodeFile.getName());
+    public TriggerInfo toTriggerInfo(File triggerFolder, IConfigSource configSource) {
+        // AreaTrigger itself is a folder and contains Enter.trg and Exit.trg
+        return new AreaTriggerInfo(triggerFolder, configSource, triggerFolder.getName());
     }
 
     @Override
@@ -52,7 +53,8 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
                 .map(SimpleLocation::valueOf)
                 .orElseGet(() -> new SimpleLocation("unknown", 0, 0, 0));
 
-        File scriptFolder = AbstractTriggerManager.concatPath(plugin.getDataFolder(), info.getTriggerName());
+        // this is a bit misleading because it's not really a file, but a folder
+        File scriptFolder = info.getSourceCodeFile();
         if (!scriptFolder.exists()) {
             scriptFolder.mkdirs();
         }
@@ -109,7 +111,7 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
 
         if (trigger.getEnterTrigger() != null) {
             try {
-                FileUtil.writeToFile(AbstractTriggerManager.getTriggerFile(triggerFolder, "Enter", true),
+                FileUtil.writeToFile(AbstractTriggerManager.getTriggerFile(triggerFolder, TRIGGER_NAME_ENTER, true),
                                      trigger.getEnterTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -119,7 +121,7 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
 
         if (trigger.getExitTrigger() != null) {
             try {
-                FileUtil.writeToFile(AbstractTriggerManager.getTriggerFile(triggerFolder, "Exit", true),
+                FileUtil.writeToFile(AbstractTriggerManager.getTriggerFile(triggerFolder, TRIGGER_NAME_EXIT, true),
                                      trigger.getExitTrigger().getScript());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -127,4 +129,8 @@ class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
             }
         }
     }
-}
+
+    public static final String TRIGGER_NAME_EXIT = "Exit";
+
+    public static final String TRIGGER_NAME_ENTER = "Enter";
+    }
