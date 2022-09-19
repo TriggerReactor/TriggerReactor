@@ -20,11 +20,6 @@ public interface ICommandHandler {
     boolean unregister(String name);
 
     /**
-     * Unregister all commands.
-     */
-    void unregisterAll();
-
-    /**
      * Synchronize the command map so that the changes are reflected to the server.
      * This is required for some API.
      */
