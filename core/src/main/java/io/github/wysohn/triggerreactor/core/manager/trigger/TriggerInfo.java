@@ -15,12 +15,13 @@ public abstract class TriggerInfo implements IMigratable {
     private final String triggerName;
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config) {
-        this.sourceCodeFile = sourceCodeFile;
-        this.config = config;
-        this.triggerName = extractName(sourceCodeFile);
+        this(sourceCodeFile, config, extractName(sourceCodeFile));
     }
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config, String triggerName) {
+        ValidationUtil.notNull(config);
+        ValidationUtil.notNull(triggerName);
+
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = triggerName;
@@ -28,7 +29,7 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
-        if(sourceCodeFile == null)
+        if (sourceCodeFile == null)
             return false;
 
         File folder = sourceCodeFile.getParentFile();
@@ -74,7 +75,7 @@ public abstract class TriggerInfo implements IMigratable {
     public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
         Optional<T> old = Optional.ofNullable(key.getOldKey())
                 .flatMap(oldKey -> config.get(oldKey, clazz));
-        if(old.isPresent())
+        if (old.isPresent())
             return old;
 
         return Optional.ofNullable(key.getKey())
@@ -84,7 +85,7 @@ public abstract class TriggerInfo implements IMigratable {
     public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
         Optional<T> old = Optional.ofNullable(key.getOldKey(index))
                 .flatMap(oldKey -> config.get(oldKey, clazz));
-        if(old.isPresent())
+        if (old.isPresent())
             return old;
 
         return Optional.of(key.getKey(index))
@@ -145,7 +146,7 @@ public abstract class TriggerInfo implements IMigratable {
 
         String name = file.getName();
         // not ends with .trg and no extension
-        if(!name.endsWith(".trg") && name.indexOf('.') != -1)
+        if (!name.endsWith(".trg") && name.indexOf('.') != -1)
             return false;
 
         String triggerName = extractName(file);
@@ -179,8 +180,10 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         TriggerInfo that = (TriggerInfo) o;
 

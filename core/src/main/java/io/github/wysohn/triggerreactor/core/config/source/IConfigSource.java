@@ -71,4 +71,65 @@ public interface IConfigSource {
      * Delete the config file.
      */
     void delete();
+
+    class EmptyConfigSource implements IConfigSource {
+        @Override
+        public boolean fileExists() {
+            return false;
+        }
+
+        @Override
+        public <T> Optional<T> get(String key, Class<T> asType) {
+            return Optional.empty();
+        }
+
+        @Override
+        public <T> Optional<T> get(String key) {
+            return Optional.empty();
+        }
+
+        @Override
+        public void put(String key, Object value) {
+
+        }
+
+        @Override
+        public boolean has(String key) {
+            return false;
+        }
+
+        @Override
+        public Set<String> keys() {
+            return null;
+        }
+
+        @Override
+        public boolean isSection(String key) {
+            return false;
+        }
+
+        @Override
+        public void reload() {
+
+        }
+
+        @Override
+        public void saveAll() {
+
+        }
+
+        @Override
+        public void disable() {
+
+        }
+
+        @Override
+        public void delete() {
+
+        }
+    }
+
+    static IConfigSource empty() {
+        return new EmptyConfigSource();
+    }
 }

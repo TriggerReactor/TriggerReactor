@@ -152,7 +152,9 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger(new TriggerInfo(null, null, "temp") {
+        return new CommandTrigger(new TriggerInfo(null,
+                                                  IConfigSource.empty(),
+                                                  "temp") {
             @Override
             public boolean isValid() {
                 return false;
