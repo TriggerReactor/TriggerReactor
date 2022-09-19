@@ -41,7 +41,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Map;
 import java.util.Set;
 
-abstract class LocationBasedTriggerListener<T extends Trigger, M extends LocationBasedTriggerManager<T>>
+public abstract class LocationBasedTriggerListener<T extends Trigger, M extends LocationBasedTriggerManager<T>>
         implements BukkitTriggerManager {
     public static final Material INSPECTION_TOOL = Material.BONE;
     public static final Material CUT_TOOL = Material.SHEARS;
