@@ -100,6 +100,22 @@ public abstract class TriggerInfo implements IMigratable {
         return old.orElse(false) || current.orElse(false);
     }
 
+    public boolean hasDuplicate(TriggerConfigKey key) {
+        return Optional.ofNullable(key.getOldKey())
+                .map(config::has)
+                .orElse(false) && Optional.ofNullable(key.getKey())
+                .map(config::has)
+                .orElse(false);
+    }
+
+    public boolean hasDuplicate(TriggerConfigKey key, int index) {
+        return Optional.ofNullable(key.getOldKey(index))
+                .map(config::has)
+                .orElse(false) && Optional.ofNullable(key.getKey(index))
+                .map(config::has)
+                .orElse(false);
+    }
+
     public boolean isSection(TriggerConfigKey key) {
         Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
                 .map(config::isSection);
