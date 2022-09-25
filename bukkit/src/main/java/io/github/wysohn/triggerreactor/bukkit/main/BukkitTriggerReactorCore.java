@@ -264,6 +264,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         }
 
         try {
+            inventoryHandle = new BukkitInventoryHandle();
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
             eventRegistry = new BukkitEventRegistry();
         } catch (Exception e) {
             initFailed(e);
