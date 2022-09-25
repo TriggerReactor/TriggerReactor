@@ -47,6 +47,7 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
@@ -682,6 +683,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                             }
                         });
                     } else {
+                        if (StringUtils.hasUpperCase(args[1])) {
+                            sender.sendMessage("&cWARNING: It is reported that commands with uppercase makes it not "
+                                                       + "recognized by some higher version of Minecraft.");
+                        }
+
                         if (args.length == 2) {
                             getScriptEditManager().startEdit(sender, "Command Trigger", "", new SaveHandler() {
                                 @Override
