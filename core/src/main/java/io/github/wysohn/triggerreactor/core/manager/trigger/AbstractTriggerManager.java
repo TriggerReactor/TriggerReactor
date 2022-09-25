@@ -73,6 +73,8 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
                                 put(info.getTriggerName(), trigger);
                             }
                         });
+
+                checkDuplicatedKeys(info);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load " + info, e);
             }
