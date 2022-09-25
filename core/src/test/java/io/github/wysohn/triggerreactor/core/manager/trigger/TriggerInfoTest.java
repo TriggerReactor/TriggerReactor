@@ -176,4 +176,36 @@ public class TriggerInfoTest {
         assertEquals("test", TriggerInfo.extractName(folder.newFile("test.txt")));
         assertEquals("", TriggerInfo.extractName(folder.newFile(".trg")));
     }
+
+    @Test
+    public void hasDuplicate() throws IOException {
+        File file = folder.newFile("test.trg");
+        IConfigSource config = mock(IConfigSource.class);
+
+        when(config.has(TriggerConfigKey.KEY_SYNC.getKey())).thenReturn(true);
+        when(config.has(TriggerConfigKey.KEY_SYNC.getOldKey())).thenReturn(true);
+
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+
+        assertTrue(info.hasDuplicate(TriggerConfigKey.KEY_SYNC));
+        verify(config).has(TriggerConfigKey.KEY_SYNC.getKey());
+        verify(config).has(TriggerConfigKey.KEY_SYNC.getOldKey());
+    }
+
+    @Test
+    public void hasDuplicateWithIndex() throws IOException {
+        File file = folder.newFile("test.trg");
+        IConfigSource config = mock(IConfigSource.class);
+
+        when(config.has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS.getKey(3)))
+                .thenReturn(true);
+        when(config.has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS.getOldKey(3)))
+                .thenReturn(true);
+
+        TriggerInfo info = TriggerInfo.defaultInfo(file, config);
+
+        assertTrue(info.hasDuplicate(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS, 3));
+        verify(config).has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS.getKey(3));
+        verify(config).has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS.getOldKey(3));
+    }
 }

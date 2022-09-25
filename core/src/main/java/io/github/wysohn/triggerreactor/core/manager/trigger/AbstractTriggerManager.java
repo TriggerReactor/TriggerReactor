@@ -73,6 +73,8 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
                                 put(info.getTriggerName(), trigger);
                             }
                         });
+
+                checkDuplicatedKeys(info);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load " + info, e);
             }
@@ -87,8 +89,22 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         try {
             T trigger = loader.load(info);
             put(triggerName, trigger);
+
+            checkDuplicatedKeys(info);
         } catch (Exception e) {
             throw new RuntimeException("Failed to load " + info, e);
+        }
+    }
+
+    private void checkDuplicatedKeys(TriggerInfo info) {
+        if(info == null)
+            return;
+
+        for(TriggerConfigKey key : TriggerConfigKey.values()){
+            if(info.hasDuplicate(key)){
+                plugin.getLogger().warning("Duplicated key found in " + info);
+                plugin.getLogger().warning(String.format("Key '%s' is deprecated and is now '%s'", key.getOldKey(), key.getKey()));
+            }
         }
     }
 
