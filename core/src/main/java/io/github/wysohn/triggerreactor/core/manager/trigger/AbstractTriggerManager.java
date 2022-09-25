@@ -102,8 +102,8 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
         for(TriggerConfigKey key : TriggerConfigKey.values()){
             if(info.hasDuplicate(key)){
-                plugin.getLogger().warning("Duplicated key found in " + info + ": " + key);
-                plugin.getLogger().warning(String.format("Key %s is deprecated and is now %s", key.getOldKey(), key.getKey()));
+                plugin.getLogger().warning("Duplicated key found in " + info);
+                plugin.getLogger().warning(String.format("Key '%s' is deprecated and is now '%s'", key.getOldKey(), key.getKey()));
             }
         }
     }
