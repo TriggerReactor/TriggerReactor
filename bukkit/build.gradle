@@ -34,8 +34,6 @@ allprojects {
                     "${project(':bukkit').archivesBaseName}${project.version == "" ? "" : "-" + project.version}.jar",
                     "commons-lang3-3.12.0.jar"
             ]
-            println(Arrays.toString(include))
-            println(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) })
 
             configurations.runtimeClasspath
                     .findAll { include.contains(it.name) }
