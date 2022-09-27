@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
@@ -41,7 +42,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class Interpreter {
     private final Node root;
@@ -221,7 +221,8 @@ public class Interpreter {
             return;
 
         //IF children -- [0] : condition , [1] : true body , [2] : false body(may not exist)
-        if ("ELSEIF".equals(node.getToken().value) || "IF".equals(node.getToken().value)) {
+        if (StringUtils.compareTokenCaseInsensitive("ELSEIF", node.getToken().value)
+            || StringUtils.compareTokenCaseInsensitive("IF", node.getToken().value)) {
             start(node.getChildren().get(0));//[0] condition
             if (context.isStopFlag())
                 return;
@@ -264,7 +265,7 @@ public class Interpreter {
                     throw new InterpreterException("Unexpected token for IF statement! -- " + resultToken);
                 }
             }
-        } else if ("TRY".equals(node.getToken().value)) {
+        } else if (StringUtils.compareTokenCaseInsensitive("TRY", node.getToken().value)) {
             if (node.getChildren().size() == 2 || node.getChildren().size() == 3) {
                 try {
                     start(node.getChildren().get(0));
@@ -301,7 +302,7 @@ public class Interpreter {
             } else {
                 throw new InterpreterException("Unexpected token for TRY statement! -- " + node.getToken());
             }
-        } else if ("WHILE".equals(node.getToken().value)) {
+        } else if (StringUtils.compareTokenCaseInsensitive("WHILE", node.getToken().value)) {
             long start = System.currentTimeMillis();
 
             Token resultToken = null;
@@ -340,7 +341,7 @@ public class Interpreter {
                                 + "considered as 'too long' and can crash the server.");
                 }
             } while (!context.isStopFlag());
-        } else if ("FOR".equals(node.getToken().value)) {
+        } else if (StringUtils.compareTokenCaseInsensitive("FOR", node.getToken().value)) {
             start(node.getChildren().get(0));
 
 
