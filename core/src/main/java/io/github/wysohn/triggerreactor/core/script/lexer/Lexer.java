@@ -429,6 +429,7 @@ public class Lexer {
         String id = builder.toString();
         if (id.equalsIgnoreCase("IMPORT")) {
             skipWhiteSpaces();
+            skipComment();
 
             if (c == '.') {
                 throw new LexerException("IMPORT found a dangling .(dot)", this);
