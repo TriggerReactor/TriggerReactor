@@ -110,43 +110,43 @@ public class Parser {
                 Token importToken = token;
                 nextToken();
                 return parseImport(importToken);
-            } else if ("TRY".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("TRY")) {
                 Token tryToken = token;
                 nextToken();
                 return parseTry(tryToken);
-            }  else if ("CATCH".equals(token.value)) {
+            }  else if (compareTokenCaseInsensitive("CATCH")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("FINALLY".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("FINALLY")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("ENDTRY".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDTRY")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("ENDLAMBDA".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDLAMBDA")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            }  else if ("IF".equals(token.value)) {
+            }  else if (compareTokenCaseInsensitive("IF")) {
                 Token ifToken = token;
                 nextToken();
                 return parseIf(ifToken);
-            } else if ("ELSEIF".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ELSEIF")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("ELSE".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ELSE")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("ENDIF".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDIF")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("WHILE".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("WHILE")) {
                 Node whileNode = new Node(token);
                 nextToken();
 
@@ -165,11 +165,11 @@ public class Parser {
                 whileNode.getChildren().add(body);
 
                 return whileNode;
-            } else if ("ENDWHILE".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDWHILE")) {
                 Node endWhileNode = new Node(token);
                 nextToken();
                 return endWhileNode;
-            } else if ("FOR".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("FOR")) {
                 Node forNode = new Node(token);
                 nextToken();
 
@@ -208,7 +208,7 @@ public class Parser {
                 forNode.getChildren().add(body);
 
                 return forNode;
-            } else if ("ENDFOR".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDFOR")) {
                 Node endForNode = new Node(token);
                 nextToken();
                 return endForNode;
@@ -225,11 +225,11 @@ public class Parser {
                     throw new ParserException("Could not find ENDSYNC. Did you forget to put one?");
 
                 return node;
-            } else if ("ENDSYNC".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDSYNC")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("ASYNC".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ASYNC")) {
                 Node node = new Node(new Token(Type.ASYNC, "<ASYNC>", token));
                 nextToken();
 
@@ -242,7 +242,7 @@ public class Parser {
                     throw new ParserException("Could not find ENDASYNC. Did you forget to put one?");
 
                 return node;
-            } else if ("ENDASYNC".equals(token.value)) {
+            } else if (compareTokenCaseInsensitive("ENDASYNC")) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -327,36 +327,36 @@ public class Parser {
         Node codes = null;
         while (token != null
                 && (codes = parseStatement()) != null
-                && !"ENDIF".equals(codes.getToken().value)
-                && !"ELSE".equals(codes.getToken().value)
-                && !"ELSEIF".equals(codes.getToken().value)) {
+                && !compareTokenCaseInsensitive("ENDIF", codes.getToken())
+                && !compareTokenCaseInsensitive("ELSE", codes.getToken())
+                && !compareTokenCaseInsensitive("ELSEIF", codes.getToken())) {
             trueBody.getChildren().add(codes);
         }
         ifNode.getChildren().add(trueBody);
 
         if (codes == null) {
             throw new ParserException("Could not find ENDIF statement! " + ifNode.getToken());
-        } else if ("ELSEIF".equals(codes.getToken().value)) {//elseif body
+        } else if (compareTokenCaseInsensitive("ELSEIF", codes.getToken())) {//elseif body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
             falseBody.getChildren().add(parseIf(codes.getToken()));
             ifNode.getChildren().add(falseBody);
-        } else if ("ELSE".equals(codes.getToken().value)) { //else body
+        } else if (compareTokenCaseInsensitive("ELSE", codes.getToken())) { //else body
             Node falseBody = new Node(new Token(Type.BODY, "<BODY>"));
             nextToken();
 
             while (token != null
                     && (codes = parseStatement()) != null
-                    && !"ENDIF".equals(codes.getToken().value)) {
+                    && !compareTokenCaseInsensitive("ENDIF", codes.getToken())) {
                 falseBody.getChildren().add(codes);
             }
 
-            if (!"ENDIF".equals(codes.getToken().value))
+            if (!compareTokenCaseInsensitive("ENDIF", codes.getToken()))
                 throw new ParserException("Could not find ENDIF statement! " + ifNode.getToken());
             nextToken(); // consume ENDLINE
 
             ifNode.getChildren().add(falseBody);
         } else {
-            if (!"ENDIF".equals(codes.getToken().value))
+            if (!compareTokenCaseInsensitive("ENDIF", codes.getToken()))
                 throw new ParserException("Could not find ENDIF statement! " + ifNode.getToken());
             nextToken(); //consume ENDLINE
         }
@@ -372,9 +372,9 @@ public class Parser {
         Node codes = null;
         while (token != null
                 && (codes = parseStatement()) != null
-                && !"CATCH".equals(codes.getToken().value)
-                && !"FINALLY".equals(codes.getToken().value)
-                && !"ENDTRY".equals(codes.getToken().value)) {
+                && !compareTokenCaseInsensitive("CATCH", codes.getToken())
+                && !compareTokenCaseInsensitive("FINALLY", codes.getToken())
+                && !compareTokenCaseInsensitive("ENDTRY", codes.getToken())) {
             tryBody.getChildren().add(codes);
         }
         tryNode.getChildren().add(tryBody);
@@ -382,7 +382,7 @@ public class Parser {
         if (codes == null) {
             throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
         }
-        if ("CATCH".equals(codes.getToken().value)) {
+        if (compareTokenCaseInsensitive("CATCH", codes.getToken())) {
             Node catchBody = new Node(new Token(Type.CATCHBODY, "<CATCHBODY>"));
 
             Node varName = parseId();
@@ -395,29 +395,30 @@ public class Parser {
             Node catchCodeBody = new Node(new Token(Type.BODY, "<BODY>"));
             while (token != null
                     && (codes = parseStatement()) != null
-                    && !"FINALLY".equals(codes.getToken().value)
-                    && !"ENDTRY".equals(codes.getToken().value)) {
+                    && !compareTokenCaseInsensitive("FINALLY", codes.getToken())
+                    && !compareTokenCaseInsensitive("ENDTRY", codes.getToken())) {
                 catchCodeBody.getChildren().add(codes);
             }
 
             catchBody.getChildren().add(catchCodeBody);
             tryNode.getChildren().add(catchBody);
         }
-        if ("FINALLY".equals(codes.getToken().value)) {
+        if (compareTokenCaseInsensitive("FINALLY", codes.getToken())) {
             Node finallyBody = new Node(new Token(Type.FINALLYBODY, "<FINALLYBODY>"));
             nextToken();
 
             while (token != null
                     && (codes = parseStatement()) != null
-                    && !"ENDTRY".equals(codes.getToken().value)) {
+                    && !compareTokenCaseInsensitive("ENDTRY", codes.getToken())) {
                 finallyBody.getChildren().add(codes);
             }
 
             tryNode.getChildren().add(finallyBody);
         }
 
-        if (!"CATCH".equals(codes.getToken().value) && !"FINALLY".equals(codes.getToken().value)) {
-            if (!"ENDTRY".equals(codes.getToken().value))
+        if (!compareTokenCaseInsensitive("CATCH", codes.getToken())
+            && !compareTokenCaseInsensitive("FINALLY", codes.getToken())) {
+            if (!compareTokenCaseInsensitive("ENDTRY", codes.getToken()))
                 throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
             nextToken();
         }
@@ -859,7 +860,7 @@ public class Parser {
         if (token == null)
             return null;
 
-        if("LAMBDA".equals(token.value)){
+        if(compareTokenCaseInsensitive("LAMBDA")){
             Node lambda = new Node(new Token(Type.LAMBDA, "<LAMBDA>", token));
             nextToken();
 
@@ -890,7 +891,7 @@ public class Parser {
 
             Node statement = null;
             while ((statement = parseStatement()) != null) {
-                if("ENDLAMBDA".equals(statement.getToken().getValue()))
+                if (compareTokenCaseInsensitive("ENDLAMBDA", statement.getToken()))
                     break;
                 body.getChildren().add(statement);
             }
@@ -1177,8 +1178,7 @@ public class Parser {
             return node;
         }
 
-        String attribute = (String) token.value;
-        if ("AS".equalsIgnoreCase(attribute)) {
+        if (compareTokenCaseInsensitive("AS")) {
             nextToken();
 
             if (token == null || token.type != Type.ID || ((String) token.value).charAt(0) == '#') {
@@ -1192,6 +1192,31 @@ public class Parser {
         }
 
         return node;
+    }
+
+    /**
+     * Compares the given string to current token value, ignoring case considerations.
+     *
+     * @param str The string to compare
+     * @return {@code True} if the argument is not {@code null} and they are match, ignoring case; {@code false}
+     *          otherwise
+     */
+    private boolean compareTokenCaseInsensitive(String str) {
+        return compareTokenCaseInsensitive(str, token);
+    }
+
+    /**
+     * Compares the given string to the given token, ignoring case considerations.
+     *
+     * @param str The string to compare
+     * @param token The token to compare
+     * @return {@code True} if the argument is not {@code null} and they are match, ignoring case; {@code false}
+     *          otherwise
+     */
+    private boolean compareTokenCaseInsensitive(String str, Token token) {
+        if (str == null) return false;
+
+        return str.equalsIgnoreCase(token.value.toString().toLowerCase(Locale.ROOT));
     }
 
     public List<Warning> getWarnings() {
