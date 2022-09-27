@@ -1,5 +1,7 @@
 package io.github.wysohn.triggerreactor.tools;
 
+import java.util.Locale;
+
 public class StringUtils {
     public static String spaces(int n) {
         StringBuilder builder = new StringBuilder();
@@ -35,5 +37,19 @@ public class StringUtils {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Compares the given string to the given value, ignoring case considerations.
+     *
+     * @param str The string to compare
+     * @param value The value to compare
+     * @return {@code True} if the argument is not {@code null} and they are match, ignoring case; {@code false}
+     *          otherwise
+     */
+    public static boolean compareTokenCaseInsensitive(String str, Object value) {
+        if (str == null) return false;
+
+        return str.equalsIgnoreCase(value.toString().toLowerCase(Locale.ROOT));
     }
 }
