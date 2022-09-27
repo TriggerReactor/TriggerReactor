@@ -349,6 +349,18 @@ public class TestLexer {
     }
 
     @Test
+    public void testImportWithInComment() throws Exception {
+        Charset charset = StandardCharsets.UTF_8;
+        String text;
+        Lexer lexer;
+
+        text = "IMPORT /* asdf */some.class.with2num.import2.So2met2hing2";
+        lexer = new Lexer(text, charset);
+        testToken(lexer, Type.IMPORT, "some.class.with2num.import2.So2met2hing2");
+        testEnd(lexer);
+    }
+
+    @Test
     public void testComment() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text;
