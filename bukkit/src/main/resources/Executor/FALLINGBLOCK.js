@@ -1,6 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
- *       Copyright (C) 2022 Ioloolo
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
