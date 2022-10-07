@@ -1,11 +1,8 @@
 package js.executor;
 
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerManager;
-import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
@@ -450,7 +447,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         test.withArgs(guiName).test();
 
-        verify(inventoryTriggerManager).openGUI(player, guiName);
+        verify(inventoryTriggerManager).openGUI(any(IPlayer.class), eq(guiName));
 
         Assert.assertEquals(0, test.getOverload(guiName));
     }
@@ -470,7 +467,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         test.withArgs(player, guiName).test();
 
-        verify(inventoryTriggerManager).openGUI(player, guiName);
+        verify(inventoryTriggerManager).openGUI(any(IPlayer.class), eq(guiName));
 
         Assert.assertEquals(1, test.getOverload(player, guiName));
     }

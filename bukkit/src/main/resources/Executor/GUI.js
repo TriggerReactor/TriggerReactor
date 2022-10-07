@@ -17,6 +17,7 @@
  *******************************************************************************/
 
 var Player = Java.type('org.bukkit.entity.Player');
+var BukkitPlayer = Java.type('io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer');
 
 var validation = {
   overloads: [
@@ -41,7 +42,7 @@ function GUI(args) {
 
   if (!target) throw new Error('Player is null.');
 
-  plugin.getInvManager().openGUI(target, guiName);
+  plugin.getInvManager().openGUI(new BukkitPlayer(target), guiName);
 
   return null;
 }
