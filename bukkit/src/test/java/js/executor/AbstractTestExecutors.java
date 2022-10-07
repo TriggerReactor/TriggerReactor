@@ -781,10 +781,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(0, test.getOverload(exampleObject));
     }
 
-    // TODO
-    @Test
-    public void testModifyHeldItem() throws Exception {}
-
     @Test
     public void testMoney1() throws Exception {
         class FakeVault {
@@ -905,10 +901,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(1, test.getOverload(player, permission));
     }
 
-    // TODO
-     @Test
-     public void testPotion() throws Exception {}
-
     @Test
     public void testPush1() throws Exception {
         Player player = mock(Player.class);
@@ -941,14 +933,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         Assert.assertEquals(1, test.getOverload(entity, x, y, z));
     }
-
-    // TODO
-    @Test
-    public void testRotateBlock() throws Exception {}
-
-    // TODO
-     @Test
-     public void testScoreboard() throws Exception {}
 
     @Test
     public void testServer1() throws Exception {
@@ -1861,9 +1845,57 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Assert.assertEquals(6, test.getOverload(x, y, z, yaw, pitch, player));
     }
 
-    // TODO
     @Test
-    public void testTppos() throws Exception {}
+    public void testTppos1() throws Exception {
+        Player player = mock(Player.class);
+        int x = 100;
+        int y = 50;
+        int z = -100;
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+
+        JsTest test = new ExecutorTest(engine, "TPPOS")
+                .addVariable("player", player);
+
+        test.withArgs(x, y, z).test();
+
+        verify(player).teleport(new Location(world, x, y, z));
+
+        Assert.assertEquals(0, test.getOverload(x, y, z));
+    }
+
+    @Test
+    public void testTppos2() throws Exception {
+        Player player = mock(Player.class);
+        double px = 100;
+        double py = 50;
+        double pz = -100;
+
+        String x = "~100";
+        String y = "20";
+        String z = "~-50";
+
+        Location location = mock(Location.class);
+        World world = mock(World.class);
+
+        when(player.getLocation()).thenReturn(location);
+        when(location.getWorld()).thenReturn(world);
+        when(location.getX()).thenReturn(px);
+        when(location.getY()).thenReturn(py);
+        when(location.getZ()).thenReturn(pz);
+
+        JsTest test = new ExecutorTest(engine, "TPPOS");
+
+        test.withArgs(player, x, y, z).test();
+
+        verify(player).teleport(new Location(world, 200, 20, -150));
+
+        Assert.assertEquals(3, test.getOverload(player, x, y, z));
+    }
 
     @Test
     public void testVelocity1() throws Exception {
