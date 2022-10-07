@@ -99,6 +99,7 @@ public abstract class Trigger implements Cloneable, IObservable {
             List<Warning> warnings = parser.getWarnings();
 
             AbstractTriggerManager.reportWarnings(warnings, this);
+            //TODO: refactor this hard dependency in 3.4.x
             executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
             placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();
             gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();

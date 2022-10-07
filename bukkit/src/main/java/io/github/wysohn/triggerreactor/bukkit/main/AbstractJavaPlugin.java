@@ -34,6 +34,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.migration.NaiveMigrationHelp
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
@@ -88,6 +89,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
     public final BukkitTriggerReactorCore core;
@@ -308,9 +310,9 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         }
     }
 
-    public void registerEvents(Manager manager) {
-        if (manager instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) manager, this);
+    public void registerEvents(Listener listener) {
+        if (listener != null)
+            Bukkit.getPluginManager().registerEvents(listener, this);
     }
 
     public void runTask(Runnable runnable) {
@@ -598,6 +600,19 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
             scriptEngineManager = new ScriptEngineManager();
 
         return scriptEngineManager;
+    }
+
+    public Iterable<IWorld> getWorlds() {
+        return Bukkit.getWorlds().stream()
+                .map(BukkitTriggerReactorCore.WRAPPER::wrap)
+                .collect(Collectors.toList());
+    }
+
+    public IWorld getWorld(String world) {
+        return Optional.ofNullable(world)
+                .map(Bukkit::getWorld)
+                .map(BukkitTriggerReactorCore.WRAPPER::wrap)
+                .orElse(null);
     }
 
     public class MysqlSupport {

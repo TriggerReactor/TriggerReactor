@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [ opened, reopened, synchronize ]
   pull_request_review:
-    types: [ submitted, editted ]
+    types: [ submitted, edited ]
 
 jobs:
   test_windows:
@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: ayltai/setup-graalvm@v1
         with:
           java-version: 16
@@ -125,11 +125,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build -x test
         
-      - name: Cache Build
-        uses: actions/cache@v2
+      - name: Cache Artifacts
+        uses: actions/cache@v3
         with:
-          path: build
-          key: build
+          path: build/libs
+          key: ${{ runner.os }}-build@${{ github.sha }}
 
   upload_artifact:
     needs: [ build ]
@@ -139,18 +139,21 @@ jobs:
         file_name:
           - bukkit-latest
           - bukkit-legacy
-          - sponge
+#          - sponge
 
     steps:
-      - name: Cache Build
-        uses: actions/cache@v2
+      - uses: actions/checkout@v3
+      - name: Restore from cached artifacts
+        uses: actions/cache@v3
         with:
-          path: build
-          key: build
+          path: build/libs
+          key: ${{ runner.os }}-build@${{ github.sha }}
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          path: build/libs/TriggerReactor-${{matrix.file_name}}-*.jar
+          name: ${{ matrix.file_name }}
+          path: build/libs/TriggerReactor-${{ matrix.file_name }}.jar
+          retention-days: 7
 
     #   upload_artifact:
     

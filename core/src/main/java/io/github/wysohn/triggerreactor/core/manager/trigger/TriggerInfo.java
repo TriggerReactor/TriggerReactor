@@ -10,18 +10,18 @@ import java.util.Objects;
 import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
-    public static final String KEY_SYNC = "sync";
     private final File sourceCodeFile;
     private final IConfigSource config;
     private final String triggerName;
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config) {
-        this.sourceCodeFile = sourceCodeFile;
-        this.config = config;
-        this.triggerName = extractName(sourceCodeFile);
+        this(sourceCodeFile, config, extractName(sourceCodeFile));
     }
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config, String triggerName) {
+        ValidationUtil.notNull(config);
+        ValidationUtil.notNull(triggerName);
+
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = triggerName;
@@ -29,7 +29,7 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
-        if(sourceCodeFile == null)
+        if (sourceCodeFile == null)
             return false;
 
         File folder = sourceCodeFile.getParentFile();
@@ -51,12 +51,6 @@ public abstract class TriggerInfo implements IMigratable {
         return sourceCodeFile;
     }
 
-    public IConfigSource getConfig() {
-        ValidationUtil.notNull(config);
-
-        return config;
-    }
-
     public void reloadConfig() {
         Optional.ofNullable(config)
                 .ifPresent(IConfigSource::reload);
@@ -66,18 +60,76 @@ public abstract class TriggerInfo implements IMigratable {
         return triggerName;
     }
 
-    public boolean isSync(){
-        return Optional.ofNullable(config)
-                .flatMap(c -> c.get(KEY_SYNC))
-                .filter(Boolean.class::isInstance)
-                .map(Boolean.class::cast)
+    public void put(TriggerConfigKey key, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(), value);
+    }
+
+    public void put(TriggerConfigKey key, int index, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(index), value);
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(key.getOldKey())
+                .flatMap(oldKey -> config.get(oldKey, clazz));
+        if (old.isPresent())
+            return old;
+
+        return Optional.ofNullable(key.getKey())
+                .flatMap(newKey -> config.get(newKey, clazz));
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(key.getOldKey(index))
+                .flatMap(oldKey -> config.get(oldKey, clazz));
+        if (old.isPresent())
+            return old;
+
+        return Optional.of(key.getKey(index))
+                .flatMap(newKey -> config.get(newKey, clazz));
+    }
+
+    public boolean has(TriggerConfigKey key) {
+        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
+                .map(config::has);
+        Optional<Boolean> current = Optional.ofNullable(key.getKey())
+                .map(config::has);
+        return old.orElse(false) || current.orElse(false);
+    }
+
+    public boolean hasDuplicate(TriggerConfigKey key) {
+        return Optional.ofNullable(key.getOldKey())
+                .map(config::has)
+                .orElse(false) && Optional.ofNullable(key.getKey())
+                .map(config::has)
                 .orElse(false);
     }
 
-    public void setSync(boolean sync){
-        ValidationUtil.notNull(config);
+    public boolean hasDuplicate(TriggerConfigKey key, int index) {
+        return Optional.ofNullable(key.getOldKey(index))
+                .map(config::has)
+                .orElse(false) && Optional.ofNullable(key.getKey(index))
+                .map(config::has)
+                .orElse(false);
+    }
 
-        config.put(KEY_SYNC, sync);
+    public boolean isSection(TriggerConfigKey key) {
+        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
+                .map(config::isSection);
+        Optional<Boolean> current = Optional.ofNullable(key.getKey())
+                .map(config::isSection);
+        return old.orElse(false) || current.orElse(false);
+    }
+
+    public boolean isSync() {
+        return get(TriggerConfigKey.KEY_SYNC, Boolean.class).orElse(false);
+    }
+
+    public void setSync(boolean sync) {
+        put(TriggerConfigKey.KEY_SYNC, sync);
     }
 
     /**
@@ -109,9 +161,12 @@ public abstract class TriggerInfo implements IMigratable {
             return false;
 
         String name = file.getName();
+        // not ends with .trg and no extension
+        if (!name.endsWith(".trg") && name.indexOf('.') != -1)
+            return false;
 
-        //either ends with .trg or no extension
-        return name.endsWith(".trg") || name.indexOf('.') == -1;
+        String triggerName = extractName(file);
+        return triggerName != null && triggerName.length() >= 1;
     }
 
     /**
@@ -124,10 +179,11 @@ public abstract class TriggerInfo implements IMigratable {
         if (file.isDirectory())
             return null;
 
-        if (file.getName().indexOf('.') == -1)
+        int dotIndex = file.getName().indexOf('.');
+        if (dotIndex == -1)
             return file.getName();
 
-        return file.getName().substring(0, file.getName().indexOf('.'));
+        return file.getName().substring(0, dotIndex);
     }
 
     @Override
@@ -140,8 +196,10 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         TriggerInfo that = (TriggerInfo) o;
 
@@ -161,7 +219,7 @@ public abstract class TriggerInfo implements IMigratable {
         return new TriggerInfo(sourceCodeFile, config) {
             @Override
             public boolean isValid() {
-                return isTriggerFile(getSourceCodeFile());
+                return isTriggerFile(sourceCodeFile);
             }
         };
     }

@@ -1,5 +1,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
+import io.github.wysohn.triggerreactor.core.IEventHook;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -7,9 +8,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CustomTrigger extends Trigger implements AbstractCustomTriggerManager.EventHook {
-    final Class<?> event;
-    final String eventName;
+public class CustomTrigger extends Trigger implements IEventHook {
+    private final Class<?> event;
+    private final String eventName;
 
     public CustomTrigger(TriggerInfo info, String script, Class<?> event, String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
@@ -56,6 +57,10 @@ public class CustomTrigger extends Trigger implements AbstractCustomTriggerManag
         if (getInfo() == null) {
             return other.getInfo() == null;
         } else return getInfo().equals(other.getInfo());
+    }
+
+    public Class<?> getEvent() {
+        return event;
     }
 
     public String getEventName() {

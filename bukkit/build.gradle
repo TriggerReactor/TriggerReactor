@@ -30,8 +30,8 @@ allprojects {
 
         from {
             String[] include = [
-                    "${project(':core').archivesBaseName}-${project.version}.jar",
-                    "${project(':bukkit').archivesBaseName}-${project.version}.jar",
+                    "${project(':core').archivesBaseName}${project.version == "" ? "" : "-" + project.version}.jar",
+                    "${project(':bukkit').archivesBaseName}${project.version == "" ? "" : "-" + project.version}.jar",
                     "commons-lang3-3.12.0.jar"
             ]
 
@@ -52,10 +52,16 @@ subprojects {
         testImplementation project(':bukkit').sourceSets.test.output
     }
 
+    jar.dependsOn project(':bukkit').jar
+
+
     task copyTestResources(type: Copy) {
         from project(":bukkit").sourceSets.main.output.resourcesDir
         into "${buildDir}/classes/test"
     }
+    copyTestResources.dependsOn project(":bukkit").copyResources
+    copyTestResources.dependsOn project(":bukkit").processResources
+
     processTestResources.dependsOn copyTestResources
 }
 

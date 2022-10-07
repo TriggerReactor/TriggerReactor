@@ -1,6 +1,6 @@
 package io.github.wysohn.triggerreactor.bukkit.tools.migration;
 
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.tools.migration.AbstractInvTriggerMingrationHelper;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
@@ -21,7 +21,7 @@ public class InvTriggerMigrationHelper extends AbstractInvTriggerMingrationHelpe
     @Override
     protected Optional<Integer> getSize() {
         return Optional.of(oldConfig)
-                .map(config -> config.getInt(AbstractInventoryTriggerManager.SIZE, -1))
+                .map(config -> config.getInt(InventoryTriggerManager.SIZE, -1))
                 .filter(val -> val > 0);
     }
 
@@ -29,7 +29,7 @@ public class InvTriggerMigrationHelper extends AbstractInvTriggerMingrationHelpe
     protected Map<Integer, ItemStack> getItems() {
         Map<Integer, ItemStack> out = new LinkedHashMap<>();
         Optional.of(oldConfig)
-                .map(config -> config.getConfigurationSection(AbstractInventoryTriggerManager.ITEMS))
+                .map(config -> config.getConfigurationSection(InventoryTriggerManager.ITEMS))
                 .ifPresent(section -> {
                     for (String key : section.getKeys(false)) {
                         try {
