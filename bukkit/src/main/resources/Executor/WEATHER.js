@@ -20,14 +20,16 @@ var World = Java.type('org.bukkit.World');
 
 var validation = {
   overloads: [
-    [{ name: 'isStorm', type: 'boolean' }],
     [
-      { name: 'world', type: 'string' },
-      { name: 'isStorm', type: 'boolean' }
+      { type: 'boolean', name: 'isStorm' }
     ],
     [
-      { name: 'world', type: World.class },
-      { name: 'isStorm', type: 'boolean' }
+      { type: 'string', name: 'world' },
+      { type: 'boolean', name: 'isStorm' }
+    ],
+    [
+      { type: World.class, name: 'world' },
+      { type: 'boolean', name: 'isStorm' }
     ]
   ]
 };

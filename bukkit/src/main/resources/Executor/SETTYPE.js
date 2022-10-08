@@ -22,8 +22,8 @@ var Material = Java.type('org.bukkit.Material');
 var validation = {
   overloads: [
     [
-      { name: 'type', type: 'string' },
-      { name: 'item', type: ItemStack.class }
+      { type: 'string', name: 'type' },
+      { type: ItemStack.class, name: 'item' }
     ]
   ]
 };

@@ -20,7 +20,11 @@ var Bukkit = Java.type('org.bukkit.Bukkit');
 var ChatColor = Java.type('org.bukkit.ChatColor');
 
 var validation = {
-  overloads: [[{type: 'string', name: 'message'}]],
+  overloads: [
+    [
+      { type: 'string', name: 'message' }
+    ]
+  ]
 };
 
 function BROADCAST(args) {

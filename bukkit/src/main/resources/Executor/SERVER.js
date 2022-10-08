@@ -20,7 +20,9 @@ var Player = Java.type('org.bukkit.entity.Player');
 
 var validation = {
   overloads: [
-    [{ type: 'string', name: 'server' }],
+    [
+      { type: 'string', name: 'server' }
+    ],
     [
       { type: Player.class, name: 'player' },
       { type: 'string', name: 'server' }

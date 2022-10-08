@@ -22,7 +22,9 @@ var Location = Java.type('org.bukkit.Location');
 
 var validation = {
   overloads: [
-    [{ type: Location.class, name: 'location' }],
+    [
+      { type: Location.class, name: 'location' }
+    ],
     [
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },

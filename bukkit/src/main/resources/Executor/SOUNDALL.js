@@ -21,76 +21,76 @@ var Location = Java.type('org.bukkit.Location');
 var validation = {
   overloads: [
     [
-      { name: 'location', type: Location.class },
-      { name: 'sound', type: 'string' }
+      { type: Location.class, name: 'location' },
+      { type: 'string', name: 'sound' }
     ],
     [
-      { name: 'location', type: Location.class },
-      { name: 'sound', type: 'string' },
-      { name: 'volume', type: 'number' }
+      { type: Location.class, name: 'location' },
+      { type: 'string', name: 'sound' },
+      { type: 'number', name: 'volume' }
     ],
     [
-      { name: 'location', type: Location.class },
-      { name: 'sound', type: 'string' },
-      { name: 'volume', type: 'number' },
-      { name: 'pitch', type: 'number' }
+      { type: Location.class, name: 'location' },
+      { type: 'string', name: 'sound' },
+      { type: 'number', name: 'volume' },
+      { type: 'number', name: 'pitch' }
     ],
     [
-      { name: 'location', type: Location.class },
-      { name: 'sound', type: Sound.class }
+      { type: Location.class, name: 'location' },
+      { type: Sound.class, name: 'sound' },
     ],
     [
-      { name: 'location', type: Location.class },
-      { name: 'sound', type: Sound.class },
-      { name: 'volume', type: 'number' }
+      { type: Location.class, name: 'location' },
+      { type: Sound.class, name: 'sound' },,
+      { type: 'number', name: 'volume' }
     ],
     [
-      { name: 'location', type: Location.class },
-      { name: 'sound', type: Sound.class },
-      { name: 'volume', type: 'number' },
-      { name: 'pitch', type: 'number' }
-    ],
-    [
-      { type: 'int', name: 'x' },
-      { type: 'int', name: 'y' },
-      { type: 'int', name: 'z' },
-      { name: 'sound', type: 'string' }
+      { type: Location.class, name: 'location' },
+      { type: Sound.class, name: 'sound' },,
+      { type: 'number', name: 'volume' },
+      { type: 'number', name: 'pitch' }
     ],
     [
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' },
-      { name: 'sound', type: 'string' },
-      { name: 'volume', type: 'number' }
+      { type: 'string', name: 'sound' }
     ],
     [
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' },
-      { name: 'sound', type: 'string' },
-      { name: 'volume', type: 'number' },
-      { name: 'pitch', type: 'number' }
+      { type: 'string', name: 'sound' },
+      { type: 'number', name: 'volume' }
     ],
     [
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' },
-      { name: 'sound', type: Sound.class }
+      { type: 'string', name: 'sound' },
+      { type: 'number', name: 'volume' },
+      { type: 'number', name: 'pitch' }
     ],
     [
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' },
-      { name: 'sound', type: Sound.class },
-      { name: 'volume', type: 'number' }
+      { type: Sound.class, name: 'sound' }
     ],
     [
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' },
-      { name: 'sound', type: Sound.class },
-      { name: 'volume', type: 'number' },
-      { name: 'pitch', type: 'number' }
+      { type: Sound.class, name: 'sound' },
+      { type: 'number', name: 'volume' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { type: Sound.class, name: 'sound' },
+      { type: 'number', name: 'volume' },
+      { type: 'number', name: 'pitch' }
     ]
   ]
 };

@@ -21,7 +21,9 @@ var BukkitPlayer = Java.type('io.github.wysohn.triggerreactor.bukkit.bridge.enti
 
 var validation = {
   overloads: [
-    [{ type: 'string', name: 'guiName' }],
+    [
+      { type: 'string', name: 'guiName' }
+    ],
     [
       { type: Player.class, name: 'player' },
       { type: 'string', name: 'guiName' }

@@ -16,7 +16,11 @@
  *******************************************************************************/
 
 var validation = {
-  overloads: [[{type: 'int', name: 'radius'}]],
+  overloads: [
+    [
+      { type: 'int', name: 'radius' }
+    ]
+  ]
 };
 
 function CLEARENTITY(args) {

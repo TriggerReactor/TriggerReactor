@@ -22,7 +22,11 @@ var Object = Java.type('java.lang.Object');
 var Objects = Java.type('java.util.Objects');
 
 var validation = {
-  overloads: [[{ type: Object.class, name: 'message' }]]
+  overloads: [
+    [
+      { type: Object.class, name: 'message' }
+    ]
+  ]
 };
 
 function MESSAGE(args) {

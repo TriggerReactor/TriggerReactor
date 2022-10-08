@@ -20,8 +20,12 @@ var GameMode = Java.type('org.bukkit.GameMode');
 
 var validation = {
   overloads: [
-    [{ type: 'string', name: 'mode' }],
-    [{ type: 'int', name: 'mode' }],
+    [
+      { type: 'string', name: 'mode' }
+    ],
+    [
+      { type: 'int', name: 'mode' }
+    ],
     [
       { type: Player.class, name: 'player' },
       { type: 'string', name: 'mode' }

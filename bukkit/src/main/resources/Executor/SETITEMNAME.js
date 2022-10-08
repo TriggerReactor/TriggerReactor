@@ -22,8 +22,8 @@ var ChatColor = Java.type('org.bukkit.ChatColor');
 var validation = {
   overloads: [
     [
-      { name: 'name', type: 'string' },
-      { name: 'item', type: ItemStack.class }
+      { type: 'string', name: 'name' },
+      { type: ItemStack.class, name: 'item' }
     ]
   ]
 };

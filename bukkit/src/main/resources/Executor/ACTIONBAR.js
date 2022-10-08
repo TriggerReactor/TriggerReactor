@@ -23,7 +23,9 @@ var TextComponent = Java.type('net.md_5.bungee.api.chat.TextComponent');
 
 var validation = {
   overloads: [
-    [{ type: 'string', name: 'message' }],
+    [
+      { type: 'string', name: 'message' }
+    ],
     [
       { type: Player.class, name: 'player' },
       { type: 'string', name: 'message' }

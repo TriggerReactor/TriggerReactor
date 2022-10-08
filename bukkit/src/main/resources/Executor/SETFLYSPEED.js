@@ -19,7 +19,9 @@ var Player = Java.type('org.bukkit.entity.Player');
 
 var validation = {
   overloads: [
-    [{ type: 'number', name: 'speed' }],
+    [
+      { type: 'number', name: 'speed' }
+    ],
     [
       { type: Player.class, name: 'player' },
       { type: 'number', name: 'speed' }

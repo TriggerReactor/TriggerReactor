@@ -22,47 +22,51 @@ var Player = Java.type('org.bukkit.entity.Player');
 
 var validation = {
   overloads: [
-    [{ name: 'location', type: Location.class }],
-    [{ name: 'player', type: Player.class }],
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' }
+      { type: Location.class , name: 'location'}
     ],
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
-      { name: 'yaw', type: 'number' },
-      { name: 'pitch', type: 'number' }
+      { type: Player.class, name: 'player'}
     ],
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
-      { name: 'target', type: Player.class }
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' }
     ],
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
+      { type: 'number', name: 'yaw' },
+      { type: 'number', name: 'pitch' }
+    ],
+    [
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
+      { type: Player.class, name: 'target' }
+    ],
+    [
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
       { name: 'target', type: 'string' }
     ],
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
-      { name: 'yaw', type: 'number' },
-      { name: 'pitch', type: 'number' },
-      { name: 'target', type: Player.class }
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
+      { type: 'number', name: 'yaw' },
+      { type: 'number', name: 'pitch' },
+      { type: Player.class, name: 'target' }
     ],
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
-      { name: 'yaw', type: 'number' },
-      { name: 'pitch', type: 'number' },
-      { name: 'target', type: 'string' }
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
+      { type: 'number', name: 'yaw' },
+      { type: 'number', name: 'pitch' },
+      { type: 'string', name: 'target' }
     ]
   ]
 };

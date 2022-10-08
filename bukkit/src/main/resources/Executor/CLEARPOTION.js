@@ -18,7 +18,12 @@
 var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
 
 var validation = {
-  overloads: [[], [{ type: 'string', name: 'effect' }]]
+  overloads: [
+    [],
+    [
+      { type: 'string', name: 'effect' }
+    ]
+  ]
 };
 
 function CLEARPOTION(args) {

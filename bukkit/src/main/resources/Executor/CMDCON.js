@@ -19,7 +19,11 @@
 var Bukkit = Java.type('org.bukkit.Bukkit');
 
 var validation = {
-  overloads: [[{ type: 'string', name: 'command' }]]
+  overloads: [
+    [
+      { type: 'string', name: 'command' }
+    ]
+  ]
 };
 
 function CMDCON(args) {

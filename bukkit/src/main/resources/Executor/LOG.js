@@ -19,7 +19,11 @@
 var Bukkit = Java.type('org.bukkit.Bukkit');
 
 var validation = {
-  overloads: [[{ type: 'string', name: 'message' }]]
+  overloads: [
+    [
+      { type: 'string', name: 'message' }
+    ]
+  ]
 };
 
 function LOG(args) {

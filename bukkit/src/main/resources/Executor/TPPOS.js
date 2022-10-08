@@ -22,26 +22,26 @@ var Location = Java.type('org.bukkit.Location');
 var validation = {
   overloads: [
     [
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
     ],
     [
-      { name: 'x', type: 'string' },
-      { name: 'y', type: 'string' },
-      { name: 'z', type: 'string' },
+      { type: 'string', name: 'x' },
+      { type: 'string', name: 'y' },
+      { type: 'string', name: 'z' },
     ],
     [
-      { name: 'entity', 'type': Entity.class },
-      { name: 'x', type: 'number' },
-      { name: 'y', type: 'number' },
-      { name: 'z', type: 'number' },
+      { 'type': Entity.class, name: 'entity' },
+      { type: 'number', name: 'x' },
+      { type: 'number', name: 'y' },
+      { type: 'number', name: 'z' },
     ],
     [
-      { name: 'entity', 'type': Entity.class },
-      { name: 'x', type: 'string' },
-      { name: 'y', type: 'string' },
-      { name: 'z', type: 'string' },
+      { 'type': Entity.class, name: 'entity' },
+      { type: 'string', name: 'x' },
+      { type: 'string', name: 'y' },
+      { type: 'string', name: 'z' },
     ]
   ]
 };

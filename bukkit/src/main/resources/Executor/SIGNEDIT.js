@@ -24,16 +24,16 @@ var ChatColor = Java.type('org.bukkit.ChatColor');
 var validation = {
   overloads: [
     [
-      { name: 'line', type: 'int', minimum: 0, maximum: 3 },
-      { name: 'text', type: 'string' },
-      { name: 'location', type: Location.class }
+      { type: 'int', minimum: 0, maximum: 3, name: 'line' },
+      { type: 'string', name: 'text' },
+      { type: Location.class, name: 'location' }
     ],
     [
-      { name: 'line', type: 'int', minimum: 0, maximum: 3 },
-      { name: 'text', type: 'string' },
-      { name: 'x', type: 'int' },
-      { name: 'y', type: 'int' },
-      { name: 'z', type: 'int' }
+      { type: 'int', minimum: 0, maximum: 3, name: 'line' },
+      { type: 'string', name: 'text' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
     ]
   ]
 };

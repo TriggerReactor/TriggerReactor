@@ -19,7 +19,12 @@
 var Player = Java.type('org.bukkit.entity.Player');
 
 var validation = {
-  overloads: [[], [{ type: Player.class, name: 'player' }]]
+  overloads: [
+    [],
+    [
+      { type: Player.class, name: 'player' }
+    ]
+  ]
 };
 
 function CLEARCHAT(args) {

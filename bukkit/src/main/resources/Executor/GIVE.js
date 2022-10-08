@@ -21,7 +21,9 @@ var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 
 var validation = {
   overloads: [
-    [{ type: ItemStack.class, name: 'itemStack' }],
+    [
+      { type: ItemStack.class, name: 'itemStack' }
+    ],
     [
       { type: Player.class, name: 'player' },
       { type: ItemStack.class, name: 'itemStack' }

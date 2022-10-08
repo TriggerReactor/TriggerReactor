@@ -22,13 +22,13 @@ var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 var validation = {
   overloads: [
     [
-      { name: 'slot', type: 'int', minimum: 0, maximum: 35 },
-      { name: 'item', type: ItemStack.class }
+      { type: 'int', minimum: 0, maximum: 35, name: 'slot' },
+      { type: ItemStack.class, name: 'item' }
     ],
     [
-      { name: 'player', type: Player.class },
-      { name: 'slot', type: 'int', minimum: 0, maximum: 35 },
-      { name: 'item', type: ItemStack.class }
+      { type: Player.class, name: 'player'},
+      { type: 'int', minimum: 0, maximum: 35, name: 'slot' },
+      { type: ItemStack.class, name: 'item' }
     ]
   ]
 };

@@ -19,7 +19,10 @@
 var Damageable = Java.type('org.bukkit.entity.Damageable');
 
 var validation = {
-  overloads: [[], [{ type: Damageable.class, name: 'entity' }]]
+  overloads: [
+    [],
+    [{ type: Damageable.class, name: 'entity' }]
+  ]
 };
 
 function KILL(args) {

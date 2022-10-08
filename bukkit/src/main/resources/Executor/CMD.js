@@ -22,7 +22,11 @@ var PlayerCommandPreprocessEvent = Java.type(
 );
 
 var validation = {
-  overloads: [[{ type: 'string', name: 'command' }]]
+  overloads: [
+    [
+      { type: 'string', name: 'command' }
+    ]
+  ]
 };
 
 function CMD(args) {
