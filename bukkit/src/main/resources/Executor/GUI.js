@@ -44,7 +44,9 @@ function GUI(args) {
 
   if (!target) throw new Error('Player is null.');
 
-  plugin.getInvManager().openGUI(new BukkitPlayer(target), guiName);
+  var inventory = plugin.getInvManager().openGUI(new BukkitPlayer(target), guiName);
+  if (!inventory)
+    throw new Error('No such Inventory Trigger named ' + guiName);
 
   return null;
 }

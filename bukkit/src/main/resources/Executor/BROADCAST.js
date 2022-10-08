@@ -19,6 +19,8 @@
 var Bukkit = Java.type('org.bukkit.Bukkit');
 var ChatColor = Java.type('org.bukkit.ChatColor');
 
+var BukkitUtil = Java.type('io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil');
+
 var validation = {
   overloads: [
     [
@@ -28,17 +30,24 @@ var validation = {
 };
 
 function BROADCAST(args) {
+  var PlaceholderAPI;
   var message = args[0];
 
   if (Bukkit.getPluginManager().isPluginEnabled('PlaceholderAPI'))
-    var PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
+    PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
 
   message = ChatColor.translateAlternateColorCodes('&', message);
 
-  for each (var target in Bukkit.getOnlinePlayers()) {
+  var players = BukkitUtil.getOnlinePlayers();
+  var iter = players.iterator();
+  while (iter.hasNext()) {
+    var target = iter.next();
+    var msg;
+
     if (PlaceholderAPI)
-      message = PlaceholderAPI.setPlaceholders(target, message);
-    target.sendMessage(message);
+      msg = PlaceholderAPI.setPlaceholders(target, message);
+
+    target.sendMessage(msg)
   }
 
   return null;

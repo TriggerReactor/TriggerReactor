@@ -24,23 +24,23 @@ var validation = {
   overloads: [
     [
       { type: 'string', name: 'potionName' },
-      { type: 'int', name: 'second' }
+      { type: 'int', minimum: 0, name: 'second' }
     ],
     [
       { type: 'string', name: 'potionName' },
-      { type: 'int', name: 'second' },
-      { type: 'int', name: 'amplifier' }
-    ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: 'string', name: 'potionName' },
-      { type: 'int', name: 'second' }
+      { type: 'int', minimum: 0, name: 'second' },
+      { type: 'int', minimum: 0, name: 'amplifier' }
     ],
     [
       { type: Player.class, name: 'player' },
       { type: 'string', name: 'potionName' },
-      { type: 'int', name: 'second' },
-      { type: 'int', name: 'amplifier' }
+      { type: 'int', minimum: 0, name: 'second' }
+    ],
+    [
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'potionName' },
+      { type: 'int', minimum: 0, name: 'second' },
+      { type: 'int', minimum: 0, name: 'amplifier' }
     ]
   ]
 };

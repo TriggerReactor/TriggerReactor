@@ -32,10 +32,10 @@ function SETTYPE(args) {
   var type = args[0];
   var item = args[1];
 
-  if (!item || item.getType().name === 'AIR')
-    throw new Error('Item is null or air.');
+  if (item.getType() === Material.AIR)
+    throw new Error('Item cannot be an AIR.');
 
-  var material = Material.valueOf(type.toUpperCase());
+  var material = Material.getMaterial(type.toUpperCase());
 
   if (!material) throw new Error(args[0] + ' is not valid material.');
 

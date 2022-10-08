@@ -54,9 +54,13 @@ function SETGAMEMODE(args) {
     modeStr = intToModeStr(args[1]);
   }
 
-  var mode = GameMode.valueOf(modeStr);
+  var mode;
 
-  if (!mode) throw new Error(modeStr + ' is not valid Gamemode.');
+  try {
+    mode = GameMode.valueOf(modeStr);
+  } catch (_) {
+    throw new Error('"' + modeStr + '" is not valid GameMode type.');
+  }
 
   target.setGameMode(mode);
 

@@ -29,16 +29,21 @@ var validation = {
 function CLEARPOTION(args) {
   if (!player) throw new Error('Player is null.');
 
-  if (overload === 0)
-    for each (var effect in player.getActivePotionEffects())
-      player.removePotionEffect(effect.getType());
-  else if (overload === 1) {
+  if (overload === 0) {
+    var activePotionEffects = player.getActivePotionEffects();
+    var iter = activePotionEffects.iterator();
+    while (iter.hasNext()) {
+      var effectType = iter.next().getType();
+
+      player.removePotionEffect(effectType);
+    }
+  } else if (overload === 1) {
     var potion = PotionEffectType.getByName(args[0].toUpperCase());
 
     if (!potion) throw new Error(args[0] + ' is not a valid potion.');
 
     player.removePotionEffect(
-      PotionEffectType.getByName(args[0].toUpperCase())
+      PotionEffectType.getByName(potion)
     );
   }
 

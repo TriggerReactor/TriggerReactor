@@ -1,6 +1,7 @@
 package js.executor;
 
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static io.github.wysohn.triggerreactor.core.utils.TestUtil.assertJSError;
 import static org.mockito.Mockito.*;
 
 /**
@@ -49,28 +49,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public static void tearDown(){
         ExecutorTest.coverage.forEach((key, b) -> System.out.println(key));
         ExecutorTest.coverage.clear();
-    }
-
-    @Test
-    public void testBroadcast() throws Exception {
-        Collection<Player> players = new ArrayList<Player>() {{
-            for (int i = 0; i < 5; i++)
-                add(mock(Player.class));
-        }};
-
-        String message = "&aMessage";
-        String colorized = ChatColor.translateAlternateColorCodes('&', message);
-
-        doReturn(players).when(server).getOnlinePlayers();
-
-        JsTest test = new ExecutorTest(engine, "BROADCAST");
-
-        test.withArgs(message).test();
-
-        for (Player player : players)
-            verify(player).sendMessage(colorized);
-
-        Assert.assertEquals(0, test.getOverload(message));
     }
 
     @Test
@@ -182,8 +160,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         test.test();
 
         verify(player).closeInventory();
-
-        Assert.assertEquals(0, test.getOverload());
     }
 
     @Test
@@ -340,7 +316,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         test.withArgs(location).test();
 
-        verify(world).createExplosion(location, 4.0F);
+        verify(world).createExplosion(location, 4.0F, false);
 
         Assert.assertEquals(0, test.getOverload(location));
     }
@@ -350,16 +326,17 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Location location = mock(Location.class);
         World world = mock(World.class);
         float power = 4;
+        boolean fire = true;
 
         when(location.getWorld()).thenReturn(world);
 
         JsTest test = new ExecutorTest(engine, "EXPLOSION");
 
-        test.withArgs(location, power).test();
+        test.withArgs(location, power, fire).test();
 
-        verify(world).createExplosion(location, power);
+        verify(world).createExplosion(location, power, fire);
 
-        Assert.assertEquals(1, test.getOverload(location, power));
+        Assert.assertEquals(2, test.getOverload(location, power, fire));
     }
 
     @Test
@@ -438,8 +415,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
         InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+        IInventory inventory = mock(IInventory.class);
 
         when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
+        when(inventoryTriggerManager.openGUI(any(), any())).thenReturn(inventory);
 
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("player", player)
@@ -459,8 +438,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
         InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
+        IInventory inventory = mock(IInventory.class);
 
         when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
+        when(inventoryTriggerManager.openGUI(any(), any())).thenReturn(inventory);
 
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("plugin", triggerReactorCore);
@@ -1150,6 +1131,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player player = mock(Player.class);
         double health = 10.5D;
 
+        when(player.getMaxHealth()).thenReturn(20D);
+
         JsTest test = new ExecutorTest(engine, "SETHEALTH")
                 .addVariable("player", player);
 
@@ -1164,6 +1147,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     public void testSetHealth2() throws Exception {
         Player player = mock(Player.class);
         double health = 10.5D;
+
+        when(player.getMaxHealth()).thenReturn(20D);
 
         JsTest test = new ExecutorTest(engine, "SETHEALTH");
 

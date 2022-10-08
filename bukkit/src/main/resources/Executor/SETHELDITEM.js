@@ -18,6 +18,7 @@
 
 var Player = Java.type('org.bukkit.entity.Player');
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var Material = Java.type('org.bukkit.Material');
 
 var validation = {
   overloads: [
@@ -43,8 +44,8 @@ function SETHELDITEM(args) {
   }
 
   if (!target) throw new Error('Player is null.');
-  if (!item || item.getType().name === 'AIR')
-    throw new Error('Item is null or air.');
+  if (item.getType() === Material.AIR)
+    throw new Error('Item cannot be an AIR.');
 
   target.getInventory().setItemInHand(item);
 

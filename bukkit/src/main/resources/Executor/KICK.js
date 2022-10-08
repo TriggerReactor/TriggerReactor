@@ -35,7 +35,8 @@ var validation = {
 };
 
 function KICK(args) {
-  var target, reason;
+  var target;
+  var reason;
 
   if (overload === 0) {
     target = player;

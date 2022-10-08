@@ -41,12 +41,12 @@ var validation = {
     ],
     [
       { type: Location.class, name: 'location' },
-      { type: Sound.class, name: 'sound' },,
+      { type: Sound.class, name: 'sound' },
       { type: 'number', name: 'volume' }
     ],
     [
       { type: Location.class, name: 'location' },
-      { type: Sound.class, name: 'sound' },,
+      { type: Sound.class, name: 'sound' },
       { type: 'number', name: 'volume' },
       { type: 'number', name: 'pitch' }
     ],

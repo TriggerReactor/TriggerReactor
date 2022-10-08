@@ -60,10 +60,10 @@ function FALLINGBLOCK(args) {
       args[3]
     );
   } else if (overload === 2) {
-    material = Material.valueOf(args[0]);
+    material = Material.getMaterial(args[0])
     location = args[1];
   } else if (overload === 3) {
-    material = Material.valueOf(args[0]);
+    material = Material.getMaterial(args[0])
     location = new Location(
       player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[1],

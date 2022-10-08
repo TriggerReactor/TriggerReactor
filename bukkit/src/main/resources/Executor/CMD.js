@@ -34,6 +34,9 @@ function CMD(args) {
 
   var command = args[0];
 
+  if (command.length === 0)
+    throw new Error('No value to performing a command.');
+
   var event = new PlayerCommandPreprocessEvent(player, '/' + command);
 
   Bukkit.getPluginManager().callEvent(event);

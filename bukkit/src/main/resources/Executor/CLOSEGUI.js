@@ -16,12 +16,6 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var validation = {
-  overloads: [
-    []
-  ]
-};
-
 function CLOSEGUI(args) {
   if (!player) throw new Error('Player is null.');
 

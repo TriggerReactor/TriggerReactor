@@ -42,6 +42,9 @@ function SETHEALTH(args) {
 
   if (!target) throw new Error('Player is null.');
 
+  if (health > target.getMaxHealth())
+    throw new Error('The health point should be positive.');
+
   target.setHealth(health);
 
   return null;

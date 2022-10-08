@@ -18,7 +18,7 @@
 var validation = {
   overloads: [
     [
-      { type: 'int', name: 'radius' }
+      { type: 'int', minimum: 0, name: 'radius' }
     ]
   ]
 };
@@ -30,8 +30,10 @@ function CLEARENTITY(args) {
 
   var entities = player.getNearbyEntities(radius, radius, radius);
 
-  for each (var entity in entities)
-    entity.remove();
+  var iter = entities.iterator();
+  while (iter.hasNext()) {
+    iter.next().remove();
+  }
 
   return null;
 }

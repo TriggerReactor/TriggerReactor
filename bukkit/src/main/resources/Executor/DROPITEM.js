@@ -45,12 +45,12 @@ var validation = {
     ],
     [
       { type: 'string', name: 'materialName' },
-      { type: 'int', name: 'amount' },
+      { type: 'int', minimum: 0, name: 'amount' },
       { type: Location.class, name: 'location' }
     ],
     [
       { type: 'string', name: 'materialName' },
-      { type: 'int', name: 'amount' },
+      { type: 'int', minimum: 0, name: 'amount' },
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' }
@@ -59,7 +59,7 @@ var validation = {
 };
 
 function DROPITEM(args) {
-  var itemStack, location;
+  var material, itemStack, location;
 
   if (overload === 0) {
     itemStack = args[0];
@@ -73,10 +73,18 @@ function DROPITEM(args) {
       args[3]
     );
   } else if (overload === 2) {
-    itemStack = new ItemStack(Material.valueOf(args[0]));
+    material = Material.getMaterial(args[0])
+    if (!material)
+      throw new Error(args[0] + ' is not a valid Material.');
+
+    itemStack = new ItemStack(material);
     location = args[1];
   } else if (overload === 3) {
-    itemStack = new ItemStack(Material.valueOf(args[0]));
+    material = Material.getMaterial(args[0])
+    if (!material)
+      throw new Error(args[0] + ' is not a valid Material.');
+
+    itemStack = new ItemStack(material);
     location = new Location(
       player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[1],
@@ -84,10 +92,18 @@ function DROPITEM(args) {
       args[3]
     );
   } else if (overload === 4) {
-    itemStack = new ItemStack(Material.valueOf(args[0]), args[1]);
+    material = Material.getMaterial(args[0])
+    if (!material)
+      throw new Error(args[0] + ' is not a valid Material.');
+
+    itemStack = new ItemStack(material, args[1]);
     location = args[2];
   } else if (overload === 5) {
-    itemStack = new ItemStack(Material.valueOf(args[0]), args[1]);
+    material = Material.getMaterial(args[0])
+    if (!material)
+      throw new Error(args[0] + ' is not a valid Material.');
+
+    itemStack = new ItemStack(material, args[1]);
     location = new Location(
       player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
       args[2],

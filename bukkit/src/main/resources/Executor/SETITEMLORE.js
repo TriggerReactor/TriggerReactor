@@ -16,8 +16,11 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var Arrays = Java.type('java.util.Arrays');
+
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 var ChatColor = Java.type('org.bukkit.ChatColor');
+var Material = Java.type('org.bukkit.Material');
 
 var validation = {
   overloads: [
@@ -32,11 +35,11 @@ function SETITEMLORE(args) {
   var lores = ChatColor.translateAlternateColorCodes('&', args[0]).split('\n');
   var item = args[1];
 
-  if (!item || item.getType().name === 'AIR')
-    throw new Error('Item is null or air.');
+  if (item.getType() === Material.AIR)
+    throw new TypeError('Item cannot be an AIR.');
 
   var meta = item.getItemMeta();
-  meta.setLore(lores);
+  meta.setLore(Arrays.asList(lores));
   item.setItemMeta(meta);
 
   return null;

@@ -16,13 +16,14 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var itemStack = Java.type('org.bukkit.inventory.ItemStack');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var Material = Java.type('org.bukkit.Material');
 
 var validation = {
   overloads: [
     [
       { type: 'int', name: 'amount' },
-      { type: itemStack.class, name: 'item' }
+      { type: ItemStack.class, name: 'item' }
     ]
   ]
 };
@@ -34,6 +35,9 @@ function SETCOUNT(args) {
     amount = args[0];
     item = args[1];
   }
+
+  if (item.getType() === Material.AIR)
+    throw new Error('Item cannot be an AIR.')
 
   item.setAmount(amount);
 

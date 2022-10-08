@@ -18,6 +18,7 @@
 
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 var ChatColor = Java.type('org.bukkit.ChatColor');
+var Material = Java.type('org.bukkit.Material');
 
 var validation = {
   overloads: [
@@ -30,10 +31,10 @@ var validation = {
 
 function SETITEMNAME(args) {
   var item = args[1];
-  var name = ChatColor.translateAlternateColorCodes(Char('&'), args[0]);
+  var name = ChatColor.translateAlternateColorCodes('&', args[0]);
 
-  if (!item || item.getType().name === 'AIR')
-    throw new Error('Item is null or air.');
+  if (item.getType() === Material.AIR)
+    throw new Error('Item cannot be an AIR.');
 
   var meta = item.getItemMeta();
   meta.setDisplayName(name);

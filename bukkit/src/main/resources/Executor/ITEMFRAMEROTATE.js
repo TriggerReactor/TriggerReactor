@@ -45,9 +45,15 @@ function ITEMFRAMEROTATE(args) {
       args[2]
     );
 
-  for each (var entity in location.getWorld().getNearbyEntities(location, 1, 1, 1))
-    if (entity instanceof ItemFrame)
-      entity.setRotation(entity.getRotation().rotateClockwise())
+  var entities = location.getWorld().getNearbyEntities(location, 1, 1, 1);
+  var iter = entities.iterator();
+  while (iter.hasNext()) {
+    var entity = iter.next();
+
+    if (entity instanceof ItemFrame) {
+      entity.setRotation(entity.getRotation().rotateClockwise());
+    }
+  }
 
   return null;
 }

@@ -27,7 +27,12 @@ var validation = {
     ],
     [
       { type: Location.class, name: 'location' },
-      { type: 'int', name: 'power' }
+      { type: 'int', minimum: 0, name: 'power' }
+    ],
+    [
+      { type: Location.class, name: 'location' },
+      { type: 'int', minimum: 0, name: 'power' },
+      { type: 'boolean', name: 'fire' }
     ],
     [
       { type: 'int', name: 'x' },
@@ -38,13 +43,20 @@ var validation = {
       { type: 'int', name: 'x' },
       { type: 'int', name: 'y' },
       { type: 'int', name: 'z' },
-      { type: 'int', name: 'power' }
+      { type: 'int', minimum: 0, name: 'power' }
+    ],
+    [
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' },
+      { type: 'int', minimum: 0, name: 'power' },
+      { type: 'boolean', name: 'fire' }
     ]
   ]
 };
 
 function EXPLOSION(args) {
-  var location, power;
+  var location, power, isFire = false;
 
   if (overload === 0) {
     location = args[0];
@@ -53,13 +65,9 @@ function EXPLOSION(args) {
     location = args[0];
     power = args[1];
   } else if (overload === 2) {
-    location = new Location(
-      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
-      args[0],
-      args[1],
-      args[2]
-    );
-    power = 4;
+    location = args[0];
+    power = args[1];
+    isFire = args[2];
   } else if (overload === 3) {
     location = new Location(
       player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
@@ -67,10 +75,27 @@ function EXPLOSION(args) {
       args[1],
       args[2]
     );
+    power = 4;
+  } else if (overload === 4) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
     power = args[3];
+  } else if (overload === 5) {
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[0],
+      args[1],
+      args[2]
+    );
+    power = args[3];
+    isFire = args[4];
   }
 
-  location.getWorld().createExplosion(location, power);
+  location.getWorld().createExplosion(location, power*1.0, isFire);
 
   return null;
 }
