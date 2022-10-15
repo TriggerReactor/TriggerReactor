@@ -37,5 +37,5 @@ function round(args) {
 
   digit = Math.pow(10, digit);
 
-  return Math.round(number*digit) / digit
+  return Math.round(number * digit) / digit;
 }

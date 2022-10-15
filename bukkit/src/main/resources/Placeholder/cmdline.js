@@ -33,7 +33,7 @@ function cmdline(args) {
   var messages = event.getMessage().substring(1).split(' ');
 
   var from = 0;
-  var to = messages.length-1;
+  var to = messages.length - 1;
 
   if (overload === 1) {
     from = args[0];
@@ -47,5 +47,5 @@ function cmdline(args) {
     }
   }
 
-  return messages.slice(from, to).join(' ');
+  return messages.slice(from, to+1).join(' ');
 }

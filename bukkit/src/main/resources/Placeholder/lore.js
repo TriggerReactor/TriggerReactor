@@ -44,5 +44,7 @@ function lore(args) {
     lore += itemLore + '\n';
   }
 
+  lore = lore.substring(0, lore.length-1);
+
   return lore;
 }

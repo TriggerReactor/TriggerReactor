@@ -21,7 +21,7 @@ var InventoryEvent = Java.type('org.bukkit.event.inventory.InventoryEvent');
 var validation = {
   overloads: [
     [
-      { type: 'int', mininum: 0, name: 'index' }
+      { type: 'int', minimum: 0, name: 'index' }
     ]
   ]
 }

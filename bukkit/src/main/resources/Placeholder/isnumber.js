@@ -28,7 +28,7 @@ var validation = {
 };
 
 function isnumber(args) {
-  if (overload === 1)
+  if (overload === 0)
     return true;
 
   var target = args[0];

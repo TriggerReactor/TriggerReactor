@@ -26,8 +26,8 @@ var validation = {
   ]
 }
 
-function id(args) {
+function idname(args) {
   var item = args[0];
 
-  return item.getType().name().toLowerCase();
+  return item.getType().name();
 }

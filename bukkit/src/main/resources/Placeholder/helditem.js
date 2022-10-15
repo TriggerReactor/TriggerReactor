@@ -26,7 +26,7 @@ function helditem(args) {
   var item = player.getInventory().getItemInHand();
 
   if (!item)
-    item = ItemStack(Material.AIR);
+    item = new ItemStack(Material.AIR);
 
   return item;
 }
