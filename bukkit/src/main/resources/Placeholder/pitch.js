@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,10 +15,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function pitch(args) {
-    if(player == null)
-        return null;
 
-    var loc = player.getLocation();
-    return loc.getPitch();
+function pitch(args) {
+  if (!player)
+    throw new Error('Player is null.');
+
+  return player.getLocation().getPitch();
 }

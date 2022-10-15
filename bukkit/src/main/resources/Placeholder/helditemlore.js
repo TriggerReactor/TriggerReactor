@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,30 +15,33 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var validation = {
+  overloads: [
+    [
+      { type: 'int', minimum: 0, name: 'index' }
+    ]
+  ]
+};
+
 function helditemlore(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(player.getItemInHand() == null)
-        return "";
+  if (!player.getItemInHand())
+    return '';
 
-    if(args.length < 1)
-        throw new Error("Invalid parameter! Need [Number]");
+  var itemMeta = player.getItemInHand().getItemMeta();
+  if (!itemMeta)
+    return '';
 
-    if(typeof args[0] !== "number")
-        throw new Error("Invalid parameter! helditemlore accepts 'number' as paramter.");
+  var lores = itemMeta.getLore();
+  if (!lores)
+    return '';
 
-    var itemMeta = player.getItemInHand().getItemMeta();
-    if(itemMeta == null)
-        return "";
+  var index = args[0];
+  if (index >= lores.size())
+    return '';
 
-    var lores = itemMeta.getLore();
-    if(lores == null)
-        return "";
-
-    var index = args[0] | 0;
-    if(index < 0 || lores.size() <= index)
-        return "";
-
-    return lores[index];
+  return lores[index];
 }

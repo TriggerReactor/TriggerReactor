@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,19 +15,20 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
 function helditemdisplayname(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(player.getItemInHand() == null)
-        return "";
+  if (!player.getItemInHand())
+    return '';
 
-    var itemMeta = player.getItemInHand().getItemMeta();
-    if(itemMeta == null)
-        return "";
+  var itemMeta = player.getItemInHand().getItemMeta();
 
-    if(itemMeta.getDisplayName() == null)
-        return "";
+  if (!itemMetal)
+    return '';
+  if (!itemMeta.getDisplayName())
+    return '';
 
-    return itemMeta.getDisplayName();
+  return itemMeta.getDisplayName();
 }

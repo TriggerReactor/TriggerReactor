@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,51 +15,37 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-validation = {
-    "overloads": [
-        [], // whole line
-        [{"type": "int", "minimum": 0, "name": "fromIndex"}], //initial index to end
-        [{"type": "int", "minimum": 0, "name": "fromIndex"},
-            {"type": "int", "minimum": 0, "name": "toIndex"}] //initial to final
+
+var validation = {
+  overloads: [
+    [],
+    [
+      { type: 'int', minimum: 0, name: 'fromIndex' }
+    ],
+    [
+      { type: 'int', minimum: 0, name: 'fromIndex' },
+      { type: 'int', minimum: 0, name: 'toIndex' }
     ]
+  ]
 }
 
 function cmdline(args) {
-    var splitMsg; //target message array
-    var message = event.getMessage().substring(1); //first character is slash
+  var messages = event.getMessage().substring(1).split(' ');
 
-    if (overload === 0) {
-        return message;
-    } else if (overload === 1) {
-        splitMsg = message.split(" ");
-        return merge(splitMsg, args[0], splitMsg.length - 1);
-    } else if (overload === 2) {
-        splitMsg = message.split(" ");
-        if (args[0] > args[1])
-            return merge(splitMsg, args[1], args[0]); //if toIndex is smaller than fromIndex, reversed result can be returned.
+  var from = 0;
+  var to = messages.length-1;
 
-        //throw new Error("fromIndex cannot be larger than toIndex!");
-
-
-        return merge(splitMsg, args[0], args[1]);
+  if (overload === 1) {
+    from = args[0];
+  } else if (overload === 2) {
+    if (args[0] > args[1]) {
+      from = args[1];
+      to = args[0];
+    } else {
+      from = args[0];
+      to = args[1];
     }
-}
+  }
 
-function merge(targetArr, indexFrom, indexTo) {
-    indexFrom = Math.max(0, indexFrom)
-    indexTo = Math.min(targetArr.length - 1, indexTo)
-
-    if (indexTo - indexFrom < 1) {
-        if (indexFrom < targetArr.length)
-            return targetArr[indexFrom];
-        else
-            return null;
-    }
-
-    var temp = targetArr[indexFrom];
-    for (var i = indexFrom + 1; i <= indexTo; i++) {
-        temp += " " + targetArr[i];
-    }
-
-    return temp;
+  return messages.slice(from, to).join(' ');
 }

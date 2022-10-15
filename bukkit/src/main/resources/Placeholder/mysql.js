@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,16 +15,21 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'key' }
+    ]
+  ]
+}
+
 function mysql(args) {
-    if(args.length < 1)
-        throw new Error("Invalid parameters. Need [String]");
+  var key = args[0];
 
-    if(typeof args[0] !== "string")
-        throw new Error("First argument should be String.");
+  var mysqlHelper = plugin.getMysqlHelper();
+  if (!mysqlHelper)
+    throw new Error('Mysql connection is not available. Check your config.yml');
 
-    var mysqlHelper = plugin.getMysqlHelper();
-    if(mysqlHelper == null)
-        throw new Error("Mysql connection is not available. Check your config.yml");
-
-    return mysqlHelper.get(args[0]);
+  return mysqlHelper.get(key);
 }

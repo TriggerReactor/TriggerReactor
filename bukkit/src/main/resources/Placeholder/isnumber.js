@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,19 +15,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var validation = {
+  overloads: [
+    [
+      { type: 'number', name: 'target' }
+    ],
+    [
+      { type: 'string', name: 'target' }
+    ]
+  ]
+};
+
 function isnumber(args) {
-    if(args.length !== 1)
-        throw new Error("Invalid parameter(s) found. $isnumber accepts up to one argument.");
+  if (overload === 1)
+    return true;
 
-    if(typeof args[0] !== "string") {
-        if(typeof args[0] === "number")
-            return true;
+  var target = args[0];
+  var regExp = /^[-]{0,1}[0-9]+[.]{0,1}(?:[0-9]+){0,1}$/
 
-        throw new Error("Invalid parameter type. $isnumber only accepts String value.");
-    }
-
-    var arg = args[0];
-
-    var r = /^[-]{0,1}[0-9]+[.]{0,1}(?:[0-9]+){0,1}$/
-    return r.test(arg)
+  return regExp.test(target)
 }

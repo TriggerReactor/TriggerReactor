@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,24 +15,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-validation = {
-    "overloads": [
-        [{"name": "index", "type": "int"}]
+
+var InventoryEvent = Java.type('org.bukkit.event.inventory.InventoryEvent');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'int', mininum: 0, name: 'index' }
     ]
+  ]
 }
+
 function slot(args) {
-    var invOpenEvent = Java.type('org.bukkit.event.inventory.InventoryOpenEvent');
-    var invClickEvent = Java.type('org.bukkit.event.inventory.InventoryClickEvent');
-    var invCloseEvent = Java.type('org.bukkit.event.inventory.InventoryCloseEvent');
-    if(event instanceof invOpenEvent || event instanceof invClickEvent || event instanceof invCloseEvent) {
+  if (!event instanceof InventoryEvent)
+    throw new Error('$slot Placeholder is available only in InventoryTrigger!')
 
-        if(args[0] < 0 || args[0] >= event.getInventory().getSize())
-            throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
-        else
-            var item = event.getInventory().getItem(args[0]);
-            return item;
+  var inventory = event.getInventory();
+  var slot = args[0];
 
-    } else {
-        throw new Error('$slot Placeholder is available only in InventoryTrigger!');
-    }
+  if (args[0] >= inventory.getSize())
+    throw new Error('Unexpected token: slot number should be at least 0, up to its size.');
+
+  return inventory.getItem(slot);
 }

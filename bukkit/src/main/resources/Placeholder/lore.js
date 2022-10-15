@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,31 +15,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
-validation = {
-    "overloads": [
-        [{"name": "item", "type": itemStackType.class}]
-    ]
-}
-function lore(args) {
-    var item = args[0];
-    if(item.hasItemMeta()) {
 
-        if(item.getItemMeta().hasLore()) {
-            var lores = item.getItemMeta().getLore();
-            var loreString = "";
-            for(var k = 0; k < lores.length; k++) {
-                lore = lores[k];
-                if(k == (lores.length - 1))
-                    loreString = loreString + lore;
-                else
-                    loreString = loreString + lore + "\n";
-            }
-            return loreString;
-        } else {
-            return null;
-        }
-    } else {
-        return null;
-    }
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+
+var validation = {
+  overloads: [
+    [
+      { type: ItemStack.class, name: 'item' }
+    ]
+  ]
+}
+
+function lore(args) {
+  var item = args[0];
+
+  var itemMeta = item.getItemMeta();
+
+  if (!itemMeta)
+    return '';
+
+  var lores = itemMeta.getLore();
+  var iter = lores.iterator();
+  var lore = ''
+
+  while (iter.hasNext()) {
+    var itemLore = iter.next();
+
+    lore += itemLore + '\n';
+  }
+
+  return lore;
 }

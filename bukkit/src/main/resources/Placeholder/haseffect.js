@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,17 +15,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'effect' }
+    ]
+  ]
+}
+
 function haseffect(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(args.length != 1 || typeof args[0] !== "string")
-        throw new Error("Invalid parameter! [String]");
+  var effect = args[0];
 
-    var PotionEffectType = Java.type('org.bukkit.potion.PotionEffectType');
-    var type = PotionEffectType.getByName(args[0]);
-    if(type == null)
-        throw new Error(args[0]+" is not a valid PotionEffectType!");
+  var type = PotionEffectType.getByName(effect);
 
-    return player.hasPotionEffect(type);
+  if (!type)
+    throw new Error(effect+' is not a valid PotionEffectType!');
+
+  return player.hasPotionEffect(type);
 }

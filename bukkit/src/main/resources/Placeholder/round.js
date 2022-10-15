@@ -1,5 +1,6 @@
 /* ******************************************************************************
  *     Copyright (C) 2018 wysohn (Created by black9685, professer_snape, RedLime)
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,45 +15,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var Integer = java.lang.Integer;
-var Double = java.lang.Double;
-var string = java.lang.String;
+
+var validation = {
+  overloads: [
+    [
+      { type: 'number', name: 'number' }
+    ],
+    [
+      { type: 'number', name: 'number' },
+      { type: 'int', name: 'digit' }
+    ]
+  ]
+}
 
 function round(args) {
-    if(args.length <= 0) {
-        throw new Error("'$round' placeholder requires at least 1 argument!"); 
-    }
-    else if(args[0] instanceof Integer) {
-        // there is no point rounding if input is integer already
-        return args[0];
-    }
-    else if(args.length == 1 && typeof args[0] === "number") {
-        return new Double(Math.round(args[0]));
-    }
-    else if(args.length == 2) {
-        if(typeof args[0] !== "number" || typeof args[1] !== "number") {
-            throw new Error("'$round' placeholder should have real number value only!");
-        }
+  var number = args[0];
+  var digit = 0;
 
-        if(!(args[1] instanceof Integer)) {
-            throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It doesn't make sense to use decimal.");
-        }
+  if (overload === 1)
+    digit = args[1];
 
-        if(args[1] < 0) {
-            throw new Error("Cannot be rounded to the "+args[1]+"(th) digit. It's negative!");
-        } else if(args[1] == 0) {
-            return new Double(Math.round(args[0]));
-        } else {
-            var uc = 1;
-            for (var i = 1; i <= args[1]; i++) {
-                uc = uc*10;
-            }
-            var value = Math.round(args[0] * uc);
-            value = value/uc;
-            return value;
-        }
+  digit = Math.pow(10, digit);
 
-    } else {
-        throw new Error("Invalid use of $round. Either $round:<number> or $round:<number>:<integer>");
-    }
+  return Math.round(number*digit) / digit
 }

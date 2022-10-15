@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,44 +15,45 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'enchant' }
+    ],
+    [
+      { type: 'string', name: 'enchant' },
+      { type: 'int', minimum: 0, name: 'level' }
+    ]
+  ]
+}
+
 function helditemhasenchant(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(player.getItemInHand() == null)
-        return false;
+  if (!player.getItemInHand())
+    return false;
 
-    if(args.length < 1)
-        throw new Error("Invalid parameter! [String]");
+  var enchant = args[0];
+  var level;
 
-    var Enchantment = Java.type('org.bukkit.enchantments.Enchantment');
+  if (overload === 1)
+    level = args[1]
 
-    if(typeof args[0] !== "string")
-        throw new Error("Invalid parameter! helditemhasenchant accepts 'String' as first paramter.");
+  enchant = Enchantment.getByName(enchant.toUpperCase());
 
-    var ench = Enchantment.getByName(args[0].toUpperCase());
-    var level = 0;
+  var itemMeta = player.getItemInHand().getItemMeta();
+  if (!itemMeta)
+    return false;
 
-    if(args.length != 1) {
-        if(typeof args[1] !== "number")
-            throw new Error("Invalid parameter! helditemhasenchant accepts 'Number' as second paramter.");
+  var enchants = itemMeta.getEnchants();
+  var enchantInItem = enchants.get(enchant);
 
-        level = Math.max(0, args[1]);
-    }
-
-    var itemMeta = player.getItemInHand().getItemMeta();
-    if(itemMeta == null)
-        return false;
-
-    var enchantMap = itemMeta.getEnchants();
-
-    if(level == 0) {
-        return enchantMap.containsKey(ench);
-    } else {
-        var enchLevel = enchantMap.get(ench);
-        if(enchLevel == null)
-            return false;
-
-        return enchLevel == level;
-    }
+  if (level)
+    return enchantInItem === level;
+  else
+    return !!enchantInItem
 }
