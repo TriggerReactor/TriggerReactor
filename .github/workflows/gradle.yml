@@ -86,7 +86,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build
-          key: build
+          key: ${{ runner.os }}-build-release
 
   to_release:
     needs: [build]
@@ -103,7 +103,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build
-          key: build
+          key: ${{ runner.os }}-build-release
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         continue-on-error: true
@@ -123,7 +123,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build
-          key: build
+          key: ${{ runner.os }}-build-release
       - name: update javadoc
         continue-on-error: true
         run: |
