@@ -97,7 +97,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
-    private AbstractAreaSelectionManager selectionManager;
+    private AreaSelectionManager selectionManager;
     private AbstractInventoryEditManager invEditManager;
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
@@ -146,7 +146,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractAreaSelectionManager getSelectionManager() {
+    public AreaSelectionManager getSelectionManager() {
         return selectionManager;
     }
 
@@ -300,6 +300,9 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         bukkit.registerEvents(new InventoryTriggerListener(invManager));
 
         bukkit.registerEvents(new AreaTriggerListener(areaManager));
+
+
+        bukkit.registerEvents(new AreaSelectionListener(selectionManager));
 
         // TODO: Once managers are refactored, this should be removed.
         Manager.getManagers().stream()

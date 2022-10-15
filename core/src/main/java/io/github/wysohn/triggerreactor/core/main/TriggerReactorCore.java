@@ -95,7 +95,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract AbstractPermissionManager getPermissionManager();
 
-    public abstract AbstractAreaSelectionManager getSelectionManager();
+    public abstract AreaSelectionManager getSelectionManager();
 
     public abstract LocationBasedTriggerManager<ClickTrigger> getClickManager();
 
