@@ -14,31 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.bridge;
 
-import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.tools.memento.IStateManageable;
+package io.github.wysohn.triggerreactor.tools.memento;
 
-/**
- * For the sake of InventoryTrigger support, all child classes must override hashCode() and equals()
- * method out of the actual Inventory class.
- *
- * @author wysohn
- */
-public interface IInventory extends IMinecraftObject, IStateManageable {
-
-    @Override
-    int hashCode();
-
-    @Override
-    boolean equals(Object obj);
-
-    void open(IPlayer player);
-
-    IItemStack getItem(int slot);
-
-    void setItem(int slot, IItemStack item);
-
-    int getSize();
-
+public interface IMemento {
 }

@@ -105,414 +105,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract InventoryTriggerManager<? extends IInventory> getInvManager();
 
-    public abstract AbstractInventoryEditManager getInvEditManager();
-
-    public abstract AreaTriggerManager getAreaManager();
-
-    public abstract CustomTriggerManager getCustomManager();
-
-    public abstract RepeatingTriggerManager getRepeatManager();
-
-    public abstract NamedTriggerManager getNamedTriggerManager();
-
-    public abstract ICommandHandler getCommandHandler();
-
-    public abstract IEventRegistry getEventRegistry();
-
-    public PluginConfigManager getPluginConfigManager() {
-        return pluginConfigManager;
-    }
-
-    public GlobalVariableManager getVariableManager() {
-        return globalVariableManager;
-    }
-    public void onCoreEnable() {
-        pluginConfigManager = new PluginConfigManager(this);
-        globalVariableManager = new GlobalVariableManager(this);
-    }
-
-    public void onCoreDisable() {
-        Manager.getManagers().forEach(Manager::disable);
-    }
-
-    protected abstract boolean removeLore(IItemStack iS, int index);
-
-    protected abstract boolean setLore(IItemStack iS, int index, String lore);
-
-    protected abstract void addItemLore(IItemStack iS, String lore);
-
-    protected abstract void setItemTitle(IItemStack iS, String title);
-
-    public abstract IPlayer getPlayer(String string);
-
-    public abstract Object createEmptyPlayerEvent(ICommandSender sender);
-
-    public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
-
-    @Override
-    public abstract Iterable<IWorld> getWorlds();
-
-    private void showHelp(ICommandSender sender) {
-        showHelp(sender, 1);
-    }
-
-    private void showHelp(ICommandSender sender, int page) {
-        page = Math.max(1, Math.min(HELP_PAGES.size(), page));
-
-        sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
-        HELP_PAGES.get(page - 1).sendParagraph(sender);
-        sender.sendMessage("");
-        sender.sendMessage("&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
-    }
-
-    public abstract IInventoryHandle<?> getInventoryHandle();
-
-    /**
-     * Send command description.
-     *
-     * @param sender  sender to show description
-     * @param command the command to explain
-     * @param desc    description
-     * @deprecated no longer used
-     */
-    @Deprecated
-    protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
-
-    /**
-     * Send detail under the command. It is usually called after {@link #sendCommandDesc(ICommandSender, String, String)}
-     * to add more information or example about the command.
-     *
-     * @param sender sender to show description
-     * @param detail detail to show
-     * @deprecated no longer used
-     */
-    @Deprecated
-    protected abstract void sendDetails(ICommandSender sender, String detail);
-
-    /**
-     * get Plugin's description.
-     *
-     * @return returns the full name of the plugin and its version.
-     */
-    public abstract String getPluginDescription();
-
-    /**
-     * get Plugin's version as String
-     *
-     * @return version of the plugin as String.
-     */
-    public abstract String getVersion();
-
-    /**
-     * get Author of plugin
-     *
-     * @return author name of the plugin as String.
-     */
-    public abstract String getAuthor();
-
-    /**
-     * @param args
-     * @param indexFrom inclusive
-     * @param indexTo   inclusive
-     * @return
-     */
-    private String mergeArguments(String[] args, int indexFrom, int indexTo) {
-        StringBuilder builder = new StringBuilder(args[indexFrom]);
-        for (int i = indexFrom + 1; i <= indexTo; i++) {
-            builder.append(" " + args[i]);
-        }
-        return builder.toString();
-    }
-
-    public boolean isDebugging() {
-        return debugging;
-    }
-
-    /**
-     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
-     * instead of changing the real block.
-     *
-     * @param sender sender to show the glow stones
-     * @param set    the set contains location of block and its associated trigger.
-     */
-    protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
-
-    /**
-     * Get folder where the plugin files will be saved.
-     *
-     * @return folder to save plugin files.
-     */
-    public abstract File getDataFolder();
-
-    /**
-     * get Logger.
-     *
-     * @return Logger.
-     */
-    public abstract Logger getLogger();
-
-    /**
-     * Check if this plugin is enabled.
-     *
-     * @return true if enabled; false if disabled.
-     */
-    public abstract boolean isEnabled();
-
-    /**
-     * Disable this plugin.
-     */
-    public abstract void disablePlugin();
-
-    /**
-     * Get the main class instance. JavaPlugin for Bukkit API for example.
-     *
-     * @return
-     */
-    public abstract <T> T getMain();
-
-    /**
-     * Check if the 'key' is set in the config.yml. This might be only case for Bukkit API
-     *
-     * @param key the key
-     * @return true if set; false if not set
-     */
-    public abstract boolean isConfigSet(String key);
-
-    /**
-     * Save the 'value' to the associated 'key' in config.yml. This might be only case for Bukkit API.
-     * The new value should override the value if already exists.
-     * This does not actually save values into config.yml unless you invoke {@link #saveConfig()}
-     *
-     * @param key   the key
-     * @param value the value to set.
-     */
-    public abstract void setConfig(String key, Object value);
-
-    /**
-     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
-     *
-     * @param key the key
-     * @return the value; null if not set.
-     */
-    public abstract Object getConfig(String key);
-
-    /**
-     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
-     *
-     * @param key the key
-     * @param def the default value to return if the 'key' is not set
-     * @return the value; null if not set.
-     */
-    public abstract <T> T getConfig(String key, T def);
-
-    /**
-     * Save all configs to config.yml.
-     */
-    public abstract void saveConfig();
-
-    /**
-     * Save all configs from config.yml.
-     */
-    public abstract void reloadConfig();
-
-    /**
-     * Run task on the server thread. Usually it happens via scheduler.
-     *
-     * @param runnable the Runnable to run
-     */
-    public abstract void runTask(Runnable runnable);
-
-    /**
-     * Call saveAll() on separated thread. It should also check if a saving task is already
-     * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
-     *
-     * @param manager
-     */
-    public abstract void saveAsynchronously(Manager manager);
-
-    /**
-     * Handle the exception caused by Executors or Triggers. The 'e' is the context when the 'event' was
-     * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
-     * related to this Exception and show useful information to the game.
-     *
-     * @param e         the context
-     * @param throwable the exception that was thrown
-     */
-    final public void handleException(Object e, Throwable throwable) {
-        if (isDebugging()) {
-            throwable.printStackTrace();
-        }
-
-        ICommandSender sender = extractPlayerFromContext(e);
-        if (sender == null)
-            sender = getConsoleSender();
-
-        sendExceptionMessage(sender, throwable);
-    }
-
-    /**
-     * Handle the exception caused by Executors or Triggers.
-     *
-     * @param sender    the sender who will receive the message
-     * @param throwable the exception that was thrown
-     */
-    final public void handleException(ICommandSender sender, Throwable throwable) {
-        if (isDebugging()) {
-            throwable.printStackTrace();
-        }
-
-        if (sender == null)
-            sender = getConsoleSender();
-
-        sendExceptionMessage(sender, throwable);
-    }
-
-    private void sendExceptionMessage(ICommandSender sender, Throwable e) {
-        runTask(new Runnable() {
-            @Override
-            public void run() {
-                Throwable ex = e;
-                sender.sendMessage("&cCould not execute this trigger.");
-                while (ex != null) {
-                    sender.sendMessage("&c >> Caused by:");
-                    sender.sendMessage("&c" + ex.getMessage());
-                    ex = ex.getCause();
-                }
-                sender.sendMessage("&cIf you are administrator, see console for details.");
-            }
-        });
-    }
-
-    /**
-     * get sender instance of the console
-     *
-     * @return
-     */
-    public abstract ICommandSender getConsoleSender();
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
-     *
-     * @param cooldowns   list of current cooldowns.
-     * @return the interrupter created.
-     */
-    public abstract ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
-     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
-     * the Inventory was closed, it is the iterrupter's responsibility to do that.
-     *
-     * @param cooldowns    list of current cooldowns.
-     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
-     *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
-     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
-     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
-     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
-     * @return
-     */
-    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
-                                                               Map<IInventory, InventoryTrigger> inventoryMap);
-
-    /**
-     * try to extract player from context 'e'.
-     *
-     * @param e Event for Bukkit API
-     * @return
-     */
-    public abstract IPlayer extractPlayerFromContext(Object e);
-
-    /**
-     * Run Callable on the server thread.
-     *
-     * @param call the callable
-     * @return the future object.
-     */
-    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
-
-    @Override
-    public <T> Future<T> submitSync(Callable<T> call) {
-        if (this.isServerThread()) {
-            return new Future<T>() {
-                private boolean done = false;
-
-                @Override
-                public boolean cancel(boolean arg0) {
-                    return false;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-
-                @Override
-                public boolean isDone() {
-                    return done;
-                }
-
-                @Override
-                public T get() throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-                @Override
-                public T get(long arg0, TimeUnit arg1)
-                        throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-            };
-        } else {
-            return callSyncMethod(call);
-        }
-    }
-
-    @Override
-    public void submitAsync(Runnable run) {
-        new Thread(run).start();
-    }
-
-    /**
-     * Call event so that it can be heard by listeners
-     *
-     * @param event
-     */
-    public abstract void callEvent(IEvent event);
-
-    /**
-     * Check if the current Thread is the Server
-     *
-     * @return
-     */
-    public abstract boolean isServerThread();
-
-    /**
-     * extract useful custom variables manually from 'context'
-     *
-     * @param context
-     * @return
-     */
-    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
-
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
             if (!sender.hasPermission(PERMISSION))
@@ -1053,13 +645,12 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
                         String name = args[1];
 
-                        InventoryTrigger trigger = getInvManager().get(name);
-                        if (trigger == null) {
+                        if (!getInvManager().has(name)) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
                         }
 
-                        getInvEditManager().startEdit((IPlayer) sender, trigger);
+                        getInvEditManager().startEdit((IPlayer) sender, name);
                         return true;
                     } else if (args.length > 3 && args[2].equalsIgnoreCase("settitle")) {
                         String name = args[1];
@@ -1712,7 +1303,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                     if (args.length < 2) {
                         return true;
                     }
-                    AbstractInventoryEditManager manager = getInvEditManager();
+                    InventoryEditManager manager = getInvEditManager();
                     IPlayer player = (IPlayer) sender;
                     switch (args[1]) {
                         case "inveditsave":
@@ -1733,6 +1324,422 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
         return true;
     }
+
+    public abstract AreaTriggerManager getAreaManager();
+
+    public abstract CustomTriggerManager getCustomManager();
+
+    public abstract RepeatingTriggerManager getRepeatManager();
+
+    public abstract NamedTriggerManager getNamedTriggerManager();
+
+    public abstract ICommandHandler getCommandHandler();
+
+    public abstract IEventRegistry getEventRegistry();
+
+    public PluginConfigManager getPluginConfigManager() {
+        return pluginConfigManager;
+    }
+
+    public GlobalVariableManager getVariableManager() {
+        return globalVariableManager;
+    }
+
+    public void onCoreEnable() {
+        pluginConfigManager = new PluginConfigManager(this);
+        globalVariableManager = new GlobalVariableManager(this);
+    }
+
+    public void onCoreDisable() {
+        Manager.getManagers().forEach(Manager::disable);
+    }
+
+    protected abstract boolean removeLore(IItemStack iS, int index);
+
+    protected abstract boolean setLore(IItemStack iS, int index, String lore);
+
+    protected abstract void addItemLore(IItemStack iS, String lore);
+
+    protected abstract void setItemTitle(IItemStack iS, String title);
+
+    public abstract IPlayer getPlayer(String string);
+
+    public abstract Object createEmptyPlayerEvent(ICommandSender sender);
+
+    public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
+
+    @Override
+    public abstract Iterable<IWorld> getWorlds();
+
+    private void showHelp(ICommandSender sender) {
+        showHelp(sender, 1);
+    }
+
+    private void showHelp(ICommandSender sender, int page) {
+        page = Math.max(1, Math.min(HELP_PAGES.size(), page));
+
+        sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
+        HELP_PAGES.get(page - 1).sendParagraph(sender);
+        sender.sendMessage("");
+        sender.sendMessage(
+                "&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
+    }
+
+    public abstract IInventoryHandle<?> getInventoryHandle();
+
+    /**
+     * Send command description.
+     *
+     * @param sender  sender to show description
+     * @param command the command to explain
+     * @param desc    description
+     * @deprecated no longer used
+     */
+    @Deprecated
+    protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
+
+    /**
+     * Send detail under the command. It is usually called after
+     * {@link #sendCommandDesc(ICommandSender, String, String)}
+     * to add more information or example about the command.
+     *
+     * @param sender sender to show description
+     * @param detail detail to show
+     * @deprecated no longer used
+     */
+    @Deprecated
+    protected abstract void sendDetails(ICommandSender sender, String detail);
+
+    /**
+     * get Plugin's description.
+     *
+     * @return returns the full name of the plugin and its version.
+     */
+    public abstract String getPluginDescription();
+
+    /**
+     * get Plugin's version as String
+     *
+     * @return version of the plugin as String.
+     */
+    public abstract String getVersion();
+
+    /**
+     * get Author of plugin
+     *
+     * @return author name of the plugin as String.
+     */
+    public abstract String getAuthor();
+
+    /**
+     * @param args
+     * @param indexFrom inclusive
+     * @param indexTo   inclusive
+     * @return
+     */
+    private String mergeArguments(String[] args, int indexFrom, int indexTo) {
+        StringBuilder builder = new StringBuilder(args[indexFrom]);
+        for (int i = indexFrom + 1; i <= indexTo; i++) {
+            builder.append(" " + args[i]);
+        }
+        return builder.toString();
+    }
+
+    public boolean isDebugging() {
+        return debugging;
+    }
+
+    /**
+     * Show glowstones to indicate the walk/click triggers in the chunk. This should send block change packet
+     * instead of changing the real block.
+     *
+     * @param sender sender to show the glow stones
+     * @param set    the set contains location of block and its associated trigger.
+     */
+    protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
+
+    /**
+     * Get folder where the plugin files will be saved.
+     *
+     * @return folder to save plugin files.
+     */
+    public abstract File getDataFolder();
+
+    /**
+     * get Logger.
+     *
+     * @return Logger.
+     */
+    public abstract Logger getLogger();
+
+    /**
+     * Check if this plugin is enabled.
+     *
+     * @return true if enabled; false if disabled.
+     */
+    public abstract boolean isEnabled();
+
+    /**
+     * Disable this plugin.
+     */
+    public abstract void disablePlugin();
+
+    /**
+     * Get the main class instance. JavaPlugin for Bukkit API for example.
+     *
+     * @return
+     */
+    public abstract <T> T getMain();
+
+    /**
+     * Check if the 'key' is set in the config.yml. This might be only case for Bukkit API
+     *
+     * @param key the key
+     * @return true if set; false if not set
+     */
+    public abstract boolean isConfigSet(String key);
+
+    /**
+     * Save the 'value' to the associated 'key' in config.yml. This might be only case for Bukkit API.
+     * The new value should override the value if already exists.
+     * This does not actually save values into config.yml unless you invoke {@link #saveConfig()}
+     *
+     * @param key   the key
+     * @param value the value to set.
+     */
+    public abstract void setConfig(String key, Object value);
+
+    /**
+     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
+     *
+     * @param key the key
+     * @return the value; null if not set.
+     */
+    public abstract Object getConfig(String key);
+
+    /**
+     * Get the saved value associated with 'key' in config.yml. This might be only case for Bukkit API.
+     *
+     * @param key the key
+     * @param def the default value to return if the 'key' is not set
+     * @return the value; null if not set.
+     */
+    public abstract <T> T getConfig(String key, T def);
+
+    /**
+     * Save all configs to config.yml.
+     */
+    public abstract void saveConfig();
+
+    /**
+     * Save all configs from config.yml.
+     */
+    public abstract void reloadConfig();
+
+    /**
+     * Run task on the server thread. Usually it happens via scheduler.
+     *
+     * @param runnable the Runnable to run
+     */
+    public abstract void runTask(Runnable runnable);
+
+    /**
+     * Call saveAll() on separated thread. It should also check if a saving task is already
+     * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
+     *
+     * @param manager
+     */
+    public abstract void saveAsynchronously(Manager manager);
+
+    /**
+     * Handle the exception caused by Executors or Triggers. The 'e' is the context when the 'event' was
+     * happened. For Bukkit API, it is child classes of Event. You may extract the player instance who is
+     * related to this Exception and show useful information to the game.
+     *
+     * @param e         the context
+     * @param throwable the exception that was thrown
+     */
+    final public void handleException(Object e, Throwable throwable) {
+        if (isDebugging()) {
+            throwable.printStackTrace();
+        }
+
+        ICommandSender sender = extractPlayerFromContext(e);
+        if (sender == null)
+            sender = getConsoleSender();
+
+        sendExceptionMessage(sender, throwable);
+    }
+
+    /**
+     * Handle the exception caused by Executors or Triggers.
+     *
+     * @param sender    the sender who will receive the message
+     * @param throwable the exception that was thrown
+     */
+    final public void handleException(ICommandSender sender, Throwable throwable) {
+        if (isDebugging()) {
+            throwable.printStackTrace();
+        }
+
+        if (sender == null)
+            sender = getConsoleSender();
+
+        sendExceptionMessage(sender, throwable);
+    }
+
+    private void sendExceptionMessage(ICommandSender sender, Throwable e) {
+        runTask(new Runnable() {
+            @Override
+            public void run() {
+                Throwable ex = e;
+                sender.sendMessage("&cCould not execute this trigger.");
+                while (ex != null) {
+                    sender.sendMessage("&c >> Caused by:");
+                    sender.sendMessage("&c" + ex.getMessage());
+                    ex = ex.getCause();
+                }
+                sender.sendMessage("&cIf you are administrator, see console for details.");
+            }
+        });
+    }
+
+    /**
+     * get sender instance of the console
+     *
+     * @return
+     */
+    public abstract ICommandSender getConsoleSender();
+
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
+     *
+     * @param cooldowns list of current cooldowns.
+     * @return the interrupter created.
+     */
+    public abstract ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
+
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
+     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
+     * the Inventory was closed, it is the iterrupter's responsibility to do that.
+     *
+     * @param cooldowns    list of current cooldowns.
+     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class
+     *                    that implements
+     *                     IIventory should override hashCode() and equals() methods, you can assume that each
+     *                     IInventory instance represents one trigger
+     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object
+     *                     from the 'e' context and see if the Inventory
+     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager,
+     *                     closing the inventory should delete the IInventory
+     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in
+     *                     the 'inventoryMap.'
+     * @return
+     */
+    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
+                                                               Map<IInventory, InventoryTrigger> inventoryMap);
+
+    /**
+     * try to extract player from context 'e'.
+     *
+     * @param e Event for Bukkit API
+     * @return
+     */
+    public abstract IPlayer extractPlayerFromContext(Object e);
+
+    /**
+     * Run Callable on the server thread.
+     *
+     * @param call the callable
+     * @return the future object.
+     */
+    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
+
+    @Override
+    public <T> Future<T> submitSync(Callable<T> call) {
+        if (this.isServerThread()) {
+            return new Future<T>() {
+                private boolean done = false;
+
+                @Override
+                public boolean cancel(boolean arg0) {
+                    return false;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return false;
+                }
+
+                @Override
+                public boolean isDone() {
+                    return done;
+                }
+
+                @Override
+                public T get() throws ExecutionException {
+                    T out = null;
+                    try {
+                        out = call.call();
+                        done = true;
+                    } catch (Exception e) {
+                        throw new ExecutionException(e);
+                    }
+                    return out;
+                }
+
+                @Override
+                public T get(long arg0, TimeUnit arg1)
+                        throws ExecutionException {
+                    T out = null;
+                    try {
+                        out = call.call();
+                        done = true;
+                    } catch (Exception e) {
+                        throw new ExecutionException(e);
+                    }
+                    return out;
+                }
+
+            };
+        } else {
+            return callSyncMethod(call);
+        }
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        new Thread(run).start();
+    }
+
+    /**
+     * Call event so that it can be heard by listeners
+     *
+     * @param event
+     */
+    public abstract void callEvent(IEvent event);
+
+    /**
+     * Check if the current Thread is the Server
+     *
+     * @return
+     */
+    public abstract boolean isServerThread();
+
+    /**
+     * extract useful custom variables manually from 'context'
+     *
+     * @param context
+     * @return
+     */
+    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
+
+    public abstract InventoryEditManager getInvEditManager();
 
     private interface Paragraph {
         void sendParagraph(ICommandSender sender);

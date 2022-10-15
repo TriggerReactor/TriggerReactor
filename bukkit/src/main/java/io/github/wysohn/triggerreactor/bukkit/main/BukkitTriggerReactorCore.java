@@ -17,7 +17,10 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.AbstractBukkitWrapper;
-import io.github.wysohn.triggerreactor.bukkit.manager.*;
+import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
@@ -31,6 +34,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
@@ -86,8 +90,7 @@ import java.util.logging.Logger;
  *
  * @author wysohn
  */
-public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin {
-    protected static AbstractBukkitWrapper WRAPPER = null;
+public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plugin, IPluginManagement {
     private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
     private ScriptEngineManager sem;
     private Lag tpsHelper;
@@ -97,7 +100,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractPlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AreaSelectionManager selectionManager;
-    private AbstractInventoryEditManager invEditManager;
+    private InventoryEditManager invEditManager;
     private ClickTriggerManager clickManager;
     private WalkTriggerManager walkManager;
     private CommandTriggerManager cmdManager;
@@ -110,8 +113,9 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private IEventRegistry eventRegistry;
     private IInventoryHandle<ItemStack> inventoryHandle;
 
-    public static AbstractBukkitWrapper getWrapper() {
-        return WRAPPER;
+    @Override
+    public void runCommandAsConsole(String command) {
+        getServer().dispatchCommand(getServer().getConsoleSender(), command);
     }
 
     @Override
@@ -150,11 +154,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractInventoryEditManager getInvEditManager() {
-        return invEditManager;
-    }
-
-    @Override
     public LocationBasedTriggerManager<ClickTrigger> getClickManager() {
         return clickManager;
     }
@@ -172,6 +171,11 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public InventoryTriggerManager getInvManager() {
         return invManager;
+    }
+
+    @Override
+    public InventoryEditManager getInvEditManager() {
+        return invEditManager;
     }
 
     @Override
@@ -205,8 +209,290 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
+    protected boolean removeLore(IItemStack iS, int index) {
+        return bukkit.removeLore(iS, index);
+    }
+
+    @Override
+    protected boolean setLore(IItemStack iS, int index, String lore) {
+        return bukkit.setLore(iS, index, lore);
+    }
+
+    @Override
+    protected void addItemLore(IItemStack iS, String lore) {
+        bukkit.addItemLore(iS, lore);
+    }
+
+    @Override
+    protected void setItemTitle(IItemStack iS, String title) {
+        bukkit.setItemTitle(iS, title);
+    }
+
+    @Override
+    public IPlayer getPlayer(String string) {
+        return bukkit.getPlayer(string);
+    }
+
+    @Override
+    public Object createEmptyPlayerEvent(ICommandSender sender) {
+        return bukkit.createEmptyPlayerEvent(sender);
+    }
+
+    @Override
+    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
+        return bukkit.createPlayerCommandEvent(sender, label, args);
+    }
+
+    @Override
+    public Iterable<IWorld> getWorlds() {
+        return bukkit.getWorlds();
+    }
+
+    @Override
     public IInventoryHandle<?> getInventoryHandle() {
         return inventoryHandle;
+    }
+
+    @Override
+    protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
+        sender.sendMessage("&b" + command + " &8- &7" + desc);
+    }
+
+    @Override
+    protected void sendDetails(ICommandSender sender, String detail) {
+        sender.sendMessage("  &7" + detail);
+    }
+
+    @Override
+    public String getPluginDescription() {
+        return bukkit.getDescription().getFullName();
+    }
+
+    @Override
+    public String getVersion() {
+        return bukkit.getDescription().getVersion();
+    }
+
+    @Override
+    public String getAuthor() {
+        return bukkit.getDescription().getAuthors().toString();
+    }
+
+    @Override
+    public void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
+        bukkit.showGlowStones(sender, set);
+    }
+
+    @Override
+    public File getDataFolder() {
+        return bukkit.getDataFolder();
+    }
+
+    @Override
+    public Logger getLogger() {
+        return bukkit.getLogger();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return bukkit.isEnabled();
+    }
+
+    @Override
+    public void disablePlugin() {
+        bukkit.disablePlugin();
+    }
+
+    @Override
+    public <T> T getMain() {
+        return (T) bukkit;
+    }
+
+    @Override
+    public boolean isConfigSet(String key) {
+        return bukkit.getConfig().isSet(key);
+    }
+
+    @Override
+    public void setConfig(String key, Object value) {
+        bukkit.getConfig().set(key, value);
+    }
+
+    @Override
+    public Object getConfig(String key) {
+        return bukkit.getConfig().get(key);
+    }
+
+    @Override
+    public <T> T getConfig(String key, T def) {
+        return (T) bukkit.getConfig().get(key, def);
+    }
+
+    @Override
+    public void saveConfig() {
+        bukkit.saveConfig();
+    }
+
+    @Override
+    public void reloadConfig() {
+        bukkit.reloadConfig();
+    }
+
+    @Override
+    public void runTask(Runnable runnable) {
+        bukkit.runTask(runnable);
+    }
+
+    @Override
+    public void saveAsynchronously(Manager manager) {
+        bukkit.saveAsynchronously(manager);
+    }
+
+    @Override
+    public ICommandSender getConsoleSender() {
+        return bukkit.getConsoleSender();
+    }
+
+    @Override
+    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
+        return bukkit.createInterrupter(cooldowns);
+    }
+
+    @Override
+    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
+                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
+        return bukkit.createInterrupterForInv(cooldowns, inventoryMap);
+    }
+
+    @Override
+    public IPlayer extractPlayerFromContext(Object e) {
+        return bukkit.extractPlayerFromContext(e);
+    }
+
+    @Override
+    public <T> Future<T> callSyncMethod(Callable<T> call) {
+        return bukkit.callSyncMethod(call);
+    }
+
+    @Override
+    public void callEvent(IEvent event) {
+        bukkit.callEvent(event);
+    }
+
+    @Override
+    public boolean isServerThread() {
+        return bukkit.isServerThread();
+    }
+
+    @Override
+    public Map<String, Object> getCustomVarsForTrigger(Object e) {
+        return bukkit.getCustomVarsForTrigger(e);
+    }
+
+    @Override
+    public IWorld getWorld(String world) {
+        return bukkit.getWorld(world);
+    }
+
+    @Override
+    public Thread newThread(Runnable runnable, String name, int priority) {
+        Thread thread = new Thread(runnable, name);
+        thread.setPriority(priority);
+        return thread;
+    }
+
+    //DO NOT TOUCH AREA
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //The codes below are merely to implement the 'Plugin' class and not meant to do anything other than
+    //delegating the methods to AbstractJavaPlugin. These methods are usually not called since we use JavaPlugin
+    // to implement these methods, and they will be in the AbstractJavaPlugin or its children classes
+    //TriggerCore class must implement Plugin so that it can be treated as Plugin; when javascript code
+    // (Executors and Placeholders) calls the method which requires Plugin argument, we can simply use
+    // 'plugin' variable inside the javascript since 'plugin' is indeed a Plugin since we implement it.
+    //For example, the Bukkit API's scheduler method (such as #runTask(Plugin, Runnable)) requires Plugin
+    //instance specifically, and we can do that directly using the 'plugin' variable, which is in fact
+    //TriggerReactorCore, without doing extra works like 'plugin.bukkit'.
+    //
+    //This extra work is due to JavaPlugin being an abstract class, so child class cannot extend both JavaPlugin
+    //and TriggerReactorCore at the same time. Plus, Bukkit's class loader only accepts JavaPlugin, not Plugin.
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return bukkit.onTabComplete(sender, command, alias, args);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        return bukkit.onCommand(sender, command, label, args);
+    }
+
+    @Override
+    public PluginDescriptionFile getDescription() {
+        return bukkit.getDescription();
+    }
+
+    @Override
+    public FileConfiguration getConfig() {
+        return bukkit.getConfig();
+    }
+
+    @Override
+    public InputStream getResource(String filename) {
+        return bukkit.getResource(filename);
+    }
+
+    @Override
+    public void saveDefaultConfig() {
+        bukkit.saveDefaultConfig();
+    }
+
+    @Override
+    public void saveResource(String resourcePath, boolean replace) {
+        bukkit.saveResource(resourcePath, replace);
+    }
+
+    @Override
+    public PluginLoader getPluginLoader() {
+        return bukkit.getPluginLoader();
+    }
+
+    @Override
+    public Server getServer() {
+        return bukkit.getServer();
+    }
+
+    @Override
+    public void onDisable() {
+        bukkit.onDisable();
+    }
+
+    @Override
+    public void onLoad() {
+        bukkit.onLoad();
+    }
+
+    @Override
+    public void onEnable() {
+        bukkit.onEnable();
+    }
+
+    @Override
+    public boolean isNaggable() {
+        return bukkit.isNaggable();
+    }
+
+    @Override
+    public void setNaggable(boolean canNag) {
+        bukkit.setNaggable(canNag);
+    }
+
+    @Override
+    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
+        return bukkit.getDefaultWorldGenerator(worldName, id);
+    }
+
+    @Override
+    public String getName() {
+        return bukkit.getName();
     }
 
     public AbstractJavaPlugin.BungeeCordHelper getBungeeHelper() {
@@ -242,7 +528,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         }
 
         try {
-            executorManager = new ExecutorManager(this, sem, new HashMap<String, Executor>(){{
+            executorManager = new ExecutorManager(this, sem, new HashMap<String, Executor>() {{
                 put("CMDOP", (timing, variables, e, args) -> {
                     Object player = variables.get("player");
                     if (!(player instanceof Player))
@@ -301,7 +587,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
         selectionManager = new AreaSelectionManager(this);
-        invEditManager = new InventoryEditManager(this);
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
@@ -313,6 +598,10 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         namedTriggerManager = new NamedTriggerManager(this);
 
+        invEditManager = new InventoryEditManager<ItemStack>(this,
+                                                             invManager,
+                                                             inventoryHandle,
+                                                             this);
         // listeners
         bukkit.registerEvents(new ClickTriggerListener(clickManager));
         bukkit.registerEvents(new WalkTriggerListener(walkManager));
@@ -408,285 +697,9 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         getLogger().info("Shut down complete!");
     }
 
-    @Override
-    protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
-        sender.sendMessage("&b" + command + " &8- &7" + desc);
-    }
+    protected static AbstractBukkitWrapper WRAPPER = null;
 
-    @Override
-    protected void sendDetails(ICommandSender sender, String detail) {
-        sender.sendMessage("  &7" + detail);
-    }
-
-    @Override
-    public String getPluginDescription() {
-        return bukkit.getDescription().getFullName();
-    }
-
-    @Override
-    public String getVersion() {
-        return bukkit.getDescription().getVersion();
-    }
-
-    @Override
-    public String getAuthor() {
-        return bukkit.getDescription().getAuthors().toString();
-    }
-
-    @Override
-    public void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set) {
-        bukkit.showGlowStones(sender, set);
-    }
-
-    @Override
-    public File getDataFolder() {
-        return bukkit.getDataFolder();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return bukkit.getLogger();
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return bukkit.isEnabled();
-    }
-
-    @Override
-    public <T> T getMain() {
-        return (T) bukkit;
-    }
-
-    @Override
-    public boolean isConfigSet(String key) {
-        return bukkit.getConfig().isSet(key);
-    }
-
-    @Override
-    public void setConfig(String key, Object value) {
-        bukkit.getConfig().set(key, value);
-    }
-
-    @Override
-    public Object getConfig(String key) {
-        return bukkit.getConfig().get(key);
-    }
-
-    @Override
-    public <T> T getConfig(String key, T def) {
-        return (T) bukkit.getConfig().get(key, def);
-    }
-
-    @Override
-    public void saveConfig() {
-        bukkit.saveConfig();
-    }
-
-    @Override
-    public void reloadConfig() {
-        bukkit.reloadConfig();
-    }
-
-    @Override
-    public void runTask(Runnable runnable) {
-        bukkit.runTask(runnable);
-    }
-
-    @Override
-    public void saveAsynchronously(Manager manager) {
-        bukkit.saveAsynchronously(manager);
-    }
-
-    @Override
-    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
-        return bukkit.createInterrupter(cooldowns);
-    }
-
-    @Override
-    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
-                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
-        return bukkit.createInterrupterForInv(cooldowns, inventoryMap);
-    }
-
-    @Override
-    public IPlayer extractPlayerFromContext(Object e) {
-        return bukkit.extractPlayerFromContext(e);
-    }
-
-    @Override
-    public <T> Future<T> callSyncMethod(Callable<T> call) {
-        return bukkit.callSyncMethod(call);
-    }
-
-    @Override
-    public void disablePlugin() {
-        bukkit.disablePlugin();
-    }
-
-    @Override
-    public void callEvent(IEvent event) {
-        bukkit.callEvent(event);
-    }
-
-    @Override
-    public IPlayer getPlayer(String string) {
-        return bukkit.getPlayer(string);
-    }
-
-    @Override
-    public Object createEmptyPlayerEvent(ICommandSender sender) {
-        return bukkit.createEmptyPlayerEvent(sender);
-    }
-
-    @Override
-    public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {
-        return bukkit.createPlayerCommandEvent(sender, label, args);
-    }
-
-    @Override
-    public Iterable<IWorld> getWorlds() {
-        return bukkit.getWorlds();
-    }
-
-    @Override
-    public IWorld getWorld(String world) {
-        return bukkit.getWorld(world);
-    }
-
-    @Override
-    protected void setItemTitle(IItemStack iS, String title) {
-        bukkit.setItemTitle(iS, title);
-    }
-
-    @Override
-    protected void addItemLore(IItemStack iS, String lore) {
-        bukkit.addItemLore(iS, lore);
-    }
-
-    @Override
-    protected boolean setLore(IItemStack iS, int index, String lore) {
-        return bukkit.setLore(iS, index, lore);
-    }
-
-    @Override
-    protected boolean removeLore(IItemStack iS, int index) {
-        return bukkit.removeLore(iS, index);
-    }
-
-    @Override
-    public boolean isServerThread() {
-        return bukkit.isServerThread();
-    }
-
-    @Override
-    public Thread newThread(Runnable runnable, String name, int priority) {
-        Thread thread = new Thread(runnable, name);
-        thread.setPriority(priority);
-        return thread;
-    }
-
-    @Override
-    public Map<String, Object> getCustomVarsForTrigger(Object e) {
-        return bukkit.getCustomVarsForTrigger(e);
-    }
-
-    @Override
-    public ICommandSender getConsoleSender() {
-        return bukkit.getConsoleSender();
-    }
-
-    //DO NOT TOUCH AREA
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    //The codes below are merely to implement the 'Plugin' class and not meant to do anything other than
-    //delegating the methods to AbstractJavaPlugin. These methods are usually not called since we use JavaPlugin
-    // to implement these methods, and they will be in the AbstractJavaPlugin or its children classes
-    //TriggerCore class must implement Plugin so that it can be treated as Plugin; when javascript code
-    // (Executors and Placeholders) calls the method which requires Plugin argument, we can simply use
-    // 'plugin' variable inside the javascript since 'plugin' is indeed a Plugin since we implement it.
-    //For example, the Bukkit API's scheduler method (such as #runTask(Plugin, Runnable)) requires Plugin
-    //instance specifically, and we can do that directly using the 'plugin' variable, which is in fact
-    //TriggerReactorCore, without doing extra works like 'plugin.bukkit'.
-    //
-    //This extra work is due to JavaPlugin being an abstract class, so child class cannot extend both JavaPlugin
-    //and TriggerReactorCore at the same time. Plus, Bukkit's class loader only accepts JavaPlugin, not Plugin.
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        return bukkit.onTabComplete(sender, command, alias, args);
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        return bukkit.onCommand(sender, command, label, args);
-    }
-
-    @Override
-    public PluginDescriptionFile getDescription() {
-        return bukkit.getDescription();
-    }
-
-    @Override
-    public FileConfiguration getConfig() {
-        return bukkit.getConfig();
-    }
-
-    @Override
-    public InputStream getResource(String filename) {
-        return bukkit.getResource(filename);
-    }
-
-    @Override
-    public void saveDefaultConfig() {
-        bukkit.saveDefaultConfig();
-    }
-
-    @Override
-    public void saveResource(String resourcePath, boolean replace) {
-        bukkit.saveResource(resourcePath, replace);
-    }
-
-    @Override
-    public PluginLoader getPluginLoader() {
-        return bukkit.getPluginLoader();
-    }
-
-    @Override
-    public Server getServer() {
-        return bukkit.getServer();
-    }
-
-    @Override
-    public void onDisable() {
-        bukkit.onDisable();
-    }
-
-    @Override
-    public void onLoad() {
-        bukkit.onLoad();
-    }
-
-    @Override
-    public void onEnable() {
-        bukkit.onEnable();
-    }
-
-    @Override
-    public boolean isNaggable() {
-        return bukkit.isNaggable();
-    }
-
-    @Override
-    public void setNaggable(boolean canNag) {
-        bukkit.setNaggable(canNag);
-    }
-
-    @Override
-    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        return bukkit.getDefaultWorldGenerator(worldName, id);
-    }
-
-    @Override
-    public String getName() {
-        return bukkit.getName();
+    public static AbstractBukkitWrapper getWrapper() {
+        return WRAPPER;
     }
 }

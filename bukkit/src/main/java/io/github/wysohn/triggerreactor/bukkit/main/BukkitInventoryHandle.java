@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
@@ -5,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.tools.memento.IMemento;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.Inventory;
@@ -61,6 +79,29 @@ public class BukkitInventoryHandle implements IInventoryHandle<ItemStack> {
     @Override
     public IItemStack wrapItemStack(ItemStack item) {
         return new BukkitItemStack(item);
+    }
+
+    @Override
+    public void setContents(IInventory inv, IItemStack[] items) {
+        IMemento memento = inv.saveState();
+        try {
+            for (int i = 0; i < items.length; i++) {
+                inv.setItem(i, items[i]);
+            }
+        } catch (Exception e) {
+            // all or nothing
+            inv.restoreState(memento);
+            throw e;
+        }
+    }
+
+    @Override
+    public IItemStack[] getContents(IInventory inv) {
+        IItemStack[] items = new IItemStack[inv.getSize()];
+        for (int i = 0; i < items.length; i++) {
+            items[i] = inv.getItem(i);
+        }
+        return items;
     }
 
     @Override
