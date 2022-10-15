@@ -17,8 +17,10 @@ task writePluginYml {
     options.setPrettyFlow(true)
 
     File file = new File("$projectDir/src/main/resources/plugin.yml")
-    if (!file.exists())
+    if (!file.exists()){
+        file.getParentFile().mkdirs()
         file.createNewFile()
+    }
 
     InputStream input = new FileInputStream(file)
     Yaml yaml = new Yaml(options)
