@@ -85,7 +85,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract SelfReference getSelfReference();
 
-    public abstract AbstractExecutorManager getExecutorManager();
+    public abstract ExecutorManager getExecutorManager();
 
     public abstract AbstractPlaceholderManager getPlaceholderManager();
 

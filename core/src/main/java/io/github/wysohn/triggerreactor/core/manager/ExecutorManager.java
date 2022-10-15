@@ -18,6 +18,7 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.tools.JarUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
@@ -27,11 +28,53 @@ import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 
-public abstract class AbstractExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
+public final class ExecutorManager extends AbstractJavascriptBasedManager implements KeyValueManager<Executor> {
+    private static final String JAR_FOLDER_LOCATION = "Executor";
+
     protected Map<String, Executor> jsExecutors = new HashMap<>();
 
-    public AbstractExecutorManager(TriggerReactorCore plugin, ScriptEngineManager sem) {
+    private final Map<String, Executor> overrides;
+    private final File executorFolder;
+
+    public ExecutorManager(TriggerReactorCore plugin,
+                           ScriptEngineManager sem) throws IOException {
+        this(plugin, sem, new HashMap<>());
+    }
+
+    public ExecutorManager(TriggerReactorCore plugin,
+                           ScriptEngineManager sem,
+                           Map<String, Executor> overrides) throws IOException {
         super(plugin, sem);
+        this.executorFolder = new File(plugin.getDataFolder(), "Executor");
+        this.overrides = overrides;
+
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), JarUtil.CopyOption.REPLACE_IF_EXIST);
+
+        //reload();
+    }
+
+    @Override
+    public void reload() {
+        FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
+
+        jsExecutors.clear();
+        for (File file : executorFolder.listFiles(filter)) {
+            try {
+                reloadExecutors(file, filter);
+            } catch (ScriptException | IOException e) {
+                e.printStackTrace();
+                plugin.getLogger().warning("Could not load executor " + file.getName());
+            }
+        }
+
+        jsExecutors.putAll(overrides);
+    }
+
+
+    @Override
+    public void saveAll() {
+        // TODO Auto-generated method stub
+
     }
 
     /**

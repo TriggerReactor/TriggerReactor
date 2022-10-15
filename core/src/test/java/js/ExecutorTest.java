@@ -1,6 +1,6 @@
 package js;
 
-import io.github.wysohn.triggerreactor.core.manager.AbstractExecutorManager.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.ExecutorManager.JSExecutor;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;

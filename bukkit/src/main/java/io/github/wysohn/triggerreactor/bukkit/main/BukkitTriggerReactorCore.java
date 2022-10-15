@@ -45,6 +45,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
@@ -53,6 +54,7 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.inventory.ItemStack;
@@ -65,11 +67,8 @@ import javax.script.ScriptException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -92,7 +91,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin bukkit;
     private ScriptEngineManager sem;
     private Lag tpsHelper;
-    private AbstractExecutorManager executorManager;
+    private ExecutorManager executorManager;
     private AbstractPlaceholderManager placeholderManager;
     private AbstractScriptEditManager scriptEditManager;
     private AbstractPlayerLocationManager locationManager;
@@ -121,7 +120,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractExecutorManager getExecutorManager() {
+    public ExecutorManager getExecutorManager() {
         return executorManager;
     }
 
@@ -243,8 +242,28 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         }
 
         try {
-            executorManager = new ExecutorManager(this, sem);
-        } catch (ScriptException | IOException e) {
+            executorManager = new ExecutorManager(this, sem, new HashMap<String, Executor>(){{
+                put("CMDOP", (timing, variables, e, args) -> {
+                    Object player = variables.get("player");
+                    if (!(player instanceof Player))
+                        return null;
+
+                    DispatchCommandAsOP call = new DispatchCommandAsOP((Player) player, String.valueOf(args[0]));
+                    if (plugin.isServerThread()) {
+                        call.call();
+                    } else {
+                        try {
+                            plugin.callSyncMethod(call).get();
+                        } catch (Exception ex) {
+                            //to double check
+                            call.deOpIfWasNotOp();
+                        }
+                    }
+
+                    return null;
+                });
+            }});
+        } catch (IOException e) {
             initFailed(e);
             return;
         }
