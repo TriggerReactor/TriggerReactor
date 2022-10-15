@@ -32,7 +32,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: build
-        key: build
+        key: ${{ runner.os }}-build-beta
 
   to_release:
     needs: [build]
@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build
-          key: build
+          key: ${{ runner.os }}-build-beta
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         continue-on-error: true

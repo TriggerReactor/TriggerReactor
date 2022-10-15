@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -38,8 +39,6 @@ public abstract class Trigger implements Cloneable, IObservable {
     protected Map<String, Executor> executorMap;
     protected Map<String, Placeholder> placeholderMap;
     protected Map<Object, Object> gvarMap;
-
-    private boolean sync = false;
 
     /**
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
@@ -100,6 +99,7 @@ public abstract class Trigger implements Cloneable, IObservable {
             List<Warning> warnings = parser.getWarnings();
 
             AbstractTriggerManager.reportWarnings(warnings, this);
+            //TODO: refactor this hard dependency in 3.4.x
             executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
             placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();
             gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();
@@ -131,32 +131,16 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     /**
-     * Check if this Trigger is sync mode.
-     *
-     * @return
-     */
-    public boolean isSync() {
-        return sync;
-    }
-
-    /**
-     * Set this Trigger's sync mode.
-     *
-     * @param sync
-     */
-    public void setSync(boolean sync) {
-        this.sync = sync;
-    }
-
-    /**
      * Start this trigger. Variables in scriptVars may be overridden if it has same name as
      * the name of fields of Event class.
      *
      * @param e          the Event associated with this Trigger
      * @param scriptVars the temporary local variables
+     * @param sync choose whether to run this trigger in the current thread or spawn a new thread
+     *             and run in there.
      * @return true if activated; false if on cooldown
      */
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
+    public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
         if (checkCooldown(e)) {
             return false;
         }
@@ -169,8 +153,22 @@ public abstract class Trigger implements Cloneable, IObservable {
 
         Interpreter interpreter = initInterpreter(scriptVars);
 
-        startInterpretation(e, scriptVars, interpreter, isSync());
+        startInterpretation(e, scriptVars, interpreter, sync);
         return true;
+    }
+
+    /**
+     * Read {@link #activate(Object, Map, boolean)}
+     *
+     * The only difference is that it determines sync/async from the trigger config.
+     * @param e
+     * @param scriptVars
+     * @return
+     */
+    public boolean activate(Object e, Map<String, Object> scriptVars) {
+        return activate(e, scriptVars, Optional.of(info)
+                .map(TriggerInfo::isSync)
+                .orElse(false));
     }
 
     /**
@@ -205,8 +203,6 @@ public abstract class Trigger implements Cloneable, IObservable {
         interpreter.setGvars(gvarMap);
         interpreter.setVars(scriptVars);
         interpreter.setSelfReference(TriggerReactorCore.getInstance().getSelfReference());
-
-        interpreter.setSync(isSync());
 
         return interpreter;
     }
@@ -273,7 +269,7 @@ public abstract class Trigger implements Cloneable, IObservable {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupter(e, interpreter, cooldowns),
+                    TriggerReactorCore.getInstance().createInterrupter(cooldowns),
                     timing);
         } catch (InterpreterException ex) {
             TriggerReactorCore.getInstance().handleException(e,
@@ -298,7 +294,7 @@ public abstract class Trigger implements Cloneable, IObservable {
 
     @Override
     public String toString() {
-        return "[" + getClass().getSimpleName() + "=" + info + " sync=" + sync + "]";
+        return "[" + getClass().getSimpleName() + "=" + info + "]";
     }
 
     private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();

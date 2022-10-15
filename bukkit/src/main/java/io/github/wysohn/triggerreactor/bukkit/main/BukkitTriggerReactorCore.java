@@ -18,28 +18,34 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.AbstractBukkitWrapper;
 import io.github.wysohn.triggerreactor.bukkit.manager.*;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
+import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.*;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.Lag;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
@@ -47,7 +53,9 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.Listener;
 import org.bukkit.generator.ChunkGenerator;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginLoader;
@@ -91,14 +99,17 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private AbstractPermissionManager permissionManager;
     private AbstractAreaSelectionManager selectionManager;
     private AbstractInventoryEditManager invEditManager;
-    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> clickManager;
-    private AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> walkManager;
-    private AbstractCommandTriggerManager cmdManager;
-    private AbstractInventoryTriggerManager invManager;
-    private AbstractAreaTriggerManager areaManager;
-    private AbstractCustomTriggerManager customManager;
-    private AbstractRepeatingTriggerManager repeatManager;
-    private AbstractNamedTriggerManager namedTriggerManager;
+    private ClickTriggerManager clickManager;
+    private WalkTriggerManager walkManager;
+    private CommandTriggerManager cmdManager;
+    private InventoryTriggerManager invManager;
+    private AreaTriggerManager areaManager;
+    private CustomTriggerManager customManager;
+    private RepeatingTriggerManager repeatManager;
+    private NamedTriggerManager namedTriggerManager;
+    private ICommandHandler commandHandler;
+    private IEventRegistry eventRegistry;
+    private IInventoryHandle<ItemStack> inventoryHandle;
 
     public static AbstractBukkitWrapper getWrapper() {
         return WRAPPER;
@@ -145,43 +156,58 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager() {
+    public LocationBasedTriggerManager<ClickTrigger> getClickManager() {
         return clickManager;
     }
 
     @Override
-    public AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager() {
+    public LocationBasedTriggerManager<WalkTrigger> getWalkManager() {
         return walkManager;
     }
 
     @Override
-    public AbstractCommandTriggerManager getCmdManager() {
+    public CommandTriggerManager getCmdManager() {
         return cmdManager;
     }
 
     @Override
-    public AbstractInventoryTriggerManager getInvManager() {
+    public InventoryTriggerManager getInvManager() {
         return invManager;
     }
 
     @Override
-    public AbstractAreaTriggerManager getAreaManager() {
+    public AreaTriggerManager getAreaManager() {
         return areaManager;
     }
 
     @Override
-    public AbstractCustomTriggerManager getCustomManager() {
+    public CustomTriggerManager getCustomManager() {
         return customManager;
     }
 
     @Override
-    public AbstractRepeatingTriggerManager getRepeatManager() {
+    public RepeatingTriggerManager getRepeatManager() {
         return repeatManager;
     }
 
     @Override
-    public AbstractNamedTriggerManager getNamedTriggerManager() {
+    public NamedTriggerManager getNamedTriggerManager() {
         return namedTriggerManager;
+    }
+
+    @Override
+    public ICommandHandler getCommandHandler() {
+        return commandHandler;
+    }
+
+    @Override
+    public IEventRegistry getEventRegistry() {
+        return eventRegistry;
+    }
+
+    @Override
+    public IInventoryHandle<?> getInventoryHandle() {
+        return inventoryHandle;
     }
 
     public AbstractJavaPlugin.BungeeCordHelper getBungeeHelper() {
@@ -230,6 +256,28 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
             return;
         }
 
+        try {
+            commandHandler = new BukkitCommandHandler(plugin, plugin);
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
+            inventoryHandle = new BukkitInventoryHandle();
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
+        try {
+            eventRegistry = new BukkitEventRegistry();
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
+        // managers
         scriptEditManager = new ScriptEditManager(this);
         locationManager = new PlayerLocationManager(this);
         permissionManager = new PermissionManager(this);
@@ -238,14 +286,27 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         clickManager = new ClickTriggerManager(this);
         walkManager = new WalkTriggerManager(this);
-        cmdManager = new CommandTriggerManager(this, bukkit);
-        invManager = new InventoryTriggerManager(this);
-        areaManager = new AreaTriggerManager(this);
-        customManager = new CustomTriggerManager(this);
-        repeatManager = new RepeatingTriggerManager(this);
+        cmdManager = new CommandTriggerManager(this, commandHandler);
+        invManager = new InventoryTriggerManager<>(this, inventoryHandle);
+        areaManager = new AreaTriggerManager(this, this, this);
+        customManager = new CustomTriggerManager(this, eventRegistry);
+        repeatManager = new RepeatingTriggerManager(this, this);
 
         namedTriggerManager = new NamedTriggerManager(this);
 
+        // listeners
+        bukkit.registerEvents(new ClickTriggerListener(clickManager));
+        bukkit.registerEvents(new WalkTriggerListener(walkManager));
+        bukkit.registerEvents(new InventoryTriggerListener(invManager));
+
+        bukkit.registerEvents(new AreaTriggerListener(areaManager));
+
+        // TODO: Once managers are refactored, this should be removed.
+        Manager.getManagers().stream()
+                .filter(Listener.class::isInstance)
+                .forEach(listener -> bukkit.registerEvents((Listener) listener));
+
+        // etc
         tpsHelper = new Lag();
         new Thread() {
             @Override
@@ -356,11 +417,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public void registerEvents(Manager manager) {
-        bukkit.registerEvents(manager);
-    }
-
-    @Override
     public File getDataFolder() {
         return bukkit.getDataFolder();
     }
@@ -421,14 +477,14 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        return bukkit.createInterrupter(e, interpreter, cooldowns);
+    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
+        return bukkit.createInterrupter(cooldowns);
     }
 
     @Override
-    public ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
+    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
                                                       Map<IInventory, InventoryTrigger> inventoryMap) {
-        return bukkit.createInterrupterForInv(e, interpreter, cooldowns, inventoryMap);
+        return bukkit.createInterrupterForInv(cooldowns, inventoryMap);
     }
 
     @Override
@@ -467,6 +523,16 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
+    public Iterable<IWorld> getWorlds() {
+        return bukkit.getWorlds();
+    }
+
+    @Override
+    public IWorld getWorld(String world) {
+        return bukkit.getWorld(world);
+    }
+
+    @Override
     protected void setItemTitle(IItemStack iS, String title) {
         bukkit.setItemTitle(iS, title);
     }
@@ -489,6 +555,13 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     @Override
     public boolean isServerThread() {
         return bukkit.isServerThread();
+    }
+
+    @Override
+    public Thread newThread(Runnable runnable, String name, int priority) {
+        Thread thread = new Thread(runnable, name);
+        thread.setPriority(priority);
+        return thread;
     }
 
     @Override

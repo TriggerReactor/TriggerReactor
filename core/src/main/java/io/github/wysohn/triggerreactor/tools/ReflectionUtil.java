@@ -109,7 +109,9 @@ public class ReflectionUtil {
         return null;
     }
 
-    private static <T extends Executable> List<T> getValidExecutables(Class<?> clazz, String name, Object[] args,
+    private static <T extends Executable> List<T> getValidExecutables(Class<?> clazz,
+                                                                      String name,
+                                                                      Object[] args,
                                                                       Function<Class<?>, T[]> extractFn) {
         List<T> validMethods = new ArrayList<>();
         List<T> validVarargMethods = new ArrayList<>();
@@ -230,14 +232,23 @@ public class ReflectionUtil {
 
             for (int i = 0; i < args.length; i++) {
                 Class<?>[] parameterTypes = executable.getParameterTypes();
+                Class<?>[] types = new Class<?>[args.length];
+                for (int k = 0; k < args.length; k++)
+                    types[k] = Optional.ofNullable(args[k])
+                            .map(Object::getClass)
+                            .orElse(null);
+
+                if (args[i] instanceof InvocationHandler && i < parameterTypes.length && parameterTypes[i].isInterface()) {
+                    // we need to proxy the interface to reroute calls to the InvocationHandler
+                    InvocationHandler handler = (InvocationHandler) args[i];
+                    args[i] = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                            new Class[]{parameterTypes[i]},
+                            handler);
+                }
 
                 if (args[i] instanceof String && i < parameterTypes.length && parameterTypes[i].isEnum()) {
                     // Some methods already provide overloaded method to handle String instead of Enum
                     // So check it first before converting String to Enum manually
-                    Class<?>[] types = new Class<?>[args.length];
-                    for (int k = 0; k < args.length; k++)
-                        types[k] = args[k].getClass();
-
                     try {
                         executable = extractFn.apply(clazz, name, types);
                     } catch (NoSuchMethodException ex2) {
@@ -285,7 +296,7 @@ public class ReflectionUtil {
 
             return method.invoke(obj, args);
         } catch (NullPointerException e) {
-            throw new NullPointerException(buildFailMessage(clazz, methodName, args));
+            throw new RuntimeException(buildFailMessage(clazz, methodName, args), e);
         }
     }
 
@@ -317,8 +328,15 @@ public class ReflectionUtil {
 
     public static boolean checkMatch(Class<?> parameterType, Object arg) {
         // skip enum if argument was String. We will try valueOf() later
-        return arg instanceof String && parameterType.isEnum()
-                || ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
+        if(arg instanceof String && parameterType.isEnum())
+            return true;
+
+        // if InvocationHandler is provided for the interface parameter, skip it.
+        // will try it later
+        if(arg instanceof InvocationHandler && parameterType.isInterface())
+            return true;
+
+        return ClassUtils.isAssignable(arg == null ? null : arg.getClass(), parameterType, true);
     }
 
     private static boolean compareClass(Class<?> clazz1, Class<?> clazz2) {
@@ -472,7 +490,7 @@ public class ReflectionUtil {
         return classes;
     }
 
-    public static Object constructNew(Class<?> clazz, Object... args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException {
+    public static Object constructNew(Class<?> clazz, Object... args) throws NoSuchMethodException, InstantiationException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         if (args.length < 1) {
             return clazz.newInstance();
         } else {
@@ -490,13 +508,7 @@ public class ReflectionUtil {
                 args = mergeVarargs(args, target.getParameterTypes());
             }
 
-            try {
-                return target.newInstance(args);
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-
-            return null;
+            return target.newInstance(args);
         }
     }
 

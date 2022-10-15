@@ -40,8 +40,6 @@ public abstract class Manager {
         this.plugin = plugin;
 
         managers.add(this);
-
-        plugin.registerEvents(this);
     }
 
     /**

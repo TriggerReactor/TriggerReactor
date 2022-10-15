@@ -66,4 +66,9 @@ public class BukkitCommandSender implements ICommandSender {
         return true;
     }
 
+    @Override
+    public String getName() {
+        return sender.getName();
+    }
+
 }

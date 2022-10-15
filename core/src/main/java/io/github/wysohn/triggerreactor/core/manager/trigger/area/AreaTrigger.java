@@ -14,13 +14,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AreaTrigger extends Trigger {
-    final Area area;
-    final File folder;
-
+    private final Area area;
+    private final File folder;
+    private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
     private EnterTrigger enterTrigger;
     private ExitTrigger exitTrigger;
-
-    private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
+    private AreaTriggerManager.EventType type = null;
 
     public AreaTrigger(TriggerInfo info, Area area, File folder) {
         super(info, null); // area trigger has scripts in its folder
@@ -38,9 +37,7 @@ public class AreaTrigger extends Trigger {
         return null;
     }
 
-    private AbstractAreaTriggerManager.EventType type = null;
-
-    public void activate(Object e, Map<String, Object> scriptVars, AbstractAreaTriggerManager.EventType type) {
+    public void activate(Object e, Map<String, Object> scriptVars, AreaTriggerManager.EventType type) {
         this.type = type;
 
         super.activate(e, scriptVars);
@@ -80,16 +77,12 @@ public class AreaTrigger extends Trigger {
                 '}';
     }
 
-    public void setEnterTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        enterTrigger = new EnterTrigger(this.getInfo(), script, this);
-    }
-
-    public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        exitTrigger = new ExitTrigger(this.getInfo(), script, this);
-    }
-
     public EnterTrigger getEnterTrigger() {
         return enterTrigger;
+    }
+
+    public void setEnterTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        enterTrigger = new EnterTrigger(this.getInfo(), script, this);
     }
 
     public void setEnterTrigger(EnterTrigger enterTrigger) {
@@ -98,6 +91,10 @@ public class AreaTrigger extends Trigger {
 
     public ExitTrigger getExitTrigger() {
         return exitTrigger;
+    }
+
+    public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
+        exitTrigger = new ExitTrigger(this.getInfo(), script, this);
     }
 
     public void setExitTrigger(ExitTrigger exitTrigger) {
@@ -164,16 +161,6 @@ public class AreaTrigger extends Trigger {
         }
 
         @Override
-        public boolean isSync() {
-            return areaTrigger.isSync();
-        }
-
-        @Override
-        public void setSync(boolean sync) {
-            areaTrigger.setSync(sync);
-        }
-
-        @Override
         public Trigger clone() {
             try {
                 return new EnterTrigger(info, script, areaTrigger);
@@ -198,16 +185,6 @@ public class AreaTrigger extends Trigger {
         @Override
         protected String getTimingId() {
             return StringUtils.dottedPath(areaTrigger.getTimingId(), "Exit");
-        }
-
-        @Override
-        public boolean isSync() {
-            return areaTrigger.isSync();
-        }
-
-        @Override
-        public void setSync(boolean sync) {
-            areaTrigger.setSync(sync);
         }
 
         @Override

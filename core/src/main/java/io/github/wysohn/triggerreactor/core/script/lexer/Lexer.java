@@ -32,7 +32,7 @@ public class Lexer {
     private static final char[] OPERATORS;
 
     static {
-        OPERATORS = new char[]{'+', '-', '*', '/', '%', '=', '!', '?', '<', '>', '&', '|', '^', '~', '(', ')', '{', '}', ',', '.', '[', ']', ':', '\\', '$'};
+        OPERATORS = new char[]{'+', '-', '*', '/', '%', '=', '!', '?', '<', '>', '&', '|', '^', '~', '(', ')', '{', '}', ',', '.', '[', ']', ':', '\\', '$', '@'};
         Arrays.sort(OPERATORS);
     }
 
@@ -174,10 +174,11 @@ public class Lexer {
                     while (c != '*' && read()) ;
                     read();
 
+                    // Eat stream while cursor meet */, or throw exception if end of stream is reached.
                     if (c == '/') {
                         read();
                         break;
-                    } else {
+                    } else if (eos) {
                         throw new LexerException("Expected '/' but end of stream is reached", this);
                     }
                 }
@@ -382,6 +383,9 @@ public class Lexer {
             if (c == '=') {
                 read();
                 return new Token(Type.OPERATOR_L, op + "=", row, col);
+            } else if(c == '>'){
+                read();
+                return new Token(Type.OPERATOR, op + ">", row, col);
             } else {
                 return new Token(Type.OPERATOR, op, row, col);
             }
@@ -425,6 +429,7 @@ public class Lexer {
         String id = builder.toString();
         if (id.equalsIgnoreCase("IMPORT")) {
             skipWhiteSpaces();
+            skipComment();
 
             if (c == '.') {
                 throw new LexerException("IMPORT found a dangling .(dot)", this);
@@ -443,10 +448,10 @@ public class Lexer {
             if (classNameBuilder.charAt(classNameBuilder.length() - 1) == '.')
                 classNameBuilder.deleteCharAt(classNameBuilder.length() - 1);
 
-            skipWhiteSpaces();
-            if (!eos && c != '\n' && c != ';') {
-                throw new LexerException("IMPORT expected end of line or ; at the end but found [" + c + "]", this);
-            }
+//            skipWhiteSpaces();
+//            if (!eos && c != '\n' && c != ';') {
+//                throw new LexerException("IMPORT expected end of line or ; at the end but found [" + c + "]", this);
+//            }
 
             return new Token(Type.IMPORT, classNameBuilder.toString(), row, col);
         } else {
@@ -485,6 +490,6 @@ public class Lexer {
         System.out.println("result: \n");
         Token tok = null;
         while ((tok = lexer.getToken()) != null)
-            System.out.println(tok.type + "] " + tok.value);
+            System.out.println("[" + tok.type + "] " + tok.value);
     }
 }

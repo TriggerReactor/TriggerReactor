@@ -16,37 +16,38 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.main;
 
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
+import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
+import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.*;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AbstractAreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.command.AbstractCommandTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.custom.AbstractCustomTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.AbstractInventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.custom.CustomTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.AbstractLocationBasedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.named.AbstractNamedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.AbstractRepeatingTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.named.NamedTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTrigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.repeating.RepeatingTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor.SaveHandler;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 import io.github.wysohn.triggerreactor.tools.stream.SenderOutputStream;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
@@ -67,7 +68,7 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-public abstract class TriggerReactorCore implements TaskSupervisor {
+public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSupervisor {
     public static final String PERMISSION = "triggerreactor.admin";
     static TriggerReactorCore instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
@@ -96,32 +97,35 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract AbstractAreaSelectionManager getSelectionManager();
 
-    public abstract AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.ClickTrigger> getClickManager();
+    public abstract LocationBasedTriggerManager<ClickTrigger> getClickManager();
 
-    public abstract AbstractLocationBasedTriggerManager<AbstractLocationBasedTriggerManager.WalkTrigger> getWalkManager();
+    public abstract LocationBasedTriggerManager<WalkTrigger> getWalkManager();
 
-    public abstract AbstractCommandTriggerManager getCmdManager();
+    public abstract CommandTriggerManager getCmdManager();
 
-    public abstract AbstractInventoryTriggerManager<? extends IInventory> getInvManager();
+    public abstract InventoryTriggerManager<? extends IInventory> getInvManager();
 
     public abstract AbstractInventoryEditManager getInvEditManager();
 
-    public abstract AbstractAreaTriggerManager getAreaManager();
+    public abstract AreaTriggerManager getAreaManager();
 
-    public abstract AbstractCustomTriggerManager getCustomManager();
+    public abstract CustomTriggerManager getCustomManager();
 
-    public abstract AbstractRepeatingTriggerManager getRepeatManager();
+    public abstract RepeatingTriggerManager getRepeatManager();
 
-    public abstract AbstractNamedTriggerManager getNamedTriggerManager();
+    public abstract NamedTriggerManager getNamedTriggerManager();
 
-    public final PluginConfigManager getPluginConfigManager() {
+    public abstract ICommandHandler getCommandHandler();
+
+    public abstract IEventRegistry getEventRegistry();
+
+    public PluginConfigManager getPluginConfigManager() {
         return pluginConfigManager;
     }
 
-    public final GlobalVariableManager getVariableManager() {
+    public GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
-
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
@@ -145,6 +149,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
     public abstract Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args);
 
+    @Override
+    public abstract Iterable<IWorld> getWorlds();
+
     private void showHelp(ICommandSender sender) {
         showHelp(sender, 1);
     }
@@ -157,6 +164,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
         sender.sendMessage("");
         sender.sendMessage("&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
+
+    public abstract IInventoryHandle<?> getInventoryHandle();
 
     /**
      * Send command description.
@@ -227,14 +236,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      * @param set    the set contains location of block and its associated trigger.
      */
     protected abstract void showGlowStones(ICommandSender sender, Set<Entry<SimpleLocation, Trigger>> set);
-
-    /**
-     * Register events for Managers. If it was Bukkit API, we can assume that the 'manager' will implement Listener
-     * interface, yet we need to verify it with instanceof to avoid any problems.
-     *
-     * @param manager the object instance of Manager
-     */
-    public abstract void registerEvents(Manager manager);
 
     /**
      * Get folder where the plugin files will be saved.
@@ -394,12 +395,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      * interrupter to handle
      * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
      *
-     * @param e           the context
-     * @param interpreter the interpreter
      * @param cooldowns   list of current cooldowns.
      * @return the interrupter created.
      */
-    public abstract ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns);
+    public abstract ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
 
     /**
      * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
@@ -408,8 +407,6 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
      * the Inventory was closed, it is the iterrupter's responsibility to do that.
      *
-     * @param e            the context
-     * @param interpreter  the interpreter
      * @param cooldowns    list of current cooldowns.
      * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
      *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
@@ -418,7 +415,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
      *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
      * @return
      */
-    public abstract ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns,
+    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
                                                                Map<IInventory, InventoryTrigger> inventoryMap);
 
     /**
@@ -594,9 +591,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                     if (args.length == 3 && getCmdManager().has(args[1]) && args[2].equals("sync")) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
-                        trigger.setSync(!trigger.isSync());
+                        trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
-                        sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
+                        sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
@@ -659,12 +656,12 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                             Map<String, Object> tab = new LinkedHashMap<>();
                             if (hint != null)
-                                tab.put(AbstractCommandTriggerManager.HINT, hint);
-                            tab.put(AbstractCommandTriggerManager.CANDIDATES, values);
+                                tab.put(CommandTriggerManager.TAB_HINT, hint);
+                            tab.put(CommandTriggerManager.TAB_CANDIDATES, values);
                             tabs.add(tab);
                         }
 
-                        info.getConfig().put(AbstractCommandTriggerManager.TABS, tabs);
+                        info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_TABS, tabs);
                         getCmdManager().reload(args[1]);
 
                         sender.sendMessage("&7Set tab-completer");
@@ -686,6 +683,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             }
                         });
                     } else {
+                        if (StringUtils.hasUpperCase(args[1])) {
+                            sender.sendMessage("&cWARNING: It is reported that commands with uppercase makes it not "
+                                                       + "recognized by some higher version of Minecraft.");
+                        }
+
                         if (args.length == 2) {
                             getScriptEditManager().startEdit(sender, "Command Trigger", "", new SaveHandler() {
                                 @Override
@@ -1059,6 +1061,24 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
 
                         getInvEditManager().startEdit((IPlayer) sender, trigger);
                         return true;
+                    } else if (args.length > 3 && args[2].equalsIgnoreCase("settitle")) {
+                        String name = args[1];
+                        String title = mergeArguments(args, 3, args.length-1);
+
+                        InventoryTrigger trigger = getInvManager().get(name);
+                        if (trigger == null) {
+                            sender.sendMessage("&7No such Inventory Trigger named " + name);
+                            return true;
+                        }
+
+                        TriggerInfo info = trigger.getInfo();
+                        info.put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, title);
+
+                        getInvManager().reload(name);
+
+                        sender.sendMessage("Successfully changed title");
+
+                        return true;
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
                                 + " The <size> cannot be larger than 54");
@@ -1074,6 +1094,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Preview the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Send <player name> a preview of the inventory");
                         sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
+                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>", "set title of inventory");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("item")) {
@@ -1318,11 +1339,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                             return true;
                         }
 
-                        trigger.setSync(!trigger.isSync());
+                        trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                         saveAsynchronously(getAreaManager());
 
-                        sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
+                        sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
                         sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
@@ -1549,11 +1570,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return true;
                     }
 
-                    trigger.setSync(!trigger.isSync());
+                    trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                     saveAsynchronously(getCustomManager());
 
-                    sender.sendMessage("&7Sync mode: " + (trigger.isSync() ? "&a" : "&c") + trigger.isSync());
+                    sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     return true;
                 } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
@@ -1877,7 +1898,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return filter(triggerNames(getInstance().getCmdManager()), args[1]);
                     case "custom":
                         //event list
-                        return filter(new ArrayList<String>(getInstance().getCustomManager().getAbbreviations()), args[1]);
+                        return filter(new ArrayList<>(getInstance().getEventRegistry().getAbbreviations()), args[1]);
                     case "delete":
                     case "del":
                         return filter(Arrays.asList("cmd", "command", "custom", "vars", "variables"), args[1]);
@@ -1929,7 +1950,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor {
                         return filter(triggerNames(manager), args[2]);
                     case "inventory":
                     case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row"), args[2]);
+                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row", "settitle"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);

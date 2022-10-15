@@ -28,4 +28,12 @@ public class StringUtils {
 
         return builder.toString();
     }
+
+    public static boolean hasUpperCase(String str) {
+        for (int i = 0; i < str.length(); i++) {
+            if (Character.isUpperCase(str.charAt(i)))
+                return true;
+        }
+        return false;
+    }
 }

@@ -16,52 +16,99 @@
  *******************************************************************************/
 var Bukkit = Java.type('org.bukkit.Bukkit')
 var Location = Java.type('org.bukkit.Location')
+var Player = Java.type('org.bukkit.entity.Player')
 
-function TP(args){
-    if(args.length == 3){
-        var world;
-        var x, y, z;
-        world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
-        
-        player.teleport(new Location(world, x, y, z));
-        
-        return null;
-    }else if(args.length == 4){
-        var world;
-        var x, y, z;
-        world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
-        
-        var target = Bukkit.getPlayer(args[3]);
-        target.teleport(new Location(world, x, y, z));
-        
-        return null;
-    }else if(args.length == 1){
-        var loc = args[0];
-        player.teleport(loc);
-        
-        return null;
-    }else if (args.length == 5) {
-		var world;
-        var x, y, z, yaw, pitch;
-        world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
-		yaw = args[3];
-		pitch = args[4];
-        
-        player.teleport(new Location(world, x, y, z, yaw, pitch));
-        
-        return null;
-	}else{
-        print("Teleport Cancelled. Invalid arguments");
-        
-        return Executor.STOP;
+var Executor = Java.type('io.github.wysohn.triggerreactor.core.script.interpreter.Executor')
+
+validation = {
+  overloads: [
+    [{ name: 'location', type: Location.class }],
+    [{ name: 'player', type: Player.class }],
+    [
+      // Overloads index: 2
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' }
+    ],
+    [
+      // Overloads index: 3
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'yaw', type: 'number' },
+      { name: 'pitch', type: 'number' }
+    ],
+    [
+      // Overloads index: 4
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'target', type: Player.class }
+    ],
+    [
+      // Overloads index: 5
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'target', type: 'string' }
+    ],
+    [
+      // Overloads index: 6
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'yaw', type: 'number' },
+      { name: 'pitch', type: 'number' },
+      { name: 'target', type: Player.class }
+    ],
+    [
+      // Overloads index: 7
+      { name: 'x', type: 'number' },
+      { name: 'y', type: 'number' },
+      { name: 'z', type: 'number' },
+      { name: 'yaw', type: 'number' },
+      { name: 'pitch', type: 'number' },
+      { name: 'target', type: 'string' }
+    ]
+  ]
+}
+
+function TP(args) {
+  var target = player,
+    world = player.getWorld(),
+    location;
+
+  if (overload === 0) {
+    location = args[0]
+  } else if (overload === 1) {
+    location = args[0].getLocation()
+  } else if (overload === 2) {
+    location = new Location(world, args[0], args[1], args[2])
+  } else if (overload === 3) {
+    location = new Location(world, args[0], args[1], args[2], args[3], args[4])
+  } else if (overload === 4) {
+    target = args[3]
+    location = new Location(world, args[0], args[1], args[2])
+  } else if (overload === 5) {
+    target = Bukkit.getPlayer(args[3])
+    if (target == null)
+      throw new Error('Player not found with ' + args[3])
+
+    location = new Location(world, args[0], args[1], args[2])
+  } else if (overload === 6) {
+    target = args[5]
+    location = new Location(world, args[0], args[1], args[2], args[3], args[4])
+  } else if (overload === 7) {
+    target = Bukkit.getPlayer(args[5])
+    if (target == null)
+      throw new Error('Player not found with ' + args[5])
+
+    location = new Location(world, args[0], args[1], args[2], args[3], args[4])
   }
+
+  if (target == null)
+    throw new Error('Player not found')
+
+  target.teleport(location)
+  return null;
 }

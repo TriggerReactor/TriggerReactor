@@ -39,6 +39,18 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     /**
+     * This should be called at least once on start up so variables can be
+     * initialized.
+     */
+    @Override
+    public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
+        ValidationUtil.notNull(scriptVars);
+        vars = scriptVars;
+
+        return super.activate(e, scriptVars, sync);
+    }
+
+    /**
      * We don't use cooldown for this trigger. Just return false always
      */
     @Override
@@ -109,7 +121,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                     }
                 }
 
-                vars.put(AbstractRepeatingTriggerManager.TRIGGER, "repeat");
+                vars.put(RepeatingTriggerManager.TRIGGER, "repeat");
 
                 // we re-use the variables over and over.
                 activate(new Object(), vars);
@@ -125,14 +137,14 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
 
         try {
-            vars.put(AbstractRepeatingTriggerManager.TRIGGER, "stop");
+            vars.put(RepeatingTriggerManager.TRIGGER, "stop");
             activate(new Object(), vars);
         } catch (Exception e) {
             throwableHandler.onFail(e);
         }
     }
 
-    private final AbstractRepeatingTriggerManager.ThrowableHandler throwableHandler = new AbstractRepeatingTriggerManager.ThrowableHandler() {
+    private final RepeatingTriggerManager.ThrowableHandler throwableHandler = new RepeatingTriggerManager.ThrowableHandler() {
         @Override
         public void onFail(Throwable throwable) {
             throwable.printStackTrace();

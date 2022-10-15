@@ -2,11 +2,11 @@ name: Java CI Dev
 
 on:
   push:
-    branches: [development]
+    branches: [ development ]
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [ opened, reopened, synchronize ]
   pull_request_review:
-    types: [submitted, editted]
+    types: [ submitted, edited ]
 
 jobs:
   test_windows:
@@ -28,7 +28,7 @@ jobs:
 
       - name: Test in windows environment
         run: ./gradlew test
-        
+
       - name: Report
         uses: mikepenz/action-junit-report@v2
         with:
@@ -42,7 +42,7 @@ jobs:
         subprojectpath:
           - 'bukkit/latest/'
           - 'bukkit/legacy/'
-          
+
     steps:
       - uses: actions/checkout@v2
       - uses: ayltai/setup-graalvm@v1
@@ -53,7 +53,7 @@ jobs:
 
       - name: Test in ubuntu environment
         run: ./gradlew test
-        
+
       - name: Report
         uses: mikepenz/action-junit-report@v2
         with:
@@ -67,7 +67,7 @@ jobs:
         subprojectpath:
           - 'bukkit/latest/'
           - 'bukkit/legacy/'
-          
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
@@ -91,7 +91,7 @@ jobs:
         subprojectpath:
           - 'bukkit/latest/'
           - 'bukkit/legacy/'
-          
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
@@ -106,33 +106,60 @@ jobs:
         uses: mikepenz/action-junit-report@v2
         with:
           report_paths: '${{ matrix.subprojectpath }}build/test-results/test/TEST-*.xml'
-        
+
   build:
     needs: [ test_windows, test_ubuntu, test_ubuntu_jdk8, test_ubuntu_jdk15 ]
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: ayltai/setup-graalvm@v1
-      with:
-        java-version: 16
-        graalvm-version: 21.1.0
-        native-image: true
+      - uses: actions/checkout@v3
+      - uses: ayltai/setup-graalvm@v1
+        with:
+          java-version: 16
+          graalvm-version: 21.1.0
+          native-image: true
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew build -x test
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        path: build/libs/TriggerReactor-*.jar
-  
-#   upload_artifact:
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+        
+      - name: Build with Gradle
+        run: ./gradlew build -x test
+        
+      - name: Cache Artifacts
+        uses: actions/cache@v3
+        with:
+          path: build/libs
+          key: ${{ runner.os }}-build@${{ github.sha }}
+
+  upload_artifact:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        file_name:
+          - bukkit-latest
+          - bukkit-legacy
+#          - sponge
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore from cached artifacts
+        uses: actions/cache@v3
+        with:
+          path: build/libs
+          key: ${{ runner.os }}-build@${{ github.sha }}
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.file_name }}
+          path: build/libs/TriggerReactor-${{ matrix.file_name }}.jar
+          retention-days: 7
+
+    #   upload_artifact:
     
-#     runs-on: ubuntu-latest
-#     needs: [build]
-    
+    #     runs-on: ubuntu-latest
+    #     needs: [build]
+
 #     steps:
 #     - name: get artifact url
 #       uses: octokit/request-action@v2.x

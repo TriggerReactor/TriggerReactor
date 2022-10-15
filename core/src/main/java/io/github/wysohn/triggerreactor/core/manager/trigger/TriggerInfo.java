@@ -3,10 +3,11 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.config.IMigratable;
 import io.github.wysohn.triggerreactor.core.config.IMigrationHelper;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.Optional;
 
 public abstract class TriggerInfo implements IMigratable {
     private final File sourceCodeFile;
@@ -14,12 +15,13 @@ public abstract class TriggerInfo implements IMigratable {
     private final String triggerName;
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config) {
-        this.sourceCodeFile = sourceCodeFile;
-        this.config = config;
-        this.triggerName = extractName(sourceCodeFile);
+        this(sourceCodeFile, config, extractName(sourceCodeFile));
     }
 
     public TriggerInfo(File sourceCodeFile, IConfigSource config, String triggerName) {
+        ValidationUtil.notNull(config);
+        ValidationUtil.notNull(triggerName);
+
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = triggerName;
@@ -27,6 +29,9 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public boolean isMigrationNeeded() {
+        if (sourceCodeFile == null)
+            return false;
+
         File folder = sourceCodeFile.getParentFile();
         File oldFile = new File(folder, triggerName + ".yml");
         File newFile = new File(folder, triggerName + ".json");
@@ -37,24 +42,94 @@ public abstract class TriggerInfo implements IMigratable {
 
     @Override
     public void migrate(IMigrationHelper migrationHelper) {
-        migrationHelper.migrate(config);
-        config.reload();
+        Optional.ofNullable(config)
+                .ifPresent(migrationHelper::migrate);
+        reloadConfig();
     }
 
     public File getSourceCodeFile() {
         return sourceCodeFile;
     }
 
-    public IConfigSource getConfig() {
-        return config;
-    }
-
     public void reloadConfig() {
-        config.reload();
+        Optional.ofNullable(config)
+                .ifPresent(IConfigSource::reload);
     }
 
     public String getTriggerName() {
         return triggerName;
+    }
+
+    public void put(TriggerConfigKey key, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(), value);
+    }
+
+    public void put(TriggerConfigKey key, int index, Object value) {
+        ValidationUtil.notNull(config);
+
+        config.put(key.getKey(index), value);
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(key.getOldKey())
+                .flatMap(oldKey -> config.get(oldKey, clazz));
+        if (old.isPresent())
+            return old;
+
+        return Optional.ofNullable(key.getKey())
+                .flatMap(newKey -> config.get(newKey, clazz));
+    }
+
+    public <T> Optional<T> get(TriggerConfigKey key, int index, Class<T> clazz) {
+        Optional<T> old = Optional.ofNullable(key.getOldKey(index))
+                .flatMap(oldKey -> config.get(oldKey, clazz));
+        if (old.isPresent())
+            return old;
+
+        return Optional.of(key.getKey(index))
+                .flatMap(newKey -> config.get(newKey, clazz));
+    }
+
+    public boolean has(TriggerConfigKey key) {
+        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
+                .map(config::has);
+        Optional<Boolean> current = Optional.ofNullable(key.getKey())
+                .map(config::has);
+        return old.orElse(false) || current.orElse(false);
+    }
+
+    public boolean hasDuplicate(TriggerConfigKey key) {
+        return Optional.ofNullable(key.getOldKey())
+                .map(config::has)
+                .orElse(false) && Optional.ofNullable(key.getKey())
+                .map(config::has)
+                .orElse(false);
+    }
+
+    public boolean hasDuplicate(TriggerConfigKey key, int index) {
+        return Optional.ofNullable(key.getOldKey(index))
+                .map(config::has)
+                .orElse(false) && Optional.ofNullable(key.getKey(index))
+                .map(config::has)
+                .orElse(false);
+    }
+
+    public boolean isSection(TriggerConfigKey key) {
+        Optional<Boolean> old = Optional.ofNullable(key.getOldKey())
+                .map(config::isSection);
+        Optional<Boolean> current = Optional.ofNullable(key.getKey())
+                .map(config::isSection);
+        return old.orElse(false) || current.orElse(false);
+    }
+
+    public boolean isSync() {
+        return get(TriggerConfigKey.KEY_SYNC, Boolean.class).orElse(false);
+    }
+
+    public void setSync(boolean sync) {
+        put(TriggerConfigKey.KEY_SYNC, sync);
     }
 
     /**
@@ -68,8 +143,10 @@ public abstract class TriggerInfo implements IMigratable {
      * Default behavior is delete one file associated with the trigger. Override this method to change this behavior.
      */
     public void delete() {
-        FileUtil.delete(sourceCodeFile);
-        config.delete();
+        Optional.ofNullable(sourceCodeFile)
+                .ifPresent(File::delete);
+        Optional.ofNullable(config)
+                .ifPresent(IConfigSource::delete);
     }
 
     /**
@@ -84,9 +161,12 @@ public abstract class TriggerInfo implements IMigratable {
             return false;
 
         String name = file.getName();
+        // not ends with .trg and no extension
+        if (!name.endsWith(".trg") && name.indexOf('.') != -1)
+            return false;
 
-        //either ends with .trg or no extension
-        return name.endsWith(".trg") || name.indexOf('.') == -1;
+        String triggerName = extractName(file);
+        return triggerName != null && triggerName.length() >= 1;
     }
 
     /**
@@ -99,21 +179,27 @@ public abstract class TriggerInfo implements IMigratable {
         if (file.isDirectory())
             return null;
 
-        if (file.getName().indexOf('.') == -1)
+        int dotIndex = file.getName().indexOf('.');
+        if (dotIndex == -1)
             return file.getName();
 
-        return file.getName().substring(0, file.getName().indexOf('.'));
+        return file.getName().substring(0, dotIndex);
     }
 
     @Override
     public String toString() {
-        return triggerName;
+        return "TriggerInfo{" +
+                "triggerName=" + triggerName +
+                ", config='" + config + '\'' +
+                '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
 
         TriggerInfo that = (TriggerInfo) o;
 
@@ -133,7 +219,7 @@ public abstract class TriggerInfo implements IMigratable {
         return new TriggerInfo(sourceCodeFile, config) {
             @Override
             public boolean isValid() {
-                return isTriggerFile(getSourceCodeFile());
+                return isTriggerFile(sourceCodeFile);
             }
         };
     }

@@ -107,10 +107,30 @@ public class Parser {
         skipEndLines();
         if (token != null) {
             if (token.type == Type.IMPORT) {
+                Token importToken = token;
+                nextToken();
+                return parseImport(importToken);
+            } else if ("TRY".equals(token.value)) {
+                Token tryToken = token;
+                nextToken();
+                return parseTry(tryToken);
+            }  else if ("CATCH".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
-            } else if ("IF".equals(token.value)) {
+            } else if ("FINALLY".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("ENDTRY".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("ENDLAMBDA".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            }  else if ("IF".equals(token.value)) {
                 Token ifToken = token;
                 nextToken();
                 return parseIf(ifToken);
@@ -260,14 +280,7 @@ public class Parser {
 
                     return commandNode;
                 } else {
-                    Node left = parseFactor();
-                    if (left == null)
-                        throw new ParserException("Expected an Id but found nothing. Is the code complete?");
-
-                    if (token == null || token.type == Type.ENDL)
-                        return left;
-
-                    return parseAssignment(left);
+                    return parseAssignment();
                 }
             } else if (token.type == Type.OPERATOR && "{".equals(token.value)) {
                 Token temp = token;
@@ -290,9 +303,9 @@ public class Parser {
                 nextToken();
                 ///////////////////////////////////////////////////////////////
 
-                return parseAssignment(left);
+                return parseAssignmentAndLogic(left);
             } else {
-                throw new ParserException("Unexpected token " + token);
+                return parseLogic();
             }
         } else {
             return null;
@@ -350,6 +363,115 @@ public class Parser {
 
         //return
         return ifNode;
+    }
+
+    private Node parseTry(Token tryToken) throws IOException, LexerException, ParserException {
+        Node tryNode = new Node(tryToken);
+
+        Node tryBody = new Node(new Token(Type.BODY, "<TRYBODY>"));
+        Node codes = null;
+        while (token != null
+                && (codes = parseStatement()) != null
+                && !"CATCH".equals(codes.getToken().value)
+                && !"FINALLY".equals(codes.getToken().value)
+                && !"ENDTRY".equals(codes.getToken().value)) {
+            tryBody.getChildren().add(codes);
+        }
+        tryNode.getChildren().add(tryBody);
+
+        if (codes == null) {
+            throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
+        }
+        if ("CATCH".equals(codes.getToken().value)) {
+            Node catchBody = new Node(new Token(Type.CATCHBODY, "<CATCHBODY>"));
+
+            Node varName = parseId();
+            if (varName == null)
+                throw new ParserException("Could not find variable name for CATCH statement! " + catchBody.getToken());
+            catchBody.getChildren().add(varName);
+
+            nextToken();
+
+            Node catchCodeBody = new Node(new Token(Type.BODY, "<BODY>"));
+            while (token != null
+                    && (codes = parseStatement()) != null
+                    && !"FINALLY".equals(codes.getToken().value)
+                    && !"ENDTRY".equals(codes.getToken().value)) {
+                catchCodeBody.getChildren().add(codes);
+            }
+
+            catchBody.getChildren().add(catchCodeBody);
+            tryNode.getChildren().add(catchBody);
+        }
+        if ("FINALLY".equals(codes.getToken().value)) {
+            Node finallyBody = new Node(new Token(Type.FINALLYBODY, "<FINALLYBODY>"));
+            nextToken();
+
+            while (token != null
+                    && (codes = parseStatement()) != null
+                    && !"ENDTRY".equals(codes.getToken().value)) {
+                finallyBody.getChildren().add(codes);
+            }
+
+            tryNode.getChildren().add(finallyBody);
+        }
+
+        if (!"CATCH".equals(codes.getToken().value) && !"FINALLY".equals(codes.getToken().value)) {
+            if (!"ENDTRY".equals(codes.getToken().value))
+                throw new ParserException("Could not find ENDTRY statement! " + tryNode.getToken());
+            nextToken();
+        }
+
+        return tryNode;
+    }
+
+    private Node parseAssignment() throws IOException, LexerException, ParserException{
+        Node id = parseLogic();
+        if(id == null)
+            throw new ParserException("Expected Id but found nothing. Token: "+token);
+
+        Node parent = parseAssignmentAndLogic(id);
+        if(parent != null){
+            return parent;
+        } else {
+            return id;
+        }
+    }
+
+    private Node parseAssignmentAndLogic(Node leftNode) throws IOException, LexerException, ParserException {
+        if (token != null
+                && ("+=".equals(token.value) || "-=".equals(token.value) || "*=".equals(token.value)
+                || "/=".equals(token.value) || "%=".equals(token.value) || "=".equals(token.value)
+                || "<<=".equals(token.value) || ">>=".equals(token.value) || ">>>=".equals(token.value)
+                || "&=".equals(token.value) || "^=".equals(token.value) || "|=".equals(token.value))) {
+            Node assign = new Node(new Token(Type.OPERATOR, "=", token.row, token.col));
+            Token assignToken = token;
+            String assignTokenValue = (String) assignToken.value;
+            nextToken();
+
+            Node right = parseLogic();
+            if (right == null)
+                throw new ParserException("Expected an assignable value on the right of " + token + ", but found nothing.");
+
+            assign.getChildren().add(leftNode);
+            if ("=".equals(assignTokenValue)) {
+                assign.getChildren().add(right);
+            } else {
+                String op = assignTokenValue.substring(0, assignTokenValue.length() - 1);
+                Node operate = new Node(new Token(Type.OPERATOR_A, op, assignToken.row, assignToken.col));
+                operate.getChildren().add(leftNode);
+                operate.getChildren().add(right);
+                assign.getChildren().add(operate);
+            }
+
+            if (token != null && token.type != Type.ENDL)
+                throw new ParserException("Expected end of line but found " + token);
+            nextToken();
+
+            return assign;
+        } else {
+            return parseLogic();
+        }
     }
 
 /*
@@ -737,7 +859,49 @@ public class Parser {
         if (token == null)
             return null;
 
-        if ("true".equals(token.value) || "false".equals(token.value)) {
+        if("LAMBDA".equals(token.value)){
+            Node lambda = new Node(new Token(Type.LAMBDA, "<LAMBDA>", token));
+            nextToken();
+
+            Node parameters = new Node(new Token(Type.PARAMETERS, "<PARAMETERS>", token));
+            lambda.getChildren().add(parameters);
+
+            if(token != null && token.getType() == Type.ID) {
+                parameters.getChildren().add(new Node(token));
+                nextToken();
+            }
+
+            if(parameters.getChildren().size() > 0){
+                while(token != null && ",".equals(token.value)){
+                    nextToken();
+                    if(token == null || token.getType() != Type.ID)
+                        throw new ParserException("Expected a parameter after a comma but found "+token);
+
+                    parameters.getChildren().add(new Node(token));
+                    nextToken();
+                }
+            }
+
+            if(token == null || !"=>".equals(token.value))
+                throw new ParserException("Expected an arrow operator, =>, but found "+token);
+            Node body = new Node(new Token(Type.LAMBDABODY, "<LAMBDABODY>", token));
+            lambda.getChildren().add(body);
+            nextToken();
+
+            Node statement = null;
+            while ((statement = parseStatement()) != null) {
+                if("ENDLAMBDA".equals(statement.getToken().getValue()))
+                    break;
+                body.getChildren().add(statement);
+            }
+
+            if(body.getChildren().size() < 1)
+                throw new ParserException("LAMBDA body should have at least one statement: "+body);
+
+            return lambda;
+        }
+
+        if (token.type == Type.ID && ("true".equals(token.value) || "false".equals(token.value))) {
             Node node = new Node(new Token(Type.BOOLEAN, token.value, token.row, token.col));
             nextToken();
             return node;
@@ -754,10 +918,21 @@ public class Parser {
             if (token.type != Type.ID)
                 throw new ParserException("Expected to find name of placeholder after $, but found " + token);
 
-            //probably has to be string at this point.
-            String placeholderName = (String) token.value;
-            Node node = new Node(new Token(Type.PLACEHOLDER, placeholderName, token.row, token.col));
+            int row = token.row;
+            int col = token.col;
+
+            String name = (String) token.value;
+            StringBuilder builder = new StringBuilder(name);
             nextToken();
+
+            while (token != null && "@".equals(token.value)) {
+                nextToken();
+
+                builder.append("@" + token.value);
+                nextToken();
+            }
+
+            Node node = new Node(new Token(Type.PLACEHOLDER, builder.toString(), row, col));
 
             while (token != null && ":".equals(token.value)) {
                 nextToken();
@@ -873,6 +1048,10 @@ public class Parser {
             return node;
         }
 
+        if(token.getType() == Type.ENDL){
+            return null;
+        }
+
         throw new ParserException("Unexpected token " + token);
     }
 
@@ -920,6 +1099,7 @@ public class Parser {
                 //id(args)
                 else if (token != null && "(".equals(token.value)) {//fuction call
                     nextToken();
+
                     Node call = new Node(new Token(Type.CALL, idToken.value, idToken));
 
                     if (token != null && ")".equals(token.value)) {
@@ -990,37 +1170,28 @@ public class Parser {
         return stack.pop();
     }
 
-    private Node parseAssignment(Node leftNode) throws IOException, LexerException, ParserException {
-        if (!"+=".equals(token.value) && !"-=".equals(token.value) && !"*=".equals(token.value)
-                && !"/=".equals(token.value) && !"%=".equals(token.value) && !"=".equals(token.value)
-                && !"<<=".equals(token.value) && !">>=".equals(token.value) && !">>>=".equals(token.value)
-                && !"&=".equals(token.value) && !"^=".equals(token.value) && !"|=".equals(token.value))
-            throw new ParserException("Expected '+=', '-=', '*=', '/=', '%=', '<<=', '>>=', '>>>=', '&=', '^=', '|=', or '=' after id [" + leftNode.getToken() + "] but found " + token);
-        Node assign = new Node(new Token(Type.OPERATOR, "=", token.row, token.col));
-        Token assignToken = token;
-        String assignTokenValue = (String) assignToken.value;
-        nextToken();
+    private Node parseImport(Token importToken) throws IOException, ParserException {
+        Node node = new Node(importToken);
 
-        Node right = parseLogic();
-        if (right == null)
-            throw new ParserException("Expected an assignable value on the right of " + token + ", but found nothing.");
-
-        assign.getChildren().add(leftNode);
-        if ("=".equals(assignTokenValue)) {
-            assign.getChildren().add(right);
-        } else {
-            String op = assignTokenValue.substring(0, assignTokenValue.length()-1);
-            Node operate = new Node(new Token(Type.OPERATOR_A, op, assignToken.row, assignToken.col));
-            operate.getChildren().add(leftNode);
-            operate.getChildren().add(right);
-            assign.getChildren().add(operate);
+        if (token.type == Type.ENDL) {
+            return node;
         }
 
-        if (token != null && token.type != Type.ENDL)
-            throw new ParserException("Expected end of line but found " + token);
-        nextToken();
+        String attribute = (String) token.value;
+        if ("AS".equalsIgnoreCase(attribute)) {
+            nextToken();
 
-        return assign;
+            if (token == null || token.type != Type.ID || ((String) token.value).charAt(0) == '#') {
+                throw new ParserException("Expected an alphabetic characters or _ after import.as but found " + token);
+            }
+
+            node.getChildren().add(new Node(token));
+            nextToken();
+        } else {
+            throw new ParserException("IMPORT expected end of line or ; at the end but found " + token);
+        }
+
+        return node;
     }
 
     public List<Warning> getWarnings() {
@@ -1085,10 +1256,15 @@ public class Parser {
                 "        ENDIF\n" +
                 "    ENDIF\n" +
                 "ENDIF";*/
-        String text = "a = 2\n" +
-                "a = ++a * --a - a++ / a--\n" +
-                "a = -(--a) -(++a) -(a++) -(a--)\n" +
-                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
+//        String text = "a = 2\n" +
+//                "a = ++a * --a - a++ / a--\n" +
+//                "a = -(--a) -(++a) -(a++) -(a--)\n" +
+//                "a = -(--a) - -(++a) - -(a++) - -(a--)\n";
+        String text = "" +
+                "abc = LAMBDA =>\n" +
+                "    3\n" +
+                "ENDLAMBDA\n" +
+                "cdf = 55";
         System.out.println("original: \n" + text);
 
         Lexer lexer = new Lexer(text, charset);

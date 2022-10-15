@@ -22,7 +22,7 @@ public class ExecutorTest extends JsTest {
     @Override
     public Object test() throws Exception {
         coverage.put(this.name, true);
-        executor.execute(Timings.LIMBO, true, varMap, null, args);
+        executor.execute(Timings.LIMBO, varMap, null, args);
         return null;
     }
 

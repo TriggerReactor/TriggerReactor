@@ -1,0 +1,19 @@
+'package:core':
+  - 'core/*'
+  - 'core/**/*'
+
+'package:bukkit':
+  - 'bukkit/src/*'
+  - 'bukkit/src/**/*'
+
+'package:bukkit-latest':
+  - 'bukkit/latest/*'
+  - 'bukkit/latest/**/*'
+
+'package:bukkit-legacy':
+  - 'bukkit/legacy/*'
+  - 'bukkit/legacy/**/*'
+
+'package:sponge':
+  - 'sponge/*'
+  - 'sponge/**/*'

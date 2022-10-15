@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-public final class GlobalVariableManager extends Manager implements IMigratable {
+public class GlobalVariableManager extends Manager implements IMigratable {
     private final IConfigSource configSource;
 
     public GlobalVariableManager(TriggerReactorCore plugin) {

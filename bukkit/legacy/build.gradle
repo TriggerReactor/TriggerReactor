@@ -16,12 +16,19 @@ task writePluginYml {
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setPrettyFlow(true);
 
-    File file = new File("$projectDir/src/main/resources/plugin.yml");
+    File file = new File("$projectDir/src/main/resources/plugin.yml")
+    if (!file.exists()){
+        file.getParentFile().mkdirs()
+        file.createNewFile()
+    }
 
     InputStream input = new FileInputStream(file);
     Yaml yaml = new Yaml(options);
     Map<String, Object> map = yaml.load(input);
     input.close();
+
+    if(map == null)
+        map = new LinkedHashMap<String, Object>();
 
     String id = project.ext.id
     String desc = project.ext.description

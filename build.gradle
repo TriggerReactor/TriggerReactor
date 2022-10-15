@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'groovy'
+    id "com.dorongold.task-tree" version "2.1.0"
 }
 
 repositories {
@@ -11,20 +12,6 @@ repositories {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
-
-    test {
-        reports.html.enabled = false
-        testLogging {
-            events "failed"
-            exceptionFormat "full"
-        }
-
-        if(!project.hasProperty("Legacy")){
-            jvmArgs = [
-                    '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
-            ]
-        }
-    }
 
     ext {
         id = 'TriggerReactor'
@@ -39,12 +26,14 @@ subprojects {
                 'Alex4386',
                 'RedLime',
                 'mrandriyg',
-                'professer_snape',
+                'Dr_Romantic',
                 'gerzytet',
-                'Kuiprux'
+                'Kuiprux',
+                'Ioloolo',
+                'Sayakie',
+                'soshimee'
         ]
     }
-
 
     sourceSets {
         main {
@@ -98,10 +87,27 @@ subprojects {
 
     archivesBaseName = parent.archivesBaseName + "-" + archivesBaseName
 
+    // TASKS
+
+    test {
+        reports.html.enabled = false
+        testLogging {
+            events "failed"
+            exceptionFormat "full"
+        }
+
+        if(!project.hasProperty("Legacy")){
+            jvmArgs = [
+                    '--add-opens', 'java.base/java.lang.reflect=ALL-UNNAMED'
+            ]
+        }
+    }
+
     task copyResources(type: Copy) {
         from project(":core").sourceSets.main.output.resourcesDir
         into "${buildDir}/resources/main"
     }
+    compileTestJava.dependsOn copyResources
     jar.dependsOn copyResources
 
     task copyJars(type: Copy) {

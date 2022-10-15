@@ -34,6 +34,7 @@ import io.github.wysohn.triggerreactor.bukkit.tools.migration.NaiveMigrationHelp
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.event.IEvent;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
@@ -43,8 +44,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.parser.Node;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
@@ -89,6 +89,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
     public final BukkitTriggerReactorCore core;
@@ -309,179 +310,114 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
         }
     }
 
-    public void registerEvents(Manager manager) {
-        if (manager instanceof Listener)
-            Bukkit.getPluginManager().registerEvents((Listener) manager, this);
+    public void registerEvents(Listener listener) {
+        if (listener != null)
+            Bukkit.getPluginManager().registerEvents(listener, this);
     }
 
     public void runTask(Runnable runnable) {
         Bukkit.getScheduler().runTask(this, runnable);
     }
 
-    public Interpreter.ProcessInterrupter createInterrupter(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns) {
-        return new Interpreter.ProcessInterrupter() {
-            @Override
-            public boolean onNodeProcess(Node node) {
-                return false;
-            }
+    private ProcessInterrupter.Builder newInterrupterBuilder() {
+        return ProcessInterrupter.Builder.begin()
+                .perExecutor((context, command, args) -> {
+                    if ("CALL".equalsIgnoreCase(command)) {
+                        if (args.length < 1)
+                            throw new RuntimeException("Need parameter [String] or [String, boolean]");
 
-            @Override
-            public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1)
-                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
+                        if (args[0] instanceof String) {
+                            Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
+                            if (trigger == null)
+                                throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
 
-                    if (args[0] instanceof String) {
-                        Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
-                        if (trigger == null)
-                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
+                            boolean sync = true;
+                            if (args.length > 1 && args[1] instanceof Boolean) {
+                                sync = (boolean) args[1];
+                            }
 
-                        if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
+                            if (sync) {
+                                trigger.activate(context.getTriggerCause(), context.getVars(), true);
+                            } else {//use snapshot to avoid concurrent modification
+                                trigger.activate(context.getTriggerCause(), new HashMap<>(context.getVars()), false);
+                            }
+
+                            return true;
                         } else {
-                            trigger.setSync(true);
+                            throw new RuntimeException("Parameter type not match; it should be a String."
+                                    + " Make sure to put double quotes, if you provided String literal.");
                         }
+                    }
 
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
-                        } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
+                    return false;
+                })
+                .perExecutor((context, command, args) -> {
+                    if ("CANCELEVENT".equalsIgnoreCase(command)) {
+                        if(!core.isServerThread())
+                            throw new RuntimeException("Trying to cancel event in async trigger.");
+
+                        if (context.getTriggerCause() instanceof Cancellable) {
+                            ((Cancellable) context.getTriggerCause()).setCancelled(true);
+                            return true;
+                        } else {
+                            throw new RuntimeException(context.getTriggerCause() + " is not a Cancellable event!");
                         }
-
-                        return true;
-                    } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
                     }
-                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
 
-                    if (context instanceof Cancellable) {
-                        ((Cancellable) context).setCancelled(true);
-                        return true;
-                    } else {
-                        throw new RuntimeException(context + " is not a Cancellable event!");
-                    }
-                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number))
-                        throw new RuntimeException(args[0] + " is not a number!");
-
-                    if (e instanceof PlayerEvent) {
-                        long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                        Player player = ((PlayerEvent) e).getPlayer();
-                        UUID uuid = player.getUniqueId();
-                        cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-//                if("cooldown".equals(placeholder)){
-//                    if(e instanceof PlayerEvent){
-//                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
-//                    }else{
-//                        return 0;
-//                    }
-//                }else{
-//                    return null;
-//                }
-                return null;
-            }
-        };
+                    return false;
+                });
     }
 
-    public Interpreter.ProcessInterrupter createInterrupterForInv(Object e, Interpreter interpreter, Map<UUID, Long> cooldowns, Map<IInventory,
-            InventoryTrigger> inventoryMap) {
-        return new Interpreter.ProcessInterrupter() {
-            @Override
-            public boolean onNodeProcess(Node node) {
-                //safety feature to stop all trigger immediately if executing on 'open' or 'click'
-                //  is still running after the inventory is closed.
-                if (e instanceof InventoryOpenEvent
-                        || e instanceof InventoryClickEvent) {
-                    Inventory inv = ((InventoryEvent) e).getInventory();
+    private ProcessInterrupter.Builder appendCooldownInterrupter(ProcessInterrupter.Builder builder, Map<UUID, Long> cooldowns) {
+        return builder.perExecutor(((context, command, args) -> {
+            if ("COOLDOWN".equalsIgnoreCase(command)) {
+                if (!(args[0] instanceof Number))
+                    throw new RuntimeException(args[0] + " is not a number!");
 
-                    //it's not GUI so stop execution
-                    return !inventoryMap.containsKey(BukkitTriggerReactorCore.getWrapper().wrap(inv));
+                if (context.getTriggerCause() instanceof PlayerEvent) {
+                    long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
+                    Player player = ((PlayerEvent) context.getTriggerCause()).getPlayer();
+                    UUID uuid = player.getUniqueId();
+                    cooldowns.put(uuid, System.currentTimeMillis() + mills);
                 }
-
-                return false;
+                return true;
             }
 
-            @Override
-            public boolean onCommand(Object context, String command, Object[] args) {
-                if ("CALL".equalsIgnoreCase(command)) {
-                    if (args.length < 1)
-                        throw new RuntimeException("Need parameter [String] or [String, boolean]");
-
-                    if (args[0] instanceof String) {
-                        Trigger trigger = core.getNamedTriggerManager().get((String) args[0]);
-                        if (trigger == null)
-                            throw new RuntimeException("No trigger found for Named Trigger " + args[0]);
-
-                        if (args.length > 1 && args[1] instanceof Boolean) {
-                            trigger.setSync((boolean) args[1]);
-                        } else {
-                            trigger.setSync(true);
-                        }
-
-                        if (trigger.isSync()) {
-                            trigger.activate(e, interpreter.getVars());
-                        } else {//use snapshot to avoid concurrent modification
-                            trigger.activate(e, new HashMap<>(interpreter.getVars()));
-                        }
-
-                        return true;
-                    } else {
-                        throw new RuntimeException("Parameter type not match; it should be a String."
-                                + " Make sure to put double quotes, if you provided String literal.");
-                    }
-                } else if ("CANCELEVENT".equalsIgnoreCase(command)) {
-                    if (!interpreter.isSync())
-                        throw new RuntimeException("CANCELEVENT is illegal in async mode!");
-
-                    if (context instanceof Cancellable) {
-                        ((Cancellable) context).setCancelled(true);
-                        return true;
-                    } else {
-                        throw new RuntimeException(context + " is not a Cancellable event!");
-                    }
-                } else if ("COOLDOWN".equalsIgnoreCase(command)) {
-                    if (!(args[0] instanceof Number))
-                        throw new RuntimeException(args[0] + " is not a number!");
-
-                    if (e instanceof PlayerEvent) {
-                        long mills = (long) (((Number) args[0]).doubleValue() * 1000L);
-                        Player player = ((PlayerEvent) e).getPlayer();
-                        UUID uuid = player.getUniqueId();
-                        cooldowns.put(uuid, System.currentTimeMillis() + mills);
-                    }
-                    return true;
-                }
-
-                return false;
-            }
-
-            @Override
-            public Object onPlaceholder(Object context, String placeholder, Object[] args) {
-//                if("cooldown".equals(placeholder)){
-//                    if(e instanceof PlayerEvent){
-//                        return cooldowns.getOrDefault(((PlayerEvent) e).getPlayer().getUniqueId(), 0L);
-//                    }else{
-//                        return 0L;
-//                    }
-//                }else{
-//                    return null;
+            return false;
+        })).perPlaceholder((context, placeholder, args) -> {
+//            if ("cooldown".equals(placeholder)) {
+//                if (context.getTriggerCause() instanceof PlayerEvent) {
+//                    return cooldowns.getOrDefault(((PlayerEvent) context.getTriggerCause()).getPlayer().getUniqueId(), 0L);
+//                } else {
+//                    return 0;
 //                }
-                return null;
-            }
+//            }
+            return null;
+        });
+    }
 
-        };
+    public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
+        return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns)
+                .build();
+    }
+
+    public ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
+                                                      Map<IInventory, InventoryTrigger> inventoryMap) {
+        return appendCooldownInterrupter(newInterrupterBuilder(), cooldowns)
+                .perNode((context, node) -> {
+                    //safety feature to stop all trigger immediately if executing on 'open' or 'click'
+                    //  is still running after the inventory is closed.
+                    if (context.getTriggerCause() instanceof InventoryOpenEvent
+                            || context.getTriggerCause() instanceof InventoryClickEvent) {
+                        Inventory inv = ((InventoryEvent) context.getTriggerCause()).getInventory();
+
+                        //it's not GUI so stop execution
+                        return !inventoryMap.containsKey(BukkitTriggerReactorCore.getWrapper().wrap(inv));
+                    }
+
+                    return false;
+                })
+                .build();
     }
 
     public IPlayer extractPlayerFromContext(Object e) {
@@ -664,6 +600,19 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
             scriptEngineManager = new ScriptEngineManager();
 
         return scriptEngineManager;
+    }
+
+    public Iterable<IWorld> getWorlds() {
+        return Bukkit.getWorlds().stream()
+                .map(BukkitTriggerReactorCore.WRAPPER::wrap)
+                .collect(Collectors.toList());
+    }
+
+    public IWorld getWorld(String world) {
+        return Optional.ofNullable(world)
+                .map(Bukkit::getWorld)
+                .map(BukkitTriggerReactorCore.WRAPPER::wrap)
+                .orElse(null);
     }
 
     public class MysqlSupport {

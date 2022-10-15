@@ -107,6 +107,7 @@ public class Validator {
     private static final ValidationOptions validationOptions = new ValidationOptionsBuilder()
             .addOption(new MinimumOption(), "minimum")
             .addOption(new MaximumOption(), "maximum")
+            .addOption(new MatchesOption(), "matches")
             .addOption(new NameOption(), "name")
             .addOption(new TypeOption(), "type")
             .build();
