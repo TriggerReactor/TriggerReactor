@@ -17,15 +17,17 @@
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.bridge.AbstractBukkitWrapper;
+import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
-import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
+import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
@@ -79,6 +81,7 @@ import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Abstract class to reduce writing boilerplate codes in latest and legacy bukkit project.
@@ -97,7 +100,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private ExecutorManager executorManager;
     private PlaceholderManager placeholderManager;
     private AbstractScriptEditManager scriptEditManager;
-    private AbstractPlayerLocationManager locationManager;
+    private PlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AreaSelectionManager selectionManager;
     private InventoryEditManager invEditManager;
@@ -139,7 +142,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractPlayerLocationManager getLocationManager() {
+    public PlayerLocationManager getLocationManager() {
         return locationManager;
     }
 
@@ -507,6 +510,70 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
         return bukkit.getMysqlHelper();
     }
 
+    @Override
+    public Iterable<IPlayer> getOnlinePlayers() {
+        return BukkitUtil.getOnlinePlayers().stream()
+                .map(BukkitPlayer::new)
+                .collect(Collectors.toList());
+    }
+
+    private void initScriptEngine(ScriptEngineManager sem) {
+        sem.put("plugin", this);
+
+        for (Entry<String, AbstractAPISupport> entry : this.getSharedVars().entrySet()) {
+            sem.put(entry.getKey(), entry.getValue());
+        }
+
+        sem.put("get", new Function<String, Object>() {
+            @Override
+            public Object apply(String t) {
+                return getVariableManager().get(t);
+            }
+        });
+
+        sem.put("put", new BiFunction<String, Object, Void>() {
+            @Override
+            public Void apply(String a, Object b) {
+                if (!GlobalVariableManager.isValidName(a))
+                    throw new RuntimeException("[" + a + "] cannot be used as key");
+
+                if (a != null && b == null) {
+                    getVariableManager().remove(a);
+                } else {
+                    try {
+                        getVariableManager().put(a, b);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Executor -- put(" + a + "," + b + ")", e);
+                    }
+                }
+
+                return null;
+            }
+        });
+
+        sem.put("has", new Function<String, Boolean>() {
+            @Override
+            public Boolean apply(String t) {
+                return getVariableManager().has(t);
+            }
+        });
+    }
+
+    private void initFailed(Exception e) {
+        e.printStackTrace();
+        getLogger().severe("Initialization failed!");
+        getLogger().severe(e.getMessage());
+        disablePlugin();
+    }
+
+    public void onCoreDisable(AbstractJavaPlugin plugin) {
+        super.onCoreDisable();
+
+        getLogger().info("Finalizing the scheduled script executions...");
+        CACHED_THREAD_POOL.shutdown();
+        getLogger().info("Shut down complete!");
+    }
+
     public void onCoreEnable(AbstractJavaPlugin plugin) {
         Thread.currentThread().setContextClassLoader(plugin.getClass().getClassLoader());
         this.bukkit = plugin;
@@ -584,7 +651,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
         // managers
         scriptEditManager = new ScriptEditManager(this);
-        locationManager = new PlayerLocationManager(this);
+        locationManager = new PlayerLocationManager(this, this);
         permissionManager = new PermissionManager(this);
         selectionManager = new AreaSelectionManager(this);
 
@@ -603,6 +670,8 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
                                                              inventoryHandle,
                                                              this);
         // listeners
+        bukkit.registerEvents(new PlayerLocationListener(locationManager));
+
         bukkit.registerEvents(new ClickTriggerListener(clickManager));
         bukkit.registerEvents(new WalkTriggerListener(walkManager));
         bukkit.registerEvents(new InventoryTriggerListener(invManager));
@@ -638,63 +707,6 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
 
             }
         }.start();
-    }
-
-    private void initScriptEngine(ScriptEngineManager sem) {
-        sem.put("plugin", this);
-
-        for (Entry<String, AbstractAPISupport> entry : this.getSharedVars().entrySet()) {
-            sem.put(entry.getKey(), entry.getValue());
-        }
-
-        sem.put("get", new Function<String, Object>() {
-            @Override
-            public Object apply(String t) {
-                return getVariableManager().get(t);
-            }
-        });
-
-        sem.put("put", new BiFunction<String, Object, Void>() {
-            @Override
-            public Void apply(String a, Object b) {
-                if (!GlobalVariableManager.isValidName(a))
-                    throw new RuntimeException("[" + a + "] cannot be used as key");
-
-                if (a != null && b == null) {
-                    getVariableManager().remove(a);
-                } else {
-                    try {
-                        getVariableManager().put(a, b);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Executor -- put(" + a + "," + b + ")", e);
-                    }
-                }
-
-                return null;
-            }
-        });
-
-        sem.put("has", new Function<String, Boolean>() {
-            @Override
-            public Boolean apply(String t) {
-                return getVariableManager().has(t);
-            }
-        });
-    }
-
-    private void initFailed(Exception e) {
-        e.printStackTrace();
-        getLogger().severe("Initialization failed!");
-        getLogger().severe(e.getMessage());
-        disablePlugin();
-    }
-
-    public void onCoreDisable(AbstractJavaPlugin plugin) {
-        super.onCoreDisable();
-
-        getLogger().info("Finalizing the scheduled script executions...");
-        CACHED_THREAD_POOL.shutdown();
-        getLogger().info("Shut down complete!");
     }
 
     protected static AbstractBukkitWrapper WRAPPER = null;
