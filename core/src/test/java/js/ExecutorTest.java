@@ -17,7 +17,7 @@
 
 package js;
 
-import io.github.wysohn.triggerreactor.core.manager.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;

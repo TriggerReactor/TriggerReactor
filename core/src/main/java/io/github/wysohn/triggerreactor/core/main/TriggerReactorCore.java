@@ -69,7 +69,7 @@ import java.util.regex.Pattern;
  * @author wysohn
  */
 public abstract class TriggerReactorCore
-        implements TaskSupervisor, IGameStateSupervisor, IPluginManagement, IGameManagement {
+        implements TaskSupervisor, IPluginManagement, IGameManagement {
     public static final String PERMISSION = "triggerreactor.admin";
     static TriggerReactorCore instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();

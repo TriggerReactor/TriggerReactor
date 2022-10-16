@@ -1,27 +1,27 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.IGameStateSupervisor;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 
 public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
     TaskSupervisor task;
-    IGameStateSupervisor gameState;
+    IGameManagement gameState;
 
     protected Map<SimpleChunkLocation, Map<Area, AreaTrigger>> areaTriggersByLocation = new ConcurrentHashMap<>();
 
@@ -57,7 +57,13 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
 
     public AreaTriggerManager(TriggerReactorCore plugin,
                               TaskSupervisor task,
-                              IGameStateSupervisor gameState,
+                              IGameManagement gameState) {
+        this(plugin, task, gameState, new AreaTriggerLoader(plugin));
+    }
+
+    public AreaTriggerManager(TriggerReactorCore plugin,
+                              TaskSupervisor task,
+                              IGameManagement gameState,
                               ITriggerLoader<AreaTrigger> loader) {
         super(plugin, concatPath(plugin.getDataFolder(), FOLDER_NAME), loader);
 
@@ -184,12 +190,6 @@ public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaT
         referenceCleaningThread.setName("AbstractAreaTriggerManager -- ReferenceCleaningThread");
         referenceCleaningThread.setDaemon(true);
         referenceCleaningThread.start();
-    }
-
-    public AreaTriggerManager(TriggerReactorCore plugin,
-                              TaskSupervisor task,
-                              IGameStateSupervisor gameState){
-        this(plugin, task, gameState, new AreaTriggerLoader(plugin));
     }
 
     protected synchronized void onEntityBlockMoveAsync(IEntity entity, SimpleLocation from, SimpleLocation current) {

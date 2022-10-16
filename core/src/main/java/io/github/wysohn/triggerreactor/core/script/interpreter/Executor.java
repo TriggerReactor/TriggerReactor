@@ -16,7 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.manager.IEvaluable;
+import io.github.wysohn.triggerreactor.core.manager.evaluable.IEvaluable;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;

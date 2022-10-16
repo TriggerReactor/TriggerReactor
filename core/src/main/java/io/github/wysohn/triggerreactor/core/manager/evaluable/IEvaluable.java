@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.manager;
+package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;

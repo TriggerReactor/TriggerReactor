@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.wysohn.triggerreactor.core.manager;
+package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
-import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.script.ScriptEngine;
@@ -27,12 +27,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class JSExecutor extends Evaluable<Integer> implements Executor {
-    public JSExecutor(String executorName, ScriptEngine engine, File file) throws ScriptException, IOException {
-        this(executorName, engine, new FileInputStream(file));
+public class JSPlaceholder extends Evaluable<Object> implements Placeholder {
+    public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException,
+            IOException {
+        this(placeholderName, engine, new FileInputStream(file));
     }
 
-    public JSExecutor(String executorName, ScriptEngine engine, InputStream file) throws ScriptException, IOException {
-        super("#", "Executors", executorName, FileUtil.readFromStream(file), engine);
+    public JSPlaceholder(String placeholderName, ScriptEngine engine, InputStream file) throws ScriptException,
+            IOException {
+        super("$", "Placeholders", placeholderName, FileUtil.readFromStream(file), engine);
     }
 }

@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.core.main;
 
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 
 /**
@@ -32,4 +33,8 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
  */
 public interface IGameManagement {
     Iterable<IPlayer> getOnlinePlayers();
+
+    Iterable<IWorld> getWorlds();
+
+    IWorld getWorld(String world);
 }

@@ -17,14 +17,15 @@
 package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
-import io.github.wysohn.triggerreactor.tools.FileUtil;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 
-import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.*;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -123,15 +124,4 @@ public class PlaceholderManager
 
     private static final String JAR_FOLDER_LOCATION = "Placeholder";
 
-    public static class JSPlaceholder extends Evaluable<Object> implements Placeholder {
-        public JSPlaceholder(String placeholderName, ScriptEngine engine, File file) throws ScriptException,
-                IOException {
-            this(placeholderName, engine, new FileInputStream(file));
-        }
-
-        public JSPlaceholder(String placeholderName, ScriptEngine engine, InputStream file) throws ScriptException,
-                IOException {
-            super("$", "Placeholders", placeholderName, FileUtil.readFromStream(file), engine);
-        }
-    }
 }
