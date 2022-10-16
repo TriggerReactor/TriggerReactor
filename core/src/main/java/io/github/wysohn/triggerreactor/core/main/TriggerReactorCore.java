@@ -91,7 +91,7 @@ public abstract class TriggerReactorCore
 
     public abstract PlaceholderManager getPlaceholderManager();
 
-    public abstract AbstractScriptEditManager getScriptEditManager();
+    public abstract ScriptEditManager getScriptEditManager();
 
     public abstract PlayerLocationManager getLocationManager();
 

@@ -1,19 +1,19 @@
-/*******************************************************************************
- *     Copyright (C) 2017 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.tools;
 
 import javax.script.ScriptException;
@@ -47,7 +47,7 @@ public class ScriptEditor {
         }
     }
 
-    public void printScript(ScriptEditorUser conversable) {
+    public void printScript(User conversable) {
         clearScreen(conversable);
         printHeader(conversable);
         printSource(conversable);
@@ -56,26 +56,18 @@ public class ScriptEditor {
 
     private final int separatorSize = 60;
 
-    private void printSeparator(ScriptEditorUser conversable) {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < separatorSize; i++) {
-            builder.append('-');
-        }
-        conversable.sendMessage("&7" + builder.toString());
-    }
-
-    private void clearScreen(ScriptEditorUser conversable) {
+    private void clearScreen(User conversable) {
         for (int i = 0; i < 40; i++) {
             conversable.sendMessage("");
         }
     }
 
-    private void printHeader(ScriptEditorUser conversable) {
+    private void printHeader(User conversable) {
         conversable.sendMessage("&dsave&8, &dexit &9" + title);
         printSeparator(conversable);
     }
 
-    private void printSource(ScriptEditorUser conversable) {
+    private void printSource(User conversable) {
         String[] display = new String[16];
 
         int j = 0;
@@ -87,9 +79,17 @@ public class ScriptEditor {
             conversable.sendMessage(dis == null ? "" : dis);
     }
 
-    private void printFooter(ScriptEditorUser conversable) {
+    private void printFooter(User conversable) {
         printSeparator(conversable);
         conversable.sendMessage("&du <lines>&8, &dd <lines>&8, &dil&8, &ddl");
+    }
+
+    private void printSeparator(User conversable) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < separatorSize; i++) {
+            builder.append('-');
+        }
+        conversable.sendMessage("&7" + builder.toString());
     }
 
     public void save() throws IOException, ScriptException {
@@ -164,7 +164,7 @@ public class ScriptEditor {
         return builder.toString();
     }
 
-    public interface ScriptEditorUser {
+    public interface User {
         void sendMessage(String rawMessage);
     }
 

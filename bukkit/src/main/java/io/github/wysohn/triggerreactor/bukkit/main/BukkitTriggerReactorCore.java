@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.manager.AreaSelectionListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.PermissionManager;
 import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationListener;
-import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditManager;
+import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
@@ -99,7 +99,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     private Lag tpsHelper;
     private ExecutorManager executorManager;
     private PlaceholderManager placeholderManager;
-    private AbstractScriptEditManager scriptEditManager;
+    private ScriptEditManager scriptEditManager;
     private PlayerLocationManager locationManager;
     private AbstractPermissionManager permissionManager;
     private AreaSelectionManager selectionManager;
@@ -137,7 +137,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
     }
 
     @Override
-    public AbstractScriptEditManager getScriptEditManager() {
+    public ScriptEditManager getScriptEditManager() {
         return scriptEditManager;
     }
 
@@ -670,6 +670,7 @@ public class BukkitTriggerReactorCore extends TriggerReactorCore implements Plug
                                                              inventoryHandle,
                                                              this);
         // listeners
+        bukkit.registerEvents(new ScriptEditListener(scriptEditManager));
         bukkit.registerEvents(new PlayerLocationListener(locationManager));
 
         bukkit.registerEvents(new ClickTriggerListener(clickManager));
