@@ -11,11 +11,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ayltai/setup-graalvm@v1
+      - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: 16
-          graalvm-version: 21.1.0
-          native-image: true
+          version: 'latest'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test in windows environment
         run: ./gradlew test
@@ -25,11 +26,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: ayltai/setup-graalvm@v1
+      - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: 16
-          graalvm-version: 21.1.0
-          native-image: true
+          version: 'latest'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test in ubuntu environment
         run: ./gradlew test
