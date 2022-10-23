@@ -16,19 +16,102 @@
  *******************************************************************************/
 package io.github.wysohn.triggerreactor.core.manager;
 
+import io.github.wysohn.triggerreactor.core.bridge.IBlock;
+import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 
 import java.util.*;
+import java.util.function.Consumer;
 
-public abstract class AbstractAreaSelectionManager extends Manager {
+public final class AreaSelectionManager extends Manager {
     protected final Set<UUID> selecting = new HashSet<>();
     protected final Map<UUID, SimpleLocation> leftPosition = new HashMap<>();
     protected final Map<UUID, SimpleLocation> rightPosition = new HashMap<>();
 
-    public AbstractAreaSelectionManager(TriggerReactorCore plugin) {
+    public AreaSelectionManager(TriggerReactorCore plugin) {
         super(plugin);
+    }
+
+    @Override
+    public void reload() {
+
+    }
+
+    @Override
+    public void saveAll() {
+
+    }
+
+    public boolean isSelecting(UUID uuid) {
+        return selecting.contains(uuid);
+    }
+
+    public SimpleLocation getLeftPosition(UUID uuid) {
+        return leftPosition.get(uuid);
+    }
+
+    public SimpleLocation getRightPosition(UUID uuid) {
+        return rightPosition.get(uuid);
+    }
+
+    /**
+     * Handle interaction events on blocks for area selection.
+     *
+     * @param player        the player who interacted with the block
+     * @param leftHandClick true if the player clicked with left hand. This is something
+     *                      introduced after MC 1.8 that every interaction is considered
+     *                      for both left and right hand, so this is needed to determine
+     *                      which hand the player clicked with. If the MC version is lower
+     *                      than 1.8, then there is only one hand, so this value is not so relevant.
+     * @param eventCanceler callback that directly cancels the cancellable event.
+     * @param clickedBlock  the block that the player clicked
+     * @param action        the action that the player did on the block
+     * @deprecated This is event handler. Must only be called from listeners or tests.
+     */
+    @Deprecated
+    public void onInteract(IPlayer player,
+                           boolean leftHandClick,
+                           Consumer<Boolean> eventCanceler,
+                           IBlock clickedBlock,
+                           AreaSelectionManager.ClickAction action) {
+        UUID uuid = player.getUniqueId();
+        if (!isSelecting(uuid))
+            return;
+
+        eventCanceler.accept(true);
+        if (!leftHandClick)
+            return;
+
+        SimpleLocation sloc = clickedBlock.getLocation().toSimpleLocation();
+
+        AreaSelectionManager.ClickResult result = null;
+        if (action != null)
+            result = onClick(action, uuid, sloc);
+
+        if (result != null) {
+            switch (result) {
+                case DIFFERENTWORLD:
+                    player.sendMessage("&cPositions have different world name.");
+                    break;
+                case COMPLETE:
+                    SimpleLocation left = getLeftPosition(uuid);
+                    SimpleLocation right = getRightPosition(uuid);
+
+                    SimpleLocation smallest = AreaSelectionManager.getSmallest(left, right);
+                    SimpleLocation largest = AreaSelectionManager.getLargest(left, right);
+
+                    player.sendMessage("&dSmallest: " + smallest + " , Largest: " + largest);
+                    break;
+                case LEFTSET:
+                    player.sendMessage("&aLeft ready");
+                    break;
+                case RIGHTSET:
+                    player.sendMessage("&aRight ready");
+                    break;
+            }
+        }
     }
 
     /**
@@ -39,11 +122,11 @@ public abstract class AbstractAreaSelectionManager extends Manager {
      * @param right coordinate 2
      * @return the smallest between two
      */
-    protected static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
+    public static SimpleLocation getSmallest(SimpleLocation left, SimpleLocation right) {
         return new SimpleLocation(left.getWorld(),
-                Math.min(left.getX(), right.getX()),
-                Math.min(left.getY(), right.getY()),
-                Math.min(left.getZ(), right.getZ()));
+                                  Math.min(left.getX(), right.getX()),
+                                  Math.min(left.getY(), right.getY()),
+                                  Math.min(left.getZ(), right.getZ()));
     }
 
     /**
@@ -54,11 +137,11 @@ public abstract class AbstractAreaSelectionManager extends Manager {
      * @param right coordinate 2
      * @return the largest between two
      */
-    protected static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
+    public static SimpleLocation getLargest(SimpleLocation left, SimpleLocation right) {
         return new SimpleLocation(right.getWorld(),
-                Math.max(left.getX(), right.getX()),
-                Math.max(left.getY(), right.getY()),
-                Math.max(left.getZ(), right.getZ()));
+                                  Math.max(left.getX(), right.getX()),
+                                  Math.max(left.getY(), right.getY()),
+                                  Math.max(left.getZ(), right.getZ()));
     }
 
     /**
@@ -69,8 +152,10 @@ public abstract class AbstractAreaSelectionManager extends Manager {
      * @param uuid   the uuid of player
      * @param sloc   location where interaction occurred
      * @return the result as {@link ClickResult}
+     * @deprecated Event handler. Must only be used by listeners or tests.
      */
-    protected ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
+    @Deprecated
+    public ClickResult onClick(ClickAction action, UUID uuid, SimpleLocation sloc) {
         if (action == ClickAction.LEFT_CLICK_BLOCK) {
             leftPosition.put(uuid, sloc);
         } else if (action == ClickAction.RIGHT_CLICK_BLOCK) {

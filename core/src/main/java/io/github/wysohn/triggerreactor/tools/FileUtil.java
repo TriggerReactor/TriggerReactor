@@ -1,23 +1,24 @@
-/*******************************************************************************
- *     Copyright (C) 2017 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.tools;
 
 import java.io.*;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 
@@ -63,7 +64,7 @@ public class FileUtil {
 
         StringBuilder builder = new StringBuilder();
         try (FileInputStream fis = new FileInputStream(file);
-             InputStreamReader isr = new InputStreamReader(fis, "UTF-8")) {
+             InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
             int read = -1;
             while ((read = isr.read()) != -1) {
                 builder.append((char) read);
@@ -74,7 +75,7 @@ public class FileUtil {
 
     public static String readFromStream(InputStream stream) throws UnsupportedEncodingException, IOException {
         StringBuilder builder = new StringBuilder();
-        try (InputStreamReader isr = new InputStreamReader(stream, "UTF-8")) {
+        try (InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
             int read = -1;
             while ((read = isr.read()) != -1) {
                 builder.append((char) read);

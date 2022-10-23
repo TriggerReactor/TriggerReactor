@@ -1,24 +1,24 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.bukkit.tools.prompts;
 
-import io.github.wysohn.triggerreactor.core.manager.AbstractScriptEditManager;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.tools.ScriptEditor;
-import io.github.wysohn.triggerreactor.tools.ScriptEditor.ScriptEditorUser;
+import io.github.wysohn.triggerreactor.tools.ScriptEditor.User;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.conversations.Conversable;
@@ -129,7 +129,7 @@ public class EditingPrompt implements Prompt, Listener {
             return;
 
         e.getTabCompletions().clear();
-        e.getTabCompletions().add(AbstractScriptEditManager.parseSpaceToMarker(editor.getLine()));
+        e.getTabCompletions().add(ScriptEditManager.parseSpaceToMarker(editor.getLine()));
     }
 
     @EventHandler
@@ -140,7 +140,7 @@ public class EditingPrompt implements Prompt, Listener {
         HandlerList.unregisterAll(this);
     }
 
-    private static class BukkitScriptEditorUser implements ScriptEditorUser {
+    private static class BukkitScriptEditorUser implements User {
         private final Conversable conv;
 
         public BukkitScriptEditorUser(Conversable conv) {
