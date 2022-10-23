@@ -29,13 +29,10 @@ var validation = {
 
 function lore(args) {
   var item = args[0];
-
   var itemMeta = item.getItemMeta();
 
-  if (!itemMeta)
+  if (!item.hasItemMeta() || !itemMeta.hasLore())
     return '';
 
-  var lores = itemMeta.getLore();
-  
-  return JavaString.join('\n', lores);
+  return JavaString.join('\n', itemMeta.getLore());
 }

@@ -16,19 +16,16 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var Material = Java.type('org.bukkit.Material');
+
 function helditemdisplayname(args) {
   if (!player)
     throw new Error('Player is null.');
 
   var item = player.getItemInHand();
 
-  if (!item)
+  if (item.getType() === Material.AIR || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName())
     return '';
 
-  var meta = item.getItemMeta();
-
-  if (!meta || !meta.getDisplayName())
-    return '';
-
-  return meta.getDisplayName();
+  return item.getItemMeta().getDisplayName();
 }

@@ -19,10 +19,5 @@ function helditemid(args) {
   if (!player)
     throw new Error('Player is null.');
 
-  var item = player.getItemInHand();
-
-  if (!item)
-    return -1;
-
-  return item.getType().getId();
+  return player.getItemInHand().getType().getId();
 }

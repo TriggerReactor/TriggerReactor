@@ -31,10 +31,7 @@ function name(args) {
 
   var itemMeta = item.getItemMeta();
 
-  if (!itemMeta)
-    return item.getType().name().toLowerCase();
-
-  if (!itemMeta.hasDisplayName())
+  if (!itemMeta || !itemMeta.hasDisplayName())
     return item.getType().name().toLowerCase();
 
   return itemMeta.getDisplayName();

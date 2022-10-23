@@ -17,16 +17,10 @@
  *******************************************************************************/
 
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
-var Material = Java.type('org.bukkit.Material')
 
 function helditem(args) {
   if (!player)
     throw new Error('Player is null.');
 
-  var item = player.getInventory().getItemInHand();
-
-  if (!item)
-    item = new ItemStack(Material.AIR);
-
-  return item;
+  return player.getInventory().getItemInHand();
 }

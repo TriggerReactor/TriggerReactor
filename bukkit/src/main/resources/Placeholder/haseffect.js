@@ -33,7 +33,6 @@ function haseffect(args) {
   var effect = args[0];
 
   var type = PotionEffectType.getByName(effect);
-
   if (!type)
     throw new Error(effect+' is not a valid PotionEffectType!');
 

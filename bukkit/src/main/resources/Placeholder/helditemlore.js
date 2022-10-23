@@ -29,9 +29,6 @@ function helditemlore(args) {
     throw new Error('Player is null.');
 
   var item = player.getItemInHand();
-  if (!item)
-    return '';
-
   var itemMeta = item.getItemMeta();
   if (!itemMeta)
     return '';

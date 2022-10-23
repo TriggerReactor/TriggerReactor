@@ -16,7 +16,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-function playerloc(args) {
+function playerlocexact(args) {
     if (!player)
         throw new Error('Player is null.');
 

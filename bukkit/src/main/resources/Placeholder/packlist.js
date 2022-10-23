@@ -16,6 +16,8 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var Arrays = Java.type('java.util.Arrays')
+
 function packlist(args) {
   var type;
   var values = []
@@ -30,15 +32,9 @@ function packlist(args) {
     throw new Error('$packlist placeholder should have at least 1 arguments!')
   }
 
-  if (args.length >= 2) {
-    var iter = args.slice(1).iterator();
-
-    while (iter.hasNext()) {
-      var value = iter.next();
-
-      values.push(value);
-    }
-  }
+  if (args.length >= 2)
+    for (var i = 1; i < args.length; i++)
+      values.push(args[i]);
 
   return Java.to(values, 'java.lang.'+type+'[]');
 }

@@ -36,9 +36,6 @@ function helditemhasenchant(args) {
 
   var item = player.getItemInHand();
 
-  if (!item)
-    return false;
-
   var enchantmentStr = args[0];
 
   var enchantment = Enchantment.getByName(enchantmentStr.toUpperCase());
