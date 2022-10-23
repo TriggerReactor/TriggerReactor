@@ -14,31 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.bridge;
 
+package io.github.wysohn.triggerreactor.core.main;
+
+import io.github.wysohn.triggerreactor.core.bridge.IWorld;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.tools.memento.IStateManageable;
 
 /**
- * For the sake of InventoryTrigger support, all child classes must override hashCode() and equals()
- * method out of the actual Inventory class.
- *
- * @author wysohn
+ * This interface provides methods to manage various game related things.
+ * <p>
+ * For example, this interface can be used to spawn an entity, change the time of
+ * the day, etc.
+ * <p>
+ * But this is not the place to manage other things such as permissions, commands, etc.
+ * that are not directly related to the natural behavior of the game. If you are confused,
+ * as yourself "Is this exist even without the plugin?" If the answer is no, then this
+ * is not the place to put it.
  */
-public interface IInventory extends IMinecraftObject, IStateManageable {
+public interface IGameManagement {
+    Iterable<IPlayer> getOnlinePlayers();
 
-    @Override
-    int hashCode();
+    Iterable<IWorld> getWorlds();
 
-    @Override
-    boolean equals(Object obj);
-
-    void open(IPlayer player);
-
-    IItemStack getItem(int slot);
-
-    void setItem(int slot, IItemStack item);
-
-    int getSize();
-
+    IWorld getWorld(String world);
 }

@@ -1,19 +1,19 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -41,7 +41,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class Interpreter {
     private final Node root;
@@ -582,6 +581,207 @@ public class Interpreter {
     }
 
     /**
+     * Warning) Most of the executors are not depending on the state of the Interpreter,
+     * so most of them can be in the GlobalInterpreterContext and be shared with other
+     * Interpreter executions. But #WAIT is a little bit different.
+     * <p>
+     * Since it holds the monitor of the Interpreter in WAITING state, #WAIT executor has
+     * to be unique instance per each Interpreter. Therefore, #WAIT must be existing
+     * individually per Interpreter and should not be shared with other Interpreter
+     * instances.
+     */
+    private final Executor EXECUTOR_WAIT = new Executor() {
+        @Override
+        public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object triggerCause, Object... args) {
+            if (globalContext.task.isServerThread()) {
+                throw new RuntimeException("WAIT is illegal in sync mode!");
+            }
+
+            if (args.length < 1)
+                throw new RuntimeException("Missing arguments [Decimal].");
+
+            if (!(args[0] instanceof Number))
+                throw new RuntimeException(args[0] + " is not a number!");
+
+            double secs = ((Number) args[0]).doubleValue();
+            long later = (long) (secs * 1000);
+            SynchronizableTask.runTaskLater(new Runnable() {
+                @Override
+                public void run() {
+                    synchronized (waitLock) {
+                        context.setWaitFlag(false);
+                        waitLock.notify();
+                    }
+                }
+            }, later);
+            return WAIT;
+        }
+    };
+
+    private void assignValue(Token id, Token value) throws InterpreterException {
+        if (id.type == Type.ACCESS) {
+            Accessor accessor = (Accessor) id.value;
+            try {
+                if (value.type == Type.NULLVALUE) {
+                    accessor.setTargetValue(null);
+                } else {
+                    if (isVariable(value)) {
+                        value = unwrapVariable(value);
+                    }
+
+                    accessor.setTargetValue(value.value);
+                }
+            } catch (NoSuchFieldException e) {
+                throw new InterpreterException("Unknown field " + id.value + "." + value.value);
+            } catch (Exception e) {
+                throw new InterpreterException("Unknown error ", e);
+            }
+        } else if (id.type == Type.GID || id.type == Type.GID_TEMP) {
+            if (value.type == Type.NULLVALUE) {
+                globalContext.gvars.remove(id.type == Type.GID
+                                                   ? id.value.toString()
+                                                   : new TemporaryGlobalVariableKey(id.value.toString()));
+            } else {
+                if (isVariable(value)) {
+                    value = unwrapVariable(value);
+                }
+
+                globalContext.gvars.put(
+                        id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()),
+                        value.value);
+            }
+        } else if (id.type == Type.ID) {
+            if (isVariable(value)) {
+                value = unwrapVariable(value);
+            }
+
+            context.getVars().put(id.value.toString(), value.value);
+        } else {
+            throw new InterpreterException(
+                    "Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
+        }
+    }
+
+    private void callFunction(Token right, Token left, Object[] args) throws InterpreterException {
+        Object result;
+
+        if (context.getImportMap().containsKey(right.value)) {
+            Class<?> clazz = context.getImportMap().get(right.value);
+
+            try {
+                result = ReflectionUtil.constructNew(clazz, args);
+            } catch (Exception e) {
+                throw new InterpreterException(
+                        "Cannot create new instance with " + right + " of " + clazz.getSimpleName(), e);
+            }
+        } else if (left.type == Type.CLAZZ) {
+            Class<?> clazz = (Class<?>) left.value;
+
+            try {
+                result = ReflectionUtil.invokeMethod(clazz, null, (String) right.value, args);
+            } catch (IllegalAccessException e) {
+                throw new InterpreterException("Function " + right + " is not visible.", e);
+            } catch (NoSuchMethodException e) {
+                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
+                                               e);
+            } catch (InvocationTargetException e) {
+                throw new InterpreterException("Error while executing fuction " + right, e);
+            } catch (IllegalArgumentException e) {
+                throw new InterpreterException(
+                        "Could not execute function " + right + " due to innapropriate arguments.", e);
+            }
+        } else {
+            try {
+                result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
+            } catch (IllegalAccessException e) {
+                throw new InterpreterException("Function " + right + " is not visible.", e);
+            } catch (NoSuchMethodException e) {
+                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
+                                               e);
+            } catch (InvocationTargetException e) {
+                throw new InterpreterException("Error while executing fuction " + right, e);
+            } catch (IllegalArgumentException e) {
+                throw new InterpreterException(
+                        "Could not execute function " + right + " due to innapropriate arguments.", e);
+            }
+        }
+
+        if (result != null) {
+            if (isPrimitive(result)) {
+                context.pushToken(new Token(Type.EPS, result, right));
+            } else {
+                context.pushToken(new Token(Type.OBJECT, result, right));
+            }
+        } else {
+            context.pushToken(new Token(Type.NULLVALUE, null, right));
+        }
+    }
+
+    private boolean isPrimitive(Object obj) {
+        return obj.getClass() == Boolean.class
+                || obj.getClass() == Integer.class
+                || obj.getClass() == Double.class
+                || obj.getClass() == String.class;
+    }
+
+    private boolean isVariable(Token token) {
+        return token.type == Type.ID
+                || token.type == Type.GID
+                || token.type == Type.GID_TEMP
+                || token.type == Type.ACCESS;
+    }
+
+    private Token unwrapVariable(Token varToken) throws InterpreterException {
+        if (varToken.type == Type.ID) {
+            if (context.getImportMap().containsKey(varToken.value)) {
+                Class<?> clazz = context.getImportMap().get(varToken.value);
+                return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
+            }
+
+            Object var = context.getVars().get(varToken.value);
+
+            return parseValue(var, varToken);
+        } else if (varToken.type == Type.GID) {
+            return parseValue(globalContext.gvars.get(varToken.value), varToken);
+        } else if (varToken.type == Type.GID_TEMP) {
+            return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)),
+                              varToken);
+        } else if (varToken.type == Type.ACCESS) {
+            Accessor accessor = (Accessor) varToken.value;
+            Object var;
+            try {
+                var = accessor.evaluateTarget();
+            } catch (NoSuchFieldException e) {
+                throw new InterpreterException("Unknown field " + accessor, e);
+            } catch (Exception e) {
+                throw new InterpreterException("Unknown error " + e.getMessage(), e);
+            }
+
+            return parseValue(var, varToken);
+        } else {
+            throw new InterpreterException("Unresolved id " + varToken);
+        }
+    }
+
+    private Token parseValue(Object var, Token origin) {
+        if (var == null) {
+            return new Token(Type.NULLVALUE, null, origin);
+        } else if (var.getClass() == Integer.class) {
+            return new Token(Type.INTEGER, var, origin);
+        } else if (var.getClass() == Double.class) {
+            return new Token(Type.DECIMAL, var, origin);
+        } else if (var.getClass() == String.class) {
+            return new Token(Type.STRING, var, origin);
+        } else if (var.getClass() == Boolean.class) {
+            return new Token(Type.BOOLEAN, var, origin);
+        } else if (var instanceof IScriptObject) {
+            return new Token(Type.OBJECT, ((IScriptObject) var).get(), origin);
+        } else {
+            return new Token(Type.OBJECT, var, origin);
+        }
+    }
+
+    /**
      * @param node
      * @return return codes in Executor. null if execution continues.
      * @throws InterpreterException
@@ -634,20 +834,20 @@ public class Interpreter {
                 if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context, command, args)) {
                     return null;
                 } else {
-                    if("WAIT".equalsIgnoreCase(command)){
-                        return EXECUTOR_WAIT.execute(context.getTiming(),
-                                context.getVars(),
-                                context.getTriggerCause(),
-                                args);
+                    if ("WAIT".equalsIgnoreCase(command)) {
+                        return EXECUTOR_WAIT.evaluate(context.getTiming(),
+                                                      context.getVars(),
+                                                      context.getTriggerCause(),
+                                                      args);
                     }
 
                     if (!globalContext.executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
-                    return globalContext.executorMap.get(command).execute(context.getTiming(),
-                            context.getVars(),
-                            context.getTriggerCause(),
-                            args);
+                    return globalContext.executorMap.get(command).evaluate(context.getTiming(),
+                                                                           context.getVars(),
+                                                                           context.getTriggerCause(),
+                                                                           args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -672,10 +872,10 @@ public class Interpreter {
                     throw new InterpreterException("No placeholder named $" + placeholderName + " found!");
 
                 if (replaced == null) {
-                    replaced = globalContext.placeholderMap.get(placeholderName).parse(context.getTiming(),
-                            context.getTriggerCause(),
-                            context.getVars(),
-                            args);
+                    replaced = globalContext.placeholderMap.get(placeholderName).evaluate(context.getTiming(),
+                                                                                          context.getVars(),
+                                                                                          context.getTriggerCause(),
+                                                                                          args);
                 }
 
                 if (replaced instanceof Number) {
@@ -1130,196 +1330,6 @@ public class Interpreter {
         return null;
     }
 
-    private void assignValue(Token id, Token value) throws InterpreterException {
-        if (id.type == Type.ACCESS) {
-            Accessor accessor = (Accessor) id.value;
-            try {
-                if (value.type == Type.NULLVALUE) {
-                    accessor.setTargetValue(null);
-                } else {
-                    if (isVariable(value)) {
-                        value = unwrapVariable(value);
-                    }
-
-                    accessor.setTargetValue(value.value);
-                }
-            } catch (NoSuchFieldException e) {
-                throw new InterpreterException("Unknown field " + id.value + "." + value.value);
-            } catch (Exception e) {
-                throw new InterpreterException("Unknown error ", e);
-            }
-        } else if (id.type == Type.GID || id.type == Type.GID_TEMP) {
-            if (value.type == Type.NULLVALUE) {
-                globalContext.gvars.remove(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()));
-            } else {
-                if (isVariable(value)) {
-                    value = unwrapVariable(value);
-                }
-
-                globalContext.gvars.put(id.type == Type.GID ? id.value.toString() : new TemporaryGlobalVariableKey(id.value.toString()), value.value);
-            }
-        } else if (id.type == Type.ID) {
-            if (isVariable(value)) {
-                value = unwrapVariable(value);
-            }
-
-            context.getVars().put(id.value.toString(), value.value);
-        } else {
-            throw new InterpreterException("Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
-        }
-    }
-
-    private void callFunction(Token right, Token left, Object[] args) throws InterpreterException {
-        Object result;
-
-        if (context.getImportMap().containsKey(right.value)) {
-            Class<?> clazz = context.getImportMap().get(right.value);
-
-            try {
-                result = ReflectionUtil.constructNew(clazz, args);
-            } catch (Exception e) {
-                throw new InterpreterException("Cannot create new instance with " + right + " of " + clazz.getSimpleName(), e);
-            }
-        } else if (left.type == Type.CLAZZ) {
-            Class<?> clazz = (Class<?>) left.value;
-
-            try {
-                result = ReflectionUtil.invokeMethod(clazz, null, (String) right.value, args);
-            } catch (IllegalAccessException e) {
-                throw new InterpreterException("Function " + right + " is not visible.", e);
-            } catch (NoSuchMethodException e) {
-                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.", e);
-            } catch (InvocationTargetException e) {
-                throw new InterpreterException("Error while executing fuction " + right, e);
-            } catch (IllegalArgumentException e) {
-                throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
-            }
-        } else {
-            try {
-                result = ReflectionUtil.invokeMethod(left.value, (String) right.value, args);
-            } catch (IllegalAccessException e) {
-                throw new InterpreterException("Function " + right + " is not visible.", e);
-            } catch (NoSuchMethodException e) {
-                throw new InterpreterException("Function " + right + " does not exist or parameter types not match.", e);
-            } catch (InvocationTargetException e) {
-                throw new InterpreterException("Error while executing fuction " + right, e);
-            } catch (IllegalArgumentException e) {
-                throw new InterpreterException("Could not execute function " + right + " due to innapropriate arguments.", e);
-            }
-        }
-
-        if (result != null) {
-            if (isPrimitive(result)) {
-                 context.pushToken(new Token(Type.EPS, result, right));
-            } else {
-                 context.pushToken(new Token(Type.OBJECT, result, right));
-            }
-        } else {
-             context.pushToken(new Token(Type.NULLVALUE, null, right));
-        }
-    }
-
-    private boolean isPrimitive(Object obj) {
-        return obj.getClass() == Boolean.class
-                || obj.getClass() == Integer.class
-                || obj.getClass() == Double.class
-                || obj.getClass() == String.class;
-    }
-
-    private boolean isVariable(Token token) {
-        return token.type == Type.ID
-                || token.type == Type.GID
-                || token.type == Type.GID_TEMP
-                || token.type == Type.ACCESS;
-    }
-
-    private Token unwrapVariable(Token varToken) throws InterpreterException {
-        if (varToken.type == Type.ID) {
-            if (context.getImportMap().containsKey(varToken.value)) {
-                Class<?> clazz = context.getImportMap().get(varToken.value);
-                return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
-            }
-
-            Object var = context.getVars().get(varToken.value);
-
-            return parseValue(var, varToken);
-        } else if (varToken.type == Type.GID) {
-            return parseValue(globalContext.gvars.get(varToken.value), varToken);
-        } else if (varToken.type == Type.GID_TEMP) {
-            return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)), varToken);
-        } else if (varToken.type == Type.ACCESS) {
-            Accessor accessor = (Accessor) varToken.value;
-            Object var;
-            try {
-                var = accessor.evaluateTarget();
-            } catch (NoSuchFieldException e) {
-                throw new InterpreterException("Unknown field " + accessor, e);
-            } catch (Exception e) {
-                throw new InterpreterException("Unknown error " + e.getMessage(), e);
-            }
-
-            return parseValue(var, varToken);
-        } else {
-            throw new InterpreterException("Unresolved id " + varToken);
-        }
-    }
-
-    private Token parseValue(Object var, Token origin) {
-        if (var == null) {
-            return new Token(Type.NULLVALUE, null, origin);
-        } else if (var.getClass() == Integer.class) {
-            return new Token(Type.INTEGER, var, origin);
-        } else if (var.getClass() == Double.class) {
-            return new Token(Type.DECIMAL, var, origin);
-        } else if (var.getClass() == String.class) {
-            return new Token(Type.STRING, var, origin);
-        } else if (var.getClass() == Boolean.class) {
-            return new Token(Type.BOOLEAN, var, origin);
-        } else if (var instanceof IScriptObject) {
-            return new Token(Type.OBJECT, ((IScriptObject) var).get(), origin);
-        } else {
-            return new Token(Type.OBJECT, var, origin);
-        }
-    }
-
-    /**
-     * Warning) Most of the executors are not depending on the state of the Interpreter,
-     * so most of them can be in the GlobalInterpreterContext and be shared with other
-     * Interpreter executions. But #WAIT is a little bit different.
-     * <p>
-     * Since it holds the monitor of the Interpreter in WAITING state, #WAIT executor has
-     * to be unique instance per each Interpreter. Therefore, #WAIT must be existing
-     * individually per Interpreter and should not be shared with other Interpreter
-     * instances.
-     */
-    private final Executor EXECUTOR_WAIT = new Executor() {
-        @Override
-        public Integer execute(Timings.Timing timing, Map<String, Object> vars, Object triggerCause, Object... args) {
-            if (globalContext.task.isServerThread()) {
-                throw new RuntimeException("WAIT is illegal in sync mode!");
-            }
-
-            if (args.length < 1)
-                throw new RuntimeException("Missing arguments [Decimal].");
-
-            if (!(args[0] instanceof Number))
-                throw new RuntimeException(args[0] + " is not a number!");
-
-            double secs = ((Number) args[0]).doubleValue();
-            long later = (long) (secs * 1000);
-            SynchronizableTask.runTaskLater(new Runnable() {
-                @Override
-                public void run() {
-                    synchronized (waitLock) {
-                        context.setWaitFlag(false);
-                        waitLock.notify();
-                    }
-                }
-            }, later);
-            return WAIT;
-        }
-    };
-
     public static void main(String[] ar) throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = null;" +
@@ -1333,8 +1343,8 @@ public class Interpreter {
         Map<String, Executor> executorMap = new HashMap<>();
         executorMap.put("TEST", new Executor() {
             @Override
-            public Integer execute(Timings.Timing timing, Map<String, Object> variables, Object e,
-                                   Object... args) throws Exception {
+            public Integer evaluate(Timings.Timing timing, Map<String, Object> variables, Object e,
+                                    Object... args) throws Exception {
                 return null;
             }
         });
