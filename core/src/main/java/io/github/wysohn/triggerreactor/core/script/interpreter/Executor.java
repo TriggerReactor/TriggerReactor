@@ -1,26 +1,27 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.manager.evaluable.IEvaluable;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.Map;
 
-public interface Executor extends SynchronizableTask {
+public interface Executor extends IEvaluable, SynchronizableTask {
     int STOP = 0;
     int WAIT = 1;
     int BREAK = 2;
@@ -34,6 +35,6 @@ public interface Executor extends SynchronizableTask {
      * @return usually null; return code to intercept execution
      * @throws Exception
      */
-    Integer execute(Timings.Timing timing, Map<String, Object> vars, Object context,
-                    Object... args) throws Exception;
+    Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
+                     Object... args) throws Exception;
 }

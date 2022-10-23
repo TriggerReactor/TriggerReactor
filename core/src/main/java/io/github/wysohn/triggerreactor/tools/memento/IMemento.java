@@ -14,25 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.manager;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+package io.github.wysohn.triggerreactor.tools.memento;
 
-public interface KeyValueManager<V> {
-
-    V get(Object key);
-
-    boolean containsKey(Object key);
-
-    Set<Entry<String, V>> entrySet();
-
-    /**
-     * Get the reference of actual map internally used.
-     *
-     * @return Map of key and value
-     */
-    Map<String, V> getBackedMap();
-
+public interface IMemento {
 }

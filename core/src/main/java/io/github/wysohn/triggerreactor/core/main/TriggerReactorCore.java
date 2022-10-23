@@ -1,19 +1,19 @@
-/***************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.main;
 
 import io.github.wysohn.triggerreactor.core.bridge.*;
@@ -68,13 +68,15 @@ import java.util.regex.Pattern;
  *
  * @author wysohn
  */
-public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSupervisor {
+public abstract class TriggerReactorCore
+        implements TaskSupervisor, IPluginManagement, IGameManagement {
     public static final String PERMISSION = "triggerreactor.admin";
     static TriggerReactorCore instance;
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private PluginConfigManager pluginConfigManager;
     private GlobalVariableManager globalVariableManager;
     private boolean debugging = false;
+
     protected TriggerReactorCore() {
         instance = this;
     }
@@ -85,17 +87,17 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract SelfReference getSelfReference();
 
-    public abstract AbstractExecutorManager getExecutorManager();
+    public abstract ExecutorManager getExecutorManager();
 
-    public abstract AbstractPlaceholderManager getPlaceholderManager();
+    public abstract PlaceholderManager getPlaceholderManager();
 
-    public abstract AbstractScriptEditManager getScriptEditManager();
+    public abstract ScriptEditManager getScriptEditManager();
 
-    public abstract AbstractPlayerLocationManager getLocationManager();
+    public abstract PlayerLocationManager getLocationManager();
 
     public abstract AbstractPermissionManager getPermissionManager();
 
-    public abstract AbstractAreaSelectionManager getSelectionManager();
+    public abstract AreaSelectionManager getSelectionManager();
 
     public abstract LocationBasedTriggerManager<ClickTrigger> getClickManager();
 
@@ -105,7 +107,28 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
     public abstract InventoryTriggerManager<? extends IInventory> getInvManager();
 
-    public abstract AbstractInventoryEditManager getInvEditManager();
+    /**
+     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
+     * interrupter to handle
+     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
+     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
+     * the Inventory was closed, it is the iterrupter's responsibility to do that.
+     *
+     * @param cooldowns    list of current cooldowns.
+     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class
+     *                     that implements
+     *                     IIventory should override hashCode() and equals() methods, you can assume that each
+     *                     IInventory instance represents one trigger
+     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object
+     *                     from the 'e' context and see if the Inventory
+     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager,
+     *                     closing the inventory should delete the IInventory
+     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in
+     *                     the 'inventoryMap.'
+     * @return
+     */
+    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
+                                                               Map<IInventory, InventoryTrigger> inventoryMap);
 
     public abstract AreaTriggerManager getAreaManager();
 
@@ -126,6 +149,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
     public GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
+
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
@@ -162,7 +186,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
         sender.sendMessage("&7-----     &6" + getPluginDescription() + "&7    ----");
         HELP_PAGES.get(page - 1).sendParagraph(sender);
         sender.sendMessage("");
-        sender.sendMessage("&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
+        sender.sendMessage(
+                "&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
 
     public abstract IInventoryHandle<?> getInventoryHandle();
@@ -179,7 +204,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
     protected abstract void sendCommandDesc(ICommandSender sender, String command, String desc);
 
     /**
-     * Send detail under the command. It is usually called after {@link #sendCommandDesc(ICommandSender, String, String)}
+     * Send detail under the command. It is usually called after
+     * {@link #sendCommandDesc(ICommandSender, String, String)}
      * to add more information or example about the command.
      *
      * @param sender sender to show description
@@ -395,123 +421,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
      * interrupter to handle
      * cooldowns, CALL executor, etc, that has to be processed during the iterpretation.
      *
-     * @param cooldowns   list of current cooldowns.
+     * @param cooldowns list of current cooldowns.
      * @return the interrupter created.
      */
     public abstract ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns);
-
-    /**
-     * Create ProcessInterrupter that will be used for the most of the Triggers. It is responsible for this
-     * interrupter to handle
-     * cooldowns, CALL executor, etc, that has to be processed during the interpretation.
-     * This method exists specifically for Inventory Trigger. As Inventory Trigger should stop at some point when
-     * the Inventory was closed, it is the iterrupter's responsibility to do that.
-     *
-     * @param cooldowns    list of current cooldowns.
-     * @param inventoryMap the inventory map that contains all the information about open inventories. As child class that implements
-     *                     IIventory should override hashCode() and equals() methods, you can assume that each IInventory instance represents one trigger
-     *                     that is running with the InventoryTrigger mapped. So it is ideal to get inventory object from the 'e' context and see if the Inventory
-     *                     object exists in the 'inventoryMap.' For the properly working InventoryTriggerManager, closing the inventory should delete the IInventory
-     *                     from the 'inventoryMap,' so you can safely assume that closed inventory will not exists in the 'inventoryMap.'
-     * @return
-     */
-    public abstract ProcessInterrupter createInterrupterForInv(Map<UUID, Long> cooldowns,
-                                                               Map<IInventory, InventoryTrigger> inventoryMap);
-
-    /**
-     * try to extract player from context 'e'.
-     *
-     * @param e Event for Bukkit API
-     * @return
-     */
-    public abstract IPlayer extractPlayerFromContext(Object e);
-
-    /**
-     * Run Callable on the server thread.
-     *
-     * @param call the callable
-     * @return the future object.
-     */
-    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
-
-    @Override
-    public <T> Future<T> submitSync(Callable<T> call) {
-        if (this.isServerThread()) {
-            return new Future<T>() {
-                private boolean done = false;
-
-                @Override
-                public boolean cancel(boolean arg0) {
-                    return false;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return false;
-                }
-
-                @Override
-                public boolean isDone() {
-                    return done;
-                }
-
-                @Override
-                public T get() throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-                @Override
-                public T get(long arg0, TimeUnit arg1)
-                        throws ExecutionException {
-                    T out = null;
-                    try {
-                        out = call.call();
-                        done = true;
-                    } catch (Exception e) {
-                        throw new ExecutionException(e);
-                    }
-                    return out;
-                }
-
-            };
-        } else {
-            return callSyncMethod(call);
-        }
-    }
-
-    @Override
-    public void submitAsync(Runnable run) {
-        new Thread(run).start();
-    }
-
-    /**
-     * Call event so that it can be heard by listeners
-     *
-     * @param event
-     */
-    public abstract void callEvent(IEvent event);
-
-    /**
-     * Check if the current Thread is the Server
-     *
-     * @return
-     */
-    public abstract boolean isServerThread();
-
-    /**
-     * extract useful custom variables manually from 'context'
-     *
-     * @param context
-     * @return
-     */
-    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
 
     public boolean onCommand(ICommandSender sender, String command, String[] args) {
         if (command.equalsIgnoreCase("triggerreactor")) {
@@ -520,8 +433,10 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
             if (!isEnabled()) {
                 sender.sendMessage("&cTriggerReactor is disabled. Check your latest.log to see why the plugin is not" +
-                        " loaded properly. If there was an error while loading, please report it through github issue" +
-                        " or our discord channel.");
+                                           " loaded properly. If there was an error while loading, please report it "
+                                           + "through github issue"
+                                           +
+                                           " or our discord channel.");
                 return true;
             }
 
@@ -587,13 +502,16 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         }
                     }
                     return true;
-                } else if (args.length > 1 && (args[0].equalsIgnoreCase("command") || args[0].equalsIgnoreCase("cmd"))) {
+                } else if (args.length > 1 && (args[0].equalsIgnoreCase("command")
+                        || args[0].equalsIgnoreCase("cmd"))) {
                     if (args.length == 3 && getCmdManager().has(args[1]) && args[2].equals("sync")) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
                         trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
-                        sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
+                        sender.sendMessage(
+                                "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
+                                        .isSync());
                         saveAsynchronously(getCmdManager());
                     } else if (args.length > 2 && getCmdManager().has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
@@ -668,20 +586,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                     } else if (getCmdManager().has(args[1])) {
                         Trigger trigger = getCmdManager().get(args[1]);
 
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                try {
-                                    trigger.setScript(script);
-                                } catch (Exception e) {
-                                    handleException(sender, e);
-                                }
+                        getScriptEditManager().startEdit(sender,
+                                                         trigger.getInfo().getTriggerName(),
+                                                         trigger.getScript(),
+                                                         new SaveHandler() {
+                                                             @Override
+                                                             public void onSave(String script) {
+                                                                 try {
+                                                                     trigger.setScript(script);
+                                                                 } catch (Exception e) {
+                                                                     handleException(sender, e);
+                                                                 }
 
-                                sender.sendMessage("&aScript is updated!");
+                                                                 sender.sendMessage("&aScript is updated!");
 
-                                saveAsynchronously(getCmdManager());
-                            }
-                        });
+                                                                 saveAsynchronously(getCmdManager());
+                                                             }
+                                                         });
                     } else {
                         if (StringUtils.hasUpperCase(args[1])) {
                             sender.sendMessage("&cWARNING: It is reported that commands with uppercase makes it not "
@@ -834,8 +755,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         Trigger trigger = getCmdManager().createTempCommandTrigger(script);
                         Trigger targetTrigger = getNamedTriggerManager().get(namedTriggerName);
                         if (targetTrigger == null) {
-                            sender.sendMessage("&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
-                                    " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
+                            sender.sendMessage(
+                                    "&cCannot find &6" + namedTriggerName + "&c! &7Remember that the folder" +
+                                            " hierarchy is represented with ':' sign. (ex. FolderA:FolderB:Trigger)");
                             return true;
                         }
 
@@ -878,7 +800,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                                             saveAsynchronously(getInvManager());
                                         } else {
-                                            sender.sendMessage("&7Another Inventory Trigger with that name already exists");
+                                            sender.sendMessage(
+                                                    "&7Another Inventory Trigger with that name already exists");
                                         }
                                     } catch (Exception e) {
                                         handleException(sender, e);
@@ -931,7 +854,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         }
 
                         if (index > trigger.getItems().length || index < 1) {
-                            sender.sendMessage("&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length) + ")");
+                            sender.sendMessage(
+                                    "&c" + "" + index + " is out of bounds. (Size: " + (trigger.getItems().length)
+                                            + ")");
                             return true;
                         }
 
@@ -970,20 +895,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                             return true;
                         }
 
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                try {
-                                    trigger.setScript(script);
-                                } catch (Exception e) {
-                                    handleException(sender, e);
-                                }
+                        getScriptEditManager().startEdit(sender,
+                                                         trigger.getInfo().getTriggerName(),
+                                                         trigger.getScript(),
+                                                         new SaveHandler() {
+                                                             @Override
+                                                             public void onSave(String script) {
+                                                                 try {
+                                                                     trigger.setScript(script);
+                                                                 } catch (Exception e) {
+                                                                     handleException(sender, e);
+                                                                 }
 
-                                sender.sendMessage("&aScript is updated!");
+                                                                 sender.sendMessage("&aScript is updated!");
 
-                                saveAsynchronously(getInvManager());
-                            }
-                        });
+                                                                 saveAsynchronously(getInvManager());
+                                                             }
+                                                         });
                     } else if (args.length == 4 && args[2].equals("row")) {
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                         IS = IS == null ? null : IS.clone();
@@ -1053,17 +981,16 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
                         String name = args[1];
 
-                        InventoryTrigger trigger = getInvManager().get(name);
-                        if (trigger == null) {
+                        if (!getInvManager().has(name)) {
                             sender.sendMessage("&7No such Inventory Trigger named " + name);
                             return true;
                         }
 
-                        getInvEditManager().startEdit((IPlayer) sender, trigger);
+                        getInvEditManager().startEdit((IPlayer) sender, name);
                         return true;
                     } else if (args.length > 3 && args[2].equalsIgnoreCase("settitle")) {
                         String name = args[1];
-                        String title = mergeArguments(args, 3, args.length-1);
+                        String title = mergeArguments(args, 3, args.length - 1);
 
                         InventoryTrigger trigger = getInvManager().get(name);
                         if (trigger == null) {
@@ -1080,21 +1007,39 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                         return true;
                     } else {
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]", "create a new inventory. <size> must be multiple of 9."
-                                + " The <size> cannot be larger than 54");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]",
+                                        "create a new inventory. <size> must be multiple of 9."
+                                                + " The <size> cannot be larger than 54");
                         sendDetails(sender, "/trg i MyInventory create 54");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> delete", "delete this inventory");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> delete",
+                                        "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> item <index>", "sets item of inventory to the held item. "
-                                + "Clears the slot if you are holding nothing.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> item <index>",
+                                        "sets item of inventory to the held item. "
+                                                + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> column <index>", "same as the item subcommand, but applied to an entire column."
-                                + "Clears the slot if you are holding nothing.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> row <index>", "same as the item subcommand, but applied to an entire row.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open", "Preview the inventory");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> open <player name>", "Send <player name> a preview of the inventory");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> edit", "Edit the inventory trigger.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>", "set title of inventory");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> column <index>",
+                                        "same as the item subcommand, but applied to an entire column."
+                                                + "Clears the slot if you are holding nothing.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> row <index>",
+                                        "same as the item subcommand, but applied to an entire row.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> open",
+                                        "Preview the inventory");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> open <player name>",
+                                        "Send <player name> a preview of the inventory");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> edit",
+                                        "Edit the inventory trigger.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>",
+                                        "set title of inventory");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("item")) {
@@ -1146,7 +1091,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                         ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
-                    } else if (args.length == 4 && args[1].equalsIgnoreCase("lore") && args[2].equalsIgnoreCase("remove")) {
+                    } else if (args.length == 4 && args[1].equalsIgnoreCase("lore")
+                            && args[2].equalsIgnoreCase("remove")) {
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                         if (IS == null) {
                             sender.sendMessage("&c" + "You are holding nothing.");
@@ -1169,11 +1115,19 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         ((IPlayer) sender).setItemInMainHand(IS);
                         return true;
                     } else {
-                        sendCommandDesc(sender, "/triggerreactor[trg] item title <item title>", "Change the title of holding item");
-                        sendCommandDesc(sender, "/triggerreactor[trg] item lore add <line>", "Append lore to the holding item");
-                        sendCommandDesc(sender, "/triggerreactor[trg] item lore set <index> <line>", "Replace lore at the specified index."
-                                + "(Index start from 0)");
-                        sendCommandDesc(sender, "/triggerreactor[trg] item lore remove <index>", "Delete lore at the specified index.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] item title <item title>",
+                                        "Change the title of holding item");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] item lore add <line>",
+                                        "Append lore to the holding item");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] item lore set <index> <line>",
+                                        "Replace lore at the specified index."
+                                                + "(Index start from 0)");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] item lore remove <index>",
+                                        "Delete lore at the specified index.");
                     }
 
                     return true;
@@ -1244,20 +1198,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         }
 
                         if (trigger.getEnterTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getEnterTrigger().getScript(), new SaveHandler() {
-                                @Override
-                                public void onSave(String script) {
-                                    try {
-                                        trigger.setEnterTrigger(script);
+                            getScriptEditManager().startEdit(sender,
+                                                             trigger.getInfo().getTriggerName(),
+                                                             trigger.getEnterTrigger().getScript(),
+                                                             new SaveHandler() {
+                                                                 @Override
+                                                                 public void onSave(String script) {
+                                                                     try {
+                                                                         trigger.setEnterTrigger(script);
 
-                                        saveAsynchronously(getAreaManager());
+                                                                         saveAsynchronously(getAreaManager());
 
-                                        sender.sendMessage("&aScript is updated!");
-                                    } catch (Exception e) {
-                                        handleException(sender, e);
-                                    }
-                                }
-                            });
+                                                                         sender.sendMessage("&aScript is updated!");
+                                                                     } catch (Exception e) {
+                                                                         handleException(sender, e);
+                                                                     }
+                                                                 }
+                                                             });
                         } else {
                             if (args.length == 3) {
                                 getScriptEditManager().startEdit(sender, "Area Trigger [Enter]", "", new SaveHandler() {
@@ -1292,20 +1249,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         }
 
                         if (trigger.getExitTrigger() != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getExitTrigger().getScript(), new SaveHandler() {
-                                @Override
-                                public void onSave(String script) {
-                                    try {
-                                        trigger.setExitTrigger(script);
+                            getScriptEditManager().startEdit(sender,
+                                                             trigger.getInfo().getTriggerName(),
+                                                             trigger.getExitTrigger().getScript(),
+                                                             new SaveHandler() {
+                                                                 @Override
+                                                                 public void onSave(String script) {
+                                                                     try {
+                                                                         trigger.setExitTrigger(script);
 
-                                        saveAsynchronously(getAreaManager());
+                                                                         saveAsynchronously(getAreaManager());
 
-                                        sender.sendMessage("&aScript is updated!");
-                                    } catch (Exception e) {
-                                        handleException(sender, e);
-                                    }
-                                }
-                            });
+                                                                         sender.sendMessage("&aScript is updated!");
+                                                                     } catch (Exception e) {
+                                                                         handleException(sender, e);
+                                                                     }
+                                                                 }
+                                                             });
                         } else {
                             if (args.length == 3) {
                                 getScriptEditManager().startEdit(sender, "Area Trigger [Exit]", "", new SaveHandler() {
@@ -1343,18 +1303,33 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                         saveAsynchronously(getAreaManager());
 
-                        sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
+                        sender.sendMessage(
+                                "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
+                                        .isSync());
                     } else {
-                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] toggle", "Enable/Disable area selection mode.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> create", "Create area trigger out of selected region.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> delete", "Delete area trigger. BE CAREFUL!");
-                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> enter [...]", "Enable/Disable area selection mode.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] area[a] toggle",
+                                        "Enable/Disable area selection mode.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] area[a] <name> create",
+                                        "Create area trigger out of selected region.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] area[a] <name> delete",
+                                        "Delete area trigger. BE CAREFUL!");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] area[a] <name> enter [...]",
+                                        "Enable/Disable area selection mode.");
                         sendDetails(sender, "/trg a TestingArea enter #MESSAGE \"Welcome\"");
-                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> exit [...]", "Enable/Disable area selection mode.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] area[a] <name> exit [...]",
+                                        "Enable/Disable area selection mode.");
                         sendDetails(sender, "/trg a TestingArea exit #MESSAGE \"Bye\"");
-                        sendCommandDesc(sender, "/triggerreactor[trg] area[a] <name> sync", "Enable/Disable sync mode.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] area[a] <name> sync",
+                                        "Enable/Disable sync mode.");
                         sendDetails(sender, "Setting it to true when you want to cancel event (with #CANCELEVENT)."
-                                + " However, setting sync mode will make the trigger run on server thread; keep in mind that"
+                                + " However, setting sync mode will make the trigger run on server thread; keep in "
+                                + "mind that"
                                 + " it can lag the server if you have too much things going on within the code."
                                 + " Set it to false always if you are not sure.");
                     }
@@ -1365,40 +1340,54 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                     CustomTrigger trigger = getCustomManager().get(name);
                     if (trigger != null) {
-                        getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
-                            @Override
-                            public void onSave(String script) {
-                                try {
-                                    trigger.setScript(script);
-                                } catch (Exception e) {
-                                    handleException(sender, e);
-                                }
+                        getScriptEditManager().startEdit(sender,
+                                                         trigger.getInfo().getTriggerName(),
+                                                         trigger.getScript(),
+                                                         new SaveHandler() {
+                                                             @Override
+                                                             public void onSave(String script) {
+                                                                 try {
+                                                                     trigger.setScript(script);
+                                                                 } catch (Exception e) {
+                                                                     handleException(sender, e);
+                                                                 }
 
-                                sender.sendMessage("&aScript is updated!");
+                                                                 sender.sendMessage("&aScript is updated!");
 
-                                saveAsynchronously(getCustomManager());
-                            }
-                        });
+                                                                 saveAsynchronously(getCustomManager());
+                                                             }
+                                                         });
                     } else {
                         if (args.length == 3) {
                             getScriptEditManager().startEdit(sender,
-                                    "Custom Trigger[" + eventName.substring(Math.max(0, eventName.length() - 10)) + "]", "",
-                                    new SaveHandler() {
-                                        @Override
-                                        public void onSave(String script) {
-                                            try {
-                                                getCustomManager().createCustomTrigger(eventName, name, script);
+                                                             "Custom Trigger[" + eventName.substring(Math.max(0,
+                                                                                                              eventName.length()
+                                                                                                                      - 10))
+                                                                     + "]", "",
+                                                             new SaveHandler() {
+                                                                 @Override
+                                                                 public void onSave(String script) {
+                                                                     try {
+                                                                         getCustomManager().createCustomTrigger(
+                                                                                 eventName,
+                                                                                 name,
+                                                                                 script);
 
-                                                saveAsynchronously(getCustomManager());
+                                                                         saveAsynchronously(getCustomManager());
 
-                                                sender.sendMessage("&aCustom Trigger created!");
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                                sender.sendMessage("&c" + "Could not save! " + e.getMessage());
-                                                sender.sendMessage("&c" + "See console for detailed messages.");
-                                            }
-                                        }
-                                    });
+                                                                         sender.sendMessage("&aCustom Trigger "
+                                                                                                    + "created!");
+                                                                     } catch (Exception e) {
+                                                                         e.printStackTrace();
+                                                                         sender.sendMessage("&c" + "Could not save! "
+                                                                                                    + e.getMessage());
+                                                                         sender.sendMessage("&c"
+                                                                                                    + "See console "
+                                                                                                    + "for detailed "
+                                                                                                    + "messages.");
+                                                                     }
+                                                                 }
+                                                             });
                         } else {
                             String script = mergeArguments(args, 3, args.length - 1);
 
@@ -1423,20 +1412,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                         Trigger trigger = getRepeatManager().get(name);
                         if (trigger != null) {
-                            getScriptEditManager().startEdit(sender, trigger.getInfo().getTriggerName(), trigger.getScript(), new SaveHandler() {
-                                @Override
-                                public void onSave(String script) {
-                                    try {
-                                        trigger.setScript(script);
-                                    } catch (Exception e) {
-                                        handleException(sender, e);
-                                    }
+                            getScriptEditManager().startEdit(sender,
+                                                             trigger.getInfo().getTriggerName(),
+                                                             trigger.getScript(),
+                                                             new SaveHandler() {
+                                                                 @Override
+                                                                 public void onSave(String script) {
+                                                                     try {
+                                                                         trigger.setScript(script);
+                                                                     } catch (Exception e) {
+                                                                         handleException(sender, e);
+                                                                     }
 
-                                    sender.sendMessage("&aScript is updated!");
+                                                                     sender.sendMessage("&aScript is updated!");
 
-                                    saveAsynchronously(getRepeatManager());
-                                }
-                            });
+                                                                     saveAsynchronously(getRepeatManager());
+                                                                 }
+                                                             });
                         } else {
                             this.getScriptEditManager().startEdit(sender, "Repeating Trigger", "", new SaveHandler() {
                                 @Override
@@ -1469,9 +1461,9 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         saveAsynchronously(getRepeatManager());
 
                         sender.sendMessage("&aNow " +
-                                "&6[" + name + "]" +
-                                "&a will run every " +
-                                "&6[" + TimeUtil.milliSecondsToString(interval) + "]");
+                                                   "&6[" + name + "]" +
+                                                   "&a will run every " +
+                                                   "&6[" + TimeUtil.milliSecondsToString(interval) + "]");
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
                         String name = args[1];
 
@@ -1486,7 +1478,8 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                         saveAsynchronously(getRepeatManager());
 
-                        sender.sendMessage("Auto start: " + (trigger.isAutoStart() ? "&a" : "&c") + trigger.isAutoStart());
+                        sender.sendMessage(
+                                "Auto start: " + (trigger.isAutoStart() ? "&a" : "&c") + trigger.isAutoStart());
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("toggle")) {
                         String name = args[1];
 
@@ -1542,26 +1535,50 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                     } else {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
                         sendDetails(sender, "&4Quick create is not supported.");
-                        sendDetails(sender, "This creates a Repeating Trigger with default settings. You probably will want to change default values"
-                                + " using other commands below. Also, creating Repeating Trigger doesn't start it automatically.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> interval <time format>", "Change the interval of this trigger.");
-                        sendDetails(sender, "Notice the <time format> is not just a number but has specific format for it. For example, you first"
-                                + " type what number you want to set and also define the unit of it. If you want it to repeat it every 1 hour, 20 minutes,"
-                                + " 50seconds, and 10ticks, then it will be &6" + "/trg r BlahBlah interval 1h20m50s10t." + "&7 Currently only h, m,"
-                                + " s, and t are supported for this format. Also notice that if you have two numbers with same format, they will add up as well. For example,"
-                                + "&6 /trg r BlahBlah interval 30s40s" + "&7 will be added up to 70seconds total. All units other than"
-                                + " h, m, s, or t will be ignored.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> autostart", "Enable/Disable automatic start for this trigger.");
-                        sendDetails(sender, "By setting this to " + "&atrue" + "&7, this trigger will start on plugin enables itself. "
-                                + "Otherwise, you have to start it yourself every time.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> toggle", "Start or stop the Repeating Trigger.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> pause", "Pause or unpause the Repeating Trigger.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> status", "See brief information about this trigger.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name> delete", "Delete repeating trigger.");
+                        sendDetails(sender,
+                                    "This creates a Repeating Trigger with default settings. You probably will want "
+                                            + "to change default values"
+                                            + " using other commands below. Also, creating Repeating Trigger doesn't "
+                                            + "start it automatically.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] repeat[r] <name> interval <time format>",
+                                        "Change the interval of this trigger.");
+                        sendDetails(sender,
+                                    "Notice the <time format> is not just a number but has specific format for it. "
+                                            + "For example, you first"
+                                            + " type what number you want to set and also define the unit of it. If "
+                                            + "you want it to repeat it every 1 hour, 20 minutes,"
+                                            + " 50seconds, and 10ticks, then it will be &6"
+                                            + "/trg r BlahBlah interval 1h20m50s10t." + "&7 Currently only h, m,"
+                                            + " s, and t are supported for this format. Also notice that if you have "
+                                            + "two numbers with same format, they will add up as well. For example,"
+                                            + "&6 /trg r BlahBlah interval 30s40s"
+                                            + "&7 will be added up to 70seconds total. All units other than"
+                                            + " h, m, s, or t will be ignored.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] repeat[r] <name> autostart",
+                                        "Enable/Disable automatic start for this trigger.");
+                        sendDetails(sender,
+                                    "By setting this to " + "&atrue"
+                                            + "&7, this trigger will start on plugin enables itself. "
+                                            + "Otherwise, you have to start it yourself every time.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] repeat[r] <name> toggle",
+                                        "Start or stop the Repeating Trigger.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] repeat[r] <name> pause",
+                                        "Pause or unpause the Repeating Trigger.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] repeat[r] <name> status",
+                                        "See brief information about this trigger.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] repeat[r] <name> delete",
+                                        "Delete repeating trigger.");
                     }
 
                     return true;
-                } else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase("sync"))) {
+                } else if (args.length == 2 && (args[0].equalsIgnoreCase("synccustom") || args[0].equalsIgnoreCase(
+                        "sync"))) {
                     String name = args[1];
 
                     CustomTrigger trigger = getCustomManager().get(name);
@@ -1574,9 +1591,11 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
                     saveAsynchronously(getCustomManager());
 
-                    sender.sendMessage("&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
+                    sender.sendMessage(
+                            "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
                     return true;
-                } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete") || args[0].equalsIgnoreCase("del"))) {
+                } else if (args.length == 3 && (args[0].equalsIgnoreCase("delete")
+                        || args[0].equalsIgnoreCase("del"))) {
                     String key = args[2];
                     switch (args[1]) {
                         case "vars":
@@ -1621,13 +1640,14 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         if (!(manager instanceof AbstractTriggerManager<?>))
                             continue;
 
-                        for (String val : ((AbstractTriggerManager<? extends Trigger>) manager).getTriggerList((name) -> {
-                            for (int i = 1; i < args.length; i++) {
-                                if (!name.contains(args[i]))
-                                    return false;
-                            }
-                            return true;
-                        })) {
+                        for (String val :
+                                ((AbstractTriggerManager<? extends Trigger>) manager).getTriggerList((name) -> {
+                                    for (int i = 1; i < args.length; i++) {
+                                        if (!name.contains(args[i]))
+                                            return false;
+                                    }
+                                    return true;
+                                })) {
                             sender.sendMessage("&d" + val);
                         }
                     }
@@ -1675,10 +1695,16 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                             ex.printStackTrace();
                         }
                     } else {
-                        sendCommandDesc(sender, "/triggerreactor[trg] timings toggle", "turn on/off timings analysis. Also analysis will be reset.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] timings reset", "turn on/off timings analysis. Also analysis will be reset.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] timings toggle",
+                                        "turn on/off timings analysis. Also analysis will be reset.");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] timings reset",
+                                        "turn on/off timings analysis. Also analysis will be reset.");
                         sendCommandDesc(sender, "/triggerreactor[trg] timings print", "Show analysis result.");
-                        sendCommandDesc(sender, "/triggerreactor[trg] timings print xx", "Save analysis to file named xx.timings");
+                        sendCommandDesc(sender,
+                                        "/triggerreactor[trg] timings print xx",
+                                        "Save analysis to file named xx.timings");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
@@ -1712,7 +1738,7 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                     if (args.length < 2) {
                         return true;
                     }
-                    AbstractInventoryEditManager manager = getInvEditManager();
+                    InventoryEditManager manager = getInvEditManager();
                     IPlayer player = (IPlayer) sender;
                     switch (args[1]) {
                         case "inveditsave":
@@ -1733,6 +1759,103 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
         return true;
     }
+
+    /**
+     * try to extract player from context 'e'.
+     *
+     * @param e Event for Bukkit API
+     * @return
+     */
+    public abstract IPlayer extractPlayerFromContext(Object e);
+
+    /**
+     * Run Callable on the server thread.
+     *
+     * @param call the callable
+     * @return the future object.
+     */
+    public abstract <T> Future<T> callSyncMethod(Callable<T> call);
+
+    @Override
+    public <T> Future<T> submitSync(Callable<T> call) {
+        if (this.isServerThread()) {
+            return new Future<T>() {
+                private boolean done = false;
+
+                @Override
+                public boolean cancel(boolean arg0) {
+                    return false;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return false;
+                }
+
+                @Override
+                public boolean isDone() {
+                    return done;
+                }
+
+                @Override
+                public T get() throws ExecutionException {
+                    T out = null;
+                    try {
+                        out = call.call();
+                        done = true;
+                    } catch (Exception e) {
+                        throw new ExecutionException(e);
+                    }
+                    return out;
+                }
+
+                @Override
+                public T get(long arg0, TimeUnit arg1)
+                        throws ExecutionException {
+                    T out = null;
+                    try {
+                        out = call.call();
+                        done = true;
+                    } catch (Exception e) {
+                        throw new ExecutionException(e);
+                    }
+                    return out;
+                }
+
+            };
+        } else {
+            return callSyncMethod(call);
+        }
+    }
+
+    @Override
+    public void submitAsync(Runnable run) {
+        new Thread(run).start();
+    }
+
+    /**
+     * Call event so that it can be heard by listeners
+     *
+     * @param event
+     */
+    public abstract void callEvent(IEvent event);
+
+    /**
+     * Check if the current Thread is the Server
+     *
+     * @return
+     */
+    public abstract boolean isServerThread();
+
+    /**
+     * extract useful custom variables manually from 'context'
+     *
+     * @param context
+     * @return
+     */
+    public abstract Map<String, Object> getCustomVarsForTrigger(Object context);
+
+    public abstract InventoryEditManager getInvEditManager();
 
     private interface Paragraph {
         void sendParagraph(ICommandSender sender);
@@ -1761,25 +1884,37 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
             sender.sendMessage("  &7To create lines of script, simply type &b/trg c &7without extra parameters.");
         });
         add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] command[cmd] <command name> [...] &8- &7create a command trigger.");
             sender.sendMessage("  &7/trg cmd test #MESSAGE \"I'M test COMMAND!\"");
-            sender.sendMessage("  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
+            sender.sendMessage(
+                    "  &7To create lines of script, simply type &b/trg cmd <command name> &7without extra parameters.");
             sender.sendMessage("  &7To change sync/async mode, type &b/trg cmd <command name> sync&7.");
-            sender.sendMessage("  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z y.y ...&7.");
-            sender.sendMessage("  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing ...&7.");
+            sender.sendMessage(
+                    "  &7- To set permissions for this command, type &b/trg cmd <command name> permission[p] x.y x.z "
+                            + "y.y ...&7.");
+            sender.sendMessage(
+                    "  &7- To set aliases for this command, type &b/trg cmd <command name> aliases[a] some thing .."
+                            + ".&7.");
             sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
             sender.sendMessage("  &7- To add tab-completer, type &b/trg cmd <command name> settab[tab] " +
-                    "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
+                                       "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
             sender.sendMessage("    &6*&7The parameter has following format: hint:val1,val2,...");
             sender.sendMessage("    &6*&7Not providing any tab-completer will remove it instead.");
-            sender.sendMessage("    &7Hint shows up as simple string when a user is about to type something, and values " +
-                    "will start to show up as a form of tab-completers as soon as their first characters matching with " +
-                    "the characters typed by the user.");
-            sender.sendMessage("    &7You may omit the hint, yet you cannot omit the values. To use only hint but no values, " +
-                    "edit the config file manually.");
+            sender.sendMessage(
+                    "    &7Hint shows up as simple string when a user is about to type something, and values " +
+                            "will start to show up as a form of tab-completers as soon as their first characters "
+                            + "matching with "
+                            +
+                            "the characters typed by the user.");
+            sender.sendMessage(
+                    "    &7You may omit the hint, yet you cannot omit the values. To use only hint but no values, " +
+                            "edit the config file manually.");
         });
         add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named <inventory name>");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] inventory[i] <inventory name> &8- &7Create an inventory trigger named "
+                            + "<inventory name>");
             sender.sendMessage("  &7/trg i to see more commands...");
 
             sender.sendMessage("&b/triggerreactor[trg] item &8- &7Item modification. Type it to see the list.");
@@ -1794,51 +1929,71 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
         add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] custom <event> <name> [...] &8- &7Create a custom trigger.");
             sender.sendMessage("  &7/trg custom onJoin Greet #BROADCAST \"Please welcome \"+player.getName()+\"!\"");
-            sender.sendMessage("&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger <name>");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] synccustom[sync] <name> &8- &7Toggle Sync/Async mode of custom trigger "
+                            + "<name>");
             sender.sendMessage("  &7/trg synccustom Greet");
 
             sender.sendMessage("&b/triggerreactor[trg] variables[vars] [...] &8- &7set global variables.");
-            sender.sendMessage("  &7&cWarning - This command will delete the previous data associated with the key if exists.");
+            sender.sendMessage(
+                    "  &7&cWarning - This command will delete the previous data associated with the key if exists.");
             sender.sendMessage("  &7/trg vars Location test &8- &7save current location into global variable 'test'");
             sender.sendMessage("  &7/trg vars Item gifts.item1 &8- &7save hand held item into global variable 'test'");
             sender.sendMessage("  &7/trg vars test 13.5 &8- &7save 13.5 into global variable 'test'");
 
-            sender.sendMessage("&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable name>. null if nothing.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] variables[vars] <variable name> &8- &7get the value saved in <variable "
+                            + "name>. null if nothing.");
         });
         add((sender) -> {
-            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger"
+                                       + ".");
             sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
 
-            sender.sendMessage("&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] sudo <player> [...] &8- &7Run simple script now without making a trigger.");
             sender.sendMessage("  &7/trg sudo wysohn #TP {\"MahPlace\"}");
 
-            sender.sendMessage("&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
             sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
             sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" +
-                    " temporary trigger will be made, the codes will run, and then the Named Trigger will be" +
-                    " called, just like how you do with #CALL. This can be useful if you have variables in the Named Trigger" +
-                    " that has to be initialized.");
+                                       " temporary trigger will be made, the codes will run, and then the Named "
+                                       + "Trigger will be"
+                                       +
+                                       " called, just like how you do with #CALL. This can be useful if you have "
+                                       + "variables in the Named Trigger"
+                                       +
+                                       " that has to be initialized.");
         });
         add((sender -> {
-            sender.sendMessage("&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] delete[del] <type> <name> &8- &7Delete specific trigger/variable/etc.");
             sender.sendMessage("  &7/trg del vars test &8- &7delete the variable saved in 'test'");
             sender.sendMessage("  &7/trg del cmd test &8- &7delete the command trigger 'test'");
             sender.sendMessage("  &7/trg del custom Greet &8- &7delete the custom trigger 'Greet'");
 
-            sender.sendMessage("&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] search &8- &7Show all trigger blocks in this chunk as glowing stones.");
 
             sender.sendMessage("&b/triggerreactor[trg] list [filter...] &8- &7List all triggers.");
-            sender.sendMessage("  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
+            sender.sendMessage(
+                    "  &7/trg list CommandTrigger some &8- &7Show results that contains 'CommandTrigger' and 'some'.");
 
             sender.sendMessage("&b/triggerreactor[trg] saveall &8- &7Save all scripts, variables, and settings.");
 
             sender.sendMessage("&b/triggerreactor[trg] reload &8- &7Reload all scripts, variables, and settings.");
         }));
         add((sender -> {
-            sender.sendMessage("&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be reset.");
-            sender.sendMessage("&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be reset.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] timings toggle &8- &7turn on/off timings analysis. Also analysis will be "
+                            + "reset.");
+            sender.sendMessage(
+                    "&b/triggerreactor[trg] timings reset &8- &7turn on/off timings analysis. Also analysis will be "
+                            + "reset.");
             sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
-            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx.timings");
+            sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx"
+                                       + ".timings");
         }));
     }};
     private static final Pattern INTEGER_PATTERN = Pattern.compile("^[0-9]+$");
@@ -1883,8 +2038,29 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
 
         switch (args.length) {
             case 1:
-                return filter(Arrays.asList("area", "click", "cmd", "command", "custom", "del", "delete", "help", "inventory", "item", "list",
-                        "reload", "repeat", "run", "call", "saveall", "search", "sudo", "synccustom", "timings", "variables", "version", "walk"), args[0]);
+                return filter(Arrays.asList("area",
+                                            "click",
+                                            "cmd",
+                                            "command",
+                                            "custom",
+                                            "del",
+                                            "delete",
+                                            "help",
+                                            "inventory",
+                                            "item",
+                                            "list",
+                                            "reload",
+                                            "repeat",
+                                            "run",
+                                            "call",
+                                            "saveall",
+                                            "search",
+                                            "sudo",
+                                            "synccustom",
+                                            "timings",
+                                            "variables",
+                                            "version",
+                                            "walk"), args[0]);
             case 2:
                 switch (args[0].toLowerCase()) {
                     case "area":
@@ -1950,14 +2126,23 @@ public abstract class TriggerReactorCore implements TaskSupervisor, IGameStateSu
                         return filter(triggerNames(manager), args[2]);
                     case "inventory":
                     case "i":
-                        return filter(Arrays.asList("column", "create", "delete", "edit", "edititems", "item", "open", "row", "settitle"), args[2]);
+                        return filter(Arrays.asList("column",
+                                                    "create",
+                                                    "delete",
+                                                    "edit",
+                                                    "edititems",
+                                                    "item",
+                                                    "open",
+                                                    "row",
+                                                    "settitle"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);
                         }
                     case "repeat":
                     case "r":
-                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"), args[2]);
+                        return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"),
+                                      args[2]);
                 }
             case 4:
                 switch (args[0].toLowerCase()) {

@@ -14,25 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.manager;
 
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+package io.github.wysohn.triggerreactor.core.main;
 
-public interface KeyValueManager<V> {
-
-    V get(Object key);
-
-    boolean containsKey(Object key);
-
-    Set<Entry<String, V>> entrySet();
-
+/**
+ * This interface provides methods that can be used to control
+ * any plugin specific behaviors. For example, spawning an entity
+ * is <b>not</b> intended to be here since it is more of the 'game specific'
+ * behavior.
+ * <p>
+ * However, it would make sense to have a method that can be used to
+ * disable a plugin, executing a command, etc. is more of the 'plugin specific'
+ * behavior, so those methods should be here.
+ */
+public interface IPluginManagement {
     /**
-     * Get the reference of actual map internally used.
+     * Run a command as a console.
      *
-     * @return Map of key and value
+     * @param command the command to be executed (without the slash)
      */
-    Map<String, V> getBackedMap();
-
+    void runCommandAsConsole(String command);
 }
