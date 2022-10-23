@@ -20,8 +20,7 @@ function helditemname(args) {
   if (!player)
     throw new Error('Player is null.');
 
-  if (player.getItemInHand() == null)
-    return 'air';
+  var item = player.getItemInHand();
 
-  return player.getItemInHand().getType().name().toLowerCase();
+  return item.getType().name();
 }

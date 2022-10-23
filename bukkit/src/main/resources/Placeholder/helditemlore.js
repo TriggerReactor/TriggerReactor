@@ -28,10 +28,11 @@ function helditemlore(args) {
   if (!player)
     throw new Error('Player is null.');
 
-  if (!player.getItemInHand())
+  var item = player.getItemInHand();
+  if (!item)
     return '';
 
-  var itemMeta = player.getItemInHand().getItemMeta();
+  var itemMeta = item.getItemMeta();
   if (!itemMeta)
     return '';
 

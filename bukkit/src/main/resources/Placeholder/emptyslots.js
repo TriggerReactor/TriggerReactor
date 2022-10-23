@@ -23,10 +23,9 @@ function emptyslots(args) {
   var count = 0;
 
   var contents = player.getInventory().getContents();
-  var iter = contents.iterator();
 
-  while (iter.hasNext()) {
-    var content = iter.next();
+  for (var i = 0; i < contents.length; i++) {
+    var content = contents[i];
 
     if (content === null)
       count++;

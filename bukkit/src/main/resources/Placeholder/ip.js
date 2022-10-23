@@ -20,5 +20,8 @@ function ip(args) {
   if (!player)
     throw new Error('Player is null.');
 
+  if (!player.getAddress() || !player.getAddress().getAddress())
+    throw new Error('IP is null')
+
   return player.getAddress().getAddress().toString();
 }

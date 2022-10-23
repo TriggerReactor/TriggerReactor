@@ -21,7 +21,7 @@ function money(args) {
     throw new Error('Player is null.');
 
   if (!vault)
-    throw new Error('This server doesn\'t has vault.')
+    throw new Error('Server has no Vault plugin.')
 
   return vault.balance(player);
 }

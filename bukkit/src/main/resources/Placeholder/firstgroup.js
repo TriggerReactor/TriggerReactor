@@ -21,10 +21,10 @@ function firstgroup(args) {
     throw new Error('Player is null.');
 
   if (!vault)
-    throw new Error('This server doesn\'t has vault.')
+    throw new Error('Server has no Vault plugin.')
 
   var groups = vault.permission().getPlayerGroups(null, player);
-  var firstGroup;
+  var firstGroup = 'None';
 
   if (groups.length > 0)
     firstGroup = groups[0];

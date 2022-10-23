@@ -16,6 +16,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var JavaString = Java.type('java.lang.String');
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 
 var validation = {
@@ -35,16 +36,6 @@ function lore(args) {
     return '';
 
   var lores = itemMeta.getLore();
-  var iter = lores.iterator();
-  var lore = ''
-
-  while (iter.hasNext()) {
-    var itemLore = iter.next();
-
-    lore += itemLore + '\n';
-  }
-
-  lore = lore.substring(0, lore.length-1);
-
-  return lore;
+  
+  return JavaString.join('\n', lores);
 }

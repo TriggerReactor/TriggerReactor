@@ -34,26 +34,27 @@ function helditemhasenchant(args) {
   if (!player)
     throw new Error('Player is null.');
 
-  if (!player.getItemInHand())
+  var item = player.getItemInHand();
+
+  if (!item)
     return false;
 
-  var enchant = args[0];
-  var level;
+  var enchantmentStr = args[0];
+
+  var enchantment = Enchantment.getByName(enchantmentStr.toUpperCase());
+  var level = -1;
+
+  if (!enchantment)
+    throw new TypeError('No such enchantment name like' + enchantmentStr);
 
   if (overload === 1)
     level = args[1]
 
-  enchant = Enchantment.getByName(enchant.toUpperCase());
-
-  var itemMeta = player.getItemInHand().getItemMeta();
+  var itemMeta = item.getItemMeta();
   if (!itemMeta)
     return false;
 
-  var enchants = itemMeta.getEnchants();
-  var enchantInItem = enchants.get(enchant);
+  var enchantmentLevel = itemMeta.getEnchantLevel(enchantment);
 
-  if (level)
-    return enchantInItem === level;
-  else
-    return !!enchantInItem
+  return enchantmentLevel > 0 && enchantmentLevel === level;
 }

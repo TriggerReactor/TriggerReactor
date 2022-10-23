@@ -31,7 +31,7 @@ function count(args) {
   var item = args[0];
 
   if (item.getType() === Material.AIR)
-    throw new Error('Item cannot be an AIR.');
+    return 0;
 
-    return item.getAmount();
+  return item.getAmount();
 }

@@ -20,15 +20,15 @@ function helditemdisplayname(args) {
   if (!player)
     throw new Error('Player is null.');
 
-  if (!player.getItemInHand())
+  var item = player.getItemInHand();
+
+  if (!item)
     return '';
 
-  var itemMeta = player.getItemInHand().getItemMeta();
+  var meta = item.getItemMeta();
 
-  if (!itemMetal)
-    return '';
-  if (!itemMeta.getDisplayName())
+  if (!meta || !meta.getDisplayName())
     return '';
 
-  return itemMeta.getDisplayName();
+  return meta.getDisplayName();
 }
