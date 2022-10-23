@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -202,12 +201,16 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
     public void testCurrentTimeSeconds() throws Exception {
         JsTest test = new PlaceholderTest(engine, "currenttimeseconds");
 
-        long result = (long) ((double) test.test());
+        Object result = test.test();
+        int res;
 
-        Assert.assertEquals(
-                BigDecimal.valueOf((int) ((double) result / 10)),
-                new BigDecimal(new Date().getTime() / 1000 / 10)
-        );
+        try {
+            res = (int) result / 10;
+        } catch (ClassCastException ignored) {
+            res = ((Double) result).intValue() / 10;
+        }
+
+        Assert.assertEquals(res, new Date().getTime() / 1000 / 10);
     }
 
     @Test
@@ -244,9 +247,16 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         JsTest test = new PlaceholderTest(engine, "emptyslots")
                 .addVariable("player", player);
 
-        int result = (int) ((double) test.test());
+        Object result = test.test();
+        int res;
 
-        Assert.assertEquals(contents.length - (to - from), result);
+        try {
+            res = (int) result;
+        } catch (ClassCastException ignored) {
+            res = ((Double) result).intValue();
+        }
+
+        Assert.assertEquals(contents.length - (to - from), res);
     }
 
     @Test
@@ -281,9 +291,9 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         JsTest test = new PlaceholderTest(engine, "exp")
                 .addVariable("player", player);
 
-        float result = (float) test.test();
+        Object result = test.test();
 
-        Assert.assertEquals(exp, result, 0);
+        Assert.assertEquals(exp, result);
     }
 
     @Test
