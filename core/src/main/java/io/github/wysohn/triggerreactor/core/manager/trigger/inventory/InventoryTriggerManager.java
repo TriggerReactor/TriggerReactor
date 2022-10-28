@@ -1,19 +1,19 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
@@ -61,8 +61,25 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
 
     /**
      * Open the GUI (of the existing InventoryTrigger) for the target player
-     * @param player
-     * @param inventoryName
+     *
+     * @param playerName    name of the player
+     * @param inventoryName name of the InventoryTrigger
+     * @return the opened Inventory's reference; null if no Inventory Trigger found
+     * @throws IllegalArgumentException if the player is not online or not found
+     */
+    public IInventory openGUI(String playerName, String inventoryName) {
+        IPlayer player = plugin.getPlayer(playerName);
+        if (player == null)
+            throw new IllegalArgumentException("Player " + playerName + " not found!");
+
+        return openGUI(player, inventoryName);
+    }
+
+    /**
+     * Open the GUI (of the existing InventoryTrigger) for the target player
+     *
+     * @param player        target player
+     * @param inventoryName name of the InventoryTrigger
      * @return the opened Inventory's reference; null if no Inventory Trigger found
      */
     public IInventory openGUI(IPlayer player, String inventoryName) {
@@ -70,7 +87,9 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
         if (trigger == null)
             return null;
 
-        String title = trigger.getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class).orElse(inventoryName);
+        String title = trigger.getInfo()
+                .get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class)
+                .orElse(inventoryName);
 
         IInventory inventory = inventoryHandle.createInventory(trigger.getItems().length, title);
         inventoryMap.put(inventory, trigger);
@@ -110,7 +129,6 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     *
      * @param eventInstance
      * @param inventory
      * @param player
@@ -157,7 +175,6 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     }
 
     /**
-     *
      * @param e
      * @param player
      * @param inventory
