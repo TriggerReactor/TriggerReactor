@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package js.executor;
 
 //import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
@@ -5,7 +22,6 @@ package js.executor;
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import js.AbstractTestJavaScripts;
@@ -476,7 +492,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testGUI() throws Exception {
-        IPlayer vip = mock(IPlayer.class);
+        Player vip = mock(Player.class);
         TriggerReactorCore tr = mock(TriggerReactorCore.class);
         InventoryTriggerManager invManager = mock(InventoryTriggerManager.class);
         IInventory iInv = mock(IInventory.class);
@@ -484,14 +500,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
                 .addVariable("player", vip)
                 .addVariable("plugin", tr);
 
+        when(vip.getName()).thenReturn("vip");
         when(tr.getInvManager()).thenReturn(invManager);
-        when(invManager.openGUI(vip, "Hi")).thenReturn(iInv);
+        when(invManager.openGUI("vip", "Hi")).thenReturn(iInv);
+
         test.withArgs("Hi").test();
-        verify(invManager).openGUI(vip, "Hi");
 
         assertJSError(() -> test.withArgs().test(), "Invalid parameters. Need [String]");
-        when(invManager.openGUI(vip, "hello")).thenReturn(null);
+        when(invManager.openGUI("vip", "hello")).thenReturn(null);
         assertJSError(() -> test.withArgs("hello").test(), "No such Inventory Trigger named hello");
+        verify(invManager).openGUI("vip", "Hi");
     }
 
     @Test
