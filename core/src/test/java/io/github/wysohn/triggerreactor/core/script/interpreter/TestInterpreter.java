@@ -2044,6 +2044,13 @@ public class TestInterpreter {
         interpreter.setTaskSupervisor(mockTask);
 
         interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TheTest.class));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("static"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("local"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq("staticField"));
+        inOrder.verify(mockExecutor).execute(any(), anyMap(), any(), eq(TestEnum.IMTEST));
     }
 
     @Test

@@ -149,7 +149,6 @@ public abstract class TriggerReactorCore
     public GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
-
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
@@ -189,6 +188,8 @@ public abstract class TriggerReactorCore
         sender.sendMessage(
                 "&d" + page + "&8/&4" + (HELP_PAGES.size()) + " &8- &6/trg help <page> &7to see other pages.");
     }
+
+    public abstract IInventoryHandle<?> getInventoryHandle();
 
     public abstract IInventoryHandle<?> getInventoryHandle();
 
