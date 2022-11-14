@@ -191,8 +191,6 @@ public abstract class TriggerReactorCore
 
     public abstract IInventoryHandle<?> getInventoryHandle();
 
-    public abstract IInventoryHandle<?> getInventoryHandle();
-
     /**
      * Send command description.
      *
