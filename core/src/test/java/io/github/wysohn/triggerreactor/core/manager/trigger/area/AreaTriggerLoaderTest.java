@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
@@ -73,8 +90,10 @@ public class AreaTriggerLoaderTest {
 
     @Test
     public void load() throws InvalidTrgConfigurationException, IOException {
-        File areaTrigger = folder.newFolder("trigger1");
-        File configFile = folder.newFile("trigger1.json");
+        File areaTriggerFolder = folder.newFolder("AreaTrigger");
+        File areaTrigger = new File(areaTriggerFolder, "trigger1");
+        File configFile = new File(areaTriggerFolder, "trigger1.json");
+        areaTrigger.mkdirs();
         configFile.createNewFile();
 
         IConfigSource source = mock(IConfigSource.class);
@@ -103,7 +122,8 @@ public class AreaTriggerLoaderTest {
     @Test
     public void save() throws InvalidTrgConfigurationException, IOException,
             AbstractTriggerManager.TriggerInitFailedException {
-        File areaTriggerFolder1 = folder.newFolder("trigger1");
+        File areaTriggerFolder = folder.newFolder("AreaTrigger");
+        File areaTrigger1 = new File(areaTriggerFolder, "trigger1");
 
         IConfigSource source = mock(IConfigSource.class);
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
@@ -111,7 +131,7 @@ public class AreaTriggerLoaderTest {
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), String.class))
                 .thenReturn(Optional.of("world@10,10,10"));
 
-        TriggerInfo info = new AreaTriggerInfo(areaTriggerFolder1, source, "trigger1");
+        TriggerInfo info = new AreaTriggerInfo(areaTrigger1, source, "trigger1");
         AreaTrigger trigger = loader.load(info);
         trigger.setEnterTrigger("enter");
         trigger.setExitTrigger("exit");
@@ -121,9 +141,9 @@ public class AreaTriggerLoaderTest {
         verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), "world@0,0,0");
         verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), "world@10,10,10");
 
-        assertEquals("enter", fileContent(new File(areaTriggerFolder1,
+        assertEquals("enter", fileContent(new File(areaTrigger1,
                                                    AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg")));
-        assertEquals("exit", fileContent(new File(areaTriggerFolder1,
+        assertEquals("exit", fileContent(new File(areaTrigger1,
                                                   AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
     }
 
