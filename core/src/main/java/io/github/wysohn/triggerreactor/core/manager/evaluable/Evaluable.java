@@ -17,8 +17,9 @@
 
 package io.github.wysohn.triggerreactor.core.manager.evaluable;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.script.interpreter.SynchronizableTask;
+import com.google.inject.Inject;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationResult;
 import io.github.wysohn.triggerreactor.core.script.validation.Validator;
@@ -29,6 +30,11 @@ import java.util.Map;
 import java.util.concurrent.*;
 
 abstract class Evaluable<R> implements IEvaluable {
+    @Inject
+    private TaskSupervisor taskSupervisor;
+    @Inject
+    private IPluginManagement pluginManagement;
+
     private final String indentifier;
     private final String timingsGroup;
     private final String functionName;
@@ -40,7 +46,10 @@ abstract class Evaluable<R> implements IEvaluable {
     private boolean firstRun = true;
     private Validator validator = null;
 
-    public Evaluable(String indentifier, String timingsGroup, String functionName, String sourceCode,
+    public Evaluable(String indentifier,
+                     String timingsGroup,
+                     String functionName,
+                     String sourceCode,
                      ScriptEngine engine) throws ScriptException {
         this.indentifier = indentifier;
         this.timingsGroup = timingsGroup;
@@ -113,7 +122,7 @@ abstract class Evaluable<R> implements IEvaluable {
             return (R) result;
         };
 
-        if (TriggerReactorCore.getInstance().isServerThread()) {
+        if (taskSupervisor.isServerThread()) {
             R result = null;
 
             try {
@@ -124,10 +133,10 @@ abstract class Evaluable<R> implements IEvaluable {
             }
             return result;
         } else {
-            Future<R> future = SynchronizableTask.runSyncTaskForFuture(call);
+            Future<R> future = taskSupervisor.submitSync(call);
             if (future == null) {
                 //probably server is shutting down
-                if (!TriggerReactorCore.getInstance().isEnabled()) {
+                if (!pluginManagement.isEnabled()) {
                     return call.call();
                 } else {
                     throw new Exception(

@@ -14,13 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.manager;
+package io.github.wysohn.triggerreactor.core.manager.js.placeholder;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
+import io.github.wysohn.triggerreactor.core.manager.js.AbstractJavascriptBasedManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
@@ -28,22 +31,31 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 
+@Singleton
 public class PlaceholderManager
         extends AbstractJavascriptBasedManager<Placeholder> {
 
-    public PlaceholderManager(TriggerReactorCore plugin, ScriptEngineManager sem) throws IOException {
-        this(plugin, sem, new HashMap<>());
-    }
+    @Inject
+    private Logger logger;
+    @Inject
+    private IJSPlaceholderFactory factory;
 
-    public PlaceholderManager(TriggerReactorCore plugin,
-                              ScriptEngineManager sem,
-                              Map<String, Placeholder> overrides) throws IOException {
-        super(plugin, sem, overrides, new File(plugin.getDataFolder(), "Placeholder"));
+    @Inject
+    private PlaceholderManager(@Named("DataFolder") File dataFolder,
+                               ScriptEngineManager sem,
+                               Map<String, Placeholder> overrides) throws IOException {
+        super(sem, overrides, new File(dataFolder, "Placeholder"));
 
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), JarUtil.CopyOption.REPLACE_IF_EXIST);
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
 
         //reload();
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -56,9 +68,14 @@ public class PlaceholderManager
                 reloadPlaceholders(file, filter);
             } catch (ScriptException | IOException e) {
                 e.printStackTrace();
-                plugin.getLogger().warning("Could not load placeholder " + file.getName());
+                logger.warning("Could not load placeholder " + file.getName());
             }
         }
+    }
+
+    @Override
+    public void shutdown() {
+
     }
 
     @Override
@@ -114,9 +131,9 @@ public class PlaceholderManager
             builder.append(fileName);
 
             if (evaluables.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating placeholders?");
+                logger.warning(builder.toString() + " already registered! Duplicating placeholders?");
             } else {
-                JSPlaceholder placeholder = new JSPlaceholder(fileName, getEngine(sem), file);
+                JSPlaceholder placeholder = factory.create(fileName, getEngine(sem), file);
                 evaluables.put(builder.toString(), placeholder);
             }
         }

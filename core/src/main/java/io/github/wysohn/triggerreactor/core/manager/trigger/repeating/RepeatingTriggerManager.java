@@ -1,26 +1,24 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
@@ -28,6 +26,9 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.tools.TimeUtil;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -35,20 +36,25 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Singleton
 public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
+    @Inject
+    private TaskSupervisor task;
+
     protected static final String TRIGGER = "trigger";
 
     protected final Map<String, Thread> runningThreads = new ConcurrentHashMap<>();
 
-    private final TaskSupervisor task;
 
-    public RepeatingTriggerManager(TriggerReactorCore plugin, ITriggerLoader<RepeatingTrigger> loader, TaskSupervisor task) {
-        super(plugin, new File(plugin.getDataFolder(), "RepeatTrigger"), loader);
-        this.task = task;
+    @Inject
+    private RepeatingTriggerManager(@Named("DataFolder") File dataFolder,
+                                    @Named("RepeatingTriggerManagerFolder") String folderName) {
+        super(new File(dataFolder, folderName));
     }
 
-    public RepeatingTriggerManager(TriggerReactorCore plugin, TaskSupervisor task){
-        this(plugin, new RepeatingTriggerLoader(), task);
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -63,12 +69,17 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         for (RepeatingTrigger trigger : getAllTriggers()) {
             final RepeatingTrigger triggerCopy = trigger;
             //start 1 tick later so other managers can be initialized.
-            plugin.runTask(() -> {
+            task.runTask(() -> {
                 if (triggerCopy.isAutoStart()) {
                     startTrigger(trigger.getInfo().getTriggerName());
                 }
             });
         }
+    }
+
+    @Override
+    public void shutdown() {
+
     }
 
     /**

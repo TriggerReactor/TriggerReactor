@@ -1,25 +1,53 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
+    @Inject
+    private Logger logger;
+
     private long interval = 1000L;
     private boolean autoStart = false;
     private Map<String, Object> vars;
 
-    public RepeatingTrigger(TriggerInfo info, String script) throws AbstractTriggerManager.TriggerInitFailedException {
+    @AssistedInject
+    public RepeatingTrigger(@Assisted TriggerInfo info,
+                            @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
 
         init();
     }
 
-    public RepeatingTrigger(TriggerInfo info, String script, long interval) throws AbstractTriggerManager.TriggerInitFailedException {
+    @AssistedInject
+    public RepeatingTrigger(@Assisted TriggerInfo info,
+                            @Assisted String script,
+                            @Assisted long interval) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.interval = interval;
 
@@ -144,15 +172,14 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         }
     }
 
-    private final RepeatingTriggerManager.ThrowableHandler throwableHandler = new RepeatingTriggerManager.ThrowableHandler() {
-        @Override
-        public void onFail(Throwable throwable) {
-            throwable.printStackTrace();
-            TriggerReactorCore.getInstance().getLogger()
-                    .warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
-            TriggerReactorCore.getInstance().getLogger().warning(throwable.getMessage());
-            TriggerReactorCore.getInstance().getLogger()
-                    .warning("If you are an administrator, see console for more details.");
-        }
-    };
+    private final RepeatingTriggerManager.ThrowableHandler throwableHandler =
+            new RepeatingTriggerManager.ThrowableHandler() {
+                @Override
+                public void onFail(Throwable throwable) {
+                    throwable.printStackTrace();
+                    logger.warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
+                    logger.warning(throwable.getMessage());
+                    logger.warning("If you are an administrator, see console for more details.");
+                }
+            };
 }

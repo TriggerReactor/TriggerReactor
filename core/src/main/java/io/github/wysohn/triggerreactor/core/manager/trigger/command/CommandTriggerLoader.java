@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
@@ -7,62 +24,80 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
-class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
+@Singleton
+public class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
     private final Map<String, ITabCompleter.Template> PreDefinedCompleterLabelMap = new HashMap<>();
 
     {
         PreDefinedCompleterLabelMap.put("$playerlist", ITabCompleter.Template.PLAYER);
     }
+
+    @Inject
+    private CommandTriggerLoader() {
+
+    }
+
     private ITabCompleter toTabCompleter(Map<String, Object> tabs) {
         String hint = (String) tabs.get(CommandTriggerManager.TAB_HINT);
         String candidates_str = (String) tabs.get(CommandTriggerManager.TAB_CANDIDATES);
-        List<Map<String, Object>> conditions = tabs.get(CommandTriggerManager.TAB_CONDITIONS) != null ? (List<Map<String, Object>>) tabs.get(CommandTriggerManager.TAB_CONDITIONS) : null;
+        List<Map<String, Object>> conditions =
+                tabs.get(CommandTriggerManager.TAB_CONDITIONS) != null ? (List<Map<String, Object>>) tabs.get(
+                        CommandTriggerManager.TAB_CONDITIONS) : null;
 
         ITabCompleter.Builder builder;
 
-        if(candidates_str == null){
-            if(hint == null) {
+        if (candidates_str == null) {
+            if (hint == null) {
                 builder = ITabCompleter.Builder.of();
-            }else{
+            } else {
                 builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(hint.split(",")));
             }
-        }else {
+        } else {
             if (candidates_str.startsWith("$") && PreDefinedCompleterLabelMap.containsKey(candidates_str)) {
                 if (hint == null)
                     builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str));
                 else
-                    builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str)).setHint(ITabCompleter.list(hint.split(",")));
+                    builder = ITabCompleter.Builder.of(PreDefinedCompleterLabelMap.get(candidates_str))
+                            .setHint(ITabCompleter.list(hint.split(",")));
 
             } else {
                 if (hint == null)
-                    builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(candidates_str.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+                    builder = ITabCompleter.Builder.of()
+                            .setHint(ITabCompleter.list(candidates_str.split(",")))
+                            .setCandidate(ITabCompleter.list(candidates_str.split(",")));
                 else
-                    builder = ITabCompleter.Builder.of().setHint(ITabCompleter.list(hint.split(","))).setCandidate(ITabCompleter.list(candidates_str.split(",")));
+                    builder = ITabCompleter.Builder.of()
+                            .setHint(ITabCompleter.list(hint.split(",")))
+                            .setCandidate(ITabCompleter.list(candidates_str.split(",")));
             }
         }
-        if(conditions != null){
+        if (conditions != null) {
             builder = builder.setConditionMap(toTabCompleterConditionMap(conditions));
         }
         return builder.build();
     }
+
     private Map<Integer, Set<ITabCompleter>> toTabCompleterMap(List<Map<String, Object>> tabs) {
         Map<Integer, Set<ITabCompleter>> tabMap = new HashMap<>();
         tabs.forEach((t) -> {
             int idx;
-            if(t.containsKey(CommandTriggerManager.TAB_INDEX) && t.get(CommandTriggerManager.TAB_INDEX) instanceof Integer){
+            if (t.containsKey(CommandTriggerManager.TAB_INDEX)
+                    && t.get(CommandTriggerManager.TAB_INDEX) instanceof Integer) {
                 idx = (int) t.get(CommandTriggerManager.TAB_INDEX);
-            }else{
+            } else {
                 idx = tabs.indexOf(t);
             }
-            if(tabMap.containsKey(idx))
+            if (tabMap.containsKey(idx))
                 tabMap.get(idx).add(toTabCompleter(t));
-            else{
+            else {
                 Set<ITabCompleter> _set = new HashSet<>();
                 _set.add(toTabCompleter(t));
                 tabMap.put(idx, _set);
@@ -76,19 +111,21 @@ class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
         conditions.forEach((c) -> {
             int idx;
             Pattern regexPattern;
-            if(c.containsKey(CommandTriggerManager.TAB_INDEX) && c.get(CommandTriggerManager.TAB_INDEX) instanceof Integer)
+            if (c.containsKey(CommandTriggerManager.TAB_INDEX)
+                    && c.get(CommandTriggerManager.TAB_INDEX) instanceof Integer)
                 idx = (int) c.get(CommandTriggerManager.TAB_INDEX);
             else
                 return;
 
-            if(c.containsKey(CommandTriggerManager.TAB_REGEX) && c.get(CommandTriggerManager.TAB_REGEX) instanceof String) {
+            if (c.containsKey(CommandTriggerManager.TAB_REGEX)
+                    && c.get(CommandTriggerManager.TAB_REGEX) instanceof String) {
                 try {
                     regexPattern = Pattern.compile((String) c.get(CommandTriggerManager.TAB_REGEX));
-                }catch(PatternSyntaxException e){
+                } catch (PatternSyntaxException e) {
                     e.printStackTrace();
                     return;
                 }
-            }else {
+            } else {
                 return;
             }
             conditionMap.put(idx, regexPattern);

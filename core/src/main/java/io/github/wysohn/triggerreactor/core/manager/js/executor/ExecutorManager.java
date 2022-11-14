@@ -14,34 +14,45 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.manager;
+package io.github.wysohn.triggerreactor.core.manager.js.executor;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.js.AbstractJavascriptBasedManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.tools.JarUtil;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
+@Singleton
 public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
-    public ExecutorManager(TriggerReactorCore plugin,
-                           ScriptEngineManager sem) throws IOException {
-        this(plugin, sem, new HashMap<>());
-    }
+    @Inject
+    private Logger logger;
+    @Inject
+    private IJSExecutorFactory factory;
 
-    public ExecutorManager(TriggerReactorCore plugin,
-                           ScriptEngineManager sem,
-                           Map<String, Executor> overrides) throws IOException {
-        super(plugin, sem, overrides, new File(plugin.getDataFolder(), "Executor"));
+    @Inject
+    private ExecutorManager(@Named("DataFolder") File dataFolder,
+                            ScriptEngineManager sem,
+                            Map<String, Executor> overrides) throws IOException {
+        super(sem, overrides, new File(dataFolder, "Executor"));
 
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, plugin.getDataFolder(), JarUtil.CopyOption.REPLACE_IF_EXIST);
+        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
 
         //reload();
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -54,11 +65,16 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
                 reloadExecutors(file, filter);
             } catch (ScriptException | IOException e) {
                 e.printStackTrace();
-                plugin.getLogger().warning("Could not load executor " + file.getName());
+                logger.warning("Could not load executor " + file.getName());
             }
         }
 
         evaluables.putAll(overrides);
+    }
+
+    @Override
+    public void shutdown() {
+
     }
 
     @Override
@@ -98,9 +114,9 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
             builder.append(fileName);
 
             if (evaluables.containsKey(builder.toString())) {
-                plugin.getLogger().warning(builder.toString() + " already registered! Duplicating executors?");
+                logger.warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = new JSExecutor(fileName, getEngine(sem), file);
+                JSExecutor exec = factory.create(fileName, getEngine(sem), file);
                 evaluables.put(builder.toString(), exec);
             }
         }

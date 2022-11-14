@@ -1,19 +1,19 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -50,7 +50,10 @@ public abstract class AbstractAPISupport {
      * @param varName    the name of the variable
      * @param clazz      the class that will be instanciated.
      */
-    public static void addSharedVar(Map<String, AbstractAPISupport> sharedVars, String varName, Class<? extends AbstractAPISupport> clazz) {
+    public static void addSharedVar(Map<String, AbstractAPISupport> sharedVars,
+                                    String varName,
+                                    Class<? extends AbstractAPISupport> clazz,
+                                    TriggerReactorCore plugin) {
         if (!sharedVars.containsKey(varName)) {
             Constructor<?> con = null;
             try {
@@ -62,7 +65,7 @@ public abstract class AbstractAPISupport {
             boolean initSuccess = true;
             AbstractAPISupport api = null;
             try {
-                api = (AbstractAPISupport) con.newInstance(TriggerReactorCore.getInstance());
+                api = (AbstractAPISupport) con.newInstance(plugin);
                 api.init();
             } catch (APISupportException e) {
                 initSuccess = false;

@@ -16,7 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
@@ -348,7 +348,7 @@ public class TestInterpreter {
             }
         });
         TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
-        GlobalVariableManager avm = new GlobalVariableManager(triggerReactor, mock(IConfigSource.class));
+        GlobalVariableManager avm = Guice.createInjector().getInstance(GlobalVariableManager.class);
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(mockTask);
@@ -2460,6 +2460,11 @@ public class TestInterpreter {
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(new TaskSupervisor() {
 
+            @Override
+            public void runTask(Runnable runnable) {
+
+            }
+
             /* (non-Javadoc)
              * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)
              */
@@ -2551,6 +2556,11 @@ public class TestInterpreter {
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
         interpreter.setTaskSupervisor(new TaskSupervisor() {
+
+            @Override
+            public void runTask(Runnable runnable) {
+
+            }
 
             /* (non-Javadoc)
              * @see io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor#submitSync(java.util.concurrent.Callable)

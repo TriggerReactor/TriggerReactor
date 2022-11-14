@@ -1,29 +1,29 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
 import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,17 +31,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class AbstractTriggerManager<T extends Trigger> extends Manager {
+    @Inject
+    private Logger logger;
+    @Inject
+    private ITriggerLoader<T> loader;
+
     private final Observer observer = new Observer();
     private final Map<String, T> triggers = new ConcurrentHashMap<>();
 
     protected final File folder;
-    protected final ITriggerLoader<T> loader;
     protected final ConfigSourceFactory configSourceFactory;
 
-    public AbstractTriggerManager(TriggerReactorCore plugin, File folder, ITriggerLoader<T> loader) {
-        super(plugin);
+    public AbstractTriggerManager(File folder) {
         this.folder = folder;
-        this.loader = loader;
         this.configSourceFactory = ConfigSourceFactory.instance();
     }
 
@@ -68,7 +70,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
                 Optional.ofNullable(t)
                         .ifPresent(trigger -> {
                             if (has(info.getTriggerName())) {
-                                plugin.getLogger().warning(info + " is already registered! Duplicated Trigger?");
+                                logger.warning(info + " is already registered! Duplicated Trigger?");
                             } else {
                                 put(info.getTriggerName(), trigger);
                             }
@@ -97,13 +99,13 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     private void checkDuplicatedKeys(TriggerInfo info) {
-        if(info == null)
+        if (info == null)
             return;
 
-        for(TriggerConfigKey key : TriggerConfigKey.values()){
-            if(info.hasDuplicate(key)){
-                plugin.getLogger().warning("Duplicated key found in " + info);
-                plugin.getLogger().warning(String.format("Key '%s' is deprecated and is now '%s'", key.getOldKey(), key.getKey()));
+        for (TriggerConfigKey key : TriggerConfigKey.values()) {
+            if (info.hasDuplicate(key)) {
+                logger.warning("Duplicated key found in " + info);
+                logger.warning(String.format("Key '%s' is deprecated and is now '%s'", key.getOldKey(), key.getKey()));
             }
         }
     }
@@ -171,13 +173,12 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         return triggerFile;
     }
 
-    protected static void reportWarnings(List<Warning> warnings, Trigger trigger) {
+    protected void reportWarnings(List<Warning> warnings, Trigger trigger) {
         if (warnings == null || warnings.isEmpty()) {
             return;
         }
 
         Level L = Level.WARNING;
-        Logger log = TriggerReactorCore.getInstance().getLogger();
         int numWarnings = warnings.size();
         String ww;
         if (numWarnings > 1) {
@@ -186,15 +187,15 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
             ww = "warning was";
         }
 
-        log.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
+        logger.log(L, "===== " + warnings.size() + " " + ww + " found while loading trigger " +
                 trigger.getInfo() + " =====");
         for (Warning w : warnings) {
             for (String line : w.getMessageLines()) {
-                log.log(L, line);
+                logger.log(L, line);
             }
-            log.log(Level.WARNING, "");
+            logger.log(Level.WARNING, "");
         }
-        log.log(Level.WARNING, "");
+        logger.log(Level.WARNING, "");
     }
 
     private class Observer implements IObserver {

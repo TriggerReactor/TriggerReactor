@@ -59,4 +59,12 @@ public interface IInventoryHandle<ItemStack> {
      * @return the contents of the inventory
      */
     IItemStack[] getContents(IInventory inv);
+
+    boolean removeLore(IItemStack iS, int index);
+
+    boolean setLore(IItemStack iS, int index, String lore);
+
+    void addItemLore(IItemStack iS, String lore);
+
+    void setItemTitle(IItemStack iS, String title);
 }

@@ -1,48 +1,63 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2022. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
 public abstract class LocationBasedTriggerManager<T extends Trigger> extends AbstractTaggedTriggerManager<T> {
     protected final Map<SimpleChunkLocation, Map<SimpleLocation, T>> chunkMap = new ConcurrentHashMap<>();
     private final Map<UUID, String> settingLocation = new HashMap<>();
     private final Map<UUID, ClipBoard> clipboard = new HashMap<>();
 
-    public LocationBasedTriggerManager(TriggerReactorCore plugin,
-                                       File folder,
-                                       ITriggerLoader<T> loader) {
-        super(plugin, folder, loader);
+    @Inject
+    private Logger logger;
+    @Inject
+    private IPluginManagement pluginManagement;
+    @Inject
+    private IExceptionHandle exceptionHandle;
+    @Inject
+    private ScriptEditManager scriptEditManager;
+
+    public LocationBasedTriggerManager(File folder) {
+        super(folder);
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
@@ -70,13 +85,18 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
             if (locationMap.containsKey(sloc)) {
                 Trigger previous = locationMap.get(sloc);
-                plugin.getLogger().warning("Found a duplicating " + trigger.getClass().getSimpleName());
-                plugin.getLogger().warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
-                plugin.getLogger().warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
+                logger.warning("Found a duplicating " + trigger.getClass().getSimpleName());
+                logger.warning("Existing: " + previous.getInfo().getSourceCodeFile().getAbsolutePath());
+                logger.warning("Skipped: " + trigger.getInfo().getSourceCodeFile().getAbsolutePath());
             } else {
                 locationMap.put(sloc, trigger);
             }
         }
+    }
+
+    @Override
+    public void shutdown() {
+
     }
 
     public abstract String getTriggerTypeName();
@@ -112,7 +132,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         locationMap.put(sloc, trigger);
         put(sloc.toString(), trigger);
 
-        plugin.saveAsynchronously(this);
+        pluginManagement.saveAsynchronously(this);
     }
 
     protected T removeLocationCache(ILocation loc) {
@@ -127,7 +147,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         T result = locationMap.remove(sloc);
         remove(sloc.toString());
 
-        plugin.saveAsynchronously(this);
+        pluginManagement.saveAsynchronously(this);
         return result;
     }
 
@@ -298,7 +318,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         showTriggerInfo(player, loc);
         stopLocationSet(player);
 
-        plugin.saveAsynchronously(this);
+        pluginManagement.saveAsynchronously(this);
     }
 
     /**
@@ -308,15 +328,15 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      * @param trigger the trigger to be edited
      */
     public void handleScriptEdit(IPlayer player, T trigger) {
-        plugin.getScriptEditManager().startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
+        scriptEditManager.startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
                                                 script -> {
                                                     try {
                                                         trigger.setScript(script);
                                                     } catch (TriggerInitFailedException e) {
-                                                        plugin.handleException(player, e);
+                                                        exceptionHandle.handleException(player, e);
                                                     }
 
-                                                    plugin.saveAsynchronously(this);
+                                                    pluginManagement.saveAsynchronously(this);
                                                 });
     }
 

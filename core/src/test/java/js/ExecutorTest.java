@@ -17,7 +17,9 @@
 
 package js;
 
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.js.executor.IJSExecutorFactory;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
@@ -29,11 +31,13 @@ import java.util.TreeMap;
 public class ExecutorTest extends JsTest {
     public static final Map<String, Boolean> coverage = new TreeMap<>();
 
+    private static IJSExecutorFactory factor = Guice.createInjector().getInstance(IJSExecutorFactory.class);
+
     private final JSExecutor executor;
 
     public ExecutorTest(ScriptEngine engine, String name, String... directories) throws ScriptException, IOException {
         super(engine, name, "Executor", directories);
-        executor = new JSExecutor(name, engine, stream);
+        executor = factor.create(name, engine, stream);
     }
 
     @Override

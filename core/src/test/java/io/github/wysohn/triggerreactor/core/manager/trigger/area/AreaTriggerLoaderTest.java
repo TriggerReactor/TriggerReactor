@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
@@ -25,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.manager.trigger.AreaTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,7 +37,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.HashMap;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
@@ -56,12 +57,9 @@ public class AreaTriggerLoaderTest {
         instanceField.setAccessible(true);
         instanceField.set(null, core);
 
-        when(core.getExecutorManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getPlaceholderManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getVariableManager().getGlobalVariableAdapter()).thenReturn(new HashMap<>());
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
-
-        loader = new AreaTriggerLoader(core);
+        loader = Guice.createInjector(
+                new AreaTriggerModule()
+        ).getInstance(AreaTriggerLoader.class);
     }
 
     @Test

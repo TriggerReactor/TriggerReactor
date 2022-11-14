@@ -1,34 +1,71 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
+import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
+import io.github.wysohn.triggerreactor.core.script.interpreter.*;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
 import io.github.wysohn.triggerreactor.tools.observer.IObserver;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
+    @Inject
+    private TriggerReactorCore core;
+    @Inject
+    private ExecutorManager executorManager;
+    @Inject
+    private PlaceholderManager placeholderManager;
+    @Inject
+    private GlobalVariableManager globalVariableManager;
+    @Inject
+    private IPluginManagement pluginManagement;
+    @Inject
+    private TaskSupervisor taskSupervisor;
+    @Inject
+    private SelfReference selfReference;
+    @Inject
+    private IExceptionHandle exceptionHandle;
+
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     protected final TriggerInfo info;
 
@@ -96,13 +133,13 @@ public abstract class Trigger implements Cloneable, IObservable {
             Parser parser = new Parser(lexer);
 
             root = parser.parse(true);
-            List<Warning> warnings = parser.getWarnings();
+//            List<Warning> warnings = parser.getWarnings();
+//
+//            AbstractTriggerManager.reportWarnings(warnings, this);
 
-            AbstractTriggerManager.reportWarnings(warnings, this);
-            //TODO: refactor this hard dependency in 3.4.x
-            executorMap = TriggerReactorCore.getInstance().getExecutorManager().getBackedMap();
-            placeholderMap = TriggerReactorCore.getInstance().getPlaceholderManager().getBackedMap();
-            gvarMap = TriggerReactorCore.getInstance().getVariableManager().getGlobalVariableAdapter();
+            executorMap = executorManager.getBackedMap();
+            placeholderMap = placeholderManager.getBackedMap();
+            gvarMap = globalVariableManager.getGlobalVariableAdapter();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
                     + " -- " + info + "]!", ex);
@@ -146,8 +183,8 @@ public abstract class Trigger implements Cloneable, IObservable {
         }
 
         scriptVars.put("event", e);
-        scriptVars.putAll(TriggerReactorCore.getInstance().getSharedVars());
-        Map<String, Object> customVars = TriggerReactorCore.getInstance().getCustomVarsForTrigger(e);
+        scriptVars.putAll(core.getSharedVars());
+        Map<String, Object> customVars = pluginManagement.getCustomVarsForTrigger(e);
         if (customVars != null)
             scriptVars.putAll(customVars);
 
@@ -176,7 +213,7 @@ public abstract class Trigger implements Cloneable, IObservable {
      * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
      */
     protected boolean checkCooldown(Object e) {
-        IPlayer iPlayer = TriggerReactorCore.getInstance().extractPlayerFromContext(e);
+        IPlayer iPlayer = pluginManagement.extractPlayerFromContext(e);
 
         if (iPlayer != null) {
             UUID uuid = iPlayer.getUniqueId();
@@ -197,12 +234,12 @@ public abstract class Trigger implements Cloneable, IObservable {
      */
     protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setTaskSupervisor(TriggerReactorCore.getInstance());
+        interpreter.setTaskSupervisor(taskSupervisor);
         interpreter.setExecutorMap(executorMap);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.setGvars(gvarMap);
         interpreter.setVars(scriptVars);
-        interpreter.setSelfReference(TriggerReactorCore.getInstance().getSelfReference());
+        interpreter.setSelfReference(selfReference);
 
         return interpreter;
     }
@@ -225,7 +262,7 @@ public abstract class Trigger implements Cloneable, IObservable {
                 try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
                     start(t, e, scriptVars, interpreter, sync);
                 } catch (Exception ex) {
-                    TriggerReactorCore.getInstance().handleException(e, new Exception(
+                    exceptionHandle.handleException(e, new Exception(
                             "Trigger [" + info + "] produced an error!", ex));
                 }
                 return null;
@@ -233,20 +270,20 @@ public abstract class Trigger implements Cloneable, IObservable {
         };
 
         if (sync) {
-            if (TriggerReactorCore.getInstance().isServerThread()) {
+            if (taskSupervisor.isServerThread()) {
                 try {
                     call.call();
                 } catch (Exception e1) {
 
                 }
             } else {
-                Future<Void> future = TriggerReactorCore.getInstance().callSyncMethod(call);
+                Future<Void> future = taskSupervisor.submitSync(call);
                 try {
                     future.get(3, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e1) {
 
                 } catch (TimeoutException e1) {
-                    TriggerReactorCore.getInstance().handleException(e, new RuntimeException(
+                    exceptionHandle.handleException(e, new RuntimeException(
                             "Took too long to process Trigger [" + info + "]! Is the server lagging?",
                             e1));
                 }
@@ -269,10 +306,10 @@ public abstract class Trigger implements Cloneable, IObservable {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    TriggerReactorCore.getInstance().createInterrupter(cooldowns),
+                    pluginManagement.createInterrupter(cooldowns),
                     timing);
         } catch (InterpreterException ex) {
-            TriggerReactorCore.getInstance().handleException(e,
+            exceptionHandle.handleException(e,
                     new Exception("Could not finish interpretation for [" + info + "]!", ex));
         }
     }
