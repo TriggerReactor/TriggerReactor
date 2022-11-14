@@ -17,7 +17,6 @@
  *******************************************************************************/
 
 var Player = Java.type('org.bukkit.entity.Player');
-var BukkitPlayer = Java.type('io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer');
 
 var validation = {
   overloads: [
@@ -44,7 +43,7 @@ function GUI(args) {
 
   if (!target) throw new Error('Player is null.');
 
-  var inventory = plugin.getInvManager().openGUI(new BukkitPlayer(target), guiName);
+  var inventory = plugin.getInvManager().openGUI(target.getName(), guiName);
   if (!inventory)
     throw new Error('No such Inventory Trigger named ' + guiName);
 

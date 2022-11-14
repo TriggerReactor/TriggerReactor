@@ -411,14 +411,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testGui1() throws Exception {
         Player player = mock(Player.class);
+        String playerName = "TestPlayer";
         String guiName = "TESTGUI";
 
         BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
         InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
         IInventory inventory = mock(IInventory.class);
 
+        when(player.getName()).thenReturn(playerName);
         when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
-        when(inventoryTriggerManager.openGUI(any(), any())).thenReturn(inventory);
+        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
 
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("player", player)
@@ -426,7 +428,7 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         test.withArgs(guiName).test();
 
-        verify(inventoryTriggerManager).openGUI(any(IPlayer.class), eq(guiName));
+        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
 
         Assert.assertEquals(0, test.getOverload(guiName));
     }
@@ -434,21 +436,23 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     @Test
     public void testGui2() throws Exception {
         Player player = mock(Player.class);
+        String playerName = "TestPlayer";
         String guiName = "TESTGUI";
 
         BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
         InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
         IInventory inventory = mock(IInventory.class);
 
+        when(player.getName()).thenReturn(playerName);
         when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
-        when(inventoryTriggerManager.openGUI(any(), any())).thenReturn(inventory);
+        when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
 
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("plugin", triggerReactorCore);
 
         test.withArgs(player, guiName).test();
 
-        verify(inventoryTriggerManager).openGUI(any(IPlayer.class), eq(guiName));
+        verify(inventoryTriggerManager).openGUI(eq(playerName), eq(guiName));
 
         Assert.assertEquals(1, test.getOverload(player, guiName));
     }
