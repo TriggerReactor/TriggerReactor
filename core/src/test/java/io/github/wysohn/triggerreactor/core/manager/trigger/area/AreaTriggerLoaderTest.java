@@ -88,8 +88,10 @@ public class AreaTriggerLoaderTest {
 
     @Test
     public void load() throws InvalidTrgConfigurationException, IOException {
-        File areaTrigger = folder.newFolder("trigger1");
-        File configFile = folder.newFile("trigger1.json");
+        File areaTriggerFolder = folder.newFolder("AreaTrigger");
+        File areaTrigger = new File(areaTriggerFolder, "trigger1");
+        File configFile = new File(areaTriggerFolder, "trigger1.json");
+        areaTrigger.mkdirs();
         configFile.createNewFile();
 
         IConfigSource source = mock(IConfigSource.class);
@@ -118,7 +120,8 @@ public class AreaTriggerLoaderTest {
     @Test
     public void save() throws InvalidTrgConfigurationException, IOException,
             AbstractTriggerManager.TriggerInitFailedException {
-        File areaTriggerFolder1 = folder.newFolder("trigger1");
+        File areaTriggerFolder = folder.newFolder("AreaTrigger");
+        File areaTrigger1 = new File(areaTriggerFolder, "trigger1");
 
         IConfigSource source = mock(IConfigSource.class);
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
@@ -126,7 +129,7 @@ public class AreaTriggerLoaderTest {
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), String.class))
                 .thenReturn(Optional.of("world@10,10,10"));
 
-        TriggerInfo info = new AreaTriggerInfo(areaTriggerFolder1, source, "trigger1");
+        TriggerInfo info = new AreaTriggerInfo(areaTrigger1, source, "trigger1");
         AreaTrigger trigger = loader.load(info);
         trigger.setEnterTrigger("enter");
         trigger.setExitTrigger("exit");
@@ -136,9 +139,9 @@ public class AreaTriggerLoaderTest {
         verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), "world@0,0,0");
         verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), "world@10,10,10");
 
-        assertEquals("enter", fileContent(new File(areaTriggerFolder1,
+        assertEquals("enter", fileContent(new File(areaTrigger1,
                                                    AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg")));
-        assertEquals("exit", fileContent(new File(areaTriggerFolder1,
+        assertEquals("exit", fileContent(new File(areaTrigger1,
                                                   AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
     }
 

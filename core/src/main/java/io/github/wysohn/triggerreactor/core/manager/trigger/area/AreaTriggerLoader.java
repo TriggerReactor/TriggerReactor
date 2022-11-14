@@ -131,8 +131,8 @@ public class AreaTriggerLoader implements ITriggerLoader<AreaTrigger> {
         trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST, area.getSmallest().toString());
         trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST, area.getLargest().toString());
 
-        File triggerFolder = AbstractTriggerManager.concatPath(dataFolder,
-                                                               trigger.getInfo().getTriggerName());
+        // remember that AreaTrigger is a folder, not a file
+        File triggerFolder = trigger.getInfo().getSourceCodeFile();
         if (!triggerFolder.exists()) {
             triggerFolder.mkdirs();
         }
