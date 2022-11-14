@@ -149,7 +149,6 @@ public abstract class TriggerReactorCore
     public GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
-
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
