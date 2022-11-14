@@ -1,10 +1,26 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.bukkit.main;
 
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
 import io.github.wysohn.triggerreactor.core.IEventHook;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.event.*;
@@ -16,14 +32,22 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
 
+@Singleton
 public class BukkitEventRegistry implements IEventRegistry {
+    @Inject
+    private JavaPlugin plugin;
+
     private final Map<IEventHook, Listener> registeredListerners = new HashMap<>();
 
-    public BukkitEventRegistry() {
+    @Inject
+    private BukkitEventRegistry() {
         try {
             initEvents();
         } catch (IOException e) {
@@ -75,7 +99,7 @@ public class BukkitEventRegistry implements IEventRegistry {
     }
 
     @Override
-    public void registerEvent(TriggerReactorCore plugin, Class<?> clazz, IEventHook eventHook) {
+    public void registerEvent(Class<?> clazz, IEventHook eventHook) {
         Listener listener = new Listener() {
         };
         try {
@@ -84,7 +108,7 @@ public class BukkitEventRegistry implements IEventRegistry {
                 public void execute(Listener arg0, Event arg1) throws EventException {
                     eventHook.onEvent(arg1);
                 }
-            }, plugin.getMain());
+            }, plugin);
 
             registeredListerners.put(eventHook, listener);
         } catch (IllegalPluginAccessException e) {
@@ -96,7 +120,7 @@ public class BukkitEventRegistry implements IEventRegistry {
     }
 
     @Override
-    public void unregisterEvent(TriggerReactorCore plugin, IEventHook eventHook) {
+    public void unregisterEvent(IEventHook eventHook) {
         Listener listener = registeredListerners.remove(eventHook);
         if (listener != null) {
             HandlerList.unregisterAll(listener);

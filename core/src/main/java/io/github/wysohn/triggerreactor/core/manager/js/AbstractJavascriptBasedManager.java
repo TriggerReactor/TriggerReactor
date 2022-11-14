@@ -14,9 +14,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.wysohn.triggerreactor.core.manager;
+package io.github.wysohn.triggerreactor.core.manager.js;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import io.github.wysohn.triggerreactor.core.manager.KeyValueManager;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.IEvaluable;
 
 import javax.script.Bindings;
@@ -37,11 +38,10 @@ public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
     protected Map<String, T> evaluables = new HashMap<>();
     protected final ScriptEngineManager sem;
 
-    public AbstractJavascriptBasedManager(TriggerReactorCore plugin,
-                                          ScriptEngineManager sem,
+    public AbstractJavascriptBasedManager(ScriptEngineManager sem,
                                           Map<String, T> overrides,
                                           File folder) {
-        super(plugin);
+        super();
         this.sem = sem;
         this.overrides = overrides;
         this.folder = folder;

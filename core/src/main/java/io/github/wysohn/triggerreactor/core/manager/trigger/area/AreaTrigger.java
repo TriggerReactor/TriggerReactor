@@ -1,5 +1,23 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
@@ -8,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -21,7 +40,10 @@ public class AreaTrigger extends Trigger {
     private ExitTrigger exitTrigger;
     private AreaTriggerManager.EventType type = null;
 
-    public AreaTrigger(TriggerInfo info, Area area, File folder) {
+    @Inject
+    private AreaTrigger(@Assisted TriggerInfo info,
+                        @Assisted Area area,
+                        @Assisted File folder) {
         super(info, null); // area trigger has scripts in its folder
         this.area = area;
         this.folder = folder;
@@ -45,7 +67,10 @@ public class AreaTrigger extends Trigger {
 
     //intercept and pass interpretation to appropriate trigger
     @Override
-    protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
+    protected void startInterpretation(Object e,
+                                       Map<String, Object> scriptVars,
+                                       Interpreter interpreter,
+                                       boolean sync) {
         switch (type) {
             case ENTER:
                 if (getEnterTrigger() != null)
@@ -148,7 +173,8 @@ public class AreaTrigger extends Trigger {
     public static class EnterTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
-        public EnterTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws AbstractTriggerManager.TriggerInitFailedException {
+        public EnterTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws
+                AbstractTriggerManager.TriggerInitFailedException {
             super(info, script);
             this.areaTrigger = areaTrigger;
 
@@ -175,7 +201,8 @@ public class AreaTrigger extends Trigger {
     public static class ExitTrigger extends Trigger {
         private final AreaTrigger areaTrigger;
 
-        public ExitTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws AbstractTriggerManager.TriggerInitFailedException {
+        public ExitTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws
+                AbstractTriggerManager.TriggerInitFailedException {
             super(info, script);
             this.areaTrigger = areaTrigger;
 

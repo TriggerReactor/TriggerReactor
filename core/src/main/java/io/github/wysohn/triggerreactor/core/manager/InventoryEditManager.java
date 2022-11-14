@@ -22,35 +22,46 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Singleton
 public final class InventoryEditManager<ItemStack> extends Manager {
-    private final InventoryTriggerManager<ItemStack> invManager;
-    private final IInventoryHandle<ItemStack> handle;
-    private final IPluginManagement pluginManagement;
+    @Inject
+    private InventoryTriggerManager<ItemStack> invManager;
+    @Inject
+    private IInventoryHandle<ItemStack> handle;
+    @Inject
+    private IPluginManagement pluginManagement;
+
     //map of player uuids to inventories representing the inventories currently being edited
     private final Map<UUID, InventoryTrigger> sessions = new HashMap<>();
     //inventories currently awaiting a save/discard/continue command
     private final Map<UUID, IInventory> suspended = new HashMap<>();
 
-    public InventoryEditManager(TriggerReactorCore plugin,
-                                InventoryTriggerManager<ItemStack> invManager,
-                                IInventoryHandle<ItemStack> handle,
-                                IPluginManagement pluginManagement) {
-        super(plugin);
-        this.invManager = invManager;
-        this.handle = handle;
-        this.pluginManagement = pluginManagement;
+    @Inject
+    private InventoryEditManager() {
+        super();
+    }
+
+    @Override
+    public void initialize() {
+
     }
 
     @Override
     public void reload() {
+    }
+
+    @Override
+    public void shutdown() {
+
     }
 
     @Override
@@ -139,7 +150,7 @@ public final class InventoryEditManager<ItemStack> extends Manager {
         for (int i = 0; i < triggerItems.length; i++) {
             triggerItems[i] = items[i];
         }
-        TriggerReactorCore.getInstance().saveAsynchronously(TriggerReactorCore.getInstance().getInvManager());
+        pluginManagement.saveAsynchronously(InventoryTriggerManager.class);
     }
 
     /**

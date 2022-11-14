@@ -1,5 +1,23 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
@@ -16,7 +34,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -41,17 +58,14 @@ public class InventoryTriggerManagerTest {
         instanceField.setAccessible(true);
         instanceField.set(null, core);
 
-        when(core.getExecutorManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getPlaceholderManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getVariableManager().getGlobalVariableAdapter()).thenReturn(new HashMap<>());
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
-
         loader = mock(InventoryTriggerLoader.class);
         handle = mock(IInventoryHandle.class);
 
         when(handle.getItemClass()).thenReturn(ItemStack.class);
 
-        manager = new InventoryTriggerManager<>(core, loader, handle);
+        manager = Guice.createInjector(
+
+        ).getInstance(InventoryTriggerManager.class);
     }
 
     private void mockReload() throws InvalidTrgConfigurationException {

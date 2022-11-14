@@ -1,5 +1,23 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
@@ -12,7 +30,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -36,14 +53,11 @@ public class CustomTriggerManagerTest {
         instanceField.setAccessible(true);
         instanceField.set(null, core);
 
-        when(core.getExecutorManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getPlaceholderManager().getBackedMap()).thenReturn(new HashMap<>());
-        when(core.getVariableManager().getGlobalVariableAdapter()).thenReturn(new HashMap<>());
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
-
         loader = mock(CustomTriggerLoader.class);
         registry = mock(IEventRegistry.class);
-        manager = new CustomTriggerManager(core, registry, loader);
+        manager = Guice.createInjector(
+
+        ).getInstance(CustomTriggerManager.class);
     }
 
     @Test
@@ -61,7 +75,7 @@ public class CustomTriggerManagerTest {
 
         manager.reload();
 
-        verify(registry).registerEvent(core, DummyEvent.class, mockTrigger);
+        verify(registry).registerEvent(DummyEvent.class, mockTrigger);
     }
 
     @Test
@@ -75,7 +89,7 @@ public class CustomTriggerManagerTest {
         manager.createCustomTrigger(eventName, name, script);
 
         assertNotNull(manager.get(name));
-        verify(registry).registerEvent(eq(core), eq(DummyEvent.class), any());
+        verify(registry).registerEvent(eq(DummyEvent.class), any());
     }
 
     @Test
@@ -84,7 +98,7 @@ public class CustomTriggerManagerTest {
 
         manager.remove("test");
 
-        verify(registry).unregisterEvent(eq(core), any());
+        verify(registry).unregisterEvent(any());
         assertNull(manager.get("test"));
     }
 

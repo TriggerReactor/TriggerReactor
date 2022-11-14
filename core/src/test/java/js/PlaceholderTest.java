@@ -17,7 +17,9 @@
 
 package js;
 
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
+import io.github.wysohn.triggerreactor.core.manager.js.placeholder.IJSPlaceholderFactory;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import javax.script.ScriptEngine;
@@ -29,12 +31,14 @@ import java.util.TreeMap;
 public class PlaceholderTest extends JsTest {
     public static final Map<String, Boolean> coverage = new TreeMap<>();
 
+    private static IJSPlaceholderFactory factory = Guice.createInjector().getInstance(IJSPlaceholderFactory.class);
+
     private final JSPlaceholder placeholder;
 
     public PlaceholderTest(ScriptEngine engine, String name, String... directories) throws ScriptException,
             IOException {
         super(engine, name, "Placeholder", directories);
-        placeholder = new JSPlaceholder(name, engine, stream);
+        placeholder = factory.create(name, engine, stream);
     }
 
     @Override

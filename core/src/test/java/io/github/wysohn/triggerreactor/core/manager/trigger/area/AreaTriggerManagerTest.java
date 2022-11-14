@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IGameManagement;
@@ -24,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
+import io.github.wysohn.triggerreactor.core.module.MockGameManagementModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +57,9 @@ public class AreaTriggerManagerTest {
         gameManagement = mock(IGameManagement.class);
         loader = mock(ITriggerLoader.class);
 
-        manager = new AreaTriggerManager(core, taskSupervisor, gameManagement, loader);
+        manager = Guice.createInjector(
+            new MockGameManagementModule(gameManagement)
+        ).getInstance(AreaTriggerManager.class);
     }
 
     @Test

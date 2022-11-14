@@ -20,8 +20,8 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
@@ -29,6 +29,9 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -36,8 +39,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+@Singleton
 public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
-
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";
@@ -45,20 +48,26 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     final static Map<IInventory, InventoryTrigger> inventoryMap = new ConcurrentHashMap<>();
     final Map<IInventory, Map<String, Object>> inventorySharedVars = new ConcurrentHashMap<>();
 
-    IInventoryHandle<ItemStack> inventoryHandle;
+    @Inject
+    private IGameManagement gameManagement;
+    @Inject
+    private IInventoryHandle<ItemStack> inventoryHandle;
 
-    public InventoryTriggerManager(TriggerReactorCore plugin,
-                                   InventoryTriggerLoader<ItemStack> loader,
-                                   IInventoryHandle<ItemStack> inventoryHandle) {
-        super(plugin, new File(plugin.getDataFolder(), "InventoryTrigger"), loader);
-
-        this.inventoryHandle = inventoryHandle;
+    @Inject
+    private InventoryTriggerManager(@Named("DataFolder") File folder,
+                                    @Named("InventoryTriggerManagerFolder") String folderName) {
+        super(new File(folder, folderName));
     }
 
-    public InventoryTriggerManager(TriggerReactorCore plugin, IInventoryHandle<ItemStack> inventoryHandle) {
-        this(plugin, new InventoryTriggerLoader<>(inventoryHandle), inventoryHandle);
+    @Override
+    public void initialize() {
+
     }
 
+    @Override
+    public void shutdown() {
+
+    }
     /**
      * Open the GUI (of the existing InventoryTrigger) for the target player
      *
@@ -68,7 +77,7 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
      * @throws IllegalArgumentException if the player is not online or not found
      */
     public IInventory openGUI(String playerName, String inventoryName) {
-        IPlayer player = plugin.getPlayer(playerName);
+        IPlayer player = gameManagement.getPlayer(playerName);
         if (player == null)
             throw new IllegalArgumentException("Player " + playerName + " not found!");
 
@@ -129,7 +138,6 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     *
      * @param eventInstance
      * @param inventory
      * @param player

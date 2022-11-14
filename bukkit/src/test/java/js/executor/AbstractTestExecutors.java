@@ -20,7 +20,6 @@ package js.executor;
 //import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
 
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
@@ -54,7 +53,6 @@ import org.mockito.ArgumentMatcher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -501,7 +499,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
                 .addVariable("plugin", tr);
 
         when(vip.getName()).thenReturn("vip");
-        when(tr.getInvManager()).thenReturn(invManager);
         when(invManager.openGUI("vip", "Hi")).thenReturn(iInv);
 
         test.withArgs("Hi").test();
@@ -668,11 +665,11 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         Player mockPlayer = mock(Player.class);
         ExecutorService pool = Executors.newSingleThreadExecutor();
 
-        when(mockMain.isServerThread()).thenReturn(false);
-        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
-            Callable call = invocation.getArgument(0);
-            return pool.submit(call);
-        });
+//        when(mockMain.isServerThread()).thenReturn(false);
+//        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
+//            Callable call = invocation.getArgument(0);
+//            return pool.submit(call);
+//        });
 
         Runnable run = new Runnable() {
             final JsTest test = new ExecutorTest(engine, "MESSAGE")
@@ -786,11 +783,13 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testServer() throws Exception {
-        BukkitTriggerReactorCore plugin = mock(BukkitTriggerReactorCore.class);
+        TriggerReactorCore plugin = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
+        AbstractJavaPlugin mockPluginInstance = mock(AbstractJavaPlugin.class);
         AbstractJavaPlugin.BungeeCordHelper helper = mock(AbstractJavaPlugin.BungeeCordHelper.class);
         Player player = mock(Player.class);
 
-        when(plugin.getBungeeHelper()).thenReturn(helper);
+        when(plugin.getPluginObject()).thenReturn(mockPluginInstance);
+        when(mockPluginInstance.getBungeeHelper()).thenReturn(helper);
 
         new ExecutorTest(engine, "SERVER")
                 .addVariable("player", player)

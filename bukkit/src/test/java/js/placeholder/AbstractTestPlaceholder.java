@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package js.placeholder;
 
 import js.AbstractTestJavaScripts;
@@ -25,7 +42,6 @@ import org.mockito.Mockito;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -81,11 +97,11 @@ public abstract class AbstractTestPlaceholder extends AbstractTestJavaScripts {
         ExecutorService pool = Executors.newSingleThreadExecutor();
 
         when(mockPlayer.getName()).thenReturn("wysohn");
-        when(mockMain.isServerThread()).thenReturn(false);
-        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
-            Callable call = invocation.getArgument(0);
-            return pool.submit(call);
-        });
+//        when(mockMain.isServerThread()).thenReturn(false);
+//        when(mockMain.callSyncMethod(any(Callable.class))).then(invocation -> {
+//            Callable call = invocation.getArgument(0);
+//            return pool.submit(call);
+//        });
 
         Runnable run = new Runnable() {
             final JsTest test = new PlaceholderTest(engine, "playername")
