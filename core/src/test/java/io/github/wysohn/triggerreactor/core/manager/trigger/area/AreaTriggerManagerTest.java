@@ -26,7 +26,9 @@ import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
@@ -36,6 +38,8 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 public class AreaTriggerManagerTest {
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     TriggerReactorCore core;
     TaskSupervisor taskSupervisor;
@@ -50,6 +54,8 @@ public class AreaTriggerManagerTest {
         Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
         instanceField.setAccessible(true);
         instanceField.set(null, core);
+
+        when(core.getDataFolder()).thenReturn(folder.getRoot());
 
         taskSupervisor = mock(TaskSupervisor.class);
         gameManagement = mock(IGameManagement.class);
@@ -72,6 +78,16 @@ public class AreaTriggerManagerTest {
         manager.reload();
 
         verify(mockInfo, times(1)).reloadConfig();
+    }
+
+    @Test
+    public void saveAll() throws InvalidTrgConfigurationException {
+        manager.createArea("test",
+                           new SimpleLocation("world", 0, 0, 0),
+                           new SimpleLocation("world", 10, 10, 10));
+        manager.saveAll();
+
+        verify(loader, times(1)).save(any());
     }
 
     @Test
