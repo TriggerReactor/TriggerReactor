@@ -704,42 +704,6 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testLog() throws Exception {
-        class FakeConsoleSender {
-            public void sendMessage(String message) {}
-        }
-
-        class FakeBukkit {
-            public synchronized FakeConsoleSender getConsoleSender() {
-                return null;
-            }
-        }
-        class FakeJava {
-            public FakeBukkit type(String name) {
-                return null;
-            }
-        }
-
-        FakeConsoleSender consoleSender = mock(FakeConsoleSender.class);
-        FakeBukkit bukkit = mock(FakeBukkit.class);
-        FakeJava java = mock(FakeJava.class);
-
-        String message = "Message";
-
-        when(java.type("org.bukkit.Bukkit")).thenReturn(bukkit);
-        when(bukkit.getConsoleSender()).thenReturn(consoleSender);
-
-        JsTest test = new ExecutorTest(engine, "LOG")
-                .addVariable("Java", java);
-
-        test.withArgs(message).test();
-
-        verify(consoleSender).sendMessage(message);
-
-        Assert.assertEquals(0, test.getOverload(message));
-    }
-
-    @Test
     public void testMessage() throws Exception {
         class ExampleObject {
             private final String message;

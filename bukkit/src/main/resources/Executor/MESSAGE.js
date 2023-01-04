@@ -19,7 +19,6 @@
 var Bukkit = Java.type('org.bukkit.Bukkit');
 var ChatColor = Java.type('org.bukkit.ChatColor');
 var Object = Java.type('java.lang.Object');
-var Objects = Java.type('java.util.Objects');
 
 var validation = {
   overloads: [
@@ -32,7 +31,7 @@ var validation = {
 function MESSAGE(args) {
   if (!player) throw new Error('Player is null.');
 
-  var message = Objects.toString(args[0]);
+  var message = args[0].toString()
 
   message = ChatColor.translateAlternateColorCodes('&', message);
 

@@ -17,17 +17,18 @@
  *******************************************************************************/
 
 var Bukkit = Java.type('org.bukkit.Bukkit');
+var Object = Java.type('java.lang.Object');
 
 var validation = {
   overloads: [
     [
-      { type: 'string', name: 'message' }
+      { type: Object.class, name: 'message' }
     ]
   ]
 };
 
 function LOG(args) {
-  var message = args[0];
+  var message = args[0].toString();
 
   Bukkit.getConsoleSender().sendMessage(message);
 

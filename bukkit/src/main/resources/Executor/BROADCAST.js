@@ -16,6 +16,8 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var Object = Java.type('java.lang.Object');
+
 var Bukkit = Java.type('org.bukkit.Bukkit');
 var ChatColor = Java.type('org.bukkit.ChatColor');
 
@@ -24,14 +26,14 @@ var BukkitUtil = Java.type('io.github.wysohn.triggerreactor.bukkit.tools.BukkitU
 var validation = {
   overloads: [
     [
-      { type: 'string', name: 'message' }
+      { type: Object.class, name: 'message' }
     ]
   ]
 };
 
 function BROADCAST(args) {
   var PlaceholderAPI;
-  var message = args[0];
+  var message = args[0].toString()
 
   if (Bukkit.getPluginManager().isPluginEnabled('PlaceholderAPI'))
     PlaceholderAPI = Java.type('me.clip.placeholderapi.PlaceholderAPI');
@@ -42,10 +44,7 @@ function BROADCAST(args) {
   var iter = players.iterator();
   while (iter.hasNext()) {
     var target = iter.next();
-    var msg;
-
-    if (PlaceholderAPI)
-      msg = PlaceholderAPI.setPlaceholders(target, message);
+    var msg = PlaceholderAPI ? PlaceholderAPI.setPlaceholders(target, message) : message;
 
     target.sendMessage(msg)
   }

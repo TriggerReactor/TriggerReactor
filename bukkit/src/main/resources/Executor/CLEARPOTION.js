@@ -30,21 +30,19 @@ function CLEARPOTION(args) {
   if (!player) throw new Error('Player is null.');
 
   if (overload === 0) {
-    var activePotionEffects = player.getActivePotionEffects();
-    var iter = activePotionEffects.iterator();
+    var potions = player.getActivePotionEffects();
+    var iter = potions.iterator();
     while (iter.hasNext()) {
-      var effectType = iter.next().getType();
+      var potion = iter.next().getType();
 
-      player.removePotionEffect(effectType);
+      player.removePotionEffect(potion);
     }
   } else if (overload === 1) {
-    var potion = PotionEffectType.getByName(args[0].toUpperCase());
+    var potion = PotionEffectType.getByName(args[0]);
 
     if (!potion) throw new Error(args[0] + ' is not a valid potion.');
 
-    player.removePotionEffect(
-      PotionEffectType.getByName(potion)
-    );
+    player.removePotionEffect(potion);
   }
 
   return null;
