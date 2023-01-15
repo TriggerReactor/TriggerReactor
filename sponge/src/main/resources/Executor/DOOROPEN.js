@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,25 +15,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function DOOROPEN(args) {
-	if (args.length == 1 || args.length == 3) {
-		var location;
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var Location = Java.type('org.spongepowered.api.world.Location')
 
-		if(args.length == 1){
-			location = args[0];
-		}else{
-			var world = player.getWorld();          
-			location = new Location(world, args[0], args[1], args[2]);
-		}
-		
-		var current = location.get(Keys.OPEN).orElse(null);
-		if(current == null)
-			throw new Error("Block at "+location+" doesn't have OPEN trait!");
-			
-		location.offer(Keys.OPEN, true);
-	}else {
-		throw new Error(
-			'Invalid parameters. Need [Location<location or number number number>]');
-	}
-	return null;
+function DOOROPEN(args) {
+  if (args.length == 1 || args.length == 3) {
+    var location
+
+    if (args.length == 1) {
+      location = args[0]
+    } else {
+      var world = player.getWorld()
+      location = new Location(world, args[0], args[1], args[2])
+    }
+
+    if (!(location && location instanceof Location)) {
+      throw new Error('Invalid location')
+    }
+
+    var current = location.get(Keys.OPEN).orElse(null)
+    if (current == null) throw new Error('Block at ' + location + " doesn't have OPEN trait!")
+
+    location.offer(Keys.OPEN, true)
+    return null
+  } else {
+    throw new Error('Invalid parameters. Need [Location] or [number, number, number]')
+  }
 }

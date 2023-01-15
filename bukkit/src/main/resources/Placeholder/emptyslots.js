@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,17 +15,21 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
 function emptyslots(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    var contents = player.getInventory().getContents();
-    var count = 0;
+  var count = 0;
 
-    for(var i = 0; i < contents.length; i++) {
-        if(contents[i] == null)
-            count++;
-    }
+  var contents = player.getInventory().getContents();
 
-    return count;
+  for (var i = 0; i < contents.length; i++) {
+    var content = contents[i];
+
+    if (content === null)
+      count++;
+  }
+
+  return count;
 }

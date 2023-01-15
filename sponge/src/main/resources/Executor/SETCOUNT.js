@@ -14,24 +14,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type("org.spongepowered.api.item.inventory.ItemStack")
-validation = {
-    "overloads": [
-        [{"name": "amount", "type": "int"}, {"name": "item", "type": itemStackType.class}]
+var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
 
+validation = {
+  overloads: [
+    [
+      { name: 'amount', type: 'int' },
+      { name: 'item', type: ItemStack.class }
     ]
+  ]
 }
 
 function SETCOUNT(args) {
-    if (overload === 0) {
-        var amount = args[0];
-        var item = args[1];
+  if (overload === 0) {
+    var amount = args[0]
+    var item = args[1]
 
-        if (item == null) {
-            throw new Error("Error: item cannot be null or AIR.")
-        }
-
-        item.setQuantity(amount);
-        return null;
+    if (item == null) {
+      throw new Error('Error: item cannot be null or AIR.')
     }
+
+    item.setQuantity(amount)
+    return null
+  }
 }

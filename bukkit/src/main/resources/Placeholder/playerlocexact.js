@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,15 +15,17 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
 function playerlocexact(args) {
-    if(player == null)
-        return null;
+    if (!player)
+        throw new Error('Player is null.');
 
-    loc = player.getLocation();
-    world = loc.getWorld().getName();
-    x = loc.getX();
-    y = loc.getY();
-    z = loc.getZ();
+    var loc = player.getLocation();
 
-    return world+"@"+x+","+y+","+z;
+    var world = loc.getWorld().getName();
+    var x = loc.getX();
+    var y = loc.getY();
+    var z = loc.getZ();
+
+    return world+'@'+x+','+y+','+z;
 }

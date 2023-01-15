@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,10 +15,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function prefix(args) {
-    if(player == null)
-        return null;
 
-    //https://github.com/MilkBowl/VaultAPI/blob/8dc0859cba3eee3263209d88999dce23597f26ad/src/main/java/net/milkbowl/vault/chat/Chat.java#L90
-    return vault.chat().getPlayerPrefix(player);
+function prefix(args) {
+  if (!player)
+    throw new Error('Player is null.');
+
+  if (!vault)
+    throw new Error('Server has no Vault plugin.')
+
+  return vault.chat().getPlayerPrefix(player);
 }

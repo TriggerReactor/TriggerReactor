@@ -14,12 +14,10 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
 function helditemid(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(player.getItemInHand() == null)
-        return -1;
-
-    return player.getItemInHand().getType().getId();
+  return player.getItemInHand().getType().getId();
 }

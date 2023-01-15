@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,18 +15,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-validation = {
-    "overloads": [
-        [{"name": "minimum", "type": "number"}],
-        [{"name": "minimum", "type": "number"}, {"name": "maximum", "type": "number"}]
+
+var validation = {
+  overloads: [
+    [
+      { type: 'number', name: 'minimum' }
+    ],
+    [
+      { type: 'number', name: 'minimum' },
+      { type: 'number', name: 'maximum' }
     ]
+  ]
 }
 
 function random(args) {
-    if(overload === 0) {
-        return Math.floor(Math.random() * args[0])
+  var rand;
 
-    } else {
-        return Math.floor(Math.random() * (args[1] - args[0])) + args[0]
-    }
+  if (overload === 0)
+    rand = Math.floor(Math.random() * args[0])
+  else
+    rand = Math.floor(Math.random() * (args[1] - args[0])) + args[0]
+
+  return rand;
 }

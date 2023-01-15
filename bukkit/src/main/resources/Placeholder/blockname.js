@@ -1,25 +1,41 @@
+/*******************************************************************************
+ *     Copyright (C) 2022 Ioloolo
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
 var Bukkit = Java.type('org.bukkit.Bukkit')
 
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'world' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
+    ]
+  ]
+};
+
 function blockname(args) {
+  var world = Bukkit.getWorld(args[0]);
+  var x = args[1];
+  var y = args[2];
+  var z = args[3];
 
-    if ((args.length == 0) || (args.length == 1) || (args.length == 2) || (args.length == 3)) {
-        throw new Error("$blockname placeholder should be used as $blockname:\"worldname\": x: y: z.");
-    } else if (args.length == 4) {
+  if (!world)
+    throw new Error('The world does not exist.');
 
-        if (Bukkit.getWorld(args[0]) == null) {
-            throw new Error("The world does not exist.");
-            return null;
-        }
-        if ((typeof args[1] !== "number")||(typeof args[2] !== "number")||(typeof args[3] !== "number")) {
-            throw new Error("Coordinate values must be integers.");
-            return null;
-        }
-        world = Bukkit.getWorld(args[0]);
-        x = args[1];
-        y = args[2];
-        z = args[3];
-
-        block = world.getBlockAt(x,y,z).getType().name().toLowerCase();
-        return block;
-    }
+  return world.getBlockAt(x, y, z).getType().name().toLowerCase();
 }

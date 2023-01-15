@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,15 +15,37 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function PERMISSION(args){
-	if(player === null)
-		return null;
-		
-	if(args.length != 1 || typeof args[0] !== "string")
-		throw new Error("Invalid parameter! [String]")
 
-	if(args[0].length > 1 && args[0].charAt(0) == '-')
-		vault.revoke(player, args[0].substring(1));
-	else
-		vault.permit(player, args[0]);
+var Player = Java.type('org.bukkit.entity.Player');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'permission' }
+    ],
+    [
+      { type: Player.class, name: 'player' },
+      { type: 'string', name: 'permission' }
+    ]
+  ]
+};
+
+function PERMISSION(args) {
+  var target, permission;
+
+  if (overload === 0) {
+    target = player;
+    permission = args[0];
+  } else if (overload === 1) {
+    target = args[0];
+    permission = args[1];
+  }
+
+  if (!vault) throw new Error('Vault is not available.');
+  if (!target) throw new Error('Player is null.');
+
+  if (permission.startsWith('-')) vault.revoke(target, permission.substring(1));
+  else vault.permit(target, permission);
+
+  return null;
 }

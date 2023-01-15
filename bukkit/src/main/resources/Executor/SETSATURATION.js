@@ -1,21 +1,48 @@
-function SETSATURATION(args)
-{
-  if (args.length != 1)
-  {
-    throw new Error("Incorrect Number of arguments for Executor SETSATURATION")
+/*******************************************************************************
+ *     Copyright (C) 2022 Ioloolo
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *******************************************************************************/
+
+var Player = Java.type('org.bukkit.entity.Player');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'int', minimum: 1, name: 'saturation' }
+    ],
+    [
+      { type: Player.class, name: 'player' },
+      { type: 'int', minimum: 1, name: 'saturation' }
+    ]
+  ]
+};
+
+function SETSATURATION(args) {
+  var target, saturation;
+
+  if (overload === 0) {
+    target = player;
+    saturation = args[0];
+  } else if (overload === 1) {
+    target = args[0];
+    saturation = args[1];
   }
-  
-  var arg = args[0]
-  
-  if (!(typeof arg == "number"))
-  {
-    throw new Error("Invalid argument for SETSATURATION: " + arg)
-  }
-  
-  if (arg < 0)
-  {
-    throw new Error("Argument for Executor SETSATURATION should not be negative")
-  }
-  
-  player.setSaturation(arg)
+
+  if (!target) throw new Error('Player is null.');
+
+  target.setSaturation(saturation);
+
+  return null;
 }

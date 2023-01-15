@@ -14,23 +14,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function SOUND(args) {
-	if (args.length == 4) {
-		var location = args[0];
-		var volume = args[2];
-		var pitch = args[3];
+var SoundType = Java.type('org.spongepowered.api.effect.sound.SoundType')
+var SoundTypes = Java.type('org.spongepowered.api.effect.sound.SoundTypes')
+var ReflectionUtil = Java.type('io.github.wysohn.triggerreactor.tools.ReflectionUtil')
+var Vector3d = Java.type('com.flowpowered.math.vector.Vector3d')
 
-		var sound;
-		try{
-			sound = ReflectionUtil.getField(SoundTypes.class, null, args[1]);
-		}catch(ex){
-			sound = SoundType.of(args[1]);
-		}finally{
-			player.playSound(sound, new Vector3d(location.getPosition()), volume, pitch);
-		}
-	} else {
-		throw new Error(
-				"Invalid parameters. Need [Location, Sound, Number, Number]")
-	}
-	return null;
+function SOUND(args) {
+  if (args.length == 4) {
+    var location = args[0]
+    var volume = args[2]
+    var pitch = args[3]
+
+    var sound
+    try {
+      sound = ReflectionUtil.getField(SoundTypes.class, null, args[1])
+    } catch (ex) {
+      sound = SoundType.of(args[1])
+    } finally {
+      player.playSound(sound, new Vector3d(location.getPosition()), volume, pitch)
+    }
+  } else {
+    throw new Error('Invalid parameters. Need [Location, Sound, Number, Number]')
+  }
+  return null
 }

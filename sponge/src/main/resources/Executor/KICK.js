@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,52 +15,51 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Player = Java.type('org.spongepowered.api.entity.living.player.Player')
+var Text = Java.type('org.spongepowered.api.text.Text')
+var Sponge = Java.type('org.spongepowered.api.Sponge')
+var TextUtil = Java.type('io.github.wysohn.triggerreactor.sponge.tools.TextUtil')
+var String = Java.type('java.lang.String')
+
 function KICK(args) {
-    var plType = Java.type("org.spongepowered.api.entity.living.player.Player")
-    var String = Java.type('java.lang.String')
-    var Text = Java.type('org.spongepowered.api.text.Text')
-    if (args.length === 0) {
-        if (player === null) {
-            throw new Error("Too few arguments! You should enter at least one argument if you use KICK executor from console.")
-        } else {
-            player.kick(TextUtil.colorStringToText("&c[TR] You've been kicked from the server."));
-            return null;
-        }
-    } else if (args.length === 1) {
-        var undefinedArgument = args[0]
-        if (undefinedArgument === null)
-            throw new Error("Unexpected Error: parameter does not match - player: null")
+  var target = player,
+    message = TextUtil.colorStringToText("&c[TR] You've been kicked from the server.")
 
-        if (args[0] instanceof plType) {
-            var definedToPlayer = undefinedArgument;
-            definedToPlayer.kick(TextUtil.colorStringToText("&c[TR] You've been kicked from the server."));
-            return null;
-        } else if (!(undefinedArgument instanceof plType)) {
-            if (msg instanceof Text)
-                var msg = undefinedArgument;
-            else
-                var msg = TextUtil.colorStringToText(String.valueOf(undefinedArgument))
-
-            player.kick(msg);
-            return null;
-        } else {
-            throw new Error("Found unexpected type of argument: " + undefinedArgument);
-        }
-    } else if (args.length === 2) {
-        var pl = args[0]
-        var msg = args[1]
-        if (!(pl instanceof plType)) {
-            throw new Error("Found unexpected type of argument(s) - player: " + pl + " | msg: " + msg)
-        } else {
-            if (msg instanceof Text)
-                var msg = undefinedArgument;
-            else
-                var msg = TextUtil.colorStringToText(String.valueOf(undefinedArgument))
-
-            pl.kick(msg);
-            return null;
-        }
-    } else if (args.length > 2) {
-        throw new Error("Too many arguments! KICK Executor accepts up to two arguments.")
+  if (args.length === 0) {
+    if (!target) {
+      throw new Error(
+        'Too few arguments! You should enter at least one argument if you use KICK executor from console.'
+      )
     }
+  } else if (args.length === 1) {
+    if (args[0] instanceof Player) {
+      target = args[0]
+    } else {
+      var targetable = Sponge.getGame().getServer().getPlayer(args[0]).orElse(null)
+
+      if (targetable) {
+        target = targetable
+      } else {
+        message = args[0]
+      }
+    }
+  } else if (args.length === 2) {
+    target = args[0]
+    message = args[1]
+  } else if (args.length > 2) {
+    throw new Error('Too many arguments! KICK Executor accepts up to two arguments.')
+  }
+
+  if (!(target instanceof Player)) {
+    target = Sponge.getGame().getServer().getPlayer(args[0]).orElse(null)
+
+    if (!target) throw new Error('Found unexpected type of argument(s) - player: ' + target)
+  }
+
+  if (!(message instanceof Text)) {
+    message = TextUtil.colorStringToText(String.valueOf(message))
+  }
+
+  target.kick(message)
+  return null
 }
