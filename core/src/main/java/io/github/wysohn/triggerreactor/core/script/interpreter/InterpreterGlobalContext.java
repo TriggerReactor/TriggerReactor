@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ public class InterpreterGlobalContext {
         put("CONTINUE", EXECUTOR_CONTINUE);
     }};
     final Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
-    Map<Object, Object> gvars = new ConcurrentHashMap<>();
+    final Map<Object, Object> gvars = new ConcurrentHashMap<>();
     SelfReference selfReference = new SelfReference() {
     };
     ProcessInterrupter interrupter = null;
