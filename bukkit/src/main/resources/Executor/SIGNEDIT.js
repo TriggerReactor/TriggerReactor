@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,36 +15,56 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var Location = Java.type('org.bukkit.Location')
-var ChatColor = Java.type('org.bukkit.ChatColor')
+
+var Bukkit = Java.type('org.bukkit.Bukkit');
+var Sign = Java.type('org.bukkit.block.Sign');
+var Location = Java.type('org.bukkit.Location');
+var ChatColor = Java.type('org.bukkit.ChatColor');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'int', minimum: 0, maximum: 3, name: 'line' },
+      { type: 'string', name: 'text' },
+      { type: Location.class, name: 'location' }
+    ],
+    [
+      { type: 'int', minimum: 0, maximum: 3, name: 'line' },
+      { type: 'string', name: 'text' },
+      { type: 'int', name: 'x' },
+      { type: 'int', name: 'y' },
+      { type: 'int', name: 'z' }
+    ]
+  ]
+};
 
 function SIGNEDIT(args) {
-    if(args.length == 3 || args.length == 5){
-        var lineNumber = args[0];
-        var lineText = args[1];
-        var location;
+  var line, text, location;
 
-        if(args.length == 3){
-            location = args[2];
-        }else{
-            var world = player.getWorld();
-            location = new Location(world, args[2], args[3], args[4]);
-        }
+  if (overload === 0) {
+    line = args[0];
+    text = args[1];
+    location = args[2];
+  } else if (overload === 1) {
+    line = args[0];
+    text = args[1];
+    location = new Location(
+      player ? player.getLocation().getWorld() : Bukkit.getWorld('world'),
+      args[2],
+      args[3],
+      args[4]
+    );
+  }
 
-        Block = location.getBlock();
+  text = ChatColor.translateAlternateColorCodes('&', text);
 
-        if(Block.getType().name().toLowerCase().indexOf("sign") !== -1){
-            Sign = Block.getState();
-            Sign.setLine(parseInt(lineNumber), ChatColor.translateAlternateColorCodes(Char('&'), lineText));
-            Sign.update();
-        }else{
-            throw new Error(
-                'Invalid sign. That block is not a valid sign!');
-        }
+  var block = location.getBlock();
+  var state = block.getState();
 
-    }else {
-        throw new Error(
-            'Invalid parameters. Need [Line<number>, Text<string>, Location<location or number number number>]');
-    }
-    return null;
+  if (!(state instanceof Sign)) throw new Error('This block is not a sign.');
+
+  state.setLine(line, text);
+  state.update();
+
+  return null;
 }

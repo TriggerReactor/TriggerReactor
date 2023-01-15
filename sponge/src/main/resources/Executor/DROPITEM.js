@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 soliddanii, wysohn
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,53 +15,66 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
- function DROPITEM(args) {
-	if (args.length == 2){
-		var IS = args[0];
-		var location = args[1];
-		var world = location.getExtent();
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
+var EntityTypes = Java.type('org.spongepowered.api.entity.EntityTypes')
+var Enchantment = Java.type('org.spongepowered.api.item.enchantment.Enchantment')
+var EnchantmentTypes = Java.type('org.spongepowered.api.item.enchantment.EnchantmentTypes')
+var ItemTypes = Java.type('org.spongepowered.api.item.ItemTypes')
+var ItemStack = Java.type('org.spongepowered.api.item.inventory.ItemStack')
+var Location = Java.type('org.spongepowered.api.world.Location')
+var ReflectionUtil = Java.type('io.github.wysohn.triggerreactor.tools.ReflectionUtil')
+var ArrayList = Java.type('java.util.ArrayList')
 
-        var item = world.createEntity(EntityTypes.ITEM, location.getPosition());
-        item.offer(Keys.REPRESENTED_ITEM, IS.createSnapshot());
-		world.spawnEntity(item);
-	}else if (args.length == 4 || args.length == 6) {
-		var itemID = args[0].toUpperCase();
-		var amount = args[1];
-		var enchan = args[2];
-		var location;
-		var world = player.getWorld();
+function DROPITEM(args) {
+  if (args.length === 2) {
+    var itemStack = args[0]
+    var location = args[1]
+    var world = location.getExtent()
 
-		if(args.length == 4){
-			location = args[3];
-		}else{   
-			location = new Location(world, args[3], args[4], args[5]);
-		}
+    var item = world.createEntity(EntityTypes.ITEM, location.getPosition())
+    item.offer(Keys.REPRESENTED_ITEM, itemStack.createSnapshot())
+    world.spawnEntity(item)
+  } else if (args.length == 4 || args.length == 6) {
+    var itemID = args[0].toUpperCase()
+    var quantity = args[1]
+    var enchantRaw = args[2]
+    var location
+    var world = player.getWorld()
 
-		var itemType = ReflectionUtil.getField(ItemTypes.class, null, itemID);
-		var builder = ItemStack.builder().itemType(itemType).quantity(amount);
+    if (args.length == 4) {
+      location = args[3]
+    } else {
+      location = new Location(world, args[3], args[4], args[5])
+    }
 
-		if(enchan.toUpperCase() !== 'NONE'){
-			var encharg = enchan.split(',');
-			for each (en in encharg){
-				var ench = ReflectionUtil.getField(EnchantmentTypes.class, null, en.split(':')[0])
-				var level = parseInt(en.split(':')[1]);
+    var itemType = ReflectionUtil.getField(ItemTypes.class, null, itemID)
+    var builder = ItemStack.builder().itemType(itemType).quantity(quantity)
+    var enchants = enchantRaw.replace(/\s+/, '').split(',')
+    var enchantmentList = new ArrayList()
+    enchants.forEach(function (enchant) {
+      var enchantName = enchant.split(':')[0]
+      var enchantLevel = enchant.split(':')[1]
+      var enchantType = ReflectionUtil.getField(EnchantmentTypes.class, null, enchantName)
 
-				if(!ench)
-					throw Error(en.split(':')[0]+" is not a valid Enchantment.");
+      if (!enchantType) {
+        throw new Error(enchantName + ' is not a valid Enchantment.')
+      }
 
-				var ArrayList = Java.type('java.util.ArrayList');
-				var enchs = new ArrayList();
-				enchs.add(Enchantment.of(ench, level));
-				builder.add(Keys.ITEM_ENCHANTMENTS, enchs);
-			}
-		}
+      enchantmentList.add(Enchantment.of(enchantName, enchantLevel))
+    })
 
-        var item = world.createEntity(EntityTypes.ITEM, location.getPosition());
-        item.offer(Keys.REPRESENTED_ITEM, builder.build().createSnapshot());
-		world.spawnEntity(item);
-	} else {
-		throw new Error(
-			'Invalid parameters. Need [Item, Vector3i or Item<string>, Quantity<number>, Enchantments<string>, Location<Vector3i or number number number>]');
-	}
-	return null;
+    if (enchantmentList.size() > 0) {
+      builder.add(Keys.ITEM_ENCHANTMENTS, enchantmentList)
+    }
+
+    var item = world.createEntity(EntityTypes.ITEM, location.getPosition())
+    item.offer(Keys.REPRESENTED_ITEM, builder.build().createSnapshot())
+    world.spawnEntity(item)
+  } else {
+    throw new Error(
+      'Invalid parameters. Need [Item, Vector3i or Item<string>, Quantity<number>, Enchantments<string>, Location<Vector3i or number number number>]'
+    )
+  }
+
+  return null
 }

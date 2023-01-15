@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,24 +15,32 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-var itemStackType = Java.type('org.bukkit.inventory.ItemStack')
-var ChatColor = Java.type('org.bukkit.ChatColor')
-validation = {
-    "overloads": [
-        [{"name":"lore", "type": "string"}, {"name": "item", "type": itemStackType.class}]
+
+var Arrays = Java.type('java.util.Arrays');
+
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+var ChatColor = Java.type('org.bukkit.ChatColor');
+var Material = Java.type('org.bukkit.Material');
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'lore' },
+      { type: ItemStack.class, name: 'item' }
     ]
+  ]
+};
 
-}
-function SETITEMLORE(args){
+function SETITEMLORE(args) {
+  var lores = ChatColor.translateAlternateColorCodes('&', args[0]).split('\n');
+  var item = args[1];
 
-    var combinedString = args[0];
-    var item = args[1];
-    var lores = combinedString.split("\n");
-    for(var k = 0; k < lores.length; k++) {
-        lores[k] = ChatColor.translateAlternateColorCodes(Char('&'), lores[k]);
-    }
-    var im = item.getItemMeta();
-    im.setLore(lores);
-    item.setItemMeta(im);
-    return null;
+  if (item.getType() === Material.AIR)
+    throw new TypeError('Item cannot be an AIR.');
+
+  var meta = item.getItemMeta();
+  meta.setLore(Arrays.asList(lores));
+  item.setItemMeta(meta);
+
+  return null;
 }

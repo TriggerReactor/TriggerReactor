@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,21 +15,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-validation = {
-    "overloads": [
-        []
-    ]
-}
-function offhanditem(args) {
-    if(player == null)
-        return null;
 
-    var item = player.getInventory().getItemInOffHand();
-    if(item == null) {
-        var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
-        var Material = Java.type('org.bukkit.Material')
-        return ItemStack(Material.AIR);
-    } else {
-        return item;
-    }
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack')
+
+function offhanditem(args) {
+  if (!player)
+    throw new Error('Player is null.');
+
+  return player.getInventory().getItemInOffHand();
 }

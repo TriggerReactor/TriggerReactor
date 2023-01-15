@@ -14,20 +14,22 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function exp(args) {
-    if(player == null)
-        return null;
+var Keys = Java.type('org.spongepowered.api.data.key.Keys')
 
-    var currentLevel = player.get(Keys.EXPERIENCE_LEVEL).orElse(0)
-    if(currentLevel >= 0 && currentLevel <= 15) {
-        var requiredExp = 2 * currentLevel + 7
-    } else if(currentLevel >= 16 && currentLevel <= 30) {
-        var requiredExp = 5 * currentLevel - 38
-    } else if(currentLevel >= 31) {
-        var requiredExp = 9 * currentLevel -158
-    }
-    var currentExp = player.get(Keys.EXPERIENCE_SINCE_LEVEL).orElse(0);
-    var forRound = (currentExp / requiredExp) * 100
-    var actualValue = Math.round(forRound) / 100
-    return actualValue;
+function exp(args) {
+  if (player == null) return null
+
+  var currentLevel = player.get(Keys.EXPERIENCE_LEVEL).orElse(0)
+  var requiredExp
+  if (currentLevel >= 0 && currentLevel <= 15) {
+    requiredExp = 2 * currentLevel + 7
+  } else if (currentLevel >= 16 && currentLevel <= 30) {
+    requiredExp = 5 * currentLevel - 38
+  } else if (currentLevel >= 31) {
+    requiredExp = 9 * currentLevel - 158
+  }
+  var currentExp = player.get(Keys.EXPERIENCE_SINCE_LEVEL).orElse(0)
+  var forRound = (currentExp / requiredExp) * 100
+  var actualValue = Math.round(forRound) / 100
+  return actualValue
 }

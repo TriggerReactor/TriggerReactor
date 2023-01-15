@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,15 +15,20 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+
+var validation = {
+  overloads: [
+    [
+      { type: 'string', name: 'permission' }
+    ]
+  ]
+}
+
 function haspermission(args) {
-    if(player == null)
-        return null;
+  if (!player)
+    throw new Error('Player is null.');
 
-    if(args.length != 1)
-        return null;
+  var permission = args[0]
 
-    if(typeof args[0] !== "string" && !(args[0] instanceof String))
-        return null;
-
-    return player.hasPermission(args[0]);
+  return player.hasPermission(permission);
 }

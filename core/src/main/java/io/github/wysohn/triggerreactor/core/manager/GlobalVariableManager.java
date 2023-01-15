@@ -169,6 +169,11 @@ public class GlobalVariableManager extends Manager implements IMigratable {
 
         @Override
         public Object put(Object key, Object value) {
+            if (value == null) {
+                remove(key);
+                return null;
+            }
+
             if (key instanceof String) {
                 try {
                     GlobalVariableManager.this.put((String) key, value);

@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2017 wysohn
+ *     Copyright (C) 2022 Sayakie
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,38 +15,42 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function TP(args){
-    if(args.length == 3){
-        var world;
-        var x, y, z;
-        world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
-        
-        player.setLocation(new Location(world, x, y, z));
-        
-        return null;
-    }else if(args.length == 4){
-        var world;
-        var x, y, z;
-        world = player.getWorld();
-        x = args[0];
-        y = args[1];
-        z = args[2];
-        
-        var target = Sponge.getServer().getPlayer(args[3]).orElse(null);
-        target.setLocation(new Location(world, x, y, z));
-        
-        return null;
-    }else if(args.length == 1){
-        var loc = args[0];
-        player.setLocation(loc);
-        
-        return null;
-    }else{
-        print("Teleport Cancelled. Invalid arguments");
-        
-        return Executor.STOP;
-    }
+var Player = Java.type('org.spongepowered.api.entity.living.player.Player')
+var Location = Java.type('org.spongepowered.api.world.Location')
+var Sponge = Java.type('org.spongepowered.api.Sponge')
+
+function TP(args) {
+  var target = player,
+    location
+
+  if (args.length == 3) {
+    var world = player.getWorld()
+    var x = args[0]
+    var y = args[1]
+    var z = args[2]
+
+    target = player
+    location = new Location(world, x, y, z)
+  } else if (args.length == 4) {
+    var world = player.getWorld()
+    var x = args[0]
+    var y = args[1]
+    var z = args[2]
+
+    if (args[3] instanceof Player) target = args[3]
+    else target = Sponge.getServer().getPlayer(args[3]).orElse(null)
+    location = new Location(world, x, y, z)
+  } else if (args.length == 1) {
+    target = player
+    location = args[0]
+  }
+
+  if (!(target instanceof Player)) {
+    throw new Error('Could not find a player')
+  } else if (!(location instanceof Location)) {
+    throw new Error('Could not find a target location')
+  }
+
+  target.setLocation(location)
+  return null
 }

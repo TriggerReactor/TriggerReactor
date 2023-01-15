@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     Copyright (C) 2019 Pro_Snape
+ *     Copyright (C) 2018 TheBestNightSky
  *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
@@ -16,38 +16,41 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var ChatColor = Java.type('org.bukkit.ChatColor');
 var Player = Java.type('org.bukkit.entity.Player');
-var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
-var Material = Java.type('org.bukkit.Material');
+var ChatMessageType = Java.type('net.md_5.bungee.api.ChatMessageType');
+var TextComponent = Java.type('net.md_5.bungee.api.chat.TextComponent');
 
 var validation = {
   overloads: [
     [
-      { type: ItemStack.class, name: 'item' }
+      { type: 'string', name: 'message' }
     ],
     [
       { type: Player.class, name: 'player' },
-      { type: ItemStack.class, name: 'item' }
+      { type: 'string', name: 'message' }
     ]
   ]
 };
 
-function SETHELDITEM(args) {
-  var target, item;
+function ACTIONBAR(args) {
+  var target, message;
 
   if (overload === 0) {
     target = player;
-    item = args[0];
+    message = args[0];
   } else if (overload === 1) {
     target = args[0];
-    item = args[1];
+    message = args[1];
   }
 
   if (!target) throw new Error('Player is null.');
-  if (item.getType() === Material.AIR)
-    throw new Error('Item cannot be an AIR.');
 
-  target.getInventory().setItemInHand(item);
+  message = ChatColor.translateAlternateColorCodes('&', message);
+
+  target
+    .spigot()
+    .sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
 
   return null;
 }

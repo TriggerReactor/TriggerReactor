@@ -1,5 +1,6 @@
 /*******************************************************************************
  *     Copyright (C) 2018 wysohn
+ *     Copyright (C) 2022 Ioloolo
  *
  *     This program is free software: you can redistribute it and/or modify
  *     it under the terms of the GNU General Public License as published by
@@ -14,16 +15,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function KILL(args){
-	if(player === null)
-		return null;
-	
-	if (!(player instanceof Java.type("org.bukkit.entity.Damageable")))
-	{
-		throw new Error("the current player doesn't have a health bar: " + player)
-	}
-		
-	player.setHealth(0);
 
-	return null;
+var Damageable = Java.type('org.bukkit.entity.Damageable');
+
+var validation = {
+  overloads: [
+    [],
+    [{ type: Damageable.class, name: 'entity' }]
+  ]
+};
+
+function KILL(args) {
+  var target;
+
+  if (overload === 0) target = player;
+  else if (overload === 1) target = args[0];
+
+  if (!target) throw new Error('Entity is null.');
+
+  target.setHealth(0);
+
+  return null;
 }

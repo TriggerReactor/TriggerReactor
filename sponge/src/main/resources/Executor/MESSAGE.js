@@ -14,16 +14,15 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-function MESSAGE(args){
-	var String = Java.type('java.lang.String')
-	var Text = Java.type('org.spongepowered.api.text.Text')
-	
-    for(var i = 0; i < args.length ; i++){
-        if(args[i] instanceof Text)
-            player.sendMessage(args[i]);
-        else
-            player.sendMessage(TextUtil.colorStringToText(String.valueOf(args[i])));
-    }
-    
-    return null;
+var Text = Java.type('org.spongepowered.api.text.Text')
+var TextUtil = Java.type('io.github.wysohn.triggerreactor.sponge.tools.TextUtil')
+var String = Java.type('java.lang.String')
+
+function MESSAGE(args) {
+  for (var i = 0; i < args.length; i++) {
+    if (args[i] instanceof Text) player.sendMessage(args[i])
+    else player.sendMessage(TextUtil.colorStringToText(String.valueOf(args[i])))
+  }
+
+  return null
 }
