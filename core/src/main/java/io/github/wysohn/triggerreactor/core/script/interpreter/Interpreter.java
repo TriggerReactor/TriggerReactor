@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
@@ -37,108 +38,38 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class Interpreter {
-    private final Node root;
-    private final InterpreterLocalContext context;
-    private final InterpreterGlobalContext globalContext;
     private final Object waitLock = new Object();
 
-    private boolean started = false;
+    InterpreterLocalContext context;
+    InterpreterGlobalContext globalContext;
+    private Node root;
 
-    /*    public Interpreter(Node root, Map<String, Executor> executorMap, Map<String, Object> gvars,
-                SelfReference selfReference, InterpretCondition condition) {
-            this.root = root;
-            for(Entry<String, Executor> entry : executorMap.entrySet())
-                this.executorMap.put(entry.getKey(), entry.getValue());
-            this.gvars = gvars;
-            this.vars = new HashMap<>();
-            this.selfReference = selfReference;
-            this.condition = condition;
-
-            initDefaultExecutors();
-        }
-    */
-    public Interpreter(Node root, InterpreterLocalContext context, InterpreterGlobalContext globalContext) {
-        this.root = root;
-        this.context = context;
-        this.globalContext = globalContext;
-    }
-
-    public Interpreter(Node root) {
-        this(root, new InterpreterLocalContext(), new InterpreterGlobalContext());
-    }
-
-    public void setTaskSupervisor(TaskSupervisor taskSupervisor) {
-        if (started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.task = taskSupervisor;
+    Interpreter(Node root) {
     }
 
     public Map<String, Executor> getExecutorMap() {
         return globalContext.executorMap;
     }
 
-    public void setExecutorMap(Map<String, Executor> executorMap) {
-        if (started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        for (Entry<String, Executor> entry : executorMap.entrySet())
-            globalContext.executorMap.put(entry.getKey(), entry.getValue());
-    }
-
     public IExceptionHandle getExceptionHandle() {
         return globalContext.exceptionHandle;
-    }
-
-    public void setExceptionHandle(IExceptionHandle exceptionHandle) {
-        if (started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.exceptionHandle = exceptionHandle;
     }
 
     public Map<String, Placeholder> getPlaceholderMap() {
         return globalContext.placeholderMap;
     }
 
-    public void setPlaceholderMap(Map<String, Placeholder> placeholderMap) {
-        if (started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        for (Entry<String, Placeholder> entry : placeholderMap.entrySet())
-            globalContext.placeholderMap.put(entry.getKey(), entry.getValue());
-    }
-
     public Map<Object, Object> getGvars() {
         return globalContext.gvars;
     }
 
-    public void setGvars(Map<Object, Object> gvars) {
-        if (started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.gvars = gvars;
-    }
-
     public SelfReference getSelfReference() {
         return globalContext.selfReference;
-    }
-
-    public void setSelfReference(SelfReference selfReference) {
-        if (started)
-            throw new RuntimeException("Cannot change the interpreter property after started.");
-
-        globalContext.selfReference = selfReference;
-    }
-
-    public void setVars(Map<String, Object> vars) {
-        context.setVars(vars);
     }
 
     public boolean isStopFlag() {
@@ -158,20 +89,21 @@ public class Interpreter {
         return context.getVars();
     }
 
-    public void startWithContext(Object context) throws InterpreterException {
-        started = true;
-        startWithContextAndInterrupter(context, null, Timings.LIMBO);
+    /**
+     * Check if the root node, local context, and global context are all set.
+     * <p>
+     * Otherwise, it will throw an exception.
+     */
+    void verifyPreCondition() {
+        ValidationUtil.notNull(this.root);
+        ValidationUtil.notNull(this.context);
+        ValidationUtil.notNull(this.globalContext);
     }
 
-    /**
-     * Start interpretation.
-     *
-     * @param context The context that can be used by Executors. This is usually Event object for Bukkit plugin.
-     * @throws InterpreterException
-     */
-    public void startWithContext(Object context, Timings.Timing timing) throws InterpreterException {
-        started = true;
-        startWithContextAndInterrupter(context, null, timing);
+    public void startWithContext(Object triggerCause) throws InterpreterException {
+        verifyPreCondition();
+
+        startWithContextAndInterrupter(triggerCause, null, Timings.LIMBO);
     }
 
     /**
@@ -185,9 +117,10 @@ public class Interpreter {
     public void startWithContextAndInterrupter(Object triggerCause,
                                                ProcessInterrupter interrupter,
                                                Timings.Timing timing) throws InterpreterException {
+        verifyPreCondition();
+
         this.context.setTriggerCause(triggerCause);
         this.globalContext.interrupter = interrupter;
-        this.context.setTiming(timing);
 
         try (Timings.Timing t = this.context.getTiming()
                 .getTiming("Code Interpretation")
@@ -508,9 +441,9 @@ public class Interpreter {
                 Node rootCopy = new Node(new Token(Type.ROOT, "<ROOT>", -1, -1));
                 rootCopy.getChildren().addAll(node.getChildren());
 
-                Interpreter copy = new Interpreter(rootCopy,
-                                                   context.copyState("ASYNC"),
-                                                   globalContext);
+                Interpreter copy = InterpreterBuilder.start(globalContext, rootCopy)
+                        .overrideContext(context.copyState("ASYNC"))
+                        .build();
 
                 try {
                     copy.start();
@@ -1476,9 +1409,12 @@ public class Interpreter {
         Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.globalContext.gvars = gvars;
+        InterpreterGlobalContext gContext = new InterpreterGlobalContext();
+        gContext.placeholderMap.putAll(placeholderMap);
+        gContext.gvars.putAll(gvars);
+
+        Interpreter interpreter = InterpreterBuilder.start(gContext, root)
+                .build();
 
         interpreter.startWithContext(null);
     }
@@ -1487,4 +1423,6 @@ public class Interpreter {
         Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && "MODIFYPLAYER".equals(value)));
         Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && value.contains("$")));
     }
+
+
 }
