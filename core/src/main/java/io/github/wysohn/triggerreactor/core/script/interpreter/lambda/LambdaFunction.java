@@ -1,9 +1,23 @@
+/*
+ * Copyright (C) 2023. TriggerReactor Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package io.github.wysohn.triggerreactor.core.script.interpreter.lambda;
 
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterException;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterGlobalContext;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
+import io.github.wysohn.triggerreactor.core.script.interpreter.*;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 
 import java.lang.reflect.InvocationHandler;
@@ -17,10 +31,12 @@ public class LambdaFunction implements InvocationHandler {
     public LambdaFunction(LambdaParameter[] parameters,
                           Node body,
                           InterpreterLocalContext localContext,
-                          InterpreterGlobalContext globalContext){
+                          InterpreterGlobalContext globalContext) {
         this.parameters = parameters;
         this.body = body;
-        this.lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
+        this.lambdaBody = InterpreterBuilder.start(globalContext, body)
+                .overrideContext(localContext.copyState("LAMBDA"))
+                .build();
 
         // if duplicated variable name is found, parameter name always has priority
         for (LambdaParameter parameter : parameters) {

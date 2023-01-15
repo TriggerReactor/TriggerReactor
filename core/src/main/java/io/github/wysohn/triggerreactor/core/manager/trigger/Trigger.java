@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.observer.IObservable;
@@ -62,9 +61,9 @@ public abstract class Trigger implements Cloneable, IObservable {
     @Inject
     private TaskSupervisor taskSupervisor;
     @Inject
-    private SelfReference selfReference;
-    @Inject
     private IExceptionHandle exceptionHandle;
+    @Inject
+    private InterpreterGlobalContext globalContext;
 
     protected final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
     protected final TriggerInfo info;
@@ -81,7 +80,8 @@ public abstract class Trigger implements Cloneable, IObservable {
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
      * in order to make the Trigger work properly. If you want to create a Trigger with customized
      * behavior, it's not necessary to call {@link #init()} but need to override {@link #initInterpreter(Map)},
-     * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as your need
+     * {@link #startInterpretation(Object, Map, Interpreter, boolean)}, or {@link #activate(Object, Map)} method as
+     * your need
      */
     public Trigger(TriggerInfo info, String script) {
         super();
@@ -124,7 +124,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         try {
             if (script == null) {
                 throw new NullPointerException("init() was invoked, yet 'script' was null. Make sure to override " +
-                        "init() method to in order to construct a customized Trigger.");
+                                                       "init() method in order to construct a customized Trigger.");
             }
 
             Charset charset = StandardCharsets.UTF_8;
@@ -133,16 +133,13 @@ public abstract class Trigger implements Cloneable, IObservable {
             Parser parser = new Parser(lexer);
 
             root = parser.parse(true);
-//            List<Warning> warnings = parser.getWarnings();
-//
-//            AbstractTriggerManager.reportWarnings(warnings, this);
 
             executorMap = executorManager.getBackedMap();
             placeholderMap = placeholderManager.getBackedMap();
             gvarMap = globalVariableManager.getGlobalVariableAdapter();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
-                    + " -- " + info + "]!", ex);
+                                                         + " -- " + info + "]!", ex);
         }
     }
 
@@ -168,13 +165,28 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     /**
+     * Read {@link #activate(Object, Map, boolean)}
+     * <p>
+     * The only difference is that it determines sync/async from the trigger config.
+     *
+     * @param e
+     * @param scriptVars
+     * @return
+     */
+    public boolean activate(Object e, Map<String, Object> scriptVars) {
+        return activate(e, scriptVars, Optional.of(info)
+                .map(TriggerInfo::isSync)
+                .orElse(false));
+    }
+
+    /**
      * Start this trigger. Variables in scriptVars may be overridden if it has same name as
      * the name of fields of Event class.
      *
      * @param e          the Event associated with this Trigger
      * @param scriptVars the temporary local variables
-     * @param sync choose whether to run this trigger in the current thread or spawn a new thread
-     *             and run in there.
+     * @param sync       choose whether to run this trigger in the current thread or spawn a new thread
+     *                   and run in there.
      * @return true if activated; false if on cooldown
      */
     public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
@@ -192,20 +204,6 @@ public abstract class Trigger implements Cloneable, IObservable {
 
         startInterpretation(e, scriptVars, interpreter, sync);
         return true;
-    }
-
-    /**
-     * Read {@link #activate(Object, Map, boolean)}
-     *
-     * The only difference is that it determines sync/async from the trigger config.
-     * @param e
-     * @param scriptVars
-     * @return
-     */
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
-        return activate(e, scriptVars, Optional.of(info)
-                .map(TriggerInfo::isSync)
-                .orElse(false));
     }
 
     /**
@@ -233,13 +231,9 @@ public abstract class Trigger implements Cloneable, IObservable {
      * @return
      */
     protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setTaskSupervisor(taskSupervisor);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvarMap);
-        interpreter.setVars(scriptVars);
-        interpreter.setSelfReference(selfReference);
+        Interpreter interpreter = InterpreterBuilder.start(globalContext, root)
+                .addLocalVariables(scriptVars)
+                .build();
 
         return interpreter;
     }
@@ -255,18 +249,18 @@ public abstract class Trigger implements Cloneable, IObservable {
      *                    set it to false will let it run in separate thread. This is more efficient if you
      *                    only need to read data from Event and never interact with it.
      */
-    protected void startInterpretation(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-        Callable<Void> call = new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
-                    start(t, e, scriptVars, interpreter, sync);
-                } catch (Exception ex) {
-                    exceptionHandle.handleException(e, new Exception(
-                            "Trigger [" + info + "] produced an error!", ex));
-                }
-                return null;
+    protected void startInterpretation(Object e,
+                                       Map<String, Object> scriptVars,
+                                       Interpreter interpreter,
+                                       boolean sync) {
+        Callable<Void> call = () -> {
+            try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
+                start(t, e, scriptVars, interpreter, sync);
+            } catch (Exception ex) {
+                exceptionHandle.handleException(e, new Exception(
+                        "Trigger [" + info + "] produced an error!", ex));
             }
+            return null;
         };
 
         if (sync) {
@@ -306,11 +300,11 @@ public abstract class Trigger implements Cloneable, IObservable {
                          boolean sync) {
         try {
             interpreter.startWithContextAndInterrupter(e,
-                    pluginManagement.createInterrupter(cooldowns),
-                    timing);
+                                                       pluginManagement.createInterrupter(cooldowns),
+                                                       timing);
         } catch (InterpreterException ex) {
             exceptionHandle.handleException(e,
-                    new Exception("Could not finish interpretation for [" + info + "]!", ex));
+                                            new Exception("Could not finish interpretation for [" + info + "]!", ex));
         }
     }
 
