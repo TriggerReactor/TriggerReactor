@@ -81,15 +81,6 @@ public class Interpreter {
     }
 
     /**
-     * Map of local variables. Fill this map with necessary pairs depends on the context.
-     *
-     * @return
-     */
-    public Map<String, Object> getVars() {
-        return context.getVars();
-    }
-
-    /**
      * Check if the root node, local context, and global context are all set.
      * <p>
      * Otherwise, it will throw an exception.
