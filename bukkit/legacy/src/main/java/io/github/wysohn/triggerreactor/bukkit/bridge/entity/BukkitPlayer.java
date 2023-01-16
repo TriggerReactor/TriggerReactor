@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.bukkit.bridge.entity;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitInventory;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitLocation;
 import io.github.wysohn.triggerreactor.bukkit.tools.LocationUtil;
@@ -58,7 +59,7 @@ public class BukkitPlayer extends BukkitEntity implements IPlayer {
 
     @Override
     public IInventory getInventory() {
-        return BukkitTriggerReactorCore.getWrapper().wrap(player.getInventory());
+        return new BukkitInventory(player.getInventory());
     }
 
     @Override
