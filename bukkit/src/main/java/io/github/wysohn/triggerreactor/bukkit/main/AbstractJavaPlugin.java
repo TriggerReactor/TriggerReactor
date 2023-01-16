@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
@@ -32,7 +33,10 @@ import io.github.wysohn.triggerreactor.bukkit.manager.PlayerLocationListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.ScriptEditListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStartEvent;
 import io.github.wysohn.triggerreactor.bukkit.manager.event.TriggerReactorStopEvent;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.*;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.AreaTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitExecutorModule;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
@@ -40,7 +44,6 @@ import io.github.wysohn.triggerreactor.core.main.TRGCommandHandler;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
@@ -62,13 +65,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
-public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandMapHandler {
+public abstract class AbstractJavaPlugin extends JavaPlugin {
     private final TriggerReactorCore core;
     private final TRGCommandHandler TRGCommandHandler;
 
@@ -84,9 +85,12 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
 
-    public AbstractJavaPlugin() {
-        Injector injector = Guice.createInjector(new CorePluginModule(),
-                                                 new BukkitExecutorModule());
+    protected AbstractJavaPlugin(Module... modules) {
+        List<Module> moduleList = Arrays.stream(modules).collect(Collectors.toList());
+        moduleList.add(new CorePluginModule());
+        moduleList.add(new BukkitExecutorModule());
+
+        Injector injector = Guice.createInjector(moduleList);
 
         core = injector.getInstance(TriggerReactorCore.class);
         TRGCommandHandler = injector.getInstance(TRGCommandHandler.class);
@@ -217,8 +221,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin implements ICommandM
     public MysqlSupport getMysqlHelper() {
         return mysqlHelper;
     }
-
-    public abstract SelfReference getSelfReference();
 
 
     @Override
