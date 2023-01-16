@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.main;
 
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
@@ -36,8 +37,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
 
 /**
- * The main abstract class of TriggerReactor. Interacting with any platform should extends this class to
- * create important internal components.
+ * The main class of TriggerReactor. This is the center of the main logic of TriggerReactor,
+ * and it should not depend on any platform specific code.
  *
  * @author wysohn
  */
@@ -71,21 +72,25 @@ public final class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     private Lag lag;
 
+    /**
+     * This is a workaround for the issue that Guice does not support injecting
+     * the dynamically instantiated class (like APISupport). Do not use this
+     * other than where it is really needed.
+     */
+    @Inject
+    private Injector injector;
+
     private Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
 
     @Override
     public void initialize() {
         Thread.currentThread().setContextClassLoader(pluginClassLoader);
-//        this.bukkit = plugin;
-//        ValidationUtil.notNull(WRAPPER);
-//
-//        super.onCoreEnable();
 
         for (Map.Entry<String, Class<? extends AbstractAPISupport>> entry : apiSupportDefinitions.entrySet()) {
             AbstractAPISupport.addSharedVar(sharedVars,
                                             entry.getKey(),
                                             entry.getValue(),
-                                            this);
+                                            injector);
         }
 
         try {
