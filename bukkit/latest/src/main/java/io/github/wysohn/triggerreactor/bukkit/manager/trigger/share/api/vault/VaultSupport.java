@@ -1,23 +1,23 @@
-/*******************************************************************************
- *     Copyright (C) 2018 wysohn
+/*
+ * Copyright (C) 2023. TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault;
 
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
@@ -26,17 +26,25 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
+import java.util.logging.Logger;
+
 public class VaultSupport extends APISupport {
     static {
         addSharedVars("vault", VaultSupport.class);
     }
 
+    private final Logger logger;
+    private final Plugin plugin;
+
     public Permission permission = null;
     public Economy economy = null;
     public Chat chat = null;
 
-    public VaultSupport(TriggerReactorCore plugin) {
-        super(plugin, "Vault");
+    public VaultSupport(Injector injector) {
+        super(injector, "Vault");
+
+        this.logger = injector.getInstance(Logger.class);
+        this.plugin = injector.getInstance(Plugin.class);
     }
 
     @Override
@@ -44,19 +52,20 @@ public class VaultSupport extends APISupport {
         super.init();
 
         if (setupPermissions()) {
-            plugin.getLogger().info("Vault permission hooked.");
+            logger.info("Vault permission hooked.");
         }
         if (setupChat()) {
-            plugin.getLogger().info("Vault chat hooked.");
+            logger.info("Vault chat hooked.");
         }
         if (setupEconomy()) {
-            plugin.getLogger().info("Vault economy hooked.");
+            logger.info("Vault economy hooked.");
         }
     }
 
     private boolean setupPermissions() {
-        Plugin bukkitPlugin = plugin.getMain();
-        RegisteredServiceProvider<Permission> permissionProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        RegisteredServiceProvider<Permission> permissionProvider = plugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();
         }
@@ -64,8 +73,9 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupChat() {
-        Plugin bukkitPlugin = plugin.getMain();
-        RegisteredServiceProvider<Chat> chatProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+        RegisteredServiceProvider<Chat> chatProvider = plugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (chatProvider != null) {
             chat = chatProvider.getProvider();
         }
@@ -74,8 +84,9 @@ public class VaultSupport extends APISupport {
     }
 
     private boolean setupEconomy() {
-        Plugin bukkitPlugin = plugin.getMain();
-        RegisteredServiceProvider<Economy> economyProvider = bukkitPlugin.getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        RegisteredServiceProvider<Economy> economyProvider = plugin.getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
         }

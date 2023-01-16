@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.lang.reflect.Constructor;
@@ -29,11 +30,11 @@ import java.util.Map;
  */
 public abstract class AbstractAPISupport {
 
-    protected final TriggerReactorCore plugin;
+    protected final Injector injector;
 
-    public AbstractAPISupport(TriggerReactorCore plugin) {
+    public AbstractAPISupport(Injector injector) {
         super();
-        this.plugin = plugin;
+        this.injector = injector;
     }
 
     /**
@@ -53,7 +54,7 @@ public abstract class AbstractAPISupport {
     public static void addSharedVar(Map<String, AbstractAPISupport> sharedVars,
                                     String varName,
                                     Class<? extends AbstractAPISupport> clazz,
-                                    TriggerReactorCore plugin) {
+                                    Injector injector) {
         if (!sharedVars.containsKey(varName)) {
             Constructor<?> con = null;
             try {
@@ -65,7 +66,7 @@ public abstract class AbstractAPISupport {
             boolean initSuccess = true;
             AbstractAPISupport api = null;
             try {
-                api = (AbstractAPISupport) con.newInstance(plugin);
+                api = (AbstractAPISupport) con.newInstance(injector);
                 api.init();
             } catch (APISupportException e) {
                 initSuccess = false;
