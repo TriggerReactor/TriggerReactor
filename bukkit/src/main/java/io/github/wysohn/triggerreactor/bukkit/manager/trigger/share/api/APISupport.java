@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api;
 
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import org.apache.commons.lang.Validate;
@@ -25,18 +25,23 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public abstract class APISupport extends AbstractAPISupport {
     private final String targetPluginName;
 
     protected Plugin target;
 
-    public APISupport(TriggerReactorCore plugin, String targetPluginName) {
-        super(plugin);
-        Validate.notNull(plugin);
+    private Logger logger;
+
+    public APISupport(Injector injector, String targetPluginName) {
+        super(injector);
+        Validate.notNull(injector);
         Validate.notNull(targetPluginName);
 
         this.targetPluginName = targetPluginName;
+
+        this.logger = injector.getInstance(Logger.class);
     }
 
     /**
@@ -52,7 +57,7 @@ public abstract class APISupport extends AbstractAPISupport {
 
         target = plugin;
 
-        this.plugin.info("Enabled support for " + targetPluginName + " " + target.getDescription().getFullName());
+        this.logger.info("Enabled support for " + targetPluginName + " " + target.getDescription().getFullName());
     }
 
     @SuppressWarnings("serial")
