@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,8 +56,6 @@ public class AreaTriggerManagerTest {
         Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
         instanceField.setAccessible(true);
         instanceField.set(null, core);
-
-        when(core.getDataFolder()).thenReturn(folder.getRoot());
 
         taskSupervisor = mock(TaskSupervisor.class);
         gameManagement = mock(IGameManagement.class);

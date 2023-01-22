@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,8 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import com.google.inject.Guice;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
-import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.CommonFunctions;
-import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
-import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
-import io.github.wysohn.triggerreactor.core.script.parser.Node;
-import io.github.wysohn.triggerreactor.core.script.parser.Parser;
-import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
-import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.tools.timings.Timings;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -59,113 +47,59 @@ public class TestInterpreter {
         mockTask = mock(TaskSupervisor.class);
     }
 
-    @Test
+    @org.junit.Test
     public void testMethod() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
-                + "rand = common.random(3);"
-                + "IF rand == 0\n"
-                + "#MESSAGE 0\n"
-                + "ENDIF;"
-                + "IF rand == 1;\n"
-                + "#MESSAGE 1;\n"
-                + "ENDIF\n"
-                + "IF rand == 2;"
-                + "#MESSAGE 2\n"
+                + "rand = common.getHealth();"
+                + "#MESSAGE rand\n"
                 + "ENDIF\n";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Executor mockExecutor = new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
+        InterpreterGlobalContext globalContext = new InterpreterGlobalContext();
+        globalContext.executorMap.put("MESSAGE", mockExecutor);
 
-                String value = String.valueOf(args[0]);
-                Assert.assertTrue("0".equals(value) || "1".equals(value) || "2".equals(value));
-                return null;
-            }
-        };
-        executorMap.put("MESSAGE", mockExecutor);
+        Test test = Test.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("common", new InTest2())
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
+        // Act
+        test.test();
 
-        interpreter.getVars().put("common", new CommonFunctions());
-
-        interpreter.startWithContext(null);
+        // Assert
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(5.25));
     }
 
-    @Test
-    public void testMethodReturnValue() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "{\"temp1\"} = random(0, 10);"
-                + "{\"temp2\"} = random(0.0, 10.0);"
-                + "{\"temp3\"} = random(0, 10.0);";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setGvars(gvars);
-        interpreter.setSelfReference(new CommonFunctions());
-
-        interpreter.startWithContext(null);
-
-        Assert.assertTrue(gvars.get("temp1") instanceof Integer);
-        Assert.assertTrue(gvars.get("temp2") instanceof Double);
-        Assert.assertTrue(gvars.get("temp3") instanceof Double);
-    }
-
-    @Test
+    @org.junit.Test
     public void testMethodWithEnumParameter() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = "{\"temp1\"} = temp.testEnumMethod(\"IMTEST\");"
                 + "{\"temp2\"} = temp2.testEnumMethod(\"Something\");"
                 + "{\"temp3\"} = random(0, 10.0);";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<String, Object> vars = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-        vars.put("temp", new TheTest());
-        vars.put("temp2", new TheTest2());
+        Test test = Test.Builder.of(text)
+                .addScriptVariable("temp", new TheTest())
+                .addScriptVariable("temp2", new TheTest2())
+                .build();
 
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.setVars(vars);
-        interpreter.setGvars(gvars);
-        interpreter.setSelfReference(new CommonFunctions());
+        // Act
+        test.test();
 
-        interpreter.startWithContext(null);
-
+        // Assert
         // the only method matching is the one with enum parameter. Expect it to be converted
-        assertEquals(TestEnum.IMTEST, gvars.get("temp1"));
-        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher priority.
-        assertEquals("Something", gvars.get("temp2"));
+        assertEquals(TestEnum.IMTEST, test.getGlobalVar("temp1"));
+        // there is an overloaded method which takes in String in the place of enum. Overloaded method has higher
+        // priority.
+        assertEquals("Something", test.getGlobalVar("temp2"));
     }
 
-    @Test
+    @org.junit.Test
     public void testReference() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+        // Arrange
         String text = ""
                 + "X = 5\n"
                 + "str = \"abc\"\n"
@@ -185,33 +119,21 @@ public class TestInterpreter {
                 + "    ENDIF\n"
                 + "ENDWHILE";
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("MESSAGE", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> vars, Object context,
-                                    Object... args) {
-
-                return null;
-            }
-        });
+        Executor mockExecutor = mock(Executor.class);
         TheTest reference = new TheTest();
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
-        interpreter.setTaskSupervisor(mockTask);
 
-        interpreter.getVars().put("player", reference);
-        interpreter.getVars().put("text", "hello");
+        // Act
+        Test test = Test.Builder.of(text)
+                .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("player", reference)
+                .addScriptVariable("text", "hello")
+                .build();
 
-        interpreter.startWithContext(null);
-
+        // Assert
         assertEquals(12.43, reference.getTest().in.getHealth(), 0.001);
     }
 
-    @Test
+    @org.junit.Test
     public void testStringAppend() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -252,7 +174,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test(expected = InterpreterException.class)
+    @org.junit.Test(expected = InterpreterException.class)
     public void testLiteralStringTrueOrFalseParse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -281,7 +203,7 @@ public class TestInterpreter {
         verify(mockExecutor, times(0)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testGlobalVariable() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -315,7 +237,7 @@ public class TestInterpreter {
         assertEquals(12.54, map.get("someplayername.something"));
     }
 
-    @Test
+    @org.junit.Test
     public void testTempGlobalVariable() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -347,7 +269,6 @@ public class TestInterpreter {
                 return null;
             }
         });
-        TriggerReactorCore triggerReactor = mock(TriggerReactorCore.class);
         GlobalVariableManager avm = Guice.createInjector().getInstance(GlobalVariableManager.class);
         Interpreter interpreter = new Interpreter(root);
         interpreter.setExecutorMap(executorMap);
@@ -358,7 +279,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testGlobalVariableDeletion() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "key = \"temp\";" +
@@ -405,7 +326,7 @@ public class TestInterpreter {
         Assert.assertNull(gvars.get("temp"));
     }
 
-    @Test
+    @org.junit.Test
     public void testArray() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -436,7 +357,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testCustomArray() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -467,7 +388,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testIteration2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -500,7 +421,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testIteration3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -534,7 +455,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testIteration4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -568,7 +489,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testIteration5() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -602,7 +523,7 @@ public class TestInterpreter {
         verify(executor, times(10)).evaluate(any(), anyMap(), any(), anyInt());
     }
 
-    @Test(expected = InterpreterException.class)
+    @org.junit.Test(expected = InterpreterException.class)
     public void testOnlyTry() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -631,7 +552,7 @@ public class TestInterpreter {
         verify(executor, times(0)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testTryCatch1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -664,7 +585,7 @@ public class TestInterpreter {
         verify(executor, times(3)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testTryCatch2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -700,7 +621,7 @@ public class TestInterpreter {
         verify(executor, times(4)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testTryFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -731,7 +652,7 @@ public class TestInterpreter {
         verify(executor, times(2)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testTryCatchFinally1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -764,7 +685,7 @@ public class TestInterpreter {
         verify(executor, times(2)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testTryCatchFinally2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
 
@@ -799,7 +720,7 @@ public class TestInterpreter {
         verify(executor, times(3)).evaluate(any(), anyMap(), any(), any());
     }
 
-    @Test
+    @org.junit.Test
     public void testTryCatchInvokedMethod() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "" +
@@ -832,7 +753,7 @@ public class TestInterpreter {
         verify(executor, times(1)).evaluate(any(), anyMap(), any(), eq(true));
     }
 
-    @Test
+    @org.junit.Test
     public void testNegation() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -866,7 +787,7 @@ public class TestInterpreter {
         Assert.assertTrue((boolean) Array.get(arr, 5));
     }
 
-    @Test
+    @org.junit.Test
     public void testShortCircuit() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -920,7 +841,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testWhile() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -944,7 +865,7 @@ public class TestInterpreter {
         assertEquals(3, interpreter.getVars().get("number"));
     }
 
-    @Test
+    @org.junit.Test
     public void testEnumParse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -967,7 +888,7 @@ public class TestInterpreter {
         assertEquals(TestEnum.IMTEST, interpreter.getVars().get("result"));
     }
 
-    @Test
+    @org.junit.Test
     public void testPlaceholder() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 100.0;"
@@ -1119,7 +1040,7 @@ public class TestInterpreter {
         assertEquals("testwithargs", interpreter.getVars().get("returnvalue"));
     }
 
-    @Test
+    @org.junit.Test
     public void testPlaceholderNull() throws IOException, LexerException, ParserException, InterpreterException {
         Charset charset = StandardCharsets.UTF_8;
         String text = "a = $merp";
@@ -1148,7 +1069,7 @@ public class TestInterpreter {
         assertEquals(null, interpreter.getVars().get("a"));
     }
 
-    @Test
+    @org.junit.Test
     public void testUnaryMinus() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
@@ -1227,7 +1148,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testIncrementAndDecrement1() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "a = 2;"
@@ -1305,7 +1226,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testIncrementAndDecrement2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "a = 2.1;"
@@ -1383,7 +1304,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testBitwiseAndBitshift() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = -129;"
@@ -1522,7 +1443,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test(expected = InterpreterException.class)
+    @org.junit.Test(expected = InterpreterException.class)
     public void testBitwiseException1() throws Exception {
         {
             Charset charset = StandardCharsets.UTF_8;
@@ -1538,7 +1459,7 @@ public class TestInterpreter {
         }
     }
 
-    @Test(expected = InterpreterException.class)
+    @org.junit.Test(expected = InterpreterException.class)
     public void testBitwiseException2() throws Exception {
         {
             Charset charset = StandardCharsets.UTF_8;
@@ -1554,7 +1475,7 @@ public class TestInterpreter {
         }
     }
 
-    @Test(expected = InterpreterException.class)
+    @org.junit.Test(expected = InterpreterException.class)
     public void testBitwiseException3() throws Exception {
         {
             Charset charset = StandardCharsets.UTF_8;
@@ -1570,7 +1491,7 @@ public class TestInterpreter {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void testSimpleIf() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -1620,7 +1541,7 @@ public class TestInterpreter {
         Assert.assertFalse(set.contains("false"));
     }
 
-    @Test
+    @org.junit.Test
     public void testSimpleIf2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -1654,7 +1575,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testSimpleIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -1688,7 +1609,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testSimpleIf4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -1722,7 +1643,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedIf() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
@@ -1758,7 +1679,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedIf2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
@@ -1794,7 +1715,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedIf3() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -1843,7 +1764,7 @@ public class TestInterpreter {
         }
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedIf4() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
@@ -1882,7 +1803,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedIf5() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
@@ -1925,7 +1846,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedIfNoElse() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 4.0;"
@@ -1967,7 +1888,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testImport() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT io.github.wysohn.triggerreactor.core.script.interpreter.TestInterpreter$TheTest;"
@@ -2046,7 +1967,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testImportAs() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT " + TheTest.class.getName() + " as SomeClass;"
@@ -2080,7 +2001,7 @@ public class TestInterpreter {
         inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(TestEnum.IMTEST));
     }
 
-    @Test
+    @org.junit.Test
     public void testComparison() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST 1 < 2, 2 < 1;"
@@ -2121,7 +2042,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testNullComparison() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "IF {\"temp\"} == null;"
@@ -2145,7 +2066,7 @@ public class TestInterpreter {
         assertEquals(true, gvars.get("temp"));
     }
 
-    @Test
+    @org.junit.Test
     public void testLineBreak() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST \"abcd\\nABCD\"";
@@ -2172,7 +2093,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testCarriageReturn() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "#TEST \"abcd\\rABCD\"";
@@ -2198,7 +2119,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testISStatement() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "IMPORT " + TheTest.class.getName() + ";" +
@@ -2232,7 +2153,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testBreak() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 0;" +
@@ -2281,7 +2202,7 @@ public class TestInterpreter {
     }
 
 
-    @Test
+    @org.junit.Test
     public void testBreak2() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "FOR i = 0:5;" +
@@ -2310,7 +2231,7 @@ public class TestInterpreter {
                                                                 Mockito.any(), ArgumentMatchers.any());
     }
 
-    @Test
+    @org.junit.Test
     public void testContinue() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "x = 0;" +
@@ -2363,7 +2284,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testContinueIterator() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = "sum = 0;" +
@@ -2416,7 +2337,7 @@ public class TestInterpreter {
         interpreter.startWithContext(null);
     }
 
-    @Test
+    @org.junit.Test
     public void testSyncAsync() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2509,7 +2430,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("async"));
     }
 
-    @Test
+    @org.junit.Test
     public void testSyncAsync2() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2606,7 +2527,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("async"));
     }
 
-    @Test
+    @org.junit.Test
     public void testConstructorNoArg() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2649,7 +2570,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
-    @Test
+    @org.junit.Test
     public void testConstructorOneArg() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2692,7 +2613,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
-    @Test
+    @org.junit.Test
     public void testConstructorThreeArg() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2735,7 +2656,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
-    @Test
+    @org.junit.Test
     public void testConstructorVarArg() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2778,7 +2699,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
-    @Test
+    @org.junit.Test
     public void testConstructorCustom() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -2814,7 +2735,7 @@ public class TestInterpreter {
         assertEquals(new Vector(3.2f, 4.3f, 5.4f), vars.get("v4"));
     }
 
-    @Test
+    @org.junit.Test
     public void testArrayAndClass() throws Exception {
         Set<String> set = new HashSet<>();
 
@@ -2859,7 +2780,7 @@ public class TestInterpreter {
         Assert.assertTrue(set.contains("test"));
     }
 
-    @Test
+    @org.junit.Test
     public void testNestedAccessor() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -2883,7 +2804,7 @@ public class TestInterpreter {
         assertEquals(123456789123456789L, interpreter.getVars().get("id"));
     }
 
-    @Test
+    @org.junit.Test
     public void testGlobalVariableAsFactor() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""
@@ -2907,7 +2828,7 @@ public class TestInterpreter {
         assertEquals(17, interpreter.getVars().get("result2"));
     }
 
-    @Test
+    @org.junit.Test
     public void testLambdaFunction() throws Exception {
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
@@ -2963,7 +2884,7 @@ public class TestInterpreter {
         assertEquals(456 + 78, instance.twoArgResult);
     }
 
-    @Test
+    @org.junit.Test
     public void testLambdaFunctionNullReturn() throws Exception {
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
@@ -2998,7 +2919,7 @@ public class TestInterpreter {
         assertNull(instance.twoArgResult);
     }
 
-    @Test
+    @org.junit.Test
     public void testLambdaFunctionComplex() throws Exception {
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
@@ -3035,7 +2956,7 @@ public class TestInterpreter {
         assertEquals(50, instance.oneArgResult);
     }
 
-    @Test
+    @org.junit.Test
     public void testLambdaFunctionComplex2() throws Exception {
         SomeInterface obj = mock(SomeInterface.class);
         SomeClass instance = new SomeClass();
