@@ -91,6 +91,10 @@ public class Interpreter {
         ValidationUtil.notNull(this.globalContext);
     }
 
+    public Object getScriptVariable(String name) {
+        return context.getVar(name);
+    }
+
     public void startWithContext(Object triggerCause) throws InterpreterException {
         verifyPreCondition();
 

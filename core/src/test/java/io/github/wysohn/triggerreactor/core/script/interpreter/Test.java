@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ public class Test {
     private Charset charset = StandardCharsets.UTF_8;
     private InterpreterGlobalContext globalContext = new InterpreterGlobalContext();
     private Map<String, Object> scriptVars = new HashMap<>();
+    private Interpreter interpreter;
 
     private Test(String script) {
         this.script = script;
@@ -51,13 +53,17 @@ public class Test {
 
         Node root = parser.parse();
 
-        Interpreter interpreter = InterpreterBuilder.start(globalContext, root)
+        interpreter = InterpreterBuilder.start(globalContext, root)
                 .addLocalVariables(scriptVars)
                 .build();
 
         interpreter.start();
 
         return (R) interpreter.result();
+    }
+
+    public Object getScriptVar(String key) {
+        return interpreter.getScriptVariable(key);
     }
 
     public static class Builder {
@@ -92,6 +98,32 @@ public class Test {
             ValidationUtil.notNull(name);
             ValidationUtil.notNull(value);
             test.scriptVars.put(name, value);
+            return this;
+        }
+
+        public Builder overrideSelfReference(SelfReference selfReference) {
+            ValidationUtil.notNull(selfReference);
+            test.globalContext.selfReference = selfReference;
+            return this;
+        }
+
+        public Builder overrideTaskSupervisor(TaskSupervisor mockTaskSupervisor) {
+            ValidationUtil.notNull(mockTaskSupervisor);
+            test.globalContext.task = mockTaskSupervisor;
+            return this;
+        }
+
+        public Builder addGlobalVariable(String key, Object value) {
+            ValidationUtil.notNull(key);
+            ValidationUtil.notNull(value);
+            test.globalContext.gvars.put(key, value);
+            return this;
+        }
+
+        public Builder addTemporaryGlobalVariable(String key, Object value) {
+            ValidationUtil.notNull(key);
+            ValidationUtil.notNull(value);
+            test.globalContext.gvars.put(new TemporaryGlobalVariableKey(key), value);
             return this;
         }
 
