@@ -17,8 +17,9 @@
 package io.github.wysohn.triggerreactor.core.script.wrapper;
 
 /**
- * Implements this interface to let Interpreter know that this object will be used as self reference.
- * Methods in this object can be accessed by just calling the function or this.function in the code.
+ * Helper interface to expose methods to the TRG scripts. Any methods implemented in the class that
+ * implements this interface will be exposed to the TRG scripts, and it will be available anywhere
+ * in the script without explicitly accessing some random class.
  *
  * @author wysohn
  */
