@@ -50,6 +50,7 @@ public class Interpreter {
     private Node root;
 
     Interpreter(Node root) {
+        this.root = root;
     }
 
     public Map<String, Executor> getExecutorMap() {
