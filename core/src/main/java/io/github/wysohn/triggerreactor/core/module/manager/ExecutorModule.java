@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,13 @@
 
 package io.github.wysohn.triggerreactor.core.module.manager;
 
-public class ExecutorModule {
+import com.google.inject.AbstractModule;
+import com.google.inject.multibindings.MapBinder;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 
+public class ExecutorModule extends AbstractModule {
+    @Override
+    protected void configure() {
+        MapBinder.newMapBinder(binder(), String.class, Executor.class);
+    }
 }

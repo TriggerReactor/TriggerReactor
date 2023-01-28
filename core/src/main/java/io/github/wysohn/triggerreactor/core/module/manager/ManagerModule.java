@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.module.manager.trigger.TriggerManage
 public class ManagerModule extends AbstractModule {
     @Override
     protected void configure() {
+        install(new ExecutorModule());
         install(new TriggerManagerModule());
     }
 }
