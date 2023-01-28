@@ -21,7 +21,6 @@ import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IGameManagement;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
@@ -32,7 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Field;
 import java.util.UUID;
 
 import static org.junit.Assert.assertNotNull;
@@ -43,7 +41,6 @@ public class AreaTriggerManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
     TaskSupervisor taskSupervisor;
     IGameManagement gameManagement;
     ITriggerLoader<AreaTrigger> loader;
@@ -52,11 +49,6 @@ public class AreaTriggerManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
-
         taskSupervisor = mock(TaskSupervisor.class);
         gameManagement = mock(IGameManagement.class);
         loader = mock(ITriggerLoader.class);

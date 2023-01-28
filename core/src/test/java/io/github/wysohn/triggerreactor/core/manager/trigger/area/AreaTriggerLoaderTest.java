@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
@@ -34,7 +33,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Optional;
@@ -47,16 +45,10 @@ public class AreaTriggerLoaderTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
     AreaTriggerLoader loader;
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
-
         loader = Guice.createInjector(
                 new AreaTriggerModule()
         ).getInstance(AreaTriggerLoader.class);

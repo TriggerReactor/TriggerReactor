@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -29,7 +28,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -40,7 +38,6 @@ public class CustomTriggerManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
 
     CustomTriggerLoader loader;
     IEventRegistry registry;
@@ -48,10 +45,7 @@ public class CustomTriggerManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
+
 
         loader = mock(CustomTriggerLoader.class);
         registry = mock(IEventRegistry.class);
