@@ -17,7 +17,10 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IGameManagement;
@@ -25,12 +28,16 @@ import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.module.MockGameManagementModule;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.inject.Named;
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.junit.Assert.assertNotNull;
@@ -54,7 +61,35 @@ public class AreaTriggerManagerTest {
         loader = mock(ITriggerLoader.class);
 
         manager = Guice.createInjector(
-            new MockGameManagementModule(gameManagement)
+                new MockGameManagementModule(gameManagement),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        install(new FactoryModuleBuilder()
+                                        .implement(AreaTrigger.class, AreaTrigger.class)
+                                        .build(IAreaTriggerFactory.class));
+
+                        install(new FactoryModuleBuilder()
+                                        .implement(EnterTrigger.class, EnterTrigger.class)
+                                        .build(IEnterTriggerFactory.class));
+                        install(new FactoryModuleBuilder()
+                                        .implement(ExitTrigger.class, ExitTrigger.class)
+                                        .build(IExitTriggerFactory.class));
+                    }
+
+                    @Provides
+                    public ITriggerLoader<AreaTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    @Named("AreaTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "AreaTrigger";
+                    }
+                }
         ).getInstance(AreaTriggerManager.class);
     }
 

@@ -17,14 +17,19 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
+import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import io.github.wysohn.triggerreactor.core.module.manager.trigger.AreaTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,7 +55,15 @@ public class AreaTriggerLoaderTest {
     @Before
     public void setUp() throws Exception {
         loader = Guice.createInjector(
-                new AreaTriggerModule()
+                new AreaTriggerModule(),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new AbstractModule() {
+                    @Provides
+                    public IGameManagement gameManagement() {
+                        return mock(IGameManagement.class);
+                    }
+                }
         ).getInstance(AreaTriggerLoader.class);
     }
 
