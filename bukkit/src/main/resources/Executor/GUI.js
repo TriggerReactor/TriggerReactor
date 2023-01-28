@@ -45,7 +45,7 @@ function GUI(args) {
   if (!target) throw new Error("Player is null.");
 
   var invManager = injector.getInstance(InventoryTriggerManager);
-  var inventory = plugin.getInvManager().openGUI(target.getName(), guiName);
+  var inventory = invManager.openGUI(target.getName(), guiName);
   if (!inventory) throw new Error("No such Inventory Trigger named " + guiName);
 
   return null;
