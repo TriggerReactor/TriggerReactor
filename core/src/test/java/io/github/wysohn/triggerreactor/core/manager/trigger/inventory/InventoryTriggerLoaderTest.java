@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -31,7 +30,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -42,16 +40,13 @@ public class InventoryTriggerLoaderTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    TriggerReactorCore core;
+
     IInventoryHandle<ItemStack> handle;
     InventoryTriggerLoader<ItemStack> loader;
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
+
 
         handle = mock(IInventoryHandle.class);
         when(handle.getItemClass()).thenReturn(ItemStack.class);

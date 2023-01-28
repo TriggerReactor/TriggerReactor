@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import com.google.inject.Guice;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import org.junit.Before;
@@ -26,10 +25,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.lang.reflect.Field;
-
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
 public class WalkTriggerManagerTest {
@@ -38,14 +34,11 @@ public class WalkTriggerManagerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     WalkTriggerManager manager;
-    TriggerReactorCore core;
+
 
     @Before
     public void setUp() throws Exception {
-        core = mock(TriggerReactorCore.class, RETURNS_DEEP_STUBS);
-        Field instanceField = TriggerReactorCore.class.getDeclaredField("instance");
-        instanceField.setAccessible(true);
-        instanceField.set(null, core);
+
 
         manager = Guice.createInjector().getInstance(WalkTriggerManager.class);
     }
