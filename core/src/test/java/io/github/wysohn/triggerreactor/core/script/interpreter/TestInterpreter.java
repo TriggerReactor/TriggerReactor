@@ -17,19 +17,15 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import org.junit.Assert;
 import org.junit.Before;
-import org.mockito.ArgumentMatchers;
-import org.mockito.InOrder;
-import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -2129,7 +2125,10 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{new ConstTest(1, 2, 3, 4, 5)}));
+        verify(mockExecutor).evaluate(any(), any(), any(), argThat(args -> {
+            ConstTest obj = (ConstTest) args[0];
+            return obj.val1 == 1 && obj.val2 == 2 && "3".equals(obj.val3);
+        }));
     }
 
     @org.junit.Test
