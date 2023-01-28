@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,10 +23,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerLoader;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.area.IAreaTriggerFactory;
+import io.github.wysohn.triggerreactor.core.manager.trigger.area.*;
 
 import javax.inject.Named;
 
@@ -43,6 +40,13 @@ public class AreaTriggerModule extends AbstractModule {
         binder().bind(new TypeLiteral<AbstractTriggerManager<AreaTrigger>>() {
                 })
                 .to(AreaTriggerManager.class);
+
+        install(new FactoryModuleBuilder()
+                        .implement(EnterTrigger.class, EnterTrigger.class)
+                        .build(IEnterTriggerFactory.class));
+        install(new FactoryModuleBuilder()
+                        .implement(ExitTrigger.class, ExitTrigger.class)
+                        .build(IExitTriggerFactory.class));
     }
 
     @Provides

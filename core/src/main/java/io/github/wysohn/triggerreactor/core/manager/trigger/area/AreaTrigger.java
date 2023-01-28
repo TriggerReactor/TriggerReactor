@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022. TriggerReactor Team
+ * Copyright (C) 2023. TriggerReactor Team
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AreaTrigger extends Trigger {
+    @Inject
+    private IEnterTriggerFactory enterTriggerFactory;
+    @Inject
+    private IExitTriggerFactory exitTriggerFactory;
+
     private final Area area;
     private final File folder;
     private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
@@ -107,7 +112,9 @@ public class AreaTrigger extends Trigger {
     }
 
     public void setEnterTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        enterTrigger = new EnterTrigger(this.getInfo(), script, this);
+        EnterTrigger enterTrigger = enterTriggerFactory.create(this.getInfo(), script, this);
+        enterTrigger.init();
+        this.enterTrigger = enterTrigger;
     }
 
     public void setEnterTrigger(EnterTrigger enterTrigger) {
@@ -119,7 +126,9 @@ public class AreaTrigger extends Trigger {
     }
 
     public void setExitTrigger(String script) throws AbstractTriggerManager.TriggerInitFailedException {
-        exitTrigger = new ExitTrigger(this.getInfo(), script, this);
+        ExitTrigger exitTrigger = exitTriggerFactory.create(this.getInfo(), script, this);
+        exitTrigger.init();
+        this.exitTrigger = exitTrigger;
     }
 
     public void setExitTrigger(ExitTrigger exitTrigger) {
@@ -168,61 +177,5 @@ public class AreaTrigger extends Trigger {
         }
 
         return entities;
-    }
-
-    public static class EnterTrigger extends Trigger {
-        private final AreaTrigger areaTrigger;
-
-        public EnterTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws
-                AbstractTriggerManager.TriggerInitFailedException {
-            super(info, script);
-            this.areaTrigger = areaTrigger;
-
-            init();
-        }
-
-        @Override
-        protected String getTimingId() {
-            return StringUtils.dottedPath(areaTrigger.getTimingId(), "Enter");
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new EnterTrigger(info, script, areaTrigger);
-            } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-    }
-
-    public static class ExitTrigger extends Trigger {
-        private final AreaTrigger areaTrigger;
-
-        public ExitTrigger(TriggerInfo info, String script, AreaTrigger areaTrigger) throws
-                AbstractTriggerManager.TriggerInitFailedException {
-            super(info, script);
-            this.areaTrigger = areaTrigger;
-
-            init();
-        }
-
-        @Override
-        protected String getTimingId() {
-            return StringUtils.dottedPath(areaTrigger.getTimingId(), "Exit");
-        }
-
-        @Override
-        public Trigger clone() {
-            try {
-                return new ExitTrigger(info, script, areaTrigger);
-            } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
     }
 }
