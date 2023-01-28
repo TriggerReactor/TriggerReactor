@@ -40,6 +40,10 @@ public class TestTriggerDependencyModule extends AbstractModule {
     private IExceptionHandle exceptionHandle;
     private InterpreterGlobalContext globalContext;
 
+    private TestTriggerDependencyModule() {
+
+    }
+
     @Provides
     public SharedVariableManager provideSharedVariableManager() {
         return sharedVariableManager;
