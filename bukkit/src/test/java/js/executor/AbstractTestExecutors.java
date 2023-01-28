@@ -1,10 +1,10 @@
 package js.executor;
 
-import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
+import com.google.inject.Injector;
+import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -13,7 +13,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.ItemStack;
@@ -414,17 +417,19 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         String playerName = "TestPlayer";
         String guiName = "TESTGUI";
 
-        BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
+        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
         InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
         IInventory inventory = mock(IInventory.class);
+        Injector injector = mock(Injector.class);
 
         when(player.getName()).thenReturn(playerName);
-        when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
         when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
+        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
 
         JsTest test = new ExecutorTest(engine, "GUI")
                 .addVariable("player", player)
-                .addVariable("plugin", triggerReactorCore);
+                .addVariable("plugin", mockPlugin)
+                .addVariable("injector", injector);
 
         test.withArgs(guiName).test();
 
@@ -439,16 +444,18 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
         String playerName = "TestPlayer";
         String guiName = "TESTGUI";
 
-        BukkitTriggerReactorCore triggerReactorCore = mock(BukkitTriggerReactorCore.class);
+        AbstractJavaPlugin mockPlugin = mock(AbstractJavaPlugin.class);
         InventoryTriggerManager inventoryTriggerManager = mock(InventoryTriggerManager.class);
         IInventory inventory = mock(IInventory.class);
+        Injector injector = mock(Injector.class);
 
         when(player.getName()).thenReturn(playerName);
-        when(triggerReactorCore.getInvManager()).thenReturn(inventoryTriggerManager);
         when(inventoryTriggerManager.openGUI(eq(playerName), eq(guiName))).thenReturn(inventory);
+        when(injector.getInstance(InventoryTriggerManager.class)).thenReturn(inventoryTriggerManager);
 
         JsTest test = new ExecutorTest(engine, "GUI")
-                .addVariable("plugin", triggerReactorCore);
+                .addVariable("plugin", mockPlugin)
+                .addVariable("injector", injector);
 
         test.withArgs(player, guiName).test();
 

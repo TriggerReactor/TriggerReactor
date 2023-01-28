@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.core.module.manager;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
@@ -39,5 +40,10 @@ public class ScriptEngineModule extends AbstractModule {
     @ProvidesIntoSet
     public ScriptEngineInitializer provideJavaScriptInitializer() {
         return ScriptEngineInitializer.DEFAULT;
+    }
+
+    @ProvidesIntoSet
+    public ScriptEngineInitializer provideInjectorToJavaScriptInitializer(Injector injector) {
+        return (sem) -> sem.put("injector", injector);
     }
 }
