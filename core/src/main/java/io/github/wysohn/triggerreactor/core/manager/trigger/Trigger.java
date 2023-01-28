@@ -20,8 +20,8 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
@@ -49,7 +49,7 @@ import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
     @Inject
-    private TriggerReactorCore core;
+    private SharedVariableManager sharedVariableManager;
     @Inject
     private ExecutorManager executorManager;
     @Inject
@@ -195,7 +195,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         }
 
         scriptVars.put("event", e);
-        scriptVars.putAll(core.getSharedVars());
+        scriptVars.putAll(sharedVariableManager.getSharedVars());
         Map<String, Object> customVars = pluginManagement.getCustomVarsForTrigger(e);
         if (customVars != null)
             scriptVars.putAll(customVars);

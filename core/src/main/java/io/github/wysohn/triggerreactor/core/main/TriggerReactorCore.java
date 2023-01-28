@@ -16,12 +16,10 @@
  */
 package io.github.wysohn.triggerreactor.core.main;
 
-import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
-import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.tools.Lag;
 
@@ -30,8 +28,6 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
@@ -50,8 +46,6 @@ public final class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     @Named("PluginLogger")
     private ClassLoader pluginClassLoader;
-    @Inject
-    private Map<String, Class<? extends AbstractAPISupport>> apiSupportDefinitions;
     @Inject
     private Set<ScriptEngineInitializer> scriptEngineInitializers;
 
@@ -72,26 +66,9 @@ public final class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     private Lag lag;
 
-    /**
-     * This is a workaround for the issue that Guice does not support injecting
-     * the dynamically instantiated class (like APISupport). Do not use this
-     * other than where it is really needed.
-     */
-    @Inject
-    private Injector injector;
-
-    private Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
-
     @Override
     public void initialize() {
         Thread.currentThread().setContextClassLoader(pluginClassLoader);
-
-        for (Map.Entry<String, Class<? extends AbstractAPISupport>> entry : apiSupportDefinitions.entrySet()) {
-            AbstractAPISupport.addSharedVar(sharedVars,
-                                            entry.getKey(),
-                                            entry.getValue(),
-                                            injector);
-        }
 
         try {
             for (ScriptEngineInitializer initializer : scriptEngineInitializers) {
@@ -151,10 +128,6 @@ public final class TriggerReactorCore implements IPluginLifecycle {
             }
         }
         logger.info("Shutting down TriggerReactor. Bye!");
-    }
-
-    public Map<String, AbstractAPISupport> getSharedVars() {
-        return sharedVars;
     }
 
     private void initFailed(Exception e) {
