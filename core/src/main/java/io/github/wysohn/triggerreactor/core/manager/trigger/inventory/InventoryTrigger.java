@@ -46,8 +46,6 @@ public class InventoryTrigger extends Trigger {
                              @Assisted IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.items = items;
-
-        init();
     }
 
     public InventoryTrigger(@Assisted TriggerInfo info,
@@ -67,8 +65,6 @@ public class InventoryTrigger extends Trigger {
         for (Map.Entry<Integer, IItemStack> entry : items.entrySet()) {
             this.items[entry.getKey()] = entry.getValue();
         }
-
-        init();
     }
 
     @Override

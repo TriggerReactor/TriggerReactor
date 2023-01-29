@@ -319,7 +319,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         pluginManagement.saveAsynchronously(this);
     }
 
-    protected abstract T newInstance(TriggerInfo info, String script);
+    protected abstract T newInstance(TriggerInfo info, String script) throws TriggerInitFailedException;
 
     /**
      * Initiate editing of a trigger. This will open the in-game text editor for the

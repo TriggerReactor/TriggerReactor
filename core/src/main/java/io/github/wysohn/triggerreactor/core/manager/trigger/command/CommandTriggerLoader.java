@@ -150,11 +150,13 @@ public class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
             CommandTrigger trigger = factory.create(info, script);
+            trigger.init();
+
             trigger.setPermissions(permissions.toArray(new String[0]));
             trigger.setAliases(aliases.toArray(new String[0]));
             trigger.setTabCompleterMap(toTabCompleterMap(tabs));
             return trigger;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

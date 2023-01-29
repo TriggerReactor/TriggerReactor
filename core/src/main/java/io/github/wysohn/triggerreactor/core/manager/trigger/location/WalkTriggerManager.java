@@ -41,8 +41,10 @@ public final class WalkTriggerManager extends LocationBasedTriggerManager<WalkTr
     }
 
     @Override
-    protected WalkTrigger newInstance(TriggerInfo info, String script) {
-        return factory.create(info, script);
+    protected WalkTrigger newInstance(TriggerInfo info, String script) throws TriggerInitFailedException {
+        WalkTrigger walkTrigger = factory.create(info, script);
+        walkTrigger.init();
+        return walkTrigger;
     }
 
 }

@@ -157,6 +157,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
             IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
             trigger = factory.create(info, script);
+            trigger.init();
 
             if (!registerToAPI(trigger))
                 return false;
@@ -173,7 +174,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return factory.create(new TriggerInfo(null,
+        CommandTrigger commandTrigger = factory.create(new TriggerInfo(null,
                 IConfigSource.empty(),
                 "temp") {
             @Override
@@ -181,6 +182,8 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
                 return false;
             }
         }, script);
+        commandTrigger.init();
+        return commandTrigger;
     }
 
     public void reregisterCommand(String triggerName) {

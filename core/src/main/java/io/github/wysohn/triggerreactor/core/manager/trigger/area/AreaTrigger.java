@@ -58,9 +58,15 @@ public class AreaTrigger extends Trigger {
         return area;
     }
 
-    //we don't need interpreter for area trigger but enter and exit trigger
+    @Override
+    public void init() throws AbstractTriggerManager.TriggerInitFailedException {
+        // do nothing. area trigger has scripts in its folder
+    }
+
+
     @Override
     protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
+        //we don't need interpreter for area trigger but enter and exit trigger
         return null;
     }
 

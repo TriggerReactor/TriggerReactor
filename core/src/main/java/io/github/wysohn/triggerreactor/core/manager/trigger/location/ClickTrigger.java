@@ -35,8 +35,6 @@ public class ClickTrigger extends Trigger {
             AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.handler = handler;
-
-        init();
     }
 
     @Override

@@ -40,8 +40,6 @@ public class CommandTrigger extends Trigger {
     private CommandTrigger(@Assisted TriggerInfo info,
                            @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
-
-        init();
     }
 
     public String[] getPermissions() {

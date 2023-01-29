@@ -29,9 +29,6 @@ public class WalkTrigger extends Trigger {
     private WalkTrigger(@Assisted TriggerInfo info,
                         @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
-
-        init();
-
     }
 
     @Override

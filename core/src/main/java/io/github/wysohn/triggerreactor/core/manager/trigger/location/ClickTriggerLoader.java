@@ -40,8 +40,10 @@ public class ClickTriggerLoader implements ITriggerLoader<ClickTrigger> {
     public ClickTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return factory.create(info, script, ClickHandler.DEFAULT);
-        } catch (IOException e) {
+            ClickTrigger clickTrigger = factory.create(info, script, ClickHandler.DEFAULT);
+            clickTrigger.init();
+            return clickTrigger;
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

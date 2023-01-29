@@ -50,7 +50,9 @@ public class CustomTriggerLoader implements ITriggerLoader<CustomTrigger> {
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return factory.create(info, script, registry.getEvent(eventName), eventName);
+            CustomTrigger trigger = factory.create(info, script, registry.getEvent(eventName), eventName);
+            trigger.init();
+            return trigger;
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

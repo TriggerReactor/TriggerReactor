@@ -44,10 +44,11 @@ public class RepeatingTriggerLoader implements ITriggerLoader<RepeatingTrigger> 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
             RepeatingTrigger trigger = factory.create(info, script);
+            trigger.init();
             trigger.setAutoStart(autoStart);
             trigger.setInterval(interval);
             return trigger;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

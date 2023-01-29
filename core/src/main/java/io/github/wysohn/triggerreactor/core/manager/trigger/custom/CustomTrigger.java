@@ -39,8 +39,6 @@ public class CustomTrigger extends Trigger implements IEventHook {
         super(info, script);
         this.event = event;
         this.eventName = eventName;
-
-        init();
     }
 
     @Override
