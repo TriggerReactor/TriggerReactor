@@ -68,7 +68,9 @@ public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<Invento
             IItemStack[] itemArray = new IItemStack[size];
             for (int i = 0; i < size; i++)
                 itemArray[i] = items.getOrDefault(i, null);
-            return factory.create(info, script, itemArray);
+            InventoryTrigger inventoryTrigger = factory.create(info, script, itemArray);
+            inventoryTrigger.init();
+            return inventoryTrigger;
         } catch (Exception e) {
             e.printStackTrace();
             return null;

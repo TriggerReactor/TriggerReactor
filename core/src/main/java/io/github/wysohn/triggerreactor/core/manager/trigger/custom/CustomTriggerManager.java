@@ -88,6 +88,7 @@ public final class CustomTriggerManager extends AbstractTriggerManager<CustomTri
         IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         CustomTrigger trigger = factory.create(info, script, event, eventName);
+        trigger.init();
 
         put(name, trigger);
 

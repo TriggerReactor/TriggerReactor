@@ -41,7 +41,9 @@ public final class ClickTriggerManager extends LocationBasedTriggerManager<Click
     }
 
     @Override
-    protected ClickTrigger newInstance(TriggerInfo info, String script) {
-        return factory.create(info, script, ClickHandler.DEFAULT);
+    protected ClickTrigger newInstance(TriggerInfo info, String script) throws TriggerInitFailedException {
+        ClickTrigger clickTrigger = factory.create(info, script, ClickHandler.DEFAULT);
+        clickTrigger.init();
+        return clickTrigger;
     }
 }

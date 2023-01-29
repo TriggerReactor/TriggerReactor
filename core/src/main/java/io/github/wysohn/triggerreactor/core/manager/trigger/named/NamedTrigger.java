@@ -30,8 +30,6 @@ public class NamedTrigger extends Trigger {
                          @Assisted String script) throws
             AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
-
-        init();
     }
 
     @Override

@@ -71,7 +71,9 @@ public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
     public NamedTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return factory.create(info, script);
+            NamedTrigger namedTrigger = factory.create(info, script);
+            namedTrigger.init();
+            return namedTrigger;
         } catch (Exception e) {
             e.printStackTrace();
             return null;

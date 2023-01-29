@@ -39,8 +39,10 @@ public class WalkTriggerLoader implements ITriggerLoader<WalkTrigger> {
     public WalkTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return factory.create(info, script);
-        } catch (IOException e) {
+            WalkTrigger walkTrigger = factory.create(info, script);
+            walkTrigger.init();
+            return walkTrigger;
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
