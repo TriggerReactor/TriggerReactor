@@ -37,8 +37,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private Map<String, Object> vars;
 
     @AssistedInject
-    public RepeatingTrigger(@Assisted TriggerInfo info,
-                            @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
+    private RepeatingTrigger(@Assisted TriggerInfo info,
+                             @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
 
         init();

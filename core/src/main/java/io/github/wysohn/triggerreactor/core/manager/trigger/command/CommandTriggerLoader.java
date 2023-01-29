@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -39,6 +38,9 @@ public class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
     {
         PreDefinedCompleterLabelMap.put("$playerlist", ITabCompleter.Template.PLAYER);
     }
+
+    @Inject
+    private ICommandTriggerFactory factory;
 
     @Inject
     private CommandTriggerLoader() {
@@ -147,12 +149,12 @@ public class CommandTriggerLoader implements ITriggerLoader<CommandTrigger> {
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            CommandTrigger trigger = new CommandTrigger(info, script);
+            CommandTrigger trigger = factory.create(info, script);
             trigger.setPermissions(permissions.toArray(new String[0]));
             trigger.setAliases(aliases.toArray(new String[0]));
             trigger.setTabCompleterMap(toTabCompleterMap(tabs));
             return trigger;
-        } catch (AbstractTriggerManager.TriggerInitFailedException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }

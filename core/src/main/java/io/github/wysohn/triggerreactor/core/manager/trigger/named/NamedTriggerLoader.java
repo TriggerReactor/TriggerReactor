@@ -20,7 +20,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -28,13 +27,15 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @Singleton
 public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
+    @Inject
+    private INamedTriggerFactory factory;
+
     @Inject
     private NamedTriggerLoader() {
     }
@@ -70,8 +71,8 @@ public class NamedTriggerLoader implements ITriggerLoader<NamedTrigger> {
     public NamedTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return new NamedTrigger(info, script);
-        } catch (AbstractTriggerManager.TriggerInitFailedException | IOException e) {
+            return factory.create(info, script);
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

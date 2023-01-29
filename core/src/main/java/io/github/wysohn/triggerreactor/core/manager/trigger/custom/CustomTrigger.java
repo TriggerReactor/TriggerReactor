@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,10 +31,11 @@ public class CustomTrigger extends Trigger implements IEventHook {
     private final Class<?> event;
     private final String eventName;
 
-    public CustomTrigger(@Assisted TriggerInfo info,
-                         @Assisted String script,
-                         @Assisted Class<?> event,
-                         @Assisted String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
+    @Inject
+    private CustomTrigger(@Assisted TriggerInfo info,
+                          @Assisted String script,
+                          @Assisted Class<?> event,
+                          @Assisted String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.event = event;
         this.eventName = eventName;
