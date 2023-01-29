@@ -34,10 +34,12 @@ import java.util.Map;
 @Singleton
 public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<InventoryTrigger> {
     @Inject
+    private IInventoryTriggerFactory factory;
+    @Inject
     private IInventoryHandle<ItemStack> inventoryHandle;
 
     @Inject
-    private InventoryTriggerLoader(){
+    private InventoryTriggerLoader() {
 
     }
 
@@ -66,7 +68,7 @@ public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<Invento
             IItemStack[] itemArray = new IItemStack[size];
             for (int i = 0; i < size; i++)
                 itemArray[i] = items.getOrDefault(i, null);
-            return new InventoryTrigger(info, script, itemArray);
+            return factory.create(info, script, itemArray);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
