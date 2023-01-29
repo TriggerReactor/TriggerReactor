@@ -51,6 +51,6 @@ public class WalkTriggerManagerTest {
     @Test
     public void newTrigger() throws AbstractTriggerManager.TriggerInitFailedException {
         TriggerInfo info = mock(TriggerInfo.class);
-        assertNotNull(manager.newTrigger(info, "#MESSAGE \"Hello World\""));
+        assertNotNull(manager.newInstance(info, "#MESSAGE \"Hello World\""));
     }
 }
