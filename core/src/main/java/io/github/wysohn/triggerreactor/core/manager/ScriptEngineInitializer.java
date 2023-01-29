@@ -21,6 +21,13 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.function.Function;
 
+/**
+ * This interface is used to initialize the ScriptEngineManager.
+ * <p>
+ * Before the end of the initialization, the ScriptEngineManager will be passed to
+ * the class that implements this interface. This is a great place to add global variables or functions
+ * that can be used in the script without manually importing them.
+ */
 public interface ScriptEngineInitializer {
 
     void initialize(ScriptEngineManager manager) throws ScriptException;
