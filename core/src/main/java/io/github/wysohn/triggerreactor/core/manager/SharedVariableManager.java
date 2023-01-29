@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAP
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,9 +43,9 @@ public class SharedVariableManager extends Manager {
     public void initialize() {
         for (Map.Entry<String, Class<? extends AbstractAPISupport>> entry : apiSupportDefinitions.entrySet()) {
             AbstractAPISupport.addSharedVar(sharedVars,
-                                            entry.getKey(),
-                                            entry.getValue(),
-                                            injector);
+                    entry.getKey(),
+                    entry.getValue(),
+                    injector);
         }
     }
 
@@ -63,7 +64,14 @@ public class SharedVariableManager extends Manager {
 
     }
 
+    /**
+     * Third party API support instances mapping. The map is unmodifiable and should be used
+     * only for reading. The String key is the name of the third party plugin's name where they are
+     * defined in their respective plugin.yml.
+     *
+     * @return unmodifiable map of shared variables
+     */
     public Map<String, AbstractAPISupport> getSharedVars() {
-        return sharedVars;
+        return Collections.unmodifiableMap(sharedVars);
     }
 }
