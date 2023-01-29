@@ -22,9 +22,12 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
+import javax.inject.Inject;
+
 public class WalkTrigger extends Trigger {
-    public WalkTrigger(@Assisted TriggerInfo info,
-                       @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
+    @Inject
+    private WalkTrigger(@Assisted TriggerInfo info,
+                        @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
 
         init();

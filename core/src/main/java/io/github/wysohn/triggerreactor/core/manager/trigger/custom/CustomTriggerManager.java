@@ -32,6 +32,8 @@ import java.io.IOException;
 @Singleton
 public final class CustomTriggerManager extends AbstractTriggerManager<CustomTrigger> {
     @Inject
+    private ICustomTriggerFactory factory;
+    @Inject
     private IEventRegistry registry;
 
     @Inject
@@ -85,7 +87,7 @@ public final class CustomTriggerManager extends AbstractTriggerManager<CustomTri
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        CustomTrigger trigger = new CustomTrigger(info, script, event, eventName);
+        CustomTrigger trigger = factory.create(info, script, event, eventName);
 
         put(name, trigger);
 

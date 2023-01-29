@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -29,7 +28,10 @@ import java.io.IOException;
 
 public class RepeatingTriggerLoader implements ITriggerLoader<RepeatingTrigger> {
     @Inject
-    private RepeatingTriggerLoader(){
+    private IRepeatingTriggerFactory factory;
+
+    @Inject
+    private RepeatingTriggerLoader() {
 
     }
 
@@ -41,11 +43,11 @@ public class RepeatingTriggerLoader implements ITriggerLoader<RepeatingTrigger> 
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            RepeatingTrigger trigger = new RepeatingTrigger(info, script);
+            RepeatingTrigger trigger = factory.create(info, script);
             trigger.setAutoStart(autoStart);
             trigger.setInterval(interval);
             return trigger;
-        } catch (AbstractTriggerManager.TriggerInitFailedException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }

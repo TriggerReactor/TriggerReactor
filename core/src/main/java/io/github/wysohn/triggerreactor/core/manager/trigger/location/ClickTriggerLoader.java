@@ -30,6 +30,9 @@ import java.io.IOException;
 @Singleton
 public class ClickTriggerLoader implements ITriggerLoader<ClickTrigger> {
     @Inject
+    private IClickTriggerFactory factory;
+
+    @Inject
     private ClickTriggerLoader() {
 
     }
@@ -38,7 +41,7 @@ public class ClickTriggerLoader implements ITriggerLoader<ClickTrigger> {
     public ClickTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return newInstance(info, script);
+            return newInstance(factory, info, script);
         } catch (AbstractTriggerManager.TriggerInitFailedException | IOException e) {
             e.printStackTrace();
             return null;
@@ -54,9 +57,11 @@ public class ClickTriggerLoader implements ITriggerLoader<ClickTrigger> {
         }
     }
 
-    public static ClickTrigger newInstance(TriggerInfo info, String script) throws
+    public static ClickTrigger newInstance(IClickTriggerFactory factory,
+                                           TriggerInfo info,
+                                           String script) throws
             AbstractTriggerManager.TriggerInitFailedException {
-        return new ClickTrigger(info, script, activity ->
+        return factory.create(info, script, activity ->
                 activity == Activity.LEFT_CLICK_BLOCK
                         || activity == Activity.RIGHT_CLICK_BLOCK);
     }

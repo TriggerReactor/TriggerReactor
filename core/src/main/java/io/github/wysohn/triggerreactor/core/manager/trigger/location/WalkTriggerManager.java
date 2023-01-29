@@ -26,6 +26,8 @@ import java.io.File;
 
 @Singleton
 public final class WalkTriggerManager extends LocationBasedTriggerManager<WalkTrigger> {
+    @Inject
+    private IWalkTriggerFactory factory;
 
     @Inject
     private WalkTriggerManager(@Named("DataFolder") File folder,
@@ -40,7 +42,7 @@ public final class WalkTriggerManager extends LocationBasedTriggerManager<WalkTr
 
     @Override
     protected WalkTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return new WalkTrigger(info, script);
+        return factory.create(info, script);
     }
 
 }

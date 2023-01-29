@@ -56,6 +56,8 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     private IEventManagement eventManagement;
     @Inject
     private IExceptionHandle exceptionHandle;
+    @Inject
+    private ICommandTriggerFactory factory;
 
     @Inject
     private CommandTriggerManager(@Named("DataFolder") File dataFolder,
@@ -115,7 +117,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
      */
     private boolean registerToAPI(CommandTrigger trigger) {
         ICommand command = commandHandler.register(trigger.getInfo().getTriggerName(),
-                                                   trigger.aliases);
+                trigger.aliases);
         if (command == null)
             return false;
 
@@ -154,11 +156,11 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
             String name = TriggerInfo.extractName(file);
             IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = new CommandTrigger(info, script);
+            trigger = factory.create(info, script);
 
             if (!registerToAPI(trigger))
                 return false;
-        } catch (TriggerInitFailedException e1) {
+        } catch (Exception e1) {
             commandHandler.unregister(cmd);
             exceptionHandle.handleException(adding, e1);
             return false;
@@ -171,9 +173,9 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     }
 
     public CommandTrigger createTempCommandTrigger(String script) throws TriggerInitFailedException {
-        return new CommandTrigger(new TriggerInfo(null,
-                                                  IConfigSource.empty(),
-                                                  "temp") {
+        return factory.create(new TriggerInfo(null,
+                IConfigSource.empty(),
+                "temp") {
             @Override
             public boolean isValid() {
                 return false;
@@ -197,7 +199,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
                 sender.sendMessage("&c[TR] You don't have permission!");
                 if (pluginManagement.isDebugging()) {
                     logger.info("Player " + sender.getName() + " executed command " + cmd
-                                                    + " but didn't have permission " + permission + "");
+                            + " but didn't have permission " + permission + "");
                 }
                 return;
             }

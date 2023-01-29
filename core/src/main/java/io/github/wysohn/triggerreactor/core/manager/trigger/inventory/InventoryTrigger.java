@@ -40,9 +40,10 @@ public class InventoryTrigger extends Trigger {
 
     final IItemStack[] items;
 
-    public InventoryTrigger(@Assisted TriggerInfo info,
-                            @Assisted String script,
-                            @Assisted IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
+    @Inject
+    private InventoryTrigger(@Assisted TriggerInfo info,
+                             @Assisted String script,
+                             @Assisted IItemStack[] items) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.items = items;
 

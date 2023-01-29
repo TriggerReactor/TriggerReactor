@@ -31,10 +31,12 @@ import java.io.IOException;
 @Singleton
 public class CustomTriggerLoader implements ITriggerLoader<CustomTrigger> {
     @Inject
+    private ICustomTriggerFactory factory;
+    @Inject
     private IEventRegistry registry;
 
     @Inject
-    private CustomTriggerLoader(){
+    private CustomTriggerLoader() {
 
     }
 
@@ -48,7 +50,7 @@ public class CustomTriggerLoader implements ITriggerLoader<CustomTrigger> {
 
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return new CustomTrigger(info, script, registry.getEvent(eventName), eventName);
+            return factory.create(info, script, registry.getEvent(eventName), eventName);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

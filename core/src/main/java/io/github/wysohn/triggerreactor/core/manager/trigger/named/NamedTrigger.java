@@ -26,8 +26,8 @@ import javax.inject.Inject;
 
 public class NamedTrigger extends Trigger {
     @Inject
-    public NamedTrigger(@Assisted TriggerInfo info,
-                        @Assisted String script) throws
+    private NamedTrigger(@Assisted TriggerInfo info,
+                         @Assisted String script) throws
             AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
 

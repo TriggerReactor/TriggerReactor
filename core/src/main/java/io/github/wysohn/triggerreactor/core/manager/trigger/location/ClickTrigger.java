@@ -22,14 +22,16 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManag
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
+import javax.inject.Inject;
 import java.util.Map;
 
 public class ClickTrigger extends Trigger {
     private final ClickHandler handler;
 
-    public ClickTrigger(@Assisted TriggerInfo info,
-                        @Assisted String script,
-                        @Assisted ClickHandler handler) throws
+    @Inject
+    private ClickTrigger(@Assisted TriggerInfo info,
+                         @Assisted String script,
+                         @Assisted ClickHandler handler) throws
             AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.handler = handler;
