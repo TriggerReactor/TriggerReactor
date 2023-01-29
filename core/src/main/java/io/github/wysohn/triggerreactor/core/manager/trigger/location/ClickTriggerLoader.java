@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.FileUtil;
@@ -41,8 +40,8 @@ public class ClickTriggerLoader implements ITriggerLoader<ClickTrigger> {
     public ClickTrigger load(TriggerInfo info) throws InvalidTrgConfigurationException {
         try {
             String script = FileUtil.readFromFile(info.getSourceCodeFile());
-            return newInstance(factory, info, script);
-        } catch (AbstractTriggerManager.TriggerInitFailedException | IOException e) {
+            return factory.create(info, script, ClickHandler.DEFAULT);
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
@@ -55,14 +54,5 @@ public class ClickTriggerLoader implements ITriggerLoader<ClickTrigger> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static ClickTrigger newInstance(IClickTriggerFactory factory,
-                                           TriggerInfo info,
-                                           String script) throws
-            AbstractTriggerManager.TriggerInitFailedException {
-        return factory.create(info, script, activity ->
-                activity == Activity.LEFT_CLICK_BLOCK
-                        || activity == Activity.RIGHT_CLICK_BLOCK);
     }
 }
