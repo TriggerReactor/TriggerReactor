@@ -19,9 +19,9 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.ProvidesIntoSet;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
+import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 
 import java.util.Map;
@@ -31,12 +31,12 @@ import java.util.function.Function;
 public class BukkitScriptEngineModule extends AbstractModule {
     @ProvidesIntoSet
     public ScriptEngineInitializer provideJavaScriptInitializer(
-            TriggerReactorCore core,
+            SharedVariableManager sharedVariableManager,
             GlobalVariableManager globalVariableManager) {
         return (sem) -> {
             sem.put("plugin", this);
 
-            for (Map.Entry<String, AbstractAPISupport> entry : core.getSharedVars().entrySet()) {
+            for (Map.Entry<String, AbstractAPISupport> entry : sharedVariableManager.getSharedVars().entrySet()) {
                 sem.put(entry.getKey(), entry.getValue());
             }
 
