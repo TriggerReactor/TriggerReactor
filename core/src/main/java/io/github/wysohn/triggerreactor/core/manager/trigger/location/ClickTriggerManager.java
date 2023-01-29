@@ -26,6 +26,8 @@ import java.io.File;
 
 @Singleton
 public final class ClickTriggerManager extends LocationBasedTriggerManager<ClickTrigger> {
+    @Inject
+    private IClickTriggerFactory factory;
 
     @Inject
     private ClickTriggerManager(@Named("DataFolder") File folder,
@@ -39,7 +41,7 @@ public final class ClickTriggerManager extends LocationBasedTriggerManager<Click
     }
 
     @Override
-    protected ClickTrigger newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException {
-        return ClickTriggerLoader.newInstance(info, script);
+    protected ClickTrigger newInstance(TriggerInfo info, String script) {
+        return factory.create(info, script, ClickHandler.DEFAULT);
     }
 }

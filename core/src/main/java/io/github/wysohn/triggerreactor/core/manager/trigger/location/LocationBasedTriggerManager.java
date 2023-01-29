@@ -151,8 +151,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         return result;
     }
 
-    protected abstract T newTrigger(TriggerInfo info, String script) throws TriggerInitFailedException;
-
     public boolean isLocationSetting(IPlayer player) {
         return settingLocation.containsKey(player.getUniqueId());
     }
@@ -303,8 +301,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             String name = TriggerInfo.extractName(file);
             IConfigSource config = configSourceFactory.create(folder, name);
             TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-            trigger = newTrigger(info, script);
-        } catch (TriggerInitFailedException e1) {
+            trigger = this.newInstance(info, script);
+        } catch (Exception e1) {
             player.sendMessage("&cEncountered an error!");
             player.sendMessage("&c" + e1.getMessage());
             player.sendMessage("&cIf you are an administrator, check console to see details.");
@@ -321,15 +319,18 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         pluginManagement.saveAsynchronously(this);
     }
 
+    protected abstract T newInstance(TriggerInfo info, String script);
+
     /**
      * Initiate editing of a trigger. This will open the in-game text editor for the
      * player to edit the trigger script. (ex. Shift right click with bone to edit)
-     * @param player the player who is editing the trigger
+     *
+     * @param player  the player who is editing the trigger
      * @param trigger the trigger to be edited
      */
     public void handleScriptEdit(IPlayer player, T trigger) {
         scriptEditManager.startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
-                                                script -> {
+                script -> {
                                                     try {
                                                         trigger.setScript(script);
                                                     } catch (TriggerInitFailedException e) {
