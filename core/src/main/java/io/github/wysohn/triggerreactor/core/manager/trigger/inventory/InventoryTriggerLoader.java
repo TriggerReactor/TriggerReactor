@@ -32,11 +32,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Singleton
-public class InventoryTriggerLoader<ItemStack> implements ITriggerLoader<InventoryTrigger> {
+public class InventoryTriggerLoader implements ITriggerLoader<InventoryTrigger> {
     @Inject
     private IInventoryTriggerFactory factory;
     @Inject
-    private IInventoryHandle<ItemStack> inventoryHandle;
+    private IInventoryHandle inventoryHandle;
 
     @Inject
     private InventoryTriggerLoader() {

@@ -36,7 +36,7 @@ public final class InventoryEditManager<ItemStack> extends Manager {
     @Inject
     private InventoryTriggerManager<ItemStack> invManager;
     @Inject
-    private IInventoryHandle<ItemStack> handle;
+    private IInventoryHandle handle;
     @Inject
     private IPluginManagement pluginManagement;
 

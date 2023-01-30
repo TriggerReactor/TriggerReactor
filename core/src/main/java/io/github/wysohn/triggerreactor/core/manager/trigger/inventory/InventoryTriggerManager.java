@@ -51,7 +51,7 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     @Inject
     private IGameManagement gameManagement;
     @Inject
-    private IInventoryHandle<ItemStack> inventoryHandle;
+    private IInventoryHandle inventoryHandle;
 
     @Inject
     private InventoryTriggerManager(@Named("DataFolder") File folder,
