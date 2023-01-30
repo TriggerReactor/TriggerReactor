@@ -17,17 +17,26 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.main.IEventManagement;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.inject.Named;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -39,15 +48,41 @@ public class CommandTriggerManagerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     ICommandHandler commandHandler;
+    IEventManagement eventManager;
     CommandTriggerLoader loader;
     CommandTriggerManager manager;
 
     @Before
     public void setUp() throws Exception {
         commandHandler = mock(ICommandHandler.class);
+        eventManager = mock(IEventManagement.class);
         loader = mock(CommandTriggerLoader.class);
         manager = Guice.createInjector(
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(ICommandTriggerFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    @Named("CommandTriggerManagerFolder")
+                    public String provideFolder() {
+                        return "CommandTrigger";
+                    }
 
+                    @Provides
+                    public ITriggerLoader<CommandTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    public ICommandHandler provideCommandHandler() {
+                        return commandHandler;
+                    }
+
+                    @Provides
+                    public IEventManagement provideEventManager() {
+                        return eventManager;
+                    }
+                }
         ).getInstance(CommandTriggerManager.class);
     }
 

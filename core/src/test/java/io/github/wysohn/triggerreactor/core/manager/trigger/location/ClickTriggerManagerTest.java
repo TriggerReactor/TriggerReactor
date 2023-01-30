@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import com.google.inject.Guice;
+import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,7 +49,7 @@ public class ClickTriggerManagerTest {
     }
 
     @Test
-    public void newTrigger() {
+    public void newTrigger() throws AbstractTriggerManager.TriggerInitFailedException {
         TriggerInfo info = mock(TriggerInfo.class);
         assertNotNull(manager.newInstance(info, "#MESSAGE \"Hello World\""));
     }
