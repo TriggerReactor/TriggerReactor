@@ -115,7 +115,7 @@ public class TRGCommandHandler {
     @Inject
     private IEventRegistry eventRegistry;
     @Inject
-    private IInventoryHandle<?> inventoryHandle;
+    private IInventoryHandle inventoryHandle;
     
     @Inject
     private TRGCommandHandler(){
