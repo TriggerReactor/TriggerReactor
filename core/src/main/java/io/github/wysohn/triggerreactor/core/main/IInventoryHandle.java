@@ -21,7 +21,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 
-public interface IInventoryHandle<ItemStack> {
+public interface IInventoryHandle {
     /**
      * Create actual inventory.
      *
@@ -40,9 +40,17 @@ public interface IInventoryHandle<ItemStack> {
      */
     void fillInventory(InventoryTrigger trigger, int size, IInventory inventory);
 
-    Class<ItemStack> getItemClass();
+    Class<?> getItemClass();
 
-    IItemStack wrapItemStack(ItemStack item);
+    /**
+     * Wrap the item into IItemStack. The implementation of this method
+     * must check if the item is instance of the class appropriate for
+     * this handle.
+     *
+     * @param item the item to be wrapped
+     * @return the wrapped item
+     */
+    IItemStack wrapItemStack(Object item);
 
     /**
      * Set the contents of the inventory.
