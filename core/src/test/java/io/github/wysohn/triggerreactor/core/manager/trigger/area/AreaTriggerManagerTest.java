@@ -64,15 +64,9 @@ public class AreaTriggerManagerTest {
                 new MockGameManagementModule(gameManagement),
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build(),
-                new FactoryModuleBuilder()
-                        .implement(AreaTrigger.class, AreaTrigger.class)
-                        .build(IAreaTriggerFactory.class),
-                new FactoryModuleBuilder()
-                        .implement(EnterTrigger.class, EnterTrigger.class)
-                        .build(IEnterTriggerFactory.class),
-                new FactoryModuleBuilder()
-                        .implement(ExitTrigger.class, ExitTrigger.class)
-                        .build(IExitTriggerFactory.class),
+                new FactoryModuleBuilder().build(IAreaTriggerFactory.class),
+                new FactoryModuleBuilder().build(IEnterTriggerFactory.class),
+                new FactoryModuleBuilder().build(IExitTriggerFactory.class),
                 new AbstractModule() {
                     @Provides
                     public ITriggerLoader<AreaTrigger> provideLoader() {
