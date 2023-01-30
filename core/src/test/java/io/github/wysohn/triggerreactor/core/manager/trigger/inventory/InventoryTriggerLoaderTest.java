@@ -17,13 +17,19 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,17 +47,30 @@ public class InventoryTriggerLoaderTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
 
-    IInventoryHandle<ItemStack> handle;
-    InventoryTriggerLoader<ItemStack> loader;
+    IInventoryHandle handle;
+    InventoryTriggerLoader loader;
 
     @Before
     public void setUp() throws Exception {
-
-
         handle = mock(IInventoryHandle.class);
-        when(handle.getItemClass()).thenReturn(ItemStack.class);
+        when(handle.getItemClass()).thenReturn((Class) ItemStack.class);
 
-        loader = Guice.createInjector().getInstance(InventoryTriggerLoader.class);
+        loader = Guice.createInjector(
+                new FactoryModuleBuilder().build(IInventoryTriggerFactory.class),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new AbstractModule() {
+                    @Provides
+                    IInventoryHandle provideInventoryHandle() {
+                        return handle;
+                    }
+
+                    @Provides
+                    ITriggerLoader<InventoryTrigger> provideLoader() {
+                        return loader;
+                    }
+                }
+        ).getInstance(InventoryTriggerLoader.class);
     }
 
     @Test
@@ -83,23 +102,40 @@ public class InventoryTriggerLoaderTest {
         ItemStack item = new ItemStack();
         IItemStack mockItem = mock(IItemStack.class);
         TriggerInfo info = mock(TriggerInfo.class);
-        InventoryTrigger trigger = new InventoryTrigger(info,
-                                                        "test",
-                                                        new IItemStack[]{mockItem,
-                                                                         null,
-                                                                         null,
-                                                                         null,
-                                                                         null,
-                                                                         null,
-                                                                         null,
-                                                                         null,
-                                                                         null});
+        InventoryTrigger trigger = Guice.createInjector(
+                new FactoryModuleBuilder()
+                        .implement(InventoryTrigger.class, InventoryTrigger.class)
+                        .build(TempFactory.class),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build()
+        ).getInstance(TempFactory.class).create(info,
+                "test",
+                new IItemStack[]{mockItem,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null});
+//        InventoryTrigger trigger = new InventoryTrigger(info,
+//                                                        "test",
+//                                                        new IItemStack[]{mockItem,
+//                                                                         null,
+//                                                                         null,
+//                                                                         null,
+//                                                                         null,
+//                                                                         null,
+//                                                                         null,
+//                                                                         null,
+//                                                                         null});
 
         when(mockItem.get()).thenReturn(item);
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
         when(info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, Integer.class)).thenReturn(Optional.of(9));
         when(info.get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE,
-                      String.class)).thenReturn(Optional.of("test title"));
+                String.class)).thenReturn(Optional.of("test title"));
         when(info.has(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)).thenReturn(true);
         when(info.isSection(TriggerConfigKey.KEY_TRIGGER_INVENTORY_ITEMS)).thenReturn(true);
         when(info.getTriggerName()).thenReturn("title");
@@ -117,5 +153,9 @@ public class InventoryTriggerLoaderTest {
 
     public static class ItemStack {
 
+    }
+
+    private interface TempFactory {
+        InventoryTrigger create(TriggerInfo info, String name, IItemStack[] items);
     }
 }

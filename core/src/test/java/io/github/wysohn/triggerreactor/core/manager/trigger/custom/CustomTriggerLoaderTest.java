@@ -17,11 +17,17 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,10 +47,26 @@ public class CustomTriggerLoaderTest {
     CustomTriggerLoader loader;
 
     @Before
-    public void init() throws IllegalAccessException, NoSuchFieldException {
+    public void init() throws ClassNotFoundException {
         registry = mock(IEventRegistry.class);
+        when(registry.getEvent(anyString())).thenReturn((Class) Object.class);
 
-        loader = Guice.createInjector().getInstance(CustomTriggerLoader.class);
+        loader = Guice.createInjector(
+                new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new AbstractModule() {
+                    @Provides
+                    IEventRegistry provideEventRegistry() {
+                        return registry;
+                    }
+
+                    @Provides
+                    ITriggerLoader<CustomTrigger> provideTriggerLoader() {
+                        return loader;
+                    }
+                }
+        ).getInstance(CustomTriggerLoader.class);
     }
 
     @Test

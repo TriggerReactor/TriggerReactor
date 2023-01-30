@@ -17,20 +17,27 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.MockGameManagementModule;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -43,23 +50,42 @@ public class InventoryTriggerManagerTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
 
-    InventoryTriggerLoader<ItemStack> loader;
-    IInventoryHandle<ItemStack> handle;
+    InventoryTriggerLoader loader;
+    IGameManagement gameManagement;
+    IInventoryHandle handle;
     InventoryTriggerManager<ItemStack> manager;
     private TriggerInfo mockInfo;
     private InventoryTrigger mockTrigger;
 
+    @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
-
-
+        gameManagement = mock(IGameManagement.class);
         loader = mock(InventoryTriggerLoader.class);
         handle = mock(IInventoryHandle.class);
 
-        when(handle.getItemClass()).thenReturn(ItemStack.class);
+        when(handle.getItemClass()).thenReturn((Class) ItemStack.class);
 
         manager = Guice.createInjector(
+                new MockGameManagementModule(gameManagement),
+                new TestFileModule(folder),
+                new AbstractModule() {
+                    @Provides
+                    @Named("InventoryTriggerManagerFolder")
+                    public String provideFolder() {
+                        return "InventoryTrigger";
+                    }
 
+                    @Provides
+                    public ITriggerLoader<InventoryTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    public IInventoryHandle provideHandle() {
+                        return handle;
+                    }
+                }
         ).getInstance(InventoryTriggerManager.class);
     }
 
@@ -134,12 +160,12 @@ public class InventoryTriggerManagerTest {
 
         IInventory inv = manager.openGUI(player, "test");
         manager.onClick(eventInstance,
-                        inv,
-                        item,
-                        0,
-                        "left",
-                        0,
-                        callback);
+                inv,
+                item,
+                0,
+                "left",
+                0,
+                callback);
 
         verify(mockTrigger).activate(any(), any());
     }
@@ -175,11 +201,11 @@ public class InventoryTriggerManagerTest {
         assertTrue(manager.hasInventoryOpen(mockInventory));
     }
 
-    public static class ItemStack{
+    public static class ItemStack {
 
     }
 
-    public static class Inventory{
+    public static class Inventory {
 
     }
 }

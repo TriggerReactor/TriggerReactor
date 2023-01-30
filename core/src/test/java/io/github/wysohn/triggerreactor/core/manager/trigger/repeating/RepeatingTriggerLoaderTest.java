@@ -18,10 +18,12 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
 import com.google.inject.Guice;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,10 +45,14 @@ public class RepeatingTriggerLoaderTest {
     RepeatingTriggerLoader loader;
 
     @Before
-    public void init() throws NoSuchFieldException, IllegalAccessException {
-
-
-        loader = Guice.createInjector().getInstance(RepeatingTriggerLoader.class);
+    public void init() {
+        loader = Guice.createInjector(
+                new FactoryModuleBuilder()
+                        .implement(RepeatingTrigger.class, RepeatingTrigger.class)
+                        .build(IRepeatingTriggerFactory.class),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build()
+        ).getInstance(RepeatingTriggerLoader.class);
     }
 
     @Test
@@ -65,12 +71,19 @@ public class RepeatingTriggerLoaderTest {
     }
 
     @Test
-    public void save() throws IOException, AbstractTriggerManager.TriggerInitFailedException {
+    public void save() throws IOException {
         TriggerInfo mockInfo = mock(TriggerInfo.class);
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockInfo.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
 
-        RepeatingTrigger trigger = new RepeatingTrigger(mockInfo, "#MESSAGE \"Hello world!\"");
+//        RepeatingTrigger trigger = new RepeatingTrigger(mockInfo, "#MESSAGE \"Hello world!\"");
+        RepeatingTrigger trigger = Guice.createInjector(
+                new FactoryModuleBuilder()
+                        .implement(RepeatingTrigger.class, RepeatingTrigger.class)
+                        .build(TempFactory.class),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build()
+        ).getInstance(TempFactory.class).create(mockInfo, "#MESSAGE \"Hello world!\"");
         trigger.setAutoStart(true);
         trigger.setInterval(100);
 
@@ -78,5 +91,9 @@ public class RepeatingTriggerLoaderTest {
 
         verify(mockInfo).put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, true);
         verify(mockInfo).put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, 100L);
+    }
+
+    private interface TempFactory {
+        RepeatingTrigger create(TriggerInfo info, String sourceCode);
     }
 }

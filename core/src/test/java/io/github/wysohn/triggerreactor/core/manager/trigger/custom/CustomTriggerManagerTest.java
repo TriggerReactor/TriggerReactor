@@ -17,17 +17,24 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IEventRegistry;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.inject.Named;
 import java.util.Optional;
 
 import static org.junit.Assert.assertNotNull;
@@ -45,12 +52,29 @@ public class CustomTriggerManagerTest {
 
     @Before
     public void setUp() throws Exception {
-
-
         loader = mock(CustomTriggerLoader.class);
         registry = mock(IEventRegistry.class);
         manager = Guice.createInjector(
+                new TestFileModule(folder),
+                new FactoryModuleBuilder().build(ICustomTriggerFactory.class),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new AbstractModule() {
+                    @Provides
+                    @Named("CustomTriggerManagerFolder")
+                    public String provideFolder() {
+                        return "CustomTrigger";
+                    }
 
+                    @Provides
+                    public ITriggerLoader<CustomTrigger> provideLoader() {
+                        return loader;
+                    }
+
+                    @Provides
+                    public IEventRegistry provideRegistry() {
+                        return registry;
+                    }
+                }
         ).getInstance(CustomTriggerManager.class);
     }
 
