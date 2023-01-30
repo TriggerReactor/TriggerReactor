@@ -20,15 +20,8 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.inventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
-import java.util.Map;
-
 public interface IInventoryTriggerFactory {
     InventoryTrigger create(TriggerInfo info,
                             String script,
                             IItemStack[] items);
-
-    InventoryTrigger create(TriggerInfo info,
-                            String script,
-                            int size,
-                            Map<Integer, IItemStack> items);
 }
