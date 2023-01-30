@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
+import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.memento.IMemento;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,7 +34,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BukkitInventoryHandle implements IInventoryHandle<ItemStack> {
+public class BukkitInventoryHandle implements IInventoryHandle {
     /**
      * @param item
      * @return copy of colored item
@@ -78,8 +79,11 @@ public class BukkitInventoryHandle implements IInventoryHandle<ItemStack> {
     }
 
     @Override
-    public IItemStack wrapItemStack(ItemStack item) {
-        return new BukkitItemStack(item);
+    public IItemStack wrapItemStack(Object item) {
+        ValidationUtil.validate(item instanceof ItemStack,
+                "ItemStack is not an instance of " + ItemStack.class.getName());
+
+        return new BukkitItemStack((ItemStack) item);
     }
 
     @Override
