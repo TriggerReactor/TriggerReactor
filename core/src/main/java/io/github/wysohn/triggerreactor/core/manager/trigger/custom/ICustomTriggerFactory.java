@@ -17,8 +17,12 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.custom;
 
+import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 public interface ICustomTriggerFactory {
-    CustomTrigger create(TriggerInfo info, String script, Class<?> event, String eventName);
+    CustomTrigger create(TriggerInfo info,
+                         String script,
+                         Class<?> event,
+                         @Assisted("CustomTriggerEventName") String eventName);
 }

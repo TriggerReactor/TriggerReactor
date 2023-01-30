@@ -35,7 +35,8 @@ public class CustomTrigger extends Trigger implements IEventHook {
     private CustomTrigger(@Assisted TriggerInfo info,
                           @Assisted String script,
                           @Assisted Class<?> event,
-                          @Assisted String eventName) throws AbstractTriggerManager.TriggerInitFailedException {
+                          @Assisted("CustomTriggerEventName") String eventName)
+            throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.event = event;
         this.eventName = eventName;
