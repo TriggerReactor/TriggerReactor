@@ -17,13 +17,22 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.inject.Named;
+import java.io.IOException;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -33,14 +42,31 @@ public class ClickTriggerManagerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    ClickTriggerLoader loader;
     ClickTriggerManager manager;
 
 
     @Before
     public void setUp() throws Exception {
+        loader = mock(ClickTriggerLoader.class);
 
+        manager = Guice.createInjector(
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new FactoryModuleBuilder().build(IClickTriggerFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<ClickTrigger> provideLoader() {
+                        return loader;
+                    }
 
-        manager = Guice.createInjector().getInstance(ClickTriggerManager.class);
+                    @Provides
+                    @Named("ClickTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "ClickTrigger";
+                    }
+                }
+        ).getInstance(ClickTriggerManager.class);
     }
 
     @Test

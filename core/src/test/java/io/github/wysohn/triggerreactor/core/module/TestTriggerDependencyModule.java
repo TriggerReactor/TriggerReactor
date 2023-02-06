@@ -99,6 +99,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
 
         }
 
+        public Builder sharedVariableManager(SharedVariableManager sharedVariableManager) {
+            this.sharedVariableManager = sharedVariableManager;
+            return this;
+        }
+
         public Builder executorManager(ExecutorManager executorManager) {
             this.executorManager = executorManager;
             return this;

@@ -21,6 +21,9 @@ import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
+import io.github.wysohn.triggerreactor.core.module.manager.trigger.NamedTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,9 +47,11 @@ public class NamedTriggerLoaderTest {
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
-
-
-        loader = Guice.createInjector().getInstance(NamedTriggerLoader.class);
+        loader = Guice.createInjector(
+                new NamedTriggerModule(),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build()
+        ).getInstance(NamedTriggerLoader.class);
     }
 
     @Test
@@ -84,9 +89,9 @@ public class NamedTriggerLoaderTest {
         assertTrue(isIn(loaded, "sub:subsub:test3"));
     }
 
-    private boolean isIn(TriggerInfo[] infos, String name){
-        for(TriggerInfo info : infos){
-            if(info.getTriggerName().equals(name))
+    private boolean isIn(TriggerInfo[] infos, String name) {
+        for (TriggerInfo info : infos) {
+            if (info.getTriggerName().equals(name))
                 return true;
         }
 
