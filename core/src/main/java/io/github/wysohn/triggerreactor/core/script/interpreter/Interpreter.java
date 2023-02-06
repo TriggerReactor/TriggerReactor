@@ -601,7 +601,7 @@ public class Interpreter {
                 value = unwrapVariable(value);
             }
 
-            context.getVars().put(id.value.toString(), value.value);
+            context.setVar(id.value.toString(), value.value);
         } else {
             throw new InterpreterException(
                     "Cannot assign value to " + id.value == null ? null : id.value.getClass().getSimpleName());
