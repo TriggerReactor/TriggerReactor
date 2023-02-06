@@ -43,9 +43,9 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     @AssistedInject
-    public RepeatingTrigger(@Assisted TriggerInfo info,
-                            @Assisted String script,
-                            @Assisted long interval) throws AbstractTriggerManager.TriggerInitFailedException {
+    private RepeatingTrigger(@Assisted TriggerInfo info,
+                             @Assisted String script,
+                             @Assisted long interval) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
         this.interval = interval;
     }
