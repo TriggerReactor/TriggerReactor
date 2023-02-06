@@ -40,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class RepeatingTriggerManager extends AbstractTriggerManager<RepeatingTrigger> {
     @Inject
     private TaskSupervisor task;
+    @Inject
+    private IRepeatingTriggerFactory factory;
 
     protected static final String TRIGGER = "trigger";
 
@@ -102,7 +104,7 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         String name = TriggerInfo.extractName(file);
         IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        RepeatingTrigger trigger = new RepeatingTrigger(info, script, interval);
+        RepeatingTrigger trigger = factory.create(info, script, interval);
         trigger.init();
 
         put(triggerName, trigger);
