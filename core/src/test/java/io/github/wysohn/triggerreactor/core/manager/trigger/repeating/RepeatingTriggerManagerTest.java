@@ -17,17 +17,25 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Provides;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.inject.Named;
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -42,17 +50,33 @@ public class RepeatingTriggerManagerTest {
     RepeatingTriggerManager manager;
     TaskSupervisor task;
     Thread thread;
+    Future future;
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
-
-
         loader = mock(RepeatingTriggerLoader.class);
         task = mock(TaskSupervisor.class);
         manager = Guice.createInjector(
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin()
+                        .taskSupervisor(task)
+                        .build(),
+                new FactoryModuleBuilder().build(IRepeatingTriggerFactory.class),
+                new AbstractModule() {
+                    @Provides
+                    public ITriggerLoader<RepeatingTrigger> provideLoader() {
+                        return loader;
+                    }
 
+                    @Provides
+                    @Named("RepeatingTriggerManagerFolder")
+                    public String provideFolder() throws IOException {
+                        return "RepeatingTrigger";
+                    }
+                }
         ).getInstance(RepeatingTriggerManager.class);
         thread = mock(Thread.class);
+        future = mock(Future.class);
 
         when(task.newThread(any(), anyString(), anyInt())).thenReturn(thread);
     }
@@ -67,6 +91,10 @@ public class RepeatingTriggerManagerTest {
         when(loader.load(any())).thenReturn(mockTrigger);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
         when(mockTrigger.isAutoStart()).thenReturn(true);
+        doAnswer(invocation -> {
+            ((Runnable) invocation.getArguments()[0]).run();
+            return future;
+        }).when(task).runTask(any(Runnable.class));
 
         manager.reload();
 
@@ -85,6 +113,8 @@ public class RepeatingTriggerManagerTest {
 
     @Test
     public void startTrigger() throws AbstractTriggerManager.TriggerInitFailedException, IOException {
+        when(task.submitSync(any())).thenReturn(future);
+
         assertTrue(manager.createTrigger("test", "#MESSAGE \"test\""));
         assertFalse(manager.isRunning("test"));
 
@@ -96,6 +126,8 @@ public class RepeatingTriggerManagerTest {
 
     @Test
     public void stopTrigger() throws AbstractTriggerManager.TriggerInitFailedException, IOException {
+        when(task.submitSync(any())).thenReturn(future);
+
         assertTrue(manager.createTrigger("test", "#MESSAGE \"test\""));
 
         assertTrue(manager.startTrigger("test"));

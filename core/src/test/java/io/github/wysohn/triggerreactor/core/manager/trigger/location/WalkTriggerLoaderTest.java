@@ -19,6 +19,9 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
 import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
+import io.github.wysohn.triggerreactor.core.module.manager.trigger.WalkTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,9 +40,11 @@ public class WalkTriggerLoaderTest {
 
     @Before
     public void setUp() throws Exception {
-
-
-        loader = Guice.createInjector().getInstance(WalkTriggerLoader.class);
+        loader = Guice.createInjector(
+                new WalkTriggerModule(),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build()
+        ).getInstance(WalkTriggerLoader.class);
     }
 
     @Test

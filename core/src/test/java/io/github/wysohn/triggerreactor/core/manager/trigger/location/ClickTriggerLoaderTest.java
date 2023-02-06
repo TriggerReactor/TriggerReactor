@@ -17,9 +17,13 @@
 
 package io.github.wysohn.triggerreactor.core.manager.trigger.location;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.module.TestFileModule;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
+import io.github.wysohn.triggerreactor.core.module.manager.trigger.ClickTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +47,14 @@ public class ClickTriggerLoaderTest {
     public void setUp() throws Exception {
 
 
-        loader = Guice.createInjector().getInstance(ClickTriggerLoader.class);
+        loader = Guice.createInjector(
+                new ClickTriggerModule(),
+                new TestFileModule(folder),
+                TestTriggerDependencyModule.Builder.begin().build(),
+                new AbstractModule() {
+
+                }
+        ).getInstance(ClickTriggerLoader.class);
     }
 
     @Test
