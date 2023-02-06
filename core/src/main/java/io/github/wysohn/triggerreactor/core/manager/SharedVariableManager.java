@@ -39,6 +39,10 @@ public class SharedVariableManager extends Manager {
     @Inject
     private Injector injector;
 
+    @Inject
+    private SharedVariableManager() {
+    }
+
     @Override
     public void initialize() {
         for (Map.Entry<String, Class<? extends AbstractAPISupport>> entry : apiSupportDefinitions.entrySet()) {
