@@ -103,6 +103,8 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         RepeatingTrigger trigger = new RepeatingTrigger(info, script, interval);
+        trigger.init();
+
         put(triggerName, trigger);
 
         return true;
