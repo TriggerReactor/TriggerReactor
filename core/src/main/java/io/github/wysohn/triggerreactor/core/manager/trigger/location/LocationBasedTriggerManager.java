@@ -368,7 +368,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         sender.sendMessage("- - - - - - - - - - - - - -");
         sender.sendMessage("Trigger: " + getTriggerTypeName());
         sender.sendMessage("Block Type: " + world.getBlock(clicked).getTypeName());
-        sender.sendMessage("Location: " + clicked);
+        sender.sendMessage("Location: " + clicked.toSimpleLocation());
         sender.sendMessage("");
         sender.sendMessage("Script:");
         sender.sendMessage(trigger.getScript());
