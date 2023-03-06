@@ -124,6 +124,7 @@ public class TestInterpreter {
                 .putExecutor("MESSAGE", mockExecutor)
                 .addScriptVariable("player", reference)
                 .addScriptVariable("text", "hello")
+                .overrideTaskSupervisor(mockTask)
                 .build();
 
         // Act
@@ -156,7 +157,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"beh0.82", "0.82beh", "beh11", "beh2"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("beh0.82"), eq("0.82beh"), eq("beh11"), eq("beh2"));
     }
 
     @org.junit.Test(expected = InterpreterException.class)
@@ -203,7 +204,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{12.54}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), 12.54);
     }
 
     @org.junit.Test
@@ -229,8 +230,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{12.54}));
-        verify(mockExecutor2).evaluate(any(), anyMap(), any(), eq(new Object[]{null}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(12.54));
+        verify(mockExecutor2).evaluate(any(), anyMap(), any());
     }
 
     @org.junit.Test
@@ -257,8 +258,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{1}));
-        verify(mockExecutor2).evaluate(any(), anyMap(), any(), eq(new Object[]{null}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor2).evaluate(any(), anyMap(), any());
         assertNull(test.getGlobalVar("temp"));
     }
 
@@ -275,13 +276,14 @@ public class TestInterpreter {
 
         Test test = Test.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
+                .addScriptVariable("args", new Object[2])
                 .build();
 
         // Act
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{"arg1, arg2"}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq("arg1, arg2"));
     }
 
     @org.junit.Test
@@ -304,7 +306,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{"arg1, arg2"}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), "arg1, arg2");
     }
 
     @org.junit.Test
@@ -327,7 +329,7 @@ public class TestInterpreter {
 
         // Assert
         for (int i = 0; i < 10; i++) {
-            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{i}));
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), i);
         }
     }
 
@@ -353,7 +355,7 @@ public class TestInterpreter {
 
         // Assert
         for (int i = 0; i < 10; i++) {
-            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{i}));
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), i);
         }
     }
 
@@ -379,7 +381,7 @@ public class TestInterpreter {
 
         // Assert
         for (int i = 0; i < 10; i++) {
-            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{i}));
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), i);
         }
     }
 
@@ -411,7 +413,7 @@ public class TestInterpreter {
 
         // Assert
         for (int i = 0; i < 10; i++) {
-            verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{i}));
+            verify(mockExecutor).evaluate(any(), anyMap(), any(), i);
         }
     }
 
@@ -435,7 +437,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
 
 
 //        Lexer lexer = new Lexer(text, charset);
@@ -481,8 +483,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{1}));
-        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(new Object[]{2}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(2));
     }
 
     @org.junit.Test
@@ -518,10 +520,10 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutorPreError).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorPostError, never()).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorError).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorCatch).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutorPreError).evaluate(any(), anyMap(), any());
+        verify(mockExecutorPostError, never()).evaluate(any(), anyMap(), any());
+        verify(mockExecutorError).evaluate(any(), anyMap(), any());
+        verify(mockExecutorCatch).evaluate(any(), anyMap(), any());
     }
 
     @org.junit.Test
@@ -546,8 +548,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{1}));
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{2}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
     }
 
     @org.junit.Test
@@ -574,9 +576,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{1}));
-        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(new Object[]{2}));
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{3}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(2));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
     }
 
     @org.junit.Test
@@ -617,11 +619,11 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutorPreError).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorPostError, never()).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorError).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorCatch).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
-        verify(mockExecutorFinally).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutorPreError).evaluate(any(), anyMap(), any());
+        verify(mockExecutorPostError, never()).evaluate(any(), anyMap(), any());
+        verify(mockExecutorError).evaluate(any(), anyMap(), any());
+        verify(mockExecutorCatch).evaluate(any(), anyMap(), any());
+        verify(mockExecutorFinally).evaluate(any(), anyMap(), any());
     }
 
     @org.junit.Test
@@ -649,8 +651,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{true}));
-        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(new Object[]{false}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(true));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(false));
     }
 
     @org.junit.Test
@@ -678,7 +680,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockTask).evaluate(any(), anyMap(), any(), eq(new Object[]{new Object[]{true, false, false, true, true, true}}));
+        verify(mockTask).evaluate(any(), anyMap(), any(), eq(true), eq(false), eq(false), eq(true), eq(true), eq(true));
     }
 
     @org.junit.Test
@@ -701,7 +703,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
     }
 
     @org.junit.Test
@@ -723,7 +725,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor, never()).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutor, never()).evaluate(any(), anyMap(), any());
         // and no exception
     }
 
@@ -747,7 +749,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
     }
 
     @org.junit.Test
@@ -769,7 +771,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(new Object[]{}));
+        verify(mockExecutor).evaluate(any(), anyMap(), any());
         // player2 is null but still executes without NPE
     }
 
@@ -783,6 +785,7 @@ public class TestInterpreter {
                 + "ENDWHILE;";
 
         Test test = Test.Builder.of(text)
+                .overrideTaskSupervisor(mockTask)
                 .build();
 
         // Act
@@ -862,18 +865,18 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockMessage).evaluate(any(), any(), any(), eq(new Object[]{"testplayer", "testwithargs"}));
-        verify(mockTestString).evaluate(any(), any(), any(), eq(new Object[]{"hoho"}));
-        verify(mockTestInteger).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(mockTestDouble).evaluate(any(), any(), any(), eq(new Object[]{1.0}));
-        verify(mockTestBoolean).evaluate(any(), any(), any(), eq(new Object[]{true}));
+        verify(mockMessage).evaluate(any(), any(), any(), eq("testplayer"), eq(100.0));
+        verify(mockTestString).evaluate(any(), any(), any(), eq("hoho"));
+        verify(mockTestInteger).evaluate(any(), any(), any(), eq(1));
+        verify(mockTestDouble).evaluate(any(), any(), any(), eq(1.0));
+        verify(mockTestBoolean).evaluate(any(), any(), any(), eq(true));
 
-        verify(mockPlaceholderTest).evaluate(any(), any(), any(), eq(new Object[]{0, "x", true, "hoho"}));
-        verify(mockPlaceholderPlayerName).evaluate(any(), any(), any(), eq(new Object[]{"testplayer"}));
-        verify(mockPlaceholderString).evaluate(any(), any(), any(), eq(new Object[]{"hoho"}));
-        verify(mockPlaceholderInteger).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(mockPlaceholderDouble).evaluate(any(), any(), any(), eq(new Object[]{1.0}));
-        verify(mockPlaceholderBoolean).evaluate(any(), any(), any(), eq(new Object[]{true}));
+        verify(mockPlaceholderTest).evaluate(any(), any(), any(), 0, "x", eq(true), eq("hoho"));
+        verify(mockPlaceholderPlayerName).evaluate(any(), any(), any(), eq("testplayer"));
+        verify(mockPlaceholderString).evaluate(any(), any(), any(), eq("hoho"));
+        verify(mockPlaceholderInteger).evaluate(any(), any(), any(), eq(1));
+        verify(mockPlaceholderDouble).evaluate(any(), any(), any(), eq(1.0));
+        verify(mockPlaceholderBoolean).evaluate(any(), any(), any(), eq(true));
     }
 
     @org.junit.Test
@@ -919,10 +922,10 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{-6}));
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{3.0}));
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{-8}));
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{-9.0}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(-6));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(3.0));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(-8));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(-9.0));
     }
 
     @org.junit.Test
@@ -958,11 +961,11 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{-2}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{2}));
-        verify(mockExecutor3).evaluate(any(), any(), any(), eq(new Object[]{3}));
-        verify(mockExecutor4).evaluate(any(), any(), any(), eq(new Object[]{3}));
-        verify(mockExecutor5).evaluate(any(), any(), any(), eq(new Object[]{2}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), -2);
+        verify(mockExecutor2).evaluate(any(), any(), any(), 2);
+        verify(mockExecutor3).evaluate(any(), any(), any(), 3);
+        verify(mockExecutor4).evaluate(any(), any(), any(), 3);
+        verify(mockExecutor5).evaluate(any(), any(), any(), 2);
     }
 
     @org.junit.Test
@@ -998,11 +1001,11 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{-2.1}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{2.1}));
-        verify(mockExecutor3).evaluate(any(), any(), any(), eq(new Object[]{3.1}));
-        verify(mockExecutor4).evaluate(any(), any(), any(), eq(new Object[]{3.1}));
-        verify(mockExecutor5).evaluate(any(), any(), any(), eq(new Object[]{2.1}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), -2.1);
+        verify(mockExecutor2).evaluate(any(), any(), any(), 2.1);
+        verify(mockExecutor3).evaluate(any(), any(), any(), 3.1);
+        verify(mockExecutor4).evaluate(any(), any(), any(), 3.1);
+        verify(mockExecutor5).evaluate(any(), any(), any(), 2.1);
     }
 
     @org.junit.Test
@@ -1059,16 +1062,16 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{-258}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{-65}));
-        verify(mockExecutor3).evaluate(any(), any(), any(), eq(new Object[]{2147483583}));
-        verify(mockExecutor4).evaluate(any(), any(), any(), eq(new Object[]{-129}));
-        verify(mockExecutor5).evaluate(any(), any(), any(), eq(new Object[]{67}));
-        verify(mockExecutor6).evaluate(any(), any(), any(), eq(new Object[]{-196}));
-        verify(mockExecutor7).evaluate(any(), any(), any(), eq(new Object[]{128}));
-        verify(mockExecutor8).evaluate(any(), any(), any(), eq(new Object[]{true}));
-        verify(mockExecutor9).evaluate(any(), any(), any(), eq(new Object[]{true}));
-        verify(mockExecutor10).evaluate(any(), any(), any(), eq(new Object[]{false}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(-258));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(-65));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(2147483583));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(-129));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(67));
+        verify(mockExecutor6).evaluate(any(), any(), any(), eq(-196));
+        verify(mockExecutor7).evaluate(any(), any(), any(), eq(128));
+        verify(mockExecutor8).evaluate(any(), any(), any(), eq(true));
+        verify(mockExecutor9).evaluate(any(), any(), any(), eq(true));
+        verify(mockExecutor10).evaluate(any(), any(), any(), eq(false));
     }
 
     @org.junit.Test(expected = InterpreterException.class)
@@ -1138,8 +1141,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"pass"}));
-        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq(new Object[]{"failed"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("pass"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("failed"));
     }
 
     @org.junit.Test
@@ -1157,14 +1160,15 @@ public class TestInterpreter {
 
         Test test = Test.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
+                .addScriptVariable("someunknown", 0.0)
                 .build();
 
         // Act
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"failed"}));
-        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq(new Object[]{"pass"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("failed"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("pass"));
     }
 
     @org.junit.Test
@@ -1182,14 +1186,15 @@ public class TestInterpreter {
 
         Test test = Test.Builder.of(text)
                 .putExecutor("TEST", mockExecutor)
+                .addScriptVariable("someunknown", 0.0)
                 .build();
 
         // Act
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"failed"}));
-        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq(new Object[]{"pass"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("failed"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("pass"));
     }
 
     @org.junit.Test
@@ -1213,8 +1218,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"pass"}));
-        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq(new Object[]{"failed"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("pass"));
+        verify(mockExecutor, never()).evaluate(any(), any(), any(), eq("failed"));
     }
 
     @org.junit.Test
@@ -1240,9 +1245,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"case2"}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{"case1"}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{"case3"}));
+        verify(executor).evaluate(any(), any(), any(), "case2");
+        verify(executor, never()).evaluate(any(), any(), any(), "case1");
+        verify(executor, never()).evaluate(any(), any(), any(), "case3");
     }
 
     @org.junit.Test
@@ -1268,9 +1273,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"case3"}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{"case1"}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{"case2"}));
+        verify(executor).evaluate(any(), any(), any(), "case3");
+        verify(executor, never()).evaluate(any(), any(), any(), "case1");
+        verify(executor, never()).evaluate(any(), any(), any(), "case2");
     }
 
     @org.junit.Test
@@ -1303,7 +1308,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"test1"}));
+        verify(executor).evaluate(any(), any(), any(), "test1");
 
 //        Map<Integer, String> testMap = new HashMap<>();
 //        testMap.put(1000, "test1");
@@ -1343,7 +1348,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"test2"}));
+        verify(executor).evaluate(any(), any(), any(), "test2");
     }
 
     @org.junit.Test
@@ -1376,7 +1381,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"test5"}));
+        verify(executor).evaluate(any(), any(), any(), "test5");
     }
 
     @org.junit.Test
@@ -1409,7 +1414,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"test3"}));
+        verify(executor).evaluate(any(), any(), any(), "test3");
     }
 
     @org.junit.Test
@@ -1442,7 +1447,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"test4"}));
+        verify(executor).evaluate(any(), any(), any(), "test4");
     }
 
     @org.junit.Test
@@ -1471,9 +1476,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{2}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{3}));
+        verify(executor).evaluate(any(), any(), any(), 1);
+        verify(executor, never()).evaluate(any(), any(), any(), 2);
+        verify(executor, never()).evaluate(any(), any(), any(), 3);
     }
 
     @org.junit.Test
@@ -1502,9 +1507,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{2}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{3}));
+        verify(executor).evaluate(any(), any(), any(), 2);
+        verify(executor, never()).evaluate(any(), any(), any(), 1);
+        verify(executor, never()).evaluate(any(), any(), any(), 3);
     }
 
     @org.junit.Test
@@ -1533,9 +1538,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{3}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{2}));
+        verify(executor).evaluate(any(), any(), any(), 3);
+        verify(executor, never()).evaluate(any(), any(), any(), 1);
+        verify(executor, never()).evaluate(any(), any(), any(), 2);
     }
 
     @org.junit.Test
@@ -1568,9 +1573,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{2}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{3}));
+        verify(executor).evaluate(any(), any(), any(), 1);
+        verify(executor, never()).evaluate(any(), any(), any(), 2);
+        verify(executor, never()).evaluate(any(), any(), any(), 3);
     }
 
     @org.junit.Test
@@ -1602,9 +1607,9 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{2}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{1}));
-        verify(executor, never()).evaluate(any(), any(), any(), eq(new Object[]{3}));
+        verify(executor).evaluate(any(), any(), any(), 2);
+        verify(executor, never()).evaluate(any(), any(), any(), 1);
+        verify(executor, never()).evaluate(any(), any(), any(), 3);
     }
 
     @org.junit.Test
@@ -1641,11 +1646,11 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{TheTest.class}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{"static"}));
-        verify(mockExecutor3).evaluate(any(), any(), any(), eq(new Object[]{"local"}));
-        verify(mockExecutor4).evaluate(any(), any(), any(), eq(new Object[]{"staticField"}));
-        verify(mockExecutor5).evaluate(any(), any(), any(), eq(new Object[]{"IMTEST"}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), TheTest.class);
+        verify(mockExecutor2).evaluate(any(), any(), any(), "static");
+        verify(mockExecutor3).evaluate(any(), any(), any(), "local");
+        verify(mockExecutor4).evaluate(any(), any(), any(), "staticField");
+        verify(mockExecutor5).evaluate(any(), any(), any(), "IMTEST");
     }
 
     @org.junit.Test
@@ -1670,11 +1675,11 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{TheTest.class}));
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"static"}));
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"local"}));
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{"staticField"}));
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{TestEnum.IMTEST}));
+        verify(executor).evaluate(any(), any(), any(), eq(TheTest.class));
+        verify(executor).evaluate(any(), any(), any(), eq("static"));
+        verify(executor).evaluate(any(), any(), any(), eq("local"));
+        verify(executor).evaluate(any(), any(), any(), eq("staticField"));
+        verify(executor).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
     @org.junit.Test
@@ -1697,6 +1702,8 @@ public class TestInterpreter {
         when(mockExecutor4.evaluate(any(), any(), any(), any())).thenReturn(null);
         Executor mockExecutor5 = mock(Executor.class);
         when(mockExecutor5.evaluate(any(), any(), any(), any())).thenReturn(null);
+        Executor mockExecutor6 = mock(Executor.class);
+        when(mockExecutor6.evaluate(any(), any(), any(), any())).thenReturn(null);
 
         Test test = Test.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
@@ -1704,24 +1711,25 @@ public class TestInterpreter {
                 .putExecutor("TEST3", mockExecutor3)
                 .putExecutor("TEST4", mockExecutor4)
                 .putExecutor("TEST5", mockExecutor5)
+                .putExecutor("TEST6", mockExecutor6)
                 .build();
 
         // Act
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{true, false}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{true, false}));
-        verify(mockExecutor3).evaluate(any(), any(), any(), eq(new Object[]{true, false}));
-        verify(mockExecutor4).evaluate(any(), any(), any(), eq(new Object[]{true, false}));
-        verify(mockExecutor5).evaluate(any(), any(), any(), eq(new Object[]{true, false}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor3).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor4).evaluate(any(), any(), any(), eq(true), eq(false));
+        verify(mockExecutor5).evaluate(any(), any(), any(), eq(true), eq(false));
     }
 
     @org.junit.Test
     public void testNullComparison() throws Exception {
         // Arrange
         String text = "IF {\"temp\"} == null;"
-                + "#TEST"
+                + "#TEST;"
                 + "ENDIF;";
 
         Executor mockExecutor = mock(Executor.class);
@@ -1735,7 +1743,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{}));
+        verify(mockExecutor).evaluate(any(), any(), any());
     }
 
     @org.junit.Test
@@ -1754,7 +1762,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"abcd\nABCD"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("abcd\nABCD"));
     }
 
     @org.junit.Test
@@ -1773,7 +1781,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{"abcd\rABCD"}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq("abcd\rABCD"));
     }
 
     @org.junit.Test
@@ -1799,8 +1807,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{true, true}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{true, true}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(true), eq(true));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(true), eq(true));
     }
 
     @org.junit.Test
@@ -1831,14 +1839,15 @@ public class TestInterpreter {
         Test test = Test.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
+                .overrideTaskSupervisor(mockTask)
                 .build();
 
         // Act
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{2}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{5}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(2));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(5));
     }
 
 
@@ -1899,14 +1908,15 @@ public class TestInterpreter {
         Test test = Test.Builder.of(text)
                 .putExecutor("TEST", mockExecutor1)
                 .putExecutor("TEST2", mockExecutor2)
+                .overrideTaskSupervisor(mockTask)
                 .build();
 
         // Act
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{2, 5}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{2, 5}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(2), eq(5));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(2), eq(5));
     }
 
     @org.junit.Test
@@ -1948,8 +1958,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{9}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{9}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), eq(9));
+        verify(mockExecutor2).evaluate(any(), any(), any(), eq(9));
     }
 
     @org.junit.Test
@@ -1988,8 +1998,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{}));
+        verify(mockExecutor1).evaluate(any(), any(), any());
+        verify(mockExecutor2).evaluate(any(), any(), any());
         verify(mockTaskSupervisor).submitSync(any());
         verify(mockTaskSupervisor).submitAsync(any());
     }
@@ -2034,8 +2044,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1, times(5)).evaluate(any(), any(), any(), eq(new Object[]{}));
-        verify(mockExecutor2, times(5)).evaluate(any(), any(), any(), eq(new Object[]{}));
+        verify(mockExecutor1, times(5)).evaluate(any(), any(), any());
+        verify(mockExecutor2, times(5)).evaluate(any(), any(), any());
         verify(mockTaskSupervisor).submitSync(any());
         verify(mockTaskSupervisor).submitAsync(any());
     }
@@ -2059,7 +2069,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{new ConstTest()}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest()));
     }
 
     @org.junit.Test
@@ -2081,7 +2091,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{new ConstTest(1)}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(new ConstTest(1)));
     }
 
     @org.junit.Test
@@ -2103,7 +2113,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{new ConstTest(2, 5.0, "hoho")}));
+        verify(mockExecutor).evaluate(any(), any(), any(), new ConstTest(2, 5.0, "hoho"));
     }
 
     @org.junit.Test
@@ -2125,10 +2135,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), argThat(args -> {
-            ConstTest obj = (ConstTest) args[0];
-            return obj.val1 == 1 && obj.val2 == 2 && "3".equals(obj.val3);
-        }));
+        verify(mockExecutor).evaluate(any(), any(), any(),
+                eq(new ConstTest(1, 2, Arrays.toString(new int[]{1, 2, 3, 4, 5}))));
     }
 
     @org.junit.Test
@@ -2158,10 +2166,11 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{new Vector(),
-                new Vector(4, 4, 2),
-                new Vector(4.2, 4.4, 2.3),
-                new Vector(3.2f, 4.3f, 5.4f)}));
+        verify(mockExecutor).evaluate(any(), any(), any(),
+                eq(new Vector()),
+                eq(new Vector(4, 4, 2)),
+                eq(new Vector(4.2, 4.4, 2.3)),
+                eq(new Vector(3.2f, 4.3f, 5.4f)));
     }
 
     @org.junit.Test
@@ -2190,7 +2199,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(executor).evaluate(any(), any(), any(), eq(new Object[]{TestEnum.IMTEST}));
+        verify(executor).evaluate(any(), any(), any(), eq(TestEnum.IMTEST));
     }
 
     @org.junit.Test
@@ -2212,7 +2221,7 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor).evaluate(any(), any(), any(), eq(new Object[]{123456789123456789L}));
+        verify(mockExecutor).evaluate(any(), any(), any(), eq(123456789123456789L));
     }
 
     @org.junit.Test
@@ -2238,8 +2247,8 @@ public class TestInterpreter {
         test.test();
 
         // Assert
-        verify(mockExecutor1).evaluate(any(), any(), any(), eq(new Object[]{22 - 4}));
-        verify(mockExecutor2).evaluate(any(), any(), any(), eq(new Object[]{33 - 5}));
+        verify(mockExecutor1).evaluate(any(), any(), any(), 22 - 4);
+        verify(mockExecutor2).evaluate(any(), any(), any(), 33 - 5);
     }
 
     @org.junit.Test
@@ -2499,6 +2508,15 @@ public class TestInterpreter {
         @Override
         public int hashCode() {
             return Objects.hash(val1, val2, val3);
+        }
+
+        @Override
+        public String toString() {
+            return "ConstTest{" +
+                    "val1=" + val1 +
+                    ", val2=" + val2 +
+                    ", val3='" + val3 + '\'' +
+                    '}';
         }
     }
 
