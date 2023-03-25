@@ -28,6 +28,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
@@ -116,7 +117,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
             if (evaluables.containsKey(builder.toString())) {
                 logger.warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = factory.create(fileName, getEngine(sem), file);
+                JSExecutor exec = factory.create(fileName, getEngine(sem), new FileInputStream(file));
                 evaluables.put(builder.toString(), exec);
             }
         }

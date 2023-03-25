@@ -20,11 +20,10 @@ package io.github.wysohn.triggerreactor.core.manager.js.executor;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
 
 import javax.script.ScriptEngine;
-import java.io.File;
 import java.io.InputStream;
 
 public interface IJSExecutorFactory {
-    JSExecutor create(String name, ScriptEngine engine, File file);
+//    JSExecutor create(String name, ScriptEngine engine, File file);
 
     JSExecutor create(String name, ScriptEngine engine, InputStream file);
 }
