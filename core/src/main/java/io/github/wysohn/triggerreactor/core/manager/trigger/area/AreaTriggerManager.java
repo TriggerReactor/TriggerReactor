@@ -43,7 +43,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Singleton
-public final class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
+public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger> {
     @Inject
     private IAreaTriggerFactory factory;
     @Inject

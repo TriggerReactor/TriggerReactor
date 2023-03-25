@@ -39,7 +39,7 @@ import java.util.logging.Logger;
  * @author wysohn
  */
 @Singleton
-public final class TriggerReactorCore implements IPluginLifecycle {
+public class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     @Named("Plugin")
     private Object pluginObject;
