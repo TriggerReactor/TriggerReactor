@@ -28,6 +28,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
@@ -133,7 +134,7 @@ public class PlaceholderManager
             if (evaluables.containsKey(builder.toString())) {
                 logger.warning(builder.toString() + " already registered! Duplicating placeholders?");
             } else {
-                JSPlaceholder placeholder = factory.create(fileName, getEngine(sem), file);
+                JSPlaceholder placeholder = factory.create(fileName, getEngine(sem), new FileInputStream(file));
                 evaluables.put(builder.toString(), placeholder);
             }
         }

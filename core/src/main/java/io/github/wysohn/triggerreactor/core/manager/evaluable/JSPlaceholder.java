@@ -24,24 +24,22 @@ import io.github.wysohn.triggerreactor.tools.FileUtil;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class JSPlaceholder extends Evaluable<Object> implements Placeholder {
-    @Inject
-    private JSPlaceholder(@Assisted String placeholderName,
-                         @Assisted ScriptEngine engine,
-                         @Assisted File file) throws ScriptException,
-            IOException {
-        this(placeholderName, engine, new FileInputStream(file));
-    }
+//    @Inject
+//    private JSPlaceholder(@Assisted String placeholderName,
+//                         @Assisted ScriptEngine engine,
+//                         @Assisted File file) throws ScriptException,
+//            IOException {
+//        this(placeholderName, engine, new FileInputStream(file));
+//    }
 
     @Inject
     private JSPlaceholder(@Assisted String placeholderName,
-                         @Assisted ScriptEngine engine,
-                         @Assisted InputStream file) throws ScriptException,
+                          @Assisted ScriptEngine engine,
+                          @Assisted InputStream file) throws ScriptException,
             IOException {
         super("$", "Placeholders", placeholderName, FileUtil.readFromStream(file), engine);
     }

@@ -1,20 +1,33 @@
 package js;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+
 import javax.script.ScriptEngine;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
+//TODO the entire testing framework needs to be reworked
 public abstract class JsTest {
     protected final String name;
     protected final InputStream stream;
     protected final ScriptEngine engine;
+    protected List<Module> modules = new ArrayList<>();
     protected Map<String, Object> varMap;
     protected Object[] args;
+
+    public TaskSupervisor taskSupervisor = mock(TaskSupervisor.class);
+    public IPluginManagement pluginManager = mock(IPluginManagement.class);
 
     /**
      * @param engine           the script engine to use
@@ -42,6 +55,18 @@ public abstract class JsTest {
         this.stream = stream;
         this.varMap = new HashMap<>();
         this.args = new Object[]{};
+
+        this.modules.add(new AbstractModule() {
+            @Override
+            protected void configure() {
+                bind(TaskSupervisor.class).toInstance(taskSupervisor);
+                bind(IPluginManagement.class).toInstance(pluginManager);
+            }
+        });
+    }
+
+    public void addModule(AbstractModule module) {
+        modules.add(module);
     }
 
     public JsTest addVariable(String name, Object value) {
