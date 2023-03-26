@@ -18,11 +18,17 @@
 package io.github.wysohn.triggerreactor.core.module;
 
 import com.google.inject.AbstractModule;
+import io.github.wysohn.triggerreactor.core.main.ExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.module.manager.ManagerModule;
 
 public class CorePluginModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new ManagerModule());
+        install(new APISupportModule());
+
+        bind(IExceptionHandle.class).to(ExceptionHandle.class);
     }
+
 }

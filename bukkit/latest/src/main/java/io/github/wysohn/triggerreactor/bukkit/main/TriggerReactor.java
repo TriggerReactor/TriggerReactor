@@ -26,7 +26,6 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldgua
 import io.github.wysohn.triggerreactor.bukkit.modules.LatestBukkitDriverModule;
 
 public class TriggerReactor extends AbstractJavaPlugin {
-
     public TriggerReactor() {
         super(new LatestBukkitDriverModule());
     }

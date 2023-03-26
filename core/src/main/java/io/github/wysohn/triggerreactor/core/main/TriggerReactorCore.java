@@ -44,12 +44,13 @@ public class TriggerReactorCore implements IPluginLifecycle {
     @Named("Plugin")
     private Object pluginObject;
     @Inject
-    @Named("PluginLogger")
+    @Named("PluginClassLoader")
     private ClassLoader pluginClassLoader;
     @Inject
     private Set<ScriptEngineInitializer> scriptEngineInitializers;
 
     @Inject
+    @Named("PluginLogger")
     private Logger logger;
     @Inject
     private TaskSupervisor taskSupervisor;

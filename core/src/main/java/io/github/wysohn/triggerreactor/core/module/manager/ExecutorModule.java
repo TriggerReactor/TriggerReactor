@@ -18,12 +18,20 @@
 package io.github.wysohn.triggerreactor.core.module.manager;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.MapBinder;
+import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
+import io.github.wysohn.triggerreactor.core.manager.js.executor.IJSExecutorFactory;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 
 public class ExecutorModule extends AbstractModule {
     @Override
     protected void configure() {
+        // empty executor overrides
         MapBinder.newMapBinder(binder(), String.class, Executor.class);
+
+        install(new FactoryModuleBuilder()
+                .implement(Executor.class, JSExecutor.class)
+                .build(IJSExecutorFactory.class));
     }
 }

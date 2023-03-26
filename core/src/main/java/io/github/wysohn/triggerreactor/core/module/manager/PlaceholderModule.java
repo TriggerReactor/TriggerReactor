@@ -18,12 +18,20 @@
 package io.github.wysohn.triggerreactor.core.module.manager;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.MapBinder;
+import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
+import io.github.wysohn.triggerreactor.core.manager.js.placeholder.IJSPlaceholderFactory;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 
 public class PlaceholderModule extends AbstractModule {
     @Override
     protected void configure() {
+        // empty placeholder overrides
         MapBinder.newMapBinder(binder(), String.class, Placeholder.class);
+
+        install(new FactoryModuleBuilder()
+                .implement(Placeholder.class, JSPlaceholder.class)
+                .build(IJSPlaceholderFactory.class));
     }
 }
