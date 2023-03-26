@@ -24,6 +24,9 @@ public class ManagerModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new ExecutorModule());
+        install(new PlaceholderModule());
         install(new TriggerManagerModule());
+        install(new ConfigurationModule());
+        install(new ScriptEngineModule());
     }
 }
