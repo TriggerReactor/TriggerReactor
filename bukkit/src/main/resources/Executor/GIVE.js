@@ -15,36 +15,35 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+function GIVE(args){
+	if(args.length == 1){
 
-var Player = Java.type('org.bukkit.entity.Player');
-var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+		if (!(args[0] instanceof Java.type("org.bukkit.inventory.ItemStack")))
+		{
+			throw new Error("Invalid ItemStack: " + args[0]);
+		}
 
-var validation = {
-  overloads: [
-    [
-      { type: ItemStack.class, name: 'itemStack' }
-    ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: ItemStack.class, name: 'itemStack' }
-    ]
-  ]
-};
+		if (!(player instanceof Java.type("org.bukkit.entity.Player")))
+		{
+		    throw new Error('Player is null.');
+		}
 
-function GIVE(args) {
-  var target, itemStack;
+		var inv = player.getInventory();
+		var size = 0;
+		for(var i = 0; i < 36; i++){
+			if (inv.getItem(i) == null) {
+				size += args[0].getMaxStackSize();
+			}else if (inv.getItem(i).isSimilar(args[0])){
+				size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
+			}
 
-  if (overload === 0) {
-    target = player;
-    itemStack = args[0];
-  } else if (overload === 1) {
-    target = args[0];
-    itemStack = args[1];
-  }
-
-  if (!target) throw new Error('Player is null.');
-
-  target.getInventory().addItem(itemStack);
-
-  return null;
+			if (size >= args[0].getAmount()) {
+				inv.addItem(args[0]);
+				return;
+			}
+		}
+		throw new Error("Player has no empty slot.");
+	}else{
+		throw new Error("Invalid parameters. Need [ItemStack]");
+	}
 }
