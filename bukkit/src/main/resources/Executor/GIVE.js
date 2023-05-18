@@ -52,7 +52,7 @@ function GIVE(args){
             size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
         }
 
-        if (size >= args[0].getAmount()) {
+        if (size >= itemStack.getAmount()) {
             inv.addItem(itemStack);
             return;
         }
