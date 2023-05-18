@@ -15,18 +15,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var validation = {
+    overloads: [
+        [
+            { type: ItemStack.class, name: 'itemStack' }
+        ],
+        [
+            { type: Player.class, name: 'player' },
+            { type: ItemStack.class, name: 'itemStack' }
+        ]
+    ]
+};
+
 function GIVE(args){
     if(args.length === 1){
 
-        if (!(args[0] instanceof Java.type("org.bukkit.inventory.ItemStack")))
-        {
+        if (overload === 0) {
+            target = player;
+            itemStack = args[0];
+        } else if (overload === 1) {
+            target = args[0];
+            itemStack = args[1];
+        }
+
+        if (!(args[0] instanceof Java.type("org.bukkit.inventory.ItemStack"))) {
             throw new Error("Invalid ItemStack: " + args[0]);
         }
 
-        if (!(player instanceof Java.type("org.bukkit.entity.Player")))
-        {
-            throw new Error('Player is null.');
-        }
+        if (!target) throw new Error('Player is null.');
 
         var inv = player.getInventory();
         var size = 0;
