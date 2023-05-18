@@ -15,16 +15,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
+var Player = Java.type('org.bukkit.entity.Player');
+var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
+
 var validation = {
-    overloads: [
-        [
-            { type: ItemStack.class, name: 'itemStack' }
-        ],
-        [
-            { type: Player.class, name: 'player' },
-            { type: ItemStack.class, name: 'itemStack' }
-        ]
-    ]
+	overloads: [
+		[
+			{ type: ItemStack.class, name: 'itemStack' }
+		],
+		[
+			{ type: Player.class, name: 'player' },
+			{ type: ItemStack.class, name: 'itemStack' }
+		]
+	]
 };
 
 function GIVE(args){
@@ -38,7 +41,6 @@ function GIVE(args){
         itemStack = args[1];
     }
 
-    if (!itemStack)) throw new Error("Invalid ItemStack: " + itemStack);
     if (!target) throw new Error('Player is null.');
 
     var inv = player.getInventory();
