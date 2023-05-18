@@ -47,13 +47,13 @@ function GIVE(args){
     var size = 0;
     for(var i = 0; i < 36; i++){
         if (inv.getItem(i) === null) {
-            size += args[0].getMaxStackSize();
-        }else if (inv.getItem(i).isSimilar(args[0])){
+            size += itemStack.getMaxStackSize();
+        }else if (inv.getItem(i).isSimilar(itemStack)){
             size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
         }
 
         if (size >= args[0].getAmount()) {
-            inv.addItem(args[0]);
+            inv.addItem(itemStack);
             return;
         }
     }
