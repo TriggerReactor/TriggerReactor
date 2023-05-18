@@ -28,38 +28,32 @@ var validation = {
 };
 
 function GIVE(args){
-    if(args.length === 1){
+    var target, itemStack;
 
-        if (overload === 0) {
-            target = player;
-            itemStack = args[0];
-        } else if (overload === 1) {
-            target = args[0];
-            itemStack = args[1];
-        }
-
-        if (!(args[0] instanceof Java.type("org.bukkit.inventory.ItemStack"))) {
-            throw new Error("Invalid ItemStack: " + args[0]);
-        }
-
-        if (!target) throw new Error('Player is null.');
-
-        var inv = player.getInventory();
-        var size = 0;
-        for(var i = 0; i < 36; i++){
-            if (inv.getItem(i) === null) {
-                size += args[0].getMaxStackSize();
-            }else if (inv.getItem(i).isSimilar(args[0])){
-                size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
-            }
-
-            if (size >= args[0].getAmount()) {
-                inv.addItem(args[0]);
-                return;
-            }
-        }
-        throw new Error("Player has no empty slot.");
-    }else{
-        throw new Error("Invalid parameters. Need [ItemStack]");
+    if (overload === 0) {
+        target = player;
+        itemStack = args[0];
+    } else if (overload === 1) {
+        target = args[0];
+        itemStack = args[1];
     }
+
+    if (!itemStack)) throw new Error("Invalid ItemStack: " + itemStack);
+    if (!target) throw new Error('Player is null.');
+
+    var inv = player.getInventory();
+    var size = 0;
+    for(var i = 0; i < 36; i++){
+        if (inv.getItem(i) === null) {
+            size += args[0].getMaxStackSize();
+        }else if (inv.getItem(i).isSimilar(args[0])){
+            size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
+        }
+
+        if (size >= args[0].getAmount()) {
+            inv.addItem(args[0]);
+            return;
+        }
+    }
+    throw new Error("Player has no empty slot.");
 }
