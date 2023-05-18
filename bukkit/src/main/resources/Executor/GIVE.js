@@ -31,7 +31,7 @@ function GIVE(args){
         var inv = player.getInventory();
         var size = 0;
         for(var i = 0; i < 36; i++){
-            if (inv.getItem(i) === null) {
+            if (inv.getItem(i) == null) {
                 size += args[0].getMaxStackSize();
             }else if (inv.getItem(i).isSimilar(args[0])){
                 size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
