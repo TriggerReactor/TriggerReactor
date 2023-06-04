@@ -45,15 +45,15 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
                             ScriptEngineManager sem,
                             Map<String, Executor> overrides) throws IOException {
         super(sem, overrides, new File(dataFolder, "Executor"));
-
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
-
-        //reload();
     }
 
     @Override
     public void initialize() {
-
+        try {
+            JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, folder, JarUtil.CopyOption.REPLACE_IF_EXIST);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

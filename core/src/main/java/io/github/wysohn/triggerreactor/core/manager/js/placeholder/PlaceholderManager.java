@@ -48,15 +48,15 @@ public class PlaceholderManager
                                ScriptEngineManager sem,
                                Map<String, Placeholder> overrides) throws IOException {
         super(sem, overrides, new File(dataFolder, "Placeholder"));
-
-        JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, dataFolder, JarUtil.CopyOption.REPLACE_IF_EXIST);
-
-        //reload();
     }
 
     @Override
     public void initialize() {
-
+        try {
+            JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, folder, JarUtil.CopyOption.REPLACE_IF_EXIST);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
