@@ -4,7 +4,9 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
+import io.github.wysohn.triggerreactor.core.manager.IJavascriptFileLoader;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
+import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Rule;
@@ -34,6 +36,9 @@ public class TriggerReactorCoreTest {
     private final ICommandHandler commandHandler = mock(ICommandHandler.class);
     private final IEventRegistry eventRegistry = mock(IEventRegistry.class);
     private final IInventoryHandle inventoryHandle = mock(IInventoryHandle.class);
+
+    private final IJSFolderContentCopyHelper copyHelper = mock(IJSFolderContentCopyHelper.class);
+    private final IJavascriptFileLoader javascriptFileLoader = mock(IJavascriptFileLoader.class);
 
     @Test
     public void initialize() {
@@ -102,6 +107,16 @@ public class TriggerReactorCoreTest {
                     @Provides
                     public IInventoryHandle provideInventoryHandle() {
                         return inventoryHandle;
+                    }
+
+                    @Provides
+                    public IJSFolderContentCopyHelper copyHelper() {
+                        return copyHelper;
+                    }
+
+                    @Provides
+                    public IJavascriptFileLoader javascriptFileLoader() {
+                        return javascriptFileLoader;
                     }
                 },
                 new CorePluginModule()

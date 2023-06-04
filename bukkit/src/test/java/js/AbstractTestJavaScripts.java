@@ -19,7 +19,6 @@ package js;
 
 import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
-import io.github.wysohn.triggerreactor.core.manager.js.AbstractJavascriptBasedManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
@@ -45,7 +44,7 @@ public abstract class AbstractTestJavaScripts {
     public void init() throws Exception {
         sem = new ScriptEngineManager();
         ScriptEngineInitializer.DEFAULT.initialize(sem);
-        engine = AbstractJavascriptBasedManager.getEngine(sem);
+        engine = sem.getEngineByExtension("js");
 
         mockMain = mock(TriggerReactorCore.class);
 

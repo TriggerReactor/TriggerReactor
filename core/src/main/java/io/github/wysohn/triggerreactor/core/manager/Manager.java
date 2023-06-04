@@ -28,18 +28,36 @@ import java.util.List;
  * @author wysohn
  */
 public abstract class Manager implements IPluginLifecycle {
+    /**
+     * @return
+     * @deprecated refactor to use dependency injection
+     */
+    @Deprecated
     private static final List<Manager> managers = new ArrayList<Manager>();
 
+    /**
+     * @return
+     * @deprecated refactor to use dependency injection
+     */
+    @Deprecated
     public static List<Manager> getManagers() {
         return managers;
     }
 
+    /**
+     * @return
+     * @deprecated refactor to use dependency injection
+     */
+    @Deprecated
     public Manager() {
         managers.add(this);
     }
 
     /**
      * Save all triggers
+     *
+     * @deprecated replace with {@link IPluginLifecycle#shutdown()}
      */
+    @Deprecated
     public abstract void saveAll();
 }

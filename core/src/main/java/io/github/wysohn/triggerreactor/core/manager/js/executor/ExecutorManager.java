@@ -16,15 +16,16 @@
  */
 package io.github.wysohn.triggerreactor.core.manager.js.executor;
 
+import io.github.wysohn.triggerreactor.core.manager.IJavascriptFileLoader;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
 import io.github.wysohn.triggerreactor.core.manager.js.AbstractJavascriptBasedManager;
+import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
+import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
-import io.github.wysohn.triggerreactor.tools.JarUtil;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
@@ -38,19 +39,24 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
     @Inject
     private Logger logger;
     @Inject
+    private IJSFolderContentCopyHelper copyHelper;
+    @Inject
+    private IJavascriptFileLoader fileLoader;
+    @Inject
     private IJSExecutorFactory factory;
+    @Inject
+    private IScriptEngineGateway scriptEngineGateway;
 
     @Inject
     private ExecutorManager(@Named("DataFolder") File dataFolder,
-                            ScriptEngineManager sem,
                             Map<String, Executor> overrides) throws IOException {
-        super(sem, overrides, new File(dataFolder, "Executor"));
+        super(overrides, new File(dataFolder, "Executor"));
     }
 
     @Override
     public void initialize() {
         try {
-            JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, folder, JarUtil.CopyOption.REPLACE_IF_EXIST);
+            copyHelper.copyFolderFromJar(JAR_FOLDER_LOCATION, folder);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -61,7 +67,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         evaluables.clear();
-        for (File file : Objects.requireNonNull(folder.listFiles(filter))) {
+        for (File file : fileLoader.listFiles(folder, filter)) {
             try {
                 reloadExecutors(file, filter);
             } catch (ScriptException | IOException e) {
@@ -117,7 +123,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
             if (evaluables.containsKey(builder.toString())) {
                 logger.warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = factory.create(fileName, getEngine(sem), new FileInputStream(file));
+                JSExecutor exec = factory.create(fileName, scriptEngineGateway.getEngine(), new FileInputStream(file));
                 evaluables.put(builder.toString(), exec);
             }
         }

@@ -45,6 +45,7 @@ abstract class Evaluable<R> implements IEvaluable {
     private CompiledScript compiled = null;
     private boolean firstRun = true;
     private Validator validator = null;
+    private boolean slowExecution = false;
 
     public Evaluable(String indentifier,
                      String timingsGroup,
@@ -59,9 +60,20 @@ abstract class Evaluable<R> implements IEvaluable {
         this.engine = engine;
 
         synchronized (this.engine) {
-            Compilable compiler = (Compilable) this.engine;
-            compiled = compiler.compile(sourceCode);
+            if (this.engine instanceof Compilable) {
+                Compilable compiler = (Compilable) this.engine;
+                compiled = compiler.compile(sourceCode);
+            } else {
+                slowExecution = true;
+            }
         }
+    }
+
+    private void eval(ScriptContext context) throws ScriptException {
+        if (compiled != null)
+            compiled.eval(context);
+        else
+            engine.eval(sourceCode, context);
     }
 
     @Override
@@ -87,7 +99,7 @@ abstract class Evaluable<R> implements IEvaluable {
         }
 
         try (Timings.Timing t = time.getTiming("JS <eval>").begin()) {
-            compiled.eval(scriptContext);
+            eval(scriptContext);
         } catch (ScriptException e2) {
             e2.printStackTrace();
         }
@@ -171,5 +183,9 @@ abstract class Evaluable<R> implements IEvaluable {
     @Override
     public ValidationResult validate(Object... args) {
         return validator.validate(args);
+    }
+
+    public boolean isSlowExecution() {
+        return slowExecution;
     }
 }

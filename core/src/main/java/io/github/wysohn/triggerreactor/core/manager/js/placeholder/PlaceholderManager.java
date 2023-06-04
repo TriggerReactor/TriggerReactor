@@ -16,15 +16,16 @@
  */
 package io.github.wysohn.triggerreactor.core.manager.js.placeholder;
 
+import io.github.wysohn.triggerreactor.core.manager.IJavascriptFileLoader;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
 import io.github.wysohn.triggerreactor.core.manager.js.AbstractJavascriptBasedManager;
+import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
+import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
-import io.github.wysohn.triggerreactor.tools.JarUtil;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.io.File;
 import java.io.FileFilter;
@@ -41,19 +42,24 @@ public class PlaceholderManager
     @Inject
     private Logger logger;
     @Inject
+    private IJSFolderContentCopyHelper copyHelper;
+    @Inject
+    private IJavascriptFileLoader fileLoader;
+    @Inject
     private IJSPlaceholderFactory factory;
+    @Inject
+    private IScriptEngineGateway scriptEngineGateway;
 
     @Inject
     private PlaceholderManager(@Named("DataFolder") File dataFolder,
-                               ScriptEngineManager sem,
                                Map<String, Placeholder> overrides) throws IOException {
-        super(sem, overrides, new File(dataFolder, "Placeholder"));
+        super(overrides, new File(dataFolder, "Placeholder"));
     }
 
     @Override
     public void initialize() {
         try {
-            JarUtil.copyFolderFromJar(JAR_FOLDER_LOCATION, folder, JarUtil.CopyOption.REPLACE_IF_EXIST);
+            copyHelper.copyFolderFromJar(JAR_FOLDER_LOCATION, folder);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,7 +70,7 @@ public class PlaceholderManager
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         evaluables.clear();
-        for (File file : Objects.requireNonNull(folder.listFiles(filter))) {
+        for (File file : fileLoader.listFiles(folder, filter)) {
             try {
                 reloadPlaceholders(file, filter);
             } catch (ScriptException | IOException e) {
@@ -134,7 +140,7 @@ public class PlaceholderManager
             if (evaluables.containsKey(builder.toString())) {
                 logger.warning(builder.toString() + " already registered! Duplicating placeholders?");
             } else {
-                JSPlaceholder placeholder = factory.create(fileName, getEngine(sem), new FileInputStream(file));
+                JSPlaceholder placeholder = factory.create(fileName, scriptEngineGateway.getEngine(), new FileInputStream(file));
                 evaluables.put(builder.toString(), placeholder);
             }
         }

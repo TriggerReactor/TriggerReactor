@@ -20,10 +20,6 @@ import io.github.wysohn.triggerreactor.core.manager.KeyValueManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.IEvaluable;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.*;
@@ -36,13 +32,10 @@ public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
     protected final Map<String, T> overrides;
     protected final File folder;
     protected Map<String, T> evaluables = new HashMap<>();
-    protected final ScriptEngineManager sem;
 
-    public AbstractJavascriptBasedManager(ScriptEngineManager sem,
-                                          Map<String, T> overrides,
+    public AbstractJavascriptBasedManager(Map<String, T> overrides,
                                           File folder) {
         super();
-        this.sem = sem;
         this.overrides = overrides;
         this.folder = folder;
     }
@@ -87,26 +80,4 @@ public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
         return Objects.requireNonNull(folder.listFiles(filter));
     }
-
-    public static ScriptEngine getEngine(ScriptEngineManager sem) {
-        ScriptEngine engine = sem.getEngineByName("graal.js");
-        if (engine != null) {
-            Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-            bindings.put("polyglot.js.allowAllAccess", true);
-            return engine;
-        }
-
-        engine = sem.getEngineByName("JavaScript");
-        if (engine != null) {
-            return engine;
-        }
-
-        throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " +
-                                           "the stock Java does not contain the java script engine as it used to be. "
-                                           + "Install GraalVM instead of "
-                                           +
-                                           "the stock Java, or you have to download third-party plugin, such as "
-                                           + "JShader.");
-    }
-
 }
