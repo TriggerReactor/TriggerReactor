@@ -236,11 +236,13 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
 
     public ScriptEngineManager getScriptEngineManager() {
-        if (scriptEngineManager == null)
+        if (scriptEngineManager == null) {
             scriptEngineManager = Bukkit.getServicesManager().load(ScriptEngineManager.class);
+        }
 
-        if (scriptEngineManager == null)
-            scriptEngineManager = new ScriptEngineManager();
+        if (scriptEngineManager == null) {
+            scriptEngineManager = new ScriptEngineManager(null);
+        }
 
         return scriptEngineManager;
     }
