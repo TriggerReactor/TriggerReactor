@@ -4,6 +4,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import org.junit.Rule;
@@ -14,6 +15,7 @@ import javax.inject.Named;
 import java.io.File;
 import java.util.logging.Logger;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 public class TriggerReactorCoreTest {
@@ -35,6 +37,7 @@ public class TriggerReactorCoreTest {
 
     @Test
     public void initialize() {
+        // arrange
         TriggerReactorCore triggerReactorCore = Guice.createInjector(
                 new AbstractModule() {
                     @Override
@@ -104,7 +107,13 @@ public class TriggerReactorCoreTest {
                 new CorePluginModule()
         ).getInstance(TriggerReactorCore.class);
 
+        DummyManager dummyManager = new DummyManager();
+
+        // act
         triggerReactorCore.initialize();
+
+        // assert
+        assertTrue(dummyManager.initialized);
     }
 
     @Test
@@ -113,5 +122,29 @@ public class TriggerReactorCoreTest {
 
     @Test
     public void shutdown() {
+    }
+
+    static class DummyManager extends Manager {
+        boolean initialized = false;
+
+        @Override
+        public void initialize() {
+            initialized = true;
+        }
+
+        @Override
+        public void reload() {
+
+        }
+
+        @Override
+        public void shutdown() {
+
+        }
+
+        @Override
+        public void saveAll() {
+
+        }
     }
 }
