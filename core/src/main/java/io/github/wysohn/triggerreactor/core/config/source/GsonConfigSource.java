@@ -290,7 +290,8 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public String toString() {
-        synchronized (cache){
+        //TODO this would print everything in the cache, which is not desired
+        synchronized (cache) {
             return cache.toString();
         }
     }
