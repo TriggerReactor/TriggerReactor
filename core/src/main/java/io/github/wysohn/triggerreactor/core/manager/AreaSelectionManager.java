@@ -52,11 +52,6 @@ public final class AreaSelectionManager extends Manager {
 
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     public boolean isSelecting(UUID uuid) {
         return selecting.contains(uuid);
     }

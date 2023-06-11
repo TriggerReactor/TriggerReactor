@@ -86,12 +86,6 @@ public class PlaceholderManager
     }
 
     @Override
-    public void saveAll() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public Placeholder get(Object key) {
         return evaluables.get(key);
     }

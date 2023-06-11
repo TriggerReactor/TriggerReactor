@@ -23,12 +23,15 @@ import com.google.inject.Provides;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
+import org.openjdk.nashorncopy.api.scripting.NashornScriptEngine;
+import org.openjdk.nashorncopy.api.scripting.NashornScriptEngineFactory;
 
 import javax.inject.Named;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.util.logging.Logger;
 
 public class ScriptEngineModule extends AbstractModule {
     @Override
@@ -42,7 +45,9 @@ public class ScriptEngineModule extends AbstractModule {
     }
 
     @Provides
-    public IScriptEngineGateway provideScriptEngineGateway(ScriptEngineManager sem) {
+    public IScriptEngineGateway provideScriptEngineGateway(ScriptEngineManager sem,
+                                                           @Named("PluginClassLoader") ClassLoader classLoader,
+                                                           @Named("PluginLogger") Logger logger) {
         return new IScriptEngineGateway() {
             @Override
             public ScriptEngine getEngine() {
@@ -53,17 +58,12 @@ public class ScriptEngineModule extends AbstractModule {
                     return engine;
                 }
 
-                engine = sem.getEngineByName("JavaScript");
-                if (engine != null) {
-                    return engine;
-                }
+                engine = new NashornScriptEngine(null,
+                        NashornScriptEngineFactory.DEFAULT_OPTIONS,
+                        classLoader,
+                        null);
 
-                throw new RuntimeException("No java script engine was available. If you are using Java version above 11, " +
-                        "the stock Java does not contain the java script engine as it used to be. "
-                        + "Install GraalVM instead of "
-                        +
-                        "the stock Java, or you have to download third-party plugin, such as "
-                        + "JShader.");
+                logger.info("Using ScriptEngine: " + engine.getFactory().getEngineName());
             }
         };
     }

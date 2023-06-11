@@ -18,6 +18,23 @@
 package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import com.google.inject.AbstractModule;
+import io.github.wysohn.triggerreactor.bukkit.main.*;
+import io.github.wysohn.triggerreactor.core.main.*;
+import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
+import io.github.wysohn.triggerreactor.core.module.IOUtilityModule;
+import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 
 public class BukkitDriverModule extends AbstractModule {
+    @Override
+    public void configure() {
+        install(new IOUtilityModule());
+
+        bind(ICommandHandler.class).to(BukkitCommandHandler.class);
+        bind(IEventManagement.class).to(BukkitEventManagement.class);
+        bind(IEventRegistry.class).to(BukkitEventRegistry.class);
+        bind(IGameManagement.class).to(BukkitGameManagement.class);
+        bind(IInventoryHandle.class).to(BukkitInventoryHandle.class);
+        bind(IPluginManagement.class).to(BukkitPluginManagement.class);
+        bind(TaskSupervisor.class).to(BukkitTaskSupervisor.class);
+    }
 }

@@ -116,9 +116,12 @@ public class TRGCommandHandler {
     private IEventRegistry eventRegistry;
     @Inject
     private IInventoryHandle inventoryHandle;
-    
+
     @Inject
-    private TRGCommandHandler(){
+    private Set<Manager> managers;
+
+    @Inject
+    private TRGCommandHandler() {
 
     }
 
@@ -1373,7 +1376,7 @@ public class TRGCommandHandler {
                     return true;
                 } else if (args[0].equalsIgnoreCase("list")) {
                     sender.sendMessage("- - - - - Result - - - - ");
-                    for (Manager manager : Manager.getManagers()) {
+                    for (Manager manager : managers) {
                         if (!(manager instanceof AbstractTriggerManager<?>))
                             continue;
 
@@ -1445,12 +1448,12 @@ public class TRGCommandHandler {
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
-                    for (Manager manager : Manager.getManagers())
-                        manager.saveAll();
+//                    for (Manager manager : managers)
+//                        manager.saveAll();
                     sender.sendMessage("Save complete!");
                     return true;
                 } else if (args[0].equalsIgnoreCase("reload")) {
-                    for (Manager manager : Manager.getManagers())
+                    for (Manager manager : managers)
                         manager.reload();
 
                     executorManager.reload();

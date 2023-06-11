@@ -18,9 +18,6 @@ package io.github.wysohn.triggerreactor.core.manager;
 
 import io.github.wysohn.triggerreactor.core.main.IPluginLifecycle;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * The base class represents Manager. Child classes are responsible for only one objective per manager.
  * So if the child class is ClickTriggerManager, it only has to deal with ClickTrigger.
@@ -28,36 +25,5 @@ import java.util.List;
  * @author wysohn
  */
 public abstract class Manager implements IPluginLifecycle {
-    /**
-     * @return
-     * @deprecated refactor to use dependency injection
-     */
-    @Deprecated
-    private static final List<Manager> managers = new ArrayList<Manager>();
 
-    /**
-     * @return
-     * @deprecated refactor to use dependency injection
-     */
-    @Deprecated
-    public static List<Manager> getManagers() {
-        return managers;
-    }
-
-    /**
-     * @return
-     * @deprecated refactor to use dependency injection
-     */
-    @Deprecated
-    public Manager() {
-        managers.add(this);
-    }
-
-    /**
-     * Save all triggers
-     *
-     * @deprecated replace with {@link IPluginLifecycle#shutdown()}
-     */
-    @Deprecated
-    public abstract void saveAll();
 }

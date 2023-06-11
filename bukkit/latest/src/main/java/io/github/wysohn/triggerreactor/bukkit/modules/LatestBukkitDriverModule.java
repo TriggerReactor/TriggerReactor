@@ -18,10 +18,14 @@
 package io.github.wysohn.triggerreactor.bukkit.modules;
 
 import com.google.inject.AbstractModule;
+import io.github.wysohn.triggerreactor.bukkit.main.LatestBukkitCommandMapHandler;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
 
 public class LatestBukkitDriverModule extends AbstractModule {
     @Override
     protected void configure() {
         install(new BukkitDriverModule());
+
+        bind(ICommandMapHandler.class).to(LatestBukkitCommandMapHandler.class);
     }
 }

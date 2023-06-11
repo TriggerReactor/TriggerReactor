@@ -47,7 +47,7 @@ public class BukkitEventRegistry implements IEventRegistry {
     private final Map<IEventHook, Listener> registeredListerners = new HashMap<>();
 
     @Inject
-    private BukkitEventRegistry() {
+    public BukkitEventRegistry() {
         try {
             initEvents();
         } catch (IOException e) {

@@ -25,6 +25,8 @@ public abstract class TriggerInfo implements IMigratable {
         this.sourceCodeFile = sourceCodeFile;
         this.config = config;
         this.triggerName = triggerName;
+
+        config.saveAll();
     }
 
     @Override

@@ -33,11 +33,16 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class InventoryTriggerListener
         implements BukkitTriggerManager {
 
     private final InventoryTriggerManager<?> manager;
 
+    @Inject
     public InventoryTriggerListener(InventoryTriggerManager<?> manager) {
         this.manager = manager;
     }

@@ -80,7 +80,9 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
                 checkDuplicatedKeys(info);
             } catch (Exception e) {
-                throw new RuntimeException("Failed to load " + info, e);
+                e.printStackTrace();
+                logger.severe("Failed to load " + info);
+                logger.severe(e.getMessage());
             }
         }
     }
@@ -113,7 +115,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     }
 
     @Override
-    public void saveAll() {
+    public void shutdown() {
         for (T trigger : triggers.values()) {
             loader.save(trigger);
         }

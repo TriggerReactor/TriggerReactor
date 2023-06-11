@@ -58,11 +58,6 @@ public class ScriptEditManager extends Manager {
 
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     public boolean isEditing(IPlayer player) {
         return editings.containsKey(new UserImpl(player));
     }

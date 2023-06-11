@@ -1,6 +1,5 @@
-package io.github.wysohn.triggerreactor.bukkit.main;
+package io.github.wysohn.triggerreactor.bukkit.bridge;
 
-import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
@@ -25,25 +24,25 @@ public class BukkitCommand implements ICommand {
     @Override
     public void setTabCompleterMap(Map<Integer, Set<ITabCompleter>> tabCompleterMap) {
         command.setTabCompleter((sender, command12, alias, args) -> {
-            if(tabCompleterMap == null
+            if (tabCompleterMap == null
                     || tabCompleterMap.get(args.length - 1) == null
-                    || tabCompleterMap.get(args.length - 1).size() == 0){
+                    || tabCompleterMap.get(args.length - 1).size() == 0) {
                 return new ArrayList<>();
             }
             Set<ITabCompleter> finalCompleters = new HashSet<>();
             List<String> finalProvideList = new ArrayList<>();
 
             ConditionTabCompleterIterator:
-            for(ITabCompleter tc : tabCompleterMap.get(args.length - 1)){
-                if(tc.hasConditionMap()){
+            for (ITabCompleter tc : tabCompleterMap.get(args.length - 1)) {
+                if (tc.hasConditionMap()) {
 
                     ArgumentIterator:
-                    for(int i = 0; i < args.length; i++){
-                        if(!tc.hasCondition(i))
+                    for (int i = 0; i < args.length; i++) {
+                        if (!tc.hasCondition(i))
                             continue ArgumentIterator;
 
                         Pattern pt = tc.getCondition(i);
-                        if(!pt.matcher(args[i]).matches()){
+                        if (!pt.matcher(args[i]).matches()) {
                             continue ConditionTabCompleterIterator;
                         }
                     }
@@ -52,12 +51,12 @@ public class BukkitCommand implements ICommand {
             }
 
             FinalTabCompletionIterator:
-            for(ITabCompleter finalCompleter : finalCompleters){
-                if(finalCompleter.isPreDefinedValue()){
+            for (ITabCompleter finalCompleter : finalCompleters) {
+                if (finalCompleter.isPreDefinedValue()) {
                     List<String> values = handlePreDefined(finalCompleter.getPreDefinedValue());
                     String partial = args[args.length - 1];
                     if (partial.length() < 1) { // provide hint
-                        if(finalCompleter.getHint() == null)
+                        if (finalCompleter.getHint() == null)
                             finalProvideList.addAll(values);
                         else
                             finalProvideList.addAll(finalCompleter.getHint());
@@ -67,7 +66,7 @@ public class BukkitCommand implements ICommand {
                                 .filter(val -> val.toLowerCase().startsWith(partial.toLowerCase()))
                                 .collect(Collectors.toList()));
                     }
-                }else{
+                } else {
                     String partial = args[args.length - 1];
                     if (partial.length() < 1) { // show hint if nothing is entered yet
                         finalProvideList.addAll(finalCompleter.getHint());
@@ -80,9 +79,10 @@ public class BukkitCommand implements ICommand {
             return finalProvideList;
         });
     }
-    private static List<String> handlePreDefined(PredefinedTabCompleters val){
+
+    private static List<String> handlePreDefined(PredefinedTabCompleters val) {
         List<String> returning = new ArrayList<>();
-        switch (val){
+        switch (val) {
             case PLAYERS:
                 Bukkit.getOnlinePlayers().forEach((p) -> {
                     returning.add(p.getName());
@@ -100,9 +100,9 @@ public class BukkitCommand implements ICommand {
         command.setExecutor((sender, command1, label, args) -> {
             ICommandSender isender;
 
-            if(sender instanceof Player){
+            if (sender instanceof Player) {
                 isender = new BukkitPlayer((Player) sender);
-            }else{
+            } else {
                 isender = new BukkitCommandSender(sender);
             }
 

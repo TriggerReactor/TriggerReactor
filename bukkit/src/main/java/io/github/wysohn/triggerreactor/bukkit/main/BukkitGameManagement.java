@@ -43,11 +43,6 @@ public class BukkitGameManagement implements IGameManagement {
     @Inject
     private Server server;
 
-    @Inject
-    private BukkitGameManagement(){
-
-    }
-
     @Override
     public Iterable<IPlayer> getOnlinePlayers() {
         return server.getOnlinePlayers().stream()

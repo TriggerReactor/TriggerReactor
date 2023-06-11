@@ -31,10 +31,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class BukkitInventoryHandle implements IInventoryHandle {
+
     /**
      * @param item
      * @return copy of colored item

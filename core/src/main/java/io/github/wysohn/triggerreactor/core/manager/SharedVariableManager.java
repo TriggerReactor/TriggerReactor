@@ -63,11 +63,6 @@ public class SharedVariableManager extends Manager {
 
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     /**
      * Third party API support instances mapping. The map is unmodifiable and should be used
      * only for reading. The String key is the name of the third party plugin's name where they are

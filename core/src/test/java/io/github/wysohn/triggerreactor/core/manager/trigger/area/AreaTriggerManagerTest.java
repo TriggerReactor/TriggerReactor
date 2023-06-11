@@ -99,16 +99,6 @@ public class AreaTriggerManagerTest {
     }
 
     @Test
-    public void saveAll() throws InvalidTrgConfigurationException {
-        manager.createArea("test",
-                           new SimpleLocation("world", 0, 0, 0),
-                           new SimpleLocation("world", 10, 10, 10));
-        manager.saveAll();
-
-        verify(loader, times(1)).save(any());
-    }
-
-    @Test
     public void remove() throws InvalidTrgConfigurationException {
         AreaTriggerInfo mockInfo = mock(AreaTriggerInfo.class);
         AreaTrigger mockTrigger = mock(AreaTrigger.class);

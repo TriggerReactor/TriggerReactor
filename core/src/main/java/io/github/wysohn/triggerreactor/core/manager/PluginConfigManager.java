@@ -51,11 +51,6 @@ public class PluginConfigManager extends Manager implements IMigratable {
     }
 
     @Override
-    public void saveAll() {
-        configSource.saveAll();
-    }
-
-    @Override
     public void shutdown() {
         configSource.disable();
     }

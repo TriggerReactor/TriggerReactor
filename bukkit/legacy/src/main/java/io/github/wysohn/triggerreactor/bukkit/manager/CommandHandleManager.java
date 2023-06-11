@@ -61,11 +61,6 @@ class CommandHandleManager extends Manager implements Listener {
 
     }
 
-    @Override
-    public void saveAll() {
-
-    }
-
     public MapAdapter getMapAdapter() {
         return mapAdapter;
     }

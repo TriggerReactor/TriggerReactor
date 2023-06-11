@@ -21,9 +21,8 @@ import com.google.common.collect.Sets;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.*;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommandSender;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
@@ -47,6 +46,7 @@ import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.tools.ContinuingTasks;
 import io.github.wysohn.triggerreactor.tools.mysql.MiniConnectionPoolManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
@@ -59,6 +59,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
+import javax.inject.Named;
 import javax.script.ScriptEngineManager;
 import java.io.*;
 import java.sql.Connection;
@@ -67,6 +68,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin {
@@ -85,10 +87,47 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     private BungeeCordHelper bungeeHelper;
     private MysqlSupport mysqlHelper;
 
+    private Set<Manager> managers;
+
     protected AbstractJavaPlugin(Module... modules) {
         List<Module> moduleList = Arrays.stream(modules).collect(Collectors.toList());
         moduleList.add(new CorePluginModule());
         moduleList.add(new BukkitExecutorModule());
+        moduleList.add(new AbstractModule() {
+            @Provides
+            @Named("DataFolder")
+            public File provideDataFolder() {
+                return getDataFolder();
+            }
+
+            @Provides
+            @Named("PluginLogger")
+            public Logger provideLogger() {
+                return getLogger();
+            }
+
+            @Provides
+            @Named("PluginClassLoader")
+            public ClassLoader provideClassLoader() {
+                return getClassLoader();
+            }
+
+            @Provides
+            @Named("Plugin")
+            public Object providePlugin() {
+                return AbstractJavaPlugin.this;
+            }
+
+            @Provides
+            public JavaPlugin javaPlugin() {
+                return AbstractJavaPlugin.this;
+            }
+
+            @Provides
+            public Server server() {
+                return getServer();
+            }
+        });
 
         Injector injector = Guice.createInjector(moduleList);
 
@@ -101,12 +140,14 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         inventoryTriggerListener = injector.getInstance(InventoryTriggerListener.class);
         areaTriggerListener = injector.getInstance(AreaTriggerListener.class);
         areaSelectionListener = injector.getInstance(AreaSelectionListener.class);
+
+        managers = injector.getInstance(new Key<Set<Manager>>() {
+        });
     }
 
     @Override
     public void onEnable() {
         super.onEnable();
-        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
 
         PluginCommand trg = this.getCommand("triggerreactor");
         trg.setExecutor(this);
@@ -126,12 +167,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(areaTriggerListener, this);
         Bukkit.getPluginManager().registerEvents(areaSelectionListener, this);
 
-        // TODO: Once managers are refactored, this should be removed.
-        Manager.getManagers().stream()
-                .filter(Listener.class::isInstance)
-                .forEach(listener -> Bukkit.getPluginManager().registerEvents((Listener) listener, this));
-
-        for (Manager manager : Manager.getManagers()) {
+        for (Manager manager : managers) {
             manager.reload();
         }
 
@@ -155,10 +191,10 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             try {
                 getLogger().info("Initializing Mysql support...");
                 mysqlHelper = new MysqlSupport(config.getString("Mysql.Address"),
-                                               config.getString("Mysql.DbName"),
-                                               "data",
-                                               config.getString("Mysql.UserName"),
-                                               config.getString("Mysql.Password"));
+                        config.getString("Mysql.DbName"),
+                        "data",
+                        config.getString("Mysql.UserName"),
+                        config.getString("Mysql.Password"));
                 getLogger().info(mysqlHelper.toString());
                 getLogger().info("Done!");
             } catch (SQLException e) {
@@ -226,7 +262,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         return TRGCommandHandler.onTabComplete(new BukkitCommandSender(sender),
-                                               args);
+                args);
     }
 
     public void registerEvents(Listener listener) {

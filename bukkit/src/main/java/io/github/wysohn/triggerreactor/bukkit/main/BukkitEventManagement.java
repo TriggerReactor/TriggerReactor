@@ -27,6 +27,9 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerEvent;
 
+import javax.inject.Singleton;
+
+@Singleton
 public class BukkitEventManagement implements IEventManagement {
     @Override
     public Object createPlayerCommandEvent(ICommandSender sender, String label, String[] args) {

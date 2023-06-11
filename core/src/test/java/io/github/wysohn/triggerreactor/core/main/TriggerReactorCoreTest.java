@@ -43,11 +43,13 @@ public class TriggerReactorCoreTest {
     @Test
     public void initialize() {
         // arrange
+        DummyManager dummyManager = new DummyManager();
+
         TriggerReactorCore triggerReactorCore = Guice.createInjector(
                 new AbstractModule() {
                     @Override
                     protected void configure() {
-
+                        bind(DummyManager.class).toInstance(dummyManager);
                     }
 
                     @Provides
@@ -110,19 +112,17 @@ public class TriggerReactorCoreTest {
                     }
 
                     @Provides
-                    public IJSFolderContentCopyHelper copyHelper() {
+                    public IJSFolderContentCopyHelper provideCopyHelper() {
                         return copyHelper;
                     }
 
                     @Provides
-                    public IJavascriptFileLoader javascriptFileLoader() {
+                    public IJavascriptFileLoader provideJavascriptFileLoader() {
                         return javascriptFileLoader;
                     }
                 },
                 new CorePluginModule()
         ).getInstance(TriggerReactorCore.class);
-
-        DummyManager dummyManager = new DummyManager();
 
         // act
         triggerReactorCore.initialize();
@@ -154,11 +154,6 @@ public class TriggerReactorCoreTest {
 
         @Override
         public void shutdown() {
-
-        }
-
-        @Override
-        public void saveAll() {
 
         }
     }

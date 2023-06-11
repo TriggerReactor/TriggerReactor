@@ -17,10 +17,15 @@
 
 package io.github.wysohn.triggerreactor.core.module;
 
-import com.google.inject.AbstractModule;
+import com.google.inject.*;
 import io.github.wysohn.triggerreactor.core.main.ExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.module.manager.ManagerModule;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CorePluginModule extends AbstractModule {
     @Override
@@ -29,6 +34,19 @@ public class CorePluginModule extends AbstractModule {
         install(new APISupportModule());
 
         bind(IExceptionHandle.class).to(ExceptionHandle.class);
+    }
+
+    @Provides
+    @Singleton
+    public Set<Manager> provideManagers(Injector injector) {
+        Set<Manager> managers = new HashSet<>();
+        for (Key<?> key : injector.getAllBindings().keySet()) {
+            if (Manager.class.isAssignableFrom(key.getTypeLiteral().getRawType())) {
+                managers.add((Manager) injector.getInstance(key));
+            }
+        }
+
+        return Collections.unmodifiableSet(managers);
     }
 
 }

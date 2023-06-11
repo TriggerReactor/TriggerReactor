@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.bukkit.main;
 
+import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitCommand;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
@@ -43,10 +44,6 @@ public class BukkitCommandHandler implements ICommandHandler {
     private IPluginManagement pluginManagement;
 
     private final Map<String, Command> overridens = new HashMap<>();
-
-    @Inject
-    private BukkitCommandHandler() {
-    }
 
     @Override
     public ICommand register(String name, String[] aliases) {

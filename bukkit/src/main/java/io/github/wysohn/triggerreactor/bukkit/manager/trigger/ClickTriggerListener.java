@@ -21,16 +21,20 @@ import io.github.wysohn.triggerreactor.bukkit.bridge.BukkitItemStack;
 import io.github.wysohn.triggerreactor.bukkit.bridge.entity.BukkitPlayer;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTrigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.location.LocationBasedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.location.ClickTriggerManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class ClickTriggerListener
         extends LocationBasedTriggerListener<ClickTrigger,
-        LocationBasedTriggerManager<ClickTrigger>> {
+        ClickTriggerManager> {
 
-
-    public ClickTriggerListener(LocationBasedTriggerManager<ClickTrigger> manager) {
+    @Inject
+    public ClickTriggerListener(ClickTriggerManager manager) {
         super(manager);
     }
 
@@ -40,10 +44,10 @@ public class ClickTriggerListener
             return;
 
         manager.handleClick(e,
-                            new BukkitBlock(e.getClickedBlock()),
-                            new BukkitPlayer(e.getPlayer()),
-                            new BukkitItemStack(e.getItem()),
-                            toActivity(e.getAction()));
+                new BukkitBlock(e.getClickedBlock()),
+                new BukkitPlayer(e.getPlayer()),
+                new BukkitItemStack(e.getItem()),
+                toActivity(e.getAction()));
     }
 
 }

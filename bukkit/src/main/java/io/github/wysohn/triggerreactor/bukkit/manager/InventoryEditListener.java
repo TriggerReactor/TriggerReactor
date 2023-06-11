@@ -28,11 +28,15 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+@Singleton
 public class InventoryEditListener implements Listener {
 
     private final InventoryEditManager<ItemStack> manager;
 
-
+    @Inject
     public InventoryEditListener(InventoryEditManager<ItemStack> manager) {
         this.manager = manager;
     }
@@ -43,7 +47,7 @@ public class InventoryEditListener implements Listener {
             throw new RuntimeException(e.getPlayer() + " is not a Player.");
 
         manager.onInventoryClose(new BukkitPlayer((Player) e.getPlayer()),
-                                 new BukkitInventory(e.getInventory()));
+                new BukkitInventory(e.getInventory()));
     }
 
     @EventHandler

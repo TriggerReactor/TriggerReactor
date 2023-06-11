@@ -64,10 +64,6 @@ public final class InventoryEditManager<ItemStack> extends Manager {
 
     }
 
-    @Override
-    public void saveAll() {
-    }
-
     public void startEdit(IPlayer player, String invTriggerName) {
         UUID u = player.getUniqueId();
         InventoryTrigger trigger = invManager.get(invTriggerName);

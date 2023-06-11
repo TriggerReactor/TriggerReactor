@@ -7,6 +7,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.google.inject.extensions/guice-assistedinject
     api 'com.google.inject.extensions:guice-assistedinject:5.1.0'
 
+    api project(':nashorn')
 }
 
 allprojects {

@@ -67,6 +67,9 @@ public class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     private Lag lag;
 
+    @Inject
+    private Set<Manager> managers;
+
     @Override
     public void initialize() {
         Thread.currentThread().setContextClassLoader(pluginClassLoader);
@@ -81,7 +84,7 @@ public class TriggerReactorCore implements IPluginLifecycle {
         }
 
         try {
-            Manager.getManagers().forEach(Manager::initialize);
+            managers.forEach(Manager::initialize);
         } catch (Exception e) {
             initFailed(e);
             return;
@@ -111,7 +114,7 @@ public class TriggerReactorCore implements IPluginLifecycle {
 
     @Override
     public void reload() {
-        for(Manager manager : Manager.getManagers()){
+        for (Manager manager : managers) {
             logger.info("Reloading " + manager.getClass().getSimpleName());
             manager.reload();
         }
@@ -120,11 +123,11 @@ public class TriggerReactorCore implements IPluginLifecycle {
 
     @Override
     public void shutdown() {
-        for(Manager manager : Manager.getManagers()){
+        for (Manager manager : managers) {
             logger.info("Shutting down " + manager.getClass().getSimpleName());
-            try{
+            try {
                 manager.shutdown();
-            } catch (Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
         }

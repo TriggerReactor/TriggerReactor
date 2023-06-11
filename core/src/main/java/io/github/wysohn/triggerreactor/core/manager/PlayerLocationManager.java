@@ -61,12 +61,6 @@ public final class PlayerLocationManager extends Manager {
 
     }
 
-    @Override
-    public void saveAll() {
-        // TODO Auto-generated method stub
-
-    }
-
     /**
      * set current location of the player
      *

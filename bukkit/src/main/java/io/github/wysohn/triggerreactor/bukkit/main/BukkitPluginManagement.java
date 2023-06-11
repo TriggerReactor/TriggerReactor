@@ -275,7 +275,7 @@ public class BukkitPluginManagement implements IPluginManagement {
                 }
 
                 logger.info("Saving " + manager.getClass().getSimpleName());
-                manager.saveAll();
+//                manager.saveAll();
                 logger.info("Saving Done!");
             } catch (Exception e) {
                 e.printStackTrace();
