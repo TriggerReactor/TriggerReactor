@@ -17,6 +17,7 @@
 
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
@@ -54,6 +55,12 @@ public class InterpreterBuilder {
     public InterpreterBuilder addLocalVariables(Map<String, Object> scriptVars) {
         ValidationUtil.notNull(scriptVars);
         interpreter.context.putAllVars(scriptVars);
+        return this;
+    }
+
+    public InterpreterBuilder withInterrupter(ProcessInterrupter interrupter) {
+        ValidationUtil.notNull(interrupter);
+        interpreter.context.setInterrupter(interrupter);
         return this;
     }
 

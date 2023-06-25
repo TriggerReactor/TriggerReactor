@@ -27,6 +27,7 @@ import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderMa
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.*;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -233,9 +234,14 @@ public abstract class Trigger implements Cloneable, IObservable {
     protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
         Interpreter interpreter = InterpreterBuilder.start(globalContext, root)
                 .addLocalVariables(scriptVars)
+                .withInterrupter(createInterrupter())
                 .build();
 
         return interpreter;
+    }
+
+    protected ProcessInterrupter createInterrupter() {
+        return pluginManagement.createInterrupter(cooldowns);
     }
 
     /**
@@ -299,9 +305,7 @@ public abstract class Trigger implements Cloneable, IObservable {
     protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
                          boolean sync) {
         try {
-            interpreter.startWithContextAndInterrupter(e,
-                                                       pluginManagement.createInterrupter(cooldowns),
-                                                       timing);
+            interpreter.start(e);
         } catch (InterpreterException ex) {
             exceptionHandle.handleException(e,
                                             new Exception("Could not finish interpretation for [" + info + "]!", ex));

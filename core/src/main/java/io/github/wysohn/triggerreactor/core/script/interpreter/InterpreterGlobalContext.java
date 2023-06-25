@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 
@@ -44,8 +43,6 @@ public class InterpreterGlobalContext {
     TaskSupervisor task;
     @Inject
     SelfReference selfReference;
-    @Inject
-    ProcessInterrupter interrupter = null;
     @Inject
     IExceptionHandle exceptionHandle;
 

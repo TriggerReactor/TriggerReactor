@@ -25,8 +25,7 @@ import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
-import io.github.wysohn.triggerreactor.tools.timings.Timings;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 
 import java.util.Map;
 
@@ -68,18 +67,8 @@ public class InventoryTrigger extends Trigger {
     }
 
     @Override
-    protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
-                         boolean sync) {
-        try {
-            interpreter.startWithContextAndInterrupter(e,
-                                                       pluginManagement.createInterrupterForInv(cooldowns,
-                                                                                                InventoryTriggerManager.inventoryMap),
-                                                       timing);
-        } catch (Exception ex) {
-            exceptionHandle.handleException(e, new Exception(
-                    "Error occurred while processing Trigger [" + getInfo() + "]!",
-                    ex));
-        }
+    protected ProcessInterrupter createInterrupter() {
+        return pluginManagement.createInterrupterForInv(cooldowns, InventoryTriggerManager.inventoryMap);
     }
 
     @Override

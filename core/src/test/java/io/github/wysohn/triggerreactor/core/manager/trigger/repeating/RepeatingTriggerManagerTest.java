@@ -22,12 +22,14 @@ import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,15 +53,23 @@ public class RepeatingTriggerManagerTest {
     TaskSupervisor task;
     Thread thread;
     Future future;
+    IPluginManagement pluginManagement;
+    ProcessInterrupter interrupter;
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
         loader = mock(RepeatingTriggerLoader.class);
         task = mock(TaskSupervisor.class);
+        thread = mock(Thread.class);
+        future = mock(Future.class);
+        pluginManagement = mock(IPluginManagement.class);
+        interrupter = mock(ProcessInterrupter.class);
+
         manager = Guice.createInjector(
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin()
                         .taskSupervisor(task)
+                        .pluginManagement(pluginManagement)
                         .build(),
                 new FactoryModuleBuilder().build(IRepeatingTriggerFactory.class),
                 new AbstractModule() {
@@ -75,10 +85,9 @@ public class RepeatingTriggerManagerTest {
                     }
                 }
         ).getInstance(RepeatingTriggerManager.class);
-        thread = mock(Thread.class);
-        future = mock(Future.class);
 
         when(task.newThread(any(), anyString(), anyInt())).thenReturn(thread);
+        when(pluginManagement.createInterrupter(any())).thenReturn(interrupter);
     }
 
     @Test

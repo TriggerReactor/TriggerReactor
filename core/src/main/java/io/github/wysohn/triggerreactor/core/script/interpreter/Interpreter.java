@@ -18,7 +18,6 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaParameter;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
@@ -91,27 +90,17 @@ public class Interpreter {
         return context.getVar(name);
     }
 
-    public void startWithContext(Object triggerCause) throws InterpreterException {
-        verifyPreCondition();
-
-        startWithContextAndInterrupter(triggerCause, null, Timings.LIMBO);
-    }
-
     /**
      * Start interpretation.
      *
      * @param triggerCause The triggerCause that can be used by Executors.
      *                     This is usually Event object for Bukkit plugin.
-     * @param interrupter  gives the caller to interrupt the execution
      * @throws InterpreterException
      */
-    public void startWithContextAndInterrupter(Object triggerCause,
-                                               ProcessInterrupter interrupter,
-                                               Timings.Timing timing) throws InterpreterException {
+    public void start(Object triggerCause) throws InterpreterException {
         verifyPreCondition();
 
         this.context.setTriggerCause(triggerCause);
-        this.globalContext.interrupter = interrupter;
 
         try (Timings.Timing t = this.context.getTiming()
                 .getTiming("Code Interpretation")
@@ -729,7 +718,7 @@ public class Interpreter {
      */
     private Integer interpret(Node node) throws InterpreterException {
         try {
-            if (globalContext.interrupter != null && globalContext.interrupter.onNodeProcess(context, node)) {
+            if (context.getInterrupter() != null && context.getInterrupter().onNodeProcess(context, node)) {
                 return Executor.STOP;
             }
 
@@ -772,14 +761,14 @@ public class Interpreter {
                     args[i] = argument.value;
                 }
 
-                if (globalContext.interrupter != null && globalContext.interrupter.onCommand(context, command, args)) {
+                if (context.getInterrupter() != null && context.getInterrupter().onCommand(context, command, args)) {
                     return null;
                 } else {
                     if ("WAIT".equalsIgnoreCase(command)) {
                         return EXECUTOR_WAIT.evaluate(context.getTiming(),
-                                                      context.getVars(),
-                                                      context.getTriggerCause(),
-                                                      args);
+                                context.getVars(),
+                                context.getTriggerCause(),
+                                args);
                     }
 
                     if (!globalContext.executorMap.containsKey(command))
@@ -805,8 +794,8 @@ public class Interpreter {
                 }
 
                 Object replaced = null;
-                if (globalContext.interrupter != null) {
-                    replaced = globalContext.interrupter.onPlaceholder(context, placeholderName, args);
+                if (context.getInterrupter() != null) {
+                    replaced = context.getInterrupter().onPlaceholder(context, placeholderName, args);
                 }
 
                 if (replaced == null && !globalContext.placeholderMap.containsKey(placeholderName))
@@ -814,9 +803,9 @@ public class Interpreter {
 
                 if (replaced == null) {
                     replaced = globalContext.placeholderMap.get(placeholderName).evaluate(context.getTiming(),
-                                                                                          context.getVars(),
-                                                                                          context.getTriggerCause(),
-                                                                                          args);
+                            context.getVars(),
+                            context.getTriggerCause(),
+                            args);
                 }
 
                 if (replaced instanceof Number) {
@@ -1407,7 +1396,7 @@ public class Interpreter {
         Interpreter interpreter = InterpreterBuilder.start(gContext, root)
                 .build();
 
-        interpreter.startWithContext(null);
+        interpreter.start(null);
     }
 
     static {

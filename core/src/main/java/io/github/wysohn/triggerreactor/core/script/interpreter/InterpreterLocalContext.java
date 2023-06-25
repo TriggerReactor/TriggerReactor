@@ -60,7 +60,6 @@ public class InterpreterLocalContext {
 
     private final Map<String, Object> vars = new VarMap();
     private final Timings.Timing timing;
-    private final ProcessInterrupter interrupter;
 
     private boolean stopFlag = false;
     private boolean waitFlag = false;
@@ -71,6 +70,8 @@ public class InterpreterLocalContext {
 
     //TODO this is a temporary solution. Move this to variable map with a special key.
     private Object triggerCause = null;
+
+    private ProcessInterrupter interrupter = null;
 
     public InterpreterLocalContext(Timings.Timing timing) {
         this(timing, null);
@@ -226,6 +227,10 @@ public class InterpreterLocalContext {
 
     public ProcessInterrupter getInterrupter() {
         return tryOrThrow(() -> interrupter);
+    }
+
+    public void setInterrupter(ProcessInterrupter interrupter) {
+        tryOrThrow(() -> this.interrupter = interrupter);
     }
 
     public Map<String, Object> getVarCopy() {
