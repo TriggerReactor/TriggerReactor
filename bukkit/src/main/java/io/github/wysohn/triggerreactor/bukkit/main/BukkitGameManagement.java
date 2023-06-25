@@ -25,7 +25,6 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
@@ -52,7 +51,7 @@ public class BukkitGameManagement implements IGameManagement {
 
     @Override
     public Iterable<IWorld> getWorlds() {
-        return Bukkit.getWorlds().stream()
+        return server.getWorlds().stream()
                 .map(BukkitWorld::new)
                 .collect(Collectors.toList());
     }
@@ -60,14 +59,14 @@ public class BukkitGameManagement implements IGameManagement {
     @Override
     public IWorld getWorld(String world) {
         return Optional.ofNullable(world)
-                .map(Bukkit::getWorld)
+                .map(server::getWorld)
                 .map(BukkitWorld::new)
                 .orElse(null);
     }
 
     @Override
     public IPlayer getPlayer(String string) {
-        Player player = Bukkit.getPlayer(string);
+        Player player = server.getPlayer(string);
         if (player != null)
             return new BukkitPlayer(player);
         else
@@ -80,7 +79,7 @@ public class BukkitGameManagement implements IGameManagement {
             SimpleLocation sloc = entry.getKey();
             Player player = sender.get();
             player.sendBlockChange(
-                    new Location(Bukkit.getWorld(sloc.getWorld()), sloc.getX(), sloc.getY(), sloc.getZ()),
+                    new Location(server.getWorld(sloc.getWorld()), sloc.getX(), sloc.getY(), sloc.getZ()),
                     Material.GLOWSTONE, (byte) 0);
         }
     }
