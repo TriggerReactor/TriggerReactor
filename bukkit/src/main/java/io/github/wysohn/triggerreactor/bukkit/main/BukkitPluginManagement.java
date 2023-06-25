@@ -76,7 +76,7 @@ public class BukkitPluginManagement implements IPluginManagement {
 
     @Override
     public void setDebugging(boolean bool) {
-
+        debugging = bool;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class BukkitPluginManagement implements IPluginManagement {
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return plugin.isEnabled();
     }
 
     @Override
@@ -297,6 +297,6 @@ public class BukkitPluginManagement implements IPluginManagement {
 
     @Override
     public <T> T getMain() {
-        return null;
+        return (T) plugin;
     }
 }
