@@ -16,7 +16,6 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
@@ -55,10 +54,6 @@ public class Interpreter {
 
     public Map<String, Executor> getExecutorMap() {
         return globalContext.executorMap;
-    }
-
-    public IExceptionHandle getExceptionHandle() {
-        return globalContext.exceptionHandle;
     }
 
     public Map<String, Placeholder> getPlaceholderMap() {

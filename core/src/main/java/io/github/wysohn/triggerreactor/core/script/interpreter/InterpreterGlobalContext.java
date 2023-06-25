@@ -22,6 +22,8 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.Process
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,21 +34,26 @@ import java.util.concurrent.ConcurrentHashMap;
  * these variables must be accessed in a thread-safe way (or read only),
  * or there can be race-condition (or concurrent modification exception) occur.
  */
+@Singleton
 public class InterpreterGlobalContext {
     private final Executor EXECUTOR_STOP = (timing, vars, context, args) -> Executor.STOP;
     private final Executor EXECUTOR_BREAK = (timing, vars, context, args) -> Executor.BREAK;
     private final Executor EXECUTOR_CONTINUE = (timing, vars, context, args) -> Executor.CONTINUE;
 
+    @Inject
     TaskSupervisor task;
-    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<Executor>(){{
+    @Inject
+    SelfReference selfReference;
+    @Inject
+    ProcessInterrupter interrupter = null;
+    @Inject
+    IExceptionHandle exceptionHandle;
+
+    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<Executor>() {{
         put("STOP", EXECUTOR_STOP);
         put("BREAK", EXECUTOR_BREAK);
         put("CONTINUE", EXECUTOR_CONTINUE);
     }};
     final Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
     final Map<Object, Object> gvars = new ConcurrentHashMap<>();
-    SelfReference selfReference = new SelfReference() {
-    };
-    ProcessInterrupter interrupter = null;
-    public IExceptionHandle exceptionHandle;
 }

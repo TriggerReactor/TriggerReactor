@@ -20,6 +20,8 @@ package io.github.wysohn.triggerreactor.bukkit.modules;
 import com.google.inject.AbstractModule;
 import io.github.wysohn.triggerreactor.bukkit.main.LatestBukkitCommandMapHandler;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
+import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.CommonFunctions;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 
 public class LatestBukkitDriverModule extends AbstractModule {
     @Override
@@ -27,5 +29,6 @@ public class LatestBukkitDriverModule extends AbstractModule {
         install(new BukkitDriverModule());
 
         bind(ICommandMapHandler.class).to(LatestBukkitCommandMapHandler.class);
+        bind(SelfReference.class).to(CommonFunctions.class);
     }
 }

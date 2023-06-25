@@ -9,6 +9,7 @@ import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,6 +40,8 @@ public class TriggerReactorCoreTest {
 
     private final IJSFolderContentCopyHelper copyHelper = mock(IJSFolderContentCopyHelper.class);
     private final IJavascriptFileLoader javascriptFileLoader = mock(IJavascriptFileLoader.class);
+
+    private final SelfReference selfReference = mock(SelfReference.class);
 
     @Test
     public void initialize() {
@@ -119,6 +122,11 @@ public class TriggerReactorCoreTest {
                     @Provides
                     public IJavascriptFileLoader provideJavascriptFileLoader() {
                         return javascriptFileLoader;
+                    }
+
+                    @Provides
+                    public SelfReference provideSelfReference() {
+                        return selfReference;
                     }
                 },
                 new CorePluginModule()
