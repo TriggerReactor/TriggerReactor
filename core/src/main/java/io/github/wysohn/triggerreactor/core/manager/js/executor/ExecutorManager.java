@@ -17,10 +17,10 @@
 package io.github.wysohn.triggerreactor.core.manager.js.executor;
 
 import io.github.wysohn.triggerreactor.core.manager.IJavascriptFileLoader;
+import io.github.wysohn.triggerreactor.core.manager.ScriptEngineProvider;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSExecutor;
 import io.github.wysohn.triggerreactor.core.manager.js.AbstractJavascriptBasedManager;
 import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
-import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 
 import javax.inject.Inject;
@@ -45,7 +45,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
     @Inject
     private IJSExecutorFactory factory;
     @Inject
-    private IScriptEngineGateway scriptEngineGateway;
+    private ScriptEngineProvider engineProvider;
 
     @Inject
     private ExecutorManager(@Named("DataFolder") File dataFolder,
@@ -117,7 +117,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
             if (evaluables.containsKey(builder.toString())) {
                 logger.warning(builder.toString() + " already registered! Duplicating executors?");
             } else {
-                JSExecutor exec = factory.create(fileName, scriptEngineGateway.getEngine(), new FileInputStream(file));
+                JSExecutor exec = factory.create(fileName, engineProvider.getEngine(), new FileInputStream(file));
                 evaluables.put(builder.toString(), exec);
             }
         }

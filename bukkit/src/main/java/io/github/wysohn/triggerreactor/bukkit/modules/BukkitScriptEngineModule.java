@@ -22,17 +22,57 @@ import com.google.inject.multibindings.ProvidesIntoSet;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
+import org.bukkit.Server;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class BukkitScriptEngineModule extends AbstractModule {
     @ProvidesIntoSet
-    public ScriptEngineInitializer provideJavaScriptInitializer(
-            SharedVariableManager sharedVariableManager,
-            GlobalVariableManager globalVariableManager) {
+    public IScriptEngineGateway provideScriptEngineGateway(Server server) {
+        return new IScriptEngineGateway() {
+            private ScriptEngineManager sem;
+            private boolean initialized = false;
+
+            @Override
+            public ScriptEngine getEngine() {
+                if (!initialized && sem == null) {
+                    RegisteredServiceProvider<ScriptEngineManager> sep
+                            = server.getServicesManager().getRegistration(ScriptEngineManager.class);
+                    sem = Optional.ofNullable(sep)
+                            .map(RegisteredServiceProvider::getProvider)
+                            .orElse(null);
+
+                }
+
+                initialized = true;
+
+                return Optional.ofNullable(sem)
+                        .map(sem -> sem.getEngineByName("JavaScript"))
+                        .orElse(null);
+            }
+
+            @Override
+            public String getEngineName() {
+                return "From BukkitServiceProvider";
+            }
+
+            @Override
+            public int getPriority() {
+                return 100;
+            }
+        };
+    }
+
+    @ProvidesIntoSet
+    public ScriptEngineInitializer provideJavaScriptInitializer(SharedVariableManager sharedVariableManager, GlobalVariableManager globalVariableManager) {
         return (sem) -> {
             sem.put("plugin", this);
 

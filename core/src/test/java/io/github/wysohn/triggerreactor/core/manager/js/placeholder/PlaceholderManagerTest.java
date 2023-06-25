@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.js.placeholder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.ProvidesIntoSet;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.IJavascriptFileLoader;
 import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
@@ -55,7 +56,7 @@ public class PlaceholderManagerTest {
                         return taskSupervisor;
                     }
 
-                    @Provides
+                    @ProvidesIntoSet
                     public IScriptEngineGateway provideScriptEngineGateway() {
                         return mockScriptEngineGateway;
                     }
@@ -116,6 +117,7 @@ public class PlaceholderManagerTest {
         // assert
         assertTrue(placeholderManager.containsKey("dummy"));
         assertTrue(placeholderManager.containsKey("nested@dummy"));
+        verify(mockScriptEngineGateway, times(2)).getEngine();
     }
 
     @Test

@@ -19,12 +19,9 @@ package io.github.wysohn.triggerreactor.core.module.manager;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
-import com.google.inject.Provides;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
 import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
-import org.openjdk.nashorncopy.api.scripting.NashornScriptEngine;
-import org.openjdk.nashorncopy.api.scripting.NashornScriptEngineFactory;
 
 import javax.inject.Named;
 import javax.script.Bindings;
@@ -34,36 +31,43 @@ import javax.script.ScriptEngineManager;
 import java.util.logging.Logger;
 
 public class ScriptEngineModule extends AbstractModule {
+    private ScriptEngineManager sem;
+
     @Override
     protected void configure() {
 
     }
 
-    @Provides
-    public ScriptEngineManager provideScriptEngineManager(@Named("PluginClassLoader") ClassLoader classLoader) {
-        return new ScriptEngineManager(classLoader);
-    }
-
-    @Provides
-    public IScriptEngineGateway provideScriptEngineGateway(ScriptEngineManager sem,
-                                                           @Named("PluginClassLoader") ClassLoader classLoader,
+    @ProvidesIntoSet
+    public IScriptEngineGateway provideScriptEngineGateway(@Named("PluginClassLoader") ClassLoader classLoader,
                                                            @Named("PluginLogger") Logger logger) {
         return new IScriptEngineGateway() {
             @Override
             public ScriptEngine getEngine() {
+                // later binding matters as BukkitClassLoader hasn't finished loading the required classes
+                if (sem == null)
+                    sem = new ScriptEngineManager(classLoader);
+
                 ScriptEngine engine = sem.getEngineByName("graal.js");
                 if (engine != null) {
                     Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
                     bindings.put("polyglot.js.allowAllAccess", true);
+                    logger.info("Using ScriptEngine: " + engine.getFactory().getEngineName());
                     return engine;
                 }
 
-                engine = new NashornScriptEngine(null,
-                        NashornScriptEngineFactory.DEFAULT_OPTIONS,
-                        classLoader,
-                        null);
+                engine = sem.getEngineByExtension("js");
+                if (engine != null) {
+                    logger.info("Using ScriptEngine: " + engine.getFactory().getEngineName());
+                    return engine;
+                }
 
-                logger.info("Using ScriptEngine: " + engine.getFactory().getEngineName());
+                return null;
+            }
+
+            @Override
+            public String getEngineName() {
+                return "From ClassLoader: Graal.js or Nashorn";
             }
         };
     }

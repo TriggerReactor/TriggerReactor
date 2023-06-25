@@ -3,6 +3,7 @@ package io.github.wysohn.triggerreactor.core.manager.js.executor;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.ProvidesIntoSet;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.IJavascriptFileLoader;
 import io.github.wysohn.triggerreactor.core.manager.js.IJSFolderContentCopyHelper;
@@ -79,7 +80,7 @@ public class ExecutorManagerTest {
                         return mockFileLoader;
                     }
 
-                    @Provides
+                    @ProvidesIntoSet
                     public IScriptEngineGateway provideScriptEngineGateway() {
                         return mockScriptEngineGateway;
                     }
@@ -130,6 +131,7 @@ public class ExecutorManagerTest {
         // assert
         assertTrue(executorManager.containsKey("DUMMY"));
         assertTrue(executorManager.containsKey("nested:DUMMY"));
+        verify(mockScriptEngineGateway, times(2)).getEngine();
     }
 
     @Test

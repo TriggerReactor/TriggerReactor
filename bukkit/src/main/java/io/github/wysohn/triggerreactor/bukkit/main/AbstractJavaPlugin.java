@@ -37,6 +37,7 @@ import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ClickTriggerListen
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.InventoryTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.WalkTriggerListener;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitExecutorModule;
+import io.github.wysohn.triggerreactor.bukkit.modules.BukkitScriptEngineModule;
 import io.github.wysohn.triggerreactor.bukkit.tools.BukkitUtil;
 import io.github.wysohn.triggerreactor.core.config.source.GsonConfigSource;
 import io.github.wysohn.triggerreactor.core.main.TRGCommandHandler;
@@ -93,6 +94,7 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         List<Module> moduleList = Arrays.stream(modules).collect(Collectors.toList());
         moduleList.add(new CorePluginModule());
         moduleList.add(new BukkitExecutorModule());
+        moduleList.add(new BukkitScriptEngineModule());
         moduleList.add(new AbstractModule() {
             @Provides
             @Named("DataFolder")
