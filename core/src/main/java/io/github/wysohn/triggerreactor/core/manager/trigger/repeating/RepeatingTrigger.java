@@ -22,6 +22,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
@@ -31,23 +32,12 @@ import java.util.logging.Logger;
 public class RepeatingTrigger extends Trigger implements Runnable {
     @Inject
     private Logger logger;
-
-    private long interval = 1000L;
-    private boolean autoStart = false;
     private Map<String, Object> vars;
 
     @AssistedInject
     private RepeatingTrigger(@Assisted TriggerInfo info,
                              @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
-    }
-
-    @AssistedInject
-    private RepeatingTrigger(@Assisted TriggerInfo info,
-                             @Assisted String script,
-                             @Assisted long interval) throws AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
-        this.interval = interval;
     }
 
     /**
@@ -83,25 +73,28 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     public long getInterval() {
-        return interval;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Long.class)
+                .filter(i -> i > 0L)
+                .orElse(1000L);
     }
 
     public void setInterval(long interval) {
-        this.interval = interval;
+        info.put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, interval);
     }
 
     public boolean isAutoStart() {
-        return autoStart;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, Boolean.class)
+                .orElse(true);
     }
 
     public void setAutoStart(boolean autoStart) {
-        this.autoStart = autoStart;
+        info.put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, autoStart);
     }
 
     @Override
     public RepeatingTrigger clone() {
         try {
-            return new RepeatingTrigger(info, script, interval);
+            return new RepeatingTrigger(info, script);
         } catch (AbstractTriggerManager.TriggerInitFailedException e) {
             e.printStackTrace();
         }
@@ -112,8 +105,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     @Override
     public String toString() {
         return super.toString() + "{" +
-                "interval=" + interval +
-                ", autoStart=" + autoStart +
+                "interval=" + getInterval() +
+                ", autoStart=" + isAutoStart() +
                 ", paused=" + paused +
                 '}';
     }
@@ -151,7 +144,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 activate(new Object(), vars);
 
                 try {
-                    Thread.sleep(interval);
+                    Thread.sleep(getInterval());
                 } catch (InterruptedException e) {
                     break;
                 }

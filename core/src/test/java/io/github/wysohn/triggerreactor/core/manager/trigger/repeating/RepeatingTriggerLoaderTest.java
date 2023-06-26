@@ -62,12 +62,12 @@ public class RepeatingTriggerLoaderTest {
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
         when(info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, Boolean.class)).thenReturn(Optional.of(true));
         // our slightly modified version of the GSON treat int and long interchangeably
-        when(info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Integer.class)).thenReturn(Optional.of(100));
+        when(info.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Long.class)).thenReturn(Optional.of(100L));
 
         RepeatingTrigger trigger = loader.load(info);
 
         assertTrue(trigger.isAutoStart());
-        assertEquals(100, trigger.getInterval());
+        assertEquals(100L, trigger.getInterval());
     }
 
     @Test
@@ -75,6 +75,7 @@ public class RepeatingTriggerLoaderTest {
         TriggerInfo mockInfo = mock(TriggerInfo.class);
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(mockInfo.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
+        when(mockInfo.get(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, Long.class)).thenReturn(Optional.of(100L));
 
 //        RepeatingTrigger trigger = new RepeatingTrigger(mockInfo, "#MESSAGE \"Hello world!\"");
         RepeatingTrigger trigger = Guice.createInjector(
@@ -87,10 +88,12 @@ public class RepeatingTriggerLoaderTest {
         trigger.setAutoStart(true);
         trigger.setInterval(100);
 
-        loader.save(trigger);
+        loader.save(trigger); // both save autostart and interval upon save
 
-        verify(mockInfo).put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, true);
-        verify(mockInfo).put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, 100L);
+        verify(mockInfo, times(2))
+                .put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, true);
+        verify(mockInfo, times(2))
+                .put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, 100L);
     }
 
     private interface TempFactory {

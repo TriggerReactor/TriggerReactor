@@ -21,6 +21,4 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 public interface IRepeatingTriggerFactory {
     RepeatingTrigger create(TriggerInfo info, String script);
-
-    RepeatingTrigger create(TriggerInfo info, String script, long interval);
 }
