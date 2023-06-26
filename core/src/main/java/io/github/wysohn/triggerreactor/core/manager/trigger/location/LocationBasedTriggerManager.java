@@ -134,8 +134,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         locationMap.put(sloc, trigger);
         put(sloc.toString(), trigger);
-
-        loader.save(trigger);
     }
 
     protected T removeLocationCache(ILocation loc) {
@@ -149,8 +147,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
 
         T result = locationMap.remove(sloc);
         remove(sloc.toString());
-
-        loader.delete(result);
         return result;
     }
 
