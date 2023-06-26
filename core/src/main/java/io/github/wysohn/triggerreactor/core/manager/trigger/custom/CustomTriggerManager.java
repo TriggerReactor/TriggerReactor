@@ -58,11 +58,6 @@ public final class CustomTriggerManager extends AbstractTriggerManager<CustomTri
         }
     }
 
-    @Override
-    public void shutdown() {
-
-    }
-
     /**
      * Create a new CustomTrigger.
      *

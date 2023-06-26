@@ -93,11 +93,6 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     }
 
     @Override
-    public void shutdown() {
-
-    }
-
-    @Override
     public void reload(String triggerName) {
         commandHandler.unregister(triggerName);
         super.reload(triggerName);

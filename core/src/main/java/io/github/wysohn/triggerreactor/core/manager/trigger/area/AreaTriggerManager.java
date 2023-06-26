@@ -232,11 +232,6 @@ public class AreaTriggerManager extends AbstractTaggedTriggerManager<AreaTrigger
         }
     }
 
-    @Override
-    public void shutdown() {
-
-    }
-
     /**
      * Start tracking the entity so the area triggers can be notified when the entity moves
      * into/out of an area.

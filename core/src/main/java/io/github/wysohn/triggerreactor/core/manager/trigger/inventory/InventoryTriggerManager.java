@@ -63,10 +63,6 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
 
     }
 
-    @Override
-    public void shutdown() {
-
-    }
     /**
      * Open the GUI (of the existing InventoryTrigger) for the target player
      *

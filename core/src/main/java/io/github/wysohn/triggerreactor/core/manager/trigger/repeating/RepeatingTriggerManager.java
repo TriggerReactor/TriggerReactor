@@ -79,11 +79,6 @@ public final class RepeatingTriggerManager extends AbstractTriggerManager<Repeat
         }
     }
 
-    @Override
-    public void shutdown() {
-
-    }
-
     /**
      * Create trigger.
      *

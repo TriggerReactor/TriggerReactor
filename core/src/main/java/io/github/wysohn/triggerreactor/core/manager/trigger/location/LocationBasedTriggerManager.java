@@ -97,11 +97,6 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         }
     }
 
-    @Override
-    public void shutdown() {
-
-    }
-
     public abstract String getTriggerTypeName();
 
     public T getTriggerForLocation(ILocation loc) {

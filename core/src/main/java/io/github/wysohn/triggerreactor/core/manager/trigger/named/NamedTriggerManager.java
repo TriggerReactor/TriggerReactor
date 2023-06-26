@@ -36,9 +36,4 @@ public final class NamedTriggerManager extends AbstractTriggerManager<NamedTrigg
     public void initialize() {
 
     }
-
-    @Override
-    public void shutdown() {
-
-    }
 }
