@@ -131,9 +131,9 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     public T put(String name, T t) {
         t.setObserver(observer);
-        T saved = triggers.put(name, t);
-        loader.save(saved);
-        return saved;
+        triggers.put(name, t);
+        loader.save(t);
+        return t;
     }
 
     public T remove(String name) {
