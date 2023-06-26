@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.manager.ScriptEditManager;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTaggedTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
@@ -50,6 +51,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     private IExceptionHandle exceptionHandle;
     @Inject
     private ScriptEditManager scriptEditManager;
+    @Inject
+    private ITriggerLoader<T> loader;
 
     public LocationBasedTriggerManager(File folder) {
         super(folder);
@@ -132,7 +135,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         locationMap.put(sloc, trigger);
         put(sloc.toString(), trigger);
 
-        pluginManagement.saveAsynchronously(this);
+        loader.save(trigger);
     }
 
     protected T removeLocationCache(ILocation loc) {
@@ -147,7 +150,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         T result = locationMap.remove(sloc);
         remove(sloc.toString());
 
-        pluginManagement.saveAsynchronously(this);
+        loader.delete(result);
         return result;
     }
 
@@ -316,7 +319,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         showTriggerInfo(player, loc);
         stopLocationSet(player);
 
-        pluginManagement.saveAsynchronously(this);
+
     }
 
     protected abstract T newInstance(TriggerInfo info, String script) throws TriggerInitFailedException;
@@ -337,7 +340,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
                                                         exceptionHandle.handleException(player, e);
                                                     }
 
-                                                    pluginManagement.saveAsynchronously(this);
+                    loader.save(trigger);
                                                 });
     }
 

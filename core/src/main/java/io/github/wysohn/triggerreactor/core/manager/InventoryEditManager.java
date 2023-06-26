@@ -22,6 +22,7 @@ import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 
@@ -39,6 +40,8 @@ public final class InventoryEditManager<ItemStack> extends Manager {
     private IInventoryHandle handle;
     @Inject
     private IPluginManagement pluginManagement;
+    @Inject
+    private ITriggerLoader<InventoryTrigger> inventoryTriggerLoader;
 
     //map of player uuids to inventories representing the inventories currently being edited
     private final Map<UUID, InventoryTrigger> sessions = new HashMap<>();
@@ -146,7 +149,8 @@ public final class InventoryEditManager<ItemStack> extends Manager {
         for (int i = 0; i < triggerItems.length; i++) {
             triggerItems[i] = items[i];
         }
-        pluginManagement.saveAsynchronously(InventoryTriggerManager.class);
+
+        inventoryTriggerLoader.save(trigger);
     }
 
     /**

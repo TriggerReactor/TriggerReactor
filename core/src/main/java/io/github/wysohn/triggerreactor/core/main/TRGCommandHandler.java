@@ -78,7 +78,7 @@ public class TRGCommandHandler {
     private IGameManagement gameManagement;
     @Inject
     private IEventManagement eventManagement;
-    
+
     @Inject
     private ClickTriggerManager clickTriggerManager;
     @Inject
@@ -134,7 +134,7 @@ public class TRGCommandHandler {
      * @deprecated no longer used
      */
     @Deprecated
-    protected void sendCommandDesc(ICommandSender sender, String command, String desc){
+    protected void sendCommandDesc(ICommandSender sender, String command, String desc) {
         sender.sendMessage("&b" + command + " &8- &7" + desc);
     }
 
@@ -148,7 +148,7 @@ public class TRGCommandHandler {
      * @deprecated no longer used
      */
     @Deprecated
-    protected void sendDetails(ICommandSender sender, String detail){
+    protected void sendDetails(ICommandSender sender, String detail) {
         sender.sendMessage("  &7" + detail);
     }
 
@@ -173,10 +173,10 @@ public class TRGCommandHandler {
 
             if (!pluginManagement.isEnabled()) {
                 sender.sendMessage("&cTriggerReactor is disabled. Check your latest.log to see why the plugin is not" +
-                                           " loaded properly. If there was an error while loading, please report it "
-                                           + "through github issue"
-                                           +
-                                           " or our discord channel.");
+                        " loaded properly. If there was an error while loading, please report it "
+                        + "through github issue"
+                        +
+                        " or our discord channel.");
                 return true;
             }
 
@@ -245,14 +245,13 @@ public class TRGCommandHandler {
                 } else if (args.length > 1 && (args[0].equalsIgnoreCase("command")
                         || args[0].equalsIgnoreCase("cmd"))) {
                     if (args.length == 3 && commandTriggerManager.has(args[1]) && args[2].equals("sync")) {
-                        Trigger trigger = commandTriggerManager.get(args[1]);
+                        CommandTrigger trigger = commandTriggerManager.get(args[1]);
 
                         trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
                         sender.sendMessage(
                                 "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
                                         .isSync());
-                        pluginManagement.saveAsynchronously(commandTriggerManager);
                     } else if (args.length > 2 && commandTriggerManager.has(args[1])
                             && (args[2].equals("p") || args[2].equals("permission"))) {
                         CommandTrigger trigger = commandTriggerManager.get(args[1]);
@@ -273,8 +272,6 @@ public class TRGCommandHandler {
                         } else {
                             sender.sendMessage("&7Set permissions.");
                         }
-
-                        pluginManagement.saveAsynchronously(commandTriggerManager);
                     } else if (args.length > 2 && commandTriggerManager.has(args[1])
                             && (args[2].equals("a") || args[2].equals("aliases"))) {
                         CommandTrigger trigger = commandTriggerManager.get(args[1]);
@@ -296,7 +293,6 @@ public class TRGCommandHandler {
                             sender.sendMessage("&7Set Aliases");
                         }
 
-                        pluginManagement.saveAsynchronously(commandTriggerManager);
                         commandTriggerManager.reregisterCommand(args[1]);
                     } else if (args.length > 2 && commandTriggerManager.has(args[1])
                             && (args[2].equals("tab") || args[2].equals("settab"))) {
@@ -324,29 +320,27 @@ public class TRGCommandHandler {
 
                         sender.sendMessage("&7Set tab-completer");
                     } else if (commandTriggerManager.has(args[1])) {
-                        Trigger trigger = commandTriggerManager.get(args[1]);
+                        CommandTrigger trigger = commandTriggerManager.get(args[1]);
 
                         scriptEditManager.startEdit(sender,
-                                                         trigger.getInfo().getTriggerName(),
-                                                         trigger.getScript(),
-                                                         new ScriptEditor.SaveHandler() {
-                                                             @Override
-                                                             public void onSave(String script) {
-                                                                 try {
-                                                                     trigger.setScript(script);
-                                                                 } catch (Exception e) {
-                                                                     exceptionHandle.handleException(sender, e);
-                                                                 }
+                                trigger.getInfo().getTriggerName(),
+                                trigger.getScript(),
+                                new ScriptEditor.SaveHandler() {
+                                    @Override
+                                    public void onSave(String script) {
+                                        try {
+                                            trigger.setScript(script);
+                                        } catch (Exception e) {
+                                            exceptionHandle.handleException(sender, e);
+                                        }
 
-                                                                 sender.sendMessage("&aScript is updated!");
-
-                                                                 pluginManagement.saveAsynchronously(commandTriggerManager);
-                                                             }
-                                                         });
+                                        sender.sendMessage("&aScript is updated!");
+                                    }
+                                });
                     } else {
                         if (StringUtils.hasUpperCase(args[1])) {
                             sender.sendMessage("&cWARNING: It is reported that commands with uppercase makes it not "
-                                                       + "recognized by some higher version of Minecraft.");
+                                    + "recognized by some higher version of Minecraft.");
                         }
 
                         if (args.length == 2) {
@@ -356,8 +350,6 @@ public class TRGCommandHandler {
                                     commandTriggerManager.addCommandTrigger(sender, args[1], script);
 
                                     sender.sendMessage("&aCommand trigger is binded!");
-
-                                    pluginManagement.saveAsynchronously(commandTriggerManager);
                                 }
                             });
                         } else {
@@ -368,8 +360,6 @@ public class TRGCommandHandler {
                             commandTriggerManager.addCommandTrigger(sender, args[1], builder.toString());
 
                             sender.sendMessage("&aCommand trigger is binded!");
-
-                            pluginManagement.saveAsynchronously(commandTriggerManager);
                         }
                     }
                     return true;
@@ -537,8 +527,6 @@ public class TRGCommandHandler {
                                     try {
                                         if (inventoryTriggerManager.createTrigger(sizeCopy, name, script)) {
                                             sender.sendMessage("&aInventory Trigger created!");
-
-                                            pluginManagement.saveAsynchronously(inventoryTriggerManager);
                                         } else {
                                             sender.sendMessage(
                                                     "&7Another Inventory Trigger with that name already exists");
@@ -554,8 +542,6 @@ public class TRGCommandHandler {
                             try {
                                 if (inventoryTriggerManager.createTrigger(size, name, script)) {
                                     sender.sendMessage("&aInventory Trigger created!");
-
-                                    pluginManagement.saveAsynchronously(inventoryTriggerManager);
                                 } else {
                                     sender.sendMessage("&7Another Inventory Trigger with that name already exists");
                                 }
@@ -568,8 +554,6 @@ public class TRGCommandHandler {
 
                         if (inventoryTriggerManager.remove(name) != null) {
                             sender.sendMessage("&aDeleted!");
-
-                            pluginManagement.saveAsynchronously(inventoryTriggerManager);
                         } else {
                             sender.sendMessage("&7No such inventory trigger found.");
                         }
@@ -601,7 +585,6 @@ public class TRGCommandHandler {
                         }
 
                         trigger.getItems()[index - 1] = IS;
-                        pluginManagement.saveAsynchronously(inventoryTriggerManager);
 
                         sender.sendMessage("Successfully set item " + index);
 
@@ -636,22 +619,23 @@ public class TRGCommandHandler {
                         }
 
                         scriptEditManager.startEdit(sender,
-                                                         trigger.getInfo().getTriggerName(),
-                                                         trigger.getScript(),
-                                                         new ScriptEditor.SaveHandler() {
-                                                             @Override
-                                                             public void onSave(String script) {
-                                                                 try {
-                                                                     trigger.setScript(script);
-                                                                 } catch (Exception e) {
-                                                                     exceptionHandle.handleException(sender, e);
-                                                                 }
+                                trigger.getInfo().getTriggerName(),
+                                trigger.getScript(),
+                                new ScriptEditor.SaveHandler() {
+                                    @Override
+                                    public void onSave(String script) {
+                                        try {
+                                            trigger.setScript(script);
+                                        } catch (Exception e) {
+                                            exceptionHandle.handleException(sender, e);
+                                        }
 
-                                                                 sender.sendMessage("&aScript is updated!");
+                                        sender.sendMessage("&aScript is updated!");
 
-                                                                 pluginManagement.saveAsynchronously(inventoryTriggerManager);
-                                                             }
-                                                         });
+                                        //TODO not quite intuitive. Think of a better way
+                                        inventoryTriggerManager.put(name, trigger);
+                                    }
+                                });
                     } else if (args.length == 4 && args[2].equals("row")) {
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                         IS = IS == null ? null : IS.clone();
@@ -682,9 +666,9 @@ public class TRGCommandHandler {
                             trigger.getItems()[(index - 1) * 9 + i] = IS;
                         }
 
-                        pluginManagement.saveAsynchronously(inventoryTriggerManager);
+                        //TODO not quite intuitive. Think of a better way
+                        inventoryTriggerManager.put(name, trigger);
                         sender.sendMessage("Successfully filled row " + index);
-
                     } else if (args.length == 4 && args[2].equals("column")) {
                         IItemStack IS = ((IPlayer) sender).getItemInMainHand();
                         IS = IS == null ? null : IS.clone();
@@ -715,7 +699,8 @@ public class TRGCommandHandler {
                             trigger.getItems()[index - 1 + i * 9] = IS;
                         }
 
-                        pluginManagement.saveAsynchronously(inventoryTriggerManager);
+                        //TODO not quite intuitive. Think of a better way
+                        inventoryTriggerManager.put(name, trigger);
                         sender.sendMessage("Successfully filled column " + index);
 
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("edititems")) {
@@ -748,38 +733,38 @@ public class TRGCommandHandler {
                         return true;
                     } else {
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]",
-                                        "create a new inventory. <size> must be multiple of 9."
-                                                + " The <size> cannot be larger than 54");
+                                "/triggerreactor[trg] inventory[i] <inventory name> create <size> [...]",
+                                "create a new inventory. <size> must be multiple of 9."
+                                        + " The <size> cannot be larger than 54");
                         sendDetails(sender, "/trg i MyInventory create 54");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> delete",
-                                        "delete this inventory");
+                                "/triggerreactor[trg] inventory[i] <inventory name> delete",
+                                "delete this inventory");
                         sendDetails(sender, "/trg i MyInventory delete");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> item <index>",
-                                        "sets item of inventory to the held item. "
-                                                + "Clears the slot if you are holding nothing.");
+                                "/triggerreactor[trg] inventory[i] <inventory name> item <index>",
+                                "sets item of inventory to the held item. "
+                                        + "Clears the slot if you are holding nothing.");
                         sendDetails(sender, "/trg i MyInventory item 0");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> column <index>",
-                                        "same as the item subcommand, but applied to an entire column."
-                                                + "Clears the slot if you are holding nothing.");
+                                "/triggerreactor[trg] inventory[i] <inventory name> column <index>",
+                                "same as the item subcommand, but applied to an entire column."
+                                        + "Clears the slot if you are holding nothing.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> row <index>",
-                                        "same as the item subcommand, but applied to an entire row.");
+                                "/triggerreactor[trg] inventory[i] <inventory name> row <index>",
+                                "same as the item subcommand, but applied to an entire row.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> open",
-                                        "Preview the inventory");
+                                "/triggerreactor[trg] inventory[i] <inventory name> open",
+                                "Preview the inventory");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> open <player name>",
-                                        "Send <player name> a preview of the inventory");
+                                "/triggerreactor[trg] inventory[i] <inventory name> open <player name>",
+                                "Send <player name> a preview of the inventory");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> edit",
-                                        "Edit the inventory trigger.");
+                                "/triggerreactor[trg] inventory[i] <inventory name> edit",
+                                "Edit the inventory trigger.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>",
-                                        "set title of inventory");
+                                "/triggerreactor[trg] inventory[i] <inventory name> settitle <title>",
+                                "set title of inventory");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("item")) {
@@ -856,18 +841,18 @@ public class TRGCommandHandler {
                         return true;
                     } else {
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] item title <item title>",
-                                        "Change the title of holding item");
+                                "/triggerreactor[trg] item title <item title>",
+                                "Change the title of holding item");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] item lore add <line>",
-                                        "Append lore to the holding item");
+                                "/triggerreactor[trg] item lore add <line>",
+                                "Append lore to the holding item");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] item lore set <index> <line>",
-                                        "Replace lore at the specified index."
-                                                + "(Index start from 0)");
+                                "/triggerreactor[trg] item lore set <index> <line>",
+                                "Replace lore at the specified index."
+                                        + "(Index start from 0)");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] item lore remove <index>",
-                                        "Delete lore at the specified index.");
+                                "/triggerreactor[trg] item lore remove <index>",
+                                "Delete lore at the specified index.");
                     }
 
                     return true;
@@ -910,8 +895,6 @@ public class TRGCommandHandler {
                         if (areaTriggerManager.createArea(name, selected.getSmallest(), selected.getLargest())) {
                             sender.sendMessage("&aCreated area trigger: " + name);
 
-                            pluginManagement.saveAsynchronously(areaTriggerManager);
-
                             areaSelectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                         } else {
                             sender.sendMessage("&7Area Trigger " + name + " already exists.");
@@ -921,8 +904,6 @@ public class TRGCommandHandler {
 
                         if (areaTriggerManager.remove(name) != null) {
                             sender.sendMessage("&aArea Trigger deleted");
-
-                            pluginManagement.saveAsynchronously(areaTriggerManager);
 
                             areaSelectionManager.resetSelections(((IPlayer) sender).getUniqueId());
                         } else {
@@ -939,22 +920,23 @@ public class TRGCommandHandler {
 
                         if (trigger.getEnterTrigger() != null) {
                             scriptEditManager.startEdit(sender,
-                                                             trigger.getInfo().getTriggerName(),
-                                                             trigger.getEnterTrigger().getScript(),
-                                                             new ScriptEditor.SaveHandler() {
-                                                                 @Override
-                                                                 public void onSave(String script) {
-                                                                     try {
-                                                                         trigger.setEnterTrigger(script);
+                                    trigger.getInfo().getTriggerName(),
+                                    trigger.getEnterTrigger().getScript(),
+                                    new ScriptEditor.SaveHandler() {
+                                        @Override
+                                        public void onSave(String script) {
+                                            try {
+                                                trigger.setEnterTrigger(script);
 
-                                                                         pluginManagement.saveAsynchronously(areaTriggerManager);
+                                                //TODO not quite intuitive. Think of a better way
+                                                areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
 
-                                                                         sender.sendMessage("&aScript is updated!");
-                                                                     } catch (Exception e) {
-                                                                         exceptionHandle.handleException(sender, e);
-                                                                     }
-                                                                 }
-                                                             });
+                                                sender.sendMessage("&aScript is updated!");
+                                            } catch (Exception e) {
+                                                exceptionHandle.handleException(sender, e);
+                                            }
+                                        }
+                                    });
                         } else {
                             if (args.length == 3) {
                                 scriptEditManager.startEdit(sender, "Area Trigger [Enter]", "", new ScriptEditor.SaveHandler() {
@@ -963,7 +945,8 @@ public class TRGCommandHandler {
                                         try {
                                             trigger.setEnterTrigger(script);
 
-                                            pluginManagement.saveAsynchronously(areaTriggerManager);
+                                            //TODO not quite intuitive. Think of a better way
+                                            areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
                                         } catch (Exception e) {
                                             exceptionHandle.handleException(sender, e);
                                         }
@@ -973,7 +956,8 @@ public class TRGCommandHandler {
                                 try {
                                     trigger.setEnterTrigger(ArgumentUtil.mergeArguments(args, 3, args.length - 1));
 
-                                    pluginManagement.saveAsynchronously(areaTriggerManager);
+                                    //TODO not quite intuitive. Think of a better way
+                                    areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
                                 } catch (Exception e) {
                                     exceptionHandle.handleException(sender, e);
                                 }
@@ -990,22 +974,23 @@ public class TRGCommandHandler {
 
                         if (trigger.getExitTrigger() != null) {
                             scriptEditManager.startEdit(sender,
-                                                             trigger.getInfo().getTriggerName(),
-                                                             trigger.getExitTrigger().getScript(),
-                                                             new ScriptEditor.SaveHandler() {
-                                                                 @Override
-                                                                 public void onSave(String script) {
-                                                                     try {
-                                                                         trigger.setExitTrigger(script);
+                                    trigger.getInfo().getTriggerName(),
+                                    trigger.getExitTrigger().getScript(),
+                                    new ScriptEditor.SaveHandler() {
+                                        @Override
+                                        public void onSave(String script) {
+                                            try {
+                                                trigger.setExitTrigger(script);
 
-                                                                         pluginManagement.saveAsynchronously(areaTriggerManager);
+                                                //TODO not quite intuitive. Think of a better way
+                                                areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
 
-                                                                         sender.sendMessage("&aScript is updated!");
-                                                                     } catch (Exception e) {
-                                                                         exceptionHandle.handleException(sender, e);
-                                                                     }
-                                                                 }
-                                                             });
+                                                sender.sendMessage("&aScript is updated!");
+                                            } catch (Exception e) {
+                                                exceptionHandle.handleException(sender, e);
+                                            }
+                                        }
+                                    });
                         } else {
                             if (args.length == 3) {
                                 scriptEditManager.startEdit(sender, "Area Trigger [Exit]", "", new ScriptEditor.SaveHandler() {
@@ -1014,7 +999,8 @@ public class TRGCommandHandler {
                                         try {
                                             trigger.setExitTrigger(script);
 
-                                            pluginManagement.saveAsynchronously(areaTriggerManager);
+                                            //TODO not quite intuitive. Think of a better way
+                                            areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
                                         } catch (Exception e) {
                                             exceptionHandle.handleException(sender, e);
                                         }
@@ -1024,7 +1010,8 @@ public class TRGCommandHandler {
                                 try {
                                     trigger.setExitTrigger(ArgumentUtil.mergeArguments(args, 3, args.length - 1));
 
-                                    pluginManagement.saveAsynchronously(areaTriggerManager);
+                                    //TODO not quite intuitive. Think of a better way
+                                    areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
                                 } catch (Exception e) {
                                     exceptionHandle.handleException(sender, e);
                                 }
@@ -1041,32 +1028,30 @@ public class TRGCommandHandler {
 
                         trigger.getInfo().setSync(!trigger.getInfo().isSync());
 
-                        pluginManagement.saveAsynchronously(areaTriggerManager);
-
                         sender.sendMessage(
                                 "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo()
                                         .isSync());
                     } else {
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] area[a] toggle",
-                                        "Enable/Disable area selection mode.");
+                                "/triggerreactor[trg] area[a] toggle",
+                                "Enable/Disable area selection mode.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] area[a] <name> create",
-                                        "Create area trigger out of selected region.");
+                                "/triggerreactor[trg] area[a] <name> create",
+                                "Create area trigger out of selected region.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] area[a] <name> delete",
-                                        "Delete area trigger. BE CAREFUL!");
+                                "/triggerreactor[trg] area[a] <name> delete",
+                                "Delete area trigger. BE CAREFUL!");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] area[a] <name> enter [...]",
-                                        "Enable/Disable area selection mode.");
+                                "/triggerreactor[trg] area[a] <name> enter [...]",
+                                "Enable/Disable area selection mode.");
                         sendDetails(sender, "/trg a TestingArea enter #MESSAGE \"Welcome\"");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] area[a] <name> exit [...]",
-                                        "Enable/Disable area selection mode.");
+                                "/triggerreactor[trg] area[a] <name> exit [...]",
+                                "Enable/Disable area selection mode.");
                         sendDetails(sender, "/trg a TestingArea exit #MESSAGE \"Bye\"");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] area[a] <name> sync",
-                                        "Enable/Disable sync mode.");
+                                "/triggerreactor[trg] area[a] <name> sync",
+                                "Enable/Disable sync mode.");
                         sendDetails(sender, "Setting it to true when you want to cancel event (with #CANCELEVENT)."
                                 + " However, setting sync mode will make the trigger run on server thread; keep in "
                                 + "mind that"
@@ -1081,60 +1066,57 @@ public class TRGCommandHandler {
                     CustomTrigger trigger = customTriggerManager.get(name);
                     if (trigger != null) {
                         scriptEditManager.startEdit(sender,
-                                                         trigger.getInfo().getTriggerName(),
-                                                         trigger.getScript(),
-                                                         new ScriptEditor.SaveHandler() {
-                                                             @Override
-                                                             public void onSave(String script) {
-                                                                 try {
-                                                                     trigger.setScript(script);
-                                                                 } catch (Exception e) {
-                                                                     exceptionHandle.handleException(sender, e);
-                                                                 }
+                                trigger.getInfo().getTriggerName(),
+                                trigger.getScript(),
+                                new ScriptEditor.SaveHandler() {
+                                    @Override
+                                    public void onSave(String script) {
+                                        try {
+                                            trigger.setScript(script);
+                                        } catch (Exception e) {
+                                            exceptionHandle.handleException(sender, e);
+                                        }
 
-                                                                 sender.sendMessage("&aScript is updated!");
+                                        sender.sendMessage("&aScript is updated!");
 
-                                                                 pluginManagement.saveAsynchronously(customTriggerManager);
-                                                             }
-                                                         });
+                                        //TODO not quite intuitive. Think of a better way
+                                        customTriggerManager.put(name, trigger);
+                                    }
+                                });
                     } else {
                         if (args.length == 3) {
                             scriptEditManager.startEdit(sender,
-                                                             "Custom Trigger[" + eventName.substring(Math.max(0,
-                                                                                                              eventName.length()
-                                                                                                                      - 10))
-                                                                     + "]", "",
-                                                             new ScriptEditor.SaveHandler() {
-                                                                 @Override
-                                                                 public void onSave(String script) {
-                                                                     try {
-                                                                         customTriggerManager.createCustomTrigger(
-                                                                                 eventName,
-                                                                                 name,
-                                                                                 script);
+                                    "Custom Trigger[" + eventName.substring(Math.max(0,
+                                            eventName.length()
+                                                    - 10))
+                                            + "]", "",
+                                    new ScriptEditor.SaveHandler() {
+                                        @Override
+                                        public void onSave(String script) {
+                                            try {
+                                                customTriggerManager.createCustomTrigger(
+                                                        eventName,
+                                                        name,
+                                                        script);
 
-                                                                         pluginManagement.saveAsynchronously(customTriggerManager);
-
-                                                                         sender.sendMessage("&aCustom Trigger "
-                                                                                                    + "created!");
-                                                                     } catch (Exception e) {
-                                                                         e.printStackTrace();
-                                                                         sender.sendMessage("&c" + "Could not save! "
-                                                                                                    + e.getMessage());
-                                                                         sender.sendMessage("&c"
-                                                                                                    + "See console "
-                                                                                                    + "for detailed "
-                                                                                                    + "messages.");
-                                                                     }
-                                                                 }
-                                                             });
+                                                sender.sendMessage("&aCustom Trigger "
+                                                        + "created!");
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                                sender.sendMessage("&c" + "Could not save! "
+                                                        + e.getMessage());
+                                                sender.sendMessage("&c"
+                                                        + "See console "
+                                                        + "for detailed "
+                                                        + "messages.");
+                                            }
+                                        }
+                                    });
                         } else {
                             String script = ArgumentUtil.mergeArguments(args, 3, args.length - 1);
 
                             try {
                                 customTriggerManager.createCustomTrigger(eventName, name, script);
-
-                                pluginManagement.saveAsynchronously(customTriggerManager);
 
                                 sender.sendMessage("&aCustom Trigger created!");
                             } catch (ClassNotFoundException e2) {
@@ -1150,25 +1132,26 @@ public class TRGCommandHandler {
                     if (args.length == 2) {
                         String name = args[1];
 
-                        Trigger trigger = repeatingTriggerManager.get(name);
+                        RepeatingTrigger trigger = repeatingTriggerManager.get(name);
                         if (trigger != null) {
                             scriptEditManager.startEdit(sender,
-                                                             trigger.getInfo().getTriggerName(),
-                                                             trigger.getScript(),
-                                                             new ScriptEditor.SaveHandler() {
-                                                                 @Override
-                                                                 public void onSave(String script) {
-                                                                     try {
-                                                                         trigger.setScript(script);
-                                                                     } catch (Exception e) {
-                                                                         exceptionHandle.handleException(sender, e);
-                                                                     }
+                                    trigger.getInfo().getTriggerName(),
+                                    trigger.getScript(),
+                                    new ScriptEditor.SaveHandler() {
+                                        @Override
+                                        public void onSave(String script) {
+                                            try {
+                                                trigger.setScript(script);
+                                            } catch (Exception e) {
+                                                exceptionHandle.handleException(sender, e);
+                                            }
 
-                                                                     sender.sendMessage("&aScript is updated!");
+                                            sender.sendMessage("&aScript is updated!");
 
-                                                                     pluginManagement.saveAsynchronously(repeatingTriggerManager);
-                                                                 }
-                                                             });
+                                            //TODO not quite intuitive. Think of a better way
+                                            repeatingTriggerManager.put(name, trigger);
+                                        }
+                                    });
                         } else {
                             this.scriptEditManager.startEdit(sender, "Repeating Trigger", "", new ScriptEditor.SaveHandler() {
                                 @Override
@@ -1178,8 +1161,6 @@ public class TRGCommandHandler {
                                     } catch (Exception e) {
                                         exceptionHandle.handleException(sender, e);
                                     }
-
-                                    pluginManagement.saveAsynchronously(repeatingTriggerManager);
                                 }
                             });
                         }
@@ -1198,12 +1179,10 @@ public class TRGCommandHandler {
 
                         trigger.setInterval(interval);
 
-                        pluginManagement.saveAsynchronously(repeatingTriggerManager);
-
                         sender.sendMessage("&aNow " +
-                                                   "&6[" + name + "]" +
-                                                   "&a will run every " +
-                                                   "&6[" + TimeUtil.milliSecondsToString(interval) + "]");
+                                "&6[" + name + "]" +
+                                "&a will run every " +
+                                "&6[" + TimeUtil.milliSecondsToString(interval) + "]");
                     } else if (args.length == 3 && args[2].equalsIgnoreCase("autostart")) {
                         String name = args[1];
 
@@ -1215,8 +1194,6 @@ public class TRGCommandHandler {
                         }
 
                         trigger.setAutoStart(!trigger.isAutoStart());
-
-                        pluginManagement.saveAsynchronously(repeatingTriggerManager);
 
                         sender.sendMessage(
                                 "Auto start: " + (trigger.isAutoStart() ? "&a" : "&c") + trigger.isAutoStart());
@@ -1276,44 +1253,44 @@ public class TRGCommandHandler {
                         sendCommandDesc(sender, "/triggerreactor[trg] repeat[r] <name>", "Create Repeating Trigger.");
                         sendDetails(sender, "&4Quick create is not supported.");
                         sendDetails(sender,
-                                    "This creates a Repeating Trigger with default settings. You probably will want "
-                                            + "to change default values"
-                                            + " using other commands below. Also, creating Repeating Trigger doesn't "
-                                            + "start it automatically.");
+                                "This creates a Repeating Trigger with default settings. You probably will want "
+                                        + "to change default values"
+                                        + " using other commands below. Also, creating Repeating Trigger doesn't "
+                                        + "start it automatically.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] repeat[r] <name> interval <time format>",
-                                        "Change the interval of this trigger.");
+                                "/triggerreactor[trg] repeat[r] <name> interval <time format>",
+                                "Change the interval of this trigger.");
                         sendDetails(sender,
-                                    "Notice the <time format> is not just a number but has specific format for it. "
-                                            + "For example, you first"
-                                            + " type what number you want to set and also define the unit of it. If "
-                                            + "you want it to repeat it every 1 hour, 20 minutes,"
-                                            + " 50seconds, and 10ticks, then it will be &6"
-                                            + "/trg r BlahBlah interval 1h20m50s10t." + "&7 Currently only h, m,"
-                                            + " s, and t are supported for this format. Also notice that if you have "
-                                            + "two numbers with same format, they will add up as well. For example,"
-                                            + "&6 /trg r BlahBlah interval 30s40s"
-                                            + "&7 will be added up to 70seconds total. All units other than"
-                                            + " h, m, s, or t will be ignored.");
+                                "Notice the <time format> is not just a number but has specific format for it. "
+                                        + "For example, you first"
+                                        + " type what number you want to set and also define the unit of it. If "
+                                        + "you want it to repeat it every 1 hour, 20 minutes,"
+                                        + " 50seconds, and 10ticks, then it will be &6"
+                                        + "/trg r BlahBlah interval 1h20m50s10t." + "&7 Currently only h, m,"
+                                        + " s, and t are supported for this format. Also notice that if you have "
+                                        + "two numbers with same format, they will add up as well. For example,"
+                                        + "&6 /trg r BlahBlah interval 30s40s"
+                                        + "&7 will be added up to 70seconds total. All units other than"
+                                        + " h, m, s, or t will be ignored.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] repeat[r] <name> autostart",
-                                        "Enable/Disable automatic start for this trigger.");
+                                "/triggerreactor[trg] repeat[r] <name> autostart",
+                                "Enable/Disable automatic start for this trigger.");
                         sendDetails(sender,
-                                    "By setting this to " + "&atrue"
-                                            + "&7, this trigger will start on plugin enables itself. "
-                                            + "Otherwise, you have to start it yourself every time.");
+                                "By setting this to " + "&atrue"
+                                        + "&7, this trigger will start on plugin enables itself. "
+                                        + "Otherwise, you have to start it yourself every time.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] repeat[r] <name> toggle",
-                                        "Start or stop the Repeating Trigger.");
+                                "/triggerreactor[trg] repeat[r] <name> toggle",
+                                "Start or stop the Repeating Trigger.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] repeat[r] <name> pause",
-                                        "Pause or unpause the Repeating Trigger.");
+                                "/triggerreactor[trg] repeat[r] <name> pause",
+                                "Pause or unpause the Repeating Trigger.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] repeat[r] <name> status",
-                                        "See brief information about this trigger.");
+                                "/triggerreactor[trg] repeat[r] <name> status",
+                                "See brief information about this trigger.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] repeat[r] <name> delete",
-                                        "Delete repeating trigger.");
+                                "/triggerreactor[trg] repeat[r] <name> delete",
+                                "Delete repeating trigger.");
                     }
 
                     return true;
@@ -1328,8 +1305,6 @@ public class TRGCommandHandler {
                     }
 
                     trigger.getInfo().setSync(!trigger.getInfo().isSync());
-
-                    pluginManagement.saveAsynchronously(customTriggerManager);
 
                     sender.sendMessage(
                             "&7Sync mode: " + (trigger.getInfo().isSync() ? "&a" : "&c") + trigger.getInfo().isSync());
@@ -1347,8 +1322,6 @@ public class TRGCommandHandler {
                         case "command":
                             if (commandTriggerManager.remove(key) != null) {
                                 sender.sendMessage("&aRemoved the command trigger &6" + key);
-
-                                pluginManagement.saveAsynchronously(commandTriggerManager);
                             } else {
                                 sender.sendMessage("&7Command trigger &6" + key + "&7 does not exist");
                             }
@@ -1356,8 +1329,6 @@ public class TRGCommandHandler {
                         case "custom":
                             if (customTriggerManager.remove(key) != null) {
                                 sender.sendMessage("&aRemoved the custom trigger &6" + key);
-
-                                pluginManagement.saveAsynchronously(customTriggerManager);
                             } else {
                                 sender.sendMessage("&7Custom Trigger &6" + key + "&7 does not exist");
                             }
@@ -1436,15 +1407,15 @@ public class TRGCommandHandler {
                         }
                     } else {
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] timings toggle",
-                                        "turn on/off timings analysis. Also analysis will be reset.");
+                                "/triggerreactor[trg] timings toggle",
+                                "turn on/off timings analysis. Also analysis will be reset.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] timings reset",
-                                        "turn on/off timings analysis. Also analysis will be reset.");
+                                "/triggerreactor[trg] timings reset",
+                                "turn on/off timings analysis. Also analysis will be reset.");
                         sendCommandDesc(sender, "/triggerreactor[trg] timings print", "Show analysis result.");
                         sendCommandDesc(sender,
-                                        "/triggerreactor[trg] timings print xx",
-                                        "Save analysis to file named xx.timings");
+                                "/triggerreactor[trg] timings print xx",
+                                "Save analysis to file named xx.timings");
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
@@ -1529,28 +1500,28 @@ public class TRGCommandHandler {
         switch (args.length) {
             case 1:
                 return filter(Arrays.asList("area",
-                                            "click",
-                                            "cmd",
-                                            "command",
-                                            "custom",
-                                            "del",
-                                            "delete",
-                                            "help",
-                                            "inventory",
-                                            "item",
-                                            "list",
-                                            "reload",
-                                            "repeat",
-                                            "run",
-                                            "call",
-                                            "saveall",
-                                            "search",
-                                            "sudo",
-                                            "synccustom",
-                                            "timings",
-                                            "variables",
-                                            "version",
-                                            "walk"), args[0]);
+                        "click",
+                        "cmd",
+                        "command",
+                        "custom",
+                        "del",
+                        "delete",
+                        "help",
+                        "inventory",
+                        "item",
+                        "list",
+                        "reload",
+                        "repeat",
+                        "run",
+                        "call",
+                        "saveall",
+                        "search",
+                        "sudo",
+                        "synccustom",
+                        "timings",
+                        "variables",
+                        "version",
+                        "walk"), args[0]);
             case 2:
                 switch (args[0].toLowerCase()) {
                     case "area":
@@ -1617,14 +1588,14 @@ public class TRGCommandHandler {
                     case "inventory":
                     case "i":
                         return filter(Arrays.asList("column",
-                                                    "create",
-                                                    "delete",
-                                                    "edit",
-                                                    "edititems",
-                                                    "item",
-                                                    "open",
-                                                    "row",
-                                                    "settitle"), args[2]);
+                                "create",
+                                "delete",
+                                "edit",
+                                "edititems",
+                                "item",
+                                "open",
+                                "row",
+                                "settitle"), args[2]);
                     case "item":
                         if (args[1].equals("lore")) {
                             return filter(Arrays.asList("add", "set", "remove"), args[2]);
@@ -1632,7 +1603,7 @@ public class TRGCommandHandler {
                     case "repeat":
                     case "r":
                         return filter(Arrays.asList("autostart", "delete", "interval", "pause", "status", "toggle"),
-                                      args[2]);
+                                args[2]);
                 }
             case 4:
                 switch (args[0].toLowerCase()) {
@@ -1674,7 +1645,7 @@ public class TRGCommandHandler {
                             + ".&7.");
             sender.sendMessage("    &6*&7Not providing any permission or aliases will remove them instead.");
             sender.sendMessage("  &7- To add tab-completer, type &b/trg cmd <command name> settab[tab] " +
-                                       "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
+                    "<a/b/c>:a,b,c <player>:$playerlist this,it,that");
             sender.sendMessage("    &6*&7The parameter has following format: hint:val1,val2,...");
             sender.sendMessage("    &6*&7Not providing any tab-completer will remove it instead.");
             sender.sendMessage(
@@ -1723,7 +1694,7 @@ public class TRGCommandHandler {
         });
         add((sender) -> {
             sender.sendMessage("&b/triggerreactor[trg] run [...] &8- &7Run simple script now without making a trigger"
-                                       + ".");
+                    + ".");
             sender.sendMessage("  &7/trg run #TP {\"MahPlace\"}");
 
             sender.sendMessage(
@@ -1734,13 +1705,13 @@ public class TRGCommandHandler {
                     "&b/triggerreactor[trg] call <named trigger> [codes ...] &8- &7Run Named Trigger directly.");
             sender.sendMessage("  &7/trg call MyNamedTrigger abc = {\"MahPlace\"}");
             sender.sendMessage("  &7the last argument (codes ...) are just like any script, so you can imagine that a" +
-                                       " temporary trigger will be made, the codes will run, and then the Named "
-                                       + "Trigger will be"
-                                       +
-                                       " called, just like how you do with #CALL. This can be useful if you have "
-                                       + "variables in the Named Trigger"
-                                       +
-                                       " that has to be initialized.");
+                    " temporary trigger will be made, the codes will run, and then the Named "
+                    + "Trigger will be"
+                    +
+                    " called, just like how you do with #CALL. This can be useful if you have "
+                    + "variables in the Named Trigger"
+                    +
+                    " that has to be initialized.");
         });
         add((sender -> {
             sender.sendMessage(
@@ -1769,7 +1740,7 @@ public class TRGCommandHandler {
                             + "reset.");
             sender.sendMessage("&b/triggerreactor[trg] timings print &8- &7Show analysis result.");
             sender.sendMessage("  &b/triggerreactor[trg] timings print xx &8- &7Save analysis to file named xx"
-                                       + ".timings");
+                    + ".timings");
         }));
     }};
 

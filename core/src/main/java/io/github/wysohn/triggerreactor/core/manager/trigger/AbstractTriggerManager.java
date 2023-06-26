@@ -131,16 +131,16 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     public T put(String name, T t) {
         t.setObserver(observer);
-        return triggers.put(name, t);
+        T saved = triggers.put(name, t);
+        loader.save(saved);
+        return saved;
     }
 
     public T remove(String name) {
         T deleted = triggers.remove(name);
 
-        //TODO File I/O need to be done asynchronously
         Optional.ofNullable(deleted)
-                .map(T::getInfo)
-                .ifPresent(TriggerInfo::delete);
+                .ifPresent(loader::delete);
 
         return deleted;
     }

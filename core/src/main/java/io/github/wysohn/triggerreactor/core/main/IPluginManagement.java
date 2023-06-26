@@ -20,10 +20,8 @@ package io.github.wysohn.triggerreactor.core.main;
 import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTrigger;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
-import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.Map;
 import java.util.UUID;
@@ -84,22 +82,6 @@ public interface IPluginManagement{
      * Disable this plugin.
      */
     void disablePlugin();
-
-
-    default void saveAsynchronously(Manager manager) {
-        ValidationUtil.notNull(manager);
-
-        saveAsynchronously(manager.getClass());
-    }
-
-    /**
-     * Call saveAll() on separated thread. It should also check if a saving task is already
-     * happening with the 'manager.' (As it will cause concurrency issue without the proper check up)
-     *
-     * @param managerClass the manager class to be saved
-     */
-    void saveAsynchronously(Class<? extends Manager> managerClass);
-
 
     /**
      * Get the main class instance. JavaPlugin for Bukkit API for example.

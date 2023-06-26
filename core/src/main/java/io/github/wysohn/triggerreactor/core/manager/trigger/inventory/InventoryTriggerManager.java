@@ -22,10 +22,7 @@ import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
 import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 
@@ -52,6 +49,8 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     private IGameManagement gameManagement;
     @Inject
     private IInventoryHandle inventoryHandle;
+    @Inject
+    private ITriggerLoader<InventoryTrigger> loader;
 
     @Inject
     private InventoryTriggerManager(@Named("DataFolder") File folder,
@@ -130,7 +129,9 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        put(name, new InventoryTrigger(info, script, size, new HashMap<>()));
+        InventoryTrigger trigger = put(name, new InventoryTrigger(info, script, size, new HashMap<>()));
+
+        loader.save(trigger);
 
         return true;
     }

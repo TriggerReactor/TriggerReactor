@@ -25,6 +25,7 @@ import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
@@ -58,6 +59,8 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
     private IExceptionHandle exceptionHandle;
     @Inject
     private ICommandTriggerFactory factory;
+    @Inject
+    private ITriggerLoader<CommandTrigger> loader;
 
     @Inject
     private CommandTriggerManager(@Named("DataFolder") File dataFolder,
@@ -169,7 +172,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
         put(cmd, trigger);
         commandHandler.sync();
-        pluginManagement.saveAsynchronously(this);
+        loader.save(trigger);
         return true;
     }
 

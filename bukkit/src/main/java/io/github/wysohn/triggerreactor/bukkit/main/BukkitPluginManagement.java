@@ -264,38 +264,6 @@ public class BukkitPluginManagement implements IPluginManagement {
     }
 
     @Override
-    public void saveAsynchronously(final Manager manager) {
-        if (savings.contains(manager.getClass()))
-            return;
-
-        new Thread(() -> {
-            try {
-                synchronized (savings) {
-                    savings.add(manager.getClass());
-                }
-
-                logger.info("Saving " + manager.getClass().getSimpleName());
-//                manager.saveAll();
-                logger.info("Saving Done!");
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.warning("Failed to save " + manager.getClass().getSimpleName());
-            } finally {
-                synchronized (savings) {
-                    savings.remove(manager.getClass());
-                }
-            }
-        }) {{
-            this.setPriority(MIN_PRIORITY);
-        }}.start();
-    }
-
-    @Override
-    public void saveAsynchronously(Class<? extends Manager> managerClass) {
-
-    }
-
-    @Override
     public <T> T getMain() {
         return (T) plugin;
     }
