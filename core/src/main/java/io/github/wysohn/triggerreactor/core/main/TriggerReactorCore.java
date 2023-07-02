@@ -90,6 +90,13 @@ public class TriggerReactorCore implements IPluginLifecycle {
             return;
         }
 
+        try {
+            managers.forEach(Manager::reload);
+        } catch (Exception e) {
+            initFailed(e);
+            return;
+        }
+
         // etc
         new Thread() {
             @Override
