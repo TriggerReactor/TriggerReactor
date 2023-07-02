@@ -239,6 +239,7 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
             T copy = (T) trigger.clone();
 
             setLocationCache(loc, copy);
+            clipboard.remove(player.getUniqueId());
         } catch (Exception e) {
             e.printStackTrace();
             //put it back if failed
@@ -255,6 +256,8 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
         if (!chunkMap.containsKey(scloc))
             return triggers;
 
+        // TODO this isn't right. we don't return triggers of every chunk, but only the chunk specified
+        //   also fix the test code
         for (Entry<SimpleChunkLocation, Map<SimpleLocation, T>> entry : chunkMap.entrySet()) {
             for (Entry<SimpleLocation, T> entryIn : entry.getValue().entrySet()) {
                 triggers.add(new SimpleEntry<>(entryIn.getKey(), entryIn.getValue()));
