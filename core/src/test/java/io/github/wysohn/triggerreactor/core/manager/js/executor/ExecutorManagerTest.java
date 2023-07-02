@@ -128,6 +128,9 @@ public class ExecutorManagerTest {
         executorManager.reload();
 
         // assert
+        verify(mockFileLoader).listFiles(
+                eq(new File(folder.getRoot(), ExecutorManager.JAR_FOLDER_LOCATION)),
+                any());
         assertTrue(executorManager.containsKey("DUMMY"));
         assertTrue(executorManager.containsKey("nested:DUMMY"));
         verify(mockScriptEngineGateway, times(2)).getEngine();

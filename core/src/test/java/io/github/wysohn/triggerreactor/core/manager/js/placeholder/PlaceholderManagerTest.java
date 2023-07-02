@@ -114,6 +114,9 @@ public class PlaceholderManagerTest {
         placeholderManager.reload();
 
         // assert
+        verify(mockFileLoader).listFiles(
+                eq(new File(folder.getRoot(), PlaceholderManager.JAR_FOLDER_LOCATION)),
+                any());
         assertTrue(placeholderManager.containsKey("dummy"));
         assertTrue(placeholderManager.containsKey("nested@dummy"));
         verify(mockScriptEngineGateway, times(2)).getEngine();

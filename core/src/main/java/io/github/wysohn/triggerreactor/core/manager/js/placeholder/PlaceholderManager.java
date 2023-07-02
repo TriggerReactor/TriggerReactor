@@ -73,7 +73,7 @@ public class PlaceholderManager
         FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
 
         evaluables.clear();
-        for (File file : fileLoader.listFiles(folder, filter)) {
+        for (File file : fileLoader.listFiles(new File(folder, JAR_FOLDER_LOCATION), filter)) {
             try {
                 reloadPlaceholders(file, filter);
             } catch (ScriptException | IOException e) {
