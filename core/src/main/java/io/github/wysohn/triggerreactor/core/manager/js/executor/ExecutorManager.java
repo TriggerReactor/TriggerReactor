@@ -47,10 +47,13 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
     @Inject
     private ScriptEngineProvider engineProvider;
 
+    private final File folder;
+
     @Inject
     private ExecutorManager(@Named("DataFolder") File dataFolder,
                             Map<String, Executor> overrides) throws IOException {
-        super(overrides, new File(dataFolder, "Executor"));
+        super(overrides);
+        this.folder = dataFolder;
     }
 
     @Override
@@ -123,7 +126,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
         }
     }
 
-    private static final String JAR_FOLDER_LOCATION = "Executor";
+    static final String JAR_FOLDER_LOCATION = "Executor";
     private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
 
     static {

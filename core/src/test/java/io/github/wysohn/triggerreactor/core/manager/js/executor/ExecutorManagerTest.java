@@ -101,8 +101,7 @@ public class ExecutorManagerTest {
         executorManager.initialize();
 
         // assert
-        verify(mockCopyHelper).copyFolderFromJar("Executor",
-                new File(folder.getRoot(), "Executor"));
+        verify(mockCopyHelper).copyFolderFromJar("Executor", folder.getRoot());
     }
 
     @Test

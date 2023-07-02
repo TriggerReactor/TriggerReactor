@@ -20,8 +20,6 @@ import io.github.wysohn.triggerreactor.core.manager.KeyValueManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.IEvaluable;
 
-import java.io.File;
-import java.io.FileFilter;
 import java.util.*;
 
 public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
@@ -30,14 +28,11 @@ public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
 
 
     protected final Map<String, T> overrides;
-    protected final File folder;
     protected Map<String, T> evaluables = new HashMap<>();
 
-    public AbstractJavascriptBasedManager(Map<String, T> overrides,
-                                          File folder) {
+    public AbstractJavascriptBasedManager(Map<String, T> overrides) {
         super();
         this.overrides = overrides;
-        this.folder = folder;
     }
 
     /* (non-Javadoc)
@@ -74,10 +69,5 @@ public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
     @Override
     public Map<String, T> getBackedMap() {
         return evaluables;
-    }
-
-    protected File[] listJSFiles() {
-        FileFilter filter = pathname -> pathname.isDirectory() || pathname.getName().endsWith(".js");
-        return Objects.requireNonNull(folder.listFiles(filter));
     }
 }

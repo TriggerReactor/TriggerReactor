@@ -50,10 +50,13 @@ public class PlaceholderManager
     @Inject
     private ScriptEngineProvider engineProvider;
 
+    private final File folder;
+
     @Inject
     private PlaceholderManager(@Named("DataFolder") File dataFolder,
                                Map<String, Placeholder> overrides) throws IOException {
-        super(overrides, new File(dataFolder, "Placeholder"));
+        super(overrides);
+        this.folder = dataFolder;
     }
 
     @Override
@@ -140,6 +143,6 @@ public class PlaceholderManager
         }
     }
 
-    private static final String JAR_FOLDER_LOCATION = "Placeholder";
+    static final String JAR_FOLDER_LOCATION = "Placeholder";
 
 }

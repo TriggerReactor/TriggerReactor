@@ -87,8 +87,7 @@ public class PlaceholderManagerTest {
         placeholderManager.initialize();
 
         // assert
-        verify(mockCopyHelper).copyFolderFromJar("Placeholder",
-                new File(folder.getRoot(), "Placeholder"));
+        verify(mockCopyHelper).copyFolderFromJar("Placeholder", folder.getRoot());
     }
 
     @Test
