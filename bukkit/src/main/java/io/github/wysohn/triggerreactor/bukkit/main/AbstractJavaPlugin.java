@@ -169,9 +169,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(areaTriggerListener, this);
         Bukkit.getPluginManager().registerEvents(areaSelectionListener, this);
 
-        for (Manager manager : managers) {
-            manager.reload();
-        }
+        // initiate core
+        core.initialize();
 
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
