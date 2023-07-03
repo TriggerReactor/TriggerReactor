@@ -52,9 +52,6 @@ public class TestInterpreter {
         Executor mockExecutor = mock(Executor.class);
         when(mockExecutor.evaluate(any(), any(), any(), any())).thenReturn(null);
 
-        InterpreterGlobalContext globalContext = new InterpreterGlobalContext();
-        globalContext.executorMap.put("MESSAGE", mockExecutor);
-
         Test test = Test.Builder.of(text)
                 .putExecutor("MESSAGE", mockExecutor)
                 .addScriptVariable("common", new InTest2())

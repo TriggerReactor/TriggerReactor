@@ -19,16 +19,17 @@ package io.github.wysohn.triggerreactor.core.manager.js;
 import io.github.wysohn.triggerreactor.core.manager.KeyValueManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.IEvaluable;
+import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 
 import java.util.*;
 
 public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
         extends Manager
-        implements KeyValueManager<T> {
+        implements KeyValueManager<T>, IBackedMapProvider<T> {
 
 
     protected final Map<String, T> overrides;
-    protected Map<String, T> evaluables = new HashMap<>();
+    protected Map<String, T> evaluables = new CaseInsensitiveStringMap<>();
 
     public AbstractJavascriptBasedManager(Map<String, T> overrides) {
         super();
@@ -68,6 +69,6 @@ public abstract class AbstractJavascriptBasedManager<T extends IEvaluable>
      */
     @Override
     public Map<String, T> getBackedMap() {
-        return evaluables;
+        return Collections.unmodifiableMap(evaluables);
     }
 }

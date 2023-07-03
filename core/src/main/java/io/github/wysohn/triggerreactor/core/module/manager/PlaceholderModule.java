@@ -18,10 +18,14 @@
 package io.github.wysohn.triggerreactor.core.module.manager;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.MapBinder;
 import io.github.wysohn.triggerreactor.core.manager.evaluable.JSPlaceholder;
+import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.IJSPlaceholderFactory;
+import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 
 public class PlaceholderModule extends AbstractModule {
@@ -33,5 +37,8 @@ public class PlaceholderModule extends AbstractModule {
         install(new FactoryModuleBuilder()
                 .implement(Placeholder.class, JSPlaceholder.class)
                 .build(IJSPlaceholderFactory.class));
+
+        bind(Key.get(new TypeLiteral<IBackedMapProvider<Placeholder>>() {
+        })).to(PlaceholderManager.class);
     }
 }

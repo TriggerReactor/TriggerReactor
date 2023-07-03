@@ -17,6 +17,12 @@
 
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Provides;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
 import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.lexer.LexerException;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
@@ -31,11 +37,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class Test {
     private final String script;
 
     private Charset charset = StandardCharsets.UTF_8;
-    private InterpreterGlobalContext globalContext = new InterpreterGlobalContext();
+    private InterpreterGlobalContext globalContext;
     private Map<String, Object> scriptVars = new HashMap<>();
     private Interpreter interpreter;
 
@@ -70,8 +79,48 @@ public class Test {
         private final Test test;
 
         private Builder(String script) {
+            IBackedMapProvider<Executor> executorMapProvider = mock(IBackedMapProvider.class);
+            IBackedMapProvider<Placeholder> placeholderMapProvider = mock(IBackedMapProvider.class);
+            IGlobalVariableManager globalVariableManager = mock(IGlobalVariableManager.class);
+
+            when(executorMapProvider.getBackedMap()).thenReturn(new HashMap<>());
+            when(placeholderMapProvider.getBackedMap()).thenReturn(new HashMap<>());
+            when(globalVariableManager.getGlobalVariableAdapter()).thenReturn(new HashMap<>());
+
             this.test = new Test(script);
-            this.test.globalContext = new InterpreterGlobalContext();
+            this.test.globalContext = Guice.createInjector(
+                    new AbstractModule() {
+                        @Provides
+                        public IBackedMapProvider<Executor> provideExecutorMapProvider() {
+                            return executorMapProvider;
+                        }
+
+                        @Provides
+                        public IBackedMapProvider<Placeholder> providePlaceholderMapProvider() {
+                            return placeholderMapProvider;
+                        }
+
+                        @Provides
+                        public IGlobalVariableManager provideGlobalVariableManager() {
+                            return globalVariableManager;
+                        }
+
+                        @Provides
+                        public IExceptionHandle provideExceptionHandle() {
+                            return mock(IExceptionHandle.class);
+                        }
+
+                        @Provides
+                        public SelfReference provideSelfReference() {
+                            return mock(SelfReference.class);
+                        }
+
+                        @Provides
+                        public TaskSupervisor provideTaskSupervisor() {
+                            return mock(TaskSupervisor.class);
+                        }
+                    }
+            ).getInstance(InterpreterGlobalContext.class);
         }
 
         public Builder charset(Charset charset) {

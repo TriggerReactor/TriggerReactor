@@ -16,7 +16,7 @@
  */
 package io.github.wysohn.triggerreactor.core.main;
 
-import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.Manager;
 import io.github.wysohn.triggerreactor.core.manager.PluginConfigManager;
 import io.github.wysohn.triggerreactor.core.manager.ScriptEngineInitializer;
@@ -61,7 +61,7 @@ public class TriggerReactorCore implements IPluginLifecycle {
     @Inject
     private PluginConfigManager pluginConfigManager;
     @Inject
-    private GlobalVariableManager globalVariableManager;
+    private IGlobalVariableManager IGlobalVariableManager;
     @Inject
     private ScriptEngineManager scriptEngineManager;
     @Inject

@@ -18,6 +18,9 @@
 package io.github.wysohn.triggerreactor.core.module.manager;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
+import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.module.manager.trigger.TriggerManagerModule;
 
 public class ManagerModule extends AbstractModule {
@@ -28,5 +31,7 @@ public class ManagerModule extends AbstractModule {
         install(new TriggerManagerModule());
         install(new ConfigurationModule());
         install(new ScriptEngineModule());
+
+        bind(IGlobalVariableManager.class).to(GlobalVariableManager.class).in(Singleton.class);
     }
 }

@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 @Singleton
-public class GlobalVariableManager extends Manager implements IMigratable {
+public class GlobalVariableManager extends Manager implements IMigratable, IGlobalVariableManager {
     @Inject
     private Logger logger;
     @Inject
@@ -42,7 +42,7 @@ public class GlobalVariableManager extends Manager implements IMigratable {
     @Named("GlobalVariable")
     private IConfigSource configSource;
 
-//    private GlobalVariableManager(TriggerReactorCore plugin) {
+    //    private GlobalVariableManager(TriggerReactorCore plugin) {
 //        this(plugin, ConfigSourceFactory.instance().create(plugin.getDataFolder(), "var"));
 //    }
     @Inject
@@ -133,6 +133,7 @@ public class GlobalVariableManager extends Manager implements IMigratable {
      *
      * @return
      */
+    @Override
     public HashMap<Object, Object> getGlobalVariableAdapter() {
         return adapter;
     }

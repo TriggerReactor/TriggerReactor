@@ -18,27 +18,23 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
-import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The globally shared states
- *
+ * <p>
  * This can be concurrently accessed by multiple threads, so
  * these variables must be accessed in a thread-safe way (or read only),
  * or there can be race-condition (or concurrent modification exception) occur.
  */
 @Singleton
 public class InterpreterGlobalContext {
-    private final Executor EXECUTOR_STOP = (timing, vars, context, args) -> Executor.STOP;
-    private final Executor EXECUTOR_BREAK = (timing, vars, context, args) -> Executor.BREAK;
-    private final Executor EXECUTOR_CONTINUE = (timing, vars, context, args) -> Executor.CONTINUE;
-
     @Inject
     TaskSupervisor task;
     @Inject
@@ -46,11 +42,20 @@ public class InterpreterGlobalContext {
     @Inject
     IExceptionHandle exceptionHandle;
 
-    final Map<String, Executor> executorMap = new CaseInsensitiveStringMap<Executor>() {{
-        put("STOP", EXECUTOR_STOP);
-        put("BREAK", EXECUTOR_BREAK);
-        put("CONTINUE", EXECUTOR_CONTINUE);
-    }};
-    final Map<String, Placeholder> placeholderMap = new CaseInsensitiveStringMap<>();
-    final Map<Object, Object> gvars = new ConcurrentHashMap<>();
+    final Map<String, Executor> executorMap;
+    final Map<String, Placeholder> placeholderMap;
+    final Map<Object, Object> gvars;
+
+    @Inject
+    private InterpreterGlobalContext(IBackedMapProvider<Executor> executorManager,
+                                     IBackedMapProvider<Placeholder> placeholderManager,
+                                     IGlobalVariableManager IGlobalVariableManager) {
+        executorMap = executorManager.getBackedMap();
+        placeholderMap = placeholderManager.getBackedMap();
+        gvars = IGlobalVariableManager.getGlobalVariableAdapter();
+
+        executorMap.put("STOP", (timing1, vars1, context1, args1) -> Executor.STOP);
+        executorMap.put("BREAK", (timing1, vars1, context1, args1) -> Executor.BREAK);
+        executorMap.put("CONTINUE", (timing, vars, context, args) -> Executor.CONTINUE);
+    }
 }

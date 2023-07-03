@@ -20,7 +20,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
-import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
@@ -56,7 +56,7 @@ public abstract class Trigger implements Cloneable, IObservable {
     @Inject
     private PlaceholderManager placeholderManager;
     @Inject
-    private GlobalVariableManager globalVariableManager;
+    private IGlobalVariableManager IGlobalVariableManager;
     @Inject
     private IPluginManagement pluginManagement;
     @Inject
@@ -137,7 +137,7 @@ public abstract class Trigger implements Cloneable, IObservable {
 
             executorMap = executorManager.getBackedMap();
             placeholderMap = placeholderManager.getBackedMap();
-            gvarMap = globalVariableManager.getGlobalVariableAdapter();
+            gvarMap = IGlobalVariableManager.getGlobalVariableAdapter();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
                                                          + " -- " + info + "]!", ex);

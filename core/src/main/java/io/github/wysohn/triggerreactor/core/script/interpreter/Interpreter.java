@@ -20,7 +20,6 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaFunction;
 import io.github.wysohn.triggerreactor.core.script.interpreter.lambda.LambdaParameter;
-import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
 import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
@@ -32,9 +31,6 @@ import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -1365,38 +1361,6 @@ public class Interpreter {
         }
 
         return null;
-    }
-
-    public static void main(String[] ar) throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "x = null;" +
-                "y = null;" +
-                "x.y.hoho();";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> variables, Object e,
-                                    Object... args) throws Exception {
-                return null;
-            }
-        });
-
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
-
-        InterpreterGlobalContext gContext = new InterpreterGlobalContext();
-        gContext.placeholderMap.putAll(placeholderMap);
-        gContext.gvars.putAll(gvars);
-
-        Interpreter interpreter = InterpreterBuilder.start(gContext, root)
-                .build();
-
-        interpreter.start(null);
     }
 
     static {

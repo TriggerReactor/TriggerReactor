@@ -22,6 +22,7 @@ import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
+import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
@@ -34,7 +35,7 @@ public class TestTriggerDependencyModule extends AbstractModule {
     private SharedVariableManager sharedVariableManager;
     private ExecutorManager executorManager;
     private PlaceholderManager placeholderManager;
-    private GlobalVariableManager globalVariableManager;
+    private IGlobalVariableManager IGlobalVariableManager;
     private IPluginManagement pluginManagement;
     private TaskSupervisor taskSupervisor;
     private IExceptionHandle exceptionHandle;
@@ -60,8 +61,8 @@ public class TestTriggerDependencyModule extends AbstractModule {
     }
 
     @Provides
-    public GlobalVariableManager provideGlobalVariableManager() {
-        return globalVariableManager;
+    public IGlobalVariableManager provideGlobalVariableManager() {
+        return IGlobalVariableManager;
     }
 
     @Provides
@@ -89,7 +90,7 @@ public class TestTriggerDependencyModule extends AbstractModule {
         private SharedVariableManager sharedVariableManager = mock(SharedVariableManager.class);
         private ExecutorManager executorManager = mock(ExecutorManager.class);
         private PlaceholderManager placeholderManager = mock(PlaceholderManager.class);
-        private GlobalVariableManager globalVariableManager = mock(GlobalVariableManager.class);
+        private IGlobalVariableManager IGlobalVariableManager = mock(GlobalVariableManager.class);
         private IPluginManagement pluginManagement = mock(IPluginManagement.class);
         private TaskSupervisor taskSupervisor = mock(TaskSupervisor.class);
         private IExceptionHandle exceptionHandle = mock(IExceptionHandle.class);
@@ -114,8 +115,8 @@ public class TestTriggerDependencyModule extends AbstractModule {
             return this;
         }
 
-        public Builder globalVariableManager(GlobalVariableManager globalVariableManager) {
-            this.globalVariableManager = globalVariableManager;
+        public Builder globalVariableManager(IGlobalVariableManager IGlobalVariableManager) {
+            this.IGlobalVariableManager = IGlobalVariableManager;
             return this;
         }
 
@@ -144,7 +145,7 @@ public class TestTriggerDependencyModule extends AbstractModule {
             module.sharedVariableManager = sharedVariableManager;
             module.executorManager = executorManager;
             module.placeholderManager = placeholderManager;
-            module.globalVariableManager = globalVariableManager;
+            module.IGlobalVariableManager = IGlobalVariableManager;
             module.pluginManagement = pluginManagement;
             module.taskSupervisor = taskSupervisor;
             module.exceptionHandle = exceptionHandle;
