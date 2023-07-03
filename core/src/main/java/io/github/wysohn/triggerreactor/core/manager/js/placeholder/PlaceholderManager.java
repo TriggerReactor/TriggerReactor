@@ -31,8 +31,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Stack;
 import java.util.logging.Logger;
 
 @Singleton
@@ -86,30 +87,6 @@ public class PlaceholderManager
     @Override
     public void shutdown() {
 
-    }
-
-    @Override
-    public Placeholder get(Object key) {
-        return evaluables.get(key);
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return evaluables.containsKey(key);
-    }
-
-    @Override
-    public Set<Entry<String, Placeholder>> entrySet() {
-        Set<Entry<String, Placeholder>> set = new HashSet<>();
-        for (Entry<String, Placeholder> entry : evaluables.entrySet()) {
-            set.add(new AbstractMap.SimpleEntry<String, Placeholder>(entry.getKey(), entry.getValue()));
-        }
-        return set;
-    }
-
-    @Override
-    public Map<String, Placeholder> getBackedMap() {
-        return evaluables;
     }
 
     protected void reloadPlaceholders(File file, FileFilter filter) throws ScriptException, IOException {
