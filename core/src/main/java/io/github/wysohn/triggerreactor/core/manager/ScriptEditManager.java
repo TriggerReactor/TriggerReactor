@@ -71,7 +71,7 @@ public class ScriptEditManager extends Manager {
      * @param saveHandler the callback interface that allows you to save the script written by editor.
      */
     public void startEdit(ICommandSender sender, String title, String script, SaveHandler saveHandler) {
-        UserImpl editorUser = new UserImpl(sender.get());
+        UserImpl editorUser = new UserImpl((IPlayer) sender);
 
         if (editings.containsKey(editorUser))
             return;
