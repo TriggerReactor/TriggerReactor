@@ -21,6 +21,7 @@ import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import io.github.wysohn.triggerreactor.tools.CaseInsensitiveStringMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -50,12 +51,40 @@ public class InterpreterGlobalContext {
     private InterpreterGlobalContext(IBackedMapProvider<Executor> executorManager,
                                      IBackedMapProvider<Placeholder> placeholderManager,
                                      IGlobalVariableManager IGlobalVariableManager) {
-        executorMap = executorManager.getBackedMap();
+        executorMap = DelegatingExecutorMap.wrap(executorManager.getBackedMap());
         placeholderMap = placeholderManager.getBackedMap();
         gvars = IGlobalVariableManager.getGlobalVariableAdapter();
+    }
 
-        executorMap.put("STOP", (timing1, vars1, context1, args1) -> Executor.STOP);
-        executorMap.put("BREAK", (timing1, vars1, context1, args1) -> Executor.BREAK);
-        executorMap.put("CONTINUE", (timing, vars, context, args) -> Executor.CONTINUE);
+    /**
+     * Backed maps are immutable, so we must proxy the map to allow
+     * pre-defined executors to be used.
+     */
+    private static class DelegatingExecutorMap extends CaseInsensitiveStringMap<Executor> {
+        private final Map<String, Executor> delegate;
+
+        DelegatingExecutorMap(Map<String, Executor> delegate) {
+            this.delegate = delegate;
+
+            put("STOP", (timing1, vars1, context1, args1) -> Executor.STOP);
+            put("BREAK", (timing1, vars1, context1, args1) -> Executor.BREAK);
+            put("CONTINUE", (timing, vars, context, args) -> Executor.CONTINUE);
+        }
+
+        @Override
+        public Executor get(Object key) {
+            if (super.containsKey(key))
+                return super.get(key);
+            return delegate.get(key);
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return super.containsKey(key) || delegate.containsKey(key);
+        }
+
+        static DelegatingExecutorMap wrap(Map<String, Executor> delegate) {
+            return new DelegatingExecutorMap(delegate);
+        }
     }
 }

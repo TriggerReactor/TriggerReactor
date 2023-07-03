@@ -391,8 +391,8 @@ public class Interpreter {
             }
 
             context.pushToken(new Token(Type.EPS,
-                                        new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
-                                        node.getToken()));
+                    new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
+                    node.getToken()));
         } else if (node.getToken().getType() == Type.SYNC) {
             try {
                 globalContext.task.submitSync(new Callable<Void>() {
@@ -565,8 +565,8 @@ public class Interpreter {
         } else if (id.type == Type.GID || id.type == Type.GID_TEMP) {
             if (value.type == Type.NULLVALUE) {
                 globalContext.gvars.remove(id.type == Type.GID
-                                                   ? id.value.toString()
-                                                   : new TemporaryGlobalVariableKey(id.value.toString()));
+                        ? id.value.toString()
+                        : new TemporaryGlobalVariableKey(id.value.toString()));
             } else {
                 if (isVariable(value)) {
                     value = unwrapVariable(value);
@@ -609,7 +609,7 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                                               e);
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error while executing fuction " + right, e);
             } catch (IllegalArgumentException e) {
@@ -623,7 +623,7 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " is not visible.", e);
             } catch (NoSuchMethodException e) {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
-                                               e);
+                        e);
             } catch (InvocationTargetException e) {
                 throw new InterpreterException("Error while executing fuction " + right, e);
             } catch (IllegalArgumentException e) {
@@ -671,7 +671,7 @@ public class Interpreter {
             return parseValue(globalContext.gvars.get(varToken.value), varToken);
         } else if (varToken.type == Type.GID_TEMP) {
             return parseValue(globalContext.gvars.get(new TemporaryGlobalVariableKey((String) varToken.value)),
-                              varToken);
+                    varToken);
         } else if (varToken.type == Type.ACCESS) {
             Accessor accessor = (Accessor) varToken.value;
             Object var;
@@ -770,10 +770,10 @@ public class Interpreter {
                     if (!globalContext.executorMap.containsKey(command))
                         throw new InterpreterException("No executor named #" + command + " found!");
 
-                    return globalContext.executorMap.get(command).evaluate(context.getTiming(),
-                                                                           context.getVars(),
-                                                                           context.getTriggerCause(),
-                                                                           args);
+                    return (Integer) globalContext.executorMap.get(command).evaluate(context.getTiming(),
+                            context.getVars(),
+                            context.getTriggerCause(),
+                            args);
                 }
             } else if (node.getToken().type == Type.PLACEHOLDER) {
                 String placeholderName = (String) node.getToken().value;
@@ -957,14 +957,14 @@ public class Interpreter {
 
                     if (integer) {
                         context.pushToken(new Token(Type.INTEGER,
-                                                    result.intValue(),
-                                                    node.getToken().row,
-                                                    node.getToken().col));
+                                result.intValue(),
+                                node.getToken().row,
+                                node.getToken().col));
                     } else {
                         context.pushToken(new Token(Type.DECIMAL,
-                                                    result.doubleValue(),
-                                                    node.getToken().row,
-                                                    node.getToken().col));
+                                result.doubleValue(),
+                                node.getToken().row,
+                                node.getToken().col));
                     }
                 }
             } else if (node.getToken().type == Type.OPERATOR_UNARY) {
@@ -980,10 +980,10 @@ public class Interpreter {
                                 "Cannot do unary minus operation for non-numeric value " + value);
 
                     context.pushToken(value.isInteger() ? new Token(Type.INTEGER,
-                                                                    -value.toInteger(),
-                                                                    value.row,
-                                                                    value.col)
-                                              : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
+                            -value.toInteger(),
+                            value.row,
+                            value.col)
+                            : new Token(Type.DECIMAL, -value.toDecimal(), value.row, value.col));
                 } else {
                     Token var = context.popToken();
 
@@ -996,59 +996,59 @@ public class Interpreter {
                         boolean processed = false;
                         if ("++expr".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() + 1,
-                                                                             var.row,
-                                                                             var.col)
-                                                : new Token(Type.DECIMAL,
-                                                            unwrappedVar.toDecimal() + 1,
-                                                            var.row,
-                                                            var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() + 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() + 1,
+                                            var.row,
+                                            var.col));
                             processed = true;
                         } else if ("--expr".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() - 1,
-                                                                             var.row,
-                                                                             var.col)
-                                                : new Token(Type.DECIMAL,
-                                                            unwrappedVar.toDecimal() - 1,
-                                                            var.row,
-                                                            var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() - 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() - 1,
+                                            var.row,
+                                            var.col));
                             processed = true;
                         }
 
                         unwrappedVar = unwrapVariable(var);
                         context.pushToken(unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                               unwrappedVar.toInteger(),
-                                                                               var.row,
-                                                                               var.col)
-                                                  : new Token(Type.DECIMAL,
-                                                              unwrappedVar.toDecimal(),
-                                                              var.row,
-                                                              var.col));
+                                unwrappedVar.toInteger(),
+                                var.row,
+                                var.col)
+                                : new Token(Type.DECIMAL,
+                                unwrappedVar.toDecimal(),
+                                var.row,
+                                var.col));
 
                         if ("expr++".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() + 1,
-                                                                             var.row,
-                                                                             var.col)
-                                                : new Token(Type.DECIMAL,
-                                                            unwrappedVar.toDecimal() + 1,
-                                                            var.row,
-                                                            var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() + 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() + 1,
+                                            var.row,
+                                            var.col));
                             processed = true;
                         } else if ("expr--".equals(node.getToken().value)) {
                             assignValue(var,
-                                        unwrappedVar.isInteger() ? new Token(Type.INTEGER,
-                                                                             unwrappedVar.toInteger() - 1,
-                                                                             var.row,
-                                                                             var.col)
-                                                : new Token(Type.DECIMAL,
-                                                            unwrappedVar.toDecimal() - 1,
-                                                            var.row,
-                                                            var.col));
+                                    unwrappedVar.isInteger() ? new Token(Type.INTEGER,
+                                            unwrappedVar.toInteger() - 1,
+                                            var.row,
+                                            var.col)
+                                            : new Token(Type.DECIMAL,
+                                            unwrappedVar.toDecimal() - 1,
+                                            var.row,
+                                            var.col));
                             processed = true;
                         }
 
@@ -1098,44 +1098,44 @@ public class Interpreter {
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) < (
-                                                                right.isInteger()
-                                                                        ? right.toInteger()
-                                                                        : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) < (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case ">":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) > (
-                                                                right.isInteger()
-                                                                        ? right.toInteger()
-                                                                        : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) > (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case "<=":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) <= (
-                                                                right.isInteger()
-                                                                        ? right.toInteger()
-                                                                        : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) <= (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case ">=":
                             if (!left.isNumeric() || !right.isNumeric())
                                 throw new InterpreterException("Only numeric values can be compared!");
 
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        (left.isInteger() ? left.toInteger() : left.toDecimal()) >= (
-                                                                right.isInteger()
-                                                                        ? right.toInteger()
-                                                                        : right.toDecimal()),
-                                                        node.getToken()));
+                                    (left.isInteger() ? left.toInteger() : left.toDecimal()) >= (
+                                            right.isInteger()
+                                                    ? right.toInteger()
+                                                    : right.toDecimal()),
+                                    node.getToken()));
                             break;
                         case "==":
                             if (left.type == Type.NULLVALUE || right.type == Type.NULLVALUE) {
@@ -1148,8 +1148,8 @@ public class Interpreter {
                                 }
                             } else {
                                 context.pushToken(new Token(Type.BOOLEAN,
-                                                            left.value.equals(right.value),
-                                                            node.getToken()));
+                                        left.value.equals(right.value),
+                                        node.getToken()));
                             }
 
                             break;
@@ -1164,19 +1164,19 @@ public class Interpreter {
                                 }
                             } else {
                                 context.pushToken(new Token(Type.BOOLEAN,
-                                                            !left.value.equals(right.value),
-                                                            node.getToken()));
+                                        !left.value.equals(right.value),
+                                        node.getToken()));
                             }
                             break;
                         case "&&":
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        left.toBoolean() && right.toBoolean(),
-                                                        node.getToken()));
+                                    left.toBoolean() && right.toBoolean(),
+                                    node.getToken()));
                             break;
                         case "||":
                             context.pushToken(new Token(Type.BOOLEAN,
-                                                        left.toBoolean() || right.toBoolean(),
-                                                        node.getToken()));
+                                    left.toBoolean() || right.toBoolean(),
+                                    node.getToken()));
                             break;
                     }
                 }
@@ -1209,8 +1209,8 @@ public class Interpreter {
 
                             if (left.type == Type.THIS) {
                                 callFunction(new Token(Type.OBJECT, right.value, node.getToken()),
-                                             new Token(Type.OBJECT, globalContext.selfReference, node.getToken()),
-                                             args);
+                                        new Token(Type.OBJECT, globalContext.selfReference, node.getToken()),
+                                        args);
                             } else {
                                 Token temp = left;
 
@@ -1268,8 +1268,8 @@ public class Interpreter {
 
                                 if (left.isObject() || left.isArray()) {
                                     context.pushToken(new Token(Type.ACCESS,
-                                                                new Accessor(left.value, (String) right.value),
-                                                                node.getToken()));
+                                            new Accessor(left.value, (String) right.value),
+                                            node.getToken()));
                                 } else {
                                     Accessor accessor = (Accessor) left.value;
 
@@ -1283,8 +1283,8 @@ public class Interpreter {
                                     }
 
                                     context.pushToken(new Token(Type.ACCESS,
-                                                                new Accessor(var, (String) right.value),
-                                                                node.getToken()));
+                                            new Accessor(var, (String) right.value),
+                                            node.getToken()));
                                 }
                             }
                         }
@@ -1332,16 +1332,16 @@ public class Interpreter {
                 context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.INTEGER) {
                 context.pushToken(new Token(node.getToken().type,
-                                            Integer.parseInt((String) node.getToken().value),
-                                            node.getToken()));
+                        Integer.parseInt((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.DECIMAL) {
                 context.pushToken(new Token(node.getToken().type,
-                                            Double.parseDouble((String) node.getToken().value),
-                                            node.getToken()));
+                        Double.parseDouble((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.BOOLEAN) {
                 context.pushToken(new Token(node.getToken().type,
-                                            Boolean.parseBoolean((String) node.getToken().value),
-                                            node.getToken()));
+                        Boolean.parseBoolean((String) node.getToken().value),
+                        node.getToken()));
             } else if (node.getToken().type == Type.EPS) {
                 context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else if (node.getToken().type == Type.NULLVALUE) {
