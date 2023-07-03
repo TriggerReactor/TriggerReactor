@@ -17,7 +17,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.share.api;
 
 import com.google.inject.Injector;
-import io.github.wysohn.triggerreactor.core.main.TriggerReactorCore;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
@@ -58,7 +57,7 @@ public abstract class AbstractAPISupport {
         if (!sharedVars.containsKey(varName)) {
             Constructor<?> con = null;
             try {
-                con = clazz.getConstructor(TriggerReactorCore.class);
+                con = clazz.getConstructor(Injector.class);
             } catch (NoSuchMethodException | SecurityException e1) {
                 e1.printStackTrace();
             }
