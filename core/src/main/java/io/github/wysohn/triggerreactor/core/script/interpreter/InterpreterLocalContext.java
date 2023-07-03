@@ -19,7 +19,6 @@ package io.github.wysohn.triggerreactor.core.script.interpreter;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
-import io.github.wysohn.triggerreactor.tools.VarMap;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.*;
@@ -98,6 +97,8 @@ public class InterpreterLocalContext {
 
             context.importMap.putAll(importMap);
             context.vars.putAll(vars);
+            //TODO what exactly it was used for?
+            context.extras.putAll(extras);
 
             return context;
         });
@@ -123,8 +124,16 @@ public class InterpreterLocalContext {
         tryOrThrow(() -> this.callArgsSize = callArgsSize);
     }
 
-    Map<String, Class<?>> getImportMap() {
-        return tryOrThrow(() -> importMap);
+    boolean hasImport(String name) {
+        return tryOrThrow(() -> importMap.containsKey(name));
+    }
+
+    void setImport(String name, Class<?> clazz) {
+        tryOrThrow(() -> importMap.put(name, clazz));
+    }
+
+    Class<?> getImport(String name) {
+        return tryOrThrow(() -> importMap.get(name));
     }
 
     Timings.Timing getTiming() {
@@ -168,7 +177,9 @@ public class InterpreterLocalContext {
 
     public void putAllVars(Map<String, Object> scriptVars) {
         tryOrThrow(() -> {
-            vars.putAll(scriptVars);
+            vars.putAll(scriptVars.entrySet().stream()
+                    .filter(e -> e.getValue() != null)
+                    .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll));
             return null;
         });
     }

@@ -591,8 +591,8 @@ public class Interpreter {
     private void callFunction(Token right, Token left, Object[] args) throws InterpreterException {
         Object result;
 
-        if (context.getImportMap().containsKey(right.value)) {
-            Class<?> clazz = context.getImportMap().get(right.value);
+        if (context.hasImport((String) right.value)) {
+            Class<?> clazz = context.getImport((String) right.value);
 
             try {
                 result = ReflectionUtil.constructNew(clazz, args);
@@ -659,8 +659,8 @@ public class Interpreter {
 
     private Token unwrapVariable(Token varToken) throws InterpreterException {
         if (varToken.type == Type.ID) {
-            if (context.getImportMap().containsKey(varToken.value)) {
-                Class<?> clazz = context.getImportMap().get(varToken.value);
+            if (context.hasImport((String) varToken.value)) {
+                Class<?> clazz = context.getImport((String) varToken.value);
                 return new Token(Type.CLAZZ, clazz, varToken.row, varToken.col);
             }
 
@@ -1352,7 +1352,7 @@ public class Interpreter {
                 if (node.getChildren().size() == 1) {
                     name = (String) node.getChildren().get(0).getToken().value;
                 }
-                context.getImportMap().put(name, clazz);
+                context.setImport(name, clazz);
             } else {
                 throw new InterpreterException("Cannot interpret the unknown node " + node.getToken().type.name());
             }
