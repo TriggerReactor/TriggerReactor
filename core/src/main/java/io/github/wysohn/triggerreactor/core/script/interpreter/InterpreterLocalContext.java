@@ -58,7 +58,9 @@ public class InterpreterLocalContext {
      */
     private final Map<String, Object> extras = new HashMap<>();
 
-    private final Map<String, Object> vars = new VarMap();
+    private final Map<String, Object> vars = new HashMap<>();
+    private ProcessInterrupter interrupter = null;
+
     private final Timings.Timing timing;
 
     private boolean stopFlag = false;
@@ -70,8 +72,6 @@ public class InterpreterLocalContext {
 
     //TODO this is a temporary solution. Move this to variable map with a special key.
     private Object triggerCause = null;
-
-    private ProcessInterrupter interrupter = null;
 
     public InterpreterLocalContext(Timings.Timing timing) {
         this(timing, null);
