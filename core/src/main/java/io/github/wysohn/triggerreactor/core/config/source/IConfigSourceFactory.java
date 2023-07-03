@@ -20,5 +20,16 @@ package io.github.wysohn.triggerreactor.core.config.source;
 import java.io.File;
 
 public interface IConfigSourceFactory {
+    /**
+     * Create a new config file or load existing one.
+     * <p>
+     * Postcondition: the file is guaranteed to exist and loaded if not newly created.
+     *
+     * @param type     type of the config source.
+     * @param folder   the folder where config file will reside
+     * @param fileName name of the file <b>without</b> any dots. The underlying
+     *                 factory will append the extension as needed.
+     * @return config source
+     */
     IConfigSource create(String type, File folder, String fileName);
 }

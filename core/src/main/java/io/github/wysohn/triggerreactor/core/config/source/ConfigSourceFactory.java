@@ -13,7 +13,11 @@ public class ConfigSourceFactory {
 
     static {
         factories.put("none", (type, folder, fileName) -> new EmptyConfigSource());
-        factories.put("gson", (type, folder, fileName) -> new GsonConfigSource(new File(folder, fileName + ".json")));
+        factories.put("gson", (type, folder, fileName) -> {
+            IConfigSource source = new GsonConfigSource(new File(folder, fileName + ".json"));
+            source.reload();
+            return source;
+        });
     }
 
     /**
@@ -51,7 +55,7 @@ public class ConfigSourceFactory {
      * @param folder   the folder where config file will reside
      * @param fileName name of the file <b>without</b> any dots. The underlying
      *                 factory will append the extension as needed.
-     * @return the new config source responsible for the given folder and fileName
+     * @return the new/existing config source responsible for the given folder and fileName
      */
     public IConfigSource create(String type, File folder, String fileName) {
         if (!folder.exists())
