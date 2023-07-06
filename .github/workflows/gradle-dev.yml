@@ -11,6 +11,8 @@ on:
 jobs:
   test_windows:
     runs-on: windows-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
+
     strategy:
       fail-fast: true
       matrix:
@@ -37,6 +39,8 @@ jobs:
 
   test_ubuntu:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
+
     strategy:
       fail-fast: true
       matrix:
@@ -63,6 +67,8 @@ jobs:
 
   test_ubuntu_jdk15:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
+
     strategy:
       fail-fast: true
       matrix:
@@ -87,6 +93,8 @@ jobs:
 
   test_ubuntu_jdk8:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
+
     strategy:
       fail-fast: true
       matrix:
@@ -112,6 +120,7 @@ jobs:
   build:
     needs: [ test_windows, test_ubuntu, test_ubuntu_jdk8, test_ubuntu_jdk15 ]
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
 
     steps:
       - uses: actions/checkout@v3
@@ -137,6 +146,8 @@ jobs:
   upload_artifact:
     needs: [ build ]
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[ci skip]') }}
+
     strategy:
       matrix:
         file_name:
