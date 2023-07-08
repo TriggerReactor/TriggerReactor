@@ -51,6 +51,8 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
     private IInventoryHandle inventoryHandle;
     @Inject
     private ITriggerLoader<InventoryTrigger> loader;
+    @Inject
+    private IInventoryTriggerFactory factory;
 
     @Inject
     private InventoryTriggerManager(@Named("DataFolder") File folder,
@@ -125,7 +127,7 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
         File file = getTriggerFile(folder, name, true);
         IConfigSource config = configSourceFactory.create(folder, name);
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
-        InventoryTrigger trigger = put(name, new InventoryTrigger(info, script, size, new HashMap<>()));
+        InventoryTrigger trigger = factory.create(info, script, new IItemStack[size]);
 
         loader.save(trigger);
 

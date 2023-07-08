@@ -27,8 +27,6 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 
-import java.util.Map;
-
 public class InventoryTrigger extends Trigger {
     @Inject
     private IPluginManagement pluginManagement;
@@ -47,24 +45,24 @@ public class InventoryTrigger extends Trigger {
         this.items = items;
     }
 
-    public InventoryTrigger(@Assisted TriggerInfo info,
-                            @Assisted String script,
-                            @Assisted int size,
-                            @Assisted Map<Integer, IItemStack> items) throws
-            AbstractTriggerManager.TriggerInitFailedException {
-        super(info, script);
-        if (size < 9 || size % 9 != 0)
-            throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
-
-        if (size > MAXSIZE)
-            throw new IllegalArgumentException("Inventory Size cannot be larger than " + MAXSIZE);
-
-        this.items = new IItemStack[size];
-
-        for (Map.Entry<Integer, IItemStack> entry : items.entrySet()) {
-            this.items[entry.getKey()] = entry.getValue();
-        }
-    }
+//    public InventoryTrigger(@Assisted TriggerInfo info,
+//                            @Assisted String script,
+//                            @Assisted int size,
+//                            @Assisted Map<Integer, IItemStack> items) throws
+//            AbstractTriggerManager.TriggerInitFailedException {
+//        super(info, script);
+//        if (size < 9 || size % 9 != 0)
+//            throw new IllegalArgumentException("Inventory Trigger size should be multiple of 9!");
+//
+//        if (size > MAXSIZE)
+//            throw new IllegalArgumentException("Inventory Size cannot be larger than " + MAXSIZE);
+//
+//        this.items = new IItemStack[size];
+//
+//        for (Map.Entry<Integer, IItemStack> entry : items.entrySet()) {
+//            this.items[entry.getKey()] = entry.getValue();
+//        }
+//    }
 
     @Override
     protected ProcessInterrupter createInterrupter() {
