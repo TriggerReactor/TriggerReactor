@@ -947,6 +947,8 @@ public class TRGCommandHandler {
 
                                             //TODO not quite intuitive. Think of a better way
                                             areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
+
+                                            sender.sendMessage("&aScript is updated!");
                                         } catch (Exception e) {
                                             exceptionHandle.handleException(sender, e);
                                         }
@@ -958,6 +960,8 @@ public class TRGCommandHandler {
 
                                     //TODO not quite intuitive. Think of a better way
                                     areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
+
+                                    sender.sendMessage("&aScript is updated!");
                                 } catch (Exception e) {
                                     exceptionHandle.handleException(sender, e);
                                 }
@@ -1001,6 +1005,8 @@ public class TRGCommandHandler {
 
                                             //TODO not quite intuitive. Think of a better way
                                             areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
+
+                                            sender.sendMessage("&aScript is updated!");
                                         } catch (Exception e) {
                                             exceptionHandle.handleException(sender, e);
                                         }
@@ -1012,6 +1018,8 @@ public class TRGCommandHandler {
 
                                     //TODO not quite intuitive. Think of a better way
                                     areaTriggerManager.put(trigger.getInfo().getTriggerName(), trigger);
+
+                                    sender.sendMessage("&aScript is updated!");
                                 } catch (Exception e) {
                                     exceptionHandle.handleException(sender, e);
                                 }
