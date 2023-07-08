@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class CommandTrigger extends Trigger {
+    @Inject
+    private ICommandTriggerFactory factory;
+
     String[] permissions = new String[0];
     String[] aliases = new String[0];
     Map<Integer, Set<ITabCompleter>> tabCompleterMap = new HashMap<>();
@@ -88,12 +91,7 @@ public class CommandTrigger extends Trigger {
 
     @Override
     public CommandTrigger clone() {
-        try {
-            return new CommandTrigger(info, getScript());
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(getInfo(), getScript());
     }
 
     @Override

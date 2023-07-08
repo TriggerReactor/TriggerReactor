@@ -26,6 +26,9 @@ import javax.inject.Inject;
 
 public class WalkTrigger extends Trigger {
     @Inject
+    private IWalkTriggerFactory factory;
+
+    @Inject
     private WalkTrigger(@Assisted TriggerInfo info,
                         @Assisted String script) throws AbstractTriggerManager.TriggerInitFailedException {
         super(info, script);
@@ -33,11 +36,6 @@ public class WalkTrigger extends Trigger {
 
     @Override
     public Trigger clone() {
-        try {
-            return new WalkTrigger(info, script);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(info, script);
     }
 }

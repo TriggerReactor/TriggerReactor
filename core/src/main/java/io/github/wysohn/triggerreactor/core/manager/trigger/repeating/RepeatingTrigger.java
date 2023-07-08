@@ -31,6 +31,9 @@ import java.util.logging.Logger;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
     @Inject
+    private IRepeatingTriggerFactory factory;
+
+    @Inject
     private Logger logger;
     private Map<String, Object> vars;
 
@@ -93,13 +96,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
     @Override
     public RepeatingTrigger clone() {
-        try {
-            return new RepeatingTrigger(info, script);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return factory.create(info, script);
     }
 
     @Override

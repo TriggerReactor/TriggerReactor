@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import com.google.inject.assistedinject.Assisted;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.StringUtils;
@@ -26,13 +25,15 @@ import io.github.wysohn.triggerreactor.tools.StringUtils;
 import javax.inject.Inject;
 
 public class EnterTrigger extends Trigger {
+    @Inject
+    private IEnterTriggerFactory factory;
+
     private final AreaTrigger areaTrigger;
 
     @Inject
     private EnterTrigger(@Assisted TriggerInfo info,
                          @Assisted String script,
-                         @Assisted AreaTrigger areaTrigger) throws
-            AbstractTriggerManager.TriggerInitFailedException {
+                         @Assisted AreaTrigger areaTrigger) {
         super(info, script);
         this.areaTrigger = areaTrigger;
     }
@@ -44,12 +45,7 @@ public class EnterTrigger extends Trigger {
 
     @Override
     public Trigger clone() {
-        try {
-            return new EnterTrigger(info, script, areaTrigger);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(info, script, areaTrigger);
     }
 
 }

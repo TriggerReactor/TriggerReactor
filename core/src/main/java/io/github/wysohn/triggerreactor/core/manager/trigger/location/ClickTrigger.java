@@ -26,6 +26,9 @@ import javax.inject.Inject;
 import java.util.Map;
 
 public class ClickTrigger extends Trigger {
+    @Inject
+    private IClickTriggerFactory factory;
+
     private final ClickHandler handler;
 
     @Inject
@@ -52,12 +55,6 @@ public class ClickTrigger extends Trigger {
 
     @Override
     public Trigger clone() {
-        try {
-            //TODO: using same handler will be safe?
-            return new ClickTrigger(info, script, handler);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(getInfo(), getScript(), handler);
     }
 }

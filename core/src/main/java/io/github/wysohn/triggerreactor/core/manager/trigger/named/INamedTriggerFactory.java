@@ -20,5 +20,5 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 public interface INamedTriggerFactory {
-    NamedTrigger create(TriggerInfo info, String script) throws Exception;
+    NamedTrigger create(TriggerInfo info, String script);
 }

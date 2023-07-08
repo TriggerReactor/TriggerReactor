@@ -29,6 +29,9 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.Process
 
 public class InventoryTrigger extends Trigger {
     @Inject
+    private IInventoryTriggerFactory factory;
+
+    @Inject
     private IPluginManagement pluginManagement;
     @Inject
     private IExceptionHandle exceptionHandle;
@@ -71,12 +74,7 @@ public class InventoryTrigger extends Trigger {
 
     @Override
     public InventoryTrigger clone() {
-        try {
-            return new InventoryTrigger(getInfo(), getScript(), items.clone());
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(getInfo(), getScript(), items.clone());
     }
 
     public IItemStack[] getItems() {

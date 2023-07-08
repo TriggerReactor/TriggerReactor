@@ -26,6 +26,9 @@ import io.github.wysohn.triggerreactor.tools.StringUtils;
 import javax.inject.Inject;
 
 public class ExitTrigger extends Trigger {
+    @Inject
+    private IExitTriggerFactory factory;
+
     private final AreaTrigger areaTrigger;
 
     @Inject
@@ -44,12 +47,7 @@ public class ExitTrigger extends Trigger {
 
     @Override
     public Trigger clone() {
-        try {
-            return new ExitTrigger(info, script, areaTrigger);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(getInfo(), getScript(), areaTrigger);
     }
 
 }

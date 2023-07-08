@@ -34,6 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AreaTrigger extends Trigger {
     @Inject
+    private IAreaTriggerFactory factory;
+
+    @Inject
     private IEnterTriggerFactory enterTriggerFactory;
     @Inject
     private IExitTriggerFactory exitTriggerFactory;
@@ -98,7 +101,7 @@ public class AreaTrigger extends Trigger {
 
     @Override
     public Trigger clone() {
-        return null;
+        throw new RuntimeException("clone() not supported for AreaTrigger");
     }
 
     @Override

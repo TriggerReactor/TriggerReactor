@@ -18,7 +18,6 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
 import com.google.inject.assistedinject.Assisted;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
@@ -26,20 +25,17 @@ import javax.inject.Inject;
 
 public class NamedTrigger extends Trigger {
     @Inject
+    private INamedTriggerFactory factory;
+
+    @Inject
     private NamedTrigger(@Assisted TriggerInfo info,
-                         @Assisted String script) throws
-            AbstractTriggerManager.TriggerInitFailedException {
+                         @Assisted String script) {
         super(info, script);
     }
 
     @Override
     public NamedTrigger clone() {
-        try {
-            return new NamedTrigger(info, script);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(info, script);
     }
 
 }

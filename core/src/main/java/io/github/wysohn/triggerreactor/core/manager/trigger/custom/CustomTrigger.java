@@ -28,6 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CustomTrigger extends Trigger implements IEventHook {
+    @Inject
+    private ICustomTriggerFactory factory;
+
     private final Class<?> event;
     private final String eventName;
 
@@ -44,12 +47,7 @@ public class CustomTrigger extends Trigger implements IEventHook {
 
     @Override
     public CustomTrigger clone() {
-        try {
-            return new CustomTrigger(info, script, event, eventName);
-        } catch (AbstractTriggerManager.TriggerInitFailedException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return factory.create(info, script, event, eventName);
     }
 
     @Override
