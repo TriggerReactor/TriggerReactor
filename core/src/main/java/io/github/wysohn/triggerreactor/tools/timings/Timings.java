@@ -8,6 +8,8 @@ import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
 /**
@@ -92,6 +94,7 @@ public class Timings {
 
         private String displayName;
 
+        private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
         private long executionTime;
         private long count;
 
@@ -206,18 +209,28 @@ public class Timings {
         }
 
         public double avg() {
-            if (count == 0)
-                return -1;
+            rwLock.readLock().lock();
+            try {
+                if (count == 0)
+                    return -1;
 
-            return Math.min(999999.99, (double) executionTime / count);
+                return Math.min(999999.99, (double) executionTime / count);
+            } finally {
+                rwLock.readLock().unlock();
+            }
         }
 
         private void add(long executionTime) {
             if (!on)
                 return;
 
-            this.executionTime += executionTime;
-            this.count++;
+            rwLock.writeLock().lock();
+            try {
+                this.executionTime += executionTime;
+                this.count++;
+            } finally {
+                rwLock.writeLock().unlock();
+            }
 
             if (parent != null) {
                 parent.add(executionTime);
