@@ -129,7 +129,7 @@ public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<I
         TriggerInfo info = TriggerInfo.defaultInfo(file, config);
         InventoryTrigger trigger = factory.create(info, script, new IItemStack[size]);
 
-        loader.save(trigger);
+        put(name, trigger);
 
         return true;
     }
