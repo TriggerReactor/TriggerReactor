@@ -50,6 +50,10 @@ public class InterpreterLocalContext {
      */
     private final Lock lock = new ReentrantLock();
     private final Stack<Token> stack = new Stack<>();
+    /**
+     * Used by the #WAIT executor to sleep the current thread.
+     */
+    final Object waitLock = new Object();
 
     private final Map<String, Class<?>> importMap = new HashMap<>();
     /**
@@ -175,12 +179,12 @@ public class InterpreterLocalContext {
         });
     }
 
-    public void putAllVars(Map<String, Object> scriptVars) {
-        tryOrThrow(() -> {
+    public InterpreterLocalContext putAllVars(Map<String, Object> scriptVars) {
+        return tryOrThrow(() -> {
             vars.putAll(scriptVars.entrySet().stream()
                     .filter(e -> e.getValue() != null)
                     .collect(HashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), HashMap::putAll));
-            return null;
+            return InterpreterLocalContext.this;
         });
     }
 

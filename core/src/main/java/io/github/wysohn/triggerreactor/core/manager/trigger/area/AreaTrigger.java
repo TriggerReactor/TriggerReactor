@@ -66,13 +66,6 @@ public class AreaTrigger extends Trigger {
         // do nothing. area trigger has scripts in its folder
     }
 
-
-    @Override
-    protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-        //we don't need interpreter for area trigger but enter and exit trigger
-        return null;
-    }
-
     public void activate(Object e, Map<String, Object> scriptVars, AreaTriggerManager.EventType type) {
         this.type = type;
 

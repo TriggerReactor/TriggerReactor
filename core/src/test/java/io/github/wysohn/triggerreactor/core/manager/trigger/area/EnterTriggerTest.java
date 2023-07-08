@@ -19,6 +19,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
+import io.github.wysohn.triggerreactor.core.script.interpreter.Interpreter;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Placeholder;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
@@ -97,6 +98,13 @@ public class EnterTriggerTest {
         fields.addAll(Arrays.asList(EnterTrigger.class.getDeclaredFields()));
         fields.addAll(Arrays.asList(Trigger.class.getDeclaredFields()));
         for (Field field : fields) {
+            // TODO figure out the way to copy the interpreter as it is
+            //  when cloning, the interpreter is not copied, but rather re-initialized,
+            //  yet ideally, it should be copied as it is, so we don't have to re-read
+            //  the script file and generate the AST again.
+            if (field.getType() == Interpreter.class)
+                continue;
+
             field.setAccessible(true);
             assertEquals(field.get(trigger1), field.get(trigger2));
         }

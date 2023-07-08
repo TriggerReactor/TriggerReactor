@@ -77,6 +77,8 @@ public abstract class Trigger implements Cloneable, IObservable {
     protected Map<String, Placeholder> placeholderMap;
     protected Map<Object, Object> gvarMap;
 
+    private Interpreter interpreter;
+
     /**
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
      * in order to make the Trigger work properly. If you want to create a Trigger with customized
@@ -125,7 +127,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         try {
             if (script == null) {
                 throw new NullPointerException("init() was invoked, yet 'script' was null. Make sure to override " +
-                                                       "init() method in order to construct a customized Trigger.");
+                        "init() method in order to construct a customized Trigger.");
             }
 
             Charset charset = StandardCharsets.UTF_8;
@@ -138,9 +140,16 @@ public abstract class Trigger implements Cloneable, IObservable {
             executorMap = executorManager.getBackedMap();
             placeholderMap = placeholderManager.getBackedMap();
             gvarMap = IGlobalVariableManager.getGlobalVariableAdapter();
+
+            // This allows us to re-use the same AST for multiple threads,
+            //   though, we need to absolutely make sure
+            //   that Interpreter does not share any state between threads
+            //   except for the AST and the global context.
+            interpreter = InterpreterBuilder.start(globalContext, root)
+                    .build();
         } catch (Exception ex) {
             throw new TriggerInitFailedException("Failed to initialize Trigger [" + this.getClass().getSimpleName()
-                                                         + " -- " + info + "]!", ex);
+                    + " -- " + info + "]!", ex);
         }
     }
 
@@ -201,8 +210,6 @@ public abstract class Trigger implements Cloneable, IObservable {
         if (customVars != null)
             scriptVars.putAll(customVars);
 
-        Interpreter interpreter = initInterpreter(scriptVars);
-
         startInterpretation(e, scriptVars, interpreter, sync);
         return true;
     }
@@ -225,21 +232,6 @@ public abstract class Trigger implements Cloneable, IObservable {
         return false;
     }
 
-    /**
-     * Create interpreter with appropriate options and variables.
-     *
-     * @param scriptVars
-     * @return
-     */
-    protected Interpreter initInterpreter(Map<String, Object> scriptVars) {
-        Interpreter interpreter = InterpreterBuilder.start(globalContext, root)
-                .addLocalVariables(scriptVars)
-                .withInterrupter(createInterrupter())
-                .build();
-
-        return interpreter;
-    }
-
     protected ProcessInterrupter createInterrupter() {
         return pluginManagement.createInterrupter(cooldowns);
     }
@@ -259,15 +251,16 @@ public abstract class Trigger implements Cloneable, IObservable {
                                        Map<String, Object> scriptVars,
                                        Interpreter interpreter,
                                        boolean sync) {
-        Callable<Void> call = () -> {
-            try (Timings.Timing t = Timings.getTiming(getTimingId()).begin(sync)) {
-                start(t, e, scriptVars, interpreter, sync);
-            } catch (Exception ex) {
-                exceptionHandle.handleException(e, new Exception(
-                        "Trigger [" + info + "] produced an error!", ex));
-            }
-            return null;
-        };
+        Callable<Void> call = new ExecutingTrigger(
+                exceptionHandle,
+                info,
+                e,
+                interpreter,
+                scriptVars,
+                sync,
+                createInterrupter(),
+                getTimingId()
+        );
 
         if (sync) {
             if (taskSupervisor.isServerThread()) {
@@ -293,43 +286,55 @@ public abstract class Trigger implements Cloneable, IObservable {
         }
     }
 
-    /**
-     * The actual execution part. The Trigger can be sync/async depends on which thread invokes this method.
-     *
-     * @param e
-     * @param scriptVars
-     * @param interpreter
-     * @param sync
-     * @param timing
-     */
-    protected void start(Timings.Timing timing, Object e, Map<String, Object> scriptVars, Interpreter interpreter,
-                         boolean sync) {
-        try {
-            interpreter.start(e);
-        } catch (InterpreterException ex) {
-            exceptionHandle.handleException(e,
-                                            new Exception("Could not finish interpretation for [" + info + "]!", ex));
-        }
-    }
-
-    /**
-     * The actual execution part. The Trigger can be sync/async depends on which thread invokes this method.
-     *
-     * @param e
-     * @param scriptVars
-     * @param interpreter
-     * @param sync
-     */
-    protected void start(Object e, Map<String, Object> scriptVars, Interpreter interpreter, boolean sync) {
-        start(Timings.LIMBO, e, scriptVars, interpreter, sync);
-    }
-
     @Override
     public abstract Trigger clone();
 
     @Override
     public String toString() {
         return "[" + getClass().getSimpleName() + "=" + info + "]";
+    }
+
+    static class ExecutingTrigger implements Callable<Void> {
+        private final IExceptionHandle exceptionHandle;
+        private final TriggerInfo info;
+
+        private final Object e;
+        private Interpreter interpreter;
+        private final boolean sync;
+        private final String timingId;
+
+        private InterpreterLocalContext localContext;
+
+        public ExecutingTrigger(IExceptionHandle exceptionHandle,
+                                TriggerInfo info,
+                                Object e,
+                                Interpreter interpreter,
+                                Map<String, Object> initialVars,
+                                boolean sync,
+                                ProcessInterrupter interrupter,
+                                String timingId) {
+            this.exceptionHandle = exceptionHandle;
+            this.info = info;
+            this.e = e;
+            this.interpreter = interpreter;
+            this.sync = sync;
+            this.timingId = timingId;
+
+            this.localContext = new InterpreterLocalContext(Timings.getTiming(timingId))
+                    .putAllVars(initialVars);
+            this.localContext.setInterrupter(interrupter);
+        }
+
+        @Override
+        public Void call() throws Exception {
+            try (Timings.Timing t = Timings.getTiming(timingId).begin(sync)) {
+                interpreter.start(e, localContext);
+            } catch (Exception ex) {
+                exceptionHandle.handleException(e, new Exception(
+                        "Trigger [" + info + "] produced an error!", ex));
+            }
+            return null;
+        }
     }
 
     private static final ExecutorService ASYNC_POOL = Executors.newCachedThreadPool();

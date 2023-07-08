@@ -81,10 +81,10 @@ public class RepeatingTriggerLoaderTest {
         RepeatingTrigger trigger = Guice.createInjector(
                 new FactoryModuleBuilder()
                         .implement(RepeatingTrigger.class, RepeatingTrigger.class)
-                        .build(TempFactory.class),
+                        .build(IRepeatingTriggerFactory.class),
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build()
-        ).getInstance(TempFactory.class).create(mockInfo, "#MESSAGE \"Hello world!\"");
+        ).getInstance(IRepeatingTriggerFactory.class).create(mockInfo, "#MESSAGE \"Hello world!\"");
         trigger.setAutoStart(true);
         trigger.setInterval(100);
 
@@ -94,9 +94,5 @@ public class RepeatingTriggerLoaderTest {
                 .put(TriggerConfigKey.KEY_TRIGGER_REPEATING_AUTOSTART, true);
         verify(mockInfo, times(2))
                 .put(TriggerConfigKey.KEY_TRIGGER_REPEATING_INTERVAL, 100L);
-    }
-
-    private interface TempFactory {
-        RepeatingTrigger create(TriggerInfo info, String sourceCode);
     }
 }

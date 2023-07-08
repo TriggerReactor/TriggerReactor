@@ -23,12 +23,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -2402,6 +2402,60 @@ public class TestInterpreter {
 
         // Assert
         assertEquals(100, instance.oneArgResult);
+    }
+
+    @org.junit.Test
+    public void testWait() throws Exception {
+        // Arrange
+        String text = "#WAIT 2\n";
+
+        Test test = Test.Builder.of(text)
+                .overrideTaskSupervisor(mockTask)
+                .build();
+
+        AtomicInteger success = new AtomicInteger(0);
+        Thread[] threads = new Thread[100];
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new Thread(() -> {
+                try {
+                    test.test();
+                    success.incrementAndGet();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            });
+        }
+
+        Timer timer = new Timer();
+        doAnswer(invocation -> {
+                    long begin = System.currentTimeMillis();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Runnable run = invocation.getArgument(0);
+                            run.run();
+                            System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
+                            System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
+                        }
+                    }, (long) invocation.getArgument(1));
+                    return null;
+                }
+        ).when(mockTask).runTaskLater(any(), anyLong());
+
+        // Act
+        for (Thread thread : threads) {
+            thread.start();
+        }
+
+        for (Thread thread : threads) {
+            thread.join();
+        }
+
+        // Assert
+        for (Thread thread : threads) {
+            assertFalse(thread.isAlive());
+        }
+        assertEquals(100, success.get());
     }
 
     public static class TheTest {

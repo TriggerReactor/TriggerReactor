@@ -37,8 +37,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class Interpreter {
-    private final Object waitLock = new Object();
-
     InterpreterLocalContext context;
     InterpreterGlobalContext globalContext;
     private Node root;
@@ -93,10 +91,11 @@ public class Interpreter {
      *                     This is usually Event object for Bukkit plugin.
      * @throws InterpreterException
      */
-    public void start(Object triggerCause) throws InterpreterException {
-        verifyPreCondition();
-
+    public void start(Object triggerCause, InterpreterLocalContext context) throws InterpreterException {
+        this.context = context;
         this.context.setTriggerCause(triggerCause);
+
+        verifyPreCondition();
 
         try (Timings.Timing t = this.context.getTiming()
                 .getTiming("Code Interpretation")
@@ -484,10 +483,10 @@ public class Interpreter {
                     return;
                 case Executor.WAIT:
                     context.setWaitFlag(true);
-                    synchronized (waitLock) {
+                    synchronized (context.waitLock) {
                         while (context.isWaitFlag()) {
                             try {
-                                waitLock.wait();
+                                context.waitLock.wait();
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -534,9 +533,9 @@ public class Interpreter {
             globalContext.task.runTaskLater(new Runnable() {
                 @Override
                 public void run() {
-                    synchronized (waitLock) {
+                    synchronized (context.waitLock) {
                         context.setWaitFlag(false);
-                        waitLock.notify();
+                        context.waitLock.notify();
                     }
                 }
             }, later);

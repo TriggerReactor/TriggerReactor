@@ -17,21 +17,14 @@
 
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 import io.github.wysohn.triggerreactor.core.script.parser.Node;
-import io.github.wysohn.triggerreactor.tools.ValidationUtil;
-import io.github.wysohn.triggerreactor.tools.timings.Timings;
-
-import java.util.Map;
 
 public class InterpreterBuilder {
     private final Interpreter interpreter;
 
     private InterpreterBuilder(InterpreterGlobalContext globalContext,
-                               Interpreter interpreter,
-                               Timings.Timing timing) {
+                               Interpreter interpreter) {
         this.interpreter = interpreter;
-        this.interpreter.context = new InterpreterLocalContext(timing);
         this.interpreter.globalContext = globalContext;
     }
 
@@ -48,30 +41,11 @@ public class InterpreterBuilder {
     }
 
     public Interpreter build() {
-        interpreter.verifyPreCondition();
         return interpreter;
-    }
-
-    public InterpreterBuilder addLocalVariables(Map<String, Object> scriptVars) {
-        ValidationUtil.notNull(scriptVars);
-        interpreter.context.putAllVars(scriptVars);
-        return this;
-    }
-
-    public InterpreterBuilder withInterrupter(ProcessInterrupter interrupter) {
-        ValidationUtil.notNull(interrupter);
-        interpreter.context.setInterrupter(interrupter);
-        return this;
     }
 
     public static InterpreterBuilder start(InterpreterGlobalContext globalContext,
                                            Node root) {
-        return start(globalContext, root, Timings.LIMBO);
-    }
-
-    public static InterpreterBuilder start(InterpreterGlobalContext globalContext,
-                                           Node root,
-                                           Timings.Timing timing) {
-        return new InterpreterBuilder(globalContext, new Interpreter(root), timing);
+        return new InterpreterBuilder(globalContext, new Interpreter(root));
     }
 }

@@ -105,10 +105,10 @@ public class InventoryTriggerLoaderTest {
         InventoryTrigger trigger = Guice.createInjector(
                 new FactoryModuleBuilder()
                         .implement(InventoryTrigger.class, InventoryTrigger.class)
-                        .build(TempFactory.class),
+                        .build(IInventoryTriggerFactory.class),
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build()
-        ).getInstance(TempFactory.class).create(info,
+        ).getInstance(IInventoryTriggerFactory.class).create(info,
                 "test",
                 new IItemStack[]{mockItem,
                         null,
@@ -153,9 +153,5 @@ public class InventoryTriggerLoaderTest {
 
     public static class ItemStack {
 
-    }
-
-    private interface TempFactory {
-        InventoryTrigger create(TriggerInfo info, String name, IItemStack[] items);
     }
 }

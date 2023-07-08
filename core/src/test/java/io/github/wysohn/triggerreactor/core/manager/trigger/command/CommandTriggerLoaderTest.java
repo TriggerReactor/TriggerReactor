@@ -97,8 +97,8 @@ public class CommandTriggerLoaderTest {
                 TestTriggerDependencyModule.Builder.begin().build(),
                 new FactoryModuleBuilder()
                         .implement(CommandTrigger.class, CommandTrigger.class)
-                        .build(TempFactory.class)
-        ).getInstance(TempFactory.class).create(mockInfo, "#MESSAGE \"Hello world!\"");
+                        .build(ICommandTriggerFactory.class)
+        ).getInstance(ICommandTriggerFactory.class).create(mockInfo, "#MESSAGE \"Hello world!\"");
         trigger.setAliases(new String[]{"test.alias"});
         trigger.setPermissions(new String[]{"test.permission"});
 
@@ -108,9 +108,5 @@ public class CommandTriggerLoaderTest {
                 new String[]{"test.permission"});
         verify(mockInfo).put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES,
                 new String[]{"test.alias"});
-    }
-
-    private interface TempFactory {
-        CommandTrigger create(TriggerInfo info, String sourceCode);
     }
 }

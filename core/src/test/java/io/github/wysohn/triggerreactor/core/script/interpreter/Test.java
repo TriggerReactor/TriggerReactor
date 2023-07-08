@@ -30,6 +30,7 @@ import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.parser.ParserException;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
+import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -63,10 +64,10 @@ public class Test {
         Node root = parser.parse();
 
         interpreter = InterpreterBuilder.start(globalContext, root)
-                .addLocalVariables(scriptVars)
                 .build();
 
-        interpreter.start();
+        interpreter.start(null, new InterpreterLocalContext(Timings.LIMBO)
+                .putAllVars(scriptVars));
 
         return (R) interpreter.result();
     }
