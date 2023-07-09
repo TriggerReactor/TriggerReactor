@@ -277,6 +277,8 @@ public class TriggerReactorCoreTest {
         assertFalse(result2);
         assertNotNull(clickTriggerManager.get(simpleLocation.toString()));
         assertEquals("{}", readContent(triggerFolder, simpleLocation + ".json"));
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
         assertEquals("#MESSAGE \"Hello World\"", readContent(triggerFolder, simpleLocation + ".trg"));
     }
 
@@ -313,6 +315,8 @@ public class TriggerReactorCoreTest {
         // assert
         assertNotNull(clickTriggerManager.get(simpleLocation.toString()));
         assertEquals("{}", readContent(triggerFolder, simpleLocation + ".json"));
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
         assertEquals("#MESSAGE \"Hello World\"", readContent(triggerFolder, simpleLocation + ".trg"));
     }
 
@@ -356,6 +360,8 @@ public class TriggerReactorCoreTest {
         assertFalse(result2);
         assertNotNull(walkTriggerManager.get(simpleLocation.toString()));
         assertEquals("{}", readContent(triggerFolder, simpleLocation + ".json"));
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
         assertEquals("#MESSAGE \"Hello World\"", readContent(triggerFolder, simpleLocation + ".trg"));
     }
 
@@ -392,6 +398,8 @@ public class TriggerReactorCoreTest {
         // assert
         assertNotNull(walkTriggerManager.get(simpleLocation.toString()));
         assertEquals("{}", readContent(triggerFolder, simpleLocation + ".json"));
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
         assertEquals("#MESSAGE \"Hello World\"", readContent(triggerFolder, simpleLocation + ".trg"));
     }
 
@@ -433,6 +441,8 @@ public class TriggerReactorCoreTest {
         assertNotNull(cmdTriggerManager.get("mycmd"));
         assertJsonEquals("{\"aliases\":[], \"permissions\":[]}",
                 readContent(triggerFolder, commandName + ".json"));
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
         assertEquals("#MESSAGE \"Hello World\"",
                 readContent(triggerFolder, commandName + ".trg"));
     }
@@ -468,6 +478,8 @@ public class TriggerReactorCoreTest {
         assertNotNull(cmdTriggerManager.get("mycmd"));
         assertJsonEquals("{\"aliases\":[], \"permissions\":[]}",
                 readContent(triggerFolder, commandName + ".json"));
+
+        injector.getInstance(TriggerReactorCore.class).shutdown();
         assertEquals("#MESSAGE \"Hello World\"",
                 readContent(triggerFolder, commandName + ".trg"));
     }
