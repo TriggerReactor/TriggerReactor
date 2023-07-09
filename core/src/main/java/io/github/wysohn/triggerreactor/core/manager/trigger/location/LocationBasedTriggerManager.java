@@ -278,7 +278,9 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
      *
      * @param loc    the location to save the pending trigger
      * @param player the player who initiated the trigger creation
+     * @deprecated for test or listener use only
      */
+    @Deprecated
     public void handleLocationSetting(ILocation loc, IPlayer player) {
         T trigger = getTriggerForLocation(loc);
         if (trigger != null) {
@@ -328,14 +330,14 @@ public abstract class LocationBasedTriggerManager<T extends Trigger> extends Abs
     public void handleScriptEdit(IPlayer player, T trigger) {
         scriptEditManager.startEdit(player, trigger.getInfo().getTriggerName(), trigger.getScript(),
                 script -> {
-                                                    try {
-                                                        trigger.setScript(script);
-                                                    } catch (TriggerInitFailedException e) {
-                                                        exceptionHandle.handleException(player, e);
-                                                    }
+                    try {
+                        trigger.setScript(script);
+                    } catch (TriggerInitFailedException e) {
+                        exceptionHandle.handleException(player, e);
+                    }
 
                     loader.save(trigger);
-                                                });
+                });
     }
 
     public Collection<SimpleLocation> getSurroundingBlocks(SimpleLocation block, Predicate<SimpleLocation> pred) {

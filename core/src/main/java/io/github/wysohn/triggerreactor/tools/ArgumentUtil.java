@@ -31,4 +31,8 @@ public class ArgumentUtil {
         }
         return builder.toString();
     }
+
+    public static String mergeArguments(String[] args, int indexFrom) {
+        return mergeArguments(args, indexFrom, args.length - 1);
+    }
 }

@@ -209,10 +209,7 @@ public class TRGCommandHandler {
                             }
                         });
                     } else {
-                        StringBuilder builder = new StringBuilder();
-                        for (int i = 1; i < args.length; i++)
-                            builder.append(args[i]).append(" ");
-                        if (clickTriggerManager.startLocationSet((IPlayer) sender, builder.toString())) {
+                        if (clickTriggerManager.startLocationSet((IPlayer) sender, ArgumentUtil.mergeArguments(args, 1))) {
                             sender.sendMessage("&7Now click the block to set click trigger.");
                         } else {
                             sender.sendMessage("&7Already on progress.");
@@ -232,10 +229,7 @@ public class TRGCommandHandler {
                             }
                         });
                     } else {
-                        StringBuilder builder = new StringBuilder();
-                        for (int i = 1; i < args.length; i++)
-                            builder.append(args[i]).append(" ");
-                        if (walkTriggerManager.startLocationSet((IPlayer) sender, builder.toString())) {
+                        if (walkTriggerManager.startLocationSet((IPlayer) sender, ArgumentUtil.mergeArguments(args, 1))) {
                             sender.sendMessage("&7Now click the block to set walk trigger.");
                         } else {
                             sender.sendMessage("&7Already on progress.");
@@ -347,7 +341,9 @@ public class TRGCommandHandler {
                             scriptEditManager.startEdit(sender, "Command Trigger", "", new ScriptEditor.SaveHandler() {
                                 @Override
                                 public void onSave(String script) {
-                                    commandTriggerManager.addCommandTrigger(sender, args[1], script);
+                                    if (!commandTriggerManager.addCommandTrigger(sender, args[1], script))
+                                        sender.sendMessage("&cCommand could not be binded." +
+                                                " Possibly already being used by another plugin or another CommandTrigger.");
 
                                     sender.sendMessage("&aCommand trigger is binded!");
                                 }
@@ -357,7 +353,8 @@ public class TRGCommandHandler {
                             for (int i = 2; i < args.length; i++)
                                 builder.append(args[i] + " ");
 
-                            commandTriggerManager.addCommandTrigger(sender, args[1], builder.toString());
+                            if (!commandTriggerManager.addCommandTrigger(sender, args[1], ArgumentUtil.mergeArguments(args, 2)))
+                                sender.sendMessage("&cCommand could not be binded." + " Possibly already being used by another plugin or another CommandTrigger.");
 
                             sender.sendMessage("&aCommand trigger is binded!");
                         }
