@@ -19,11 +19,6 @@ package io.github.wysohn.triggerreactor.core.manager.trigger;
 
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
-import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
-import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
-import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager.TriggerInitFailedException;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
 import io.github.wysohn.triggerreactor.core.script.interpreter.*;
@@ -50,15 +45,7 @@ import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
     @Inject
-    private SharedVariableManager sharedVariableManager;
-    @Inject
-    private ExecutorManager executorManager;
-    @Inject
-    private PlaceholderManager placeholderManager;
-    @Inject
-    private IGlobalVariableManager IGlobalVariableManager;
-    @Inject
-    private IPluginManagement pluginManagement;
+    private TriggerDependencyFacade triggerDependencyFacade;
     @Inject
     private TaskSupervisor taskSupervisor;
     @Inject
@@ -138,9 +125,9 @@ public abstract class Trigger implements Cloneable, IObservable {
 
             root = parser.parse(true);
 
-            executorMap = executorManager.getBackedMap();
-            placeholderMap = placeholderManager.getBackedMap();
-            gvarMap = IGlobalVariableManager.getGlobalVariableAdapter();
+            executorMap = triggerDependencyFacade.getExecutorMap();
+            placeholderMap = triggerDependencyFacade.getPlaceholderMap();
+            gvarMap = triggerDependencyFacade.getGlobalVariableAdapter();
 
             // This allows us to re-use the same AST for multiple threads,
             //   though, we need to absolutely make sure
@@ -206,8 +193,8 @@ public abstract class Trigger implements Cloneable, IObservable {
         }
 
         scriptVars.put("event", e);
-        scriptVars.putAll(sharedVariableManager.getSharedVars());
-        Map<String, Object> customVars = pluginManagement.getCustomVarsForTrigger(e);
+        scriptVars.putAll(triggerDependencyFacade.getSharedVars());
+        Map<String, Object> customVars = triggerDependencyFacade.getCustomVarsForTrigger(e);
         if (customVars != null)
             scriptVars.putAll(customVars);
 
@@ -220,7 +207,7 @@ public abstract class Trigger implements Cloneable, IObservable {
      * @return true if cooldown; false if not cooldown or 'e' is not a compatible type
      */
     protected boolean checkCooldown(Object e) {
-        IPlayer iPlayer = pluginManagement.extractPlayerFromContext(e);
+        IPlayer iPlayer = triggerDependencyFacade.extractPlayerFromContext(e);
 
         if (iPlayer != null) {
             UUID uuid = iPlayer.getUniqueId();
@@ -234,7 +221,7 @@ public abstract class Trigger implements Cloneable, IObservable {
     }
 
     protected ProcessInterrupter createInterrupter() {
-        return pluginManagement.createInterrupter(cooldowns);
+        return triggerDependencyFacade.createInterrupter(cooldowns);
     }
 
     /**
