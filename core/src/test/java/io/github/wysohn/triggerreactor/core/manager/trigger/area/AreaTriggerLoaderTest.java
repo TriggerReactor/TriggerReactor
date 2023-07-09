@@ -19,18 +19,16 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.config.source.IConfigSource;
-import io.github.wysohn.triggerreactor.core.main.IGameManagement;
+import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
 import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
-import io.github.wysohn.triggerreactor.core.module.manager.trigger.AreaTriggerModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,25 +41,27 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class AreaTriggerLoaderTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    IAreaTriggerFactory factory;
+
     AreaTriggerLoader loader;
 
     @Before
     public void setUp() throws Exception {
+        factory = mock(IAreaTriggerFactory.class);
+
         loader = Guice.createInjector(
-                new AreaTriggerModule(),
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build(),
                 new AbstractModule() {
-                    @Provides
-                    public IGameManagement gameManagement() {
-                        return mock(IGameManagement.class);
+                    @Override
+                    protected void configure() {
+                        bind(IAreaTriggerFactory.class).toInstance(factory);
                     }
                 }
         ).getInstance(AreaTriggerLoader.class);
@@ -92,7 +92,7 @@ public class AreaTriggerLoaderTest {
     }
 
     @Test
-    public void load() throws InvalidTrgConfigurationException, IOException {
+    public void load() throws InvalidTrgConfigurationException, IOException, AbstractTriggerManager.TriggerInitFailedException {
         File areaTriggerFolder = folder.newFolder("AreaTrigger");
         File areaTrigger = new File(areaTriggerFolder, "trigger1");
         File configFile = new File(areaTriggerFolder, "trigger1.json");
@@ -112,14 +112,17 @@ public class AreaTriggerLoaderTest {
         writeContent(exitFile, "#MESSAGE \"exit\"");
 
         TriggerInfo info = new AreaTriggerInfo(areaTrigger, source, "trigger1");
-        AreaTrigger trigger = loader.load(info);
+        AreaTrigger trigger = mock(AreaTrigger.class);
+        when(factory.create(any(), any(), any())).thenReturn(trigger);
 
-        assertNotNull(trigger);
-        assertEquals(new SimpleLocation("world", 0, 0, 0), trigger.getArea().getSmallest());
-        assertEquals(new SimpleLocation("world", 10, 10, 10), trigger.getArea().getLargest());
+        loader.load(info);
 
-        assertEquals("#MESSAGE \"enter\"", trigger.getEnterTrigger().getScript());
-        assertEquals("#MESSAGE \"exit\"", trigger.getExitTrigger().getScript());
+        verify(factory).create(any(), eq(new Area(
+                new SimpleLocation("world", 0, 0, 0),
+                new SimpleLocation("world", 10, 10, 10)
+        )), any());
+        verify(trigger).setEnterTrigger(eq("#MESSAGE \"enter\""));
+        verify(trigger).setExitTrigger(eq("#MESSAGE \"exit\""));
     }
 
     @Test
@@ -127,6 +130,10 @@ public class AreaTriggerLoaderTest {
             AbstractTriggerManager.TriggerInitFailedException {
         File areaTriggerFolder = folder.newFolder("AreaTrigger");
         File areaTrigger1 = new File(areaTriggerFolder, "trigger1");
+        Area area = new Area(
+                new SimpleLocation("world", 0, 0, 0),
+                new SimpleLocation("world", 10, 10, 10)
+        );
 
         IConfigSource source = mock(IConfigSource.class);
         when(source.get(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), String.class))
@@ -135,19 +142,23 @@ public class AreaTriggerLoaderTest {
                 .thenReturn(Optional.of("world@10,10,10"));
 
         TriggerInfo info = new AreaTriggerInfo(areaTrigger1, source, "trigger1");
-        AreaTrigger trigger = loader.load(info);
-        trigger.setEnterTrigger("enter");
-        trigger.setExitTrigger("exit");
+
+        AreaTrigger trigger = mock(AreaTrigger.class);
+        EnterTrigger enterTrigger = mock(EnterTrigger.class);
+        ExitTrigger exitTrigger = mock(ExitTrigger.class);
+        when(trigger.getEnterTrigger()).thenReturn(enterTrigger);
+        when(trigger.getExitTrigger()).thenReturn(exitTrigger);
+        when(enterTrigger.getScript()).thenReturn("enter");
+        when(exitTrigger.getScript()).thenReturn("exit");
+        when(trigger.getArea()).thenReturn(area);
+        when(trigger.getInfo()).thenReturn(info);
 
         loader.save(trigger);
 
-        verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_SMALLEST.getKey(), "world@0,0,0");
-        verify(source).put(TriggerConfigKey.KEY_TRIGGER_AREA_LARGEST.getKey(), "world@10,10,10");
-
         assertEquals("enter", fileContent(new File(areaTrigger1,
-                                                   AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg")));
+                AreaTriggerLoader.TRIGGER_NAME_ENTER + ".trg")));
         assertEquals("exit", fileContent(new File(areaTrigger1,
-                                                  AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
+                AreaTriggerLoader.TRIGGER_NAME_EXIT + ".trg")));
     }
 
     private String fileContent(File file) throws IOException {

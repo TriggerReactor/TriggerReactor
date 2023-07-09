@@ -20,12 +20,14 @@ package io.github.wysohn.triggerreactor.core.module;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.GlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerDependencyFacade;
 import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterGlobalContext;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 
@@ -37,9 +39,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
     private PlaceholderManager placeholderManager;
     private IGlobalVariableManager IGlobalVariableManager;
     private IPluginManagement pluginManagement;
+    private IGameManagement gameManagement;
     private TaskSupervisor taskSupervisor;
     private IExceptionHandle exceptionHandle;
     private InterpreterGlobalContext globalContext;
+    private ITriggerDependencyFacade triggerDependencyFacade;
 
     private TestTriggerDependencyModule() {
 
@@ -71,6 +75,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
     }
 
     @Provides
+    public IGameManagement provideGameManagement() {
+        return gameManagement;
+    }
+
+    @Provides
     public TaskSupervisor provideTaskSupervisor() {
         return taskSupervisor;
     }
@@ -85,6 +94,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
         return globalContext;
     }
 
+    @Provides
+    public ITriggerDependencyFacade provideTriggerDependencyFacade() {
+        return triggerDependencyFacade;
+    }
+
     public static class Builder {
         // fill with default mocks
         private SharedVariableManager sharedVariableManager = mock(SharedVariableManager.class);
@@ -92,9 +106,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
         private PlaceholderManager placeholderManager = mock(PlaceholderManager.class);
         private IGlobalVariableManager IGlobalVariableManager = mock(GlobalVariableManager.class);
         private IPluginManagement pluginManagement = mock(IPluginManagement.class);
+        private IGameManagement gameManagement = mock(IGameManagement.class);
         private TaskSupervisor taskSupervisor = mock(TaskSupervisor.class);
         private IExceptionHandle exceptionHandle = mock(IExceptionHandle.class);
         private InterpreterGlobalContext globalContext = mock(InterpreterGlobalContext.class);
+        private ITriggerDependencyFacade triggerDependencyFacade = mock(ITriggerDependencyFacade.class);
 
         private Builder() {
 
@@ -125,6 +141,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
             return this;
         }
 
+        public Builder gameManagement(IGameManagement gameManagement) {
+            this.gameManagement = gameManagement;
+            return this;
+        }
+
         public Builder taskSupervisor(TaskSupervisor taskSupervisor) {
             this.taskSupervisor = taskSupervisor;
             return this;
@@ -140,6 +161,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
             return this;
         }
 
+        public Builder triggerDependencyFacade(ITriggerDependencyFacade triggerDependencyFacade) {
+            this.triggerDependencyFacade = triggerDependencyFacade;
+            return this;
+        }
+
         public TestTriggerDependencyModule build() {
             TestTriggerDependencyModule module = new TestTriggerDependencyModule();
             module.sharedVariableManager = sharedVariableManager;
@@ -147,9 +173,11 @@ public class TestTriggerDependencyModule extends AbstractModule {
             module.placeholderManager = placeholderManager;
             module.IGlobalVariableManager = IGlobalVariableManager;
             module.pluginManagement = pluginManagement;
+            module.gameManagement = gameManagement;
             module.taskSupervisor = taskSupervisor;
             module.exceptionHandle = exceptionHandle;
             module.globalContext = globalContext;
+            module.triggerDependencyFacade = triggerDependencyFacade;
             return module;
         }
 

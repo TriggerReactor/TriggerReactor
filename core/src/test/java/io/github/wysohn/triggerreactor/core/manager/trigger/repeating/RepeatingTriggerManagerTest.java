@@ -24,6 +24,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerDependencyFacade;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
@@ -55,6 +56,7 @@ public class RepeatingTriggerManagerTest {
     Future future;
     IPluginManagement pluginManagement;
     ProcessInterrupter interrupter;
+    ITriggerDependencyFacade dependencyFacade;
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {

@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Singleton
-public class TriggerDependencyFacade {
+public class TriggerDependencyFacade implements ITriggerDependencyFacade {
     @Inject
     private SharedVariableManager sharedVariableManager;
     @Inject
@@ -32,30 +32,37 @@ public class TriggerDependencyFacade {
     private TriggerDependencyFacade() {
     }
 
+    @Override
     public Map<String, Executor> getExecutorMap() {
         return executorManager.getBackedMap();
     }
 
+    @Override
     public Map<String, Placeholder> getPlaceholderMap() {
         return placeholderManager.getBackedMap();
     }
 
+    @Override
     public Map<Object, Object> getGlobalVariableAdapter() {
         return globalVariableManager.getGlobalVariableAdapter();
     }
 
+    @Override
     public Map<String, ?> getSharedVars() {
         return sharedVariableManager.getSharedVars();
     }
 
+    @Override
     public Map<String, Object> getCustomVarsForTrigger(Object e) {
         return pluginManagement.getCustomVarsForTrigger(e);
     }
 
+    @Override
     public IPlayer extractPlayerFromContext(Object e) {
         return pluginManagement.extractPlayerFromContext(e);
     }
 
+    @Override
     public ProcessInterrupter createInterrupter(Map<UUID, Long> cooldowns) {
         return pluginManagement.createInterrupter(cooldowns);
     }

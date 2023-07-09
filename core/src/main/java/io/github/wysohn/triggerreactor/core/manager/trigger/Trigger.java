@@ -45,7 +45,7 @@ import java.util.concurrent.*;
 
 public abstract class Trigger implements Cloneable, IObservable {
     @Inject
-    private TriggerDependencyFacade triggerDependencyFacade;
+    private ITriggerDependencyFacade triggerDependencyFacade;
     @Inject
     private TaskSupervisor taskSupervisor;
     @Inject

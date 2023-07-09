@@ -25,24 +25,13 @@ import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
-import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
-import io.github.wysohn.triggerreactor.core.main.IGameManagement;
 import io.github.wysohn.triggerreactor.core.main.IInventoryHandle;
-import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
-import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.SharedVariableManager;
-import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
-import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerLoader;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
-import io.github.wysohn.triggerreactor.core.module.MockGameManagementModule;
-import io.github.wysohn.triggerreactor.core.module.MockPluginManagementModule;
-import io.github.wysohn.triggerreactor.core.module.MockTaskSupervisorModule;
 import io.github.wysohn.triggerreactor.core.module.TestFileModule;
-import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterGlobalContext;
-import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
+import io.github.wysohn.triggerreactor.core.module.TestTriggerDependencyModule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,41 +51,21 @@ public class InventoryTriggerManagerTest {
 
 
     InventoryTriggerLoader loader;
-    IGameManagement gameManagement;
-    IPluginManagement pluginManagement;
-    TaskSupervisor taskSupervisor;
     IInventoryHandle handle;
     InventoryTriggerManager<ItemStack> manager;
-    InterpreterGlobalContext interpreterGlobalContext;
-    ExecutorManager executorManager;
-    PlaceholderManager placeholderManager;
-    SharedVariableManager sharedVariableManager;
-    IGlobalVariableManager globalVariableManager;
-    IExceptionHandle exceptionHandle;
     private TriggerInfo mockInfo;
     private InventoryTrigger mockTrigger;
 
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
-        gameManagement = mock(IGameManagement.class);
-        pluginManagement = mock(IPluginManagement.class);
-        taskSupervisor = mock(TaskSupervisor.class);
         loader = mock(InventoryTriggerLoader.class);
         handle = mock(IInventoryHandle.class);
-        interpreterGlobalContext = mock(InterpreterGlobalContext.class);
-        executorManager = mock(ExecutorManager.class);
-        placeholderManager = mock(PlaceholderManager.class);
-        sharedVariableManager = mock(SharedVariableManager.class);
-        globalVariableManager = mock(IGlobalVariableManager.class);
-        exceptionHandle = mock(IExceptionHandle.class);
 
         when(handle.getItemClass()).thenReturn((Class) ItemStack.class);
 
         manager = Guice.createInjector(
-                new MockGameManagementModule(gameManagement),
-                new MockPluginManagementModule(pluginManagement),
-                new MockTaskSupervisorModule(taskSupervisor),
+                TestTriggerDependencyModule.Builder.begin().build(),
                 new TestFileModule(folder),
                 new FactoryModuleBuilder()
                         .implement(InventoryTrigger.class, InventoryTrigger.class)
@@ -116,36 +85,6 @@ public class InventoryTriggerManagerTest {
                     @Provides
                     public IInventoryHandle provideHandle() {
                         return handle;
-                    }
-
-                    @Provides
-                    public InterpreterGlobalContext provideInterpreterGlobalContext() {
-                        return interpreterGlobalContext;
-                    }
-
-                    @Provides
-                    public ExecutorManager provideExecutorManager() {
-                        return executorManager;
-                    }
-
-                    @Provides
-                    public PlaceholderManager providePlaceholderManager() {
-                        return placeholderManager;
-                    }
-
-                    @Provides
-                    public SharedVariableManager provideSharedVariableManager() {
-                        return sharedVariableManager;
-                    }
-
-                    @Provides
-                    public IGlobalVariableManager provideGlobalVariableManager() {
-                        return globalVariableManager;
-                    }
-
-                    @Provides
-                    public IExceptionHandle provideExceptionHandle() {
-                        return exceptionHandle;
                     }
                 }
         ).getInstance(InventoryTriggerManager.class);

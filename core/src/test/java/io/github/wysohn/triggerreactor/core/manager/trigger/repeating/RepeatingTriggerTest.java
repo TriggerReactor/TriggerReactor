@@ -8,6 +8,7 @@ import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.IGlobalVariableManager;
 import io.github.wysohn.triggerreactor.core.manager.js.IBackedMapProvider;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerDependencyFacade;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import io.github.wysohn.triggerreactor.core.script.interpreter.Executor;
@@ -34,6 +35,7 @@ public class RepeatingTriggerTest {
     TaskSupervisor taskSupervisor;
     IPluginManagement pluginManagement;
     SelfReference selfReference;
+    ITriggerDependencyFacade dependencyFacade;
 
     IRepeatingTriggerFactory factory;
 
@@ -46,6 +48,7 @@ public class RepeatingTriggerTest {
         taskSupervisor = mock(TaskSupervisor.class);
         pluginManagement = mock(IPluginManagement.class);
         selfReference = mock(SelfReference.class);
+        dependencyFacade = mock(ITriggerDependencyFacade.class);
 
         factory = Guice.createInjector(
                 new FactoryModuleBuilder()
@@ -68,6 +71,7 @@ public class RepeatingTriggerTest {
                         bind(TaskSupervisor.class).toInstance(taskSupervisor);
                         bind(IPluginManagement.class).toInstance(pluginManagement);
                         bind(SelfReference.class).toInstance(selfReference);
+                        bind(ITriggerDependencyFacade.class).toInstance(dependencyFacade);
                     }
                 }
         ).getInstance(IRepeatingTriggerFactory.class);

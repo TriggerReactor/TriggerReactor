@@ -14,6 +14,7 @@ import io.github.wysohn.triggerreactor.core.manager.js.IScriptEngineGateway;
 import io.github.wysohn.triggerreactor.core.manager.js.executor.IJSExecutorFactory;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.IJSPlaceholderFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerDependencyFacade;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
@@ -45,6 +46,7 @@ public class EnterTriggerTest {
     IPluginManagement pluginManagement;
     TaskSupervisor taskSupervisor;
     SelfReference selfReference;
+    ITriggerDependencyFacade dependencyFacade;
 
     IEnterTriggerFactory factory;
 
@@ -53,6 +55,7 @@ public class EnterTriggerTest {
         globalVariableManager = mock(IGlobalVariableManager.class);
         executorMapProvider = mock(IBackedMapProvider.class);
         placeholderMapProvider = mock(IBackedMapProvider.class);
+        dependencyFacade = mock(ITriggerDependencyFacade.class);
 
         factory = Guice.createInjector(
                 new FactoryModuleBuilder()
@@ -88,6 +91,7 @@ public class EnterTriggerTest {
                         bind(IJSPlaceholderFactory.class).toInstance(mock(IJSPlaceholderFactory.class));
                         bind(IJavascriptFileLoader.class).toInstance(mock(IJavascriptFileLoader.class));
                         bind(IExceptionHandle.class).toInstance(mock(IExceptionHandle.class));
+                        bind(ITriggerDependencyFacade.class).toInstance(dependencyFacade);
                     }
                 }
         ).getInstance(IEnterTriggerFactory.class);

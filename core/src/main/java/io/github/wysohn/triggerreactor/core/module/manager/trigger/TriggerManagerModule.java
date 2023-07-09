@@ -18,6 +18,8 @@
 package io.github.wysohn.triggerreactor.core.module.manager.trigger;
 
 import com.google.inject.AbstractModule;
+import io.github.wysohn.triggerreactor.core.manager.trigger.ITriggerDependencyFacade;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerDependencyFacade;
 
 public class TriggerManagerModule extends AbstractModule {
     @Override
@@ -32,5 +34,7 @@ public class TriggerManagerModule extends AbstractModule {
 
         install(new InventoryTriggerModule());
         install(new RepeatingTriggerModule());
+
+        bind(ITriggerDependencyFacade.class).to(TriggerDependencyFacade.class);
     }
 }
