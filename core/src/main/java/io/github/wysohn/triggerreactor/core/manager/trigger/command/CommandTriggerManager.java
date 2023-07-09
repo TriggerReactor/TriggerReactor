@@ -167,7 +167,6 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
 
         put(cmd, trigger);
         commandHandler.sync();
-        loader.save(trigger);
         return true;
     }
 
