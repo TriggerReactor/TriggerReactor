@@ -20,14 +20,17 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.repeating;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
+import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.script.interpreter.InterpreterLocalContext;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 public class RepeatingTrigger extends Trigger implements Runnable {
@@ -36,6 +39,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
     @Inject
     private Logger logger;
+    @Inject
+    private IExceptionHandle exceptionHandle;
     private Map<String, Object> vars;
 
     @AssistedInject
@@ -53,8 +58,15 @@ public class RepeatingTrigger extends Trigger implements Runnable {
         ValidationUtil.notNull(scriptVars);
 
         boolean result = super.activate(e, scriptVars, sync);
+
         // update variable state, so we can use it in the next iteration.
-        vars = new HashMap<>(getLastExecution().getLocalContext().getVarCopy());
+        vars = new HashMap<>();
+        Optional.ofNullable(getLastExecution())
+                .map(ExecutingTrigger::getLocalContext)
+                .map(InterpreterLocalContext::getVarCopy)
+                .ifPresent(vars::putAll);
+        vars.putAll(scriptVars);
+
         return result;
     }
 
@@ -126,9 +138,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                     }
                 }
 
-                vars.put(RepeatingTriggerManager.TRIGGER, "repeat");
-                // we re-use the variables over and over.
-                activate(new Object(), vars, true);
+                task("repeat");
 
                 try {
                     Thread.sleep(getInterval());
@@ -137,25 +147,19 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 }
             }
         } catch (Exception e) {
-            throwableHandler.onFail(e);
+            exceptionHandle.handleException(null, e);
         }
 
         try {
-            vars.put(RepeatingTriggerManager.TRIGGER, "stop");
-            activate(new Object(), vars, true);
+            task("stop");
         } catch (Exception e) {
-            throwableHandler.onFail(e);
+            exceptionHandle.handleException(null, e);
         }
     }
 
-    private final RepeatingTriggerManager.ThrowableHandler throwableHandler =
-            new RepeatingTriggerManager.ThrowableHandler() {
-                @Override
-                public void onFail(Throwable throwable) {
-                    throwable.printStackTrace();
-                    logger.warning("Repeating Trigger [" + getInfo() + "] encountered an error!");
-                    logger.warning(throwable.getMessage());
-                    logger.warning("If you are an administrator, see console for more details.");
-                }
-            };
+    void task(String trigger) {
+        vars.put(RepeatingTriggerManager.TRIGGER, trigger);
+        // we re-use the variables over and over.
+        activate(new Object(), vars, true);
+    }
 }
