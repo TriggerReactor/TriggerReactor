@@ -78,6 +78,7 @@ public abstract class Trigger implements Cloneable, IObservable {
     protected Map<Object, Object> gvarMap;
 
     private Interpreter interpreter;
+    private ExecutingTrigger lastExecution;
 
     /**
      * This constructor <b>does not</b> initialize the fields. It is essential to call {@link #init()} method
@@ -251,7 +252,7 @@ public abstract class Trigger implements Cloneable, IObservable {
                                        Map<String, Object> scriptVars,
                                        Interpreter interpreter,
                                        boolean sync) {
-        Callable<Void> call = new ExecutingTrigger(
+        ExecutingTrigger executingTrigger = new ExecutingTrigger(
                 exceptionHandle,
                 info,
                 e,
@@ -262,15 +263,26 @@ public abstract class Trigger implements Cloneable, IObservable {
                 getTimingId()
         );
 
+        final Callable<Void> task = () -> {
+            try {
+                executingTrigger.call();
+            } catch (Exception ex) {
+                exceptionHandle.handleException(e, ex);
+            } finally {
+                Trigger.this.lastExecution = executingTrigger;
+            }
+            return null;
+        };
+
         if (sync) {
             if (taskSupervisor.isServerThread()) {
                 try {
-                    call.call();
-                } catch (Exception e1) {
-
+                    task.call();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
                 }
             } else {
-                Future<Void> future = taskSupervisor.submitSync(call);
+                Future<Void> future = taskSupervisor.submitSync(task);
                 try {
                     future.get(3, TimeUnit.SECONDS);
                 } catch (InterruptedException | ExecutionException e1) {
@@ -282,8 +294,18 @@ public abstract class Trigger implements Cloneable, IObservable {
                 }
             }
         } else {
-            ASYNC_POOL.submit(call);
+            ASYNC_POOL.submit(task);
         }
+    }
+
+    /**
+     * Get the state of the last execution of this trigger.
+     * <p>
+     *
+     * @return null if the trigger is still running or has not been executed yet.
+     */
+    protected ExecutingTrigger getLastExecution() {
+        return lastExecution;
     }
 
     @Override
@@ -294,16 +316,18 @@ public abstract class Trigger implements Cloneable, IObservable {
         return "[" + getClass().getSimpleName() + "=" + info + "]";
     }
 
-    static class ExecutingTrigger implements Callable<Void> {
+    protected static class ExecutingTrigger implements Callable<Void> {
         private final IExceptionHandle exceptionHandle;
         private final TriggerInfo info;
 
         private final Object e;
-        private Interpreter interpreter;
+        private final Interpreter interpreter;
         private final boolean sync;
         private final String timingId;
 
-        private InterpreterLocalContext localContext;
+        private final InterpreterLocalContext localContext;
+
+        private boolean isDone = false;
 
         public ExecutingTrigger(IExceptionHandle exceptionHandle,
                                 TriggerInfo info,
@@ -327,13 +351,22 @@ public abstract class Trigger implements Cloneable, IObservable {
 
         @Override
         public Void call() throws Exception {
+            // execution must be created every time and executed only once.
+            if (isDone) throw new IllegalStateException("Cannot reuse this object!");
+
             try (Timings.Timing t = Timings.getTiming(timingId).begin(sync)) {
                 interpreter.start(e, localContext);
             } catch (Exception ex) {
                 exceptionHandle.handleException(e, new Exception(
                         "Trigger [" + info + "] produced an error!", ex));
+            } finally {
+                isDone = true;
             }
             return null;
+        }
+
+        public InterpreterLocalContext getLocalContext() {
+            return localContext;
         }
     }
 

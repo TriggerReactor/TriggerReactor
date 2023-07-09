@@ -26,6 +26,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -48,23 +49,13 @@ public class RepeatingTrigger extends Trigger implements Runnable {
      * initialized.
      */
     @Override
-    public boolean activate(Object e, Map<String, Object> scriptVars) {
-        ValidationUtil.notNull(scriptVars);
-        vars = scriptVars;
-
-        return super.activate(e, scriptVars);
-    }
-
-    /**
-     * This should be called at least once on start up so variables can be
-     * initialized.
-     */
-    @Override
     public boolean activate(Object e, Map<String, Object> scriptVars, boolean sync) {
         ValidationUtil.notNull(scriptVars);
-        vars = scriptVars;
 
-        return super.activate(e, scriptVars, sync);
+        boolean result = super.activate(e, scriptVars, sync);
+        // update variable state, so we can use it in the next iteration.
+        vars = new HashMap<>(getLastExecution().getLocalContext().getVarCopy());
+        return result;
     }
 
     /**
@@ -136,9 +127,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 }
 
                 vars.put(RepeatingTriggerManager.TRIGGER, "repeat");
-
                 // we re-use the variables over and over.
-                activate(new Object(), vars);
+                activate(new Object(), vars, true);
 
                 try {
                     Thread.sleep(getInterval());
@@ -152,7 +142,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
 
         try {
             vars.put(RepeatingTriggerManager.TRIGGER, "stop");
-            activate(new Object(), vars);
+            activate(new Object(), vars, true);
         } catch (Exception e) {
             throwableHandler.onFail(e);
         }
