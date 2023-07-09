@@ -22,7 +22,6 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.Process
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.util.*;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
@@ -48,7 +47,7 @@ public class InterpreterLocalContext {
      * does not know if the same context is used by two or more threads in a non-concurrent
      * manner.
      */
-    private final Lock lock = new ReentrantLock();
+    private final DelegatedReentrantLock lock = new DelegatedReentrantLock();
     private final Stack<Token> stack = new Stack<>();
     /**
      * Used by the #WAIT executor to sleep the current thread.
@@ -109,12 +108,11 @@ public class InterpreterLocalContext {
     }
 
     private <R> R tryOrThrow(Supplier<R> fn) {
+        if (!lock.tryLock())
+            throw new ConcurrentModificationException("Owner: " + lock.getOwner());
+
         try {
-            if (lock.tryLock()) {
-                return fn.get();
-            } else {
-                throw new ConcurrentModificationException();
-            }
+            return fn.get();
         } finally {
             lock.unlock();
         }
@@ -260,5 +258,12 @@ public class InterpreterLocalContext {
     @Deprecated
     public void setTriggerCause(Object triggerCause) {
         tryOrThrow(() -> this.triggerCause = triggerCause);
+    }
+
+    private class DelegatedReentrantLock extends ReentrantLock {
+        @Override
+        protected Thread getOwner() {
+            return super.getOwner();
+        }
     }
 }

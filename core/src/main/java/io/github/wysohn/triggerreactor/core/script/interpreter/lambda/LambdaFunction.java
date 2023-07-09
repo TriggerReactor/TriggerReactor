@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 public class LambdaFunction implements InvocationHandler {
     private final LambdaParameter[] parameters;
     private final Node body;
-    private final InterpreterLocalContext contextCopy;
+    private final InterpreterLocalContext lambdaContext;
     private final Interpreter lambdaBody;
 
     public LambdaFunction(LambdaParameter[] parameters,
@@ -35,15 +35,14 @@ public class LambdaFunction implements InvocationHandler {
                           InterpreterGlobalContext globalContext) {
         this.parameters = parameters;
         this.body = body;
-        this.contextCopy = localContext.copyState("LAMBDA");
+        this.lambdaContext = localContext.copyState("LAMBDA");
 
         // if duplicated variable name is found, parameter name always has priority
         for (LambdaParameter parameter : parameters) {
-            contextCopy.setVar(parameter.id, parameter.defValue);
+            lambdaContext.setVar(parameter.id, parameter.defValue);
         }
 
         this.lambdaBody = InterpreterBuilder.start(globalContext, body)
-                .overrideContext(contextCopy)
                 .build();
     }
 
@@ -57,11 +56,11 @@ public class LambdaFunction implements InvocationHandler {
 
         // initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {
-            contextCopy.setVar(parameters[i].id, args[i]);
+            lambdaContext.setVar(parameters[i].id, args[i]);
         }
 
-        lambdaBody.start();
+        lambdaBody.start(lambdaContext.getTriggerCause(), lambdaContext);
 
-        return lambdaBody.result();
+        return lambdaBody.result(lambdaContext);
     }
 }

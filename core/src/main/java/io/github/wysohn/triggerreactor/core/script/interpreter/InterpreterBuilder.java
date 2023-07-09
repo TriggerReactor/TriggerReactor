@@ -28,18 +28,6 @@ public class InterpreterBuilder {
         this.interpreter.globalContext = globalContext;
     }
 
-    /**
-     * Override the local context with the given instance.
-     * Useful for testing by mocking the context.
-     *
-     * @param localContext the local context to use
-     * @return this
-     */
-    public InterpreterBuilder overrideContext(InterpreterLocalContext localContext) {
-        interpreter.context = localContext;
-        return this;
-    }
-
     public Interpreter build() {
         return interpreter;
     }

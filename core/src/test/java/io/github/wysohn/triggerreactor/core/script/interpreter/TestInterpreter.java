@@ -16,6 +16,8 @@
  */
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
+import io.github.wysohn.triggerreactor.core.script.lexer.Lexer;
+import io.github.wysohn.triggerreactor.core.script.parser.Parser;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import org.junit.Before;
 
@@ -2407,10 +2409,14 @@ public class TestInterpreter {
     @org.junit.Test
     public void testWait() throws Exception {
         // Arrange
-        String text = "#WAIT 2\n";
+        ExecutorService EXEC = Executors.newCachedThreadPool();
 
-        Test test = Test.Builder.of(text)
-                .overrideTaskSupervisor(mockTask)
+        String text = "#WAIT 2\n";
+        Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        Parser parser = new Parser(lexer);
+
+        InterpreterGlobalContext globalContext = mock(InterpreterGlobalContext.class);
+        Interpreter interpreter = InterpreterBuilder.start(globalContext, parser.parse())
                 .build();
 
         AtomicInteger success = new AtomicInteger(0);
@@ -2418,7 +2424,10 @@ public class TestInterpreter {
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new Thread(() -> {
                 try {
-                    test.test();
+                    Test.Builder.of(interpreter)
+                            .overrideTaskSupervisor(mockTask)
+                            .build()
+                            .test();
                     success.incrementAndGet();
                 } catch (Exception ex) {
                     throw new RuntimeException(ex);
@@ -2426,18 +2435,20 @@ public class TestInterpreter {
             });
         }
 
-        Timer timer = new Timer();
         doAnswer(invocation -> {
                     long begin = System.currentTimeMillis();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            Runnable run = invocation.getArgument(0);
-                            run.run();
-                            System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
-                            System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
+                    EXEC.submit(() -> {
+                        try {
+                            Thread.sleep(invocation.getArgument(1));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
-                    }, (long) invocation.getArgument(1));
+
+                        Runnable run = invocation.getArgument(0);
+                        run.run();
+                        System.out.println("Scheduled taskrun: " + invocation.getArgument(0));
+                        System.out.println("Scheduled taskrun time: " + (System.currentTimeMillis() - begin));
+                    });
                     return null;
                 }
         ).when(mockTask).runTaskLater(any(), anyLong());
