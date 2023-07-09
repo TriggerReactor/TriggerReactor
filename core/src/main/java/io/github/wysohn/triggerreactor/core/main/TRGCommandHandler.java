@@ -349,10 +349,6 @@ public class TRGCommandHandler {
                                 }
                             });
                         } else {
-                            StringBuilder builder = new StringBuilder();
-                            for (int i = 2; i < args.length; i++)
-                                builder.append(args[i] + " ");
-
                             if (!commandTriggerManager.addCommandTrigger(sender, args[1], ArgumentUtil.mergeArguments(args, 2)))
                                 sender.sendMessage("&cCommand could not be binded." + " Possibly already being used by another plugin or another CommandTrigger.");
 
