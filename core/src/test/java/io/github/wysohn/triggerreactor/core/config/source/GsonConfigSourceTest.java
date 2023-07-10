@@ -1,5 +1,7 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import io.github.wysohn.gsoncopy.JsonElement;
+import io.github.wysohn.gsoncopy.JsonParser;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,9 +10,14 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class GsonConfigSourceTest {
@@ -80,7 +87,7 @@ public class GsonConfigSourceTest {
     }
 
     @Test
-    public void shutdown() {
+    public void shutdown() throws IOException {
         // arrange
         int max = 1000;
 
@@ -101,6 +108,23 @@ public class GsonConfigSourceTest {
             assertTrue(gsonConfigSource.has("key" + finalI));
             assertTrue(gsonConfigSource.get("key" + finalI).map(o -> o.equals("val" + finalI)).orElse(false));
         }
+
+        assertJsonEquals("{" + IntStream.range(0, max)
+                        .mapToObj(i -> "\"key" + i + "\":\"val" + i + "\"")
+                        .collect(Collectors.joining(",")) + "}",
+                readContent(configFile.getName()));
+    }
+
+    private void assertJsonEquals(String expected, String actual) {
+        JsonParser parser = new JsonParser();
+        JsonElement expectedJson = parser.parse(expected);
+        JsonElement actualJson = parser.parse(actual);
+        assertEquals(expectedJson, actualJson);
+    }
+
+    private String readContent(String... paths) throws IOException {
+        Path path = Paths.get(folder.getRoot().getAbsolutePath(), paths);
+        return new String(Files.readAllBytes(path));
     }
 
     @Test

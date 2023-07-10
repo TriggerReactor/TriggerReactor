@@ -21,9 +21,6 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class GsonConfigSource implements IConfigSource {
@@ -58,8 +55,6 @@ public class GsonConfigSource implements IConfigSource {
         }
     }
 
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
-
     //Lock order: file -> cache
     private final File file;
     private final Function<File, Reader> readerFactory;
@@ -69,6 +64,7 @@ public class GsonConfigSource implements IConfigSource {
     private final Gson gson = GSON_BUILDER.create();
 
     private final ITypeValidator typeValidator;
+    private final SaveWorker saveWorker = new SaveWorker(5);
 
     GsonConfigSource(File file) {
         this(file, f -> {
@@ -105,6 +101,8 @@ public class GsonConfigSource implements IConfigSource {
         this.readerFactory = readerFactory;
         this.writerFactory = writerFactory;
         this.typeValidator = VALIDATOR_BUILDER.build();
+
+        saveWorker.start();
     }
 
     @Override
@@ -128,9 +126,8 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void reload() {
-        ensureFile();
-
         synchronized (file) {
+            ensureFile();
             try (Reader fr = this.readerFactory.apply(file)) {
                 synchronized (cache) {
                     Map<String, Object> loaded = null;
@@ -154,9 +151,8 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void saveAll() {
-        ensureFile();
-
         synchronized (file) {
+            ensureFile();
             cacheToFile();
         }
     }
@@ -243,11 +239,7 @@ public class GsonConfigSource implements IConfigSource {
     public void put(String key, Object value) {
         synchronized (cache) {
             put(cache, IConfigSource.toPath(key), value);
-            exec.execute(() -> {
-                synchronized (file) {
-                    cacheToFile();
-                }
-            });
+            saveWorker.flush();
         }
     }
 
@@ -274,17 +266,26 @@ public class GsonConfigSource implements IConfigSource {
      * Shutdown the saving tasks. Blocks the thread until the scheduled tasks are done.
      */
     public void shutdown() {
-        exec.shutdownNow().forEach(Runnable::run);
+        saveWorker.shutdown();
         try {
-            exec.awaitTermination(10, TimeUnit.SECONDS);
+            saveWorker.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            synchronized (cache) {
+                cacheToFile();
+            }
         }
     }
 
     @Override
     public void delete() {
-        exec.shutdownNow();
+        saveWorker.shutdown();
+        try {
+            saveWorker.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         file.delete();
     }
 
@@ -293,6 +294,58 @@ public class GsonConfigSource implements IConfigSource {
         //TODO this would print everything in the cache, which is not desired
         synchronized (cache) {
             return cache.toString();
+        }
+    }
+
+    class SaveWorker extends Thread {
+        private final int buffer;
+        private final long maxFlushInterval = 1000L;
+
+        private long count = 0;
+        private long lastFlush = System.currentTimeMillis();
+        private volatile boolean running = true;
+
+        public SaveWorker(int buffer) {
+            this.buffer = buffer;
+        }
+
+        private synchronized void flush() {
+            count++;
+            notify();
+        }
+
+        private synchronized void shutdown() {
+            running = false;
+            notify();
+        }
+
+        private boolean bufferFilled() {
+            // either buffer is filled or interval is reached
+            return count >= buffer || System.currentTimeMillis() - lastFlush >= maxFlushInterval;
+        }
+
+        @Override
+        public void run() {
+            while (running && !Thread.interrupted()) {
+                if (count == 0 || !bufferFilled()) {
+                    try {
+                        synchronized (this) {
+                            wait();
+                            continue;
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                if (running) {
+                    synchronized (file) {
+                        cacheToFile();
+                    }
+                    count = 0;
+                }
+            }
+
         }
     }
 }
