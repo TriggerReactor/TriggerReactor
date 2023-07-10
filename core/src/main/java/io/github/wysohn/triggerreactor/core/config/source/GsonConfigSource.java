@@ -343,6 +343,7 @@ public class GsonConfigSource implements IConfigSource {
                         cacheToFile();
                     }
                     count = 0;
+                    lastFlush = System.currentTimeMillis();
                 }
             }
 
