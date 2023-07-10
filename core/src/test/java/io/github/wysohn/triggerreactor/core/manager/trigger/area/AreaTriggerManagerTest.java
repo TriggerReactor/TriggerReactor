@@ -90,7 +90,7 @@ public class AreaTriggerManagerTest {
 
         manager.reload();
 
-        verify(mockInfo, times(1)).reloadConfig();
+        verify(mockInfo, times(1)).reload();
     }
 
     @Test

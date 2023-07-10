@@ -60,16 +60,11 @@ public abstract class TriggerInfo implements IMigratable, IPluginLifecycle {
     public void migrate(IMigrationHelper migrationHelper) {
         Optional.ofNullable(config)
                 .ifPresent(migrationHelper::migrate);
-        reloadConfig();
+        reload();
     }
 
     public File getSourceCodeFile() {
         return sourceCodeFile;
-    }
-
-    public void reloadConfig() {
-        Optional.ofNullable(config)
-                .ifPresent(IConfigSource::reload);
     }
 
     public String getTriggerName() {
