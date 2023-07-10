@@ -11,7 +11,9 @@ import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.Process
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Singleton
@@ -48,13 +50,16 @@ public class TriggerDependencyFacade implements ITriggerDependencyFacade {
     }
 
     @Override
-    public Map<String, ?> getSharedVars() {
-        return sharedVariableManager.getSharedVars();
-    }
+    public Map<String, Object> getExtraVariables(Object e) {
+        Map<String, Object> extraVars = new HashMap<>();
+        Optional.of(sharedVariableManager)
+                .map(SharedVariableManager::getSharedVars)
+                .ifPresent(extraVars::putAll);
+        Optional.of(pluginManagement)
+                .map(m -> m.getCustomVarsForTrigger(e))
+                .ifPresent(extraVars::putAll);
 
-    @Override
-    public Map<String, Object> getCustomVarsForTrigger(Object e) {
-        return pluginManagement.getCustomVarsForTrigger(e);
+        return extraVars;
     }
 
     @Override

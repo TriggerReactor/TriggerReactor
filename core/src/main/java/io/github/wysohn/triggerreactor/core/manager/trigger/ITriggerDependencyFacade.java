@@ -15,9 +15,7 @@ public interface ITriggerDependencyFacade {
 
     Map<Object, Object> getGlobalVariableAdapter();
 
-    Map<String, ?> getSharedVars();
-
-    Map<String, Object> getCustomVarsForTrigger(Object e);
+    Map<String, Object> getExtraVariables(Object e);
 
     IPlayer extractPlayerFromContext(Object e);
 

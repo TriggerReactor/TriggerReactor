@@ -193,10 +193,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         }
 
         scriptVars.put("event", e);
-        scriptVars.putAll(triggerDependencyFacade.getSharedVars());
-        Map<String, Object> customVars = triggerDependencyFacade.getCustomVarsForTrigger(e);
-        if (customVars != null)
-            scriptVars.putAll(customVars);
+        scriptVars.putAll(triggerDependencyFacade.getExtraVariables(e));
 
         startInterpretation(e, scriptVars, interpreter, sync);
         return true;
