@@ -127,6 +127,7 @@ public class CommandTriggerManagerTest {
         when(mockInfo.getTriggerName()).thenReturn("test");
         when(loader.listTriggers(any(), any())).thenReturn(new TriggerInfo[]{mockInfo});
         when(loader.load(any())).thenReturn(mockTrigger);
+        when(loader.toTriggerInfo(any(), any())).thenReturn(mockInfo);
         when(mockTrigger.getInfo()).thenReturn(mockInfo);
 
         manager.reload("test");

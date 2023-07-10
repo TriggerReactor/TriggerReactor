@@ -64,19 +64,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
         for (TriggerInfo info : loader.listTriggers(folder, configSourceFactory)) {
             try {
-                info.reloadConfig();
-
-                T t = loader.load(info);
-                t.init();
-
-                Optional.ofNullable(t)
-                        .ifPresent(trigger -> {
-                            if (has(info.getTriggerName())) {
-                                logger.warning(info + " is already registered! Duplicated Trigger?");
-                            } else {
-                                put(info.getTriggerName(), trigger);
-                            }
-                        });
+                reload(info);
 
                 checkDuplicatedKeys(info);
             } catch (Exception e) {
@@ -92,9 +80,23 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
         File sourceCodeFile = new File(folder, triggerName + ".trg");
         TriggerInfo info = loader.toTriggerInfo(sourceCodeFile, configSource);
 
+        reload(info);
+    }
+
+    private void reload(TriggerInfo info) {
         try {
-            T trigger = loader.load(info);
-            put(triggerName, trigger);
+            info.reload();
+            T t = loader.load(info);
+            put(info.getTriggerName(), t);
+
+            Optional.of(t)
+                    .ifPresent(trigger -> {
+                        if (has(info.getTriggerName())) {
+                            logger.warning(info + " is already registered! Duplicated Trigger?");
+                        } else {
+                            put(info.getTriggerName(), trigger);
+                        }
+                    });
 
             checkDuplicatedKeys(info);
         } catch (Exception e) {
@@ -117,6 +119,7 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     @Override
     public void shutdown() {
         for (T trigger : triggers.values()) {
+            trigger.getInfo().shutdown();
             loader.save(trigger);
         }
     }
