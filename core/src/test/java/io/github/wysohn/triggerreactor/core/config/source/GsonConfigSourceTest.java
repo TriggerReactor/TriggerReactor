@@ -72,6 +72,24 @@ public class GsonConfigSourceTest {
 
     @Test
     public void put() {
+        // arrange
+        int max = 100000;
+
+        Map<String, Object> values1 = new HashMap<>();
+
+        for (int i = 0; i < max; i++) {
+            values1.put("key" + i, "val" + i);
+        }
+
+        // act
+        values1.forEach(gsonConfigSource::put);
+
+        // assert
+        for (int i = 0; i < max; i++) {
+            int finalI = i;
+            assertTrue(gsonConfigSource.has("key" + finalI));
+            assertTrue(gsonConfigSource.get("key" + finalI).map(o -> o.equals("val" + finalI)).orElse(false));
+        }
     }
 
     @Test
@@ -89,7 +107,7 @@ public class GsonConfigSourceTest {
     @Test
     public void shutdown() throws IOException {
         // arrange
-        int max = 1000;
+        int max = 100000;
 
         Map<String, Object> values1 = new HashMap<>();
 
