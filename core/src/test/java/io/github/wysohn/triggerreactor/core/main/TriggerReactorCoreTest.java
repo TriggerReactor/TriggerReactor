@@ -23,6 +23,7 @@ import io.github.wysohn.triggerreactor.core.manager.trigger.location.WalkTrigger
 import io.github.wysohn.triggerreactor.core.module.CorePluginModule;
 import io.github.wysohn.triggerreactor.core.script.interpreter.TaskSupervisor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -50,22 +51,44 @@ public class TriggerReactorCoreTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    private final Logger logger = mock(Logger.class);
-    private final Object pluginObject = mock(Object.class);
+    private Logger logger;
+    private Object pluginObject;
 
-    private final IPluginManagement pluginManagement = mock(IPluginManagement.class);
-    private final IGameManagement gameManagement = mock(IGameManagement.class);
-    private final IEventManagement eventManagement = mock(IEventManagement.class);
-    private final TaskSupervisor taskSupervisor = mock(TaskSupervisor.class);
+    private IPluginManagement pluginManagement;
+    private IGameManagement gameManagement;
+    private IEventManagement eventManagement;
+    private TaskSupervisor taskSupervisor;
 
-    private final ICommandHandler commandHandler = mock(ICommandHandler.class);
-    private final IEventRegistry eventRegistry = mock(IEventRegistry.class);
-    private final IInventoryHandle inventoryHandle = mock(IInventoryHandle.class);
+    private ICommandHandler commandHandler;
+    private IEventRegistry eventRegistry;
+    private IInventoryHandle inventoryHandle;
 
-    private final IJSFolderContentCopyHelper copyHelper = mock(IJSFolderContentCopyHelper.class);
-    private final IJavascriptFileLoader javascriptFileLoader = mock(IJavascriptFileLoader.class);
 
-    private final SelfReference selfReference = mock(SelfReference.class);
+    private IJSFolderContentCopyHelper copyHelper;
+    private IJavascriptFileLoader javascriptFileLoader;
+
+    private SelfReference selfReference;
+
+    @Before
+    public void init() throws Exception {
+        //initialize with mocks
+        logger = mock(Logger.class);
+        pluginObject = mock(Object.class);
+
+        pluginManagement = mock(IPluginManagement.class);
+        gameManagement = mock(IGameManagement.class);
+        eventManagement = mock(IEventManagement.class);
+        taskSupervisor = mock(TaskSupervisor.class);
+
+        commandHandler = mock(ICommandHandler.class);
+        eventRegistry = mock(IEventRegistry.class);
+        inventoryHandle = mock(IInventoryHandle.class);
+
+        copyHelper = mock(IJSFolderContentCopyHelper.class);
+        javascriptFileLoader = mock(IJavascriptFileLoader.class);
+
+        selfReference = mock(SelfReference.class);
+    }
 
     private Injector createInjector(AbstractModule... additionalModules) {
         List<AbstractModule> modules = new ArrayList<>();
