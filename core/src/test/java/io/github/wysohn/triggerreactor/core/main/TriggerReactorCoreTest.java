@@ -216,7 +216,7 @@ public class TriggerReactorCoreTest {
         });
 
         // assert
-        verify(pluginManagement, never()).isEnabled();
+        verify(sender, never()).sendMessage(anyString());
     }
 
     @Test
