@@ -243,10 +243,6 @@ public class Lexer {
         return new Token(Type.DECIMAL, builder.toString(), row, col);
     }
 
-    private void eatHexadecimalDigits(final StringBuilder builder) {
-
-    }
-
     private Token readString() throws IOException, LexerException {
         StringBuilder builder = new StringBuilder();
         boolean warn = false;
