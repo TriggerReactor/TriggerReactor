@@ -28,6 +28,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 public class TestLexer {
+    
+    private static final Charset charset = StandardCharsets.UTF_8;
 
     private static void testToken(Lexer lexer, Type id, String s) throws IOException, LexerException {
         assertEquals(new Token(id, s), lexer.getToken());
@@ -39,7 +41,6 @@ public class TestLexer {
 
     @Test
     public void testGetToken() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n"
                 + "#MESSAGE \"text\" \"test\"\n";
 
@@ -82,7 +83,6 @@ public class TestLexer {
 
     @Test
     public void testBitwiseAndBitshift() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -116,7 +116,6 @@ public class TestLexer {
 
     @Test
     public void testAssignment() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -189,7 +188,6 @@ public class TestLexer {
 
     @Test
     public void testIncrementAndDecrement() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -272,7 +270,6 @@ public class TestLexer {
 
     @Test
     public void testNegation() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text = "#MESSAGE !true\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -286,7 +283,6 @@ public class TestLexer {
 
     @Test
     public void testSemicolon() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text = "#MESSAGE !true;#MESSAGE \"next\"";
 
         Lexer lexer = new Lexer(text, charset);
@@ -302,7 +298,6 @@ public class TestLexer {
 
     @Test
     public void testEscapeCharacter() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text = "#MESSAGE \"HI \\\"X\\\"! \\\\\"";
 
         Lexer lexer = new Lexer(text, charset);
@@ -314,7 +309,6 @@ public class TestLexer {
 
     @Test
     public void testEscapeCharacter2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text = "#MESSAGE \"The cost is \\$100\"";
 
         Lexer lexer = new Lexer(text, charset);
@@ -326,7 +320,6 @@ public class TestLexer {
 
     @Test
     public void testImport() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -337,8 +330,7 @@ public class TestLexer {
     }
 
     @Test
-    public void testImporWithNum() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
+    public void testImportWithNum() throws Exception {
         String text;
         Lexer lexer;
 
@@ -350,7 +342,6 @@ public class TestLexer {
 
     @Test
     public void testImportWithInComment() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -362,7 +353,6 @@ public class TestLexer {
 
     @Test
     public void testComment() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -395,13 +385,101 @@ public class TestLexer {
     }
 
     @Test
-    public void testNumber() throws Exception {
+    public void testNumber_NumericSeparators() throws Exception {
+        String text;
+        Lexer lexer;
 
+        {
+            text = "1_000_000_000";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "1000000000");
+            testEnd(lexer);
+        }
+        {
+            text = "0.000_000_1";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "0.0000001");
+            testEnd(lexer);
+        }
+    }
+
+    @Test
+    public void testNumber_Base() throws Exception {
+        String text;
+        Lexer lexer;
+
+        {
+            text = "0010"; // Not a base prefix
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "10");
+            testEnd(lexer);
+        }
+        {
+            text = "0b0000_0010_0000";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "32");
+            testEnd(lexer);
+        }
+        {
+            text = "0o100";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "64");
+            testEnd(lexer);
+        }
+        {
+            text = "0xC0FFEE";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "12648430");
+            testEnd(lexer);
+        }
+    }
+
+    @Test(expected = LexerException.class)
+    public void testNumber_InvalidTokenException() throws IOException, LexerException {
+        String text;
+        Lexer lexer;
+        {
+            text = "1_000_000_000.";
+            lexer = new Lexer(text, charset);
+
+            testToken(lexer, Type.INTEGER, "1000000000");
+            testEnd(lexer);
+        }
+        {
+            text = "0._";
+            lexer = new Lexer(text, charset);
+
+            testToken(lexer, Type.DECIMAL, "0");
+            testEnd(lexer);
+        }
+    }
+
+    @Test(expected = LexerException.class)
+    public void testNumber_InvalidBaseException() throws IOException, LexerException {
+        String text;
+        Lexer lexer;
+        {
+            text = "0b0000_0010_0000.";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "32");
+            testEnd(lexer);
+        }
+        {
+            text = "0o100.";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "64");
+            testEnd(lexer);
+        }
+        {
+            text = "0xC0FFEE.";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "12648430");
+            testEnd(lexer);
+        }
     }
 
     @Test
     public void testString() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -474,7 +552,6 @@ public class TestLexer {
 
     @Test
     public void testMultilineString() throws IOException, LexerException {
-        Charset charset = StandardCharsets.UTF_8;
         Lexer lexer;
         String text;
 
@@ -501,7 +578,6 @@ public class TestLexer {
 
     @Test(expected = LexerException.class)
     public void testMultilineStringException() throws IOException, LexerException {
-        Charset charset = StandardCharsets.UTF_8;
         Lexer lexer;
         String text;
 
@@ -513,7 +589,6 @@ public class TestLexer {
 
     @Test(expected = LexerException.class)
     public void testStringException() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -528,7 +603,6 @@ public class TestLexer {
 
     @Test(expected = LexerException.class)
     public void testStringException2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -543,7 +617,6 @@ public class TestLexer {
 
     @Test(expected = LexerException.class)
     public void testStringException3() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -558,7 +631,6 @@ public class TestLexer {
 
     @Test
     public void testPlaceholderSubFolder() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -577,7 +649,6 @@ public class TestLexer {
 
     @Test
     public void testPlaceholderEscape() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -589,7 +660,6 @@ public class TestLexer {
 
     @Test
     public void testPlaceholderEscape2() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 
@@ -616,7 +686,6 @@ public class TestLexer {
 
     @Test
     public void testImportWithUnderscore() throws Exception{
-        Charset charset = StandardCharsets.UTF_8;
         String text;
         Lexer lexer;
 

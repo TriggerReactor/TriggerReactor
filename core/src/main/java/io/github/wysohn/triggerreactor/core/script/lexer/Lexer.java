@@ -193,24 +193,58 @@ public class Lexer {
     private Token readNumber() throws IOException, LexerException {
         StringBuilder builder = new StringBuilder();
 
-        while (Character.isDigit(c)) {
-            builder.append(c);
+        final Token.Base base;
+        if (c == '0') {
+            read();
+
+            if (c == 'b') {
+                base = Token.Base.Binary;
+                read();
+            } else if (c == 'o') {
+                base = Token.Base.Octal;
+                read();
+            } else if (c == 'x') {
+                base = Token.Base.Hexadecimal;
+                read();
+            } else {
+                base = Token.Base.Decimal;
+                unread();
+                c = '0';
+            }
+        } else {
+            base = Token.Base.Decimal;
+        }
+
+        while (Character.isDigit(c) || c == '_' || (base == Token.Base.Hexadecimal && Character.isAlphabetic(c))) {
+            if (c != '_') builder.append(c);
             read();
         }
+
         if (c != '.') {
-            return new Token(Type.INTEGER, builder.toString(), row, col);
+            final int digit = Integer.parseInt(builder.toString(), base.radix);
+            return new Token(Type.INTEGER, String.valueOf(digit), row, col);
         } else {
             builder.append('.');
             read();
-            if (!Character.isDigit(c))
+            if (base != Token.Base.Decimal) {
+                throw new LexerException("Unexpected end of input.", this);
+            } else if (c == '_') {
+                throw new LexerException("Numeric separators are not allowed at the start of floating points.", this);
+            } else if (!Character.isDigit(c)) {
                 throw new LexerException("Invalid number [" + builder.toString() + "]", this);
+            }
         }
-        while (Character.isDigit(c)) {
-            builder.append(c);
+
+        while (Character.isDigit(c) || c == '_') {
+            if (c != '_') builder.append(c);
             read();
         }
 
         return new Token(Type.DECIMAL, builder.toString(), row, col);
+    }
+
+    private void eatHexadecimalDigits(final StringBuilder builder) {
+
     }
 
     private Token readString() throws IOException, LexerException {
