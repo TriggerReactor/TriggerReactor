@@ -686,10 +686,10 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
                                                e);
             } catch (InvocationTargetException e) {
-                throw new InterpreterException("Error while executing fuction " + right, e);
+                throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
                 throw new InterpreterException(
-                        "Could not execute function " + right + " due to innapropriate arguments.", e);
+                        "Could not execute function " + right + " due to inappropriate arguments.", e);
             }
         } else {
             try {
@@ -700,10 +700,10 @@ public class Interpreter {
                 throw new InterpreterException("Function " + right + " does not exist or parameter types not match.",
                                                e);
             } catch (InvocationTargetException e) {
-                throw new InterpreterException("Error while executing fuction " + right, e);
+                throw new InterpreterException("Error whilst executing function " + right, e);
             } catch (IllegalArgumentException e) {
                 throw new InterpreterException(
-                        "Could not execute function " + right + " due to innapropriate arguments.", e);
+                        "Could not execute function " + right + " due to inappropriate arguments.", e);
             }
         }
 
