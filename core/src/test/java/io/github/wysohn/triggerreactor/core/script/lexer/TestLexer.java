@@ -421,13 +421,31 @@ public class TestLexer {
             testEnd(lexer);
         }
         {
+            text = "0B0000_0010_0000";  // Check for Uppercase base
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "32");
+            testEnd(lexer);
+        }
+        {
             text = "0o100";
             lexer = new Lexer(text, charset);
             testToken(lexer, Type.INTEGER, "64");
             testEnd(lexer);
         }
         {
+            text = "0O100";  // Check for Uppercase base
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "64");
+            testEnd(lexer);
+        }
+        {
             text = "0xC0FFEE";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "12648430");
+            testEnd(lexer);
+        }
+        {
+            text = "0XC0FFEE";  // Check for Uppercase base
             lexer = new Lexer(text, charset);
             testToken(lexer, Type.INTEGER, "12648430");
             testEnd(lexer);
