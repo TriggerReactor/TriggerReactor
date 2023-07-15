@@ -494,7 +494,7 @@ public class Lexer {
         return Token.Base.Decimal;
     }
     private static final Predicate<Character> PREDICATE_DECIMAL_DIGIT = c -> Character.isDigit(c) || c == '_';
-    private static final Predicate<Character> PREDICATE_HEXADECIMAL_DIGIT = c -> Character.isLetterOrDigit(c) || c == '_';
+    private static final Predicate<Character> PREDICATE_HEXADECIMAL_DIGIT = c -> PREDICATE_DECIMAL_DIGIT.test(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
     private static final BiConsumer<Appendable, Character> DIGIT_CONSUMER = (appendable, c) -> {
         if (c != '_') {
             try {

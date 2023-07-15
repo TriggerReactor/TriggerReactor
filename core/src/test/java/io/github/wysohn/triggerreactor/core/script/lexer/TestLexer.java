@@ -432,6 +432,18 @@ public class TestLexer {
             testToken(lexer, Type.INTEGER, "12648430");
             testEnd(lexer);
         }
+        {
+            text = "0xabcdef";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "11259375");
+            testEnd(lexer);
+        }
+        {
+            text = "0xABCDEF";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "11259375");
+            testEnd(lexer);
+        }
     }
 
     @Test(expected = LexerException.class)
@@ -442,14 +454,14 @@ public class TestLexer {
             text = "1_000_000_000.";
             lexer = new Lexer(text, charset);
 
-            testToken(lexer, Type.INTEGER, "1000000000");
+            testToken(lexer, Type.INTEGER, "");
             testEnd(lexer);
         }
         {
             text = "0._";
             lexer = new Lexer(text, charset);
 
-            testToken(lexer, Type.DECIMAL, "0");
+            testToken(lexer, Type.DECIMAL, "");
             testEnd(lexer);
         }
     }
@@ -461,19 +473,25 @@ public class TestLexer {
         {
             text = "0b0000_0010_0000.";
             lexer = new Lexer(text, charset);
-            testToken(lexer, Type.INTEGER, "32");
+            testToken(lexer, Type.INTEGER, "");
             testEnd(lexer);
         }
         {
             text = "0o100.";
             lexer = new Lexer(text, charset);
-            testToken(lexer, Type.INTEGER, "64");
+            testToken(lexer, Type.INTEGER, "");
             testEnd(lexer);
         }
         {
             text = "0xC0FFEE.";
             lexer = new Lexer(text, charset);
-            testToken(lexer, Type.INTEGER, "12648430");
+            testToken(lexer, Type.INTEGER, "");
+            testEnd(lexer);
+        }
+        {
+            text = "0xABCDEG"; // "G" is not a part of hexadecimal
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "");
             testEnd(lexer);
         }
     }
