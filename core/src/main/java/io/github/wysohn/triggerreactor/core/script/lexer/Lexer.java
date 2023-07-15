@@ -207,7 +207,7 @@ public class Lexer {
             builder.append('.');
             read();
             if (base != Token.Base.Decimal) {
-                throw new LexerException("Unexpected end of input.", this);
+                throw new LexerException("Float literals are unsupported base.", this);
             } else if (c == '_') {
                 throw new LexerException("Numeric separators are not allowed at the start of floating points.", this);
             } else if (!Character.isDigit(c)) {
