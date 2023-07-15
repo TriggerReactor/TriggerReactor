@@ -475,13 +475,13 @@ public class Lexer {
         if (c == '0') {
             read();
 
-            if (c == 'b') {
+            if (c == 'b' || c == 'B') {
                 read();
                 return Token.Base.Binary;
-            } else if (c == 'o') {
+            } else if (c == 'o' || c == 'O') {
                 read();
                 return Token.Base.Octal;
-            } else if (c == 'x') {
+            } else if (c == 'x' || c == 'X') {
                 read();
                 return Token.Base.Hexadecimal;
             } else {
