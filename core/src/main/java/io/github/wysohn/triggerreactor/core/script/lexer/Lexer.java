@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.*;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -191,38 +192,17 @@ public class Lexer {
     }
 
     private Token readNumber() throws IOException, LexerException {
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
 
-        final Token.Base base;
-        if (c == '0') {
-            read();
-
-            if (c == 'b') {
-                base = Token.Base.Binary;
-                read();
-            } else if (c == 'o') {
-                base = Token.Base.Octal;
-                read();
-            } else if (c == 'x') {
-                base = Token.Base.Hexadecimal;
-                read();
-            } else {
-                base = Token.Base.Decimal;
-                unread();
-                c = '0';
-            }
+        final Token.Base base = getNumericLiteralBase();
+        if (base == Token.Base.Hexadecimal) {
+            eatHexadecimalDigits(builder);
         } else {
-            base = Token.Base.Decimal;
-        }
-
-        while (Character.isDigit(c) || c == '_' || (base == Token.Base.Hexadecimal && Character.isAlphabetic(c))) {
-            if (c != '_') builder.append(c);
-            read();
+            eatDecimalDigits(builder);
         }
 
         if (c != '.') {
-            final int digit = Integer.parseInt(builder.toString(), base.radix);
-            return new Token(Type.INTEGER, String.valueOf(digit), row, col);
+            return new Token(Type.INTEGER, tryParseInt(builder.toString(), base.radix), row, col);
         } else {
             builder.append('.');
             read();
@@ -235,10 +215,7 @@ public class Lexer {
             }
         }
 
-        while (Character.isDigit(c) || c == '_') {
-            if (c != '_') builder.append(c);
-            read();
-        }
+        eatDecimalDigits(builder);
 
         return new Token(Type.DECIMAL, builder.toString(), row, col);
     }
@@ -492,6 +469,114 @@ public class Lexer {
     private Token readEndline() throws IOException {
         read();
         return new Token(Type.ENDL, null, row, col);
+    }
+
+    private Token.Base getNumericLiteralBase() throws IOException {
+        if (c == '0') {
+            read();
+
+            if (c == 'b') {
+                read();
+                return Token.Base.Binary;
+            } else if (c == 'o') {
+                read();
+                return Token.Base.Octal;
+            } else if (c == 'x') {
+                read();
+                return Token.Base.Hexadecimal;
+            } else {
+                unread();
+                c = '0';
+                return Token.Base.Decimal;
+            }
+        }
+
+        return Token.Base.Decimal;
+    }
+    private static final Predicate<Character> PREDICATE_DECIMAL_DIGIT = c -> Character.isDigit(c) || c == '_';
+    private static final Predicate<Character> PREDICATE_HEXADECIMAL_DIGIT = c -> Character.isLetterOrDigit(c) || c == '_';
+    private static final BiConsumer<Appendable, Character> DIGIT_CONSUMER = (appendable, c) -> {
+        if (c != '_') {
+            try {
+                appendable.append(c);
+            } catch (final IOException ignored) {
+            }
+        }
+    };
+    private static Predicate<Character> isDecimalDigit() {
+        return PREDICATE_DECIMAL_DIGIT;
+    }
+    private static Predicate<Character> isHexadecimalDigit() {
+        return PREDICATE_HEXADECIMAL_DIGIT;
+    }
+
+    private StringBuilder eatDecimalDigits() throws IOException {
+        return eatDecimalDigits(new StringBuilder());
+    }
+
+    private StringBuilder eatDecimalDigits(final StringBuilder builder) throws IOException {
+        return (StringBuilder) eatWhile(isDecimalDigit(), DIGIT_CONSUMER, () -> builder);
+    }
+
+    private StringBuilder eatHexadecimalDigits() throws IOException {
+        return eatHexadecimalDigits(new StringBuilder());
+    }
+
+    private StringBuilder eatHexadecimalDigits(final StringBuilder builder) throws IOException {
+        return (StringBuilder) eatWhile(isHexadecimalDigit(), DIGIT_CONSUMER, () -> builder);
+    }
+
+    /**
+     * Eats symbols while predicate returns {@code true} or until the end of stream is reached.
+     *
+     * @param predicate the predicate to evaluate against symbols
+     * @throws IOException if an I/O error occurs
+     */
+    private void eatWhile(final Predicate<Character> predicate) throws IOException {
+        eatWhile(predicate, null, null);
+    }
+
+    /**
+     * Eats symbols while predicate returns {@code true} or until the end of stream is reached,
+     * and returns a result container that fold eaten characters.
+     *
+     * @param predicate the predicate to evaluate against symbols
+     * @param fn a function that fold eaten symbols into a result container
+     * @param sup a function that creates a new mutable result container to fold eaten symbols
+     * @return consumed characters that performed the fn
+     * @param <R> the type
+     * @throws IOException if an I/O error occurs
+     */
+    private <R> R eatWhile(final Predicate<Character> predicate, final BiConsumer<R, Character> fn, final Supplier<R> sup) throws IOException {
+        final R identity = sup != null ? sup.get() : null;
+        while (predicate.test(c) && !eos) {
+            if (fn != null) fn.accept(identity, c);
+            read();
+        }
+
+        return identity;
+    }
+
+    private static String tryParseInt(final String s, final int radix) {
+        int i = 0, len = s.length(), result = 0;
+        final int limit = -Integer.MAX_VALUE;
+        final int multmin = limit / radix;
+
+        if (len > 0) {
+            while (i < len) {
+                final int digit = Character.digit(s.charAt(i++), radix);
+                if (digit < 0 || result < multmin) {
+                    return "0";
+                }
+                result *= radix;
+                if (result < limit + digit) {
+                    return "0";
+                }
+                result -= digit;
+            }
+        }
+
+        return String.valueOf(-result);
     }
 
     private static boolean isClassNameCharacter(char c) {
