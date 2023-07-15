@@ -557,7 +557,7 @@ public class Lexer {
         return identity;
     }
 
-    private static String tryParseInt(final String s, final int radix) {
+    private static int tryParseInt(final String s, final int radix) {
         int i = 0, len = s.length(), result = 0;
         final int limit = -Integer.MAX_VALUE;
         final int multmin = limit / radix;
@@ -566,17 +566,17 @@ public class Lexer {
             while (i < len) {
                 final int digit = Character.digit(s.charAt(i++), radix);
                 if (digit < 0 || result < multmin) {
-                    return "0";
+                    return 0;
                 }
                 result *= radix;
                 if (result < limit + digit) {
-                    return "0";
+                    return 0;
                 }
                 result -= digit;
             }
         }
 
-        return String.valueOf(-result);
+        return -result;
     }
 
     private static boolean isClassNameCharacter(char c) {
