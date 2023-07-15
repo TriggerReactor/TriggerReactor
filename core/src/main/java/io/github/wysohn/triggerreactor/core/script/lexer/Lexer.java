@@ -20,6 +20,7 @@ import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.warning.StringInterpolationWarning;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -567,7 +568,7 @@ public class Lexer {
                 return;
 
             if (decIndex == -1) {  // Int
-                if (!negative) builder.append("0".repeat(exponent));
+                if (!negative) builder.append(StringUtils.repeat("0", exponent));
                 else {
                     for (int i = 0; i < exponent; i++) {
                         builder.insert(0, '0');
@@ -585,7 +586,7 @@ public class Lexer {
                     if (exponent < decimalLength) {
                         builder.insert(decIndex + exponent, '.');
                     } else if (exponent > decimalLength) {
-                        builder.append("0".repeat(exponent - decimalLength));
+                        builder.append(StringUtils.repeat("0", exponent - decimalLength));
                     }
                 } else if (decIndex - exponent > 0) {
                     builder.insert(decIndex - exponent, '.');
