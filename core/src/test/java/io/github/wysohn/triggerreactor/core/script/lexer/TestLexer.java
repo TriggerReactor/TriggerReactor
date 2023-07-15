@@ -464,6 +464,67 @@ public class TestLexer {
         }
     }
 
+    @Test
+    public void testNumber_ENotation() throws Exception {
+        String text;
+        Lexer lexer;
+
+        {  // Test for E notation in integer literals
+            text = "3e2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "300");
+            testEnd(lexer);
+        }
+        {  // Test for E notation in decimal literals, which is lower-cased (Case 1)
+            text = "1.23e2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "123");
+            testEnd(lexer);
+        }
+        {  // Test for E notation in decimal literals, which is lower-cased (Case 2)
+            text = "1.23e4";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "12300");
+            testEnd(lexer);
+        }
+        {  // Test for E notation in decimal literals, which is upper-cased
+            text = "1.23E2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "123");
+            testEnd(lexer);
+        }
+        {  // Test for E notation in decimal literals with sign(+) operator (optional)
+            text = "1.23e+2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "123");
+            testEnd(lexer);
+        }
+        {  // Test for E notation in decimal literals with minus(-) operator
+            text = "1.23e-2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "0.0123");
+            testEnd(lexer);
+        }
+        {  // Test for complex literals with numeric separators(_) and also rest tests too
+            text = "1.77_244_325e8";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "177244325");
+            testEnd(lexer);
+        }
+        {
+            text = "1.77_244_325e4";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "17724.4325");
+            testEnd(lexer);
+        }
+        {
+            text = "177.244_325e-2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "1.77244325");
+            testEnd(lexer);
+        }
+    }
+
     @Test(expected = LexerException.class)
     public void testNumber_InvalidTokenException() throws IOException, LexerException {
         String text;

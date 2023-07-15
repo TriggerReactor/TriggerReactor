@@ -202,7 +202,9 @@ public class Lexer {
         }
 
         if (c != '.') {
-            return new Token(Type.INTEGER, tryParseInt(builder.toString(), base.radix), row, col);
+            eatNumericLiteralPostfix(builder, false);
+
+            // return new Token(Type.INTEGER, String.valueOf(tryParseInt(builder.toString(), base.radix)), row, col);
         } else {
             builder.append('.');
             read();
@@ -213,11 +215,16 @@ public class Lexer {
             } else if (!Character.isDigit(c)) {
                 throw new LexerException("Invalid number [" + builder.toString() + "]", this);
             }
+
+            eatDecimalDigits(builder);
+            eatNumericLiteralPostfix(builder, true);
         }
 
-        eatDecimalDigits(builder);
-
-        return new Token(Type.DECIMAL, builder.toString(), row, col);
+        if (builder.indexOf(".") != -1) {  // Treat as decimal now
+            return new Token(Type.DECIMAL, builder.toString(), row, col);
+        } else {
+            return new Token(Type.INTEGER, String.valueOf(tryParseInt(builder.toString(), base.radix)), row, col);
+        }
     }
 
     private Token readString() throws IOException, LexerException {
@@ -526,6 +533,73 @@ public class Lexer {
         return (StringBuilder) eatWhile(isHexadecimalDigit(), DIGIT_CONSUMER, () -> builder);
     }
 
+    private void eatNumericLiteralPostfix(final StringBuilder builder) throws IOException {
+        eatNumericLiteralPostfix(builder, builder.indexOf("."));
+    }
+
+    private void eatNumericLiteralPostfix(final StringBuilder builder, final boolean decSeen) throws IOException {
+        if (decSeen) {
+            eatNumericLiteralPostfix(builder);
+        } else {
+            eatNumericLiteralPostfix(builder, -1);
+        }
+    }
+
+    private void eatNumericLiteralPostfix(final StringBuilder builder, final int decIndex) throws IOException {
+        eatENotation(builder, decIndex);
+    }
+
+    private void eatENotation(final StringBuilder builder, final int decIndex) throws IOException {
+        // Look for 'e' or 'E' notation
+        if (c == 'e' || c == 'E') {
+            read();
+
+            final boolean negative = c == '-';
+            if (c == '+' || negative /* Calculated value (same as: c == '-') */)
+                read();  // Advance sign
+
+            final CharSequence maybeExponent = eatDecimalDigits();
+            if (maybeExponent.length() == 0)
+                return;
+
+            final int exponent = tryParseInt(maybeExponent.toString());
+            if (exponent == 0)
+                return;
+
+            if (decIndex == -1) {  // Int
+                if (!negative) builder.append("0".repeat(exponent));
+                else {
+                    for (int i = 0; i < exponent; i++) {
+                        builder.insert(0, '0');
+
+                        if (i == exponent - 2) builder.insert(0, '.');
+                    }
+                }
+            } else {  // Float
+                builder.deleteCharAt(decIndex);
+
+                final int decimalLength = builder.length() - decIndex;
+                // final int integerLength = builder.length() - decimalLength;
+                if (!negative) {
+                    // Skip if exponent == decimalLength
+                    if (exponent < decimalLength) {
+                        builder.insert(decIndex + exponent, '.');
+                    } else if (exponent > decimalLength) {
+                        builder.append("0".repeat(exponent - decimalLength));
+                    }
+                } else if (decIndex - exponent > 0) {
+                    builder.insert(decIndex - exponent, '.');
+                } else {
+                    for (int i = exponent; i > 0; i--) {
+                        builder.insert(0, '0');
+
+                        if (i == 2) builder.insert(0, '.');
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Eats symbols while predicate returns {@code true} or until the end of stream is reached.
      *
@@ -555,6 +629,10 @@ public class Lexer {
         }
 
         return identity;
+    }
+
+    private static int tryParseInt(final String s) {
+        return tryParseInt(s, 10);
     }
 
     private static int tryParseInt(final String s, final int radix) {
@@ -597,7 +675,7 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "";
+        String text = "1.23e2";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n" + text);
 
