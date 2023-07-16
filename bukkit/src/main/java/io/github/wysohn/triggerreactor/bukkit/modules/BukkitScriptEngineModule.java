@@ -29,8 +29,10 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -45,7 +47,10 @@ public class BukkitScriptEngineModule extends AbstractModule {
             public ScriptEngine getEngine() {
                 if (!initialized && sem == null) {
                     RegisteredServiceProvider<ScriptEngineManager> sep
-                            = server.getServicesManager().getRegistration(ScriptEngineManager.class);
+                            = server.getServicesManager().getRegistrations(ScriptEngineManager.class).stream()
+                            .filter(reg -> ALLOWED_PROVIDERS.contains(reg.getPlugin().getName()))
+                            .findFirst()
+                            .orElse(null);
                     sem = Optional.ofNullable(sep)
                             .map(RegisteredServiceProvider::getProvider)
                             .orElse(null);
@@ -114,5 +119,11 @@ public class BukkitScriptEngineModule extends AbstractModule {
                 }
             });
         };
+    }
+
+    private static Set<String> ALLOWED_PROVIDERS = new HashSet<>();
+
+    static {
+        ALLOWED_PROVIDERS.add("JShader");
     }
 }
