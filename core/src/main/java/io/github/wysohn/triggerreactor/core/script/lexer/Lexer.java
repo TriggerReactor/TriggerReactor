@@ -642,11 +642,11 @@ public class Lexer {
             while (i < len) {
                 final int digit = Character.digit(s.charAt(i++), radix);
                 if (digit < 0 || result < multmin) {
-                    return 0;
+                    throw new NumberFormatException("For input string: \"" + s + "\"");
                 }
                 result *= radix;
                 if (result < limit + digit) {
-                    return 0;
+                    throw new NumberFormatException("For input string: \"" + s + "\"");
                 }
                 result -= digit;
             }
