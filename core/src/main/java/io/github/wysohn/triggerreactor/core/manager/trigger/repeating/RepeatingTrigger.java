@@ -65,7 +65,6 @@ public class RepeatingTrigger extends Trigger implements Runnable {
                 .map(ExecutingTrigger::getLocalContext)
                 .map(InterpreterLocalContext::getVarCopy)
                 .ifPresent(vars::putAll);
-        vars.putAll(scriptVars);
 
         return result;
     }
