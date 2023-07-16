@@ -523,6 +523,12 @@ public class TestLexer {
             testToken(lexer, Type.DECIMAL, "1.77244325");
             testEnd(lexer);
         }
+        {
+            text = "177e-8";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "0.00000177");
+            testEnd(lexer);
+        }
     }
 
     @Test(expected = LexerException.class)
