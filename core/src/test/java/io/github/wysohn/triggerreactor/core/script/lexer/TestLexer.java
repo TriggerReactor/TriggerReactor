@@ -475,6 +475,30 @@ public class TestLexer {
             testToken(lexer, Type.INTEGER, "300");
             testEnd(lexer);
         }
+        {  // Test for E notation in integer literals with minus(-) sign
+            text = "3e-2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "0.03");
+            testEnd(lexer);
+        }
+        {
+            text = "123e-3";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "0.123");
+            testEnd(lexer);
+        }
+        {
+            text = "1234e-2";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "12.34");
+            testEnd(lexer);
+        }
+        {
+            text = "177e-8";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.DECIMAL, "0.00000177");
+            testEnd(lexer);
+        }
         {  // Test for E notation in decimal literals, which is lower-cased (Case 1)
             text = "1.23e2";
             lexer = new Lexer(text, charset);
@@ -493,13 +517,13 @@ public class TestLexer {
             testToken(lexer, Type.INTEGER, "123");
             testEnd(lexer);
         }
-        {  // Test for E notation in decimal literals with sign(+) operator (optional)
+        {  // Test for E notation in decimal literals with plus(+) sign (optional)
             text = "1.23e+2";
             lexer = new Lexer(text, charset);
             testToken(lexer, Type.INTEGER, "123");
             testEnd(lexer);
         }
-        {  // Test for E notation in decimal literals with minus(-) operator
+        {  // Test for E notation in decimal literals with minus(-) sign
             text = "1.23e-2";
             lexer = new Lexer(text, charset);
             testToken(lexer, Type.DECIMAL, "0.0123");
@@ -521,12 +545,6 @@ public class TestLexer {
             text = "177.244_325e-2";
             lexer = new Lexer(text, charset);
             testToken(lexer, Type.DECIMAL, "1.77244325");
-            testEnd(lexer);
-        }
-        {
-            text = "177e-8";
-            lexer = new Lexer(text, charset);
-            testToken(lexer, Type.DECIMAL, "0.00000177");
             testEnd(lexer);
         }
     }
