@@ -204,8 +204,6 @@ public class Lexer {
 
         if (c != '.') {
             eatNumericLiteralPostfix(builder, false);
-
-            // return new Token(Type.INTEGER, String.valueOf(tryParseInt(builder.toString(), base.radix)), row, col);
         } else {
             builder.append('.');
             read();
@@ -493,9 +491,9 @@ public class Lexer {
                 read();
                 return Token.Base.Hexadecimal;
             } else {
+                // Not a base prefix, push bask the last character
                 unread();
                 c = '0';
-                return Token.Base.Decimal;
             }
         }
 
@@ -580,7 +578,6 @@ public class Lexer {
                 builder.deleteCharAt(decIndex);
 
                 final int decimalLength = builder.length() - decIndex;
-                // final int integerLength = builder.length() - decimalLength;
                 if (!negative) {
                     // Skip if exponent == decimalLength
                     if (exponent < decimalLength) {
