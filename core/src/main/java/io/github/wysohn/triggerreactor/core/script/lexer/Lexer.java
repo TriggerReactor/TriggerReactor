@@ -570,10 +570,20 @@ public class Lexer {
             if (decIndex == -1) {  // Int
                 if (!negative) builder.append(StringUtils.repeat("0", exponent));
                 else {
-                    for (int i = 0; i < exponent; i++) {
+                    final int length = exponent - builder.length();
+                    if (length == 0) {
+                        builder.insert(0, '.');
                         builder.insert(0, '0');
+                    } else if (length > 0) {
+                        for (int i = length; i >= 0; i--) {
+                            builder.insert(0, '0');
 
-                        if (i == exponent - 2) builder.insert(0, '.');
+                            if (i == 1) {
+                                builder.insert(0, '.');
+                            }
+                        }
+                    } else {
+                        builder.insert(-length, '.');
                     }
                 }
             } else {  // Float
