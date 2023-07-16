@@ -581,6 +581,36 @@ public class TestLexer {
         }
     }
 
+    @Test(expected = LexerException.class)
+    public void testNumber_InvalidENotationException() throws IOException, LexerException {
+        String text;
+        Lexer lexer;
+        {
+            text = "123e";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "");
+            testEnd(lexer);
+        }
+        {
+            text = "1.23e";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "");
+            testEnd(lexer);
+        }
+        {
+            text = "123e-";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "");
+            testEnd(lexer);
+        }
+        {
+            text = "1.23e-";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "");
+            testEnd(lexer);
+        }
+    }
+
     @Test
     public void testString() throws Exception {
         String text;
