@@ -532,11 +532,11 @@ public class Lexer {
         return (StringBuilder) eatWhile(isHexadecimalDigit(), DIGIT_CONSUMER, () -> builder);
     }
 
-    private void eatNumericLiteralPostfix(final StringBuilder builder) throws IOException {
+    private void eatNumericLiteralPostfix(final StringBuilder builder) throws IOException, LexerException {
         eatNumericLiteralPostfix(builder, builder.indexOf("."));
     }
 
-    private void eatNumericLiteralPostfix(final StringBuilder builder, final boolean decSeen) throws IOException {
+    private void eatNumericLiteralPostfix(final StringBuilder builder, final boolean decSeen) throws IOException, LexerException {
         if (decSeen) {
             eatNumericLiteralPostfix(builder);
         } else {
@@ -544,11 +544,11 @@ public class Lexer {
         }
     }
 
-    private void eatNumericLiteralPostfix(final StringBuilder builder, final int decIndex) throws IOException {
+    private void eatNumericLiteralPostfix(final StringBuilder builder, final int decIndex) throws IOException, LexerException {
         eatENotation(builder, decIndex);
     }
 
-    private void eatENotation(final StringBuilder builder, final int decIndex) throws IOException {
+    private void eatENotation(final StringBuilder builder, final int decIndex) throws IOException, LexerException {
         // Look for 'e' or 'E' notation
         if (c == 'e' || c == 'E') {
             read();
@@ -558,12 +558,14 @@ public class Lexer {
                 read();  // Advance sign
 
             final CharSequence maybeExponent = eatDecimalDigits();
-            if (maybeExponent.length() == 0)
-                return;
+            if (maybeExponent.length() == 0) {
+                throw new LexerException("Exponent must be not empty.", this);
+            }
 
             final int exponent = tryParseInt(maybeExponent.toString());
-            if (exponent == 0)
-                return;
+            if (exponent == 0) {
+                throw new LexerException("Exponent must be numerical value.", this);
+            }
 
             if (decIndex == -1) {  // Int
                 if (!negative) builder.append(StringUtils.repeat("0", exponent));
