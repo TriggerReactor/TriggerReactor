@@ -867,6 +867,28 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testExponentiationOperator() throws IOException, LexerException, ParserException, InterpreterException {
+        Charset charset = StandardCharsets.UTF_8;
+        String text = "a = 2 ** 2";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Map<String, Executor> executorMap = new HashMap<>();
+
+        Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.setSelfReference(new CommonFunctions());
+
+        interpreter.startWithContext(null);
+
+        Object a = interpreter.getVars().get("a");
+        assertEquals(a, 4);
+    }
+
+    @Test
     public void testShortCircuit() throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String text = ""

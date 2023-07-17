@@ -282,6 +282,38 @@ public class TestLexer {
     }
 
     @Test
+    public void testExponentiationOperator() throws IOException, LexerException {
+        String text;
+        Lexer lexer;
+
+        {
+            text = "a = 2 ** 2";
+            lexer = new Lexer(text, charset);
+
+            testToken(lexer, Type.ID, "a");
+            testToken(lexer, Type.OPERATOR, "=");
+            testToken(lexer, Type.INTEGER, "2");
+            testToken(lexer, Type.OPERATOR_A, "**");
+            testToken(lexer, Type.INTEGER, "2");
+            testEnd(lexer);
+        }
+        {
+            /// Note(Sayakie): It is _INVALID_ expression, but it should be handled by the Parser.
+            /// We just care about spaces are allowed in the exponentiation operator.
+            text = "a = 2 * * 2";
+            lexer = new Lexer(text, charset);
+
+            testToken(lexer, Type.ID, "a");
+            testToken(lexer, Type.OPERATOR, "=");
+            testToken(lexer, Type.INTEGER, "2");
+            testToken(lexer, Type.OPERATOR_A, "*");
+            testToken(lexer, Type.OPERATOR_A, "*");
+            testToken(lexer, Type.INTEGER, "2");
+            testEnd(lexer);
+        }
+    }
+
+    @Test
     public void testSemicolon() throws Exception {
         String text = "#MESSAGE !true;#MESSAGE \"next\"";
 

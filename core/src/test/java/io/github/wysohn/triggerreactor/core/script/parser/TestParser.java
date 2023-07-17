@@ -33,6 +33,8 @@ import static org.junit.Assert.assertEquals;
 
 public class TestParser {
 
+    private static final Charset charset = StandardCharsets.UTF_8;
+
     @Test
     public void testParse() throws IOException, LexerException, ParserException {
         Charset charset = Charset.forName("UTF-8");
@@ -239,6 +241,28 @@ public class TestParser {
 
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testExponentiationOperator() throws IOException, LexerException, ParserException {
+        String text = "a = 2 ** 2";
+
+        Lexer lexer = new Lexer(text, charset);
+        Parser parser = new Parser(lexer);
+
+        Node root = parser.parse();
+        Queue<Node> queue = new LinkedList<>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "a")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.INTEGER, "2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_A, "**")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
     }
 
     @Test
