@@ -43,10 +43,11 @@ function GIVE(args){
 
     if (!target) throw new Error('Player is null.');
 
-    var inv = player.getInventory();
+    var inv = target.getInventory();
     var size = 0;
-    for(var i = 0; i < 36; i++){
-        if (inv.getItem(i) === null) {
+    for(var i = 0; i < inv.getSize(); i++){
+        var item = inv.getItem(i)
+        if (item === null || item.getType().isAir()) {
             size += itemStack.getMaxStackSize();
         }else if (inv.getItem(i).isSimilar(itemStack)){
             size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
