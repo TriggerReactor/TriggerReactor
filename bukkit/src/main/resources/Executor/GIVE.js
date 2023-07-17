@@ -15,36 +15,48 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
-
 var Player = Java.type('org.bukkit.entity.Player');
 var ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 
 var validation = {
-  overloads: [
-    [
-      { type: ItemStack.class, name: 'itemStack' }
-    ],
-    [
-      { type: Player.class, name: 'player' },
-      { type: ItemStack.class, name: 'itemStack' }
-    ]
-  ]
+	overloads: [
+		[
+			{ type: ItemStack.class, name: 'itemStack' }
+		],
+		[
+			{ type: Player.class, name: 'player' },
+			{ type: ItemStack.class, name: 'itemStack' }
+		]
+	]
 };
 
-function GIVE(args) {
-  var target, itemStack;
+function GIVE(args){
+    var target, itemStack;
 
-  if (overload === 0) {
-    target = player;
-    itemStack = args[0];
-  } else if (overload === 1) {
-    target = args[0];
-    itemStack = args[1];
-  }
+    if (overload === 0) {
+        target = player;
+        itemStack = args[0];
+    } else if (overload === 1) {
+        target = args[0];
+        itemStack = args[1];
+    }
 
-  if (!target) throw new Error('Player is null.');
+    if (!target) throw new Error('Player is null.');
 
-  target.getInventory().addItem(itemStack);
+    var inv = target.getInventory();
+    var size = 0;
+    for(var i = 0; i < inv.getSize(); i++){
+        var item = inv.getItem(i)
+        if (item === null || item.getType().isAir()) {
+            size += itemStack.getMaxStackSize();
+        }else if (inv.getItem(i).isSimilar(itemStack)){
+            size += inv.getItem(i).getMaxStackSize() - inv.getItem(i).getAmount();
+        }
 
-  return null;
+        if (size >= itemStack.getAmount()) {
+            inv.addItem(itemStack);
+            return;
+        }
+    }
+    throw new Error("Player has no empty slot.");
 }

@@ -19,6 +19,8 @@ package io.github.wysohn.triggerreactor.tools;
 
 import java.util.regex.Pattern;
 
+import java.util.Arrays;
+
 public class StringUtils {
     public static final Pattern NAME_PATTERN = Pattern.compile("^[0-9a-zA-Z_]+$");
     public static final Pattern DECIMAL_PATTERN = Pattern.compile("^[0-9]+.[0-9]{0,}$");
@@ -58,5 +60,40 @@ public class StringUtils {
                 return true;
         }
         return false;
+    }
+
+    public static String repeat(final String s, final int count) {
+        if (count < 0) {
+            throw new IllegalArgumentException("count is negative: " + count);
+        }
+
+        if (count == 1) {
+            return s;
+        }
+
+        final int len = s.length();
+        if (len == 0 || count == 0) {
+            return "";
+        }
+
+        if (len == 1) {
+            final char[] single = new char[count];
+            Arrays.fill(single, s.charAt(0));
+            return String.valueOf(single);
+        }
+
+        if (Integer.MAX_VALUE / count < len) {
+            throw new OutOfMemoryError("Repeating " + len + " bytes String " + count +
+                                           " times will produce a String exceeding maximum size.");
+        }
+        final int limit = len * count;
+        final char[] multiple = new char[limit];
+        System.arraycopy(s, 0, multiple, 0, len);
+        int copied = len;
+        for (; copied < limit - copied; copied <<= 1) {
+            System.arraycopy(multiple, 0, multiple, copied, copied);
+        }
+        System.arraycopy(multiple, 0, multiple, copied, limit - copied);
+        return String.valueOf(multiple);
     }
 }

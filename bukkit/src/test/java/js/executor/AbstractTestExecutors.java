@@ -378,17 +378,23 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testGive1() throws Exception {
+        // arrange
         Player player = mock(Player.class);
         ItemStack itemStack = mock(ItemStack.class);
         PlayerInventory inventory = mock(PlayerInventory.class);
 
         when(player.getInventory()).thenReturn(inventory);
+        when(inventory.getSize()).thenReturn(54);
+        when(inventory.getItem(anyInt())).thenReturn(null);
+        when(itemStack.getMaxStackSize()).thenReturn(64);
 
+        // act
         JsTest test = new ExecutorTest(engine, "GIVE")
                 .addVariable("player", player);
 
         test.withArgs(itemStack).test();
 
+        // assert
         verify(inventory).addItem(itemStack);
 
         Assert.assertEquals(0, test.getOverload(itemStack));
@@ -396,16 +402,23 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
     @Test
     public void testGive2() throws Exception {
+        // arrange
         Player player = mock(Player.class);
         ItemStack itemStack = mock(ItemStack.class);
         PlayerInventory inventory = mock(PlayerInventory.class);
 
         when(player.getInventory()).thenReturn(inventory);
+        when(inventory.getSize()).thenReturn(54);
+        when(inventory.getItem(anyInt())).thenReturn(null);
+        when(itemStack.getMaxStackSize()).thenReturn(64);
 
-        JsTest test = new ExecutorTest(engine, "GIVE");
+        // act
+        JsTest test = new ExecutorTest(engine, "GIVE")
+                .addVariable("player", player);
 
-        test.withArgs(player, itemStack).test();
+        test.withArgs(itemStack).test();
 
+        // assert
         verify(inventory).addItem(itemStack);
 
         Assert.assertEquals(1, test.getOverload(player, itemStack));

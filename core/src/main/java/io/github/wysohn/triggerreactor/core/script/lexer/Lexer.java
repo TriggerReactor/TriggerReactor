@@ -1,25 +1,26 @@
-/*******************************************************************************
- *     Copyright (C) 2017, 2018 wysohn
+/**
+ * Copyright (c) 2023 TriggerReactor Team
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package io.github.wysohn.triggerreactor.core.script.lexer;
 
 import io.github.wysohn.triggerreactor.core.script.Token;
 import io.github.wysohn.triggerreactor.core.script.Token.Type;
 import io.github.wysohn.triggerreactor.core.script.warning.StringInterpolationWarning;
 import io.github.wysohn.triggerreactor.core.script.warning.Warning;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -27,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.*;
 
 public class Lexer {
     private static final char[] OPERATORS;
@@ -191,26 +193,37 @@ public class Lexer {
     }
 
     private Token readNumber() throws IOException, LexerException {
-        StringBuilder builder = new StringBuilder();
+        final StringBuilder builder = new StringBuilder();
 
-        while (Character.isDigit(c)) {
-            builder.append(c);
-            read();
+        final Token.Base base = getNumericLiteralBase();
+        if (base == Token.Base.Hexadecimal) {
+            eatHexadecimalDigits(builder);
+        } else {
+            eatDecimalDigits(builder);
         }
+
         if (c != '.') {
-            return new Token(Type.INTEGER, builder.toString(), row, col);
+            eatNumericLiteralPostfix(builder, false);
         } else {
             builder.append('.');
             read();
-            if (!Character.isDigit(c))
+            if (base != Token.Base.Decimal) {
+                throw new LexerException("Float literals are unsupported base.", this);
+            } else if (c == '_') {
+                throw new LexerException("Numeric separators are not allowed at the start of floating points.", this);
+            } else if (!Character.isDigit(c)) {
                 throw new LexerException("Invalid number [" + builder.toString() + "]", this);
-        }
-        while (Character.isDigit(c)) {
-            builder.append(c);
-            read();
+            }
+
+            eatDecimalDigits(builder);
+            eatNumericLiteralPostfix(builder, true);
         }
 
-        return new Token(Type.DECIMAL, builder.toString(), row, col);
+        if (builder.indexOf(".") != -1) {  // Treat as decimal now
+            return new Token(Type.DECIMAL, builder.toString(), row, col);
+        } else {
+            return new Token(Type.INTEGER, String.valueOf(tryParseInt(builder.toString(), base.radix)), row, col);
+        }
     }
 
     private Token readString() throws IOException, LexerException {
@@ -464,6 +477,196 @@ public class Lexer {
         return new Token(Type.ENDL, null, row, col);
     }
 
+    private Token.Base getNumericLiteralBase() throws IOException {
+        if (c == '0') {
+            read();
+
+            if (c == 'b' || c == 'B') {
+                read();
+                return Token.Base.Binary;
+            } else if (c == 'o' || c == 'O') {
+                read();
+                return Token.Base.Octal;
+            } else if (c == 'x' || c == 'X') {
+                read();
+                return Token.Base.Hexadecimal;
+            } else {
+                // Not a base prefix, push bask the last character
+                unread();
+                c = '0';
+            }
+        }
+
+        return Token.Base.Decimal;
+    }
+    private static final Predicate<Character> PREDICATE_DECIMAL_DIGIT = c -> Character.isDigit(c) || c == '_';
+    private static final Predicate<Character> PREDICATE_HEXADECIMAL_DIGIT = c -> PREDICATE_DECIMAL_DIGIT.test(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
+    private static final BiConsumer<Appendable, Character> DIGIT_CONSUMER = (appendable, c) -> {
+        if (c != '_') {
+            try {
+                appendable.append(c);
+            } catch (final IOException ignored) {
+            }
+        }
+    };
+    private static Predicate<Character> isDecimalDigit() {
+        return PREDICATE_DECIMAL_DIGIT;
+    }
+    private static Predicate<Character> isHexadecimalDigit() {
+        return PREDICATE_HEXADECIMAL_DIGIT;
+    }
+
+    private StringBuilder eatDecimalDigits() throws IOException {
+        return eatDecimalDigits(new StringBuilder());
+    }
+
+    private StringBuilder eatDecimalDigits(final StringBuilder builder) throws IOException {
+        return (StringBuilder) eatWhile(isDecimalDigit(), DIGIT_CONSUMER, () -> builder);
+    }
+
+    private StringBuilder eatHexadecimalDigits() throws IOException {
+        return eatHexadecimalDigits(new StringBuilder());
+    }
+
+    private StringBuilder eatHexadecimalDigits(final StringBuilder builder) throws IOException {
+        return (StringBuilder) eatWhile(isHexadecimalDigit(), DIGIT_CONSUMER, () -> builder);
+    }
+
+    private void eatNumericLiteralPostfix(final StringBuilder builder) throws IOException, LexerException {
+        eatNumericLiteralPostfix(builder, builder.indexOf("."));
+    }
+
+    private void eatNumericLiteralPostfix(final StringBuilder builder, final boolean decSeen) throws IOException, LexerException {
+        if (decSeen) {
+            eatNumericLiteralPostfix(builder);
+        } else {
+            eatNumericLiteralPostfix(builder, -1);
+        }
+    }
+
+    private void eatNumericLiteralPostfix(final StringBuilder builder, final int decIndex) throws IOException, LexerException {
+        eatENotation(builder, decIndex);
+    }
+
+    private void eatENotation(final StringBuilder builder, final int decIndex) throws IOException, LexerException {
+        // Look for 'e' or 'E' notation
+        if (c == 'e' || c == 'E') {
+            read();
+
+            final boolean negative = c == '-';
+            if (c == '+' || negative /* Calculated value (same as: c == '-') */)
+                read();  // Advance sign
+
+            final CharSequence maybeExponent = eatDecimalDigits();
+            if (maybeExponent.length() == 0) {
+                throw new LexerException("Exponent must be not empty.", this);
+            }
+
+            final int exponent = tryParseInt(maybeExponent.toString());
+            if (exponent == 0) {
+                throw new LexerException("Exponent must be numerical value.", this);
+            }
+
+            if (decIndex == -1) {  // Int
+                if (!negative) builder.append(StringUtils.repeat("0", exponent));
+                else {
+                    final int length = exponent - builder.length();
+                    if (length == 0) {
+                        builder.insert(0, '.');
+                        builder.insert(0, '0');
+                    } else if (length > 0) {
+                        for (int i = length; i >= 0; i--) {
+                            builder.insert(0, '0');
+
+                            if (i == 1) {
+                                builder.insert(0, '.');
+                            }
+                        }
+                    } else {
+                        builder.insert(-length, '.');
+                    }
+                }
+            } else {  // Float
+                builder.deleteCharAt(decIndex);
+
+                final int decimalLength = builder.length() - decIndex;
+                if (!negative) {
+                    // Skip if exponent == decimalLength
+                    if (exponent < decimalLength) {
+                        builder.insert(decIndex + exponent, '.');
+                    } else if (exponent > decimalLength) {
+                        builder.append(StringUtils.repeat("0", exponent - decimalLength));
+                    }
+                } else if (decIndex - exponent > 0) {
+                    builder.insert(decIndex - exponent, '.');
+                } else {
+                    for (int i = exponent; i > 0; i--) {
+                        builder.insert(0, '0');
+
+                        if (i == 2) builder.insert(0, '.');
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Eats symbols while predicate returns {@code true} or until the end of stream is reached.
+     *
+     * @param predicate the predicate to evaluate against symbols
+     * @throws IOException if an I/O error occurs
+     */
+    private void eatWhile(final Predicate<Character> predicate) throws IOException {
+        eatWhile(predicate, null, null);
+    }
+
+    /**
+     * Eats symbols while predicate returns {@code true} or until the end of stream is reached,
+     * and returns a result container that fold eaten characters.
+     *
+     * @param predicate the predicate to evaluate against symbols
+     * @param fn a function that fold eaten symbols into a result container
+     * @param sup a function that creates a new mutable result container to fold eaten symbols
+     * @return consumed characters that performed the fn
+     * @param <R> the type
+     * @throws IOException if an I/O error occurs
+     */
+    private <R> R eatWhile(final Predicate<Character> predicate, final BiConsumer<R, Character> fn, final Supplier<R> sup) throws IOException {
+        final R identity = sup != null ? sup.get() : null;
+        while (predicate.test(c) && !eos) {
+            if (fn != null) fn.accept(identity, c);
+            read();
+        }
+
+        return identity;
+    }
+
+    private static int tryParseInt(final String s) {
+        return tryParseInt(s, 10);
+    }
+
+    private static int tryParseInt(final String s, final int radix) {
+        int i = 0, len = s.length(), result = 0;
+        final int limit = -Integer.MAX_VALUE;
+        final int multmin = limit / radix;
+
+        if (len > 0) {
+            while (i < len) {
+                final int digit = Character.digit(s.charAt(i++), radix);
+                if (digit < 0 || result < multmin) {
+                    throw new NumberFormatException("For input string: \"" + s + "\"");
+                }
+                result *= radix;
+                if (result < limit + digit) {
+                    throw new NumberFormatException("For input string: \"" + s + "\"");
+                }
+                result -= digit;
+            }
+        }
+
+        return -result;
+    }
+
     private static boolean isClassNameCharacter(char c) {
         return Character.isDigit(c) || Character.isAlphabetic(c) || c == '.' || c == '$' || c == '_';
     }
@@ -482,7 +685,7 @@ public class Lexer {
 
     public static void main(String[] ar) throws IOException, LexerException {
         Charset charset = StandardCharsets.UTF_8;
-        String text = "";
+        String text = "1.23e2";
         //String text = "#CMD \"w \"+name ";
         System.out.println("original: \n" + text);
 
