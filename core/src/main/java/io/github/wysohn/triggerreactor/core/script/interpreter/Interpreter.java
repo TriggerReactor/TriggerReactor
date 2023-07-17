@@ -998,6 +998,9 @@ public class Interpreter {
                         case "*":
                             result = integer ? left.toInteger() * right.toInteger() : left.toDecimal() * right.toDecimal();
                             break;
+                        case "**":
+                            result = integer ? Math.pow(left.toInteger(), right.toInteger()) : Math.pow(left.toDecimal(), right.toDecimal());
+                            break;
                         case "/":
                             result = integer ? left.toInteger() / right.toInteger() : left.toDecimal() / right.toDecimal();
                             break;
