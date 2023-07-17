@@ -2,9 +2,8 @@ package js.executor;
 
 import io.github.wysohn.triggerreactor.bukkit.main.BukkitTriggerReactorCore;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
-import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
-import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
+import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
 import js.ExecutorTest;
 import js.JsTest;
@@ -13,7 +12,10 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.ItemStack;
@@ -399,9 +401,10 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
 
         when(player.getInventory()).thenReturn(inventory);
 
-        JsTest test = new ExecutorTest(engine, "GIVE");
+        JsTest test = new ExecutorTest(engine, "GIVE")
+                .addVariable("player", player);
 
-        test.withArgs(player, itemStack).test();
+        test.withArgs(itemStack).test();
 
         verify(inventory).addItem(itemStack);
 
