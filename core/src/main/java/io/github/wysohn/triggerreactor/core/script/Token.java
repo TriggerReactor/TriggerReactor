@@ -203,6 +203,29 @@ public class Token {
         }
     }
 
+    /**
+     * Base of numeric literal encoding according to its prefix.
+     */
+    public enum Base {
+        /** Literal starts with <strong><code>0b</code></strong>. */
+        Binary(2),
+
+        /** Literal starts with <strong><code>0o</code></strong>. */
+        Octal(8),
+
+        /** Literal doesn't contains a prefix. */
+        Decimal(10),
+
+        /** Literal starts with <strong><code>0x</code></strong> */
+        Hexadecimal(16);
+
+        public final int radix;
+
+        Base(final int radix) {
+            this.radix = radix;
+        }
+    }
+
     private static final Set<Class<?>> BOXED_PRIMITIVES = new HashSet<>();
     static {
         BOXED_PRIMITIVES.add(Boolean.class);
