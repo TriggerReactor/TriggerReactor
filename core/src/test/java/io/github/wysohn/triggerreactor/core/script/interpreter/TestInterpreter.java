@@ -868,24 +868,48 @@ public class TestInterpreter {
 
     @Test
     public void testExponentiationOperator() throws IOException, LexerException, ParserException, InterpreterException {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "a = 2 ** 2";
-
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
-
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-
-        Interpreter interpreter = new Interpreter(root);
-        interpreter.setExecutorMap(executorMap);
+        final String s = String.join("\n",
+                                     "a = 2 ** 2",
+                                     "b = 2 ** 3",
+                                     "c = 2.0 ** 2",
+                                     "d = 3.0 ** 2",
+                                     "e = 3.0 ** 3.0",
+                                     "f = 10 ** 1024",
+                                     "g = 10 ** 1024.0",
+                                     "h = -(3 ** 2)",  // BinaryExpression
+                                  // "i = +(3 ** 2)",  // BinaryExpression, but not supported by TriggerReactor
+                                     "j = ~(3 ** 2)",  // BinaryExpression
+                                     "k = !(3 ** 2)",  // BinaryExpression
+                                     "base = 4",
+                                     "l = --base ** 2",  // UnaryExpression (Prefix Decrement)
+                                     "m = ++base ** 2",  // UnaryExpression (Prefix Increment)
+                                     "n = base-- ** 2",  // UnaryExpression (Postfix Decrement)
+                                     "o = base++ ** 2"   // UnaryExpression (Postfix Increment)
+                                  // "p = 3 * 2 ** 3"    // Order of evaluation
+        );
+        final Interpreter interpreter = fromStr(s);
         interpreter.setTaskSupervisor(mockTask);
-        interpreter.setSelfReference(new CommonFunctions());
-
         interpreter.startWithContext(null);
 
-        Object a = interpreter.getVars().get("a");
-        assertEquals(a, 4);
+        assertEquals(interpreter.getVars().get("a"), 4);
+        assertEquals(interpreter.getVars().get("b"), 8);
+        assertEquals(interpreter.getVars().get("c"), 4.0);
+        assertEquals(interpreter.getVars().get("d"), 9.0);
+        assertEquals(interpreter.getVars().get("e"), 27.0);
+        assertEquals(interpreter.getVars().get("f"), Integer.MAX_VALUE);
+        assertEquals(interpreter.getVars().get("g"), Double.POSITIVE_INFINITY);
+        assertEquals(interpreter.getVars().get("h"), -9);
+        // NOTE(Sayakie): Unsupported expression by TriggerReactor ATM
+        // assertEquals(interpreter.getVars().get("i"), 9);
+        assertEquals(interpreter.getVars().get("j"), -10);
+        assertEquals(interpreter.getVars().get("k"), false);
+        assertEquals(interpreter.getVars().get("l"), 9);
+        assertEquals(interpreter.getVars().get("m"), 16);
+        assertEquals(interpreter.getVars().get("n"), 16);
+        assertEquals(interpreter.getVars().get("o"), 9);
+        assertEquals(interpreter.getVars().get("base"), 4);
+        // TODO(Sayakie): Exponentiation Operator(**) should be evaluated first
+        // assertEquals(interpreter.getVars().get("p"), 24);
     }
 
     @Test
@@ -3284,5 +3308,12 @@ public class TestInterpreter {
         public void twoArg(BiFunction<Object, Object, Object> run){
             twoArgResult = obj.twoArg(run);
         }
+    }
+
+    private static Interpreter fromStr(final String s) throws IOException, LexerException, ParserException {
+        final Lexer lexer = new Lexer(s, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        return new Interpreter(parser.parse());
     }
 }
