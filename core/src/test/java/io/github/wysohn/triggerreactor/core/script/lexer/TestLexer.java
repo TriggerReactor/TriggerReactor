@@ -826,6 +826,29 @@ public class TestLexer {
     }
 
     @Test
+    public void testRange() throws Exception {
+        String text;
+        Lexer lexer;
+
+        {
+            text = "0..3";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "0");
+            testToken(lexer, Type.RANGE, "<RANGE_EXCLUSIVE>");
+            testToken(lexer, Type.INTEGER, "3");
+            testEnd(lexer);
+        }
+        {
+            text = "0..=3";
+            lexer = new Lexer(text, charset);
+            testToken(lexer, Type.INTEGER, "0");
+            testToken(lexer, Type.RANGE, "<RANGE_INCLUSIVE>");
+            testToken(lexer, Type.INTEGER, "3");
+            testEnd(lexer);
+        }
+    }
+
+    @Test
     public void testId() throws Exception {
 
     }

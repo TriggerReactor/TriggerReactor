@@ -2235,7 +2235,7 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testRangedFor_Exclusive() throws Exception {
+    public void testRangeFor_Exclusive() throws Exception {
         final String text = String.join(
             "\n",
             "FOR i = 0..2",
@@ -2264,7 +2264,7 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testRangedFor_ReversedExclusive() throws Exception {
+    public void testRangeFor_ReversedExclusive() throws Exception {
         final String text = String.join(
             "\n",
             "FOR i = 3..0",
@@ -2294,7 +2294,7 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testRangedFor_Inclusive() throws Exception {
+    public void testRangeFor_Inclusive() throws Exception {
         final String text = String.join(
             "\n",
             "FOR i = 0..=2",
@@ -2324,7 +2324,7 @@ public class TestInterpreter {
     }
 
     @Test
-    public void testRangedFor_ReversedInclusive() throws Exception {
+    public void testRangeFor_ReversedInclusive() throws Exception {
         final String text = String.join(
             "\n",
             "FOR i = 3..=0",
