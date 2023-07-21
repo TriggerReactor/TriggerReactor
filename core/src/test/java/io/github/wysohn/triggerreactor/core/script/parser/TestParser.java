@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestParser {
 
@@ -37,7 +38,6 @@ public class TestParser {
 
     @Test
     public void testParse() throws IOException, LexerException, ParserException {
-        Charset charset = Charset.forName("UTF-8");
         String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n"
                 + "#MESSAGE \"text\"\n";
 
@@ -76,7 +76,6 @@ public class TestParser {
 
     @Test
     public void testBitwiseAndBitshift() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
         String text = "#MESSAGE (1>>2/1%-~5|~2+1<<3^4) <= 3 | (3<<4&2) > 1 & (6>>>~-2) > 2 ^ (1|~(3+2<<1*2)) > 3\n";
 
         Lexer lexer = new Lexer(text, charset);
@@ -143,7 +142,6 @@ public class TestParser {
 
     @Test
     public void testIncrementAndDecrement() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
         String text = "a = 2\n" +
                 "a = ++a * --a - a++ / a--\n" +
                 "a = -(--a) -(++a) -(a++) -(a--)\n" +
@@ -245,7 +243,6 @@ public class TestParser {
 
     @Test
     public void testParam() throws IOException, LexerException, ParserException {
-        Charset charset = Charset.forName("UTF-8");
         String text = "#SOUND player.getLocation() \"LEVEL_UP\" 1.0 1.0";
 
         Lexer lexer = new Lexer(text, charset);
@@ -271,7 +268,8 @@ public class TestParser {
 
     @Test
     public void testFor() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
+        Parser.addDeprecationSupervisor((type, value) -> type == Type.OPERATOR && ":".equals(value));
+
         String text = ""
                 + "FOR i = 0:10;"
                 + "    #MESSAGE \"test i=\"+i;"
@@ -335,7 +333,7 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
         assertEquals(new Node(new Token(Type.ID, "FOR")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
-        assertEquals(0, queue.size());
+        assertTrue(queue.isEmpty());
     }
 
     @Test
@@ -369,12 +367,11 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.BODY, "<BODY>")), queue.poll());
         assertEquals(new Node(new Token(Type.ID, "FOR")), queue.poll());
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
-        assertEquals(0, queue.size());
+        assertTrue(queue.isEmpty());
     }
 
     @Test
     public void testNegation() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "IF !(true && false && true || 2 < 1 && 1 < 2)\n"
                 + "    #MESSAGE \"test i=\"+i\n"
@@ -416,7 +413,6 @@ public class TestParser {
 
     @Test
     public void testPlaceholder() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "x = 10;"
                 + "#MESSAGE $placeholdertest@main:0:x:5:true;";
@@ -448,7 +444,6 @@ public class TestParser {
 
     @Test
     public void testIf() throws Exception {
-        Charset charset = Charset.forName("UTF-8");
         String text = ""
                 + "IF i == 0;"
                 + "    #MESSAGE 0;"
@@ -514,7 +509,6 @@ public class TestParser {
         Parser.addDeprecationSupervisor((type, value) ->
                 type == Type.ID && "#MODIFYPLAYER".equals(value));
 
-        Charset charset = Charset.forName("UTF-8");
         String text = "#MESSAGE (1+(4/2.0)/3*4-(2/(3*-4)) >= 0)\n"
                 + "#MODIFYPLAYER \"text\"\n";
 
@@ -557,7 +551,6 @@ public class TestParser {
 
     @Test
     public void testLiteralStringTrueOrFalse() throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
         String text = ""
             + "temp1 = \"true\";"
             + "temp2 = true;";
@@ -576,11 +569,11 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.STRING, "true")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
 
-      assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
-      assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
-      assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
-      assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
-      assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "temp2")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.BOOLEAN, "true")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
 
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
