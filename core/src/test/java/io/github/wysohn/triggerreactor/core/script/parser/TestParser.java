@@ -287,6 +287,7 @@ public class TestParser {
         assertEquals(new Node(new Token(Type.ID, "i")), queue.poll());
         assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "0")), queue.poll());
+        assertEquals(new Node(new Token(Type.RANGE, "<RANGE_EXCLUSIVE>")), queue.poll());
         assertEquals(new Node(new Token(Type.INTEGER, "10")), queue.poll());
         assertEquals(new Node(new Token(Type.ITERATOR, "<ITERATOR>")), queue.poll());
         assertEquals(new Node(new Token(Type.STRING, "test i=")), queue.poll());
