@@ -1,7 +1,6 @@
 package io.github.wysohn.triggerreactor.core.script.interpreter;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 final class EmptyTaskSupervisor implements TaskSupervisor {
 
@@ -9,30 +8,67 @@ final class EmptyTaskSupervisor implements TaskSupervisor {
 
     @Override
     public <T> Future<T> submitSync(final Callable<T> callee) {
-        // TODO(Sayakie)
-        return null;
+        return new Future<T>() {
+
+            private boolean processed;
+
+            @Override
+            public boolean cancel(final boolean mayInterruptIfRunning) {
+                return false;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+
+            @Override
+            public boolean isDone() {
+                return processed;
+            }
+
+            @Override
+            public T get() throws ExecutionException {
+                final T identity;
+
+                try {
+                    identity = callee.call();
+                    processed = true;
+                } catch (final Exception e) {
+                    throw new ExecutionException(e);
+                }
+
+                return identity;
+            }
+
+            @Override
+            public T get(final long timeout, final TimeUnit unit) throws ExecutionException {
+                return get();
+            }
+        };
     }
 
     @Override
     public void submitAsync(final Runnable run) {
-        // TODO(Sayakie)
+        newThread(run, toString(), Thread.MIN_PRIORITY).start();
     }
 
     @Override
     public boolean isServerThread() {
-        // TODO(Sayakie)
         return true;
     }
 
     @Override
     public Thread newThread(final Runnable runnable, final String name, final int priority) {
-        // TODO(Sayakie)
-        return null;
+        final Thread thread = new Thread(runnable);
+        thread.setName(name);
+        thread.setPriority(priority);
+
+        return thread;
     }
 
     @Override
     public boolean equals(final Object that) {
-        // TODO(Sayakie)
         return this == that;
     }
 
