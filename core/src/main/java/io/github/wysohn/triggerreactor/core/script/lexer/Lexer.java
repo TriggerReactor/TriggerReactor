@@ -205,8 +205,15 @@ public class Lexer {
         if (c != '.') {
             eatNumericLiteralPostfix(builder, false);
         } else {
-            builder.append('.');
             read();
+            if (c == '.') {
+                unread();  // Not a decimal literal, push back the character
+
+                return new Token(Type.INTEGER, String.valueOf(tryParseInt(builder.toString(), base.radix)), row, col);
+            }
+
+            builder.append('.');
+
             if (base != Token.Base.Decimal) {
                 throw new LexerException("Float literals are unsupported base.", this);
             } else if (c == '_') {
@@ -416,11 +423,28 @@ public class Lexer {
             } else {
                 return new Token(Type.OPERATOR_A, op, row, col);
             }
-        } else {
-            Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
+        } else if (c == '.') {
             read();
-            return token;
+
+            if (c == '.') {
+                read();
+
+                if (c == '=') {
+                    read();
+                    return new Token(Type.RANGE, "<RANGE_INCLUSIVE>");
+                }
+
+                return new Token(Type.RANGE, "<RANGE_EXCLUSIVE>");
+            }
+
+            // Not ExclusiveRange(`..`) or InclusiveRange(`..=`) operators, push back
+            unread();
+            c = '.';
         }
+
+        Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
+        read();
+        return token;
     }
 
     private Token readId() throws IOException, LexerException {

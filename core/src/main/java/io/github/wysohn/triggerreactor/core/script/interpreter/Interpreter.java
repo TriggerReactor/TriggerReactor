@@ -360,7 +360,7 @@ public class Interpreter {
 
                 if (context.isStopFlag())
                     return;
-                Token valueToken =  context.popToken();
+                Token valueToken = context.popToken();
 
                 if (isVariable(valueToken)) {
                     valueToken = unwrapVariable(valueToken);
@@ -401,13 +401,16 @@ public class Interpreter {
                         context.setContinueFlag(false);
                     }
                 }
-            } else if (iterNode.getChildren().size() == 2) {
+            } else if (iterNode.getChildren().size() == 3) {
+                // # Init
                 Node initNode = iterNode.getChildren().get(0);
                 start(initNode);
 
-                if (context.isStopFlag())
+                if (context.isStopFlag()) {
                     return;
-                Token initToken =  context.popToken();
+                }
+
+                Token initToken = context.popToken();
                 if (isVariable(initToken)) {
                     initToken = unwrapVariable(initToken);
                 }
@@ -415,20 +418,57 @@ public class Interpreter {
                 if (!initToken.isInteger())
                     throw new InterpreterException("Init value must be an Integer value! -- " + initToken);
 
-                Node limitNode = iterNode.getChildren().get(1);
+                // # Bound
+                final Node boundNode = iterNode.getChildren().get(1);
+                start(boundNode);
+
+                if (context.isStopFlag()) {
+                    return;
+                }
+
+                Token boundToken = context.popToken();
+                if (isVariable(boundToken)) {
+                    boundToken = unwrapVariable(boundToken);
+                }
+
+                final String boundVal = (String) boundToken.getValue();
+                final boolean inclusive = "<RANGE_INCLUSIVE>".equals(boundVal);
+                if (!(inclusive || "<RANGE_EXCLUSIVE>".equals(boundVal))) {
+                    throw new InterpreterException("Range expression must be a '<RANGE_INCLUSIVE>' or '<RANGE_EXCLUSIVE>'. Actual is " + boundVal);
+                }
+
+                final int bound = inclusive ? 1 : 0;
+
+                // # Limit
+                Node limitNode = iterNode.getChildren().get(2);
                 start(limitNode);
 
-                if (context.isStopFlag())
+                if (context.isStopFlag()) {
                     return;
-                Token limitToken =  context.popToken();
+                }
+
+                Token limitToken = context.popToken();
                 if (isVariable(limitToken)) {
                     limitToken = unwrapVariable(limitToken);
                 }
 
-                if (!limitToken.isInteger())
-                    throw new InterpreterException("Limit value must be an Integer value! -- " + limitToken);
+                if (!limitToken.isInteger()) {
+                    throw new InterpreterException("Limitation value must be an Integer value! Actual is " + limitToken);
+                }
 
-                for (int i = initToken.toInteger(); !context.isStopFlag() && i < limitToken.toInteger(); i++) {
+                final int start = initToken.toInteger();
+                final int end = limitToken.toInteger();
+                final boolean reversed = start > end;
+
+                for (int i = start;;) {
+                    if (context.isStopFlag()) {
+                        context.setStopFlag(false);
+                        break;
+                    }
+
+                    if (reversed && i <= end - bound) break;
+                    else if (!reversed && i >= end + bound) break;
+
                     assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()));
                     start(node.getChildren().get(2));
                     if (context.isBreakFlag()) {
@@ -438,6 +478,9 @@ public class Interpreter {
 
                     context.setBreakFlag(false);
                     context.setContinueFlag(false);
+
+                    if (reversed) i--;
+                    else i++;
                 }
             } else {
                 throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
@@ -1321,6 +1364,8 @@ public class Interpreter {
                     name = (String) node.getChildren().get(0).getToken().value;
                 }
                 context.getImportMap().put(name, clazz);
+            } else if (node.getToken().type == Type.RANGE) {
+                context.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else {
                 throw new InterpreterException("Cannot interpret the unknown node " + node.getToken().type.name());
             }
@@ -1332,30 +1377,30 @@ public class Interpreter {
     }
 
     public static void main(String[] ar) throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "x = null;" +
-                "y = null;" +
-                "x.y.hoho();";
+        final String text = String.join("\n",
+                                        "FOR i = 0:2",
+                                        "  #MESSAGE i",
+                                        "ENDFOR"
+        );
 
-        Lexer lexer = new Lexer(text, charset);
-        Parser parser = new Parser(lexer);
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
 
-        Node root = parser.parse();
-        Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> variables, Object e,
-                                    Object... args) throws Exception {
-                return null;
-            }
+        final Node root = parser.parse();
+
+        final Map<String, Executor> executors = new HashMap<>();
+        executors.put("MESSAGE", (timing, variables, e, args) -> {
+            System.out.println(args[0]);
+            return null;
         });
 
-        Map<String, Placeholder> placeholderMap = new HashMap<>();
-        HashMap<Object, Object> gvars = new HashMap<>();
+        final Map<String, Placeholder> placeholders = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
-        interpreter.setPlaceholderMap(placeholderMap);
-        interpreter.globalContext.gvars = gvars;
+        interpreter.setExecutorMap(executors);
+        interpreter.setPlaceholderMap(placeholders);
+        interpreter.setTaskSupervisor(EmptyTaskSupervisor.INSTANCE);
+        interpreter.setGvars(new HashMap<>());
 
         interpreter.startWithContext(null);
     }
