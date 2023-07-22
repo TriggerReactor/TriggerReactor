@@ -29,10 +29,6 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import java.util.logging.Logger;
 
 public class VaultSupport extends APISupport {
-    static {
-        addSharedVars("vault", VaultSupport.class);
-    }
-
     private final Logger logger;
     private final Plugin plugin;
 

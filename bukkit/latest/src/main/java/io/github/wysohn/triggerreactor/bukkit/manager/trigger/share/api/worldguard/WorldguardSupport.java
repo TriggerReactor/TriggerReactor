@@ -34,10 +34,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class WorldguardSupport extends APISupport {
-    static {
-        addSharedVars("worldguard", WorldguardSupport.class);
-    }
-
     private WorldGuard wg;
 
     public WorldguardSupport(Injector injector) {
