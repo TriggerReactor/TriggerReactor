@@ -120,6 +120,6 @@ public class PlaceholderManager
         }
     }
 
-    static final String JAR_FOLDER_LOCATION = "Placeholder";
+    public static final String JAR_FOLDER_LOCATION = "Placeholder";
 
 }

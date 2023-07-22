@@ -126,7 +126,7 @@ public class ExecutorManager extends AbstractJavascriptBasedManager<Executor> {
         }
     }
 
-    static final String JAR_FOLDER_LOCATION = "Executor";
+    public static final String JAR_FOLDER_LOCATION = "Executor";
     private static final Set<String> DEPRECATED_EXECUTORS = new HashSet<>();
 
     static {

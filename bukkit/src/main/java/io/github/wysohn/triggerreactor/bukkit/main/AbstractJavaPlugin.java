@@ -50,19 +50,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 
 import javax.inject.Named;
 import javax.script.ScriptEngineManager;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -73,16 +75,16 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin {
-    private final TriggerReactorCore core;
-    private final TRGCommandHandler TRGCommandHandler;
+    private TriggerReactorCore core;
+    private TRGCommandHandler TRGCommandHandler;
 
-    private final ScriptEditListener scriptEditListener;
-    private final PlayerLocationListener playerLocationListener;
-    private final ClickTriggerListener clickTriggerListener;
-    private final WalkTriggerListener walkTriggerListener;
-    private final InventoryTriggerListener inventoryTriggerListener;
-    private final AreaTriggerListener areaTriggerListener;
-    private final AreaSelectionListener areaSelectionListener;
+    private ScriptEditListener scriptEditListener;
+    private PlayerLocationListener playerLocationListener;
+    private ClickTriggerListener clickTriggerListener;
+    private WalkTriggerListener walkTriggerListener;
+    private InventoryTriggerListener inventoryTriggerListener;
+    private AreaTriggerListener areaTriggerListener;
+    private AreaSelectionListener areaSelectionListener;
 
     private ScriptEngineManager scriptEngineManager;
     private BungeeCordHelper bungeeHelper;
@@ -90,7 +92,45 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
     private Set<Manager> managers;
 
+    BukkitTest test;
+
+    /**
+     * For test only.
+     *
+     * @param loader
+     * @param description
+     * @param dataFolder
+     * @param file
+     * @param modules
+     * @deprecated For test only.
+     */
+    AbstractJavaPlugin(final JavaPluginLoader loader,
+                       final PluginDescriptionFile description,
+                       final File dataFolder,
+                       final File file,
+                       Module... modules) {
+        super(loader, description, dataFolder, file);
+        verifyPrecondition(init(modules));
+    }
+
     protected AbstractJavaPlugin(Module... modules) {
+        verifyPrecondition(init(modules));
+    }
+
+    public void verifyPrecondition(Injector injector) {
+        for (Field field : getClass().getDeclaredFields()) {
+            field.setAccessible(true);
+            try {
+                if (field.get(this) == null) {
+                    throw new IllegalStateException("Field " + field.getName() + " is not initialized.");
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private Injector init(Module[] modules) {
         List<Module> moduleList = Arrays.stream(modules).collect(Collectors.toList());
         moduleList.add(new CorePluginModule());
         moduleList.add(new BukkitExecutorModule());
@@ -145,14 +185,18 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
         managers = injector.getInstance(new Key<Set<Manager>>() {
         });
+
+        test = injector.getInstance(BukkitTest.class);
+
+        return injector;
     }
 
     @Override
     public void onEnable() {
         super.onEnable();
 
-        PluginCommand trg = this.getCommand("triggerreactor");
-        trg.setExecutor(this);
+        Optional.ofNullable(this.getCommand("triggerreactor"))
+                .ifPresent(command -> command.setExecutor(this));
 
         registerAPIs();
         initBungeeHelper();
