@@ -18,6 +18,8 @@ import org.bukkit.World;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPluginLoader;
+import org.bukkit.plugin.messaging.Messenger;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -31,7 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JavaPluginTest {
     @Rule
@@ -63,13 +66,15 @@ public class JavaPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        server = mock(Server.class, RETURNS_DEEP_STUBS);
+        server = mock(Server.class);
         logger = Logger.getLogger("test");
         pluginManager = mock(PluginManager.class);
         List<World> worlds = new ArrayList<>();
         when(server.getPluginManager()).thenReturn(pluginManager);
         when(server.getLogger()).thenReturn(logger);
         when(server.getWorlds()).thenReturn(worlds);
+        when(server.getMessenger()).thenReturn(mock(Messenger.class));
+        when(server.getScheduler()).thenReturn(mock(BukkitScheduler.class));
         injectServerToBukkit();
 
         String pluginYmlContent = "" +
