@@ -17,14 +17,8 @@
 
 package io.github.wysohn.triggerreactor.bukkit.main;
 
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.coreprotect.CoreprotectSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.mcmmo.McMmoSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.placeholder.PlaceHolderSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.protocollib.ProtocolLibSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.vault.VaultSupport;
-import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.worldguard.WorldguardSupport;
 import io.github.wysohn.triggerreactor.bukkit.modules.LegacyBukkitDriverModule;
+import io.github.wysohn.triggerreactor.bukkit.modules.LegacyBukkitThirdPartyPluginModule;
 import io.github.wysohn.triggerreactor.bukkit.tools.SerializableLocation;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -32,7 +26,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 public class TriggerReactor extends AbstractJavaPlugin {
     public TriggerReactor() {
-        super(new LegacyBukkitDriverModule());
+        super(new LegacyBukkitDriverModule(), new LegacyBukkitThirdPartyPluginModule());
     }
 
     @Override
@@ -41,15 +35,5 @@ public class TriggerReactor extends AbstractJavaPlugin {
             ConfigurationSerialization.registerClass(SerializableLocation.class, "org.bukkit.Location");
         }
         super.onEnable();
-    }
-
-    @Override
-    protected void registerAPIs() {
-        APISupport.addSharedVars("coreprotect", CoreprotectSupport.class);
-        APISupport.addSharedVars("mcmmo", McMmoSupport.class);
-        APISupport.addSharedVars("placeholder", PlaceHolderSupport.class);
-        APISupport.addSharedVars("protocollib", ProtocolLibSupport.class);
-        APISupport.addSharedVars("vault", VaultSupport.class);
-        APISupport.addSharedVars("worldguard", WorldguardSupport.class);
     }
 }

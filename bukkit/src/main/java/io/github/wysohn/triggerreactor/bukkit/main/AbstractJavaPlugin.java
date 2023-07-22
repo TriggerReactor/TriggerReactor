@@ -198,7 +198,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         Optional.ofNullable(this.getCommand("triggerreactor"))
                 .ifPresent(command -> command.setExecutor(this));
 
-        registerAPIs();
         initBungeeHelper();
         initMysql();
 
@@ -218,8 +217,6 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
 
         Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
-
-    protected abstract void registerAPIs();
 
     private Thread bungeeConnectionThread;
 

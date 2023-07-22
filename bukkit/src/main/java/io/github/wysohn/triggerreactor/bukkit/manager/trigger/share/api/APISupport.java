@@ -23,8 +23,6 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
 public abstract class APISupport extends AbstractAPISupport {
@@ -60,15 +58,15 @@ public abstract class APISupport extends AbstractAPISupport {
         this.logger.info("Enabled support for " + targetPluginName + " " + target.getDescription().getFullName());
     }
 
-    @SuppressWarnings("serial")
-    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars
-            = new HashMap<String, Class<? extends AbstractAPISupport>>();
-
-    public static boolean addSharedVars(String name, Class<? extends AbstractAPISupport> clazz) {
-        return sharedVars.put(name, clazz) == null;
-    }
-
-    public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
-        return sharedVars;
-    }
+//    @SuppressWarnings("serial")
+//    private static Map<String, Class<? extends AbstractAPISupport>> sharedVars
+//            = new HashMap<String, Class<? extends AbstractAPISupport>>();
+//
+//    public static boolean addSharedVars(String name, Class<? extends AbstractAPISupport> clazz) {
+//        return sharedVars.put(name, clazz) == null;
+//    }
+//
+//    public static Map<String, Class<? extends AbstractAPISupport>> getSharedVars() {
+//        return sharedVars;
+//    }
 }

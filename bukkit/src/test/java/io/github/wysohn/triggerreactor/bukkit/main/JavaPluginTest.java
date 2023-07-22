@@ -3,6 +3,8 @@ package io.github.wysohn.triggerreactor.bukkit.main;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.multibindings.ProvidesIntoMap;
+import com.google.inject.multibindings.StringMapKey;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.ICommandMapHandler;
 import io.github.wysohn.triggerreactor.bukkit.manager.trigger.share.api.APISupport;
 import io.github.wysohn.triggerreactor.bukkit.modules.BukkitDriverModule;
@@ -91,6 +93,12 @@ public class JavaPluginTest {
                         bind(ICommandMapHandler.class).toInstance(commandMapHandler);
                         bind(SelfReference.class).toInstance(selfReference);
                     }
+
+                    @ProvidesIntoMap
+                    @StringMapKey("placeholder")
+                    public Class<? extends AbstractAPISupport> providePlaceholderSupport() {
+                        return PlaceHolderSupport.class;
+                    }
                 });
     }
 
@@ -113,16 +121,11 @@ public class JavaPluginTest {
                           Module... modules) {
             super(loader, description, dataFolder, file, modules);
         }
-
-        @Override
-        protected void registerAPIs() {
-            APISupport.addSharedVars("placeholder", PlaceHolderSupport.class);
-        }
     }
 
-    private static class PlaceHolderSupport extends AbstractAPISupport {
+    public static class PlaceHolderSupport extends APISupport {
         public PlaceHolderSupport(Injector injector) {
-            super(injector);
+            super(injector, "PlaceholderAPI");
         }
 
         @Override
