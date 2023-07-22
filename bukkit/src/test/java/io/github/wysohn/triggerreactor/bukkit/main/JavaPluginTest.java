@@ -18,6 +18,7 @@ import org.bukkit.World;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPluginLoader;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,8 +54,24 @@ public class JavaPluginTest {
         field.set(null, server);
     }
 
+    private void cleanServer() throws Exception {
+        Class<?> bukkitClass = Class.forName("org.bukkit.Bukkit");
+        Field field = bukkitClass.getDeclaredField("server");
+        field.setAccessible(true);
+        field.set(null, null);
+    }
+
     @Before
     public void setUp() throws Exception {
+        server = mock(Server.class, RETURNS_DEEP_STUBS);
+        logger = Logger.getLogger("test");
+        pluginManager = mock(PluginManager.class);
+        List<World> worlds = new ArrayList<>();
+        when(server.getPluginManager()).thenReturn(pluginManager);
+        when(server.getLogger()).thenReturn(logger);
+        when(server.getWorlds()).thenReturn(worlds);
+        injectServerToBukkit();
+
         String pluginYmlContent = "" +
                 "name: TriggerReactor\n" +
                 "main: io.github.wysohn.triggerreactor.bukkit.main.TriggerReactor\n" +
@@ -67,15 +84,6 @@ public class JavaPluginTest {
         File placeholderFolder = temporaryFolder.newFolder("plugins",
                 "TriggerReactor",
                 PlaceholderManager.JAR_FOLDER_LOCATION);
-        List<World> worlds = new ArrayList<>();
-
-        server = mock(Server.class, RETURNS_DEEP_STUBS);
-        logger = Logger.getLogger("test");
-        pluginManager = mock(PluginManager.class);
-        when(server.getPluginManager()).thenReturn(pluginManager);
-        when(server.getLogger()).thenReturn(logger);
-        when(server.getWorlds()).thenReturn(worlds);
-        injectServerToBukkit();
 
         loader = new JavaPluginLoader(server);
         description = new PluginDescriptionFile(new ByteArrayInputStream(pluginYmlContent.getBytes()));
@@ -100,6 +108,11 @@ public class JavaPluginTest {
                         return PlaceHolderSupport.class;
                     }
                 });
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        cleanServer();
     }
 
     @Test
