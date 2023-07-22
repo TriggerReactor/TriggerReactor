@@ -20,7 +20,7 @@ import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.APISupportException;
 import io.github.wysohn.triggerreactor.core.manager.trigger.share.api.AbstractAPISupport;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.plugin.Plugin;
 
 import java.util.logging.Logger;
@@ -31,6 +31,7 @@ public abstract class APISupport extends AbstractAPISupport {
     protected Plugin target;
 
     private Logger logger;
+    private Server server;
 
     public APISupport(Injector injector, String targetPluginName) {
         super(injector);
@@ -40,6 +41,7 @@ public abstract class APISupport extends AbstractAPISupport {
         this.targetPluginName = targetPluginName;
 
         this.logger = injector.getInstance(Logger.class);
+        this.server = injector.getInstance(Server.class);
     }
 
     /**
@@ -49,7 +51,7 @@ public abstract class APISupport extends AbstractAPISupport {
      */
     @Override
     public void init() throws APISupportException {
-        Plugin plugin = Bukkit.getPluginManager().getPlugin(targetPluginName);
+        Plugin plugin = server.getPluginManager().getPlugin(targetPluginName);
         if (plugin == null || !plugin.isEnabled())
             throw new APISupportException(targetPluginName);
 

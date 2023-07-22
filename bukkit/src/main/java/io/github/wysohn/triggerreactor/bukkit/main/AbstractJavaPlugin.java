@@ -56,6 +56,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
@@ -76,6 +77,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractJavaPlugin extends JavaPlugin {
     private TriggerReactorCore core;
+    private Server server;
     private TRGCommandHandler TRGCommandHandler;
 
     private ScriptEditListener scriptEditListener;
@@ -161,6 +163,16 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
             }
 
             @Provides
+            public Plugin providePlugin2() {
+                return AbstractJavaPlugin.this;
+            }
+
+            @Provides
+            public PluginDescriptionFile providePluginDescriptionFile() {
+                return getDescription();
+            }
+
+            @Provides
             public JavaPlugin javaPlugin() {
                 return AbstractJavaPlugin.this;
             }
@@ -174,6 +186,8 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         Injector injector = Guice.createInjector(moduleList);
 
         core = injector.getInstance(TriggerReactorCore.class);
+        server = injector.getInstance(Server.class);
+
         TRGCommandHandler = injector.getInstance(TRGCommandHandler.class);
         scriptEditListener = injector.getInstance(ScriptEditListener.class);
         playerLocationListener = injector.getInstance(PlayerLocationListener.class);
@@ -202,20 +216,20 @@ public abstract class AbstractJavaPlugin extends JavaPlugin {
         initMysql();
 
         // listeners
-        Bukkit.getPluginManager().registerEvents(scriptEditListener, this);
-        Bukkit.getPluginManager().registerEvents(playerLocationListener, this);
+        server.getPluginManager().registerEvents(scriptEditListener, this);
+        server.getPluginManager().registerEvents(playerLocationListener, this);
 
-        Bukkit.getPluginManager().registerEvents(clickTriggerListener, this);
-        Bukkit.getPluginManager().registerEvents(walkTriggerListener, this);
-        Bukkit.getPluginManager().registerEvents(inventoryTriggerListener, this);
+        server.getPluginManager().registerEvents(clickTriggerListener, this);
+        server.getPluginManager().registerEvents(walkTriggerListener, this);
+        server.getPluginManager().registerEvents(inventoryTriggerListener, this);
 
-        Bukkit.getPluginManager().registerEvents(areaTriggerListener, this);
-        Bukkit.getPluginManager().registerEvents(areaSelectionListener, this);
+        server.getPluginManager().registerEvents(areaTriggerListener, this);
+        server.getPluginManager().registerEvents(areaSelectionListener, this);
 
         // initiate core
         core.initialize();
 
-        Bukkit.getScheduler().runTask(this, () -> Bukkit.getPluginManager().callEvent(new TriggerReactorStartEvent()));
+        server.getScheduler().runTask(this, () -> server.getPluginManager().callEvent(new TriggerReactorStartEvent()));
     }
 
     private Thread bungeeConnectionThread;
