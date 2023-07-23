@@ -691,9 +691,10 @@ public class Lexer {
     }
 
     /**
+     * Deprecated since 3.3.7, forRemoval.
      * @deprecated Use {@link #isIdentStart(char)} ()} instead.
      */
-    @Deprecated(since = "3.3.7", forRemoval = true)
+    @Deprecated
     private static boolean isIdCharacter(char c) {
         return isIdentStart(c);
     }
