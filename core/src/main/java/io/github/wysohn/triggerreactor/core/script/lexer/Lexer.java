@@ -141,7 +141,7 @@ public class Lexer {
             return readOperator();
         }
 
-        if (isIdCharacter(c)) {
+        if (isIdentStart(c)) {
             return readId();
         }
 
@@ -448,52 +448,47 @@ public class Lexer {
     }
 
     private Token readId() throws IOException, LexerException {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder().append(c);
+        read();
 
-        //first character cannot be digit, etc
-        if (isIdCharacter(c)) {
-            builder.append(c);
-            read();
-        } else {
-            throw new LexerException("Cannot use " + c + " as a first character", this);
-        }
-
-        while (isIdCharacter(c) || Character.isDigit(c)) {
+        while (isIdentContinue(c)) {
             builder.append(c);
             read();
         }
 
-        String id = builder.toString();
-        if (id.equalsIgnoreCase("IMPORT")) {
-            skipWhiteSpaces();
-            skipComment();
-
-            if (c == '.') {
-                throw new LexerException("IMPORT found a dangling .(dot)", this);
-            }
-
-            if (!isClassNameCharacter(c)) {
-                throw new LexerException("IMPORT found an unexpected character [" + c + "]", this);
-            }
-
-            StringBuilder classNameBuilder = new StringBuilder();
-            while (isClassNameCharacter(c)) {
-                classNameBuilder.append(c);
-                read();
-            }
-
-            if (classNameBuilder.charAt(classNameBuilder.length() - 1) == '.')
-                classNameBuilder.deleteCharAt(classNameBuilder.length() - 1);
-
-//            skipWhiteSpaces();
-//            if (!eos && c != '\n' && c != ';') {
-//                throw new LexerException("IMPORT expected end of line or ; at the end but found [" + c + "]", this);
-//            }
-
-            return new Token(Type.IMPORT, classNameBuilder.toString(), row, col);
-        } else {
-            return new Token(Type.ID, builder.toString(), row, col);
+        final String ident = builder.toString();
+        if ("IMPORT".equalsIgnoreCase(ident)) {
+            return readImport();
+        } else if (isIdent(ident)) {
+            return new Token(Type.ID, ident, row, col);
         }
+
+        throw new LexerException("Expected identifier but found " + ident, this);
+    }
+
+    private Token readImport() throws IOException, LexerException {
+        skipWhiteSpaces();
+        skipComment();
+
+        if (c == '.') {
+            throw new LexerException("IMPORT found a dangling .(dot)", this);
+        }
+
+        if (!isClassNameCharacter(c)) {
+            throw new LexerException("IMPORT found an unexpected character [" + c + "]", this);
+        }
+
+        final StringBuilder builder = new StringBuilder();
+        while (isClassNameCharacter(c)) {
+            builder.append(c);
+            read();
+        }
+
+        if (builder.charAt(builder.length() - 1) == '.') {
+            builder.deleteCharAt(builder.length() - 1);
+        }
+
+        return new Token(Type.IMPORT, builder.toString(), row, col);
     }
 
     private Token readEndline() throws IOException {
@@ -695,8 +690,24 @@ public class Lexer {
         return Character.isDigit(c) || Character.isAlphabetic(c) || c == '.' || c == '$' || c == '_';
     }
 
+    /**
+     * @deprecated Use {@link #isIdentStart(char)} ()} instead.
+     */
+    @Deprecated(since = "3.3.7", forRemoval = true)
     private static boolean isIdCharacter(char c) {
+        return isIdentStart(c);
+    }
+
+    private static boolean isIdent(final String s) {
+        return isIdentStart(s.charAt(0)) && s.chars().skip(1).allMatch(it -> isIdentContinue((char) it));
+    }
+
+    private static boolean isIdentStart(final char c) {
         return Character.isAlphabetic(c) || c == '_' || c == '#';
+    }
+
+    private static boolean isIdentContinue(final char c) {
+        return Character.isAlphabetic(c) || Character.isDigit(c) || c == '_';
     }
 
     private static boolean isOperator(char c) {
