@@ -19,24 +19,23 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.command;
 
 import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
+import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 
 import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class CommandTrigger extends Trigger {
     @Inject
     private ICommandTriggerFactory factory;
 
-    String[] permissions = new String[0];
-    String[] aliases = new String[0];
+    @TriggerRuntimeDependency
     Map<Integer, Set<ITabCompleter>> tabCompleterMap = new HashMap<>();
-
+    @TriggerRuntimeDependency
     private ICommand command;
 
     @Inject
@@ -46,26 +45,34 @@ public class CommandTrigger extends Trigger {
     }
 
     public String[] getPermissions() {
-        return permissions;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, List.class)
+                .map(list -> list.toArray(new String[0]))
+                .map(list -> (String[]) list)
+                .orElse(new String[0]);
     }
 
     public void setPermissions(String[] permissions) {
         if (permissions == null) {
-            this.permissions = new String[0];
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, new ArrayList<>());
         } else {
-            this.permissions = permissions;
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_PERMISSION, permissions);
         }
     }
 
     public String[] getAliases() {
-        return aliases;
+        return info.get(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, List.class)
+                .map(aliasList -> (((List<String>) aliasList).stream()
+                        .filter(alias -> !alias.equalsIgnoreCase(info.getTriggerName()))
+                        .collect(Collectors.toList())))
+                .map(list -> list.toArray(new String[0]))
+                .orElse(new String[0]);
     }
 
     public void setAliases(String[] aliases) {
         if (aliases == null) {
-            this.aliases = new String[0];
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, new ArrayList<>());
         } else {
-            this.aliases = aliases;
+            info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_ALIASES, aliases);
         }
     }
 
@@ -97,8 +104,8 @@ public class CommandTrigger extends Trigger {
     @Override
     public String toString() {
         return super.toString() + "{" +
-                "permissions=" + Arrays.toString(permissions) +
-                ", aliases=" + Arrays.toString(aliases) +
+                "permissions=" + Arrays.toString(getPermissions()) +
+                ", aliases=" + Arrays.toString(getAliases()) +
                 '}';
     }
 }

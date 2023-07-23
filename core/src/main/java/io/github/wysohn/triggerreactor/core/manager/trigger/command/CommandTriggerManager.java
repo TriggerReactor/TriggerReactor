@@ -115,7 +115,7 @@ public final class CommandTriggerManager extends AbstractTriggerManager<CommandT
      */
     private boolean registerToAPI(CommandTrigger trigger) {
         ICommand command = commandHandler.register(trigger.getInfo().getTriggerName(),
-                trigger.aliases);
+                trigger.getAliases());
         if (command == null)
             return false;
 

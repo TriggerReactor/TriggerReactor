@@ -21,6 +21,7 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
+import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
@@ -41,6 +42,8 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     private Logger logger;
     @Inject
     private IExceptionHandle exceptionHandle;
+
+    @TriggerRuntimeDependency
     private Map<String, Object> vars;
 
     @AssistedInject
@@ -111,6 +114,7 @@ public class RepeatingTrigger extends Trigger implements Runnable {
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
+    @TriggerRuntimeDependency
     private boolean paused;
 
     public boolean isPaused() {

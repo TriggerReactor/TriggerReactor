@@ -19,6 +19,7 @@ package io.github.wysohn.triggerreactor.core.manager.trigger.area;
 
 import com.google.inject.assistedinject.Assisted;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IEntity;
+import io.github.wysohn.triggerreactor.core.manager.annotation.TriggerRuntimeDependency;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
@@ -44,8 +45,12 @@ public class AreaTrigger extends Trigger {
     private final Area area;
     private final File folder;
     private final Map<UUID, WeakReference<IEntity>> trackedEntities = new ConcurrentHashMap<>();
+
+    @TriggerRuntimeDependency
     private EnterTrigger enterTrigger;
+    @TriggerRuntimeDependency
     private ExitTrigger exitTrigger;
+    @TriggerRuntimeDependency
     private AreaTriggerManager.EventType type = null;
 
     @Inject
