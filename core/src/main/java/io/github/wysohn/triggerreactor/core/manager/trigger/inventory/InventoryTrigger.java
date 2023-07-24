@@ -38,7 +38,7 @@ public class InventoryTrigger extends Trigger {
 
     public static final int MAXSIZE = 6 * 9;
 
-    final IItemStack[] items;
+    private final IItemStack[] items;
 
     @Inject
     private InventoryTrigger(@Assisted TriggerInfo info,

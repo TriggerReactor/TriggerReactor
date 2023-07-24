@@ -82,8 +82,8 @@ public class InventoryTriggerLoader implements ITriggerLoader<InventoryTrigger> 
         try {
             FileUtil.writeToFile(trigger.getInfo().getSourceCodeFile(), trigger.getScript());
 
-            IItemStack[] items = trigger.items;
-            int size = trigger.items.length;
+            IItemStack[] items = trigger.getItems();
+            int size = items.length;
 
             trigger.getInfo().put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_SIZE, size);
             trigger.getInfo()
