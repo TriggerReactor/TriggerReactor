@@ -45,7 +45,7 @@ function MESSAGE(args) {
     message = PlaceholderAPI.setPlaceholders(player, message);
   }
 
-  var platform = TriggerReactorCore.getInstance().getPlatform();
+  var platform = plugin.getPlatform();
   if (platform.supports(Dependency.MiniMessage)) {
     var mm = Java.type('net.kyori.adventure.text.minimessage.MiniMessage').miniMessage();
     message = mm.deserialize(message);
