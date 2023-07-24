@@ -285,10 +285,11 @@ public abstract class Trigger implements Cloneable, IObservable {
     /**
      * Get the state of the last execution of this trigger.
      * <p>
+     * WARNING) Re-using this object may cause unexpected behavior if carried out without caution.
      *
      * @return null if the trigger is still running or has not been executed yet.
      */
-    protected ExecutingTrigger getLastExecution() {
+    public ExecutingTrigger getLastExecution() {
         return lastExecution;
     }
 
@@ -300,7 +301,7 @@ public abstract class Trigger implements Cloneable, IObservable {
         return "[" + getClass().getSimpleName() + "=" + info + "]";
     }
 
-    protected static class ExecutingTrigger implements Callable<Void> {
+    public static class ExecutingTrigger implements Callable<Void> {
         private final IExceptionHandle exceptionHandle;
         private final TriggerInfo info;
 
