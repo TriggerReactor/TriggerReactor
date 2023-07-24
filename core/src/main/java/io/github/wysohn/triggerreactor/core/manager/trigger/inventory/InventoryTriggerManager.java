@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 @Singleton
-public class InventoryTriggerManager<ItemStack> extends AbstractTriggerManager<InventoryTrigger> {
+public class InventoryTriggerManager extends AbstractTriggerManager<InventoryTrigger> {
     public static final String ITEMS = "Items";
     public static final String SIZE = "Size";
     public static final String TITLE = "Title";

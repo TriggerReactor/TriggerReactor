@@ -41,7 +41,7 @@ import java.util.UUID;
 @Singleton
 public final class InventoryEditManager<ItemStack> extends Manager {
     @Inject
-    private InventoryTriggerManager<ItemStack> invManager;
+    private InventoryTriggerManager invManager;
     @Inject
     private IInventoryHandle handle;
     @Inject

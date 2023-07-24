@@ -52,7 +52,7 @@ public class InventoryTriggerManagerTest {
 
     InventoryTriggerLoader loader;
     IInventoryHandle handle;
-    InventoryTriggerManager<ItemStack> manager;
+    InventoryTriggerManager manager;
     private TriggerInfo mockInfo;
     private InventoryTrigger mockTrigger;
 

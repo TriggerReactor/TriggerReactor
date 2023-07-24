@@ -40,10 +40,10 @@ import javax.inject.Singleton;
 public class InventoryTriggerListener
         implements BukkitTriggerManager {
 
-    private final InventoryTriggerManager<?> manager;
+    private final InventoryTriggerManager manager;
 
     @Inject
-    public InventoryTriggerListener(InventoryTriggerManager<?> manager) {
+    public InventoryTriggerListener(InventoryTriggerManager manager) {
         this.manager = manager;
     }
 

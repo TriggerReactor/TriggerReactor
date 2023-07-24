@@ -93,7 +93,7 @@ public class TRGCommandHandler {
     @Inject
     private CustomTriggerManager customTriggerManager;
     @Inject
-    private InventoryTriggerManager<?> inventoryTriggerManager;
+    private InventoryTriggerManager inventoryTriggerManager;
     @Inject
     private RepeatingTriggerManager repeatingTriggerManager;
 

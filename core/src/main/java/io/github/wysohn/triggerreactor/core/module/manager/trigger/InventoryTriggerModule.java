@@ -43,7 +43,7 @@ public class InventoryTriggerModule extends AbstractModule {
                 });
         binder().bind(new TypeLiteral<AbstractTriggerManager<InventoryTrigger>>() {
                 })
-                .to(new TypeLiteral<InventoryTriggerManager<?>>() {
+                .to(new TypeLiteral<InventoryTriggerManager>() {
                 });
     }
 

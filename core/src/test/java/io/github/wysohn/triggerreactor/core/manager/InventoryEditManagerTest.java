@@ -27,7 +27,7 @@ public class InventoryEditManagerTest {
 
     private InventoryEditManager<ItemStack> inventoryEditManager;
 
-    private InventoryTriggerManager<ItemStack> inventoryTriggerManager;
+    private InventoryTriggerManager inventoryTriggerManager;
     private IInventoryHandle inventoryHandle;
     private IPluginManagement pluginManagement;
     private ITriggerLoader<InventoryTrigger> inventoryTriggerLoader;
@@ -38,7 +38,7 @@ public class InventoryEditManagerTest {
                 new AbstractModule() {
                     @Override
                     protected void configure() {
-                        bind(new TypeLiteral<InventoryTriggerManager<ItemStack>>() {
+                        bind(new TypeLiteral<InventoryTriggerManager>() {
                         })
                                 .toProvider(Providers.of(inventoryTriggerManager = mock(InventoryTriggerManager.class)));
                         bind(IInventoryHandle.class)
