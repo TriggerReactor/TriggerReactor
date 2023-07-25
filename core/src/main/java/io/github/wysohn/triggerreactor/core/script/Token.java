@@ -25,26 +25,18 @@ public class Token {
     public final int row;
     public final int col;
 
-    public Token(Type type, Object value, int row, int col) {
+    public Token(final Type type, final Object value, final int row, final int col) {
         this.type = type;
         this.value = value;
         this.row = row;
         this.col = col;
     }
 
-
-    public Token(Type type, Object value, Token tokenOrigin) {
-        this.type = type;
-        this.value = value;
-        this.row = tokenOrigin.row;
-        this.col = tokenOrigin.col;
+    public Token(final Type type, final Object value, final Token other) {
+        this(type, value, other.row, other.col);
     }
 
-    /*    public Token(Type type, Object value, Lexer lexer) {
-            this(type, value, lexer.getRow(), lexer.getCol());
-        }
-    */
-    public Token(Type type, Object value) {
+    public Token(final Type type, final Object value) {
         this(type, value, -1, -1);
     }
 
@@ -148,7 +140,7 @@ public class Token {
         ROOT, ENDL,
 
         //Literal
-        STRING(true), INTEGER(true), DECIMAL(true), BOOLEAN(true),
+        STRING, INTEGER, DECIMAL, BOOLEAN,
 
         OBJECT,
         /**
@@ -173,33 +165,25 @@ public class Token {
          **/
         OPERATOR_L,
 
-        GID, GID_TEMP, ID, PLACEHOLDER, NULLVALUE,
+        GID, GID_TEMP, ID, PLACEHOLDER, EXECUTOR, NULLVALUE,
 
-        BODY, EXECUTOR,
+        BODY, PARAMETERS,
 
         SYNC, ASYNC,
 
-        LAMBDA, PARAMETERS, LAMBDABODY,
+        LAMBDA, LAMBDABODY,
+
+        SWITCH, CASE, CASEBODY,
 
         CATCHBODY, FINALLYBODY,
+
         /**
          * Temporary use only
          **/
-        EPS,
-        ;
-
-        private final boolean literal;
-
-        Type(boolean literal) {
-            this.literal = literal;
-        }
-
-        Type() {
-            this.literal = false;
-        }
+        EPS;
 
         public boolean isLiteral() {
-            return literal;
+            return this == STRING || this == INTEGER || this == DECIMAL || this == BOOLEAN;
         }
     }
 

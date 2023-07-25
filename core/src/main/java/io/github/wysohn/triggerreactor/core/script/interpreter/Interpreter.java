@@ -468,6 +468,67 @@ public class Interpreter {
              context.pushToken(new Token(Type.EPS,
                     new LambdaFunction(lambdaParameters, lambdaBody, context, globalContext),
                     node.getToken()));
+        } else if (Type.SWITCH.equals(node.getToken().getType())) {
+            if (node.getChildren().size() < 2) {
+                throw new InterpreterException("Too few children in SWITCH expression! Expected at least 2 children but actual is " + node.getChildren().size());
+                // throw new InterpreterException("The SWITCH expression should have at least 2 children but actual is " + node.getChildren().size());
+            }
+
+            final Node variableNameNode = node.getChildren().get(0);
+            start(variableNameNode);
+
+            if (context.isStopFlag()) {
+                return;
+            }
+
+            final Token variableNameToken = tryUnwrapVariable(context.popToken());
+            final Type variableType = variableNameToken.getType();
+
+            boolean matches = false;
+            caseScope: for (int i = 1; i < node.getChildren().size(); i++) {
+                final Node caseNode = node.getChildren().get(i);
+                if (!Type.CASE.equals(caseNode.getToken().getType())) {
+                    throw new InterpreterException("Expected case but found " + caseNode);
+                }
+
+                final Node parameters = caseNode.getChildren().get(0);
+                if (!Type.PARAMETERS.equals(parameters.getToken().getType())) {
+                    throw new InterpreterException("Expected parameters but found " + parameters);
+                }
+
+                for (int j = 0; j < parameters.getChildren().size(); j++) {
+                    final Node parameter = parameters.getChildren().get(j);
+                    start(parameter);
+
+                    if (context.isStopFlag()) {
+                        return;
+                    }
+
+                    final Token rawParameterToken = context.popToken();
+                    final Token parameterToken = tryUnwrapVariable(rawParameterToken);
+
+                    final boolean defaultMatch = "_".equals(rawParameterToken.getValue()) && i == node.getChildren().size() - 1;
+                    if (!variableType.equals(parameterToken.getType()) && !defaultMatch) {
+                        throw new InterpreterException("Mismatched type for parameter " + rawParameterToken + "! Expected " + variableType + " but found " + parameterToken.getType());
+                    }
+
+                    if (variableNameToken.getValue().equals(parameterToken.getValue()) || defaultMatch) {
+                        final Node caseBody = caseNode.getChildren().get(1);
+                        if (!Type.CASEBODY.equals(caseBody.getToken().getType())) {
+                            throw new InterpreterException("Expected case body but found " + parameters);
+                        }
+
+                        matches = true;
+                        start(caseBody);
+                        break caseScope;
+                    }
+                }
+            }
+
+            if (!matches) {
+                // TODO(Sayakie): Raises an exception or ignore silently?
+                throw new InterpreterException("No matched arm");
+            }
         } else if (node.getToken().getType() == Type.SYNC) {
             try {
                 globalContext.task.submitSync(new Callable<Void>() {
@@ -764,6 +825,14 @@ public class Interpreter {
         }
     }
 
+    private Token tryUnwrapVariable(final Token mayVariableToken) throws InterpreterException {
+        if (isVariable(mayVariableToken)) {
+            return unwrapVariable(mayVariableToken);
+        }
+
+        return mayVariableToken;
+    }
+
     private Token parseValue(Object var, Token origin) {
         if (var == null) {
             return new Token(Type.NULLVALUE, null, origin);
@@ -797,6 +866,9 @@ public class Interpreter {
                     || node.getToken().type == Type.CATCHBODY
                     || node.getToken().type == Type.FINALLYBODY
                     || node.getToken().type == Type.LAMBDA
+                    || node.getToken().type == Type.SWITCH
+                    || node.getToken().type == Type.CASE
+                    || node.getToken().type == Type.CASEBODY
                     || "IF".equals(node.getToken().value)
                     || "ELSEIF".equals(node.getToken().value)
                     || "WHILE".equals(node.getToken().value)) {

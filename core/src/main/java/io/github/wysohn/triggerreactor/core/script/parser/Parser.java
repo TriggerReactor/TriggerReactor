@@ -45,6 +45,7 @@ public class Parser {
     private final List<Warning> warnings = new ArrayList<Warning>();
 
     private Token token;
+    private boolean fallThroughCloseBrace = false;
 
     public Parser(Lexer lexer) throws IOException, LexerException, ParserException {
         this.lexer = lexer;
@@ -143,6 +144,14 @@ public class Parser {
                 nextToken();
                 return node;
             } else if ("ENDIF".equals(token.value)) {
+                Node node = new Node(token);
+                nextToken();
+                return node;
+            } else if ("SWITCH".equals(token.value)) {
+                final Token switchToken = token;
+                nextToken();
+                return parseSwitch(switchToken);
+            } else if ("ENDSWITCH".equals(token.value)) {
                 Node node = new Node(token);
                 nextToken();
                 return node;
@@ -423,6 +432,104 @@ public class Parser {
         }
 
         return tryNode;
+    }
+
+    private Node parseSwitch(final Token switchToken) throws IOException, LexerException, ParserException {
+        final Node switchNode = new Node(new Token(Type.SWITCH, "<SWITCH>", switchToken));
+
+        final Node varName = parseId();
+        if (varName == null) {
+            throw new ParserException("Could not find variable name for SWITCH statement! " + switchNode.getToken());
+        }
+
+        if (token == null || !Type.ENDL.equals(token.getType())) {
+            throw new ParserException("Expected end of line but found " + token);
+        }
+        nextToken();  // Consumes ENDL
+        switchNode.getChildren().add(varName);
+
+        while (token != null && !"ENDSWITCH".equals(token.value)) {
+            final Node caseNode = new Node(new Token(Type.CASE, "<CASE>", token));
+            final Node caseBody = new Node(new Token(Type.CASEBODY, "<CASEBODY>"));
+
+            Node caseComponent = parseLogic();
+            if (caseComponent == null) {
+                throw new ParserException("Could not find case for SWITCH statement! " + token);
+            }
+            // TODO(Sayakie): Should we catch lambda? @ 23-07-24
+            // else if (Type.LAMBDA.equals(caseNode.getToken().getType())) {
+            //     throw new ParserException("Unexpected switch statement!" + switchNode.getToken());
+            // }
+
+            final Node parameterBody = new Node(new Token(Type.PARAMETERS, "<PARAMETERS>", caseComponent.getToken()));
+            parameterBody.getChildren().add(caseComponent);
+
+            while (token != null && ",".equals(token.value)) {
+                nextToken();  // Consumes comma(,)
+
+                caseComponent = parseLogic();
+                if (caseComponent == null) {
+                    throw new ParserException("Could not find case for SWITCH statement! " + switchNode.getToken());
+                }
+
+                parameterBody.getChildren().add(caseComponent);
+            }
+            caseNode.getChildren().add(parameterBody);
+
+            if (token == null || !"=>".equals(token.value)) {
+                throw new ParserException("Expected an arrow operator(=>) but found " + token);
+            }
+            nextToken();
+
+            Node codes = null;
+            final boolean isMultipleStmts = Type.OPERATOR.equals(token.getType()) && "{".equals(token.getValue());
+            if (isMultipleStmts) {
+                nextToken();  // Consumes OpenBrace({)
+                this.fallThroughCloseBrace = true;
+
+                while (token != null
+                    && (codes = parseStatement()) != null
+                    && !(Type.OPERATOR.equals(codes.getToken().getType()) && "}".equals(token.getValue()))) {
+                    caseBody.getChildren().add(codes);
+                }
+
+                this.fallThroughCloseBrace = false;
+                if (token == null || !"}".equals(token.getValue())) {
+                    throw new ParserException("Expected '}' but found " + token);
+                }
+                nextToken();  // Consumes CloseBrace(})
+            } else {
+                codes = parseStatement();
+                if (codes == null) {
+                    throw new ParserException("Could not find any statement for SWITCH body! " + caseBody.getToken());
+                }
+
+                caseBody.getChildren().add(codes);
+            }
+
+            // NOTE(Sayakie): Once we accept only one statement, the next token may be ENDL.
+            // This is because ENDL should be consumed on top of `parseStatement()`. But in this case,
+            // we do not call `parseStatement()` more than once, so we need to handle this explicitly.
+            skipEndLines();
+
+            // TODO(Sayakie): Remove this @ 23-07-25
+            // if (token != null && Type.ENDL.equals(token.getType())) {
+            //     nextToken();
+            // }
+            if (caseBody.getChildren().size() == 0) {
+                throw new ParserException("SWITCH body should have at least one statement: " + caseBody);
+            }
+
+            caseNode.getChildren().add(caseBody);
+            switchNode.getChildren().add(caseNode);
+        }
+
+        if (token == null || !"ENDSWITCH".equals(token.getValue())) {
+            throw new ParserException("Expected a ENDSWITCH statement but found " + switchNode.getToken());
+        }
+
+        nextToken();  // Consumes ENDSWITCH
+        return switchNode;
     }
 
     private Node parseAssignment() throws IOException, LexerException, ParserException{
@@ -1048,7 +1155,11 @@ public class Parser {
             return node;
         }
 
-        if(token.getType() == Type.ENDL){
+        if (token.getType() == Type.ENDL) {
+            return null;
+        }
+
+        if (this.fallThroughCloseBrace && Type.OPERATOR.equals(token.getType()) && "}".equals(token.getValue())) {
             return null;
         }
 
