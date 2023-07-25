@@ -16,7 +16,10 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
+var Dependency = Java.type('io.github.wysohn.triggerreactor.core.main.Dependency');
+var Platform = Java.type('io.github.wysohn.triggerreactor.core.main.Platform');
 var Bukkit = Java.type('org.bukkit.Bukkit');
+var ChatColor = Java.type('org.bukkit.ChatColor');
 var Object = Java.type('java.lang.Object');
 
 var validation = {
@@ -29,6 +32,13 @@ var validation = {
 
 function LOG(args) {
   var message = args[0].toString();
+  message = ChatColor.translateAlternateColorCodes('&', message);
+
+  var platform = plugin.getPlatform();
+  if (platform.supports(Dependency.MiniMessage)) {
+    var mm = Java.type('net.kyori.adventure.text.minimessage.MiniMessage').miniMessage();
+    message = mm.deserialize(message);
+  }
 
   Bukkit.getConsoleSender().sendMessage(message);
 
