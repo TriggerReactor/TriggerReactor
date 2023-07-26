@@ -3062,6 +3062,75 @@ public class TestInterpreter {
         assertEquals(100, instance.oneArgResult);
     }
 
+    @Test
+    public void testLambdaFunctionAsVariable() throws Exception {
+        final Charset charset = StandardCharsets.UTF_8;
+        final String text = String.join(
+            "\n",
+            "noArgFn = LAMBDA =>",
+            "  abc * 3",
+            "ENDLAMBDA",
+            "",
+            "oneArgFn = LAMBDA str =>",
+            "  added = str + \" Hi\"",
+            "  added",
+            "ENDLAMBDA",
+            "",
+            "twoArgFn = LAMBDA a, b =>",
+            "  a + b",
+            "ENDLAMBDA",
+            "",
+            "abc = 33",
+            "noArgResult = noArgFn()",
+            "oneArgFnResult = oneArgFn(\"Something\")",
+            "twoArgFnResult = twoArgFn(456, 78)"
+        );
+
+        final Lexer lexer = new Lexer(text, charset);
+        final Parser parser = new Parser(lexer);
+        final Node root = parser.parse();
+
+        final Interpreter interpreter = new Interpreter(root);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.start();
+
+        assertEquals(33, interpreter.getVars().get("abc"));
+        assertNull(interpreter.getVars().get("str"));
+        assertNull(interpreter.getVars().get("added"));
+        assertNull(interpreter.getVars().get("a"));
+        assertNull(interpreter.getVars().get("b"));
+
+        assertEquals(99, interpreter.getVars().get("noArgResult"));
+        assertEquals("Something Hi", interpreter.getVars().get("oneArgFnResult"));
+        assertEquals(456 + 78, interpreter.getVars().get("twoArgFnResult"));
+    }
+
+    @Test
+    public void testLambdaFunctionAsVariableReturnNull() throws Exception {
+        final Charset charset = StandardCharsets.UTF_8;
+        final String text = String.join(
+            "\n",
+            "testLambdaFn = LAMBDA a, b =>",
+            "  a + b",
+            "  null",
+            "ENDLAMBDA",
+            "",
+            "testLambdaFnResult = testLambdaFn(20, 100)"
+        );
+
+        final Lexer lexer = new Lexer(text, charset);
+        final Parser parser = new Parser(lexer);
+        final Node root = parser.parse();
+
+        final Interpreter interpreter = new Interpreter(root);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.start();
+
+        assertNull(interpreter.getVars().get("a"));
+        assertNull(interpreter.getVars().get("b"));
+        assertNull(interpreter.getVars().get("testLambdaFnResult"));
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
