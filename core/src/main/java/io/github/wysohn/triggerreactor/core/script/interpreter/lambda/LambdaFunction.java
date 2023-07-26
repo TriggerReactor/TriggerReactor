@@ -10,33 +10,47 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 public class LambdaFunction implements InvocationHandler {
+
     private final LambdaParameter[] parameters;
     private final Node body;
-    private final Interpreter lambdaBody;
+    private final InterpreterLocalContext localContext;
+    private final InterpreterGlobalContext globalContext;
 
-    public LambdaFunction(LambdaParameter[] parameters,
-                          Node body,
-                          InterpreterLocalContext localContext,
-                          InterpreterGlobalContext globalContext){
+    public LambdaFunction(
+        final LambdaParameter[] parameters,
+        final Node body,
+        final InterpreterLocalContext localContext,
+        final InterpreterGlobalContext globalContext
+    ) {
         this.parameters = parameters;
         this.body = body;
-        this.lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
-
-        // if duplicated variable name is found, parameter name always has priority
-        for (LambdaParameter parameter : parameters) {
-            this.lambdaBody.getVars().put(parameter.id, parameter.defValue);
-        }
+        this.localContext = localContext;
+        this.globalContext = globalContext;
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        int argsLength = args == null ? 0 : args.length;
+    public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
+        final int argsLength = args == null ? 0 : args.length;
 
-        if(parameters.length != argsLength)
-            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided "+args.length+"" +
-                    " arguments, yet the LAMBDA only has "+parameters.length+" ids. "+body);
+        if (parameters.length != argsLength) {
+            throw new InterpreterException("Number of Lambda parameters doesn't match. Caller provided " + args.length + "" +
+                                               " arguments, yet the LAMBDA only has " + parameters.length + " ids. " + body);
+        }
 
-        // initialize arguments as variables in the lambda
+        // Should copy any states of local, global contexts on evaluation, so we can use access variables that
+        // is defined after the lambda has been captured.
+        //
+        // Example:
+        // ```trg
+        // testFn = LAMBDA =>
+        //   #MESSAGE "Hello " + playerName
+        // ENDLAMBDA
+        //
+        // playerName = player.getName()   // <- Should be copied from the local context
+        // testFn()
+        final Interpreter lambdaBody = new Interpreter(body, localContext.copyState("LAMBDA"), globalContext);
+
+        // Initialize arguments as variables in the lambda
         for (int i = 0; i < parameters.length; i++) {
             lambdaBody.getVars().put(parameters[i].id, args[i]);
         }
@@ -45,4 +59,5 @@ public class LambdaFunction implements InvocationHandler {
 
         return lambdaBody.result();
     }
+
 }
