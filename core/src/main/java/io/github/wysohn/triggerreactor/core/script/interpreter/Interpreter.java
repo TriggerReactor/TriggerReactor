@@ -496,6 +496,18 @@ public class Interpreter {
                     throw new InterpreterException("Expected parameters but found " + parameters);
                 }
 
+                final boolean isDefaultClause = "<DEFAULT>".equals(caseNode.getToken().value);
+                if (isDefaultClause) {
+                    final Node caseBody = caseNode.getChildren().get(1);
+                    if (!Type.CASEBODY.equals(caseBody.getToken().getType())) {
+                        throw new InterpreterException("Expected case body but found " + parameters);
+                    }
+
+                    matches = true;
+                    start(caseBody);
+                    break;
+                }
+
                 for (int j = 0; j < parameters.getChildren().size(); j++) {
                     final Node parameter = parameters.getChildren().get(j);
                     start(parameter);
@@ -507,12 +519,11 @@ public class Interpreter {
                     final Token rawParameterToken = context.popToken();
                     final Token parameterToken = tryUnwrapVariable(rawParameterToken);
 
-                    final boolean defaultMatch = "_".equals(rawParameterToken.getValue()) && i == node.getChildren().size() - 1;
-                    if (!variableType.equals(parameterToken.getType()) && !defaultMatch) {
+                    if (!variableType.equals(parameterToken.getType())) {
                         throw new InterpreterException("Mismatched type for parameter " + rawParameterToken + "! Expected " + variableType + " but found " + parameterToken.getType());
                     }
 
-                    if (variableNameToken.getValue().equals(parameterToken.getValue()) || defaultMatch) {
+                    if (variableNameToken.getValue().equals(parameterToken.getValue())) {
                         final Node caseBody = caseNode.getChildren().get(1);
                         if (!Type.CASEBODY.equals(caseBody.getToken().getType())) {
                             throw new InterpreterException("Expected case body but found " + parameters);
