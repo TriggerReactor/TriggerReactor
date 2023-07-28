@@ -489,6 +489,10 @@ public class Parser {
             throw new ParserException("Expected CASE or DEFAULT clause but found " + mayCaseOrDefaultNode);
         }
 
+        if (switchNode.getChildren().size() < 2) {
+            throw new ParserException("SWITCH statement should have at least one branch! " + switchNode.getToken());
+        }
+
         return switchNode;
     }
 
@@ -545,15 +549,17 @@ public class Parser {
 
         caseNode.getChildren().add(caseBody);
 
-        if (codes == null) {
-            throw new ParserException("Could not find ENDSWITCH statement! " + caseNode.getToken());
-        } else if ("CASE".equalsIgnoreCase(codes.getToken().value.toString())
-            || "ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
-            || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())) {
-            return codes;
+        if (codes != null) {
+            if ("CASE".equalsIgnoreCase(codes.getToken().value.toString())
+                   || "ENDCASE".equalsIgnoreCase(codes.getToken().value.toString())
+                   || "DEFAULT".equalsIgnoreCase(codes.getToken().value.toString())) {
+                return codes;
+            } else if ("ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+                return null;
+            }
         }
 
-        return null;
+        throw new ParserException("Could not find ENDSWITCH statement! " + caseNode.getToken());
     }
 
     private Node parseDefault(final Node switchNode) throws IOException, LexerException, ParserException {
@@ -584,11 +590,11 @@ public class Parser {
         defaultNode.getChildren().add(defaultBody);
         switchNode.getChildren().add(defaultNode);
 
-        if (codes == null) {
-            throw new ParserException("Could not find ENDSWITCH statement! " + defaultNode.getToken());
+        if (codes != null && "ENDSWITCH".equalsIgnoreCase(codes.getToken().value.toString())) {
+            return null;
         }
 
-        return null;
+        throw new ParserException("Could not find ENDSWITCH statement! " + defaultNode.getToken());
     }
 
     private Node parseAssignment() throws IOException, LexerException, ParserException{
