@@ -3062,6 +3062,442 @@ public class TestInterpreter {
         assertEquals(100, instance.oneArgResult);
     }
 
+    @Test
+    public void testSwitch() throws Exception {
+        final String text = String.join(
+            "\n",
+            "dice = random(1, 7)",
+            "",
+            "SWITCH dice",
+            "  CASE 1, 2 => #MESSAGE \"You are lose!\"",
+            "  CASE 3, 4 =>",
+            "    #MESSAGE \"Good! You are draw, but I will give you some money.\"",
+            "    #MONEY 1000",
+            "  ENDCASE",
+            "  CASE 5, 6 =>",
+            "    #MESSAGE \"Perfect! You are win! Get some diamonds.\"",
+            "    #GIVE DIAMOND, random(10, 33)",
+            "  DEFAULT =>",
+            "    #MESSAGE \"Unexpected result! I guess you are a cheater?\"",
+            "    #KILL",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor executor = mock(Executor.class);
+        when(executor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("MESSAGE", executor);
+        executors.put("MONEY", executor);
+        executors.put("GIVE", executor);
+        executors.put("KILL", executor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testSwitchWithInteger() throws Exception {
+        final String text = String.join(
+            "\n",
+            "result = 1",
+            "",
+            "SWITCH result",
+            "  CASE 1, 2 => #PASS",
+            "  DEFAULT => #FAIL",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithInteger2() throws Exception {
+        final String text = String.join(
+            "\n",
+            "result = 3",
+            "",
+            "SWITCH result",
+            "  CASE 1, 2 => #FAIL",
+            "  DEFAULT => #PASS",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal() throws Exception {
+        final String text = String.join(
+            "\n",
+            "result = 1.0",
+            "",
+            "SWITCH result",
+            "  CASE 1.0, 1.1, 1.2 => #PASS",
+            "  DEFAULT => #FAIL",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithDecimal2() throws Exception {
+        final String text = String.join(
+            "\n",
+            "result = 2.0",
+            "",
+            "SWITCH result",
+            "  CASE 1.0, 1.1, 1.2 => #FAIL",
+            "  DEFAULT => #PASS",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "",
+            "SWITCH result",
+            "  CASE TestEnum.IMTEST => #PASS",
+            "  DEFAULT => #FAIL",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum2() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "",
+            "SWITCH result",
+            "  CASE TestEnum.IMTEST2, TestEnum.IMTEST3 => #FAIL",
+            "  DEFAULT => #PASS",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnum() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "",
+            "SWITCH result",
+            "  CASE IMTEST => #PASS",
+            "  DEFAULT => #FAIL",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnum2() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "",
+            "SWITCH result",
+            "  CASE IMTEST2, IMTEST3 => #FAIL",
+            "  DEFAULT => #PASS",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnum3() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "condition1 = TestEnum.IMTEST2",
+            "condition2 = TestEnum.IMTEST3",
+            "",
+            "SWITCH result",
+            "  CASE condition1, condition2 => #FAIL",
+            "  DEFAULT => #PASS",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnumByString() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "",
+            "SWITCH result",
+            "  CASE \"IMTEST\" => #PASS",
+            "  DEFAULT => #FAIL",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
+    @Test
+    public void testSwitchWithEnum_SyntacticSugarForEnumByString2() throws Exception {
+        final String text = String.join(
+            "\n",
+            "IMPORT " + TestEnum.class.getName(),
+            "result = TestEnum.IMTEST",
+            "",
+            "SWITCH result",
+            "  CASE \"IMTEST2\", \"IMTEST3\" => #FAIL",
+            "  DEFAULT => #PASS",
+            "ENDSWITCH"
+        );
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Interpreter interpreter = new Interpreter(root);
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor passExecutor = mock(Executor.class);
+        final Executor failExecutor = mock(Executor.class);
+        when(passExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        when(failExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("PASS", passExecutor);
+        executors.put("FAIL", failExecutor);
+
+        interpreter.setExecutorMap(executors);
+        interpreter.setSelfReference(new CommonFunctions());
+        interpreter.setTaskSupervisor(mockTask);
+
+        interpreter.startWithContext(null);
+        verify(passExecutor).evaluate(any(), anyMap(), any(), any());
+        verifyNoInteractions(failExecutor);
+    }
+
     public static class TheTest {
         public static String staticField = "staticField";
 
@@ -3120,7 +3556,9 @@ public class TestInterpreter {
     }
 
     public enum TestEnum {
-        IMTEST
+        IMTEST,
+        IMTEST2,
+        IMTEST3
     }
 
     public static class ConstTest {
