@@ -72,6 +72,10 @@ public class Token {
         return value != null && (value.getClass().isArray() || value instanceof Iterable);
     }
 
+    public boolean isEnum() {
+        return value != null && value.getClass().isEnum();
+    }
+
     public boolean isObject() {
         return !isInteger() && !isDecimal() && !isBoolean() && !isArray();
     }

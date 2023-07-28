@@ -29,6 +29,7 @@ import io.github.wysohn.triggerreactor.core.script.wrapper.Accessor;
 import io.github.wysohn.triggerreactor.core.script.wrapper.IScriptObject;
 import io.github.wysohn.triggerreactor.core.script.wrapper.SelfReference;
 import io.github.wysohn.triggerreactor.tools.ReflectionUtil;
+import io.github.wysohn.triggerreactor.tools.StringUtils;
 import io.github.wysohn.triggerreactor.tools.timings.Timings;
 
 import java.lang.reflect.Array;
@@ -39,8 +40,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 public class Interpreter {
@@ -517,7 +520,23 @@ public class Interpreter {
                     }
 
                     final Token rawParameterToken = context.popToken();
-                    final Token parameterToken = tryUnwrapVariable(rawParameterToken);
+                    final Token parameterToken;
+                    if (variableNameToken.isEnum() && rawParameterToken.isString()) {
+                        Token maybeParameterToken;
+                        try {
+                            final Class<Enum> enumClass = (Class<Enum>) variableNameToken.value.getClass();
+                            maybeParameterToken = parseValue(
+                                Enum.valueOf(enumClass, rawParameterToken.value.toString()),
+                                rawParameterToken
+                            );
+                        } catch (final IllegalArgumentException ignored) {
+                            maybeParameterToken = tryUnwrapVariable(rawParameterToken);
+                        }
+
+                        parameterToken = maybeParameterToken;
+                    } else {
+                        parameterToken = tryUnwrapVariable(rawParameterToken);
+                    }
 
                     if (!variableType.equals(parameterToken.getType())) {
                         throw new InterpreterException("Mismatched type for parameter " + rawParameterToken + "! Expected " + variableType + " but found " + parameterToken.getType());
@@ -1415,30 +1434,70 @@ public class Interpreter {
     }
 
     public static void main(String[] ar) throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String text = "x = null;" +
-                "y = null;" +
-                "x.y.hoho();";
+        final Charset charset = StandardCharsets.UTF_8;
+        final String[] texts = new String[] {
+            "a = 2",
+            "SWITCH a",
+            "  CASE 1, 2 =>",
+            "    #MESSAGE \"1 or 2\"",
+            "  CASE 3 => #MESSAGE \"It's 3\"",
+            "  CASE 4, 5, 6 =>",
+            "    #MESSAGE \"Hello, \" + a",
+            "  ENDCASE",
+            "  CASE 7 => #STOP",
+            "  DEFAULT => #MESSAGE \"default\"",
+            "ENDSWITCH"
+        };
+        final StringJoiner joiner = new StringJoiner("\n");
 
-        Lexer lexer = new Lexer(text, charset);
+        int row = 1;
+        for (final CharSequence cs : texts) {
+            final int i = row++;
+            joiner.add(StringUtils.spaces(4 - (i / 10)) + i + " | " + cs);
+        }
+
+        final String text = joiner.toString();
+        System.out.println("original: \n" + text);
+
+        Lexer lexer = new Lexer(String.join("\n", texts), charset);
         Parser parser = new Parser(lexer);
 
         Node root = parser.parse();
         Map<String, Executor> executorMap = new HashMap<>();
-        executorMap.put("TEST", new Executor() {
-            @Override
-            public Integer evaluate(Timings.Timing timing, Map<String, Object> variables, Object e,
-                                    Object... args) throws Exception {
-                return null;
-            }
+        executorMap.put("MESSAGE", (timing, variables, e, args) -> {
+            System.out.println(args[0]);
+            return null;
         });
+        executorMap.put("STOP", (timing, variables, e, args) -> Executor.STOP);
 
         Map<String, Placeholder> placeholderMap = new HashMap<>();
         HashMap<Object, Object> gvars = new HashMap<>();
 
         Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executorMap);
         interpreter.setPlaceholderMap(placeholderMap);
         interpreter.globalContext.gvars = gvars;
+        interpreter.globalContext.task = new TaskSupervisor() {
+            @Override
+            public <T> Future<T> submitSync(Callable<T> call) {
+                return null;
+            }
+
+            @Override
+            public void submitAsync(Runnable run) {
+
+            }
+
+            @Override
+            public boolean isServerThread() {
+                return false;
+            }
+
+            @Override
+            public Thread newThread(Runnable runnable, String name, int priority) {
+                return null;
+            }
+        };
 
         interpreter.startWithContext(null);
     }
