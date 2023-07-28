@@ -826,6 +826,14 @@ public class TestLexer {
     }
 
     @Test
+    public void testNullCoalescingOperator() throws IOException, LexerException {
+        final String text = "?:";
+        final Lexer lexer = new Lexer(text, charset);
+        testToken(lexer, Type.OPERATOR_L, "?:");
+        testEnd(lexer);
+    }
+
+    @Test
     public void testId() throws Exception {
 
     }

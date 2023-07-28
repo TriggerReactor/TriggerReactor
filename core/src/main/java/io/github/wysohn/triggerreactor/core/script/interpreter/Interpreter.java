@@ -1161,6 +1161,14 @@ public class Interpreter {
                         case "||":
                              context.pushToken(new Token(Type.BOOLEAN, left.toBoolean() || right.toBoolean(), node.getToken()));
                             break;
+                        case "?:": {
+                            if (left.type == Type.NULLVALUE || (left.isBoolean() && !left.toBoolean())) {
+                                context.pushToken(new Token(right.type, right.value, node.getToken()));
+                            } else {
+                                context.pushToken(new Token(left.type, left.value, node.getToken()));
+                            }
+                            break;
+                        }
                     }
                 }
             } else if (node.getToken().type == Type.OPERATOR) {

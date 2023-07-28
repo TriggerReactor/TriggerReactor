@@ -1571,6 +1571,50 @@ public class TestInterpreter {
     }
 
     @Test
+    public void testNullCoalescing() throws IOException, LexerException, ParserException, InterpreterException {
+        {
+            final String text = "result = null ?: \"default value\"";
+
+            final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+            final Parser parser = new Parser(lexer);
+
+            final Node root = parser.parse();
+            final Interpreter interpreter = new Interpreter(root);
+            interpreter.setTaskSupervisor(mockTask);
+            interpreter.startWithContext(null);
+
+            assertEquals("default value", interpreter.getVars().get("result"));
+        }
+        {
+            final String text = "result = false ?: \"default value\"";
+
+            final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+            final Parser parser = new Parser(lexer);
+
+            final Node root = parser.parse();
+            final Interpreter interpreter = new Interpreter(root);
+            interpreter.setTaskSupervisor(mockTask);
+            interpreter.startWithContext(null);
+
+            assertEquals("default value", interpreter.getVars().get("result"));
+        }
+        {
+            final String text = "playername = player.hasPermission(\"asdf\") ?: \"unknown\"";
+
+            final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+            final Parser parser = new Parser(lexer);
+
+            final Node root = parser.parse();
+            final Interpreter interpreter = new Interpreter(root);
+            interpreter.setTaskSupervisor(mockTask);
+            interpreter.getVars().put("player", new InTest());
+            interpreter.startWithContext(null);
+
+            assertEquals("unknown", interpreter.getVars().get("playername"));
+        }
+    }
+
+    @Test
     public void testSimpleIf() throws Exception {
         Set<String> set = new HashSet<>();
 

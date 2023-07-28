@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestParser {
 
@@ -239,6 +240,33 @@ public class TestParser {
 
         assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
         assertEquals(0, queue.size());
+    }
+
+    @Test
+    public void testNullCoalescing() throws IOException, LexerException, ParserException {
+        final String text = "playername = player.getName() ?: \"unknown\"";
+
+        final Lexer lexer = new Lexer(text, StandardCharsets.UTF_8);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+        final Queue<Node> queue = new LinkedList<>();
+
+        serializeNode(queue, root);
+
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "playername")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.THIS, "<This>")), queue.poll());
+        assertEquals(new Node(new Token(Type.ID, "player")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.CALL, "getName")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, ".")), queue.poll());
+        assertEquals(new Node(new Token(Type.STRING, "unknown")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR_L, "?:")), queue.poll());
+        assertEquals(new Node(new Token(Type.OPERATOR, "=")), queue.poll());
+        assertEquals(new Node(new Token(Type.ROOT, "<ROOT>")), queue.poll());
+        assertTrue(queue.isEmpty());
     }
 
     @Test

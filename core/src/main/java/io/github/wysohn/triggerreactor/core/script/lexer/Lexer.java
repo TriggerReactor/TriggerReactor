@@ -416,6 +416,16 @@ public class Lexer {
             } else {
                 return new Token(Type.OPERATOR_A, op, row, col);
             }
+        } else if (c == '?') {
+            final String op = String.valueOf(c);
+            read();
+
+            if (c == ':') {
+                read();
+                return new Token(Type.OPERATOR_L, op + ":", row, col);
+            } else {
+                return new Token(Type.OPERATOR, op, row, col);
+            }
         } else {
             Token token = new Token(Type.OPERATOR, String.valueOf(c), row, col);
             read();

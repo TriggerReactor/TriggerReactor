@@ -681,7 +681,7 @@ public class Parser {
                 && (
                 (token.type == Type.OPERATOR_L && ("<".equals(token.value) || "<=".equals(token.value)
                         || ">".equals(token.value) || ">=".equals(token.value)
-                        || "==".equals(token.value) || "!=".equals(token.value))
+                        || "==".equals(token.value) || "!=".equals(token.value) || "?:".equals(token.value))
                 ) || "IS".equals(token.value))
         ) {
             Node node = new Node(token);
