@@ -3248,11 +3248,11 @@ public class TestInterpreter {
     public void testSwitchWithEnum() throws Exception {
         final String text = String.join(
             "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
+            "IMPORT " + GameMode.class.getName(),
+            "result = GameMode.SURVIVAL",
             "",
             "SWITCH result",
-            "  CASE TestEnum.IMTEST => #PASS",
+            "  CASE GameMode.SURVIVAL => #PASS",
             "  DEFAULT => #FAIL",
             "ENDSWITCH"
         );
@@ -3284,11 +3284,11 @@ public class TestInterpreter {
     public void testSwitchWithEnum2() throws Exception {
         final String text = String.join(
             "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
+            "IMPORT " + GameMode.class.getName(),
+            "result = GameMode.SURVIVAL",
             "",
             "SWITCH result",
-            "  CASE TestEnum.IMTEST2, TestEnum.IMTEST3 => #FAIL",
+            "  CASE GameMode.CREATIVE, GameMode.ADVENTURE, GameMode.SPECTATOR => #FAIL",
             "  DEFAULT => #PASS",
             "ENDSWITCH"
         );
@@ -3320,11 +3320,11 @@ public class TestInterpreter {
     public void testSwitchWithEnum_SyntacticSugarForEnum() throws Exception {
         final String text = String.join(
             "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
+            "IMPORT " + GameMode.class.getName(),
+            "result = GameMode.SURVIVAL",
             "",
             "SWITCH result",
-            "  CASE IMTEST => #PASS",
+            "  CASE SURVIVAL => #PASS",
             "  DEFAULT => #FAIL",
             "ENDSWITCH"
         );
@@ -3356,11 +3356,11 @@ public class TestInterpreter {
     public void testSwitchWithEnum_SyntacticSugarForEnum2() throws Exception {
         final String text = String.join(
             "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
+            "IMPORT " + GameMode.class.getName(),
+            "result = GameMode.SURVIVAL",
             "",
             "SWITCH result",
-            "  CASE IMTEST2, IMTEST3 => #FAIL",
+            "  CASE CREATIVE, ADVENTURE, SPECTATOR => #FAIL",
             "  DEFAULT => #PASS",
             "ENDSWITCH"
         );
@@ -3392,13 +3392,12 @@ public class TestInterpreter {
     public void testSwitchWithEnum_SyntacticSugarForEnum3() throws Exception {
         final String text = String.join(
             "\n",
-            "IMPORT " + TestEnum.class.getName(),
-            "result = TestEnum.IMTEST",
-            "condition1 = TestEnum.IMTEST2",
-            "condition2 = TestEnum.IMTEST3",
+            "IMPORT " + GameMode.class.getName(),
+            "result = GameMode.SURVIVAL",
+            "condition = GameMode.CREATIVE",
             "",
             "SWITCH result",
-            "  CASE condition1, condition2 => #FAIL",
+            "  CASE condition, ADVENTURE, \"SPECTATOR\" => #FAIL",
             "  DEFAULT => #PASS",
             "ENDSWITCH"
         );
@@ -3559,6 +3558,13 @@ public class TestInterpreter {
         IMTEST,
         IMTEST2,
         IMTEST3
+    }
+
+    public enum GameMode {
+        CREATIVE,
+        SURVIVAL,
+        ADVENTURE,
+        SPECTATOR
     }
 
     public static class ConstTest {
