@@ -4,6 +4,7 @@ import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
 import io.github.wysohn.triggerreactor.core.main.Platform;
+import io.github.wysohn.triggerreactor.core.manager.PlatformManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
@@ -725,7 +726,8 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
     }
 
     @Test
-    public void testMessage() throws Exception {
+    public void testBroadcast() throws Exception {
+        // arrange
         class ExampleObject {
             private final String message;
 
@@ -739,30 +741,106 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
             }
         }
 
-        final BukkitTriggerReactorCore plugin = mock(BukkitTriggerReactorCore.class);
-        Player player = mock(Player.class);
         ExampleObject exampleObject = new ExampleObject("Message");
+        PlatformManager platformManager = mock(PlatformManager.class);
+        Platform platform = Platform.Unknown;
+        Injector injector = mock(Injector.class);
 
-        when(plugin.getPlatform()).thenReturn(Platform.Unknown);
-        // when(Platform.Unknown.supports(eq(Dependency.MiniMessage))).thenReturn(false);
+        when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
+        when(platformManager.current()).thenReturn(platform);
 
-        JsTest test = new ExecutorTest(engine, "MESSAGE")
-                .addVariable("player", player)
-                .addVariable("plugin", plugin);
+        // act
+        JsTest test = new ExecutorTest(engine, "BROADCAST")
+                .addVariable("injector", injector);
 
         test.withArgs(exampleObject).test();
 
+        // assert
+        //TODO need to refactor javascript to test this
+    }
+
+    @Test
+    public void testMessage() throws Exception {
+        // arrange
+        class ExampleObject {
+            private final String message;
+
+            public ExampleObject(String message) {
+                this.message = message;
+            }
+
+            @Override
+            public String toString() {
+                return "ExampleObject(" + message + ")";
+            }
+        }
+
+        Player player = mock(Player.class);
+        ExampleObject exampleObject = new ExampleObject("Message");
+        PlatformManager platformManager = mock(PlatformManager.class);
+        Platform platform = Platform.Unknown;
+        Injector injector = mock(Injector.class);
+
+        // when(Platform.Unknown.supports(eq(Dependency.MiniMessage))).thenReturn(false);
+        when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
+        when(platformManager.current()).thenReturn(platform);
+
+        // act
+        JsTest test = new ExecutorTest(engine, "MESSAGE")
+                .addVariable("player", player)
+                .addVariable("injector", injector);
+
+        test.withArgs(exampleObject).test();
+
+        // assert
         verify(player).sendMessage(exampleObject.toString());
 
         Assert.assertEquals(0, test.getOverload(exampleObject));
     }
 
     @Test
+    public void testLog() throws Exception {
+        // arrange
+        class ExampleObject {
+            private final String message;
+
+            public ExampleObject(String message) {
+                this.message = message;
+            }
+
+            @Override
+            public String toString() {
+                return "ExampleObject(" + message + ")";
+            }
+        }
+
+        ExampleObject exampleObject = new ExampleObject("Message");
+        PlatformManager platformManager = mock(PlatformManager.class);
+        Platform platform = Platform.Unknown;
+        Injector injector = mock(Injector.class);
+
+        when(injector.getInstance(PlatformManager.class)).thenReturn(platformManager);
+        when(platformManager.current()).thenReturn(platform);
+
+        // act
+        JsTest test = new ExecutorTest(engine, "LOG")
+                .addVariable("injector", injector);
+
+        //TODO need to refactor javascript to test this
+//        test.withArgs(exampleObject).test();
+
+        // assert
+        //TODO need to refactor javascript to test this
+    }
+
+    @Test
     public void testMoney1() throws Exception {
         class FakeVault {
-            public void give(Player player, int money) {}
+            public void give(Player player, int money) {
+            }
 
-            public void take(Player player, int money) {}
+            public void take(Player player, int money) {
+            }
         }
 
         Player player = mock(Player.class);

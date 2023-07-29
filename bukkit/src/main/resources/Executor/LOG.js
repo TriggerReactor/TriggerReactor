@@ -15,27 +15,30 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
-var Dependency = Java.type('io.github.wysohn.triggerreactor.core.main.Dependency');
-var Platform = Java.type('io.github.wysohn.triggerreactor.core.main.Platform');
-var Bukkit = Java.type('org.bukkit.Bukkit');
-var ChatColor = Java.type('org.bukkit.ChatColor');
-var Object = Java.type('java.lang.Object');
+var Dependency = Java.type(
+  "io.github.wysohn.triggerreactor.core.main.Dependency"
+);
+var Platform = Java.type("io.github.wysohn.triggerreactor.core.main.Platform");
+var PlatformManager = Java.type(
+  "io.github.wysohn.triggerreactor.core.manager.PlatformManager"
+);
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var ChatColor = Java.type("org.bukkit.ChatColor");
+var Object = Java.type("java.lang.Object");
 
 var validation = {
-  overloads: [
-    [
-      { type: Object.class, name: 'message' }
-    ]
-  ]
+  overloads: [[{ type: Object.class, name: "message" }]],
 };
 
 function LOG(args) {
   var message = args[0].toString();
-  message = ChatColor.translateAlternateColorCodes('&', message);
+  message = ChatColor.translateAlternateColorCodes("&", message);
 
-  var platform = plugin.getPlatform();
+  var platform = injector.getInstance(PlatformManager.class).current();
   if (platform.supports(Dependency.MiniMessage)) {
-    var mm = Java.type('net.kyori.adventure.text.minimessage.MiniMessage').miniMessage();
+    var mm = Java.type(
+      "net.kyori.adventure.text.minimessage.MiniMessage"
+    ).miniMessage();
     message = mm.deserialize(message);
   }
 
