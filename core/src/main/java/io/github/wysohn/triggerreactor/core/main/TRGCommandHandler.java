@@ -581,6 +581,7 @@ public class TRGCommandHandler {
                         }
 
                         trigger.getItems()[index - 1] = IS;
+                        inventoryTriggerManager.put(name, trigger); // TODO think of better way to do this
 
                         sender.sendMessage("Successfully set item " + index);
 

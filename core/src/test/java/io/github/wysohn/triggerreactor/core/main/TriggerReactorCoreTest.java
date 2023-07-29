@@ -6,10 +6,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import io.github.wysohn.gsoncopy.JsonElement;
 import io.github.wysohn.gsoncopy.JsonParser;
-import io.github.wysohn.triggerreactor.core.bridge.ICommandSender;
-import io.github.wysohn.triggerreactor.core.bridge.IItemStack;
-import io.github.wysohn.triggerreactor.core.bridge.ILocation;
-import io.github.wysohn.triggerreactor.core.bridge.IWorld;
+import io.github.wysohn.triggerreactor.core.bridge.*;
 import io.github.wysohn.triggerreactor.core.bridge.entity.IPlayer;
 import io.github.wysohn.triggerreactor.core.main.command.ICommand;
 import io.github.wysohn.triggerreactor.core.main.command.ICommandHandler;
@@ -747,6 +744,25 @@ public class TriggerReactorCoreTest {
     }
 
     @Test
+    public void command_sudo() {
+        // arrange
+        IPlayer sender = mock(IPlayer.class);
+        IPlayer target = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+        when(gameManagement.getPlayer("target")).thenReturn(target);
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"sudo", "target", "command", "arg1", "arg2"});
+
+        // assert
+        verify(eventManagement).createEmptyPlayerEvent(target);
+    }
+
+    @Test
     public void command_call() {
         // arrange
         IPlayer sender = mock(IPlayer.class);
@@ -888,6 +904,64 @@ public class TriggerReactorCoreTest {
 
         // assert
         assertNull(inventoryTriggerManager.get("MyInventory"));
+    }
+
+    @Test
+    public void command_invTrigger_item() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+        IItemStack itemInHand = mock(IItemStack.class);
+
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.getItemInMainHand()).thenReturn(itemInHand);
+        when(itemInHand.getType()).thenReturn("STONE"); // should be Material.STONE, but not necessary for test
+        when(pluginManagement.isEnabled()).thenReturn(true);
+        when(itemInHand.clone()).thenReturn(itemInHand);
+
+        inventoryTriggerManager.createTrigger(54, "MyInventory", "#MESSAGE \"Hello World\"");
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "item", "1"});
+
+        // assert
+        assertNotNull(inventoryTriggerManager.get("MyInventory"));
+        assertEquals(54, inventoryTriggerManager.get("MyInventory").getItems().length);
+        assertEquals("#MESSAGE \"Hello World\"", inventoryTriggerManager.get("MyInventory").getScript());
+        assertEquals("STONE", inventoryTriggerManager.get("MyInventory").getItems()[0].getType());
+    }
+
+    @Test
+    public void command_invTrigger_open() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+        IItemStack itemInHand = mock(IItemStack.class);
+
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(sender.getItemInMainHand()).thenReturn(itemInHand);
+        when(itemInHand.getType()).thenReturn("STONE"); // should be Material.STONE, but not necessary for test
+        when(pluginManagement.isEnabled()).thenReturn(true);
+        when(itemInHand.clone()).thenReturn(itemInHand);
+        when(inventoryHandle.createInventory(anyInt(), any())).thenReturn(mock(IInventory.class));
+
+        inventoryTriggerManager.createTrigger(54, "MyInventory", "#MESSAGE \"Hello World\"");
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "open"});
+
+        // assert
+        verify(sender).openInventory(any(IInventory.class));
     }
 
     @Test
