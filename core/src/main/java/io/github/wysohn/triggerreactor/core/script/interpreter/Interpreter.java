@@ -360,7 +360,7 @@ public class Interpreter {
 
                 if (context.isStopFlag())
                     return;
-                Token valueToken = context.popToken();
+                Token valueToken =  context.popToken();
 
                 if (isVariable(valueToken)) {
                     valueToken = unwrapVariable(valueToken);
