@@ -30,6 +30,13 @@ public abstract class TriggerInfo implements IMigratable, IPluginLifecycle {
 
     @Override
     public void initialize() {
+
+    }
+
+    /**
+     * See {@link IConfigSource#saveAll()}
+     */
+    public void saveAll() {
         config.saveAll();
     }
 

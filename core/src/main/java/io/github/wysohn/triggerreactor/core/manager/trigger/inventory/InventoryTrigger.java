@@ -24,6 +24,7 @@ import io.github.wysohn.triggerreactor.core.main.IExceptionHandle;
 import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
+import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
 import io.github.wysohn.triggerreactor.core.script.interpreter.interrupt.ProcessInterrupter;
 
@@ -79,5 +80,10 @@ public class InventoryTrigger extends Trigger {
 
     public IItemStack[] getItems() {
         return items;
+    }
+
+    public String getTitle() {
+        return getInfo().get(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, String.class)
+                .orElse(null);
     }
 }

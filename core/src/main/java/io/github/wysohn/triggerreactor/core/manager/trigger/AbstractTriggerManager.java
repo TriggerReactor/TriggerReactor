@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class AbstractTriggerManager<T extends Trigger> extends Manager {
+public abstract class AbstractTriggerManager<T extends Trigger> extends Manager implements StatefulObject {
     @Inject
     private Logger logger;
     @Inject
@@ -53,6 +53,13 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
 
     public TriggerInfo[] getTriggerInfos() {
         return loader.listTriggers(folder, configSourceFactory);
+    }
+
+    @Override
+    public void saveAll() {
+        triggers.values().stream()
+                .map(Trigger::getInfo)
+                .forEach(TriggerInfo::saveAll);
     }
 
     @Override

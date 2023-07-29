@@ -27,10 +27,7 @@ import io.github.wysohn.triggerreactor.core.manager.js.executor.ExecutorManager;
 import io.github.wysohn.triggerreactor.core.manager.js.placeholder.PlaceholderManager;
 import io.github.wysohn.triggerreactor.core.manager.location.Area;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
-import io.github.wysohn.triggerreactor.core.manager.trigger.AbstractTriggerManager;
-import io.github.wysohn.triggerreactor.core.manager.trigger.Trigger;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerConfigKey;
-import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
+import io.github.wysohn.triggerreactor.core.manager.trigger.*;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTrigger;
 import io.github.wysohn.triggerreactor.core.manager.trigger.area.AreaTriggerManager;
 import io.github.wysohn.triggerreactor.core.manager.trigger.command.CommandTrigger;
@@ -61,6 +58,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Singleton
 public class TRGCommandHandler {
@@ -311,7 +309,6 @@ public class TRGCommandHandler {
                         }
 
                         info.put(TriggerConfigKey.KEY_TRIGGER_COMMAND_TABS, tabs);
-                        commandTriggerManager.reload(args[1]);
 
                         sender.sendMessage("&7Set tab-completer");
                     } else if (commandTriggerManager.has(args[1])) {
@@ -724,8 +721,6 @@ public class TRGCommandHandler {
 
                         TriggerInfo info = trigger.getInfo();
                         info.put(TriggerConfigKey.KEY_TRIGGER_INVENTORY_TITLE, title);
-
-                        inventoryTriggerManager.reload(name);
 
                         sender.sendMessage("Successfully changed title");
 
@@ -1426,11 +1421,21 @@ public class TRGCommandHandler {
                     }
                     return true;
                 } else if (args[0].equalsIgnoreCase("saveall")) {
-//                    for (Manager manager : managers)
-//                        manager.saveAll();
+                    managers.stream()
+                            .filter(StatefulObject.class::isInstance)
+                            .map(StatefulObject.class::cast)
+                            .collect(Collectors.toList())
+                            .forEach(StatefulObject::saveAll);
                     sender.sendMessage("Save complete!");
                     return true;
                 } else if (args[0].equalsIgnoreCase("reload")) {
+                    if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
+                        sender.sendMessage("&7Are you sure you want to reload? Any changes you made &ccan be lost&7.");
+                        sender.sendMessage("&7It is recommended to do &6/trg saveall &7before reloading.");
+                        sender.sendMessage("&7If you are sure, type &6/trg reload confirm");
+                        return true;
+                    }
+
                     for (Manager manager : managers)
                         manager.reload();
 

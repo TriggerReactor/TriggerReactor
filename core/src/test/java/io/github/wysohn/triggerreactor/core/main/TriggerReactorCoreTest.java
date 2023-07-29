@@ -835,6 +835,31 @@ public class TriggerReactorCoreTest {
     }
 
     @Test
+    public void command_invTrigger_settitle() throws Exception {
+        // arrange
+        UUID uuid = UUID.randomUUID();
+        IPlayer sender = mock(IPlayer.class);
+        Injector injector = createInjector();
+        TRGCommandHandler handler = injector.getInstance(TRGCommandHandler.class);
+
+        InventoryTriggerManager inventoryTriggerManager = injector.getInstance(InventoryTriggerManager.class);
+
+        when(sender.getUniqueId()).thenReturn(uuid);
+        when(sender.hasPermission(TRGCommandHandler.PERMISSION)).thenReturn(true);
+        when(pluginManagement.isEnabled()).thenReturn(true);
+
+        // act
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "create", "54", "#MESSAGE \"Hello World\""});
+        handler.onCommand(sender, COMMAND_NAME, new String[]{"i", "MyInventory", "settitle", "Custom_Title"});
+
+        // assert
+        assertNotNull(inventoryTriggerManager.get("MyInventory"));
+        assertEquals(54, inventoryTriggerManager.get("MyInventory").getItems().length);
+        assertEquals("#MESSAGE \"Hello World\"", inventoryTriggerManager.get("MyInventory").getScript());
+        assertEquals("Custom_Title", inventoryTriggerManager.get("MyInventory").getTitle());
+    }
+
+    @Test
     public void command_invTrigger_delete() throws Exception {
         // arrange
         File sourceFile = folder.newFile("MyInventory.trg");
