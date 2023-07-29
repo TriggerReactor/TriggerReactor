@@ -75,6 +75,7 @@ public abstract class TriggerReactorCore
     protected Map<String, AbstractAPISupport> sharedVars = new HashMap<>();
     private PluginConfigManager pluginConfigManager;
     private GlobalVariableManager globalVariableManager;
+    private Platform platform;
     private boolean debugging = false;
 
     protected TriggerReactorCore() {
@@ -149,9 +150,16 @@ public abstract class TriggerReactorCore
     public GlobalVariableManager getVariableManager() {
         return globalVariableManager;
     }
+
+    @Override
+    public Platform getPlatform() {
+        return platform;
+    }
+
     public void onCoreEnable() {
         pluginConfigManager = new PluginConfigManager(this);
         globalVariableManager = new GlobalVariableManager(this);
+        platform = Platform.getCurrentPlatform();
     }
 
     public void onCoreDisable() {
