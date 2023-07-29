@@ -40,14 +40,14 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class Test {
+public class InterpreterTest {
 
     private Charset charset = StandardCharsets.UTF_8;
     private Map<String, Object> scriptVars = new HashMap<>();
     private Interpreter interpreter;
     private InterpreterLocalContext interpreterLocalContext;
 
-    private Test(Interpreter interpreter) {
+    private InterpreterTest(Interpreter interpreter) {
         ValidationUtil.notNull(interpreter);
 
         this.interpreter = interpreter;
@@ -70,7 +70,7 @@ public class Test {
     }
 
     public static class Builder {
-        private final Test test;
+        private final InterpreterTest test;
 
         private Builder(String script) throws Exception {
             this(InterpreterBuilder.start(
@@ -118,7 +118,7 @@ public class Test {
         }
 
         private Builder(Interpreter interpreter) throws Exception {
-            this.test = new Test(interpreter);
+            this.test = new InterpreterTest(interpreter);
         }
 
         public Builder charset(Charset charset) {
@@ -174,7 +174,7 @@ public class Test {
             return this;
         }
 
-        public Test build() {
+        public InterpreterTest build() {
             return test;
         }
 
