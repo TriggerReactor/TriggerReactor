@@ -13,10 +13,12 @@ import io.github.wysohn.triggerreactor.core.config.validation.DefaultValidator;
 import io.github.wysohn.triggerreactor.core.config.validation.SimpleChunkLocationValidator;
 import io.github.wysohn.triggerreactor.core.config.validation.SimpleLocationValidator;
 import io.github.wysohn.triggerreactor.core.config.validation.UUIDValidator;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleChunkLocation;
 import io.github.wysohn.triggerreactor.core.manager.location.SimpleLocation;
 import io.github.wysohn.triggerreactor.tools.ValidationUtil;
 
+import javax.inject.Inject;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
@@ -65,6 +67,9 @@ public class GsonConfigSource implements IConfigSource {
 
     private final ITypeValidator typeValidator;
     private final SaveWorker saveWorker = new SaveWorker(5);
+
+    @Inject
+    private IPluginManagement pluginManagement;
 
     GsonConfigSource(File file) {
         this(file, f -> {
@@ -329,22 +334,26 @@ public class GsonConfigSource implements IConfigSource {
 
         @Override
         public void run() {
-            while (running && !Thread.interrupted()) {
-                if (count == 0 || !bufferFilled()) {
-                    try {
+            try {
+                while (running && !Thread.interrupted()) {
+                    if (count == 0 || !bufferFilled()) {
                         synchronized (this) {
                             wait();
                         }
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+
+                        continue;
                     }
 
-                    continue;
+                    if (running) {
+                        saveNow();
+                    }
                 }
-
-                if (running) {
-                    saveNow();
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                saveNow();
+                if (!pluginManagement.isEnabled())
+                    pluginManagement.disablePlugin();
             }
         }
     }

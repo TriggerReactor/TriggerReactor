@@ -1,5 +1,9 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import io.github.wysohn.triggerreactor.core.main.IPluginManagement;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -9,12 +13,28 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 public class ConfigSourceFactoryTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    ConfigSourceFactory configSourceFactory = new ConfigSourceFactory();
+    IPluginManagement pluginManagement;
+    ConfigSourceFactory configSourceFactory;
+
+    @Before
+    public void init() {
+        pluginManagement = mock(IPluginManagement.class);
+
+        configSourceFactory = Guice.createInjector(
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(IPluginManagement.class).toInstance(pluginManagement);
+                    }
+                }
+        ).getInstance(ConfigSourceFactory.class);
+    }
 
     @Test
     public void create() throws IOException {

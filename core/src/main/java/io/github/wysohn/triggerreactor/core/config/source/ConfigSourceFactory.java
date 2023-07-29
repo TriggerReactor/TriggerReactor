@@ -1,17 +1,26 @@
 package io.github.wysohn.triggerreactor.core.config.source;
 
+import com.google.inject.Injector;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+@Singleton
 public class ConfigSourceFactory {
     private static ConfigSourceFactory instance;
     static final String DEFAULT_FACTORY = "gson";
-    private static final Map<String, IConfigSourceFactory> factories = new HashMap<>();
+    private final Map<String, IConfigSourceFactory> factories = new HashMap<>();
 
-    static {
+    @Inject
+    private Injector injector;
+
+    @Inject
+    private ConfigSourceFactory() {
         factories.put("none", (type, folder, fileName) -> new EmptyConfigSource());
         factories.put("gson", (type, folder, fileName) -> {
             IConfigSource source = new GsonConfigSource(new File(folder, fileName + ".json"));
@@ -27,15 +36,8 @@ public class ConfigSourceFactory {
      * @param factory the factory instance
      * @return null if registered; factory instance of the name already in use
      */
-    public static IConfigSourceFactory registerFactory(String type, IConfigSourceFactory factory) {
+    public IConfigSourceFactory registerFactory(String type, IConfigSourceFactory factory) {
         return factories.put(type, factory);
-    }
-
-    public static ConfigSourceFactory instance() {
-        if (instance == null)
-            instance = new ConfigSourceFactory();
-
-        return instance;
     }
 
     /**
@@ -70,7 +72,9 @@ public class ConfigSourceFactory {
         if (!factories.containsKey(type))
             throw new RuntimeException(type + " is not a registered type.");
 
-        return factories.get(type).create(type, folder, fileName);
+        IConfigSource configSource = factories.get(type).create(type, folder, fileName);
+        injector.injectMembers(configSource);
+        return configSource;
     }
 
     private static class EmptyConfigSource implements IConfigSource {

@@ -9,15 +9,20 @@ import javax.inject.Named;
 import java.io.File;
 
 public class ConfigurationModule extends AbstractModule {
+    @Override
+    protected void configure() {
+        bind(ConfigSourceFactory.class);
+    }
+
     @Provides
     @Named("GlobalVariable")
-    public IConfigSource provideConfigSource(@Named("DataFolder") File dataFolder) {
-        return ConfigSourceFactory.instance().create(dataFolder, "var");
+    public IConfigSource provideConfigSource(ConfigSourceFactory factory, @Named("DataFolder") File dataFolder) {
+        return factory.create(dataFolder, "var");
     }
 
     @Provides
     @Named("PluginConfig")
-    public IConfigSource providePluginConfigSource(@Named("DataFolder") File dataFolder) {
-        return ConfigSourceFactory.instance().create(dataFolder, "config");
+    public IConfigSource providePluginConfigSource(ConfigSourceFactory factory, @Named("DataFolder") File dataFolder) {
+        return factory.create(dataFolder, "config");
     }
 }

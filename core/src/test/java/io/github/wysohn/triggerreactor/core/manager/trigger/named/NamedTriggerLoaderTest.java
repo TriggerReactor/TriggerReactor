@@ -18,6 +18,7 @@
 package io.github.wysohn.triggerreactor.core.manager.trigger.named;
 
 import com.google.inject.Guice;
+import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.core.config.InvalidTrgConfigurationException;
 import io.github.wysohn.triggerreactor.core.config.source.ConfigSourceFactory;
 import io.github.wysohn.triggerreactor.core.manager.trigger.TriggerInfo;
@@ -44,14 +45,18 @@ public class NamedTriggerLoaderTest {
 
 
     NamedTriggerLoader loader;
+    ConfigSourceFactory configSourceFactory;
 
     @Before
     public void init() throws IllegalAccessException, NoSuchFieldException {
-        loader = Guice.createInjector(
+        Injector injector = Guice.createInjector(
                 new NamedTriggerModule(),
                 new TestFileModule(folder),
                 TestTriggerDependencyModule.Builder.begin().build()
-        ).getInstance(NamedTriggerLoader.class);
+        );
+
+        loader = injector.getInstance(NamedTriggerLoader.class);
+        configSourceFactory = injector.getInstance(ConfigSourceFactory.class);
     }
 
     @Test
@@ -60,7 +65,7 @@ public class NamedTriggerLoaderTest {
         when(info.getTriggerName()).thenReturn("test");
         when(info.getSourceCodeFile()).thenReturn(folder.newFile("test.trg"));
 
-        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), ConfigSourceFactory.instance());
+        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), configSourceFactory);
 
         assertEquals(1, loaded.length);
         assertEquals("test", loaded[0].getTriggerName());
@@ -82,7 +87,7 @@ public class NamedTriggerLoaderTest {
         when(info3.getTriggerName()).thenReturn("test3");
         when(info3.getSourceCodeFile()).thenReturn(file3);
 
-        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), ConfigSourceFactory.instance());
+        TriggerInfo[] loaded = loader.listTriggers(folder.getRoot(), configSourceFactory);
 
         assertEquals(2, loaded.length);
         assertTrue(isIn(loaded, "sub:test2"));

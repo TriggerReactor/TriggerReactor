@@ -35,16 +35,16 @@ public abstract class AbstractTriggerManager<T extends Trigger> extends Manager 
     private Logger logger;
     @Inject
     private ITriggerLoader<T> loader;
+    @Inject
+    protected ConfigSourceFactory configSourceFactory;
 
     private final Observer observer = new Observer();
     private final Map<String, T> triggers = new ConcurrentHashMap<>();
 
     protected final File folder;
-    protected final ConfigSourceFactory configSourceFactory;
 
     public AbstractTriggerManager(File folder) {
         this.folder = folder;
-        this.configSourceFactory = ConfigSourceFactory.instance();
     }
 
     public File getFolder() {
