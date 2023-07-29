@@ -3,6 +3,7 @@ package js.executor;
 import com.google.inject.Injector;
 import io.github.wysohn.triggerreactor.bukkit.main.AbstractJavaPlugin;
 import io.github.wysohn.triggerreactor.core.bridge.IInventory;
+import io.github.wysohn.triggerreactor.core.main.Platform;
 import io.github.wysohn.triggerreactor.core.manager.trigger.inventory.InventoryTriggerManager;
 import io.github.wysohn.triggerreactor.core.script.validation.ValidationException;
 import js.AbstractTestJavaScripts;
@@ -738,11 +739,16 @@ public abstract class AbstractTestExecutors extends AbstractTestJavaScripts {
             }
         }
 
+        final BukkitTriggerReactorCore plugin = mock(BukkitTriggerReactorCore.class);
         Player player = mock(Player.class);
         ExampleObject exampleObject = new ExampleObject("Message");
 
+        when(plugin.getPlatform()).thenReturn(Platform.Unknown);
+        // when(Platform.Unknown.supports(eq(Dependency.MiniMessage))).thenReturn(false);
+
         JsTest test = new ExecutorTest(engine, "MESSAGE")
-                .addVariable("player", player);
+                .addVariable("player", player)
+                .addVariable("plugin", plugin);
 
         test.withArgs(exampleObject).test();
 
