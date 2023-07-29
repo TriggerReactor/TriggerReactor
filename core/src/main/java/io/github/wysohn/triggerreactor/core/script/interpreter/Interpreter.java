@@ -300,12 +300,15 @@ public class Interpreter {
                         localContext.setContinueFlag(false);
                     }
                 }
-            } else if (iterNode.getChildren().size() == 2) {
+            } else if (iterNode.getChildren().size() == 3) {
+                // # Init
                 Node initNode = iterNode.getChildren().get(0);
                 start(initNode, localContext);
 
-                if (localContext.isStopFlag())
+                if (localContext.isStopFlag()) {
                     return;
+                }
+
                 Token initToken = localContext.popToken();
                 if (isVariable(initToken)) {
                     initToken = unwrapVariable(initToken, localContext);
@@ -314,20 +317,52 @@ public class Interpreter {
                 if (!initToken.isInteger())
                     throw new InterpreterException("Init value must be an Integer value! -- " + initToken);
 
-                Node limitNode = iterNode.getChildren().get(1);
+                // # Bound
+                final Node boundNode = iterNode.getChildren().get(1);
+                start(boundNode, localContext);
+
+                if (localContext.isStopFlag()) {
+                    return;
+                }
+
+                Token boundToken = localContext.popToken();
+                if (isVariable(boundToken)) {
+                    boundToken = unwrapVariable(boundToken, localContext);
+                }
+
+                final String boundVal = (String) boundToken.getValue();
+                final boolean inclusive = "<RANGE_INCLUSIVE>".equals(boundVal);
+                if (!(inclusive || "<RANGE_EXCLUSIVE>".equals(boundVal))) {
+                    throw new InterpreterException("Range expression must be a '<RANGE_INCLUSIVE>' or '<RANGE_EXCLUSIVE>'. Actual is " + boundVal);
+                }
+
+                final int bound = inclusive ? 1 : 0;
+
+                // # Limit
+                Node limitNode = iterNode.getChildren().get(2);
                 start(limitNode, localContext);
 
-                if (localContext.isStopFlag())
+                if (localContext.isStopFlag()) {
                     return;
+                }
+
                 Token limitToken = localContext.popToken();
                 if (isVariable(limitToken)) {
                     limitToken = unwrapVariable(limitToken, localContext);
                 }
 
-                if (!limitToken.isInteger())
-                    throw new InterpreterException("Limit value must be an Integer value! -- " + limitToken);
+                if (!limitToken.isInteger()) {
+                    throw new InterpreterException("Limitation value must be an Integer value! Actual is " + limitToken);
+                }
 
-                for (int i = initToken.toInteger(); !localContext.isStopFlag() && i < limitToken.toInteger(); i++) {
+                final int start = initToken.toInteger();
+                final int end = limitToken.toInteger();
+                final boolean reversed = start > end;
+
+                for (int i = start;;) {
+                    if (reversed && i <= end - bound) break;
+                    else if (!reversed && i >= end + bound) break;
+
                     assignValue(idToken, new Token(Type.INTEGER, i, iterNode.getToken()), localContext);
                     start(node.getChildren().get(2), localContext);
                     if (localContext.isBreakFlag()) {
@@ -337,6 +372,9 @@ public class Interpreter {
 
                     localContext.setBreakFlag(false);
                     localContext.setContinueFlag(false);
+
+                    if (reversed) i--;
+                    else i++;
                 }
             } else {
                 throw new InterpreterException("Number of <ITERATOR> must be 1 or 2!");
@@ -1324,6 +1362,8 @@ public class Interpreter {
                     name = (String) node.getChildren().get(0).getToken().value;
                 }
                 localContext.setImport(name, clazz);
+            } else if (node.getToken().type == Type.RANGE) {
+                localContext.pushToken(new Token(node.getToken().type, node.getToken().value, node.getToken()));
             } else {
                 throw new InterpreterException("Cannot interpret the unknown node " + node.getToken().type.name());
             }
@@ -1338,6 +1378,4 @@ public class Interpreter {
         Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && "MODIFYPLAYER".equals(value)));
         Parser.addDeprecationSupervisor(((type, value) -> type == Type.ID && value.contains("$")));
     }
-
-
 }
