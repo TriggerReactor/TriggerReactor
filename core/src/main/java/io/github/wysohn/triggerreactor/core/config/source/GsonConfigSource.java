@@ -151,10 +151,7 @@ public class GsonConfigSource implements IConfigSource {
 
     @Override
     public void saveAll() {
-        synchronized (file) {
-            ensureFile();
-            cacheToFile();
-        }
+        saveWorker.saveNow();
     }
 
     /**
@@ -272,9 +269,7 @@ public class GsonConfigSource implements IConfigSource {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            synchronized (cache) {
-                cacheToFile();
-            }
+            saveWorker.saveNow();
         }
     }
 
@@ -292,9 +287,7 @@ public class GsonConfigSource implements IConfigSource {
     @Override
     public String toString() {
         //TODO this would print everything in the cache, which is not desired
-        synchronized (cache) {
-            return cache.toString();
-        }
+        return cache.toString();
     }
 
     class SaveWorker extends Thread {
@@ -324,6 +317,16 @@ public class GsonConfigSource implements IConfigSource {
             return count >= buffer || System.currentTimeMillis() - lastFlush >= maxFlushInterval;
         }
 
+        public void saveNow() {
+            synchronized (file) {
+                ensureFile();
+                cacheToFile();
+
+                count = 0;
+                lastFlush = System.currentTimeMillis();
+            }
+        }
+
         @Override
         public void run() {
             while (running && !Thread.interrupted()) {
@@ -331,22 +334,18 @@ public class GsonConfigSource implements IConfigSource {
                     try {
                         synchronized (this) {
                             wait();
-                            continue;
                         }
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
+
+                    continue;
                 }
 
                 if (running) {
-                    synchronized (file) {
-                        cacheToFile();
-                    }
-                    count = 0;
-                    lastFlush = System.currentTimeMillis();
+                    saveNow();
                 }
             }
-
         }
     }
 }

@@ -59,6 +59,35 @@ public class GsonConfigSourceTest {
     }
 
     @Test
+    public void reload_RBW() throws IOException {
+        // arrange
+        Files.write(configFile.toPath(), "{\"test\": \"val\"}".getBytes());
+
+        // act
+        gsonConfigSource.put("test", "other");
+        gsonConfigSource.reload();
+
+        // assert
+        assertTrue(gsonConfigSource.has("test"));
+        assertTrue(gsonConfigSource.get("test").map(o -> o.equals("val")).orElse(false));
+    }
+
+    @Test
+    public void reload_RBW_prevented() throws IOException {
+        // arrange
+        Files.write(configFile.toPath(), "{\"test\": \"val\"}".getBytes());
+
+        // act
+        gsonConfigSource.put("test", "other");
+        gsonConfigSource.saveAll();
+        gsonConfigSource.reload();
+
+        // assert
+        assertTrue(gsonConfigSource.has("test"));
+        assertTrue(gsonConfigSource.get("test").map(o -> o.equals("other")).orElse(false));
+    }
+
+    @Test
     public void saveAll() {
     }
 
