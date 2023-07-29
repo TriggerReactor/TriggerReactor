@@ -461,11 +461,6 @@ public class Interpreter {
                 final boolean reversed = start > end;
 
                 for (int i = start;;) {
-                    if (context.isStopFlag()) {
-                        context.setStopFlag(false);
-                        break;
-                    }
-
                     if (reversed && i <= end - bound) break;
                     else if (!reversed && i >= end + bound) break;
 
