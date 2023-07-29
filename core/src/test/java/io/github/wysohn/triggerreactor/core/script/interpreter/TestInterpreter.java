@@ -52,6 +52,8 @@ import static org.mockito.Mockito.*;
 
 public class TestInterpreter {
 
+    private static final Charset charset = StandardCharsets.UTF_8;
+
     private TaskSupervisor mockTask;
 
     @Before
@@ -2230,6 +2232,126 @@ public class TestInterpreter {
         interpreter.setVars(vars);
 
         interpreter.startWithContext(null);
+    }
+
+    @Test
+    public void testRangeFor_Exclusive() throws Exception {
+        final String text = String.join(
+            "\n",
+            "FOR i = 0..2",
+            "  #TEST i",
+            "ENDFOR"
+        );
+
+        final Lexer lexer = new Lexer(text, charset);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("TEST", mockExecutor);
+
+        final Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executors);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+    }
+
+    @Test
+    public void testRangeFor_ReversedExclusive() throws Exception {
+        final String text = String.join(
+            "\n",
+            "FOR i = 3..0",
+            "  #TEST i",
+            "ENDFOR"
+        );
+
+        final Lexer lexer = new Lexer(text, charset);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("TEST", mockExecutor);
+
+        final Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executors);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+    }
+
+    @Test
+    public void testRangeFor_Inclusive() throws Exception {
+        final String text = String.join(
+            "\n",
+            "FOR i = 0..=2",
+            "  #TEST i",
+            "ENDFOR"
+        );
+
+        final Lexer lexer = new Lexer(text, charset);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("TEST", mockExecutor);
+
+        final Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executors);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+    }
+
+    @Test
+    public void testRangeFor_ReversedInclusive() throws Exception {
+        final String text = String.join(
+            "\n",
+            "FOR i = 3..=0",
+            "  #TEST i",
+            "ENDFOR"
+        );
+
+        final Lexer lexer = new Lexer(text, charset);
+        final Parser parser = new Parser(lexer);
+
+        final Node root = parser.parse();
+
+        final Map<String, Executor> executors = new HashMap<>();
+        final Executor mockExecutor = mock(Executor.class);
+        when(mockExecutor.evaluate(any(), anyMap(), any(), any())).thenReturn(null);
+        executors.put("TEST", mockExecutor);
+
+        final Interpreter interpreter = new Interpreter(root);
+        interpreter.setExecutorMap(executors);
+        interpreter.setTaskSupervisor(mockTask);
+        interpreter.startWithContext(null);
+
+        InOrder inOrder = inOrder(mockExecutor);
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(3));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(2));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(1));
+        inOrder.verify(mockExecutor).evaluate(any(), anyMap(), any(), eq(0));
     }
 
     @Test
